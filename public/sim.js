@@ -1,6 +1,6 @@
 // Bowfall shared simulation. Runs on the server (authoritative) and in the browser (offline practice).
-// Team rounds: Red vs Blue, last team standing wins the round, first to 5 rounds wins the match.
-// Amber collected on the centre line buys upgrades in the shop that opens every 3 rounds.
+// Red vs Blue: the last team standing wins a game, 3 games take a round (a point), and points win the match.
+// Between rounds everyone picks one of three upgrade cards from their element and role.
 (function (root, factory) {
   const Sim = factory();
   if (typeof module === 'object' && module.exports) module.exports = Sim;
@@ -211,6 +211,33 @@ const ACHIEVEMENTS = {
   lifeline:    { title: 'Lifeline',       desc: 'Revive 5 teammates.',                              stat: 'revive', goal: 5 },
   champion:    { title: 'Champion',       desc: 'Win 10 matches.',                                  stat: 'match', goal: 10 },
 };
+const HAZARD_OUTS = ['lava', 'burn', 'spikes', 'wall', 'crush', 'pit', 'water'];
+// what these events add to one archer's achievement stats: a list of [stat, amount, keepMax]
+function achFromEvents(evs, pid, team) {
+  const out = [];
+  for (const e of evs) switch (e.e) {
+    case 'kill': if (e.k === pid) { out.push(['ko', 1]); if (HAZARD_OUTS.includes(e.c)) out.push(['ring', 1]); if (e.how === 'longshot' && e.m >= 20) out.push(['long', 1, true]); } break;
+    case 'hit': if (e.by === pid && e.cr) out.push(['bull', 1]); break;
+    case 'pinned': if (e.by === pid) out.push(['pin', 1]); break;
+    case 'clutch': if (e.id === pid) { out.push(['clutch', 1, true]); if (e.vs >= 3) out.push(['clutch3', 1, true]); } break;
+    case 'streak': if (e.id === pid) { if (e.s >= 5) out.push(['streak5', 1, true]); if (e.s >= 10) out.push(['streak10', 1, true]); } break;
+    case 'empowered': if (e.id === pid) { out.push(['emp', 1, true]); if (e.s >= 5) out.push(['streak5', 1, true]); } break;
+    case 'gameEnd': if ((e.hl || []).some(h => h.t === 'flawless' && h.tm === team)) out.push(['flawless', 1]); break;
+    case 'chanDone': if (e.id === pid) out.push(['capture', 1]); break;
+    case 'revive': if (e.by === pid) out.push(['revive', 1]); break;
+    case 'matchEnd': if (e.mw === team) out.push(['match', 1]); break;
+  }
+  return out;
+}
+// apply them to a {stats, got} record; returns the achievements newly unlocked
+function achApply(rec, adds) {
+  const st = rec.stats || (rec.stats = {}), got = rec.got || (rec.got = {}), fresh = [];
+  for (const [stat, n, max] of adds) {
+    st[stat] = max ? Math.max(st[stat] || 0, n) : (st[stat] || 0) + n;
+    for (const [k, a] of Object.entries(ACHIEVEMENTS)) if (a.stat === stat && !got[k] && st[stat] >= a.goal) { got[k] = Date.now(); fresh.push(k); }
+  }
+  return fresh;
+}
 function setTitle(w, id, key) {
   const p = w.players.find(q => q.id === id);
   if (!p || (key && !ACHIEVEMENTS[key])) return false;
@@ -235,7 +262,7 @@ const ROLES = {
 ROLES.assassin = { name: 'Assassin', cat: 'Agility', blurb: 'Vanish, get close, and strike first.', premium: true,
   trait: { name: 'Backstab', desc: 'Arrows that hit an enemy from behind deal 40% more damage and knock back 30% harder.' } };
 ROLES.ninja = { name: 'Ninja', cat: 'Agility', blurb: 'Blink in, strike fast, blink out.', premium: true,
-  trait: { name: 'Shadowstep', desc: "No bow: click to throw a shuriken instantly (hold to keep throwing, nearly 3 a second). Each hits softer than an arrow and flies about 500px; bullseye shuriken count as fully drawn shots for your upgrades. Your dash is a near-instant blink toward your cursor instead: about 150px, 2 charges usable back to back, straight over pits and lava. 10 less health, and you take 10% more knockback." } };
+  trait: { name: 'Shadowstep', desc: "No bow: click to throw a shuriken instantly (hold to keep throwing, a little over 2 a second). They're for close range: each hits softer than an arrow, slows down fast and hurts less the further it flies (about 300px); bullseye shuriken count as fully drawn shots for your upgrades. Your dash is a near-instant blink toward your cursor instead: about 150px, 2 charges usable back to back, straight over pits and lava. 10 less health, and you take 10% more knockback." } };
 const TREE_KEYS = Object.keys(ELEMENTS).concat(Object.keys(ROLES));
 const MAX_SLOTS = 2, CAP_PICKS = 2, OFFER_SIZE = 3;
 // tree: which element/role it belongs to ('element' = any element). base: granted free with the element.
@@ -328,7 +355,7 @@ const TREE = {
   fleet:     { tree: 'ranger', name: 'Fleet Foot', desc: '10% higher top speed and a quicker build-up.' },
   dash:      { tree: 'ranger', name: 'Quick Dash', desc: 'Dash recharges 40% faster.' },
   double:    { tree: 'ranger', name: 'Double Dash', desc: 'Hold two dash charges.' },
-  volley:    { tree: 'sniper', active: { cd: 10 }, name: 'Volley', desc: 'Your next shot fires as a burst of three arrows, one after another along your aim. Each deals 65% of the damage and knockback.' },
+  volley:    { tree: 'sniper', also: ['ranger'], active: { cd: 10 }, name: 'Volley', desc: 'Your next shot fires as a burst of three arrows, one after another along your aim. Each deals 65% of the damage and knockback.' },
   quickshot: { tree: 'ranger', name: 'Quickshot', desc: 'For a moment after dashing, your bow draws three times as fast.', reqAny: ['dash', 'double'] },
   surefoot:  { tree: 'ranger', name: 'Sure Footing', desc: 'Bogs, frost, snares and freezes barely hold you, and you can dash out of bogs.' },
   feather:   { tree: 'ranger', trade: true, name: 'Featherweight', desc: '15% faster with a quicker build-up, but you take 30% more knockback.' },
@@ -351,8 +378,8 @@ const TREE = {
 
   barbs:     { tree: 'trapper', name: 'Thorned Tips', desc: 'Hits on rooted, stuck or frozen enemies knock back 50% harder.' },
   harpoon:   { tree: 'trapper', active: { cd: 9 }, name: 'Harpoon', desc: 'Fire a barbed line along your aim (up to 420px). The first enemy it catches is yanked toward you and briefly stuck.' },
-  snare:     { tree: 'trapper', active: { cd: 8 }, name: 'Snare Arrow', desc: 'Your next shot roots whoever it hits for 1.8 seconds.' },
-  trap:      { tree: 'trapper', active: { cd: 10 }, name: 'Bramble Trap', desc: 'Weave a bramble trap at the spot under your cursor (up to 280px away); it takes half a second to set, and you move at half speed meanwhile. An enemy who steps on it is rooted for 2.2 seconds and hurt. Up to 2 at once.' },
+  snare:     { tree: 'trapper', active: { cd: 5 }, name: 'Snare Arrow', desc: 'Your next shot roots whoever it hits for 1.8 seconds.' },
+  trap:      { tree: 'trapper', active: { cd: 10 }, name: 'Bramble Trap', desc: 'Weave a bramble trap at the spot under your cursor (up to 380px away); it takes half a second to set, and you move at half speed meanwhile. An enemy who steps on it is rooted for 2.2 seconds and hurt. Up to 2 at once.' },
   bramble:   { tree: 'trapper', trade: true, name: 'Bramble Coat', desc: 'Enemies who touch you are rooted for 1.4 seconds (once every 3 seconds each), but you move 5% slower.' },
   deeproots: { tree: 'trapper', cap: true, name: 'Deep Roots', desc: 'Your roots last twice as long, and rooted enemies take 25% more damage from you.' },
 };
@@ -620,10 +647,10 @@ function rollOffer(p, avoid = [], opening = false, noAbil = false) {
   if (noAbil) all = all.filter(id => !TREE[id].active);
   // the opening pick is always a choice between abilities from your role
   if (opening) {
-    const abil = shuffle(all.filter(id => TREE[id].active && !TREE[id].cap && TREE[id].tree === p.role));
+    const abil = shuffle(all.filter(id => TREE[id].active && !TREE[id].cap && treesOf(id).includes(p.role)));
     if (abil.length >= 2) return abil.slice(0, OFFER_SIZE);
   }
-  const isRole = id => TREE[id].tree === p.role;
+  const isRole = id => treesOf(id).includes(p.role);
   const offer = [];
   const add = id => { if (id && !offer.includes(id) && offer.length < OFFER_SIZE) offer.push(id); };
   // fresh cards first (not in the hand being rerolled), one from each tree when possible
@@ -805,7 +832,7 @@ function gameRecord(w, winner, timedOut) {
     p: played.map(p => {
       const g = p.g0 || { k: 0, dmg: 0, hits: 0, shots: 0, ring: 0, taken: 0 };
       return {
-        n: p.name, b: p.bot ? 1 : 0, tm: p.team, el: p.element, ro: p.role, hc: p.hcap || 0,
+        id: p.id, n: p.name, b: p.bot ? 1 : 0, tm: p.team, el: p.element, ro: p.role, hc: p.hcap || 0,
         up: p.up.filter(id => TREE[id] && !TREE[id].base), hn: Object.assign({}, p.hones),
         w: winner ? (p.team === winner ? 1 : 0) : 0.5, s: p.dead ? 0 : 1,
         k: p.kills - g.k, dmg: r(p.stats.dmg - g.dmg), tk: r(p.stats.taken - g.taken),
@@ -1334,16 +1361,16 @@ function ninjaBlink(w, p) {
   if (p.stealthT > 0) breakStealth(w, p);
   ev(w, { e: 'nblink', id: p.id, x1: r1(x0), y1: r1(y0), x2: r1(nx), y2: r1(ny) });
 }
-const THROW_CD = 0.36;
+const THROW_CD = 0.42;
 // one shuriken (or a spread with the Multishot powerup); weaker than an arrow, no charging
 function throwStar(w, p, ang) {
   if (p.stealthT > 0) breakStealth(w, p);
   const dbl = p.strikeN > 0; if (dbl) p.strikeN--;
-  const dmg = 7 * (p.dmgMul || 1) * (has(p, 'sharpstar') ? 1.25 : 1) * (dbl ? 1.75 : 1);
+  const dmg = 6 * (p.dmgMul || 1) * (has(p, 'sharpstar') ? 1.25 : 1) * (dbl ? 1.75 : 1);
   const kb = 400 * (p.kbMul || 1) * (p.pw.heavy > 0 ? 1.9 : 1) * (p.emp && p.element === 'stone' ? 1.35 : 1);
   const el = Object.keys(ELEMENTS).find(e => has(p, e)) || null;
   const spread = p.pw.multi > 0 ? [-0.14, 0, 0.14] : [0];
-  for (const off of spread) makeStar(w, p, p.x, p.y, ang + off, { dmg, kb, el, dbl, life: 0.5 });
+  for (const off of spread) makeStar(w, p, p.x, p.y, ang + off, { dmg, kb, el, dbl, life: 0.45 });
   p.stats.shots += spread.length;
   ev(w, { e: 'throw', id: p.id, d: dbl ? 1 : 0 });
 }
@@ -1352,7 +1379,7 @@ function makeStar(w, p, x, y, a, o) {
   w.arrows.push({ id: w.nid++, owner: p.id, team: p.team, color: p.color, own: p,
     x: x + Math.cos(a) * (p.r + 6), y: y + Math.sin(a) * (p.r + 6), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, v0: sp, ang: a, dist: 0, age: 0,
     dmg: o.dmg, kb: o.kb, full: false, crit: false, heavy: false, el: o.el || null, bolt: false, snare: false, rail: false, big: false,
-    drag: 0.6, burst: false, burstOK: !!(o.el && has(p, 'burst')), pierce: 0, hit: [], split: false, curve: false,
+    drag: 2.4, burst: false, burstOK: !!(o.el && has(p, 'burst')), pierce: 0, hit: [], split: false, curve: false,
     bounces: p.pw.ricochet > 0 ? 2 : 0, explosive: p.pw.explosive > 0 && !o.weak, life: o.life || 0.5, stuck: 0, shur: true, star: true, dbl: o.dbl });
 }
 function nearestFoeTo(w, p, x, y, maxD) {
@@ -1416,7 +1443,7 @@ function useAbility(w, p, id) {
       ev(w, { e: 'clone', id: p.id, x: r1(p.x), y: r1(p.y) });
       return true;
     case 'blossom': {
-      const dmg = 7 * (p.dmgMul || 1) * (has(p, 'sharpstar') ? 1.25 : 1), el = Object.keys(ELEMENTS).find(e => has(p, e)) || null;
+      const dmg = 6 * (p.dmgMul || 1) * (has(p, 'sharpstar') ? 1.25 : 1), el = Object.keys(ELEMENTS).find(e => has(p, e)) || null;
       for (let i = 0; i < 12; i++) makeStar(w, p, p.x, p.y, p.aim + i / 12 * TAU, { dmg, kb: 400 * (p.kbMul || 1), el, life: 0.4, weak: true });
       ev(w, { e: 'blossom', id: p.id, x: r1(p.x), y: r1(p.y) });
       return true;
@@ -1691,7 +1718,7 @@ function updateZones(w, dt) {
   }
 }
 
-const TRAP_RANGE = 280, TRAP_SET = 0.5;
+const TRAP_RANGE = 380, TRAP_SET = 0.5;
 const plagueR = p => 110 * p.r / 16;
 function blazePatch(w, owner, x, y, r, t, follow) {
   w.zones.push({ id: w.nid++, ty: 'fire', x, y, r, t, team: owner.team, owner: owner.id, delay: follow ? CLOUD_DELAY : 0, follow: follow || null, q: 1 });
@@ -1936,6 +1963,7 @@ function arrowHit(w, a, f) {
   const backstab = fromBehind && a.own && a.own.role === 'assassin';
   if (backstab) { dmg *= 1.4; kf *= 1.3; ev(w, { e: 'backstab', x: r1(f.x), y: r1(f.y) }); }
   if (fromBehind && has(f, 'quickfeet')) dmg *= 0.85;
+  if (a.star) dmg *= 0.4 + 0.6 * Math.min(1, v / a.v0); // shuriken: full damage up close, much less once they've slowed
   if (a.exec && f.hp < f.maxHp * 0.4) { dmg *= 2; ev(w, { e: 'execute', x: r1(f.x), y: r1(f.y) }); } // Coup de Grace
   // Death Mark: the first hit out of stealth marks the target
   if (a.own && a.own.markReady > 0) { a.own.markReady = 0; f.markT = 5; ev(w, { e: 'marked', id: f.id, x: r1(f.x), y: r1(f.y) }); }
@@ -2590,7 +2618,7 @@ return {
   AW, AH, WALL, GATES, MAPS, MAP_KEYS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, AMBER_BOOST, TRAP_RANGE,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, createWorld, join, leave, addBot, removeBot, setTeam, setBotDifficulty, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
-  setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, setTitle, treesOf, rollOffer, step, snapshot, resetMatch,
+  setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, setTitle, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
   _grant(w, id, cards) { const p = w.players.find(q => q.id === id); for (const c of cards) takeCard(w, p, c); applyStats(p); p.picked = false; return p; },
 };

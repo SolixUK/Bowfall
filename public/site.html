@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bowfall</title>
+<meta name="description" content="Bowfall: team knockback archery in your browser. Pick an element and a role, knock the other team into the lava.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Signika:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #0f1a12; --bg2: #152419; --panel: #1a2c1f; --panel2: #213728; --line: #33503a; --text: #eef3e6; --muted: #9fb39c;
+    --gold: #ffc94a; --gold2: #ffdd85; --red: #ff5a45; --blue: #3d8bff; --ok: #7ddc7a; --bad: #ff6b6b;
+    --display: 'Fredoka', 'Trebuchet MS', sans-serif; --body: 'Signika', 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 400 16px/1.5 var(--body); min-height: 100vh; }
+  body { background-image: linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px); background-size: 40px 40px; }
+  a { color: var(--gold2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  h1, h2, h3 { font-family: var(--display); font-weight: 700; line-height: 1.1; margin: 0; }
+  h1 { font-size: clamp(38px, 7vw, 72px); }
+  h2 { font-size: 28px; }
+  h3 { font-size: 20px; }
+  .wrap { width: min(1100px, 100% - 32px); margin: 0 auto; }
+  header { position: sticky; top: 0; z-index: 5; background: rgba(15,26,18,.9); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
+  header .wrap { display: flex; align-items: center; gap: 18px; height: 60px; }
+  .logo { display: flex; align-items: center; gap: 10px; font: 700 24px var(--display); color: var(--text); }
+  .logo:hover { text-decoration: none; }
+  .logo svg { width: 30px; height: 30px; }
+  nav { display: flex; gap: 4px; flex: 1; overflow-x: auto; }
+  nav a { color: var(--muted); padding: 8px 12px; border-radius: 10px; font: 600 15px var(--display); white-space: nowrap; }
+  nav a:hover, nav a.on { color: var(--text); background: var(--panel); text-decoration: none; }
+  .who { display: flex; gap: 8px; align-items: center; white-space: nowrap; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font: 600 16px var(--display); color: #221a08; background: var(--gold); border: 0; border-radius: 12px; padding: 10px 18px; cursor: pointer; box-shadow: 0 3px 0 #b8871d; }
+  .btn:hover { background: var(--gold2); text-decoration: none; }
+  .btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #b8871d; }
+  .btn.big { font-size: 22px; padding: 14px 30px; border-radius: 14px; }
+  .btn.alt { background: var(--panel2); color: var(--text); box-shadow: 0 3px 0 #0b140d; border: 1px solid var(--line); }
+  .btn.alt:hover { background: #29422f; }
+  .btn.small { font-size: 14px; padding: 6px 12px; border-radius: 9px; }
+  .btn[disabled] { opacity: .5; cursor: default; }
+  main { padding: 28px 0 60px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+  .grid { display: grid; gap: 16px; }
+  .g2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .g3 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 28px; align-items: center; padding: 20px 0 36px; }
+  .hero p { font-size: 19px; color: #d7e2cf; max-width: 560px; }
+  .hero .cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+  .hero canvas { width: 100%; aspect-ratio: 3 / 2; border-radius: 18px; border: 1px solid var(--line); background: #5a8a3a; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font: 600 13px var(--body); background: var(--panel2); color: var(--muted); border: 1px solid var(--line); }
+  .pill.live::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+  .muted { color: var(--muted); }
+  .feat h3 { margin-bottom: 6px; }
+  .feat .ic { font-size: 28px; line-height: 1; margin-bottom: 8px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  th { font: 600 13px var(--body); color: var(--muted); }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: 0; }
+  .empty { padding: 26px; text-align: center; color: var(--muted); }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 14px 0; }
+  .tabs button { font: 600 14px var(--display); color: var(--muted); background: var(--panel); border: 1px solid var(--line); padding: 7px 14px; border-radius: 999px; cursor: pointer; }
+  .tabs button.on { color: #221a08; background: var(--gold); border-color: var(--gold); }
+  form.stack { display: flex; flex-direction: column; gap: 12px; }
+  label { font: 600 14px var(--body); color: var(--muted); display: flex; flex-direction: column; gap: 5px; }
+  input, textarea, select { font: 400 16px var(--body); color: var(--text); background: #0f1a12; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; width: 100%; }
+  textarea { min-height: 130px; resize: vertical; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+  .err { color: var(--bad); font-weight: 600; min-height: 1.2em; }
+  .narrow { max-width: 440px; margin: 0 auto; }
+  .crumbs { color: var(--muted); font-size: 14px; margin-bottom: 8px; }
+  .cat { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+  .cat h3 a { color: var(--text); }
+  .thread-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+  .thread-row .t { font: 600 17px var(--display); color: var(--text); }
+  .tag { display: inline-block; font: 600 11px var(--body); padding: 1px 7px; border-radius: 999px; background: var(--panel2); color: var(--gold); border: 1px solid var(--line); vertical-align: 2px; margin-left: 6px; }
+  .tag.admin { color: #ffb4a8; }
+  .post { display: grid; grid-template-columns: 160px 1fr; gap: 16px; }
+  .post .by { border-right: 1px solid var(--line); padding-right: 14px; }
+  .post .by b { font: 700 17px var(--display); display: block; }
+  .post .body { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .post .meta { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+  .post.deleted .body { color: var(--muted); font-style: italic; }
+  .linkbtn { background: none; border: 0; color: var(--muted); cursor: pointer; font: 600 13px var(--body); padding: 0; }
+  .linkbtn:hover { color: var(--bad); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+  .stat { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+  .stat b { display: block; font: 700 26px var(--display); font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--muted); font-size: 13px; }
+  .achs { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+  .ach { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 12px; opacity: .6; }
+  .ach.got { opacity: 1; border-color: var(--gold); }
+  .ach b { font: 700 16px var(--display); }
+  .ach .bar { height: 6px; background: #0f1a12; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .ach .bar i { display: block; height: 100%; background: var(--gold); }
+  .bars { display: flex; flex-direction: column; gap: 6px; }
+  .bars div { display: grid; grid-template-columns: 110px 1fr 40px; gap: 8px; align-items: center; font-size: 14px; }
+  .bars i { display: block; height: 10px; border-radius: 5px; background: var(--gold); }
+  .srv td:first-child b { font: 600 17px var(--display); }
+  .lock { color: var(--gold); }
+  footer { border-top: 1px solid var(--line); padding: 22px 0; color: var(--muted); font-size: 14px; }
+  .section-h { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin: 34px 0 14px; }
+  @media (max-width: 800px) {
+    .hero { grid-template-columns: 1fr; }
+    .post { grid-template-columns: 1fr; }
+    .post .by { border-right: 0; border-bottom: 1px solid var(--line); padding: 0 0 8px; }
+    header .wrap { gap: 10px; }
+    .logo span { display: none; }
+    .hide-sm { display: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="logo" href="#/" aria-label="Bowfall home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#ffc94a"/><path d="M9 7c9 3 13 9 13 18" stroke="#221a08" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M9 7l13 18" stroke="#221a08" stroke-width="1.5"/><path d="M6 20l14-8" stroke="#ff5a45" stroke-width="2.5" stroke-linecap="round"/><path d="M20 12l-4 .5 1.5 3z" fill="#ff5a45"/></svg>
+      <span>Bowfall</span>
+    </a>
+    <nav id="nav">
+      <a href="/play">Play</a>
+      <a href="#/servers" data-r="servers">Servers</a>
+      <a href="#/leaderboard" data-r="leaderboard">Leaderboard</a>
+      <a href="#/forum" data-r="forum">Forum</a>
+    </nav>
+    <div class="who" id="who"></div>
+  </div>
+</header>
+<main class="wrap" id="app" tabindex="-1"></main>
+<footer><div class="wrap">Bowfall · team knockback archery · <a href="/play">Play now</a></div></footer>
+
+<script src="sim.js"></script>
+<script>
+(() => {
+const Sim = window.BowSim;
+const $ = id => document.getElementById(id);
+const app = $('app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ago = t => { if (!t) return ''; const s = (Date.now() - t) / 1000; if (s < 60) return 'just now'; if (s < 3600) return Math.floor(s / 60) + 'm ago'; if (s < 86400) return Math.floor(s / 3600) + 'h ago'; if (s < 86400 * 30) return Math.floor(s / 86400) + 'd ago'; return new Date(t).toLocaleDateString(); };
+const titleName = k => (k && Sim.ACHIEVEMENTS[k] ? Sim.ACHIEVEMENTS[k].title : '');
+async function api(path, body) {
+  const r = await fetch('/api' + path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), credentials: 'same-origin' } : { credentials: 'same-origin' });
+  let d = {}; try { d = await r.json(); } catch (e) {}
+  if (!r.ok) throw new Error(d.error || 'Something went wrong.');
+  return d;
+}
+let me = null;
+async function loadMe() { try { me = (await api('/me')).user; } catch (e) { me = null; } drawWho(); }
+function drawWho() {
+  $('who').innerHTML = me
+    ? `<a href="#/u/${esc(me.name)}" class="btn alt small">${esc(me.name)}</a><button class="btn alt small" id="outBtn" type="button">Sign out</button>`
+    : `<a href="#/login" class="btn alt small">Sign in</a><a href="#/register" class="btn small hide-sm">Create account</a>`;
+  const o = $('outBtn'); if (o) o.onclick = async () => { await api('/logout', {}); me = null; drawWho(); go('#/'); };
+}
+const go = h => { if (location.hash === h) route(); else location.hash = h; };
+
+// ---------- pages ----------
+const pages = {
+  async home() {
+    const [rooms, forum] = await Promise.all([api('/rooms').catch(() => ({ rooms: [], online: 0 })), api('/forum').catch(() => ({ recent: [] }))]);
+    app.innerHTML = `
+      <section class="hero">
+        <div>
+          <span class="pill live">${rooms.online} playing now</span>
+          <h1 style="margin:14px 0 12px">Knock them<br>into the lava.</h1>
+          <p>Bowfall is team archery where knockback is the weapon. Pick an element and a role, draw your bow and send the other team flying into pits, spikes and each other. Up to 4 a side, bots welcome.</p>
+          <div class="cta"><a class="btn big" href="/play">Play now</a><a class="btn alt big" href="#/servers">Find a game</a></div>
+        </div>
+        <canvas id="heroCv" width="600" height="400" aria-label="An archer knocking another into a pit"></canvas>
+      </section>
+      <div class="grid g3">
+        <div class="card feat" style="border-top:4px solid var(--gold)"><h3>Draw, aim, launch</h3><p class="muted">Hold to draw, release to fire. Fuller draws fly faster and hit harder. Land a bullseye for a critical hit.</p></div>
+        <div class="card feat" style="border-top:4px solid var(--red)"><h3>${Object.keys(Sim.ELEMENTS).length} elements, ${Object.keys(Sim.ROLES).length} roles</h3><p class="muted">${Object.values(Sim.ELEMENTS).map(e => e.name).join(', ')}. Mix one with a role like Ninja or Juggernaut and build it up between rounds.</p></div>
+        <div class="card feat" style="border-top:4px solid var(--blue)"><h3>Climb the board</h3><p class="muted">Sign in to keep your wins, knockouts and achievements, and wear the titles you earn.</p></div>
+      </div>
+      <div class="grid g2" style="margin-top:16px">
+        <div class="card"><div class="section-h" style="margin-top:0"><h2>Open games</h2><a href="#/servers">All games</a></div>${roomTable(rooms.rooms.slice(0, 5), true)}</div>
+        <div class="card"><div class="section-h" style="margin-top:0"><h2>From the forum</h2><a href="#/forum">Forum</a></div>${threadList(forum.recent || [], true)}</div>
+      </div>`;
+    heroArt($('heroCv'));
+  },
+  async servers() {
+    const d = await api('/rooms');
+    app.innerHTML = `
+      <div class="section-h" style="margin-top:0"><div><h1 style="font-size:40px">Games</h1><p class="muted" style="margin:6px 0 0">Public games on this server. Private games don't show here; join those with their code.</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn" href="/play#create">Host a game</a><a class="btn alt" href="/play">Join with a code</a></div></div>
+      <div class="card srv">${roomTable(d.rooms, false)}</div>`;
+    clearInterval(pages._t); pages._t = setInterval(() => { if (location.hash.startsWith('#/servers')) pages.servers(); else clearInterval(pages._t); }, 6000);
+  },
+  async leaderboard(by) {
+    by = by || 'wins';
+    const d = await api('/leaderboard?by=' + by);
+    const L = { wins: 'Game wins', kills: 'Knockouts', matchWins: 'Match wins', games: 'Games played', ring: 'Ring-outs', bull: 'Bullseyes' };
+    app.innerHTML = `<h1 style="font-size:40px">Leaderboard</h1>
+      <div class="tabs">${Object.entries(L).map(([k, v]) => `<button type="button" data-by="${k}" class="${k === by ? 'on' : ''}">${v}</button>`).join('')}</div>
+      <div class="card">${d.rows.filter(r => r.value > 0).length ? `<table><thead><tr><th>#</th><th>Player</th><th class="n">${L[by]}</th><th class="n hide-sm">Games</th><th class="n hide-sm">Wins</th></tr></thead><tbody>
+        ${d.rows.filter(r => r.value > 0).map((r, i) => `<tr><td>${i + 1}</td><td><a href="#/u/${esc(r.name)}"><b>${esc(r.name)}</b></a>${r.title ? `<span class="tag">${esc(titleName(r.title))}</span>` : ''}</td><td class="n"><b>${r.value}</b></td><td class="n hide-sm">${r.games}</td><td class="n hide-sm">${r.wins}</td></tr>`).join('')}
+        </tbody></table>` : '<div class="empty">No one on the board yet. Sign in and play an online game to be first.</div>'}</div>`;
+    app.querySelectorAll('[data-by]').forEach(b => b.onclick = () => go('#/leaderboard/' + b.dataset.by));
+  },
+  async user(name) {
+    const d = await api('/users/' + encodeURIComponent(name)).catch(e => ({ error: e.message }));
+    if (d.error) { app.innerHTML = `<div class="card empty">${esc(d.error)}</div>`; return; }
+    const u = d.user, c = u.career || {}, A = Sim.ACHIEVEMENTS, got = new Set(u.got), mine = me && me.name.toLowerCase() === u.name.toLowerCase();
+    const pct = (a, b) => (b ? Math.round(a / b * 100) + '%' : '–');
+    const bars = (obj, names) => { const e = Object.entries(obj || {}).sort((a, b) => b[1] - a[1]).slice(0, 5), max = e.length ? e[0][1] : 1;
+      return e.length ? `<div class="bars">${e.map(([k, v]) => `<div><span>${esc((names[k] || {}).name || k)}</span><i style="width:${Math.max(4, v / max * 100)}%"></i><span class="muted">${v}</span></div>`).join('')}</div>` : '<p class="muted">No games yet.</p>'; };
+    app.innerHTML = `
+      <div class="section-h" style="margin-top:0"><div><h1 style="font-size:44px">${esc(u.name)}</h1>
+        <p class="muted" style="margin:6px 0 0">${u.title ? `<span class="tag" style="margin:0 6px 0 0">${esc(titleName(u.title))}</span>` : ''}${u.admin ? '<span class="tag admin" style="margin:0 6px 0 0">Admin</span>' : ''}Joined ${new Date(u.created).toLocaleDateString()}</p></div>
+        ${mine ? '<a class="btn" href="/play">Play</a>' : ''}</div>
+      <div class="stats">
+        ${[['Games', c.games || 0], ['Wins', c.wins || 0], ['Win rate', pct(c.wins || 0, c.games || 0)], ['Knockouts', c.kills || 0], ['K/D', c.deaths ? ((c.kills || 0) / c.deaths).toFixed(2) : (c.kills || 0)], ['Accuracy', pct(c.hits || 0, c.shots || 0)], ['Ring-outs', c.ring || 0], ['Matches won', `${c.matchWins || 0} / ${c.matches || 0}`]]
+          .map(([k, v]) => `<div class="stat"><b>${v}</b><span>${k}</span></div>`).join('')}
+      </div>
+      ${mine ? `<div class="card" style="margin-top:16px"><h3>Your title</h3><p class="muted" style="margin:4px 0 10px">Shown next to your name in games and on the forum.</p>
+        <div style="display:flex;gap:8px;max-width:420px"><select id="titleSel"><option value="">No title</option>${Object.keys(A).filter(k => got.has(k)).map(k => `<option value="${k}"${u.title === k ? ' selected' : ''}>${esc(A[k].title)}</option>`).join('')}</select><button class="btn" id="titleSave" type="button">Save</button></div><p class="err" id="titleErr"></p></div>` : ''}
+      <div class="grid g2" style="margin-top:16px">
+        <div class="card"><h3 style="margin-bottom:10px">Favourite roles</h3>${bars(c.roles, Sim.ROLES)}</div>
+        <div class="card"><h3 style="margin-bottom:10px">Favourite elements</h3>${bars(c.els, Sim.ELEMENTS)}</div>
+      </div>
+      <div class="section-h"><h2>Achievements</h2><span class="muted">${got.size} of ${Object.keys(A).length}</span></div>
+      <div class="achs">${Object.entries(A).map(([k, a]) => { const n = Math.min(a.goal, (u.stats || {})[a.stat] || 0);
+        return `<div class="ach${got.has(k) ? ' got' : ''}"><b>${esc(a.title)}</b><div class="muted" style="font-size:14px">${esc(a.desc)}</div><div class="bar"><i style="width:${got.has(k) ? 100 : Math.round(n / a.goal * 100)}%"></i></div></div>`; }).join('')}</div>`;
+    if (mine) $('titleSave').onclick = async () => { try { await api('/title', { title: $('titleSel').value || null }); await loadMe(); pages.user(name); } catch (e) { $('titleErr').textContent = e.message; } };
+  },
+  async forum() {
+    const d = await api('/forum');
+    app.innerHTML = `<h1 style="font-size:40px;margin-bottom:16px">Forum</h1>
+      <div class="grid" style="gap:10px">${d.categories.map(c => `<div class="card cat"><div><h3><a href="#/forum/c/${c.slug}">${esc(c.name)}</a></h3><div class="muted">${esc(c.descr)}</div></div>
+        <div class="muted" style="text-align:right;font-size:14px;white-space:nowrap">${c.threads} ${c.threads === 1 ? 'thread' : 'threads'}${c.last ? `<br>${ago(c.last)}` : ''}</div></div>`).join('')}</div>`;
+  },
+  async cat(slug) {
+    const d = await api('/forum/c/' + slug);
+    const c = d.category, canPost = me && (!c.adminOnly || me.admin);
+    app.innerHTML = `<div class="crumbs"><a href="#/forum">Forum</a> ›</div>
+      <div class="section-h" style="margin-top:0"><div><h1 style="font-size:36px">${esc(c.name)}</h1><p class="muted" style="margin:4px 0 0">${esc(c.descr)}</p></div></div>
+      <div class="card">${threadList(d.threads, false)}</div>
+      <div class="card" style="margin-top:16px">${canPost ? `<h3>Start a thread</h3><form class="stack" id="newT" style="margin-top:10px">
+        <label>Title<input name="title" maxlength="90" required></label><label>Post<textarea name="body" maxlength="5000" required></textarea></label>
+        <p class="err" id="tErr"></p><div><button class="btn" type="submit">Post thread</button></div></form>`
+        : me ? '<p class="muted">Only admins can start threads here.</p>' : '<p class="muted"><a href="#/login">Sign in</a> or <a href="#/register">create an account</a> to start a thread.</p>'}</div>`;
+    const f = $('newT');
+    if (f) f.onsubmit = async e => { e.preventDefault(); try { const r = await api('/forum/threads', { cat: c.slug, title: f.title.value, body: f.body.value }); go('#/forum/t/' + r.id); } catch (err) { $('tErr').textContent = err.message; } };
+  },
+  async thread(id) {
+    const d = await api('/forum/t/' + id);
+    const t = d.thread, admin = me && me.admin;
+    app.innerHTML = `<div class="crumbs"><a href="#/forum">Forum</a> › <a href="#/forum/c/${d.category.slug}">${esc(d.category.name)}</a> ›</div>
+      <div class="section-h" style="margin-top:0"><h1 style="font-size:34px">${esc(t.title)}${t.pinned ? '<span class="tag">Pinned</span>' : ''}${t.locked ? '<span class="tag">Locked</span>' : ''}</h1>
+        ${admin ? `<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn alt small" data-mod="pinned" data-v="${t.pinned ? 0 : 1}" type="button">${t.pinned ? 'Unpin' : 'Pin'}</button><button class="btn alt small" data-mod="locked" data-v="${t.locked ? 0 : 1}" type="button">${t.locked ? 'Unlock' : 'Lock'}</button><button class="btn alt small" data-mod="deleted" data-v="1" type="button">Delete thread</button></div>` : ''}</div>
+      <div class="grid" style="gap:10px">${d.posts.map(p => `<article class="card post${p.deleted ? ' deleted' : ''}">
+        <div class="by"><a href="#/u/${esc(p.author)}"><b>${esc(p.author)}</b></a>${p.authorAdmin ? '<span class="tag admin" style="margin:0">Admin</span> ' : ''}${p.authorTitle ? `<span class="tag" style="margin:0">${esc(titleName(p.authorTitle))}</span>` : ''}</div>
+        <div><div class="meta"><span>${ago(p.created)}</span>${!p.deleted && me && (me.admin || me.name === p.author) ? `<button class="linkbtn" data-del="${p.id}" type="button">Delete</button>` : ''}</div>
+        <div class="body">${p.deleted ? 'This post was deleted.' : esc(p.body)}</div></div></article>`).join('')}</div>
+      <div class="card" style="margin-top:16px">${me ? (t.locked && !admin ? '<p class="muted">This thread is locked.</p>' : `<form class="stack" id="reply"><label>Reply<textarea name="body" maxlength="5000" required></textarea></label><p class="err" id="rErr"></p><div><button class="btn" type="submit">Post reply</button></div></form>`)
+        : '<p class="muted"><a href="#/login">Sign in</a> to reply.</p>'}</div>`;
+    const f = $('reply');
+    if (f) f.onsubmit = async e => { e.preventDefault(); try { await api(`/forum/t/${t.id}/posts`, { body: f.body.value }); pages.thread(id); } catch (err) { $('rErr').textContent = err.message; } };
+    app.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { if (confirm('Delete this post?')) { await api(`/forum/p/${b.dataset.del}/delete`, {}); pages.thread(id); } });
+    app.querySelectorAll('[data-mod]').forEach(b => b.onclick = async () => {
+      if (b.dataset.mod === 'deleted' && !confirm('Delete the whole thread?')) return;
+      await api(`/forum/t/${t.id}/mod`, { [b.dataset.mod]: b.dataset.v === '1' });
+      if (b.dataset.mod === 'deleted') go('#/forum/c/' + d.category.slug); else pages.thread(id);
+    });
+  },
+  auth(kind) {
+    const reg = kind === 'register';
+    app.innerHTML = `<div class="card narrow"><h1 style="font-size:34px;margin-bottom:6px">${reg ? 'Create an account' : 'Sign in'}</h1>
+      <p class="muted" style="margin:0 0 14px">${reg ? 'Keep your stats and achievements, wear titles and post on the forum.' : 'Welcome back.'}</p>
+      <form class="stack" id="authF"><label>Name<input name="name" maxlength="16" autocomplete="username" required></label>
+      <label>Password<input name="password" type="password" maxlength="100" autocomplete="${reg ? 'new-password' : 'current-password'}" required></label>
+      ${reg ? '<p class="muted" style="margin:0;font-size:14px">3 to 16 letters, numbers, _ or -. Password at least 6 characters.</p>' : ''}
+      <p class="err" id="aErr"></p><button class="btn" type="submit">${reg ? 'Create account' : 'Sign in'}</button></form>
+      <p class="muted" style="margin:14px 0 0">${reg ? 'Already have one? <a href="#/login">Sign in</a>' : 'New here? <a href="#/register">Create an account</a>'}</p></div>`;
+    const f = $('authF'); f.name.focus();
+    f.onsubmit = async e => {
+      e.preventDefault();
+      try { me = (await api(reg ? '/register' : '/login', { name: f.name.value.trim(), password: f.password.value })).user; drawWho();
+        const next = new URLSearchParams(location.hash.split('?')[1] || '').get('next');
+        if (next && next.startsWith('/')) location.href = next; else go('#/u/' + me.name);
+      } catch (err) { $('aErr').textContent = err.message; }
+    };
+  },
+};
+function roomTable(list, short) {
+  if (!list.length) return `<div class="empty">No public games right now. <a href="/play#create">Host one</a> and your friends can find it here.</div>`;
+  const ph = { lobby: 'In lobby', pick: 'Picking', pre: 'Playing', play: 'Playing', post: 'Playing', over: 'Finished' };
+  return `<table><thead><tr><th>Game</th>${short ? '' : '<th class="hide-sm">Arena</th>'}<th class="n">Players</th>${short ? '' : '<th class="hide-sm">Status</th>'}<th></th></tr></thead><tbody>
+    ${list.map(r => `<tr><td><b>${esc(r.name || r.host + "'s game")}</b>${r.locked ? ' <span class="tag">Password</span>' : ''}<div class="muted" style="font-size:13px">Host ${esc(r.host)} · ${esc(r.code)}</div></td>
+      ${short ? '' : `<td class="hide-sm">${esc(r.mapName)}</td>`}<td class="n">${r.players}${r.bots ? `<span class="muted"> +${r.bots} bots</span>` : ''}</td>${short ? '' : `<td class="hide-sm">${ph[r.phase] || r.phase}</td>`}
+      <td class="n"><a class="btn small" href="/play?room=${encodeURIComponent(r.code)}">Join</a></td></tr>`).join('')}</tbody></table>`;
+}
+function threadList(list, short) {
+  if (!list.length) return '<div class="empty">Nothing here yet.</div>';
+  return `<div class="grid" style="gap:0">${list.map(t => `<div class="thread-row" style="padding:10px 0;border-bottom:1px solid var(--line)">
+    <div><a class="t" href="#/forum/t/${t.id}">${esc(t.title)}</a>${t.pinned ? '<span class="tag">Pinned</span>' : ''}${t.locked ? '<span class="tag">Locked</span>' : ''}
+    <div class="muted" style="font-size:13px">by ${esc(t.author)}${short && t.catName ? ` in ${esc(t.catName)}` : ''} · ${ago(t.last)}</div></div>
+    <div class="muted" style="font-size:14px">${t.posts} ${t.posts === 1 ? 'post' : 'posts'}</div></div>`).join('')}</div>`;
+}
+// a little scene for the front page: an archer's arrow knocking another toward a pit
+function heroArt(cv) {
+  const g = cv.getContext('2d'); let t0 = performance.now();
+  const frame = now => {
+    if (!document.body.contains(cv)) return;
+    const t = ((now - t0) / 1000) % 3.2;
+    g.fillStyle = '#5a8a3a'; g.fillRect(0, 0, 600, 400);
+    for (let i = 0; i < 40; i++) { g.fillStyle = i % 2 ? 'rgba(122,170,80,.25)' : 'rgba(55,95,35,.25)'; g.beginPath(); g.arc((i * 137) % 600, (i * 89) % 400, 30 + (i % 5) * 8, 0, 7); g.fill(); }
+    g.fillStyle = '#1c130b'; g.fillRect(430, 150, 120, 110); g.fillStyle = '#030202'; g.fillRect(440, 160, 100, 90);
+    g.fillStyle = '#ff5a45'; g.beginPath(); g.arc(110, 205, 22, 0, 7); g.fill(); g.strokeStyle = '#c89b5b'; g.lineWidth = 4; g.beginPath(); g.arc(122, 205, 26, -1, 1); g.stroke();
+    const ax = t < 0.8 ? 140 + t / 0.8 * 180 : -100;
+    if (ax > 0) { g.strokeStyle = '#d8c7a0'; g.lineWidth = 3; g.beginPath(); g.moveTo(ax - 30, 205); g.lineTo(ax, 205); g.stroke(); g.fillStyle = '#fff'; g.beginPath(); g.moveTo(ax + 8, 205); g.lineTo(ax, 200); g.lineTo(ax, 210); g.fill(); }
+    let bx = 330, sc = 1;
+    if (t > 0.8) { const k = Math.min(1, (t - 0.8) / 0.9); bx = 330 + k * 160; if (k >= 1) sc = Math.max(0, 1 - (t - 1.7) / 0.5); }
+    if (sc > 0) { g.save(); g.translate(bx, 205); g.scale(sc, sc); g.rotate(t > 1.7 ? (t - 1.7) * 8 : 0); g.fillStyle = '#3d8bff'; g.beginPath(); g.arc(0, 0, 22, 0, 7); g.fill(); g.restore(); }
+    if (t > 0.8 && t < 1.1) { g.fillStyle = 'rgba(255,255,255,.8)'; g.font = '700 26px Fredoka, sans-serif'; g.fillText('12', 320, 170 - (t - 0.8) * 60); }
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+
+async function route() {
+  const h = (location.hash || '#/').slice(1).split('?')[0];
+  const parts = h.split('/').filter(Boolean);
+  document.querySelectorAll('#nav a[data-r]').forEach(a => a.classList.toggle('on', a.dataset.r === parts[0] || (a.dataset.r === 'forum' && parts[0] === 'forum')));
+  app.innerHTML = '<div class="empty">Loading…</div>';
+  try {
+    if (!parts.length) await pages.home();
+    else if (parts[0] === 'servers') await pages.servers();
+    else if (parts[0] === 'leaderboard') await pages.leaderboard(parts[1]);
+    else if (parts[0] === 'u' && parts[1]) await pages.user(decodeURIComponent(parts[1]));
+    else if (parts[0] === 'forum' && parts[1] === 'c') await pages.cat(parts[2]);
+    else if (parts[0] === 'forum' && parts[1] === 't') await pages.thread(+parts[2]);
+    else if (parts[0] === 'forum') await pages.forum();
+    else if (parts[0] === 'login' || parts[0] === 'register') pages.auth(parts[0]);
+    else app.innerHTML = '<div class="card empty">Page not found. <a href="#/">Home</a></div>';
+    document.title = 'Bowfall' + (parts[0] ? ' · ' + ({ servers: 'Games', leaderboard: 'Leaderboard', forum: 'Forum', u: parts[1], login: 'Sign in', register: 'Create account' }[parts[0]] || '') : '');
+  } catch (e) { app.innerHTML = `<div class="card empty">${esc(e.message)}</div>`; }
+  window.scrollTo(0, 0);
+}
+addEventListener('hashchange', route);
+loadMe().then(route);
+})();
+</script>
+</body>
+</html>

@@ -7,7 +7,7 @@
 <title>Bowfall Duels</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Signika:wght@400;500;600&display=swap">
 <style>
   :root {
     --bg: #15261a;
@@ -24,14 +24,14 @@
   }
   [hidden] { display: none !important; }
   html, body { height: 100%; margin: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Barlow', system-ui, sans-serif; overflow: hidden; }
+  body { background: var(--bg); color: var(--text); font-family: 'Signika', 'Segoe UI', sans-serif; overflow: hidden; }
   .stage { position: relative; width: 100%; height: 100%; }
   canvas { display: block; width: 100%; height: 100%; cursor: none; touch-action: none; }
 
   .hud { position: absolute; top: 0; left: 0; right: 0; height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-inline: 16px; pointer-events: none; }
   .hud-l, .hud-r { display: flex; align-items: center; gap: 22px; }
-  .lbl { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
-  .num { font-family: 'Chakra Petch', monospace; font-weight: 700; font-size: 20px; font-variant-numeric: tabular-nums; line-height: 1; }
+  .lbl { font-size: 12px; letter-spacing: .01em; color: var(--muted); }
+  .num { font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-weight: 700; font-size: 20px; font-variant-numeric: tabular-nums; line-height: 1; }
   .stat { display: flex; flex-direction: column; gap: 4px; }
   .hp { width: 180px; height: 10px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; }
   .hp-fill { height: 100%; background: var(--teal); transition: width .12s; }
@@ -39,16 +39,16 @@
   .dash { width: 54px; height: 6px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; }
   .dash-fill { height: 100%; background: var(--gold); }
   .center-stat { align-items: center; text-align: center; }
-  .hud-btn { pointer-events: auto; font: 600 11px 'Barlow', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 7px 11px; cursor: pointer; }
+  .hud-btn { pointer-events: auto; font: 600 12px 'Signika', 'Segoe UI', sans-serif; letter-spacing: .01em; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 7px 11px; cursor: pointer; }
   .hud-btn:hover { border-color: var(--gold); }
   button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-  .roomtag { font: 600 12px 'Chakra Petch', monospace; color: var(--muted); letter-spacing: .08em; }
+  .roomtag { font: 600 12px 'Fredoka', 'Trebuchet MS', sans-serif; color: var(--muted); letter-spacing: .08em; }
   .roomtag b { color: var(--gold); }
 
   .side { position: absolute; right: 16px; top: 72px; width: 250px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
   .board { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; display: grid; grid-template-columns: 10px 1fr 26px 26px; gap: 5px 8px; align-items: center; font-size: 13px; }
-  .board .h { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-  .board .n { font-variant-numeric: tabular-nums; text-align: right; font-family: 'Chakra Petch', monospace; font-weight: 600; }
+  .board .h { font-size: 12px; letter-spacing: .01em; color: var(--muted); }
+  .board .n { font-variant-numeric: tabular-nums; text-align: right; font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-weight: 600; }
   .board .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .board .me { font-weight: 700; }
   .dot { width: 10px; height: 10px; border-radius: 50%; }
@@ -59,8 +59,8 @@
 
   .abil { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; gap: 10px; pointer-events: none; }
   .ab { position: relative; overflow: hidden; display: flex; align-items: center; gap: 8px; min-width: 150px; padding: 8px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
-  .ab b { font: 700 13px 'Chakra Petch', monospace; letter-spacing: .03em; }
-  .ab small { margin-left: auto; font: 600 12px 'Chakra Petch', monospace; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .ab b { font: 700 13px 'Fredoka', 'Trebuchet MS', sans-serif; letter-spacing: .03em; }
+  .ab small { margin-left: auto; font: 600 12px 'Fredoka', 'Trebuchet MS', sans-serif; color: var(--muted); font-variant-numeric: tabular-nums; }
   .ab.ready { border-color: rgba(255,207,90,.7); }
   .ab.ready small { color: var(--gold); }
   .ab .cdv { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--gold); }
@@ -69,36 +69,36 @@
   @keyframes abpulse { 0% { box-shadow: 0 0 0 0 rgba(255,207,90,.9); transform: scale(1.08); } 100% { box-shadow: 0 0 0 16px rgba(255,207,90,0); transform: none; } }
   .powers { position: absolute; left: 16px; bottom: 14px; display: flex; flex-wrap: wrap; gap: 8px; pointer-events: none; }
   .pchip { display: flex; flex-direction: column; gap: 4px; padding: 6px 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; min-width: 96px; }
-  .pchip b { font: 600 12px 'Chakra Petch', monospace; letter-spacing: .04em; }
+  .pchip b { font: 600 12px 'Fredoka', 'Trebuchet MS', sans-serif; letter-spacing: .04em; }
   .pbar { height: 3px; background: rgba(255,255,255,.1); border-radius: 2px; overflow: hidden; }
   .pbar i { display: block; height: 100%; }
 
   .death { position: absolute; left: 50%; top: 60%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; display: flex; flex-direction: column; gap: 6px; }
-  .death .big { font: 700 34px 'Chakra Petch', monospace; text-transform: uppercase; letter-spacing: .04em; text-shadow: 0 4px 24px rgba(0,0,0,.8); }
-  .death .small { color: var(--text); font: 600 17px 'Barlow', sans-serif; line-height: 1.5; padding: 8px 18px; border-radius: 10px; background: rgba(9,18,11,.7); }
+  .death .big { font: 700 34px 'Fredoka', 'Trebuchet MS', sans-serif; letter-spacing: .01em; text-shadow: 0 4px 24px rgba(0,0,0,.8); }
+  .death .small { color: var(--text); font: 600 17px 'Signika', 'Segoe UI', sans-serif; line-height: 1.5; padding: 8px 18px; border-radius: 10px; background: rgba(9,18,11,.7); }
   .death .small .dim { color: var(--muted); font-weight: 500; font-size: 14px; }
-  .banner { position: absolute; left: 0; right: 0; top: 27%; text-align: center; pointer-events: none; font: 700 clamp(30px, 6vw, 56px) 'Chakra Petch', monospace; letter-spacing: .06em; text-transform: uppercase; text-shadow: 0 4px 30px rgba(0,0,0,.8); opacity: 0; }
+  .banner { position: absolute; left: 0; right: 0; top: 27%; text-align: center; pointer-events: none; font: 700 clamp(30px, 6vw, 56px) 'Fredoka', 'Trebuchet MS', sans-serif; letter-spacing: .01em; text-shadow: 0 4px 30px rgba(0,0,0,.8); opacity: 0; }
   .banner.show { animation: ban 1.8s ease-out forwards; }
-  .banner small { display: block; font: 500 14px 'Barlow', sans-serif; letter-spacing: .2em; color: var(--gold); margin-top: 6px; }
+  .banner small { display: block; font: 500 14px 'Signika', 'Segoe UI', sans-serif; letter-spacing: .2em; color: var(--gold); margin-top: 6px; }
   body.replaying .notices, body.replaying .side, body.replaying .powers, body.replaying .abil, body.replaying .death, body.replaying .hurtfx { opacity: 0 !important; transition: opacity .2s; }
   .replay-badge { position: absolute; left: 50%; top: calc(8vh + 14px); transform: translateX(-50%); display: flex; align-items: center; gap: 10px; pointer-events: none;
-    font: 700 16px 'Chakra Petch', monospace; letter-spacing: .3em; text-transform: uppercase; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,.8); }
-  .replay-badge small { font: 500 12px 'Barlow', sans-serif; letter-spacing: .04em; text-transform: none; color: var(--muted); margin-left: 8px; }
+    font: 700 16px 'Fredoka', 'Trebuchet MS', sans-serif; letter-spacing: .01em; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,.8); }
+  .replay-badge small { font: 500 12px 'Signika', 'Segoe UI', sans-serif; letter-spacing: .04em; text-transform: none; color: var(--muted); margin-left: 8px; }
   .replay-badge .rec { width: 10px; height: 10px; border-radius: 50%; background: #ff4d5e; animation: recb 1s steps(2) infinite; }
   @keyframes recb { 50% { opacity: .2; } }
   .hurtfx { position: absolute; inset: 0; pointer-events: none; opacity: 0; box-shadow: inset 0 0 140px 30px rgba(255,40,40,.55); }
   .notices { position: absolute; left: 0; right: 0; top: 11%; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
-  .notice { padding: 6px 16px; border-radius: 999px; background: rgba(9,18,11,.72); border: 1px solid var(--line); font: 600 16px 'Barlow', sans-serif; text-shadow: 0 2px 10px rgba(0,0,0,.7); animation: note 3s ease-out forwards; text-align: center; max-width: 92vw; }
-  .notice.big { font: 700 20px 'Chakra Petch', monospace; letter-spacing: .04em; text-transform: uppercase; border-color: var(--nc, var(--gold)); color: var(--nc, var(--gold)); }
-  .notice small { display: block; font: 500 12px 'Barlow', sans-serif; letter-spacing: .04em; text-transform: none; color: var(--muted); }
+  .notice { padding: 6px 16px; border-radius: 999px; background: rgba(9,18,11,.72); border: 1px solid var(--line); font: 600 16px 'Signika', 'Segoe UI', sans-serif; text-shadow: 0 2px 10px rgba(0,0,0,.7); animation: note 3s ease-out forwards; text-align: center; max-width: 92vw; }
+  .notice.big { font: 700 20px 'Fredoka', 'Trebuchet MS', sans-serif; letter-spacing: .01em; border-color: var(--nc, var(--gold)); color: var(--nc, var(--gold)); }
+  .notice small { display: block; font: 500 12px 'Signika', 'Segoe UI', sans-serif; letter-spacing: .04em; text-transform: none; color: var(--muted); }
   @keyframes note { 0% { opacity: 0; transform: translateY(-6px); } 8% { opacity: 1; transform: none; } 80% { opacity: 1; } 100% { opacity: 0; } }
   .pchip.emp { border-color: var(--ec); }
   .pchip.emp small { color: var(--muted); font-size: 11px; max-width: 220px; }
   .gamesum { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(520px, calc(100vw - 32px)); box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 22px 26px; border-radius: 14px; background: rgba(9,18,11,.84); border: 1px solid var(--line); border-top: 4px solid var(--tc, var(--gold)); pointer-events: none; text-align: center; animation: gsIn .35s ease-out; }
   .gamesum h2 { font-size: clamp(26px, 5vw, 38px); }
-  .gamesum .gs-sub { color: var(--gold); font: 600 13px 'Barlow', sans-serif; letter-spacing: .16em; text-transform: uppercase; }
+  .gamesum .gs-sub { color: var(--gold); font: 600 13px 'Signika', 'Segoe UI', sans-serif; letter-spacing: .01em; }
   .gamesum ul { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; width: 100%; }
-  .gamesum li { padding: 10px 14px; border-radius: 8px; background: rgba(255,255,255,.05); font: 500 18px 'Barlow', sans-serif; line-height: 1.35; }
+  .gamesum li { padding: 10px 14px; border-radius: 8px; background: rgba(255,255,255,.05); font: 500 18px 'Signika', 'Segoe UI', sans-serif; line-height: 1.35; }
   .gamesum li.praise { animation: praisePop .45s cubic-bezier(.2,1.6,.4,1) both; }
   .gamesum li.t4 { font-size: 20px; background: rgba(255,207,90,.08); }
   .gamesum li.t5 { font-size: 22px; background: rgba(255,207,90,.14); box-shadow: 0 0 0 1px rgba(255,207,90,.5); }
@@ -116,7 +116,7 @@
   .pips i.on { background: var(--ec); }
   .chip2 em.new { color: #7dff8a; margin-left: 6px; }
   .chip2 em.lock { color: var(--muted); margin-left: 6px; }
-  .hcbtn { margin-left: auto; background: none; border: 1px dashed var(--line); color: var(--muted); border-radius: 999px; padding: 2px 8px; font: 600 11px 'Barlow', sans-serif; cursor: pointer; pointer-events: auto; }
+  .hcbtn { margin-left: auto; background: none; border: 1px dashed var(--line); color: var(--muted); border-radius: 999px; padding: 2px 8px; font: 600 11px 'Signika', 'Segoe UI', sans-serif; cursor: pointer; pointer-events: auto; }
   .hcbtn:hover, .hcbtn:focus-visible { color: var(--text); border-color: var(--gold); outline: none; }
   .hcbtn.on { border-style: solid; border-color: #7dff8a; color: #7dff8a; }
   .hcbtn.on.neg, .tag.hc.neg { border-color: #ff9f9f; color: #ff9f9f; }
@@ -129,8 +129,8 @@
   .overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; padding: 16px; background: rgba(9,18,11,.72); overflow-y: auto; }
   .card { margin-block: auto; flex-shrink: 0; width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 18px; padding: 28px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-sizing: border-box; }
   .card.wide { max-width: 760px; }
-  .eyebrow { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
-  h1, h2, h3 { margin: 0; font-family: 'Chakra Petch', monospace; font-weight: 700; text-transform: uppercase; line-height: .95; text-wrap: balance; }
+  .eyebrow { font: 600 14px 'Fredoka', 'Trebuchet MS', sans-serif; letter-spacing: 0; color: var(--gold); }
+  h1, h2, h3 { margin: 0; font-family: 'Fredoka', 'Trebuchet MS', sans-serif; font-weight: 700; line-height: 1; text-wrap: balance; }
   h1 { font-size: clamp(42px, 9vw, 68px); }
   h1 span { color: var(--lava); }
   h2 { font-size: clamp(30px, 6vw, 42px); }
@@ -139,15 +139,31 @@
   .modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
   .mode { display: flex; flex-direction: column; gap: 12px; padding: 16px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; }
   .mode p { font-size: 14px; }
+  .acct { font-size: 14px; color: var(--muted); line-height: 1.5; }
+  .acct b { color: var(--text); }
+  .acct a { color: var(--gold); }
+  .oltabs { display: flex; gap: 4px; background: rgba(0,0,0,.25); padding: 4px; border-radius: 10px; }
+  .oltabs button { flex: 1; font: 600 14px 'Fredoka', 'Trebuchet MS', sans-serif; color: var(--muted); background: none; border: 0; border-radius: 7px; padding: 7px; cursor: pointer; }
+  .oltabs button.on { background: var(--panel); color: var(--text); }
+  .olpane { display: flex; flex-direction: column; gap: 10px; }
+  .roomlist { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; }
+  .rm { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; padding: 8px 10px; border-radius: 8px; background: rgba(255,255,255,.04); border: 1px solid var(--line); }
+  .rm b { font: 600 15px 'Fredoka', 'Trebuchet MS', sans-serif; }
+  .rm small { color: var(--muted); font-size: 12px; grid-column: 1; }
+  .rm button { grid-row: 1 / span 2; grid-column: 2; }
+  .sitelinks { display: flex; gap: 12px; flex-wrap: wrap; font-size: 14px; }
+  .sitelinks a { color: var(--gold); }
+  .roomcfg { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+  .roomcfg .field { flex: 1 1 150px; }
   .field { display: flex; flex-direction: column; gap: 5px; }
   .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
   .row > .field { flex: 1; min-width: 90px; }
-  label { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
-  input, select { font: 500 15px 'Barlow', sans-serif; color: var(--text); background: #122016; border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; min-width: 0; }
-  input.code { font-family: 'Chakra Petch', monospace; letter-spacing: .2em; text-transform: uppercase; }
-  .cta { font: 700 16px 'Chakra Petch', monospace; text-transform: uppercase; letter-spacing: .08em; color: #16110c; background: var(--gold); border: 0; border-radius: 6px; padding: 12px 16px; cursor: pointer; }
+  label { font-size: 12px; letter-spacing: .01em; color: var(--muted); }
+  input, select { font: 500 15px 'Signika', 'Segoe UI', sans-serif; color: var(--text); background: #122016; border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; min-width: 0; }
+  input.code { font-family: 'Fredoka', 'Trebuchet MS', sans-serif; letter-spacing: .2em; text-transform: uppercase; }
+  .cta { font: 700 16px 'Fredoka', 'Trebuchet MS', sans-serif; letter-spacing: .01em; color: #16110c; background: var(--gold); border: 0; border-radius: 6px; padding: 12px 16px; cursor: pointer; }
   .cta:hover { filter: brightness(1.08); }
-  .ghost { font: 600 13px 'Barlow', sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--text); background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; cursor: pointer; }
+  .ghost { font: 600 13px 'Signika', 'Segoe UI', sans-serif; letter-spacing: .01em; color: var(--text); background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; cursor: pointer; }
   .ghost:hover { border-color: var(--gold); }
   .status { font-size: 13px; color: var(--muted); min-height: 1.2em; }
   .status.err { color: var(--red); }
@@ -160,21 +176,21 @@
   .bal-tabs button.on { border-color: var(--gold); color: var(--gold); background: rgba(255,207,90,.08); }
   table.bal td.who { box-shadow: inset 3px 0 0 var(--tc, transparent); }
   table.bal td.low { color: var(--muted); }
-  table.bal td .ci { display: block; font: 500 11px 'Barlow', sans-serif; color: var(--muted); }
+  table.bal td .ci { display: block; font: 500 11px 'Signika', 'Segoe UI', sans-serif; color: var(--muted); }
   table.bal td.good { background: rgba(125,255,138,var(--a)); }
   table.bal td.bad { background: rgba(255,90,90,var(--a)); }
   table.bal .bar { display: inline-block; height: 6px; border-radius: 3px; background: var(--gold); vertical-align: middle; margin-left: 6px; }
   #achScreen { background: rgba(6,12,8,.94); }
   .ach { padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,.03); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; opacity: .6; }
   .ach.got { opacity: 1; border-color: rgba(255,207,90,.6); background: rgba(255,207,90,.06); }
-  .ach h4 { margin: 0; font: 700 15px 'Chakra Petch', monospace; text-transform: uppercase; letter-spacing: .04em; }
+  .ach h4 { margin: 0; font: 700 15px 'Fredoka', 'Trebuchet MS', sans-serif; letter-spacing: .01em; }
   .ach.got h4 { color: var(--gold); }
   .ach .bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,.08); overflow: hidden; }
   .ach .bar i { display: block; height: 100%; background: var(--gold); }
   em.ttl { font-style: normal; color: var(--gold); font-weight: 600; }
   .card.wide.help-card { max-width: 900px; background: #122016; }
   .help-nav { display: flex; flex-wrap: wrap; gap: 6px; position: sticky; top: 0; z-index: 1; box-shadow: 0 8px 12px -8px rgba(0,0,0,.6); margin: -6px -8px 0; padding: 8px; background: #122016; border-bottom: 1px solid var(--line); }
-  .help-nav button { background: rgba(255,255,255,.05); border: 1px solid var(--line); color: var(--text); border-radius: 999px; padding: 6px 12px; font: 600 12px 'Barlow', sans-serif; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; }
+  .help-nav button { background: rgba(255,255,255,.05); border: 1px solid var(--line); color: var(--text); border-radius: 999px; padding: 6px 12px; font: 600 12px 'Signika', 'Segoe UI', sans-serif; letter-spacing: .01em; cursor: pointer; }
   .help-nav button:hover, .help-nav button:focus-visible { border-color: var(--gold); color: var(--gold); outline: none; }
   .help-sec { display: flex; flex-direction: column; gap: 10px; scroll-margin-top: 60px; }
   .help-sec h3 { font-size: 22px; }
@@ -183,23 +199,23 @@
   .help-sec ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
   .help-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
   .help-box { padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,.04); border: 1px solid var(--line); border-left: 3px solid var(--cc, var(--gold)); display: flex; flex-direction: column; gap: 6px; }
-  .help-box h4 { margin: 0; font: 700 15px 'Chakra Petch', monospace; text-transform: uppercase; letter-spacing: .04em; color: var(--cc, var(--text)); }
+  .help-box h4 { margin: 0; font: 700 15px 'Fredoka', 'Trebuchet MS', sans-serif; letter-spacing: .01em; color: var(--cc, var(--text)); }
   .help-box .base { color: var(--text); font-size: 14px; }
   .help-box details summary { cursor: pointer; color: var(--gold); font-size: 13px; }
   .help-box details ul { margin-top: 6px; font-size: 13px; }
   .help-box .tg { margin-left: 4px; }
   .keys { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13px; color: var(--muted); }
-  kbd { font: 600 11px 'Chakra Petch', monospace; padding: 2px 6px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; background: rgba(255,255,255,.04); color: var(--text); }
+  kbd { font: 600 11px 'Fredoka', 'Trebuchet MS', sans-serif; padding: 2px 6px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; background: rgba(255,255,255,.04); color: var(--text); }
   .codebox { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
   .codebox .num { font-size: 34px; letter-spacing: .18em; color: var(--gold); }
   .btnrow { display: flex; gap: 10px; flex-wrap: wrap; }
   .results { display: grid; grid-template-columns: 24px 12px 1fr 50px 50px; gap: 8px 10px; align-items: center; font-size: 15px; }
-  .results .h { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .results .h { font-size: 12px; letter-spacing: .01em; color: var(--muted); }
   .me { font-weight: 700; }
-  .results .n { text-align: right; font: 600 16px 'Chakra Petch', monospace; font-variant-numeric: tabular-nums; }
+  .results .n { text-align: right; font: 600 16px 'Fredoka', 'Trebuchet MS', sans-serif; font-variant-numeric: tabular-nums; }
   .amber-stat .num, .amber-big { color: #ffb84d; }
   .score { display: flex; align-items: center; gap: 16px; }
-  .tscore { font: 700 30px 'Chakra Petch', monospace; font-variant-numeric: tabular-nums; min-width: 22px; text-align: center; }
+  .tscore { font: 700 30px 'Fredoka', 'Trebuchet MS', sans-serif; font-variant-numeric: tabular-nums; min-width: 22px; text-align: center; }
   .tscore.red { color: #ff6b5a; } .tscore.blue { color: #5aa8ff; }
   .tside { display: flex; flex-direction: column; align-items: center; gap: 4px; }
   .gdots { display: flex; gap: 4px; }
@@ -210,16 +226,16 @@
   .pip { width: 7px; height: 7px; border-radius: 50%; }
   .pip.out { background: transparent !important; box-shadow: inset 0 0 0 1px rgba(233,237,242,.35); }
   .board { grid-template-columns: 10px 1fr 22px 30px; }
-  .board .team-h { grid-column: 1 / -1; font: 700 12px 'Chakra Petch', monospace; letter-spacing: .12em; text-transform: uppercase; margin-top: 4px; }
+  .board .team-h { grid-column: 1 / -1; font: 700 12px 'Fredoka', 'Trebuchet MS', sans-serif; letter-spacing: .01em; margin-top: 4px; }
   .board .out { opacity: .38; }
-  .countdown { position: absolute; left: 0; right: 0; top: 44%; text-align: center; pointer-events: none; font: 700 96px 'Chakra Petch', monospace; text-shadow: 0 6px 40px rgba(0,0,0,.8); color: var(--text); }
+  .countdown { position: absolute; left: 0; right: 0; top: 44%; text-align: center; pointer-events: none; font: 700 96px 'Fredoka', 'Trebuchet MS', sans-serif; text-shadow: 0 6px 40px rgba(0,0,0,.8); color: var(--text); }
   .card.shop { max-width: 1240px; }
   .shopbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
   .tree { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px 14px; }
-  .branch h3 span { color: var(--muted); font-weight: 600; letter-spacing: .04em; text-transform: none; font-family: 'Barlow', sans-serif; }
-  .capline { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); border-top: 1px dashed rgba(233,237,242,.15); padding-top: 6px; }
+  .branch h3 span { color: var(--muted); font-weight: 600; letter-spacing: .04em; text-transform: none; font-family: 'Signika', 'Segoe UI', sans-serif; }
+  .capline { font-size: 12px; letter-spacing: .01em; color: var(--muted); border-top: 1px dashed rgba(233,237,242,.15); padding-top: 6px; }
   .node .tags { display: flex; gap: 5px; flex-wrap: wrap; }
-  .node .tg { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; border-radius: 3px; padding: 1px 5px; background: rgba(255,255,255,.06); color: var(--muted); }
+  .node .tg { font-size: 12px; letter-spacing: .1em; border-radius: 3px; padding: 1px 5px; background: rgba(255,255,255,.06); color: var(--muted); }
   .node .tg.act { background: rgba(90,209,255,.14); color: #8fdcff; }
   .node .tg.cap { background: rgba(255,207,90,.14); color: var(--gold); }
   .node.owned { cursor: pointer; }
@@ -230,10 +246,10 @@
   .branch { display: flex; flex-direction: column; gap: 10px; }
   .branch h3 { color: var(--muted); font-size: 12px; letter-spacing: .16em; }
   .tier { display: flex; flex-wrap: wrap; gap: 8px; }
-  .node { flex: 1 1 110px; min-width: 0; text-align: left; display: flex; flex-direction: column; gap: 4px; padding: 10px 11px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,.03); color: var(--text); font: 500 13px 'Barlow', sans-serif; cursor: default; }
-  .node b { font: 700 13px 'Chakra Petch', monospace; letter-spacing: .03em; }
+  .node { flex: 1 1 110px; min-width: 0; text-align: left; display: flex; flex-direction: column; gap: 4px; padding: 10px 11px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,.03); color: var(--text); font: 500 13px 'Signika', 'Segoe UI', sans-serif; cursor: default; }
+  .node b { font: 700 13px 'Fredoka', 'Trebuchet MS', sans-serif; letter-spacing: .03em; }
   .node small { color: var(--muted); font-size: 12px; line-height: 1.35; }
-  .node .st { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .node .st { font-size: 12px; letter-spacing: .1em; color: var(--muted); }
   .node.can { border-color: #ffb84d; cursor: pointer; background: rgba(255,184,77,.08); }
   .node.can:hover { background: rgba(255,184,77,.16); }
   .node.can .st { color: #ffb84d; }
@@ -241,7 +257,7 @@
   .node.owned .st { color: #7dff8a; }
   .node.locked { opacity: .45; }
   .results { grid-template-columns: 12px 1fr 44px 44px 56px; }
-  .results .team-h { grid-column: 1 / -1; font: 700 13px 'Chakra Petch', monospace; letter-spacing: .1em; text-transform: uppercase; margin-top: 6px; }
+  .results .team-h { grid-column: 1 / -1; font: 700 13px 'Fredoka', 'Trebuchet MS', sans-serif; letter-spacing: .1em; margin-top: 6px; }
   .pip { display: block; }
   @media (max-width: 760px) { .tree { grid-template-columns: 1fr; } .score .tscore { font-size: 22px; } }
   .lobby-ov { background: rgba(9,18,11,.5); }
@@ -249,49 +265,49 @@
   .awards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
   .award { display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,.04); border: 1px solid var(--line); border-top: 3px solid var(--gold); }
   .award .lbl { color: var(--gold); }
-  .award b { font: 700 16px 'Chakra Petch', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .award b { font: 700 16px 'Fredoka', 'Trebuchet MS', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .award small { color: var(--muted); font-size: 13px; }
   .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
   table.rank { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 760px; }
   table.rank th { padding: 0; text-align: right; background: rgba(255,255,255,.03); border-bottom: 1px solid var(--line); }
   table.rank th:nth-child(-n+2) { text-align: left; }
-  table.rank th button { width: 100%; background: none; border: 0; color: var(--muted); font: 600 10px 'Barlow', sans-serif; letter-spacing: .14em; text-transform: uppercase; padding: 10px; text-align: inherit; cursor: pointer; }
+  table.rank th button { width: 100%; background: none; border: 0; color: var(--muted); font: 600 12px 'Signika', 'Segoe UI', sans-serif; letter-spacing: .01em; padding: 10px; text-align: inherit; cursor: pointer; }
   table.rank th button:hover { color: var(--text); }
   table.rank th.sorted button { color: var(--gold); }
-  table.rank td { padding: 8px 10px; text-align: right; font: 600 15px 'Chakra Petch', monospace; font-variant-numeric: tabular-nums; border-bottom: 1px solid rgba(233,237,242,.06); }
+  table.rank td { padding: 8px 10px; text-align: right; font: 600 15px 'Fredoka', 'Trebuchet MS', sans-serif; font-variant-numeric: tabular-nums; border-bottom: 1px solid rgba(233,237,242,.06); }
   table.rank td.sorted { background: rgba(255,207,90,.06); }
   table.rank td.best { color: var(--gold); }
-  table.rank td.who { text-align: left; font: 500 14px 'Barlow', sans-serif; box-shadow: inset 3px 0 0 var(--tc); }
+  table.rank td.who { text-align: left; font: 500 14px 'Signika', 'Segoe UI', sans-serif; box-shadow: inset 3px 0 0 var(--tc); }
   table.rank td.who small { display: block; color: var(--muted); font-size: 11px; }
   table.rank td.rk { text-align: left; color: var(--muted); width: 34px; }
   table.rank tr.me td { background: rgba(255,255,255,.04); }
-  table.rank td small.sub { display: block; font: 500 11px 'Barlow', sans-serif; color: var(--muted); }
+  table.rank td small.sub { display: block; font: 500 11px 'Signika', 'Segoe UI', sans-serif; color: var(--muted); }
   .arch { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 10px; background: rgba(255,255,255,.03); border: 1px solid var(--line); }
   .archhead { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-  .archname { font: 700 20px 'Chakra Petch', monospace; text-transform: uppercase; letter-spacing: .05em; color: var(--gold); }
+  .archname { font: 700 20px 'Fredoka', 'Trebuchet MS', sans-serif; letter-spacing: .01em; color: var(--gold); }
   .archrow { display: grid; grid-template-columns: 70px 1fr; gap: 10px; align-items: center; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .chip2 { display: inline-flex; align-items: center; gap: 7px; padding: 7px 11px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,.03); color: var(--text); font: 600 13px 'Barlow', sans-serif; cursor: pointer; }
+  .chip2 { display: inline-flex; align-items: center; gap: 7px; padding: 7px 11px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,.03); color: var(--text); font: 600 13px 'Signika', 'Segoe UI', sans-serif; cursor: pointer; }
   .chip2:hover { border-color: rgba(233,237,242,.35); }
   .chip2.sel { border-color: var(--cc); background: color-mix(in srgb, var(--cc) 16%, transparent); }
   .chip2 i { width: 9px; height: 9px; border-radius: 50%; background: var(--cc); }
-  .chip2 em { font-style: normal; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--cc); }
+  .chip2 em { font-style: normal; font-size: 12px; letter-spacing: .01em; color: var(--cc); }
   .slot .nm small, .board .nm small { display: block; font-size: 11px; color: var(--muted); font-weight: 500; }
   .board .nm small { overflow: hidden; text-overflow: ellipsis; }
   .board .nm small em { font-style: normal; color: #9fb3a4; }
   .pick-ov { background: rgba(9,18,11,.55); }
   .card.pick { max-width: 900px; }
   .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-  .pcard { position: relative; display: flex; flex-direction: column; gap: 8px; min-height: 190px; text-align: left; padding: 18px 16px 16px; border-radius: 12px; border: 1px solid var(--line); border-top: 4px solid var(--cc); background: rgba(255,255,255,.035); color: var(--text); font: 500 14px 'Barlow', sans-serif; cursor: pointer; transition: transform .12s, background .12s; }
+  .pcard { position: relative; display: flex; flex-direction: column; gap: 8px; min-height: 190px; text-align: left; padding: 18px 16px 16px; border-radius: 12px; border: 1px solid var(--line); border-top: 4px solid var(--cc); background: rgba(255,255,255,.035); color: var(--text); font: 500 14px 'Signika', 'Segoe UI', sans-serif; cursor: pointer; transition: transform .12s, background .12s; }
   .pcard:hover:not(:disabled) { transform: translateY(-3px); background: rgba(255,255,255,.07); }
   .pcard:disabled { cursor: default; opacity: .45; }
   .pcard.chosen { opacity: 1; background: color-mix(in srgb, var(--cc) 14%, transparent); border-color: var(--cc); }
-  .pcard b { font: 700 19px 'Chakra Petch', monospace; letter-spacing: .02em; }
+  .pcard b { font: 700 19px 'Fredoka', 'Trebuchet MS', sans-serif; letter-spacing: .02em; }
   .pcard p { margin: 0; color: var(--muted); line-height: 1.45; font-size: 14px; }
-  .pk-tree { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--cc); font-weight: 600; }
+  .pk-tree { font-size: 12px; letter-spacing: .01em; color: var(--cc); font-weight: 600; }
   .pk-key { position: absolute; top: 12px; right: 12px; }
   .pcard .tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: auto; }
-  .tg { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; border-radius: 3px; padding: 2px 6px; background: rgba(255,255,255,.07); color: var(--muted); }
+  .tg { font-size: 12px; letter-spacing: .1em; border-radius: 3px; padding: 2px 6px; background: rgba(255,255,255,.07); color: var(--muted); }
   .tg.act { background: rgba(90,209,255,.14); color: #8fdcff; }
   .tg.cap { background: rgba(255,207,90,.14); color: var(--gold); }
   .build { display: flex; flex-wrap: wrap; gap: 6px; max-width: 560px; }
@@ -303,31 +319,31 @@
   .tcol.spec .specnames { display: flex; flex-wrap: wrap; gap: 8px; }
   .tcol.spec .slot { flex: 0 0 auto; }
   .chatbox { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,.03); border: 1px solid var(--line); }
-  .chatlog { max-height: 130px; min-height: 48px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; font: 500 14px 'Barlow', sans-serif; }
-  .chatbox input, .gchat input { width: 100%; box-sizing: border-box; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: rgba(0,0,0,.35); color: inherit; font: 500 14px 'Barlow', sans-serif; }
+  .chatlog { max-height: 130px; min-height: 48px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; font: 500 14px 'Signika', 'Segoe UI', sans-serif; }
+  .chatbox input, .gchat input { width: 100%; box-sizing: border-box; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: rgba(0,0,0,.35); color: inherit; font: 500 14px 'Signika', 'Segoe UI', sans-serif; }
   .cline { line-height: 1.35; overflow-wrap: anywhere; }
   .cline.sys { color: var(--muted); font-style: italic; }
   .gchat { position: absolute; left: 16px; bottom: 64px; width: min(380px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
-  .gchat-log { max-height: 170px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 3px; font: 500 14px 'Barlow', sans-serif; text-shadow: 0 1px 3px rgba(0,0,0,.9); }
+  .gchat-log { max-height: 170px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 3px; font: 500 14px 'Signika', 'Segoe UI', sans-serif; text-shadow: 0 1px 3px rgba(0,0,0,.9); }
   .gchat-log .cline { animation: cfade 10s forwards; }
   .gchat.open { pointer-events: auto; }
   .gchat.open .gchat-log { overflow-y: auto; background: rgba(9,18,11,.7); border-radius: 8px; padding: 6px 8px; }
   .gchat.open .gchat-log .cline { animation: none; opacity: 1; }
-  .gchat-hint { font: 500 11px 'Barlow', sans-serif; color: var(--muted); opacity: .6; }
+  .gchat-hint { font: 500 11px 'Signika', 'Segoe UI', sans-serif; color: var(--muted); opacity: .6; }
   .gchat.open .gchat-hint { display: none; }
   @keyframes cfade { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
-  .specbar { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 10px; background: rgba(9,18,11,.84); border: 1px solid var(--line); font: 500 14px 'Barlow', sans-serif; }
-  .specbar b { color: var(--gold); letter-spacing: .08em; text-transform: uppercase; font-size: 12px; }
+  .specbar { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 10px; background: rgba(9,18,11,.84); border: 1px solid var(--line); font: 500 14px 'Signika', 'Segoe UI', sans-serif; }
+  .specbar b { color: var(--gold); letter-spacing: .01em; font-size: 12px; }
   .specbar button[disabled] { opacity: .4; }
   body.spectating .hud-l, body.spectating #abil, body.spectating #powers { visibility: hidden; }
   .tcol { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 10px; background: rgba(255,255,255,.03); border: 1px solid var(--line); border-top: 3px solid var(--tc); }
   .thead { display: flex; justify-content: space-between; align-items: baseline; }
-  .thead b { font: 700 18px 'Chakra Petch', monospace; text-transform: uppercase; letter-spacing: .06em; color: var(--tc); }
-  .thead span { font: 600 12px 'Chakra Petch', monospace; color: var(--muted); }
+  .thead b { font: 700 18px 'Fredoka', 'Trebuchet MS', sans-serif; letter-spacing: .01em; color: var(--tc); }
+  .thead span { font: 600 12px 'Fredoka', 'Trebuchet MS', sans-serif; color: var(--muted); }
   .slot { display: flex; align-items: center; gap: 9px; min-height: 36px; padding: 0 10px; border-radius: 6px; background: rgba(255,255,255,.04); font-size: 14px; }
   .slot .nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .slot.empty { background: transparent; border: 1px dashed rgba(233,237,242,.14); color: var(--muted); font-size: 13px; }
-  .tag { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; }
+  .tag { font-size: 12px; letter-spacing: .01em; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; }
   .tag.you { color: var(--gold); border-color: rgba(255,207,90,.5); }
   .xbtn { background: none; border: 0; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; padding: 4px 6px; border-radius: 4px; }
   .xbtn:hover { color: var(--text); background: rgba(255,255,255,.08); }
@@ -336,9 +352,9 @@
   .maps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
   @media (max-width: 980px) { .maps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   #lbPts { min-width: 170px; }
-  .mapcard { display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 8px 8px 10px; border-radius: 10px; border: 2px solid var(--line); background: rgba(255,255,255,.03); color: var(--text); font: 500 13px 'Barlow', sans-serif; cursor: pointer; }
+  .mapcard { display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 8px 8px 10px; border-radius: 10px; border: 2px solid var(--line); background: rgba(255,255,255,.03); color: var(--text); font: 500 13px 'Signika', 'Segoe UI', sans-serif; cursor: pointer; }
   .mapcard canvas { width: 100%; height: auto; border-radius: 6px; display: block; aspect-ratio: 138 / 98; }
-  .mapcard b { font: 700 14px 'Chakra Petch', monospace; letter-spacing: .04em; text-transform: uppercase; padding-inline: 2px; }
+  .mapcard b { font: 700 14px 'Fredoka', 'Trebuchet MS', sans-serif; letter-spacing: .01em; padding-inline: 2px; }
   .mapcard small { color: var(--muted); font-size: 12px; line-height: 1.35; padding-inline: 2px; }
   .mapcard.sel { border-color: var(--gold); background: rgba(255,207,90,.07); }
   .mapcard:disabled { cursor: default; }
@@ -410,14 +426,25 @@
         <div class="mode" id="onlineMode">
           <h3>Play online</h3>
           <div id="onlineOn">
-            <div style="display:flex;flex-direction:column;gap:12px">
-              <button class="cta" id="createBtn" type="button">Create room</button>
+            <div class="acct" id="acctBar"></div>
+            <div class="oltabs" role="tablist"><button type="button" data-ol="browse" class="on">Games</button><button type="button" data-ol="host">Host</button><button type="button" data-ol="code">Code</button></div>
+            <div id="olBrowse" class="olpane"><div class="roomlist" id="roomList"><div class="status">Looking for games…</div></div></div>
+            <div id="olHost" class="olpane" hidden>
+              <div class="field"><label for="rmName">Game name</label><input id="rmName" maxlength="32" autocomplete="off" placeholder="Your game"></div>
               <div class="row">
-                <div class="field"><label for="codeIn">Room code</label><input class="code" id="codeIn" maxlength="4" autocomplete="off" placeholder="ABCD"></div>
+                <div class="field"><label for="rmPub">Who can find it</label><select id="rmPub"><option value="1">Public: in the games list</option><option value="0">Private: code only</option></select></div>
+                <div class="field"><label for="rmPw">Password (optional)</label><input id="rmPw" maxlength="32" autocomplete="off" placeholder="None"></div>
+              </div>
+              <button class="cta" id="createBtn" type="button">Create game</button>
+            </div>
+            <div id="olCode" class="olpane" hidden>
+              <div class="row">
+                <div class="field"><label for="codeIn">Game code</label><input class="code" id="codeIn" maxlength="4" autocomplete="off" placeholder="ABCD"></div>
+                <div class="field" id="pwWrap" hidden><label for="pwIn">Password</label><input id="pwIn" type="password" maxlength="32" autocomplete="off"></div>
                 <button class="ghost" id="joinBtn" type="button">Join</button>
               </div>
-              <span class="status" id="netStatus"></span>
             </div>
+            <span class="status" id="netStatus"></span>
           </div>
           <div id="onlineOff" hidden>
             <p>Online matches run on your own Bowfall server. Start it with <kbd>npm start</kbd>, open the address it prints, and create a room there. Friends join with the room code.</p>
@@ -427,6 +454,7 @@
       <div class="keys">
         <span><kbd>WASD</kbd> move</span><span><kbd>Mouse</kbd> aim</span><span><kbd>Hold click</kbd> draw, release to fire</span><span><kbd>Space</kbd> dash and shove</span><span><kbd>Q</kbd> <kbd>E</kbd> abilities</span><span><kbd>Esc</kbd> menu</span>
       </div>
+      <div class="sitelinks" id="siteLinks" hidden><a href="/">Website</a><a href="/#/servers">All games</a><a href="/#/leaderboard">Leaderboard</a><a href="/#/forum">Forum</a></div>
       <div class="btnrow" style="justify-content:flex-start"><button class="ghost" id="helpBtn" type="button">How to play</button><button class="ghost" id="balBtn" type="button">Balance data</button><button class="ghost" id="achBtn" type="button">Achievements</button></div>
     </div>
   </div>
@@ -439,6 +467,12 @@
         <div class="codebox" id="lbRoom" hidden><div class="stat" style="align-items:flex-end"><span class="lbl">Room code</span><span class="num" id="lbCode"></span></div></div>
       </div>
       <span class="status" id="lbShare" hidden></span>
+      <div class="roomcfg" id="lbRoomCfg" hidden>
+        <div class="field"><label for="lbRmName">Game name</label><input id="lbRmName" maxlength="32" autocomplete="off"></div>
+        <div class="field"><label for="lbRmPub">Listed</label><select id="lbRmPub"><option value="1">Public</option><option value="0">Private</option></select></div>
+        <div class="field"><label for="lbRmPw">Password</label><input id="lbRmPw" maxlength="32" autocomplete="off" placeholder="Unchanged"></div>
+        <button class="ghost" id="lbRmSave" type="button">Save</button><button class="ghost" id="lbRmNoPw" type="button">Remove password</button>
+      </div>
       <div class="teams" id="lbTeams"></div>
       <div class="chatbox" id="lbChat" hidden><div class="chatlog" id="lbChatLog"><div class="cline sys">Chat with everyone in the room here. In game, press Enter to chat.</div></div><input id="lbChatIn" maxlength="140" placeholder="Say something… (Enter to send)" autocomplete="off"></div>
       <div class="arch">
@@ -675,6 +709,7 @@ $('nameIn').addEventListener('change', () => store.set('bowfall-name', $('nameIn
 if (OFFLINE) { $('onlineOn').hidden = true; $('onlineOff').hidden = false; }
 const params = new URLSearchParams(location.search);
 if (params.get('room')) $('codeIn').value = params.get('room').toUpperCase().slice(0, 4);
+setTimeout(() => { if (OFFLINE) return; if (params.get('room')) olTab('code'); else if (location.hash === '#create') olTab('host'); loadAccount(); }, 0);
 
 // ================= audio =================
 let AC = null, noiseBuf = null, muted = store.get('bowfall-muted', '0') === '1';
@@ -737,7 +772,7 @@ const sfx = {
     nz(0.1 + c * 0.06, (0.025 + c * 0.035) * v, 'bandpass', 1800, 700, 1.5, 0.01);   // arrow whoosh
   },
   // full draw: a low, dry wooden click
-  full: () => { nz(0.035, 0.24, 'bandpass', 520, 380, 3); nz(0.06, 0.16, 'lowpass', 320, 150, 1, 0.006); },
+  full: () => { nz(0.02, 0.32, 'highpass', 2500, 3500, 2); os('sine', 200, 150, 0.12, 0.09); tone(1568, 0.14, 'triangle', 0.04); setTimeout(() => tone(2093, 0.12, 'triangle', 0.03), 45); },
   // an ability comes off cooldown: a bright rising "shing", easy to pick out
   ready: () => { os('sine', 1047, 1047, 0.12, 0.05); os('sine', 1568, 1568, 0.18, 0.05, 0.07); os('triangle', 2093, 2093, 0.22, 0.02, 0.07); nz(0.2, 0.05, 'highpass', 6000, 9000, 1, 0.05); },
   hit: crit => { noise(0.08, crit ? 0.16 : 0.1, crit ? 1800 : 1100); tone(crit ? 140 : 200, 0.1, 'square', 0.035, -60); },
@@ -916,7 +951,8 @@ function connect(joinMsg) {
     let m; try { m = JSON.parse(e.data); } catch (err) { return; }
     if (m.t === 'welcome') {
       myId = m.id; mode = 'online'; snaps = []; feed = []; resultsFor = null; menuOpen = false; clearChat();
-      history.replaceState(null, '', '?room=' + m.code);
+      history.replaceState(null, '', (location.pathname.endsWith('.html') ? '' : '/play') + '?room=' + m.code);
+      $('pwWrap').hidden = true; $('pwIn').value = '';
       hc = {}; setScreens();
       status.textContent = '';
     } else if (m.t === 'room') {
@@ -934,6 +970,12 @@ function connect(joinMsg) {
       notice(esc(m.msg), false);
     } else if (m.t === 'chat') {
       addChat(m);
+    } else if (m.t === 'needpw') {
+      // a password-protected game: ask for it on the Code tab
+      olTab('code'); $('codeIn').value = m.code; $('pwWrap').hidden = false; $('pwIn').focus();
+      status.classList.add('err'); status.textContent = m.msg;
+    } else if (m.t === 'ach') {
+      Ach.fromServer(m);
     } else if (m.t === 'err') {
       status.classList.add('err'); status.textContent = m.msg;
     } else if (m.t === 'pong') {
@@ -999,7 +1041,7 @@ const Balance = {
   init() {
     if (this.ready) return this.ready;
     this.ready = (async () => {
-      try { if (window.claude && typeof window.claude.use === 'function') this.db = await window.claude.use('db'); } catch (e) { this.db = null; }
+      try { const H = window.__host; if (H && typeof H.use === 'function') this.db = await H.use('db'); } catch (e) { this.db = null; }
     })();
     return this.ready;
   },
@@ -1161,7 +1203,7 @@ function renderBalance() {
       return { k, sortv: { name: MAPS[k].name, n, len, to, red: redW }, top };
     });
     head = '<tr>' + th('name', 'Arena') + th('n', 'Games') + th('len', 'Average length') + th('to', 'Went to time') + th('red', 'Red side wins') + '<th><button type="button" disabled>Most common ways out</button></th></tr>';
-    body = sortRows(items, 'n').map(it => `<tr><td class="who">${esc(it.sortv.name)}</td><td>${it.sortv.n}</td><td>${Math.round(it.sortv.len)}s</td><td>${pct(it.sortv.to)}</td><td>${pct(it.sortv.red)}</td><td style="text-align:left;font:500 13px 'Barlow',sans-serif">${it.top || '–'}</td></tr>`).join('');
+    body = sortRows(items, 'n').map(it => `<tr><td class="who">${esc(it.sortv.name)}</td><td>${it.sortv.n}</td><td>${Math.round(it.sortv.len)}s</td><td>${pct(it.sortv.to)}</td><td>${pct(it.sortv.red)}</td><td style="text-align:left;font:500 13px 'Signika',sans-serif">${it.top || '–'}</td></tr>`).join('');
     note = 'Arenas are mirrored, so "Red side wins" should sit near 50%. A long average length or lots of games going to time means the arena is too safe.';
   } else {
     const outs = rows.filter(r => r.how), m = groupBy(outs, r => (HOW[r.how] ? HOW[r.how][0] : r.how));
@@ -1189,7 +1231,7 @@ async function openBalance() {
 function closeBalance() { $('balScreen').hidden = true; if (helpFrom && helpFrom.focus) helpFrom.focus(); }
 async function offerFile(filename, text, type) {
   try {
-    const dl = window.claude && window.claude.use ? await window.claude.use('downloads') : null;
+    const dl = window.__host && window.__host.use ? await window.__host.use('downloads') : null;
     if (dl) { await dl.save({ filename, data: new Blob([text], { type }) }); return; }
   } catch (e) { if (e && e.code === 'declined') return; }
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = filename; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
@@ -1227,34 +1269,25 @@ $('balClear').onclick = async () => {
 const Ach = {
   KEY: 'bowfall-ach',
   load() { try { return Object.assign({ stats: {}, got: {}, title: null }, JSON.parse(localStorage.getItem(this.KEY) || '{}')); } catch (e) { return { stats: {}, got: {}, title: null }; } },
-  save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.d)); } catch (e) {} },
-  add(stat, n = 1, max = false) {
-    const st = this.d.stats; st[stat] = max ? Math.max(st[stat] || 0, n) : (st[stat] || 0) + n;
-    for (const [k, a] of Object.entries(Sim.ACHIEVEMENTS)) {
-      if (a.stat !== stat || this.d.got[k] || st[stat] < a.goal) continue;
-      this.d.got[k] = Date.now();
+  save() { if (this.account) return; try { localStorage.setItem(this.KEY, JSON.stringify(this.d)); } catch (e) {} },
+  unlocked(keys) {
+    for (const k of keys) {
+      const a = Sim.ACHIEVEMENTS[k]; if (!a) continue;
       notice(`Achievement unlocked: <b style="color:var(--gold)">${esc(a.title)}</b><small>${esc(a.desc)} You can wear it as a title.</small>`, true, '#ffcf5a');
       fanfare([523, 659, 784, 1047, 784, 1047], 'triangle', 0.05, 90);
     }
+  },
+  // watch game events for the ones that count toward achievements (guests; accounts are tracked by the server)
+  onEvents(evs) {
+    if (this.account || (mode !== 'local' && mode !== 'online')) return;
+    const adds = Sim.achFromEvents(evs, myId, myTeam());
+    if (!adds.length) return;
+    this.unlocked(Sim.achApply(this.d, adds));
     this.save();
   },
-  // watch game events for the ones that count toward achievements
-  onEvents(evs) {
-    if (mode !== 'local' && mode !== 'online') return;
-    const mine = myTeam();
-    for (const e of evs) switch (e.e) {
-      case 'kill': if (e.k === myId) { this.add('ko'); if (['lava', 'burn', 'spikes', 'wall', 'crush', 'pit', 'water'].includes(e.c)) this.add('ring'); if (e.how === 'longshot' && e.m >= 20) this.add('long', 1, true); } break;
-      case 'hit': if (e.by === myId && e.cr) this.add('bull'); break;
-      case 'pinned': if (e.by === myId) this.add('pin'); break;
-      case 'clutch': if (e.id === myId) { this.add('clutch', 1, true); if (e.vs >= 3) this.add('clutch3', 1, true); } break;
-      case 'streak': if (e.id === myId) { if (e.s >= 5) this.add('streak5', 1, true); if (e.s >= 10) this.add('streak10', 1, true); } break;
-      case 'empowered': if (e.id === myId) { this.add('emp', 1, true); if (e.s >= 5) this.add('streak5', 1, true); } break;
-      case 'gameEnd': if ((e.hl || []).some(h => h.t === 'flawless' && h.tm === mine)) this.add('flawless'); break;
-      case 'chanDone': if (e.id === myId) this.add('capture'); break;
-      case 'revive': if (e.by === myId) this.add('revive'); break;
-      case 'matchEnd': if (e.mw === mine) this.add('match'); break;
-    }
-  },
+  // signed in: progress lives on the server, which sends updates as you play online
+  useAccount(u) { this.account = u.name; this.d = { stats: Object.assign({}, (u.ach || {}).stats), got: Object.assign({}, (u.ach || {}).got), title: u.title || null }; hc.titleSent = null; },
+  fromServer(m) { if (!this.account) return; this.d.stats = m.ach.stats || {}; this.d.got = m.ach.got || {}; if (m.keys && m.keys.length) this.unlocked(m.keys); },
 };
 Ach.d = Ach.load();
 function titleName(key) { const a = key && Sim.ACHIEVEMENTS[key]; return a ? a.title : ''; }
@@ -1271,7 +1304,10 @@ function renderAch() {
 function openAch() { renderAch(); helpFrom = document.activeElement; $('achScreen').hidden = false; $('achClose').focus(); }
 function closeAch() { $('achScreen').hidden = true; if (helpFrom && helpFrom.focus) helpFrom.focus(); }
 $('achBtn').onclick = openAch; $('gmAchBtn').onclick = openAch; $('achClose').onclick = closeAch;
-$('titleSel').onchange = () => { Ach.d.title = $('titleSel').value || null; Ach.save(); hc.titleSent = null; };
+$('titleSel').onchange = () => {
+  Ach.d.title = $('titleSel').value || null; Ach.save(); hc.titleSent = null;
+  if (Ach.account) fetch('/api/title', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: Ach.d.title }) });
+};
 // keep the title the game knows about in step with the one you picked
 function syncTitle(me) {
   const want = Ach.d.title && Ach.d.got[Ach.d.title] ? Ach.d.title : null;
@@ -1433,10 +1469,14 @@ $('resLobbyBtn').onclick = () => act({ t: 'lobby' });
 
 function renderLobby(v) {
   const host = isHost(), online = mode === 'online';
-  setC('lbHead', mode + (roomInfo && roomInfo.code), () => {
+  setC('lbCfg', online && host ? JSON.stringify([roomInfo && roomInfo.name, roomInfo && roomInfo.pub, roomInfo && roomInfo.locked]) : '', x => {
+    $('lbRoomCfg').hidden = !x;
+    if (x && roomInfo && document.activeElement !== $('lbRmName')) { $('lbRmName').value = roomInfo.name || ''; $('lbRmPub').value = roomInfo.pub ? '1' : '0'; $('lbRmNoPw').hidden = !roomInfo.locked; }
+  });
+  setC('lbHead', mode + (roomInfo && roomInfo.code) + (roomInfo && [roomInfo.name, roomInfo.pub, roomInfo.locked].join()), () => {
     $('lbEyebrow').textContent = online ? 'Online lobby' : 'Practice lobby';
     $('lbRoom').hidden = !online; $('lbShare').hidden = !online;
-    if (online && roomInfo) { $('lbCode').textContent = roomInfo.code; $('lbShare').textContent = `Friends open ${location.host} and enter this code, or use the link ${location.host}/?room=${roomInfo.code}.`; }
+    if (online && roomInfo) { $('lbCode').textContent = roomInfo.code; $('lbShare').textContent = `${roomInfo.name ? roomInfo.name + ' · ' : ''}${roomInfo.pub ? 'Public' : 'Private'}${roomInfo.locked ? ', password protected' : ''}. Friends can join with the code or the link ${location.host}/play?room=${roomInfo.code}.`; }
   });
   syncTitle(v.p.find(p => p.id === myId));
   setC('lb', JSON.stringify(v.p.map(p => [p.id, p.n, p.tm, p.b, p.c, p.el, p.ro, p.hc, p.ti])) + host + myId + JSON.stringify(roomInfo && [roomInfo.host, roomInfo.spec]), () => { $('lbTeams').innerHTML = teamsHtml(v); });
@@ -1464,7 +1504,7 @@ function renderMenu(v) {
   setC('gmHead', mode + host, () => {
     $('gmEyebrow').textContent = online ? 'Menu · the match keeps running' : 'Paused';
     $('gmRoom').hidden = !online;
-    if (online && roomInfo) { $('gmCode').textContent = roomInfo.code; $('gmShare').textContent = 'Friends open ' + location.host + ' and enter this code.'; }
+    if (online && roomInfo) { $('gmCode').textContent = roomInfo.code; $('gmShare').textContent = 'Friends join with this code or ' + location.host + '/play?room=' + roomInfo.code; }
     $('endBtn').hidden = !host;
     $('gmDiff').disabled = !host;
   });
@@ -1473,12 +1513,64 @@ function renderMenu(v) {
 }
 
 $('practiceBtn').onclick = startPractice;
-$('createBtn').onclick = () => connect({ create: true, map: store.get('bowfall-map', 'meadow'), diff: 'normal' });
+$('rmName').value = store.get('bowfall-room-name', '');
+$('rmPub').value = store.get('bowfall-room-pub', '1');
+$('createBtn').onclick = () => {
+  store.set('bowfall-room-name', $('rmName').value.trim()); store.set('bowfall-room-pub', $('rmPub').value);
+  connect({ create: true, map: store.get('bowfall-map', 'meadow'), diff: 'normal', room: { name: $('rmName').value.trim(), pub: $('rmPub').value === '1', pw: $('rmPw').value } });
+};
 $('joinBtn').onclick = () => {
   const code = $('codeIn').value.trim().toUpperCase();
-  if (code.length !== 4) { $('netStatus').classList.add('err'); $('netStatus').textContent = 'Room codes are 4 letters.'; return; }
-  connect({ code });
+  if (code.length !== 4) { $('netStatus').classList.add('err'); $('netStatus').textContent = 'Game codes are 4 letters.'; return; }
+  connect({ code, pw: $('pwWrap').hidden ? undefined : $('pwIn').value });
 };
+$('pwIn').addEventListener('keydown', e => { if (e.key === 'Enter') $('joinBtn').click(); });
+$('lbRmSave').onclick = () => { const o = { name: $('lbRmName').value, pub: $('lbRmPub').value === '1' }; if ($('lbRmPw').value) o.pw = $('lbRmPw').value; act(Object.assign({ t: 'roomcfg' }, o)); $('lbRmPw').value = ''; };
+$('lbRmNoPw').onclick = () => act({ t: 'roomcfg', pw: '' });
+$('lbRoomCfg').addEventListener('keydown', e => e.stopPropagation());
+
+// ---- games list, hosting and joining by code
+function olTab(k) {
+  document.querySelectorAll('[data-ol]').forEach(b => b.classList.toggle('on', b.dataset.ol === k));
+  $('olBrowse').hidden = k !== 'browse'; $('olHost').hidden = k !== 'host'; $('olCode').hidden = k !== 'code';
+  if (k === 'browse') refreshRooms();
+}
+document.querySelectorAll('[data-ol]').forEach(b => b.onclick = () => olTab(b.dataset.ol));
+let roomsT = 0;
+async function refreshRooms() {
+  if (OFFLINE || mode !== 'menu') return;
+  try {
+    const d = await (await fetch('/api/rooms', { cache: 'no-store' })).json();
+    const ph = { lobby: 'In lobby', pick: 'Picking', pre: 'Playing', play: 'Playing', post: 'Playing', over: 'Finished' };
+    $('roomList').innerHTML = d.rooms.length ? d.rooms.map(r => `<div class="rm"><b>${esc(r.name || r.host + "'s game")}${r.locked ? ' · <span style="color:var(--gold)">password</span>' : ''}</b>
+      <small>${esc(r.mapName)} · ${r.players} ${r.players === 1 ? 'player' : 'players'}${r.bots ? ` + ${r.bots} bots` : ''} · ${ph[r.phase] || r.phase}</small>
+      <button class="ghost" type="button" data-rj="${esc(r.code)}" data-lk="${r.locked ? 1 : 0}">Join</button></div>`).join('')
+      : '<div class="status">No public games right now. Host one, or join a friend\'s with its code.</div>';
+  } catch (e) { $('roomList').innerHTML = '<div class="status">Couldn\'t load the games list.</div>'; }
+}
+$('roomList').addEventListener('click', e => {
+  const b = e.target.closest('[data-rj]'); if (!b) return;
+  if (b.dataset.lk === '1') { olTab('code'); $('codeIn').value = b.dataset.rj; $('pwWrap').hidden = false; $('pwIn').focus(); return; }
+  connect({ code: b.dataset.rj });
+});
+if (!OFFLINE) { refreshRooms(); roomsT = setInterval(() => { if (mode === 'menu' && !$('olBrowse').hidden) refreshRooms(); }, 5000); }
+
+// ---- accounts: sign in on the website; here we just find out who you are
+let account = null;
+async function loadAccount() {
+  if (OFFLINE) return;
+  $('siteLinks').hidden = false;
+  try { account = (await (await fetch('/api/me', { cache: 'no-store' })).json()).user; } catch (e) { account = null; }
+  const back = encodeURIComponent('/play' + location.search);
+  if (account) {
+    $('acctBar').innerHTML = `Signed in as <b>${esc(account.name)}</b> · <a href="/#/u/${encodeURIComponent(account.name)}">Profile</a> · <a href="#" id="signOut">Sign out</a>`;
+    $('nameIn').value = account.name; $('nameIn').disabled = true; $('nameIn').title = 'You play under your account name.';
+    Ach.useAccount(account);
+    $('signOut').onclick = async e => { e.preventDefault(); await fetch('/api/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }); location.reload(); };
+  } else {
+    $('acctBar').innerHTML = `Playing as a guest. <a href="/#/login?next=${back}">Sign in</a> or <a href="/#/register?next=${back}">create an account</a> to keep your stats.`;
+  }
+}
 $('codeIn').addEventListener('keydown', e => { if (e.key === 'Enter') $('joinBtn').click(); });
 $('menuBtn').onclick = () => (menuOpen ? closeMenu() : openMenu());
 $('resumeBtn').onclick = closeMenu;
@@ -1523,7 +1615,7 @@ function handleEvents(evs) {
   for (const e of evs) {
     switch (e.e) {
       case 'fire': sfx.twang(e.c, e.id === myId ? 1 : 0.4); break;
-      case 'full': if (e.id === myId) sfx.full(); break;
+      case 'full': if (e.id === myId) { sfx.full(); const m = view && view.p.find(q => q.id === myId); if (m) fx.rings.push({ x: m.x, y: m.y, r: (m.rz || 16) + 4, life: 0, col: '255,201,74', max: 36 }); } break;
       case 'hit': {
         const col = EL_COL[e.el] || (e.cr ? '#ffffff' : '#ffcf5a');
         burst(e.x, e.y, col, e.cr ? 14 : 8, 160);
@@ -2475,7 +2567,7 @@ function drawSpring(c) {
   // soft green pulse so it reads as "heals" at a glance
   ctx.strokeStyle = `rgba(125,255,170,${0.25 + 0.15 * Math.sin(c * 2.5)})`; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.arc(h.x, h.y, h.r + 14, 0, TAU); ctx.stroke();
-  ctx.fillStyle = 'rgba(125,255,170,0.9)'; ctx.font = "700 14px 'Chakra Petch', monospace"; ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(125,255,170,0.9)'; ctx.font = "700 14px 'Fredoka', 'Trebuchet MS', sans-serif"; ctx.textAlign = 'center';
   for (let i = 0; i < 3; i++) {
     const ph = (c * 0.5 + i / 3) % 1;
     ctx.globalAlpha = 0.7 * (1 - ph);
@@ -2785,7 +2877,7 @@ function drawPlayer(p, isMe, bare) {
     ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(p.x - w / 2, y, w, 4);
     ctx.fillStyle = TEAM_COL[p.tm] || p.c; ctx.fillRect(p.x - w / 2, y, w * clamp(p.hp / (p.mh || 100), 0, 1), 4);
     if (p.hp < 30) { ctx.fillStyle = `rgba(255,255,255,${0.35 + 0.3 * Math.sin(clock * 10)})`; ctx.fillRect(p.x - w / 2, y, w * clamp(p.hp / (p.mh || 100), 0, 1), 4); }
-    ctx.font = "600 12px 'Barlow', sans-serif"; ctx.textAlign = 'center';
+    ctx.font = "600 12px 'Signika', 'Segoe UI', sans-serif"; ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillText(isMe ? 'You' : p.n, p.x + 1, y - 4);
     ctx.fillStyle = isMe ? '#ffffff' : TEAM_COL[p.tm] || p.c; ctx.fillText(isMe ? 'You' : p.n, p.x, y - 5);
     if (isMe) { const by = y - 22 - Math.sin(clock * 4) * 2; ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(p.x - 6, by - 7); ctx.lineTo(p.x + 6, by - 7); ctx.lineTo(p.x, by); ctx.closePath(); ctx.fill(); }
@@ -2857,13 +2949,13 @@ function drawChannel(u) {
   ctx.save(); ctx.translate(u.x, u.y + Math.sin(clock * 2) * 2);
   ctx.fillStyle = '#12161c'; ctx.strokeStyle = C.color; ctx.lineWidth = 2.5;
   ctx.beginPath(); for (let k = 0; k < 6; k++) { const an = k / 6 * TAU + clock * 0.3; k ? ctx.lineTo(Math.cos(an) * 17, Math.sin(an) * 17) : ctx.moveTo(Math.cos(an) * 17, Math.sin(an) * 17); } ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = C.color; ctx.font = "700 14px 'Chakra Petch', monospace"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = C.color; ctx.font = "700 14px 'Fredoka', 'Trebuchet MS', sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(u.ty === 'winter' ? '*' : u.ty === 'thunder' ? 'Z' : '+', 0, 1); ctx.textBaseline = 'alphabetic';
   ctx.restore();
-  ctx.font = "700 12px 'Chakra Petch', monospace"; ctx.textAlign = 'center';
+  ctx.font = "700 12px 'Fredoka', 'Trebuchet MS', sans-serif"; ctx.textAlign = 'center';
   ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillText(C.name.toUpperCase(), u.x + 1, u.y - R0 - 11);
   ctx.fillStyle = C.color; ctx.fillText(C.name.toUpperCase(), u.x, u.y - R0 - 12);
-  if (u.cs) { ctx.fillStyle = `rgba(255,255,255,${0.5 + 0.5 * pulse})`; ctx.font = "600 11px 'Barlow', sans-serif"; ctx.fillText('Contested', u.x, u.y + R0 + 20); }
+  if (u.cs) { ctx.fillStyle = `rgba(255,255,255,${0.5 + 0.5 * pulse})`; ctx.font = "600 11px 'Signika', 'Segoe UI', sans-serif"; ctx.fillText('Contested', u.x, u.y + R0 + 20); }
 }
 function drawPickup(u) {
   if (u.ty === 'amber') return drawAmber(u);
@@ -2878,7 +2970,7 @@ function drawPickup(u) {
   ctx.fillStyle = '#12161c'; ctx.fillRect(-13, -13, 26, 26);
   ctx.strokeStyle = d.color; ctx.lineWidth = 2.5; ctx.strokeRect(-13, -13, 26, 26);
   ctx.restore();
-  ctx.fillStyle = d.color; ctx.font = "700 15px 'Chakra Petch', monospace"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = d.color; ctx.font = "700 15px 'Fredoka', 'Trebuchet MS', sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(d.glyph, u.x, y + 1); ctx.textBaseline = 'alphabetic';
 }
 
@@ -3049,7 +3141,7 @@ function drawMarkers(v, me) {
     ctx.restore();
     if (p.rp > 0) { ctx.strokeStyle = '#7dff8a'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(p.x, p.y, 20, -Math.PI / 2, -Math.PI / 2 + TAU * Math.min(1, p.rp)); ctx.stroke(); }
     if (friendly && me && !me.d && (me.up || []).includes('revive') && Math.hypot(me.x - p.x, me.y - p.y) < 140) {
-      ctx.fillStyle = '#7dff8a'; ctx.font = "600 11px 'Barlow', sans-serif"; ctx.textAlign = 'center'; ctx.fillText('Stand here to revive', p.x, p.y - 26);
+      ctx.fillStyle = '#7dff8a'; ctx.font = "600 11px 'Signika', 'Segoe UI', sans-serif"; ctx.textAlign = 'center'; ctx.fillText('Stand here to revive', p.x, p.y - 26);
     }
   }
 }
@@ -3165,7 +3257,7 @@ function render(replaying) {
   ctx.globalAlpha = 1; ctx.textAlign = 'center';
   for (const f of fx.floaters) {
     ctx.globalAlpha = clamp((0.9 - f.life) * 3, 0, 1);
-    ctx.font = `700 ${f.size}px 'Chakra Petch', monospace`;
+    ctx.font = `700 ${f.size}px 'Fredoka', 'Trebuchet MS', sans-serif`;
     ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillText(f.text, f.x + 1, f.y + 2);
     ctx.fillStyle = f.color; ctx.fillText(f.text, f.x, f.y);
   }

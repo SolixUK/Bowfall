@@ -11,3 +11,9 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "20"
+      # the Postgres connection string from Neon (or any Postgres); Render asks for it when you apply the blueprint
+      - key: DATABASE_URL
+        sync: false
+      # optional: extra admin account names, comma-separated (the first account created is always an admin)
+      - key: ADMIN_USERS
+        sync: false

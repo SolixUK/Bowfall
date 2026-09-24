@@ -1,6 +1,17 @@
 # Bowfall Duels
 
-Top-down knockback archery for teams: Red vs Blue, up to 4 per side, humans and bots mixed however you like, across four arenas. The main menu has a **How to play** screen (also in the in-game menu) that explains everything below.
+Top-down knockback archery for teams, with a website, accounts and a forum: Red vs Blue, up to 4 per side, humans and bots mixed however you like, across four arenas. The main menu has a **How to play** screen (also in the in-game menu) that explains everything below.
+
+## Website, accounts and games list
+
+Run the server and open its address: `/` is the website and `/play` is the game.
+
+- **Website:** a front page with open games and recent forum threads, a **Games** list, a **Leaderboard** (game wins, knockouts, match wins, games played, ring-outs, bullseyes), player **profiles** and a **Forum**.
+- **Accounts:** sign up with a name (3-16 letters, numbers, _ or -) and a password. Passwords are stored as salted scrypt hashes; sessions are an HttpOnly cookie that lasts 30 days. Signed-in players always play under their account name, and guests can't use a registered name (they get a `~` added).
+- **Stats and achievements:** for signed-in players the server records every online game (games, wins, knockouts, deaths, damage, accuracy, ring-outs, matches, favourite roles and elements) and works out achievements itself from the game's events, so they can't be faked from the browser. Titles are chosen on your profile (or in the game's Achievements screen) and only earned ones can be worn. Guests and practice games keep using the browser's own achievement list, as before.
+- **Hosting a game:** in the game, **Play online → Host**: give it a name, choose **Public** (shown in the games list on the site and in the game) or **Private** (join by code only), and optionally a **password**. The host can change all three in the lobby. Joining a game with a password asks for it.
+- **Forum:** categories for News (admins only), General, Builds and tactics, Looking for a game, Bugs and Ideas. Signed-in players can start threads and reply; you can delete your own posts. Admins can pin, lock and delete threads and delete any post. The first account created on a server is an admin; add more with the `ADMIN_USERS` setting (comma-separated names).
+- **Database:** with `DATABASE_URL` set the server uses Postgres (see HOSTING.md for a free one). Without it, everything is kept in `data/db.json`, which is fine on your own computer but is wiped whenever a free host restarts.
 
 ## Lobby
 
@@ -69,12 +80,12 @@ Every role also has a built-in **trait**, always on:
 | --- | --- | --- | --- | --- |
 | Sniper | Power | **Marksman:** arrows 10% faster and up to 20% more damage at long range; 10 less health | Railshot (Q/E) · Volley (Q/E: your next shot fires three arrows in quick succession, 65% damage and knockback each) · Recoil Shot *(new)* (Q/E: next shot knocks back 60% harder and throws you backward) · Steady Draw · Heavy Fletching *or* Longbow · Deadeye (more damage at range, after Longbow) · Piercing Shot · Railshot *(new)* (Q/E: next shot flies 80% faster, never slows and pierces every archer in its path) · Pin (also in the Ranger and Juggernaut trees; a full-draw hit that slams an enemy hard (380px/s or faster) into a wall or boulder within 0.45s pins them for 3s; a long slow slide doesn't count; nothing can move them while pinned, and they can't be pinned again for 4s after) · *Glass Cannon* | Ballista |
 | Juggernaut | Power | **Heavyweight:** 15 more health, bigger body, 20% less knockback taken, heals 2 health a second after 4s unhurt; dashing into enemies shoves them 50% harder; arrows deal 20% less damage; 7% slower | Iron Stance (50% less knockback) · Vitality · Battering Ram · Riot Shield (head-on hits −35% damage, −30% knockback) · Deflect (Q/E: for 1s, head-on arrows bounce back at the shooter with 60% of their power) · Bull Rush *(new)* (Q/E: half-second charge along your aim, barely moved by hits, bulldozing enemies for 9 damage and a big shove) · Fortify *(new)* (Q/E, 11s: 3s of 70% less knockback and 30% less damage, 40% slower) · *Colossus* | Earthshaker (Q/E) |
-| Ranger | Agility | **Light-footed:** 8% faster, dash recharges 20% quicker; 10 less health | Fleet Foot · Quick Dash · Double Dash · Second Wind *(new)* (Q/E: refill your dashes, 40% faster for 4s) · Spotter's Mark (Q/E: enemy nearest your cursor takes 30% more damage from everyone for 5s) · Seeker Arrow *(new)* (Q/E: next shot curves toward the nearest enemy ahead) · Quickshot · Sure Footing · *Featherweight* | Grapple (Q/E) |
+| Ranger | Agility | **Light-footed:** 8% faster, dash recharges 20% quicker; 10 less health | Fleet Foot · Quick Dash · Double Dash · Second Wind *(new)* (Q/E: refill your dashes, 40% faster for 4s) · Volley (Q/E: also in the Sniper tree; next shot fires three arrows in quick succession, 65% damage and knockback each) · Spotter's Mark (Q/E: enemy nearest your cursor takes 30% more damage from everyone for 5s) · Seeker Arrow *(new)* (Q/E: next shot curves toward the nearest enemy ahead) · Quickshot · Sure Footing · *Featherweight* | Grapple (Q/E) |
 | Trickster | Agility | **Nimble Fingers:** draws 12% faster; arrows knock back 10% less | Ricochet · Split Arrow · Curve Shot · Trick Shot *(new)* (Q/E: next shot bounces off walls and boulders up to 3 times, +25% damage and +10% knockback per bounce) · Boomerang *(new)* (Q/E: next shot goes out through enemies and comes back, hitting them again, with 25% more damage) · Smoke Bomb *(new)* (Q/E: a smoke cloud at your cursor for 5s; anyone inside is hidden from enemies outside it, bots included) · *Scattershot* | Arrow Rain (Q/E) |
 | Warden | Utility | **Mender:** you and teammates nearby heal 2 health a second after 4 seconds unhurt; 5% slower | Rally · Bond · Shield Wall (Q/E) *or* Gust (Q/E) · Mending Totem *(new)* (Q/E: a totem at your feet heals you and teammates within 120px 8 health a second for 5s) · *Guardian's Oath* | Revive |
-| Trapper | Utility | **Hunter:** abilities recharge 30% faster, +15% damage to rooted, stuck or frozen enemies | Thorned Tips · Harpoon *(new)* (Q/E: a barbed line along your aim, up to 420px, yanks the first enemy hard toward you and sticks them for 0.5s) · Snare Arrow (Q/E, roots 1.8s) · Bramble Trap (Q/E, woven at your cursor up to 280px away over half a second while you move at half speed, roots 2.2s) · *Bramble Coat* | Deep Roots |
+| Trapper | Utility | **Hunter:** abilities recharge 30% faster, +15% damage to rooted, stuck or frozen enemies | Thorned Tips · Harpoon *(new)* (Q/E: a barbed line along your aim, up to 420px, yanks the first enemy hard toward you and sticks them for 0.5s) · Snare Arrow (Q/E, 5s cooldown, roots 1.8s) · Bramble Trap (Q/E, woven at your cursor up to 380px away over half a second while you move at half speed, roots 2.2s) · *Bramble Coat* | Deep Roots |
 | Assassin *(new)* | Agility | **Backstab:** arrows that hit an enemy from behind deal 40% more damage and knock back 30% harder | Coup de Grâce *(new)* (Q/E: next shot deals double damage to an enemy below 40% health) · Blink *(new)* (Q/E: reappear up to 220px toward your cursor, over pits and lava; doesn't break stealth) · Stealth (Q/E: vanish for 6s and move 30% faster; enemies see only a faint shimmer up close, and bots lose track of you; shooting, abilities, dashing or being hit by an arrow ends it, but burns, poison and blasts don't) · Ambush (draw 60% faster for 2.5s after stealth) · Shadow Dash (dashing keeps stealth; faster dash recharge while hidden) · Light Step (8% faster, 15% less damage from behind) · *Cloak and Dagger* | Death Mark (first hit after stealth: target takes 30% more damage from everyone for 5s) |
-| Ninja *(new)* | Agility | **Shadowstep:** no bow: click to throw a shuriken instantly (hold to keep throwing, nearly 3 a second; 7 damage, light knockback, about 500px; bullseye shuriken count as fully drawn for upgrades). Dash replaced by a very quick ~150px blink toward your cursor (a brief crouch, then a 0.1s streak with afterimages), 2 charges usable back to back, crosses pits and lava. 10 less health, 10% more knockback taken | Shadow Strike (Q/E: teleport behind the enemy nearest your cursor; next 3 shuriken within 1.5s deal 75% more damage) · Shadow Clone (Q/E: vanish for 1.5s and leave a clone that looks real to enemies and throws shuriken for 4s) · Death Blossom (Q/E: 12 shuriken in a ring) · Shadow Mark (Q/E: leave a mark, use again within 5s to snap back to it, even mid-fall) · Honed Stars (+25% shuriken damage) · Flurry (throw 30% faster) · Execution (any damage that leaves an enemy under 15% health knocks them out) · Swift Shadows · Third Step · Phase Step · *Long Step* | Shadow Dance (knockouts refill blinks and reset ability cooldowns) |
+| Ninja *(new)* | Agility | **Shadowstep:** no bow: click to throw a shuriken instantly (hold to keep throwing, a little over 2 a second; 6 damage and light knockback up close, slowing down fast and hurting less the further it flies, about 300px; bullseye shuriken count as fully drawn for upgrades). Dash replaced by a very quick ~150px blink toward your cursor (a brief crouch, then a 0.1s streak with afterimages), 2 charges usable back to back, crosses pits and lava. 10 less health, 10% more knockback taken | Shadow Strike (Q/E: teleport behind the enemy nearest your cursor; next 3 shuriken within 1.5s deal 75% more damage) · Shadow Clone (Q/E: vanish for 1.5s and leave a clone that looks real to enemies and throws shuriken for 4s) · Death Blossom (Q/E: 12 shuriken in a ring) · Shadow Mark (Q/E: leave a mark, use again within 5s to snap back to it, even mid-fall) · Honed Stars (+25% shuriken damage) · Flurry (throw 30% faster) · Execution (any damage that leaves an enemy under 15% health knocks them out) · Swift Shadows · Third Step · Phase Step · *Long Step* | Shadow Dance (knockouts refill blinks and reset ability cooldowns) |
 
 Cards in *italics* are **trade-offs**: something big for a real cost.
 
@@ -156,7 +167,7 @@ The playstyle follows from the bot's role, with some surprises (an aggressive Ra
 
 Every finished game is recorded, with one row per archer: element, role, upgrades and boosts, whether their team won, whether they survived, knockouts, damage dealt and taken, shots and hits, ring-outs, whether they were empowered, and what knocked them out.
 
-- **Practice games** are saved in the artifact's own database when you play the published version, or in your browser's storage otherwise.
+- **Practice games** are saved in your browser's storage (or the page's built-in storage, where the host provides one).
 - **Online games** are appended to `data/games.jsonl` on your server (one JSON object per line; set `BOWFALL_DATA` to store it elsewhere). The server serves it to the game at `/api/balance`.
 - **Simulated games:** `npm run simulate -- 20 2` (matches, team size) plays 20 bot-only 2v2 matches as fast as it can and adds them to the same file, tagged as simulated. Bots don't play like people, so treat this as a first pass.
 
@@ -177,7 +188,7 @@ npm install
 npm start
 ```
 
-Open http://localhost:3000, click **Create room** and share the 4-letter code. People who join go to the smaller team, and anyone can switch in the lobby. If the room is full, a bot gives up its slot.
+Open http://localhost:3000 for the website, or http://localhost:3000/play for the game. In the game, **Play online → Host** creates a game; share its 4-letter code or link. People who join go to the smaller team, and anyone can switch in the lobby. If the room is full, a bot gives up its slot.
 
 **Practice vs bots** runs entirely in the browser and doesn't need the server.
 
@@ -189,16 +200,19 @@ See **HOSTING.md** for step-by-step instructions: a free tunnel from your own co
 - **Same Wi-Fi:** friends open `http://<your computer's local IP>:3000`. On Windows, `ipconfig` shows the IP. On a Mac, check System Settings > Network.
 - **Over the internet:** deploy the folder to any Node host that supports WebSockets (Render, Railway, Fly.io and similar). Use `npm install` as the build command and `npm start` as the start command. The server reads the `PORT` environment variable. You can also forward port 3000 on your router.
 
-Friends can join straight from a link, for example `https://your-host/?room=ABCD`.
+Friends can join straight from a link, for example `https://your-host/play?room=ABCD`, or find public games in the games list.
 
 ## Files
 
 | File | What it does |
 | --- | --- |
 | `public/sim.js` | The whole game: movement, arrows, hazards, teams, rounds, amber, archetypes, upgrade picks, bot AI. Shared by the server and browser. |
-| `server.js` | Serves the game and runs each room at 60 ticks per second. Sends 30 snapshots per second. |
+| `server.js` | Serves the website and game, the JSON API (accounts, profiles, leaderboard, games list, forum), and runs each room at 60 ticks per second with 30 snapshots per second. |
+| `lib/db.js` | Storage: Postgres when `DATABASE_URL` is set, otherwise `data/db.json`. Users, sessions, forum. |
+| `lib/auth.js` | Password hashing (scrypt), session tokens, name rules and rate limits. |
+| `public/site.html` | The website: front page, games list, leaderboard, profiles, forum, sign in. |
 | `public/index.html` | Client: menus, rendering, sound, HUD, pick screen. Online it smooths other players with 100 ms interpolation. |
-| `build-artifact.js` | `npm run build:artifact` builds a single-file offline copy at `dist/bowfall-duels.html`. |
+| `build-offline.js` | `npm run build:offline` builds a single-file offline copy at `dist/bowfall-duels.html`: double-click it to play practice games with no server. |
 
 ## Tuning
 
