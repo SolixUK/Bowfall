@@ -136,3 +136,31 @@ New content tested in 4v4 bot matches (1,800 matches over three runs, final run 
 | Obsidian | -4.8% ± 3.8 |
 
 With six elements the spread is about ±3%, roughly 47–53% win rates. Poison and Flame sit at the top and Void at the bottom; watch those three in real games. Bots don't get full value from stealth or from positioning rifts, so human Assassin and Void players may do better than these numbers.
+
+## Fourth pass: Ninja, Shadow and the new abilities
+
+Four runs of 600 4v4 hard-bot matches (about 9,600 games each). Second-pick abilities were removed before the first run.
+
+Changes along the way:
+
+- **Ninja:** shuriken 7 damage (was 4.5), 400 knockback (was 300), thrown every 0.36s (was 0.45s); 10 less health (was 15) and 10% more knockback taken (was 15%). Shadow Strike: +75% damage on the next 3 shuriken (was double).
+- **Juggernaut:** 15 more health (was 20), 7% less knockback taken (was 13%). Colossus: +30 health (was 40), 35% less knockback (was 40%), dashes 40% harder for +6 (was 60% / +8). Deflect: cooldown 14s (was 12s), reflects 60% (was 70%). Bull Rush: 9 damage and a smaller shove.
+- **Elements:** Void rifts 120px (was 110), 2s (was 1.8s), stronger pull. Flame burn 4.5/s (was 5). Poison 1.6 per stack per second (was 1.8).
+- **Night Terror:** now "enemies you shroud take 25% more damage from your whole team", because shrouds only come from bullseyes.
+- **Weaker cards buffed:** Second Wind (40% faster for 4s, 11s cooldown), Recoil Shot (+60% knockback), Switcheroo (9s, target stuck 0.6s), Boomerang (6s, +25% damage), Harpoon (9s, stronger yank), Fortify (11s), Rally (15%).
+- **Stronger cards trimmed:** Seeker Arrow (gentler curve, 12s), Spotter's Mark (5s).
+
+| | Final run win rate | Regression |
+| --- | --- | --- |
+| Flame | 52.0% | +2.5% ± 1.0 |
+| Poison | 50.8% | |
+| Storm | 49.9% | |
+| Shadow | 49.8% | |
+| Stone | 49.4% | |
+| Frost | 49.1% | |
+| Void | 48.8% | |
+| Juggernaut | 52.7% | +4.0% ± 3.6 |
+| Ninja | 49.4% (was 46.6%) | −5.5% ± 3.4 (its abilities add back about +3%) |
+| Others | 49.1–50.3% | within margin |
+
+Every element and role is now between 48.8% and 52.7%. Still worth watching: Colossus (about +6% in every run), Flame (+2.5%), and Juggernaut overall. Several of the new ability cards swing by ±4% between runs, which is noise at this sample size; bots also play Switcheroo, Boomerang and Shadow Clone less cleverly than people will.

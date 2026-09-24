@@ -224,7 +224,7 @@ const ROLES = {
   sniper:     { name: 'Sniper',     cat: 'Power',   blurb: 'Harder, faster, longer shots.',
     trait: { name: 'Marksman', desc: 'Arrows fly 10% faster and hit up to 20% harder at long range. 10 less health.' } },
   juggernaut: { name: 'Juggernaut', cat: 'Power',   blurb: 'Tough to move, dangerous up close.',
-    trait: { name: 'Heavyweight', desc: '20 more health, a bigger body, 13% less knockback taken, and heals 2 health a second after 4 seconds without being hit. Arrows deal 20% less damage but knock back 20% harder. 7% slower.' } },
+    trait: { name: 'Heavyweight', desc: '15 more health, a bigger body, 7% less knockback taken, and heals 2 health a second after 4 seconds without being hit. Arrows deal 20% less damage but knock back 20% harder. 7% slower.' } },
   ranger:     { name: 'Ranger',     cat: 'Agility', blurb: 'Speed, extra dashes and a grapple.',
     trait: { name: 'Light-footed', desc: '8% faster, and your dash recharges 20% quicker. 10 less health.' } },
   trickster:  { name: 'Trickster',  cat: 'Agility', blurb: 'Bouncing, splitting and bending arrows.',
@@ -237,7 +237,7 @@ const ROLES = {
 ROLES.assassin = { name: 'Assassin', cat: 'Agility', blurb: 'Vanish, get close, and strike first.', premium: true,
   trait: { name: 'Backstab', desc: 'Arrows that hit an enemy from behind deal 40% more damage and knock back 30% harder.' } };
 ROLES.ninja = { name: 'Ninja', cat: 'Agility', blurb: 'Blink in, strike fast, blink out.', premium: true,
-  trait: { name: 'Shadowstep', desc: 'Your dash is a near-instant blink instead: about 150px, 2 charges that can be used back to back, straight over pits and lava. You draw 20% faster, but your arrows only fly about 550px, and you have 15 less health and take 15% more knockback.' } };
+  trait: { name: 'Shadowstep', desc: "No bow: click to throw a shuriken instantly (hold to keep throwing, nearly 3 a second). Each hits softer than an arrow and flies about 500px; bullseye shuriken count as fully drawn shots for your upgrades. Your dash is a near-instant blink toward your cursor instead: about 150px, 2 charges usable back to back, straight over pits and lava. 10 less health, and you take 10% more knockback." } };
 const TREE_KEYS = Object.keys(ELEMENTS).concat(Object.keys(ROLES));
 const MAX_SLOTS = 2, CAP_PICKS = 2, OFFER_SIZE = 3;
 // tree: which element/role it belongs to ('element' = any element). base: granted free with the element.
@@ -267,8 +267,8 @@ const TREE = {
   aftershock:{ tree: 'stone', name: 'Aftershock', desc: 'Fully drawn hits send a shockwave that shoves every other enemy nearby away.' },
   petrify:   { tree: 'stone', name: 'Petrify', desc: "Staggered enemies can't dash." },
   obsidian:  { tree: 'stone', trade: true, name: 'Obsidian', desc: 'Your arrows knock back 30% harder, but fly 8% slower.' },
-  void:      { tree: 'void', base: true, name: 'Void Arrows', desc: 'A moment after a bullseye hit, a rift opens where the target lands. For 1.8 seconds it pulls them and every enemy nearby toward its centre and slows them by 30%.' },
-  horizon:   { tree: 'void', name: 'Event Horizon', desc: 'Rifts are 30% bigger, pull harder and last 2.8 seconds.' },
+  void:      { tree: 'void', base: true, name: 'Void Arrows', desc: 'A moment after a bullseye hit, a rift opens where the target lands. For 2 seconds it pulls them and every enemy nearby toward its centre and slows them by 30%.' },
+  horizon:   { tree: 'void', name: 'Event Horizon', desc: 'Rifts are 30% bigger, pull harder and last 3 seconds.' },
   collapse:  { tree: 'void', name: 'Collapse', desc: 'When a rift ends it bursts, throwing enemies inside it outward.' },
   nullfield: { tree: 'void', name: 'Null Field', desc: "Enemies inside your rifts can't dash." },
   unstable:  { tree: 'void', trade: true, name: 'Unstable Rift', desc: 'Rifts are 50% bigger, but your arrows deal 8% less damage.' },
@@ -279,30 +279,33 @@ const TREE = {
   cloak:     { tree: 'assassin', trade: true, name: 'Cloak and Dagger', desc: 'Stealth lasts 9 seconds, but you have 10 less health.', req: ['stealth'] },
   quickfeet: { tree: 'assassin', name: 'Light Step', desc: '8% faster, and you take 15% less damage from behind.' },
   deathmark: { tree: 'assassin', cap: true, name: 'Death Mark', desc: 'Your first hit after stealth ends marks the target: they take 30% more damage from everyone for 5 seconds.' },
-  shadow:    { tree: 'shadow', base: true, name: 'Shadow Arrows', desc: 'Hits shroud the target for 2.5 seconds: darkness closes in until they can only see 170px around themselves. Shrouded bots lose track of anyone further away and aim worse.' },
+  shadow:    { tree: 'shadow', base: true, name: 'Shadow Arrows', desc: 'Bullseye hits shroud the target for 2.5 seconds: darkness closes in until they can only see 170px around themselves. Shrouded bots lose track of anyone further away and aim worse.' },
   blinding:  { tree: 'shadow', name: 'Blinding Dark', desc: 'Your shroud closes in to 100px, and shrouded bots aim far worse.' },
   creeping:  { tree: 'shadow', name: 'Creeping Dark', desc: 'Shrouded enemies move 15% slower.' },
-  terror:    { tree: 'shadow', name: 'Night Terror', desc: 'Hits on shrouded enemies deal 20% more damage.' },
+  terror:    { tree: 'shadow', name: 'Night Terror', desc: 'Enemies you shroud take 25% more damage from your whole team.' },
   lingering: { tree: 'shadow', trade: true, name: 'Lingering Dark', desc: 'Your shrouds last 5 seconds, but your arrows knock back 15% less.' },
 
-  flash:     { tree: 'ninja', active: { cd: 9 }, name: 'Flash Strike', desc: 'Blink up to 240px toward your cursor, cutting every enemy you pass through for 12 damage and throwing them along your path.' },
-  shuriken:  { tree: 'ninja', active: { cd: 7 }, name: 'Shuriken Fan', desc: 'Throw five shuriken in a fan along your aim. Each deals 6 damage with a small knockback, over a short range.' },
-  caltrops:  { tree: 'ninja', active: { cd: 10 }, name: 'Caltrops', desc: 'Scatter caltrops around you for 5 seconds. Enemies in them move 40% slower and take 5 damage a second.' },
+  sstrike:   { tree: 'ninja', active: { cd: 10 }, name: 'Shadow Strike', desc: 'Teleport behind the enemy nearest your cursor (up to 360px away). Your next 3 shuriken within 1.5 seconds deal 75% more damage.' },
+  clone:     { tree: 'ninja', active: { cd: 14 }, name: 'Shadow Clone', desc: 'Vanish for 1.5 seconds and leave a clone behind that throws shuriken at the nearest enemy for 4 seconds.' },
+  blossom:   { tree: 'ninja', active: { cd: 9 }, name: 'Death Blossom', desc: 'Throw a ring of 12 shuriken in every direction at once.' },
+  recall:    { tree: 'ninja', active: { cd: 12 }, name: 'Shadow Mark', desc: 'Leave a mark where you stand. Use it again within 5 seconds to snap straight back to it (if you fall or are knocked away, this is your way home).' },
+  sharpstar: { tree: 'ninja', name: 'Honed Stars', desc: 'Your shuriken deal 25% more damage.' },
+  flurry:    { tree: 'ninja', name: 'Flurry', desc: 'You throw 30% faster.' },
+  execution: { tree: 'ninja', name: 'Execution', desc: 'Any damage you deal to an enemy that leaves them below 15% health knocks them out on the spot.' },
   swiftstep: { tree: 'ninja', name: 'Swift Shadows', desc: 'Your blinks recharge 35% faster.' },
   thirdstep: { tree: 'ninja', name: 'Third Step', desc: 'Hold three blink charges.' },
   phase:     { tree: 'ninja', name: 'Phase Step', desc: 'Arrows pass straight through you for a quarter of a second after each blink.' },
-  flicker:   { tree: 'ninja', name: 'Flicker Draw', desc: 'For a moment after each blink, your bow draws three times as fast.' },
   longstep:  { tree: 'ninja', trade: true, name: 'Long Step', desc: 'Your blinks go 40% further, but you take 15% more knockback.' },
   dance:     { tree: 'ninja', cap: true, name: 'Shadow Dance', desc: 'Every knockout you get refills your blinks and resets your ability cooldowns.' },
 
-  recoil:    { tree: 'sniper', active: { cd: 9 }, name: 'Recoil Shot', desc: 'Your next shot knocks back 40% harder and throws you backward, away from where you shot.' },
-  spot:      { tree: 'sniper', active: { cd: 12 }, name: "Spotter's Mark", desc: 'Mark the enemy nearest your cursor for 6 seconds: they take 30% more damage from everyone.' },
-  rush:      { tree: 'juggernaut', active: { cd: 10 }, name: 'Bull Rush', desc: 'Charge along your aim for half a second, barely moved by hits, bulldozing every enemy in the way for 12 damage and a huge shove.' },
-  fortify:   { tree: 'juggernaut', active: { cd: 14 }, name: 'Fortify', desc: 'For 3 seconds take 70% less knockback and 30% less damage, but move 40% slower.' },
-  wind:      { tree: 'ranger', active: { cd: 13 }, name: 'Second Wind', desc: 'Refill all your dashes and move 30% faster for 3 seconds.' },
-  seeker:    { tree: 'ranger', active: { cd: 10 }, name: 'Seeker Arrow', desc: 'Your next shot curves toward the nearest enemy ahead of it.' },
-  swap:      { tree: 'trickster', active: { cd: 12 }, name: 'Switcheroo', desc: 'If your next shot hits an enemy, you swap places with them.' },
-  boomerang: { tree: 'trickster', active: { cd: 9 }, name: 'Boomerang', desc: 'Your next shot flies out, passes through enemies and comes back to you, able to hit each of them again on the way.' },
+  recoil:    { tree: 'sniper', active: { cd: 9 }, name: 'Recoil Shot', desc: 'Your next shot knocks back 60% harder and throws you backward, away from where you shot.' },
+  spot:      { tree: 'sniper', active: { cd: 12 }, name: "Spotter's Mark", desc: 'Mark the enemy nearest your cursor for 5 seconds: they take 30% more damage from everyone.' },
+  rush:      { tree: 'juggernaut', active: { cd: 10 }, name: 'Bull Rush', desc: 'Charge along your aim for half a second, barely moved by hits, bulldozing every enemy in the way for 9 damage and a big shove.' },
+  fortify:   { tree: 'juggernaut', active: { cd: 11 }, name: 'Fortify', desc: 'For 3 seconds take 70% less knockback and 30% less damage, but move 40% slower.' },
+  wind:      { tree: 'ranger', active: { cd: 11 }, name: 'Second Wind', desc: 'Refill all your dashes and move 40% faster for 4 seconds.' },
+  seeker:    { tree: 'ranger', active: { cd: 12 }, name: 'Seeker Arrow', desc: 'Your next shot curves toward the nearest enemy ahead of it.' },
+  swap:      { tree: 'trickster', active: { cd: 9 }, name: 'Switcheroo', desc: 'If your next shot hits an enemy, you swap places with them, and they are stuck for a moment.' },
+  boomerang: { tree: 'trickster', active: { cd: 6 }, name: 'Boomerang', desc: 'Your next shot flies out, passes through enemies and comes back to you, able to hit each of them again on the way. It deals 25% more damage.' },
   execute:   { tree: 'assassin', active: { cd: 10 }, name: 'Coup de Grâce', desc: 'Your next shot deals double damage to an enemy below 40% health.' },
   burst:     { tree: 'element', cap: true, name: 'Elemental Burst', desc: 'Fully drawn hits splash your element onto every enemy nearby.' },
 
@@ -320,8 +323,8 @@ const TREE = {
   ram:       { tree: 'juggernaut', name: 'Battering Ram', desc: 'Dashing into enemies shoves twice as hard and hurts more.' },
   riot:      { tree: 'juggernaut', name: 'Riot Shield', desc: 'Arrows that hit you head-on (from the direction you are aiming) deal 35% less damage and knock you back 30% less.' },
   railshot:  { tree: 'sniper', active: { cd: 14 }, name: 'Railshot', desc: 'Your next shot flies 80% faster, never slows down, and pierces every archer in its path.' },
-  deflect:   { tree: 'juggernaut', active: { cd: 12 }, name: 'Deflect', desc: 'For 1 second, arrows that hit you head-on bounce straight back at whoever shot them, as your arrows, with 70% of their power.' },
-  colossus:  { tree: 'juggernaut', trade: true, name: 'Colossus', desc: 'Grow a third larger: 40 more health, 40% less knockback taken, and your dashes slam enemies 60% harder for 8 more damage. Your arrows are bigger (easier to land) but fly 15% slower, you move 10% slower and you are much easier to hit.' },
+  deflect:   { tree: 'juggernaut', active: { cd: 14 }, name: 'Deflect', desc: 'For 1 second, arrows that hit you head-on bounce straight back at whoever shot them, as your arrows, with 60% of their power.' },
+  colossus:  { tree: 'juggernaut', trade: true, name: 'Colossus', desc: 'Grow a third larger: 30 more health, 35% less knockback taken, and your dashes slam enemies 40% harder for 6 more damage. Your arrows are bigger (easier to land) but fly 15% slower, you move 10% slower and you are much easier to hit.' },
   quake:     { tree: 'juggernaut', cap: true, active: { cd: 14 }, name: 'Earthshaker', desc: 'Slam the ground and throw every nearby enemy outward.' },
 
   fleet:     { tree: 'ranger', name: 'Fleet Foot', desc: '10% higher top speed and a quicker build-up.' },
@@ -340,7 +343,7 @@ const TREE = {
   smoke:     { tree: 'trickster', active: { cd: 14 }, name: 'Smoke Bomb', desc: 'Throw a smoke cloud to your cursor (up to 300px) for 5 seconds. Anyone inside is hidden from enemies outside it, bots included.' },
   rain:      { tree: 'trickster', cap: true, active: { cd: 12 }, name: 'Arrow Rain', desc: 'Mark the spot under your cursor. A volley lands there 1 second later.' },
 
-  rally:     { tree: 'warden', name: 'Rally', desc: 'Teammates near you move 10% faster.' },
+  rally:     { tree: 'warden', name: 'Rally', desc: 'Teammates near you move 15% faster.' },
   bond:      { tree: 'warden', name: 'Bond', desc: 'Teammates near you take 25% less knockback.' },
   totem:     { tree: 'warden', active: { cd: 16 }, name: 'Mending Totem', desc: 'Plant a totem at your feet for 5 seconds. You and teammates within 120px heal 8 health a second.' },
   wall:      { tree: 'warden', active: { cd: 10 }, name: 'Shield Wall', desc: "Raise a short wall in front of you for 4 seconds. It blocks enemy arrows; your team's pass through." },
@@ -349,7 +352,7 @@ const TREE = {
   revive:    { tree: 'warden', cap: true, name: 'Revive', desc: 'Once per round, stand over a knocked-out teammate for 3 seconds to bring them back with half health.' },
 
   barbs:     { tree: 'trapper', name: 'Thorned Tips', desc: 'Hits on rooted, stuck or frozen enemies knock back 50% harder.' },
-  harpoon:   { tree: 'trapper', active: { cd: 11 }, name: 'Harpoon', desc: 'Fire a barbed line along your aim (up to 420px). The first enemy it catches is yanked toward you and briefly stuck.' },
+  harpoon:   { tree: 'trapper', active: { cd: 9 }, name: 'Harpoon', desc: 'Fire a barbed line along your aim (up to 420px). The first enemy it catches is yanked toward you and briefly stuck.' },
   snare:     { tree: 'trapper', active: { cd: 8 }, name: 'Snare Arrow', desc: 'Your next shot roots whoever it hits for 1.8 seconds.' },
   trap:      { tree: 'trapper', active: { cd: 10 }, name: 'Bramble Trap', desc: 'Weave a bramble trap at the spot under your cursor (up to 280px away); it takes half a second to set, and you move at half speed meanwhile. An enemy who steps on it is rooted for 2.2 seconds and hurt. Up to 2 at once.' },
   bramble:   { tree: 'trapper', trade: true, name: 'Bramble Coat', desc: 'Enemies who touch you are rooted for 1.4 seconds (once every 3 seconds each), but you move 5% slower.' },
@@ -426,11 +429,11 @@ function applyStats(p) {
   const R = p.role, is = (cond, v) => (cond ? v : 1), hc = 1 + (p.hcap || 0) / 100;
   // role traits (always on) and trade-off cards
   p.maxHp = 100 + (has(p, 'vital') ? 25 : 0) + 15 * h('hone_hp')
-    + (R === 'juggernaut' ? 20 : 0) - (R === 'sniper' || R === 'ranger' ? 10 : 0)
-    - (has(p, 'glass') ? 10 : 0) + (has(p, 'colossus') ? 40 : 0) - (has(p, 'cloak') ? 10 : 0) - (R === 'ninja' ? 15 : 0);
+    + (R === 'juggernaut' ? 15 : 0) - (R === 'sniper' || R === 'ranger' ? 10 : 0)
+    - (has(p, 'glass') ? 10 : 0) + (has(p, 'colossus') ? 30 : 0) - (has(p, 'cloak') ? 10 : 0) - (R === 'ninja' ? 10 : 0);
   p.maxHp = Math.round(p.maxHp * OPT('hp') * hc);
   if (p.hp > p.maxHp) p.hp = p.maxHp;
-  p.mass = (1 + (p.hcap || 0) / 200) * is(has(p, 'stance'), 1 / 0.5) * is(R === 'juggernaut', 1.15) * is(has(p, 'colossus'), 1 / 0.6) / is(has(p, 'feather'), 1.3) / is(R === 'ninja', 1.15) / is(has(p, 'longstep'), 1.15);
+  p.mass = (1 + (p.hcap || 0) / 200) * is(has(p, 'stance'), 1 / 0.5) * is(R === 'juggernaut', 1.08) * is(has(p, 'colossus'), 1 / 0.65) / is(has(p, 'feather'), 1.3) / is(R === 'ninja', 1.1) / is(has(p, 'longstep'), 1.15);
   p.r = 16 * is(R === 'juggernaut', 1.1) * is(has(p, 'colossus'), 1.35) * OPT('size');
   p.baseSpeed = 235 * (has(p, 'fleet') ? 1.1 : 1) * (1 + 0.05 * h('hone_speed')) * is(R === 'juggernaut', 0.93) * is(R === 'ranger', 1.08) * is(R === 'warden', 0.95)
     * is(has(p, 'colossus'), 0.9) * is(has(p, 'feather'), 1.15) * is(has(p, 'bramble'), 0.95) * is(has(p, 'quickfeet'), 1.08) * OPT('mspeed');
@@ -439,7 +442,7 @@ function applyStats(p) {
     : (has(p, 'dash') ? 0.66 : 1.1) * is(R === 'ranger', 0.8) * is(has(p, 'overload'), 1.3);
   p.dashMaxN = R === 'ninja' ? (has(p, 'thirdstep') ? 3 : 2) : has(p, 'double') ? 2 : 1;
   p.dashN = Math.min(p.dashN == null ? p.dashMaxN : p.dashN, p.dashMaxN);
-  p.drawMul = (has(p, 'steady') ? 1.25 : 1) * (1 + 0.08 * h('hone_draw')) * is(R === 'trickster', 1.12) * is(has(p, 'permafrost'), 0.95) * is(R === 'ninja', 1.2);
+  p.drawMul = (has(p, 'steady') ? 1.25 : 1) * (1 + 0.08 * h('hone_draw')) * is(R === 'trickster', 1.12) * is(has(p, 'permafrost'), 0.95);
   p.kbMul = (1 + 0.08 * h('hone_kb')) * is(R === 'trickster', 0.9) * is(has(p, 'pyre'), 0.8) * is(R === 'juggernaut', 1.2) * is(has(p, 'obsidian'), 1.3) * is(has(p, 'lingering'), 0.85);
   p.dmgMul = hc * is(has(p, 'glass'), 1.3) * is(has(p, 'potent'), 0.85) * is(R === 'juggernaut', 0.8) * is(has(p, 'unstable'), 0.92);
   p.abCdMul = is(R === 'trapper', 0.7);
@@ -613,8 +616,10 @@ function canTake(p, id) {
 }
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 // three cards: at least one from each of your trees when possible, filled with stackable boosts
-function rollOffer(p, avoid = [], opening = false) {
-  const all = Object.keys(TREE).filter(id => canTake(p, id));
+function rollOffer(p, avoid = [], opening = false, noAbil = false) {
+  let all = Object.keys(TREE).filter(id => canTake(p, id));
+  // the pick right after the opening one has no abilities, so the second slot has to be earned later
+  if (noAbil) all = all.filter(id => !TREE[id].active);
   // the opening pick is always a choice between abilities from your role
   if (opening) {
     const abil = shuffle(all.filter(id => TREE[id].active && !TREE[id].cap && TREE[id].tree === p.role));
@@ -659,7 +664,7 @@ const STYLES = {
   marksman:   { name: 'Marksman',   near: 420, far: 660, charge: [0.92, 1],   bash: 0.05, cards: ['railshot', 'recoil', 'spot', 'steady', 'longbow', 'deadeye', 'pierce', 'ballista', 'glass', 'heavy', 'pin'] },
   guardian:   { name: 'Guardian',   near: 240, far: 420, charge: null,        bash: 0.15, mates: true, cards: ['totem', 'harpoon', 'rally', 'bond', 'wall', 'oath', 'revive', 'snare', 'trap', 'deeproots', 'gust'] },
 };
-STYLES.stalker = { name: 'Stalker', near: 140, far: 320, charge: [0.75, 1], bash: 0.35, cards: ['flash', 'shuriken', 'caltrops', 'swiftstep', 'thirdstep', 'phase', 'flicker', 'dance', 'execute', 'blink', 'smoke', 'stealth', 'ambush', 'shadowdash', 'deathmark', 'cloak', 'quickfeet', 'double', 'dash', 'fleet'] };
+STYLES.stalker = { name: 'Stalker', near: 140, far: 320, charge: [0.75, 1], bash: 0.35, cards: ['sstrike', 'clone', 'blossom', 'recall', 'sharpstar', 'flurry', 'execution', 'swiftstep', 'thirdstep', 'phase', 'dance', 'execute', 'blink', 'smoke', 'stealth', 'ambush', 'shadowdash', 'deathmark', 'cloak', 'quickfeet', 'double', 'dash', 'fleet'] };
 const ROLE_STYLE = { ninja: 'stalker', assassin: 'stalker', juggernaut: 'brawler', sniper: 'marksman', warden: 'guardian', trapper: 'guardian', ranger: 'skirmisher', trickster: 'skirmisher' };
 function pickStyle(p) {
   const ai = p.ai;
@@ -691,7 +696,7 @@ function startPick(w) {
   const M = w.match;
   M.ph = 'pick'; M.T = TIMES.pick;
   for (const p of w.players) {
-    p.picked = false; p.offer = rollOffer(p, [], M.opening);
+    p.picked = false; p.offer = rollOffer(p, [], M.opening, !M.opening && M.picks === 1);
     if (p.bot) takeCard(w, p, p.offer[botPickIndex(p)]);
   }
   ev(w, { e: 'phase', ph: 'pick', rd: M.rd, op: M.opening ? 1 : 0 });
@@ -725,7 +730,7 @@ function catchUp(w, p) {
   p.up = [p.element]; p.hones = {}; applyStats(p);
   if (w.match.ph === 'lobby') { p.up = []; return; }
   const picks = w.match.picks;
-  for (let i = 0; i < picks; i++) { p.offer = rollOffer(p, [], i === 0); takeCard(w, p, p.offer[botPickIndex(p)]); }
+  for (let i = 0; i < picks; i++) { p.offer = rollOffer(p, [], i === 0, i === 1); takeCard(w, p, p.offer[botPickIndex(p)]); }
   p.picked = w.match.ph === 'pick';
 }
 
@@ -744,7 +749,7 @@ function placeForRound(w, p) {
     knock: 0, inv: 0, dashT: 0, dashCd: 0, dashN: p.dashMaxN, charge: 0, drawing: false, thr: 0, tdx: 0, tdy: 0,
     lastHitBy: null, lastHitT: -99, lastCause: '', killedBy: null, pw: emptyPowers(), wantDash: false, lastHurtT: -99, pinT: 0, pinned: 0, dashK: 1,
     pinSafe: 0, volleyArmed: false, railArmed: false, recoilArmed: false, seekArmed: false, swapArmed: false, boomArmed: false, execArmed: false,
-    windT: 0, fortT: 0, phaseT: 0, shroudT: 0, blinkGap: 0, caltT: 0, rush: null, staggerT: 0, markT: 0, stealthT: 0, ambushT: 0, markReady: 0, slowK: 0.5, fallCause: 'pit', coat: {},
+    windT: 0, fortT: 0, phaseT: 0, shroudT: 0, blinkGap: 0, caltT: 0, rush: null, throwCd: 0, wasDraw: false, strikeN: 0, strikeT: 0, markPos: null, staggerT: 0, markT: 0, stealthT: 0, ambushT: 0, markReady: 0, slowK: 0.5, fallCause: 'pit', coat: {},
     abCd: [0, 0], wantAb: [false, false], reviveUsed: false, revT: 0, revOf: null, revP: 0,
   });
   p.aim = Math.atan2(AH / 2 - s.y, AW / 2 - s.x);
@@ -883,6 +888,7 @@ function hurt(w, f, dmg, kx, ky, src, by, quiet) {
   else if (w.players.some(q => q !== f && q.team === f.team && !q.dead && has(q, 'oath') && Math.hypot(q.x - f.x, q.y - f.y) < 170)) dmg *= 0.8;
   if (f.markT > 0) dmg *= 1.3; // Death Mark / Spotter's Mark
   if (f.fortT > 0) dmg *= 0.7; // Fortify
+  if (f.shroudT > 0 && f.shroudTerror && !hazard) dmg *= 1.25; // Night Terror
   if (dmg > 0) f.lastHurtT = w.t;
   // stats: damage counts for whoever caused it, including hazards and burns after a knockback
   const applied = Math.max(0, Math.min(dmg, f.hp));
@@ -904,6 +910,11 @@ function hurt(w, f, dmg, kx, ky, src, by, quiet) {
     f.knock = Math.max(f.knock, 0.25 + Math.hypot(kx, ky) / f.mass / 1600);
   }
   if (f.hp <= 0) kill(w, f, src);
+  else if (!hazard && by && f.hp < f.maxHp * 0.15) {
+    // Execution (Ninja): whatever you hit that drops below 15% goes down
+    const k = w.players.find(q => q.id === by);
+    if (k && k.team !== f.team && has(k, 'execution')) { ev(w, { e: 'executed', x: r1(f.x), y: r1(f.y), id: f.id }); kill(w, f, 'execute'); }
+  }
   return true;
 }
 
@@ -927,7 +938,7 @@ const EMPOWER = {
   flame:  { name: 'Blaze', desc: 'You leave a trail of fire, and your arrows set the ground alight wherever they land.' },
   storm:  { name: 'Overcharge', desc: 'Lightning arcs 2 extra times and your dash recharges twice as fast.' },
   poison: { name: 'Plague', desc: 'A poison aura around you adds a stack to every enemy inside it 4 times a second.' },
-  shadow: { name: 'Nightfall', desc: 'Every hit also shrouds every other enemy within 220px of the target.' },
+  shadow: { name: 'Nightfall', desc: 'Your bullseyes also shroud every other enemy within 220px of the target.' },
 };
 // a short code describing the finishing blow, turned into words by the client
 function howKilled(f, cause) {
@@ -1007,7 +1018,8 @@ function fire(w, p, ang, c, burst) {
   const rail = !burst && p.railArmed; if (rail) p.railArmed = false;
   const take = k => { const v = !burst && p[k]; if (v) p[k] = false; return v; };
   const recoil = take('recoilArmed'), seek = take('seekArmed'), swap = take('swapArmed'), boom = take('boomArmed'), exec = take('execArmed');
-  if (recoil) kb *= 1.4;
+  if (boom) dmg *= 1.25;
+  if (recoil) kb *= 1.6;
   if (full && has(p, 'boulder')) kb *= 1.3;
   if (p.emp && p.element === 'stone') kb *= 1.35; // Landslide
   const el = Object.keys(ELEMENTS).find(e => has(p, e)) || null;
@@ -1178,7 +1190,7 @@ function stepBody(w, f, mx, my, dt) {
   f.inTar = inTar;
   if (inLava) { hurt(w, f, 30 * dt, 0, 0, 'lava', null, true); f.burn = Math.max(f.burn, 1.5); }
   else if (f.burn > 0) { f.burn -= dt; hurt(w, f, (f.burnDps || 5) * dt, 0, 0, 'burn', null, true); if (f.burn <= 0) f.burnDps = 5; }
-  if (!f.dead && f.poisonT > 0) { f.poisonT -= dt; hurt(w, f, f.poisonN * 1.8 * f.poisonMul * dt, 0, 0, 'poison', null, true); if (f.poisonT <= 0) f.poisonN = 0; }
+  if (!f.dead && f.poisonT > 0) { f.poisonT -= dt; hurt(w, f, f.poisonN * 1.6 * f.poisonMul * dt, 0, 0, 'poison', null, true); if (f.poisonT <= 0) f.poisonN = 0; }
   if (f.dead) return;
   if (inPit) {
     f.falling = 0.001; f.drawing = false; f.charge = 0; f.stuck = 0;
@@ -1197,6 +1209,10 @@ function updatePlayer(w, p, dt) {
   p.deflectT = Math.max(0, (p.deflectT || 0) - dt);
   p.windT = Math.max(0, (p.windT || 0) - dt); p.fortT = Math.max(0, (p.fortT || 0) - dt); p.phaseT = Math.max(0, (p.phaseT || 0) - dt);
   p.shroudT = Math.max(0, (p.shroudT || 0) - dt); p.blinkGap = Math.max(0, (p.blinkGap || 0) - dt);
+  if (p.markPos) {
+    p.markPos.t -= dt;
+    if (p.markPos.t <= 0) { p.markPos = null; const i = p.slots.indexOf('recall'); if (i >= 0) p.abCd[i] = TREE.recall.active.cd * (p.abCdMul || 1); }
+  }
   if (p.trapSet) {
     p.trapSet.t -= dt;
     if (p.trapSet.t <= 0) {
@@ -1218,7 +1234,7 @@ function updatePlayer(w, p, dt) {
   // bogs hold you: no dashing while you're in one (Sure Footing ignores this)
   if (p.wantDash && p.inTar && !p.sure && p.dashN > 0) { if (!p.bot && !(p.bogMsgT > w.t)) { p.bogMsgT = w.t + 1.5; ev(w, { e: 'abFail', id: p.id, why: "Can't dash in the bog" }); } p.wantDash = false; }
   if (p.wantDash && p.role === 'ninja' && p.dashN > 0 && p.dashLock <= 0 && p.falling <= 0 && p.stuck <= 0 && !p.grap && !p.rush && p.blinkGap <= 0) {
-    ninjaBlink(w, p, ml);
+    ninjaBlink(w, p);
     p.wantDash = false;
   }
   if (p.wantDash && p.role !== 'ninja' && p.dashN > 0 && p.dashLock <= 0 && p.falling <= 0 && p.stuck <= 0 && !p.grap && !p.rush) {
@@ -1241,14 +1257,24 @@ function updatePlayer(w, p, dt) {
     if (!p.wantAb[i]) continue;
     p.wantAb[i] = false;
     const id = p.slots[i];
-    if (!id || p.abCd[i] > 0 || p.falling > 0) continue;
+    if (!id || p.abCd[i] > 0 || (p.falling > 0 && !(id === 'recall' && p.markPos))) continue;
     if (id !== 'stealth' && id !== 'blink' && p.stealthT > 0) breakStealth(w, p);
     const ok = useAbility(w, p, id);
-    p.abCd[i] = ok ? TREE[id].active.cd * (p.abCdMul || 1) : 0.8;
+    p.abCd[i] = ok === 'rearm' ? 0.35 : ok ? TREE[id].active.cd * (p.abCdMul || 1) : 0.8;
   }
 
   p.disarm = Math.max(0, p.disarm - dt);
-  if (inp.draw && p.falling <= 0 && p.disarm <= 0) {
+  if (p.role === 'ninja') {
+    // shuriken: a click throws one at once; holding keeps throwing
+    p.throwCd = Math.max(0, (p.throwCd || 0) - dt);
+    p.strikeT = Math.max(0, (p.strikeT || 0) - dt); if (p.strikeT <= 0) p.strikeN = 0;
+    const press = inp.draw && !p.wasDraw;
+    if (inp.draw && p.falling <= 0 && p.disarm <= 0 && (p.throwCd <= 0 || (press && p.throwCd < 0.12))) {
+      throwStar(w, p, p.aim);
+      p.throwCd = THROW_CD / ((has(p, 'flurry') ? 1.3 : 1) * (1 + 0.08 * ((p.hones && p.hones.hone_draw) || 0)) * (p.pw.quick > 0 ? 1.8 : 1));
+    }
+    p.wasDraw = !!inp.draw; p.drawing = false; p.charge = 0; p.over = 0;
+  } else if (inp.draw && p.falling <= 0 && p.disarm <= 0) {
     const prev = p.charge;
     p.drawing = true;
     p.charge = Math.min(1, p.charge + dt * p.drawMul * (p.pw.quick > 0 ? 2.2 : 1) * (p.quickT > 0 ? 3 : 1) * (p.ambushT > 0 ? 1.6 : 1));
@@ -1283,11 +1309,9 @@ function updatePlayer(w, p, dt) {
 }
 
 // ---------------- abilities ----------------
-// Ninja: a short, near-instant hop in the direction you're moving (or aiming, standing still), over pits and lava
-function ninjaBlink(w, p, ml) {
-  const inp = p.input;
-  let a = p.aim;
-  if (!p.bot && ml > 0) a = Math.atan2(inp.my, inp.mx);
+// Ninja: a short, near-instant hop toward the cursor, over pits and lava
+function ninjaBlink(w, p) {
+  const a = p.aim;
   const dx = Math.cos(a), dy = Math.sin(a);
   let reach = NINJA_BLINK * (has(p, 'longstep') ? 1.4 : 1) * (p.slow > 0 && !p.sure ? 0.7 : 1), nx = p.x, ny = p.y;
   for (; reach > 10; reach -= 8) {
@@ -1302,6 +1326,27 @@ function ninjaBlink(w, p, ml) {
   if (has(p, 'flicker')) p.quickT = 0.7;
   if (p.stealthT > 0) breakStealth(w, p);
   ev(w, { e: 'nblink', id: p.id, x1: r1(x0), y1: r1(y0), x2: r1(nx), y2: r1(ny) });
+}
+const THROW_CD = 0.36;
+// one shuriken (or a spread with the Multishot powerup); weaker than an arrow, no charging
+function throwStar(w, p, ang) {
+  if (p.stealthT > 0) breakStealth(w, p);
+  const dbl = p.strikeN > 0; if (dbl) p.strikeN--;
+  const dmg = 7 * (p.dmgMul || 1) * (has(p, 'sharpstar') ? 1.25 : 1) * (dbl ? 1.75 : 1);
+  const kb = 400 * (p.kbMul || 1) * (p.pw.heavy > 0 ? 1.9 : 1) * (p.emp && p.element === 'stone' ? 1.35 : 1);
+  const el = Object.keys(ELEMENTS).find(e => has(p, e)) || null;
+  const spread = p.pw.multi > 0 ? [-0.14, 0, 0.14] : [0];
+  for (const off of spread) makeStar(w, p, p.x, p.y, ang + off, { dmg, kb, el, dbl, life: 0.5 });
+  p.stats.shots += spread.length;
+  ev(w, { e: 'throw', id: p.id, d: dbl ? 1 : 0 });
+}
+function makeStar(w, p, x, y, a, o) {
+  const sp = 1050 * OPT('aspeed');
+  w.arrows.push({ id: w.nid++, owner: p.id, team: p.team, color: p.color, own: p,
+    x: x + Math.cos(a) * (p.r + 6), y: y + Math.sin(a) * (p.r + 6), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, v0: sp, ang: a, dist: 0, age: 0,
+    dmg: o.dmg, kb: o.kb, full: false, crit: false, heavy: false, el: o.el || null, bolt: false, snare: false, rail: false, big: false,
+    drag: 0.6, burst: false, burstOK: !!(o.el && has(p, 'burst')), pierce: 0, hit: [], split: false, curve: false,
+    bounces: p.pw.ricochet > 0 ? 2 : 0, explosive: p.pw.explosive > 0 && !o.weak, life: o.life || 0.5, stuck: 0, shur: true, star: true, dbl: o.dbl });
 }
 function nearestFoeTo(w, p, x, y, maxD) {
   let best = null, bd = maxD;
@@ -1340,9 +1385,48 @@ function useAbility(w, p, id) {
       }
       const ex = hit ? hit.x : p.x + ax * HARPOON_RANGE, ey = hit ? hit.y : p.y + ay * HARPOON_RANGE;
       ev(w, { e: 'harpoon', id: p.id, x1: r1(p.x), y1: r1(p.y), x2: r1(ex), y2: r1(ey), hit: hit ? 1 : 0 });
-      if (hit) { hurt(w, hit, 3, -ax * 720, -ay * 720, 'harpoon', p.id); hit.stuck = Math.max(hit.stuck, 0.35); }
+      if (hit) { hurt(w, hit, 4, -ax * 820, -ay * 820, 'harpoon', p.id); hit.stuck = Math.max(hit.stuck, 0.5); }
       return true;
     }
+    case 'sstrike': {
+      const q = nearestFoeTo(w, p, p.input.tx, p.input.ty, 240);
+      if (!q || Math.hypot(q.x - p.x, q.y - p.y) > 360) { if (!p.bot) ev(w, { e: 'abFail', id: p.id, why: 'Point your cursor at an enemy nearby' }); return false; }
+      // behind them (the way they're not facing); try either side if that spot is a hazard or a boulder
+      const d0 = q.r + p.r + 14; let spot = null;
+      for (const off of [0, 0.7, -0.7, 1.4, -1.4]) {
+        const a = q.aim + Math.PI + off, x = clamp(q.x + Math.cos(a) * d0, WALL + p.r, AW - WALL - p.r), y = clamp(q.y + Math.sin(a) * d0, WALL + p.r, AH - WALL - p.r);
+        if (lethalDist(x, y) > 24 && !PILLARS.some(o => Math.hypot(x - o.x, y - o.y) < o.r + p.r)) { spot = { x, y }; break; }
+      }
+      if (!spot) return false;
+      const x0 = p.x, y0 = p.y;
+      p.x = spot.x; p.y = spot.y; p.vx = p.vy = 0; p.knock = 0; p.strikeN = 3; p.strikeT = 1.5; p.throwCd = 0;
+      ev(w, { e: 'sstrike', id: p.id, x1: r1(x0), y1: r1(y0), x2: r1(p.x), y2: r1(p.y) });
+      return true;
+    }
+    case 'clone':
+      w.zones.push({ id: w.nid++, ty: 'clone', x: p.x, y: p.y, r: p.r, t: 4, team: p.team, owner: p.id, fireT: 0.35, aim: p.aim });
+      p.stealthT = 1.5;
+      ev(w, { e: 'clone', id: p.id, x: r1(p.x), y: r1(p.y) });
+      return true;
+    case 'blossom': {
+      const dmg = 7 * (p.dmgMul || 1) * (has(p, 'sharpstar') ? 1.25 : 1), el = Object.keys(ELEMENTS).find(e => has(p, e)) || null;
+      for (let i = 0; i < 12; i++) makeStar(w, p, p.x, p.y, p.aim + i / 12 * TAU, { dmg, kb: 400 * (p.kbMul || 1), el, life: 0.4, weak: true });
+      ev(w, { e: 'blossom', id: p.id, x: r1(p.x), y: r1(p.y) });
+      return true;
+    }
+    case 'recall':
+      if (!p.markPos) {
+        p.markPos = { x: p.x, y: p.y, t: 5 };
+        w.zones.push({ id: w.nid++, ty: 'smark', x: p.x, y: p.y, r: 18, t: 5, team: p.team, owner: p.id });
+        ev(w, { e: 'smark', id: p.id, x: r1(p.x), y: r1(p.y) });
+        return 'rearm';
+      } else {
+        const m = p.markPos, x0 = p.x, y0 = p.y; p.markPos = null;
+        w.zones = w.zones.filter(z => !(z.ty === 'smark' && z.owner === p.id));
+        p.x = m.x; p.y = m.y; p.vx = p.vy = 0; p.knock = 0; p.falling = 0;
+        ev(w, { e: 'recall', id: p.id, x1: r1(x0), y1: r1(y0), x2: r1(m.x), y2: r1(m.y) });
+        return true;
+      }
     case 'recoil': p.recoilArmed = true; ev(w, { e: 'armed', id: p.id, k: 'recoil' }); return true;
     case 'seeker': p.seekArmed = true; ev(w, { e: 'armed', id: p.id, k: 'seeker' }); return true;
     case 'swap': p.swapArmed = true; ev(w, { e: 'armed', id: p.id, k: 'swap' }); return true;
@@ -1351,7 +1435,7 @@ function useAbility(w, p, id) {
     case 'spot': {
       const q = nearestFoeTo(w, p, p.input.tx, p.input.ty, 220);
       if (!q) { if (!p.bot) ev(w, { e: 'abFail', id: p.id, why: 'Point your cursor at an enemy' }); return false; }
-      q.markT = 6; ev(w, { e: 'marked', id: q.id, x: r1(q.x), y: r1(q.y) });
+      q.markT = 5; ev(w, { e: 'marked', id: q.id, x: r1(q.x), y: r1(q.y) });
       return true;
     }
     case 'rush':
@@ -1359,7 +1443,7 @@ function useAbility(w, p, id) {
       ev(w, { e: 'rush', id: p.id, x: r1(p.x), y: r1(p.y) });
       return true;
     case 'fortify': p.fortT = 3; ev(w, { e: 'fortify', id: p.id, x: r1(p.x), y: r1(p.y) }); return true;
-    case 'wind': p.dashN = p.dashMaxN; p.dashCd = 0; p.windT = 3; ev(w, { e: 'wind', id: p.id, x: r1(p.x), y: r1(p.y) }); return true;
+    case 'wind': p.dashN = p.dashMaxN; p.dashCd = 0; p.windT = 4; ev(w, { e: 'wind', id: p.id, x: r1(p.x), y: r1(p.y) }); return true;
     case 'flash': {
       const dx = p.input.tx - p.x, dy = p.input.ty - p.y, d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d;
       let reach = Math.min(FLASH_RANGE, Math.max(d, 60)), nx = p.x, ny = p.y;
@@ -1543,6 +1627,19 @@ function updateZones(w, dt) {
           z.t = 0; break;
         }
       }
+    } else if (z.ty === 'clone') {
+      const o = w.players.find(q => q.id === z.owner);
+      z.fireT -= dt;
+      if (!o || o.dead) { z.t = 0; }
+      else if (z.fireT <= 0) {
+        z.fireT = 0.6;
+        const q = nearestFoeTo(w, o, z.x, z.y, 460);
+        if (q && clearShot(z.x, z.y, q.x, q.y)) {
+          z.aim = Math.atan2(q.y - z.y, q.x - z.x);
+          makeStar(w, o, z.x, z.y, z.aim, { dmg: 5 * (o.dmgMul || 1), kb: 320 * (o.kbMul || 1), el: null, life: 0.5, weak: true });
+          ev(w, { e: 'throw', id: o.id, clone: 1 });
+        }
+      }
     } else if (z.ty === 'caltrops') {
       for (const q of w.players) {
         if (q.team === z.team || q.dead || q.falling > 0 || q.dashT > 0 || Math.hypot(q.x - z.x, q.y - z.y) > z.r + q.r * 0.5) continue;
@@ -1644,9 +1741,9 @@ function separate(w) {
         if ((s.dashT > 0 || s.rush) && s.team !== t.team && !s.shoved.includes(t.id)) {
           s.shoved.push(t.id);
           ev(w, { e: 'shove', x: r1((a.x + b.x) / 2), y: r1((a.y + b.y) / 2) });
-          const ram = (has(s, 'ram') ? 2 : 1) * (has(s, 'colossus') ? 1.6 : 1) * (s.rush ? 2.2 : 1);
+          const ram = (has(s, 'ram') ? 2 : 1) * (has(s, 'colossus') ? 1.4 : 1) * (s.rush ? 1.9 : 1);
           const dir = s.rush ? [s.rush.dx, s.rush.dy] : s.dashDir;
-          hurt(w, t, (has(s, 'ram') ? 14 : 4) + (has(s, 'colossus') ? 8 : 0) + (s.rush ? 8 : 0), dir[0] * 520 * ram, dir[1] * 520 * ram, 'shove', s.id);
+          hurt(w, t, (has(s, 'ram') ? 14 : 4) + (has(s, 'colossus') ? 6 : 0) + (s.rush ? 5 : 0), dir[0] * 520 * ram, dir[1] * 520 * ram, 'shove', s.id);
           if (!s.rush) { s.vx *= 0.4; s.vy *= 0.4; }
         }
       }
@@ -1681,6 +1778,7 @@ function shroud(f, by) {
   f.shroudT = Math.max(f.shroudT || 0, by && has(by, 'lingering') ? 5 : 2.5);
   f.shroudR = by && has(by, 'blinding') ? 100 : 170;
   f.shroudSlow = !!(by && has(by, 'creeping'));
+  f.shroudTerror = !!(by && has(by, 'terror'));
 }
 function root(f, t, by) { if (by && has(by, 'deeproots')) t *= 2; f.stuck = Math.max(f.stuck, f.sure ? t * 0.4 : t); }
 // elemental and trapper effects when an arrow lands
@@ -1708,7 +1806,7 @@ function onArrowEffects(w, a, f, primary) {
     }
   } else if (a.el === 'flame') {
     const inf = owner && has(owner, 'inferno');
-    f.burn = Math.max(f.burn, inf ? 5 : 2); f.burnDps = Math.max(f.burnDps || 5, (inf ? 6 : 5) * (owner && has(owner, 'pyre') ? 1.5 : 1));
+    f.burn = Math.max(f.burn, inf ? 5 : 2); f.burnDps = Math.max(f.burnDps || 4.5, (inf ? 5.5 : 4.5) * (owner && has(owner, 'pyre') ? 1.5 : 1));
     // Blaze: every hit sets the ground alight
     if (primary && owner && owner.emp && owner.element === 'flame') blazePatch(w, owner, f.x, f.y, 40, 2.5, f.id);
     if (primary && a.full && owner && has(owner, 'wildfire')) {
@@ -1730,7 +1828,7 @@ function onArrowEffects(w, a, f, primary) {
         hurt(w, q, 3, dx / d * 420, dy / d * 420, 'quake', a.owner);
       }
     }
-  } else if (a.el === 'shadow') {
+  } else if (a.el === 'shadow' && a.crit) { // only bullseyes shroud
     shroud(f, owner);
     ev(w, { e: 'shroud', id: f.id, x: r1(f.x), y: r1(f.y) });
     if (primary && owner && owner.emp && owner.element === 'shadow') {
@@ -1742,9 +1840,9 @@ function onArrowEffects(w, a, f, primary) {
   } else if (a.el === 'void' && primary && a.crit) { // only bullseyes open a rift
     // a rift where the arrow struck; it drags in everyone else on their team
     const hz = owner && has(owner, 'horizon'), ecl = owner && owner.emp && owner.element === 'void';
-    const r = 110 * (hz ? 1.3 : 1) * (owner && has(owner, 'unstable') ? 1.5 : 1) * (ecl ? 1.6 : 1);
+    const r = 120 * (hz ? 1.3 : 1) * (owner && has(owner, 'unstable') ? 1.5 : 1) * (ecl ? 1.6 : 1);
     // it opens a moment later where the knockback leaves the target, so it holds them there too
-    w.zones.push({ id: w.nid++, ty: 'rift', x: f.x, y: f.y, r, t: (hz ? 2.8 : 1.8) + (ecl ? 1 : 0), pull: hz ? 900 : 720, team: a.team, owner: a.owner,
+    w.zones.push({ id: w.nid++, ty: 'rift', x: f.x, y: f.y, r, t: (hz ? 3 : 2) + (ecl ? 1 : 0), pull: hz ? 980 : 820, team: a.team, owner: a.owner,
       delay: CLOUD_DELAY, follow: f.id, collapse: !!(owner && has(owner, 'collapse')), nul: !!(owner && has(owner, 'nullfield')) });
   } else if (a.el === 'storm' && primary) {
     if (a.crit && owner && has(owner, 'echo') && !a.echo) w.later.push({ t: 0.5, ty: 'echo', target: f.id, owner: a.owner, team: a.team });
@@ -1830,7 +1928,6 @@ function arrowHit(w, a, f) {
   const backstab = fromBehind && a.own && a.own.role === 'assassin';
   if (backstab) { dmg *= 1.4; kf *= 1.3; ev(w, { e: 'backstab', x: r1(f.x), y: r1(f.y) }); }
   if (fromBehind && has(f, 'quickfeet')) dmg *= 0.85;
-  if (f.shroudT > 0 && a.own && has(a.own, 'terror')) dmg *= 1.2; // Night Terror
   if (a.exec && f.hp < f.maxHp * 0.4) { dmg *= 2; ev(w, { e: 'execute', x: r1(f.x), y: r1(f.y) }); } // Coup de Grace
   // Death Mark: the first hit out of stealth marks the target
   if (a.own && a.own.markReady > 0) { a.own.markReady = 0; f.markT = 5; ev(w, { e: 'marked', id: f.id, x: r1(f.x), y: r1(f.y) }); }
@@ -1839,6 +1936,7 @@ function arrowHit(w, a, f) {
   // Bullseye: an arrow whose path runs through the middle of the target is a critical hit
   const off = Math.abs((f.x - a.x) * a.vy / v - (f.y - a.y) * a.vx / v);
   a.crit = off <= f.r * BULLSEYE;
+  if (a.star) { a.full = a.crit; a.burst = a.crit && a.burstOK; }
   const dmgHit = dmg * (a.crit ? CRIT_MUL : 1);
   f.lastArrow = { el: a.el, crit: a.crit, bolt: a.bolt, dist: a.dist, shur: a.shur };
   // Riot Shield: hits from the front are softened
@@ -1882,7 +1980,7 @@ function updateArrows(w, dt) {
       }
       if (best) {
         const want = Math.atan2(best.y - a.y, best.x - a.x), diff = ((want - h + Math.PI) % TAU + TAU) % TAU - Math.PI;
-        const turn = clamp(diff, -3 * dt, 3 * dt), sp = Math.hypot(a.vx, a.vy);
+        const turn = clamp(diff, -2.2 * dt, 2.2 * dt), sp = Math.hypot(a.vx, a.vy);
         a.vx = Math.cos(h + turn) * sp; a.vy = Math.sin(h + turn) * sp;
       }
     }
@@ -1945,7 +2043,7 @@ function updateArrows(w, dt) {
             // Deflect: send it back where it came from, as the deflector's arrow
             const src = a.own && !a.own.dead ? a.own : null, sp2 = Math.hypot(a.vx, a.vy) * 1.05;
             const ang = src ? Math.atan2(src.y - f.y, src.x - f.x) : Math.atan2(-a.vy, -a.vx);
-            Object.assign(a, { team: f.team, owner: f.id, own: f, color: f.color, vx: Math.cos(ang) * sp2, vy: Math.sin(ang) * sp2, v0: Math.max(a.v0, sp2), hit: [f.id], dist: 0, life: 2, bounces: 0, counted: false, dmg: a.dmg * 0.7, kb: a.kb * 0.7 });
+            Object.assign(a, { team: f.team, owner: f.id, own: f, color: f.color, vx: Math.cos(ang) * sp2, vy: Math.sin(ang) * sp2, v0: Math.max(a.v0, sp2), hit: [f.id], dist: 0, life: 2, bounces: 0, counted: false, dmg: a.dmg * 0.6, kb: a.kb * 0.6 });
             a.x = f.x + Math.cos(ang) * (f.r + 6); a.y = f.y + Math.sin(ang) * (f.r + 6);
             ev(w, { e: 'deflect', x: r1(a.x), y: r1(a.y), id: f.id });
             continue outer;
@@ -1955,7 +2053,7 @@ function updateArrows(w, dt) {
           if (a.swap && a.own && !a.own.dead && a.own.falling <= 0 && !f.dead && f.falling <= 0) {
             const o = a.own, ox = o.x, oy = o.y;
             ev(w, { e: 'swap', x1: r1(o.x), y1: r1(o.y), x2: r1(f.x), y2: r1(f.y) });
-            o.x = f.x; o.y = f.y; f.x = ox; f.y = oy; o.vx = o.vy = 0; f.vx = -f.vx; f.vy = -f.vy; a.swap = false; // they keep flying away from you
+            o.x = f.x; o.y = f.y; f.x = ox; f.y = oy; o.vx = o.vy = 0; f.vx = -f.vx; f.vy = -f.vy; f.stuck = Math.max(f.stuck, 0.6); a.swap = false; // they keep flying away from you
           }
           if (a.explosive) explode(w, a.x, a.y, a.owner, a.team);
           if (a.pierce > 0 && !a.explosive) { a.pierce--; a.hit.push(f.id); if (!a.rail && !a.boom) { a.vx *= 0.8; a.vy *= 0.8; } continue; }
@@ -2261,7 +2359,10 @@ function botThink(w, p, dt) {
   inp.aim = ai.aimA;
   const onTarget = ai.reactT <= 0 && angOff(ai.aimA, wantAim) < 0.15;
   const los = clearShot(p.x, p.y, T.x, T.y);
-  if (!inp.draw) {
+  if (p.role === 'ninja') {
+    // shuriken: keep throwing while lined up and in range
+    inp.draw = los && onTarget && dT < 520 && T.inv <= 0 && !(p.stealthT > 0.6 && dT > 170 && !(ai.ambush && Math.hypot(ai.ambush.x - p.x, ai.ambush.y - p.y) < 70));
+  } else if (!inp.draw) {
     if (ai.reload <= 0) {
       inp.draw = true;
       const st = STYLES[ai.style];
@@ -2330,14 +2431,13 @@ function botAbilities(w, p, T, dT, foes, dt) {
       case 'swap': use = p.charge > 0.6 && !!T && dT < 520 && Math.random() < dt * 2; break;
       case 'boomerang': use = p.charge > 0.6 && !!T && dT < 440; break;
       case 'execute': use = !!T && T.hp < T.maxHp * 0.45 && p.charge > 0.3; break;
-      case 'flash': {
-        if (!T || dT < 80 || dT > 220) break;
-        const ux = (T.x - p.x) / dT, uy = (T.y - p.y) / dT, ex = p.x + ux * Math.min(FLASH_RANGE, dT + 50), ey = p.y + uy * Math.min(FLASH_RANGE, dT + 50);
-        if (lethalDist(ex, ey) > 55) { p.input.tx = ex; p.input.ty = ey; use = true; }
+      case 'sstrike': if (T && dT < 340 && dT > 90 && lethalDist(T.x, T.y) < 200) { p.input.tx = T.x; p.input.ty = T.y; use = true; } break;
+      case 'clone': use = (p.hp < p.maxHp * 0.55 && foes.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 350)) || (!!T && dT < 300 && Math.random() < dt * 0.3); break;
+      case 'blossom': use = foes.filter(q => Math.hypot(q.x - p.x, q.y - p.y) < 220).length >= 2 || foes.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 110); break;
+      case 'recall':
+        if (!p.markPos) use = !foes.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 260) && lethalDist(p.x, p.y) > 120 && Math.random() < dt;
+        else use = p.hp < p.maxHp * 0.4 || p.falling > 0 || (p.knock > 0 && lethalDist(p.x + p.vx * 0.3, p.y + p.vy * 0.3) < 40);
         break;
-      }
-      case 'shuriken': use = !!T && dT < 360 && angOff(Math.atan2(T.y - p.y, T.x - p.x), p.input.aim) < 0.3; break;
-      case 'caltrops': use = foes.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 120); break;
       case 'railshot': use = p.charge > 0.6 && !!T && dT > 250 && !p.railArmed; break;
       case 'totem': use = p.hp < p.maxHp * 0.6 && !foes.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 200); break;
       case 'smoke': if (T && p.hp < p.maxHp * 0.45 && dT < 350) { p.input.tx = p.x; p.input.ty = p.y; use = true; } break;
@@ -2401,7 +2501,7 @@ function step(w, dt) {
   for (const p of w.players) {
     if (p.dead) { p.revP = 0; continue; }
     const rallied = w.players.some(q => q !== p && q.team === p.team && !q.dead && has(q, 'rally') && Math.hypot(q.x - p.x, q.y - p.y) < 170);
-    p.speed = p.baseSpeed * (p.windT > 0 ? 1.3 : 1) * (p.fortT > 0 ? 0.6 : 1) * (p.shroudT > 0 && p.shroudSlow ? 0.85 : 1) * (p.trapSet ? 0.5 : 1) * (rallied ? 1.1 : 1) * (p.stealthT > 0 ? 1.3 : 1) * (p.bot ? (DIFF[p.diff] || DIFF.normal).speed : 1);
+    p.speed = p.baseSpeed * (p.windT > 0 ? 1.4 : 1) * (p.fortT > 0 ? 0.6 : 1) * (p.shroudT > 0 && p.shroudSlow ? 0.85 : 1) * (p.trapSet ? 0.5 : 1) * (rallied ? 1.15 : 1) * (p.stealthT > 0 ? 1.3 : 1) * (p.bot ? (DIFF[p.diff] || DIFF.normal).speed : 1);
     p.rallied = rallied;
   }
   // what bots perceive lags reality: remember where everyone was over the last half second
@@ -2465,14 +2565,14 @@ function snapshot(w) {
         ab: p.slots, ac: p.abCd.map(r1), fz: p.frozen > 0 ? 1 : 0, sx: p.dashLock > 0 ? 1 : 0, ov: p.over >= 1 ? 1 : 0,
         sn: p.snare ? 1 : 0, vl: p.volleyArmed ? 1 : 0, rl: p.railArmed ? 1 : 0,
         arm: p.recoilArmed ? 'recoil' : p.seekArmed ? 'seeker' : p.swapArmed ? 'swap' : p.boomArmed ? 'boomerang' : p.execArmed ? 'execute' : undefined,
-        sr: p.shroudT > 0 ? p.shroudR : undefined, rsh: p.rush ? 1 : 0, ft: p.fortT > 0 ? 1 : 0, wd: p.windT > 0 ? 1 : 0, ph: p.phaseT > 0 ? 1 : 0, gr: p.grap ? [r1(p.grap.x), r1(p.grap.y)] : 0, rp: r2(p.revP || 0), rv: p.reviveUsed ? 1 : 0, fl: p.flash > 0 ? 1 : 0, dc: r2(p.dashCd), dm: p.dashCdMax, d: p.dead ? 1 : 0,
+        sr: p.shroudT > 0 ? p.shroudR : undefined, rsh: p.rush ? 1 : 0, sk: p.strikeN || 0, ft: p.fortT > 0 ? 1 : 0, wd: p.windT > 0 ? 1 : 0, ph: p.phaseT > 0 ? 1 : 0, gr: p.grap ? [r1(p.grap.x), r1(p.grap.y)] : 0, rp: r2(p.revP || 0), rv: p.reviveUsed ? 1 : 0, fl: p.flash > 0 ? 1 : 0, dc: r2(p.dashCd), dm: p.dashCdMax, d: p.dead ? 1 : 0,
         k: p.kills, de: p.deaths, am: p.amber, er: p.earned, up: p.up, hn: p.hones, el: p.element, ro: p.role,
         of: p.offer, pk: p.picked ? 1 : 0, po: p.poisonN, dz: p.disarm > 0 ? 1 : 0, hc: p.hcap || 0, dfl: p.deflectT > 0 ? 1 : 0, ts: p.trapSet ? [r1(p.trapSet.x), r1(p.trapSet.y), r2(1 - p.trapSet.t / TRAP_SET)] : undefined, ti: p.title || undefined, pn: p.pinned > 0 && p.stuck > 0 ? 1 : 0, pa: p.pinned > 0 ? r2(p.pinAng || 0) : undefined, sg: p.staggerT > 0 ? 1 : 0, mk: p.markT > 0 ? 1 : 0, sth: p.stealthT > 0 ? 1 : 0, amb: p.ambushT > 0 ? 1 : 0, bs: p.bot && p.ai.style ? p.ai.style : undefined, em: p.emp ? 1 : 0, sk: p.streak, lh: p.lastHow, ep: Math.min(p.empPts, EMPOWER_AT), rz: r1(p.r),
         ss: [p.stats.shots, p.stats.hits, Math.round(p.stats.dmg), Math.round(p.stats.taken), p.stats.ring, Math.round(p.stats.longest)],
         pw, lc: p.lastCause, kb: p.killedBy,
       };
     }),
-    a: w.arrows.map(a => ({ id: a.id, o: a.owner, x: r1(a.x), y: r1(a.y), g: r3(a.ang), s: a.stuck > 0 ? r2(a.stuck) : 0, c: a.color, cr: a.full ? 1 : 0, ex: a.explosive ? 1 : 0, rl: a.rail ? 1 : 0, bg: a.big ? 1 : 0, sk: a.seek ? 1 : 0, bm: a.boom ? 1 : 0, sw: a.swap ? 1 : 0, xq: a.exec ? 1 : 0, sh: a.shur ? 1 : 0, hv: a.heavy ? 1 : 0, el: a.el, b: a.bolt ? 1 : 0, sn: a.snare ? 1 : 0 })),
+    a: w.arrows.map(a => ({ id: a.id, o: a.owner, x: r1(a.x), y: r1(a.y), g: r3(a.ang), s: a.stuck > 0 ? r2(a.stuck) : 0, c: a.color, cr: a.full ? 1 : 0, ex: a.explosive ? 1 : 0, rl: a.rail ? 1 : 0, bg: a.big ? 1 : 0, sk: a.seek ? 1 : 0, bm: a.boom ? 1 : 0, sw: a.swap ? 1 : 0, xq: a.exec ? 1 : 0, sh: a.shur ? (a.dbl ? 2 : 1) : 0, hv: a.heavy ? 1 : 0, el: a.el, b: a.bolt ? 1 : 0, sn: a.snare ? 1 : 0 })),
     z: w.zones.filter(z => !(z.delay > 0)).map(z => ({ id: z.id, ty: z.ty, x: r1(z.x), y: r1(z.y), x2: z.x2 != null ? r1(z.x2) : undefined, y2: z.y2 != null ? r1(z.y2) : undefined, r: z.r, t: r2(z.t), tm: z.team, o: z.owner })),
     u: w.pickups.map(u => ({ id: u.id, x: r1(u.x), y: r1(u.y), ty: u.type, ag: r1(u.age), li: u.life, cp: u.chan ? r2(u.cp) : undefined, ct: u.chan ? u.ct : undefined, cs: u.chan ? u.cs : undefined })),
   };

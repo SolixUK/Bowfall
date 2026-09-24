@@ -595,6 +595,7 @@ const store = { get(k, d) { try { const v = localStorage.getItem(k); return v ==
 // how you went down: [short label over the body, sentence with a killer, sentence without one]
 // {k} = killer, {v} = victim; both become "you" when it's you
 const HOW = {
+  execute:  ['Executed', '{k} executed {v}', '{v} was executed'],
   flash:    ['Cut down', '{k} cut {v} down with a Flash Strike', '{v} got cut down'],
   caltrops: ['Caltrops', "{k}'s caltrops finished {v} off", '{v} bled out on caltrops'],
   shuriken: ['Shuriken', '{k} took {v} out with a shuriken', '{v} caught a shuriken'],
@@ -1290,7 +1291,7 @@ function helpHtml() {
         <li><b>Move</b> with <kbd>WASD</kbd>. You build up speed over about 2 seconds and glide when you let go, like an air-hockey puck.</li>
         <li><b>Aim</b> with the mouse. <b>Hold click</b> to draw, release to shoot. A longer draw flies faster, hits harder and knocks back further. Some upgrades trigger on a <b>full draw</b>.</li>
         <li><b>Critical hits</b> aren't random: an arrow whose path runs through the middle of the target (the centre ${Math.round(Sim.BULLSEYE * 100)}% of its body) is a <b>bullseye</b> and deals ${Sim.CRIT_MUL}× damage.</li>
-        <li><b>Dash</b> with <kbd>Space</kbd> or <kbd>Shift</kbd>. It always goes toward your cursor, jumps pits, lava and water, and shoves enemies you hit. Ninjas blink instead: a near-instant hop the way you're moving, twice in a row.</li>
+        <li><b>Dash</b> with <kbd>Space</kbd> or <kbd>Shift</kbd>. It always goes toward your cursor, jumps pits, lava and water, and shoves enemies you hit. Ninjas blink instead: a near-instant hop toward your cursor, twice in a row. Ninjas also throw shuriken instead of drawing a bow: just click (or hold) to throw.</li>
         <li><b>Abilities</b> go on <kbd>Q</kbd> and <kbd>E</kbd> once you pick them. <kbd>Esc</kbd> opens the menu.</li>
         <li><b>Knockback is the main weapon.</b> Knocking an enemy into a hazard, a wall or another archer does far more than the arrow alone.</li>
       </ul>`),
@@ -1587,6 +1588,26 @@ function handleEvents(evs) {
       case 'matchEnd': if (e.mw === myTeam()) sfx.win(); else sfx.hurt(); break;
       case 'picked': if (e.id === myId) { lastPick = e.card; sfx.kill(); } break;
       case 'loaded': if (e.id === myId) { tone(300, 0.25, 'sawtooth', 0.05, 200); const m = view && view.p.find(p => p.id === myId); if (m) floater(m.x, m.y - 40, 'Bolt loaded', '#ffcf5a', 14); } break;
+      case 'throw':
+        if (e.id === myId) { nz(0.05, 0.07, 'highpass', 2500, 5000, 1); tone(e.d ? 1500 : 2300, 0.03, 'triangle', 0.025); }
+        else nz(0.04, 0.025, 'highpass', 2500, 5000, 1);
+        break;
+      case 'sstrike': {
+        burst(e.x1, e.y1, '#1c1a2e', 14, 110, 3); burst(e.x2, e.y2, '#aab0e0', 14, 150, 2.5);
+        for (let i = 1; i < 8; i++) fx.parts.push({ x: lerp(e.x1, e.x2, i / 8), y: lerp(e.y1, e.y2, i / 8), vx: 0, vy: 0, life: 0, max: 0.3, color: '#3a3a4e', r: 3 });
+        os('sine', 300, 1400, 0.1, 0.04); nz(0.1, 0.06, 'highpass', 5000, 8000, 1, 0.08);
+        if (e.id === myId) { const m = view && view.p.find(p => p.id === myId); if (m) floater(e.x2, e.y2 - 40, 'Double damage ×3', '#ff4d5e', 13); }
+        break;
+      }
+      case 'clone': burst(e.x, e.y, '#2a2a3a', 18, 140, 3); nz(0.3, 0.07, 'lowpass', 1200, 300); os('sine', 700, 200, 0.2, 0.03); break;
+      case 'blossom': fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '215,221,229', max: 90 }); for (let i = 0; i < 4; i++) nz(0.06, 0.06, 'highpass', 2500, 5000, 1, i * 0.025); break;
+      case 'smark': if (e.id === myId) { tone(660, 0.08, 'sine', 0.04); } break;
+      case 'recall': {
+        burst(e.x1, e.y1, '#2a2a3a', 12, 110, 2.5); burst(e.x2, e.y2, '#aab0e0', 16, 150, 2.5);
+        os('sine', 1200, 400, 0.15, e.id === myId ? 0.05 : 0.025);
+        break;
+      }
+      case 'executed': floater(e.x, e.y - 40, 'Executed!', '#ff4d5e', 20); tone(90, 0.3, 'sawtooth', 0.06, -30); nz(0.15, 0.1, 'highpass', 3000, 1500, 1); shake(5); break;
       case 'nblink': {
         burst(e.x1, e.y1, '#2a2a3a', 10, 90, 2.5); burst(e.x2, e.y2, '#aab0e0', 8, 110, 2);
         for (let i = 1; i < 6; i++) fx.parts.push({ x: lerp(e.x1, e.x2, i / 6), y: lerp(e.y1, e.y2, i / 6), vx: 0, vy: 0, life: 0, max: 0.22, color: '#3a3a4e', r: 3 });
@@ -2436,6 +2457,12 @@ function drawArena() {
   ctx.restore();
 }
 
+function starPath(r1, r2) { ctx.beginPath(); for (let i = 0; i < 8; i++) { const r = i % 2 ? r2 : r1, t = i / 8 * TAU; i ? ctx.lineTo(Math.cos(t) * r, Math.sin(t) * r) : ctx.moveTo(Math.cos(t) * r, Math.sin(t) * r); } ctx.closePath(); }
+function drawHandStar(R, p) {
+  ctx.save(); ctx.translate(R + 5, R * 0.35); ctx.rotate(clock * 3);
+  ctx.fillStyle = p.sk ? '#ffd0d8' : '#d7dde5'; ctx.strokeStyle = p.sk ? '#ff4d5e' : '#4a515c'; ctx.lineWidth = p.sk ? 1.6 : 1;
+  starPath(6.5, 2); ctx.fill(); ctx.stroke(); ctx.restore();
+}
 function drawBow(charge, drawing, len, col) {
   const bend = 1.15 - charge * 0.2;
   ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.lineCap = 'round';
@@ -2587,7 +2614,8 @@ function drawPlayer(p, isMe, bare) {
     ctx.beginPath(); ctx.arc(0, 0, R + (p.dfl ? 10 : 6), -0.9, 0.9); ctx.stroke();
     if (p.dfl) { ctx.strokeStyle = 'rgba(200,225,255,0.35)'; ctx.lineWidth = 12; ctx.beginPath(); ctx.arc(0, 0, R + 12, -1, 1); ctx.stroke(); }
   }
-  drawBow(p.ch, !!p.dr, Math.max(20, R + 4), p.dz ? '#7b8594' : '#c89b5b');
+  if (p.ro === 'ninja') drawHandStar(R, p);
+  else drawBow(p.ch, !!p.dr, Math.max(20, R + 4), p.dz ? '#7b8594' : '#c89b5b');
   if (p.dz) { ctx.strokeStyle = 'rgba(191,232,255,0.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(18, -8); ctx.lineTo(30, 8); ctx.moveTo(30, -8); ctx.lineTo(18, 8); ctx.stroke(); }
   ctx.restore();
   if (p.ra && !p.f) { ctx.strokeStyle = 'rgba(125,255,138,0.35)'; ctx.lineWidth = 2; ctx.setLineDash([2, 5]); ctx.beginPath(); ctx.arc(0, 0, R + 9, clock, clock + TAU); ctx.stroke(); ctx.setLineDash([]); }
@@ -2674,9 +2702,10 @@ function drawPlayer(p, isMe, bare) {
 
 function drawArrow(a) {
   if (a.sh) { // shuriken: a spinning four-point star
-    ctx.save(); ctx.globalAlpha = a.s > 0 && a.s < 1 ? a.s : 1; ctx.translate(a.x, a.y); ctx.rotate(clock * 26 + a.id);
-    ctx.fillStyle = '#d7dde5'; ctx.strokeStyle = '#4a515c'; ctx.lineWidth = 1;
-    ctx.beginPath(); for (let i = 0; i < 8; i++) { const r = i % 2 ? 2 : 7, t = i / 8 * TAU; i ? ctx.lineTo(Math.cos(t) * r, Math.sin(t) * r) : ctx.moveTo(Math.cos(t) * r, Math.sin(t) * r); } ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.save(); ctx.globalAlpha = a.s > 0 && a.s < 1 ? a.s : 1; ctx.translate(a.x, a.y); ctx.rotate(a.s ? a.id * 0.7 : clock * 26 + a.id); // stuck in a wall: stops spinning
+    if (!a.s && (a.sh === 2 || EL_COL[a.el])) { ctx.fillStyle = a.sh === 2 ? 'rgba(255,77,94,0.35)' : `rgba(${EL_RGB[a.el]},0.3)`; ctx.beginPath(); ctx.arc(0, 0, a.sh === 2 ? 11 : 9, 0, TAU); ctx.fill(); }
+    ctx.fillStyle = '#d7dde5'; ctx.strokeStyle = a.sh === 2 ? '#ff4d5e' : EL_COL[a.el] || '#4a515c'; ctx.lineWidth = a.sh === 2 || a.el ? 1.6 : 1;
+    starPath(a.sh === 2 ? 8.5 : 7, 2); ctx.fill(); ctx.stroke();
     ctx.restore(); return;
   }
   if (a.bm && !a.s) { // boomerang: a spinning bent blade
@@ -2765,7 +2794,7 @@ function drawPickup(u) {
 // ---------- ability visuals ----------
 // your team's zones are faint with a dashed ring in your team colour; the enemy's are full strength
 function allyRing(z, me) {
-  if (!me || z.tm !== me.tm || z.ty === 'trap' || z.ty === 'wall' || z.ty === 'rain' || z.ty === 'totem') return;
+  if (!me || z.tm !== me.tm || z.ty === 'trap' || z.ty === 'wall' || z.ty === 'rain' || z.ty === 'totem' || z.ty === 'clone' || z.ty === 'smark') return;
   ctx.save(); ctx.globalAlpha = 0.7; ctx.strokeStyle = TEAM_COL[z.tm]; ctx.lineWidth = 1.5; ctx.setLineDash([5, 6]);
   ctx.beginPath(); ctx.arc(z.x, z.y, z.r, clock * 0.4, clock * 0.4 + TAU); ctx.stroke(); ctx.restore();
 }
@@ -2818,7 +2847,7 @@ function drawZones(v, me) {
   for (const z of v.z || []) {
     const ally = !!(me && z.tm === me.tm);
     if (z.ty === 'smoke') continue;
-    ctx.save(); if (ally && z.ty !== 'trap' && z.ty !== 'wall' && z.ty !== 'totem') ctx.globalAlpha = 0.38;
+    ctx.save(); if (ally && z.ty !== 'trap' && z.ty !== 'wall' && z.ty !== 'totem' && z.ty !== 'clone' && z.ty !== 'smark') ctx.globalAlpha = 0.38;
     drawZone(z, me);
     ctx.restore();
     allyRing(z, me);
@@ -2859,6 +2888,24 @@ function drawZone(z, me) {
       for (let i = 0; i < 10; i++) { const a = i / 10 * TAU; ctx.beginPath(); ctx.moveTo(z.x + Math.cos(a) * (z.r - 6), z.y + Math.sin(a) * (z.r - 6)); ctx.lineTo(z.x + Math.cos(a + 0.12) * (z.r + 4), z.y + Math.sin(a + 0.12) * (z.r + 4)); ctx.lineTo(z.x + Math.cos(a + 0.3) * (z.r - 6), z.y + Math.sin(a + 0.3) * (z.r - 6)); ctx.fill(); }
       ctx.strokeStyle = TEAM_COL[z.tm]; ctx.lineWidth = 1.5; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.arc(z.x, z.y, z.r + 7, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
       ctx.restore();
+    } else if (z.ty === 'clone') {
+      // a shadowy copy of its owner, facing the nearest enemy
+      const o = view && view.p.find(q => q.id === z.o); if (!o) return;
+      const foe = view.p.filter(q => q.tm !== z.tm && !q.d).sort((a, b) => Math.hypot(a.x - z.x, a.y - z.y) - Math.hypot(b.x - z.x, b.y - z.y))[0];
+      // to enemies it looks exactly like the real thing; your team sees a ghost
+      const ally = me && z.tm === me.tm;
+      ctx.save(); ctx.globalAlpha = ally ? 0.5 : 1;
+      drawPlayer(Object.assign({}, o, { id: '_clone', x: z.x, y: z.y, a: foe ? Math.atan2(foe.y - z.y, foe.x - z.x) : o.a, sth: 0, ph: 0, sr: 0, em: 0, f: 0, fl: 0, dr: 0 }), false, !!ally);
+      ctx.restore();
+      if (ally) { ctx.strokeStyle = 'rgba(142,149,201,0.6)'; ctx.lineWidth = 1.5; ctx.setLineDash([3, 5]); ctx.beginPath(); ctx.arc(z.x, z.y, (o.rz || 16) + 8, 0, TAU); ctx.stroke(); ctx.setLineDash([]); }
+    } else if (z.ty === 'smark') {
+      const mine = me && z.o === me.id; if (!mine && !(me && z.tm === me.tm)) return;
+      ctx.save(); ctx.translate(z.x, z.y); ctx.rotate(-clock * 1.5);
+      ctx.strokeStyle = 'rgba(170,176,224,0.9)'; ctx.lineWidth = 2;
+      for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.arc(0, 0, 14, i * TAU / 4, i * TAU / 4 + 0.9); ctx.stroke(); }
+      ctx.rotate(clock * 3); starPath(7, 2.5); ctx.fillStyle = 'rgba(170,176,224,0.8)'; ctx.fill();
+      ctx.restore();
+      ctx.strokeStyle = 'rgba(170,176,224,0.6)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(z.x, z.y, 20, -Math.PI / 2, -Math.PI / 2 + TAU * z.t / 5); ctx.stroke();
     } else if (z.ty === 'caltrops') {
       const a = Math.min(1, z.t / 0.4);
       ctx.save(); ctx.globalAlpha = a;
@@ -3023,7 +3070,7 @@ function render(replaying) {
   }
   ctx.globalAlpha = 1;
   if (replaying) { drawReplayFrame(); return; }
-  if (!menuOpen && view.m.ph !== 'lobby' && view.m.ph !== 'pick') me && drawCrosshair(me, mode === 'local' ? (me ? me.ch : 0) : localCharge);
+  if (!menuOpen && view.m.ph !== 'lobby' && view.m.ph !== 'pick') me && drawCrosshair(me, me.ro === 'ninja' ? 0 : mode === 'local' ? me.ch : localCharge);
   if (me && !me.d && me.hp < 30) {
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     const a = (1 - me.hp / 30) * (0.25 + 0.1 * Math.sin(clock * 7));
@@ -3324,7 +3371,7 @@ function replayRecord() {
   while (RP.buf.length && RP.buf[0].t < clock - 6) RP.buf.shift();
   while (RP.evs.length && RP.evs[0].t < clock - 6) RP.evs.shift();
 }
-const REPLAY_FX = { nblink: 1, flash: 1, swap: 1, fire: 1, hit: 1, dmg: 1, fall: 1, boom: 1, freeze: 1, spike: 1, thud: 1, pinned: 1, chain: 1, burst: 1, trapHit: 1, quake: 1, collapse: 1, aftershock: 1, dash: 1 };
+const REPLAY_FX = { throw: 1, sstrike: 1, recall: 1, nblink: 1, flash: 1, swap: 1, fire: 1, hit: 1, dmg: 1, fall: 1, boom: 1, freeze: 1, spike: 1, thud: 1, pinned: 1, chain: 1, burst: 1, trapHit: 1, quake: 1, collapse: 1, aftershock: 1, dash: 1 };
 function replayNote(evs) { for (const e of evs) { if (REPLAY_FX[e.e] || e.e === 'kill') RP.evs.push({ t: clock, e }); if (e.e === 'kill') RP.lastKill = { t: clock, k: e.k, v: e.v, how: e.how, kn: e.kn, vn: e.vn }; } }
 function replayQueue(ge) {
   const K = RP.lastKill;
