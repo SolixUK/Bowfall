@@ -577,6 +577,7 @@ const CAT_COL = { Power: '#ff8a5b', Agility: '#5ad1ff', Utility: '#c7b3ff' };
 const archName = p => (ELEMENTS[p.el] ? ELEMENTS[p.el].name : '') + ' ' + (ROLES[p.ro] ? ROLES[p.ro].name : '');
 const AMBER_COL = '#ffb84d';
 const TEAM_COL = { red: '#ff5a45', blue: '#3d8bff' };
+const TEAM_RGB = { red: '255,90,69', blue: '61,139,255' };
 const teamName = t => (TEAM_INFO[t] ? TEAM_INFO[t].name : 'Nobody');
 const puInfo = ty => (ty === 'amber' ? { name: `+${Sim.AMBER_BOOST.hp} health · cooldowns`, color: AMBER_COL } : PU[ty]);
 const OFFLINE = !!window.BOWFALL_OFFLINE || location.protocol === 'file:';
@@ -617,7 +618,7 @@ const HOW = {
   poison:   ['Poisoned', "{k}'s poison finished {v} off", '{v} succumbed to poison'],
   lava:     ['Roasted', '{k} knocked {v} into the lava', '{v} wandered into the lava'],
   pit:      ['Ring out', '{k} knocked {v} down a hole', '{v} fell down a hole'],
-  water:    ['Sunk', '{k} knocked {v} through the ice', '{v} fell through the ice'],
+  water:    ['Sunk', '{k} knocked {v} into the water', '{v} fell in the water'],
   spikes:   ['Spiked', '{k} threw {v} into the brambles', '{v} ran into the brambles'],
   wall:     ['Splat', '{k} slammed {v} into a wall', '{v} hit a wall'],
   crush:    ['Bowled', '{k} bowled {v} over', '{v} got bowled over'],
@@ -665,7 +666,7 @@ let world = null, acc = 0;
 let ws = null, roomInfo = null, snaps = [], pingMs = 0;
 let view = null, clock = 0;
 let localCharge = 0;
-const fx = { parts: [], floaters: [], rings: [], bolts: [], cones: [], ropes: [], shake: 0 };
+const fx = { parts: [], floaters: [], rings: [], bolts: [], cones: [], ropes: [], ghosts: [], shake: 0 };
 let feed = [];
 let resultsFor = null;
 
@@ -983,6 +984,8 @@ function toMenu() {
   mode = 'menu'; myId = null; world = null; view = null; menuOpen = false; roomInfo = null; clearChat();
   if (ws) { const s = ws; ws = null; try { s.close(); } catch (e) {} }
   $('gameMenu').hidden = true; $('resultsScreen').hidden = true; $('death').hidden = true;
+  $('lobby').hidden = true; $('pickScreen').hidden = true; $('gameSum').hidden = true; $('countdown').hidden = true; $('specBar').hidden = true;
+  document.body.classList.remove('spectating'); hc = {};
   history.replaceState(null, '', location.pathname);
   setScreens();
 }
@@ -1308,7 +1311,7 @@ function helpHtml() {
       <ul>
         <li><b>Pits and water holes:</b> fall in and you're out. Dashing jumps them.</li>
         <li><b>Lava:</b> heavy damage every moment you're in it, and it sets you burning.</li>
-        <li><b>Bogs and snowdrifts:</b> slow you to a crawl. Get knocked in fast and you're stuck for a moment.</li>
+        <li><b>Bogs and soft sand:</b> slow you to a crawl. Get knocked in fast and you're stuck for a moment.</li>
         <li><b>Brambles</b> on some walls hurt when you're thrown into them. Any wall hurts if you hit it hard enough.</li>
         <li><b>Bowling:</b> an archer sent flying into another hurts and knocks both.</li>
         <li>While you aim, the guide line turns <b>red</b> just before a wall or boulder that would stop your arrow.</li>
@@ -1552,7 +1555,7 @@ function handleEvents(evs) {
       case 'spike': burst(e.x, e.y, '#c9d1dc', 10, 140); sfx.splat(); if (e.id === myId) shake(6); break;
       case 'thud': burst(e.x, e.y, '#8d97a5', 8, 120); sfx.thunk(); if (e.id === myId) shake(4); break;
       case 'thunk': sfx.thunk(0.4); break;
-      case 'ping': tone(900, 0.05, 'square', 0.02); break;
+      case 'ping': tone(e.tk ? 1300 : 900, 0.05, 'square', 0.02); if (e.tk) { burst(e.x, e.y, '#ff78e6', 8, 120, 2); floater(e.x, e.y - 14, '+25%', '#ff78e6', 12); } break;
       case 'stuck': floater(e.x, e.y, 'Stuck!', '#b99be0', 14); noise(0.15, 0.07, 300); break;
       case 'dash':
         for (let i = 0; i < 6; i++) fx.parts.push({ x: e.x, y: e.y, vx: -e.dx * rand(40, 120), vy: -e.dy * rand(40, 120), life: 0, max: 0.35, color: '#e9edf2', r: rand(2, 4) });
@@ -1566,7 +1569,7 @@ function handleEvents(evs) {
         floater(e.x, e.y - 40, e.n > 1 ? `Overload ×${e.n}` : 'Overload', '#fff27a', 14); sfx.zap(0.8);
         break;
       case 'autoPicked': if (e.id === myId) notice(`Time's up. You got <b>${esc(cardInfo(e.card).name)}</b> at random`); break;
-      case 'crackWarn': crackT[e.i] = clock; if (crackT.warned !== view.m.gm) { crackT.warned = view.m.gm; notice('The ice is cracking!', false); } sfx.creak(); setTimeout(sfx.creak, 90); nz(0.5, 0.06, 'highpass', 2500, 6000); break;
+      case 'crackWarn': crackT[e.i] = clock; if (crackT.warned !== view.m.gm) { crackT.warned = view.m.gm; notice(THEME.beach ? 'The tide is coming in!' : 'The ice is cracking!', false); } if (THEME.beach) { nz(1.2, 0.07, 'lowpass', 700, 250, 1); nz(0.9, 0.04, 'highpass', 3000, 6000, 1, 0.3); } else { sfx.creak(); setTimeout(sfx.creak, 90); nz(0.5, 0.06, 'highpass', 2500, 6000); } break;
       case 'crackOpen': { const h = Sim.MAPS[MAPKEY].cracks[e.i]; if (h) { const [cx, cy] = hazCentre(h); burst(cx, cy, '#e6f7ff', 40, 260, 4); burst(cx, cy, '#5aa9d6', 20, 180, 3); } sfx.splash(); shake(5); break; }
       case 'phase': {
         const m = view && view.m;
@@ -1609,9 +1612,14 @@ function handleEvents(evs) {
       }
       case 'executed': floater(e.x, e.y - 40, 'Executed!', '#ff4d5e', 20); tone(90, 0.3, 'sawtooth', 0.06, -30); nz(0.15, 0.1, 'highpass', 3000, 1500, 1); shake(5); break;
       case 'nblink': {
-        burst(e.x1, e.y1, '#2a2a3a', 10, 90, 2.5); burst(e.x2, e.y2, '#aab0e0', 8, 110, 2);
-        for (let i = 1; i < 6; i++) fx.parts.push({ x: lerp(e.x1, e.x2, i / 6), y: lerp(e.y1, e.y2, i / 6), vx: 0, vy: 0, life: 0, max: 0.22, color: '#3a3a4e', r: 3 });
-        if (e.id === myId) { os('sine', 900, 260, 0.08, 0.045); nz(0.06, 0.05, 'highpass', 4000, 7000, 1); } else nz(0.05, 0.02, 'highpass', 4000, 7000, 1);
+        // a crouch and a puff of smoke, then afterimages trail along the streak as the ninja crosses it
+        const q = view && view.p.find(pp => pp.id === e.id), col = q ? q.c : '#aab0e0', R0 = q ? q.rz || 16 : 16;
+        burst(e.x1, e.y1, '#2a2a3a', 10, 70, 2.5);
+        for (let i = 0; i <= 5; i++) fx.ghosts.push({ x: lerp(e.x1, e.x2, i / 5), y: lerp(e.y1, e.y2, i / 5), c: col, r: R0, life: -(0.05 + i * 0.016), max: 0.28 });
+        fx.bolts.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, life: -0.05, col: '170,176,224', straight: 1 });
+        setTimeout(() => burst(e.x2, e.y2, '#aab0e0', 8, 110, 2), 140);
+        const v = e.id === myId ? 1 : 0.4;
+        nz(0.05, 0.03 * v, 'lowpass', 900, 300, 1); setTimeout(() => { os('sine', 1100, 300, 0.09, 0.045 * v); nz(0.08, 0.05 * v, 'highpass', 3500, 7000, 1); }, 50);
         break;
       }
       case 'flash': {
@@ -1819,6 +1827,7 @@ function updateFx(dt) {
   for (let i = fx.parts.length - 1; i >= 0; i--) { const p = fx.parts[i]; p.life += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.94; p.vy *= 0.94; if (p.life > p.max) fx.parts.splice(i, 1); }
   for (let i = fx.floaters.length - 1; i >= 0; i--) { const f = fx.floaters[i]; f.life += dt; f.y -= 40 * dt; if (f.life > 0.9) fx.floaters.splice(i, 1); }
   for (let i = fx.rings.length - 1; i >= 0; i--) { const r = fx.rings[i]; r.life += dt; r.r = 10 + ((r.max || 120) - 10) * Math.min(1, r.life / 0.25); if (r.life > 0.4) fx.rings.splice(i, 1); }
+  for (let i = fx.ghosts.length - 1; i >= 0; i--) { fx.ghosts[i].life += dt; if (fx.ghosts[i].life > fx.ghosts[i].max) fx.ghosts.splice(i, 1); }
   for (const k of ['bolts', 'cones', 'ropes']) for (let i = fx[k].length - 1; i >= 0; i--) { fx[k][i].life += dt; if (fx[k][i].life > (fx[k][i].max || (k === 'ropes' ? 0.8 : 0.3))) fx[k].splice(i, 1); }
   if (fx.parts.length > 360) fx.parts.splice(0, fx.parts.length - 360);
   if (fx.floaters.length > 40) fx.floaters.splice(0, fx.floaters.length - 40);
@@ -1909,6 +1918,19 @@ THEMES.ice = {
   stem: ['#8db4cb', '#a8c9dc'], thorn: '#f4fbff', leaf: '#cfe6f2', berry: '#9fdcff', burrow: null,
   ambient: 'snow', leafCols: ['#ffffff', '#eef8ff', '#dff1fb', '#ffffff'],
 };
+THEMES.beach = {
+  // the sea all around, sand underfoot
+  forest: '#15607f', canopy: ['#1b7194', '#2383a8', '#1a6a8a', '#2b91b5'], canopyHi: 'rgba(255,255,255,0.20)',
+  ground: '#e3cb93', patchA: 'rgba(255,244,210,0.34)', patchB: 'rgba(196,160,98,0.24)', patchBase: 'rgba(227,203,147,0)', sun: 'rgba(255,252,225,0.14)',
+  blades: ['#c9ab72', '#f3e4bd', '#b8975e', '#ead7a8'], ground2: 'sand', flowers: 0, fairy: false, water: true, beach: true,
+  dirt: '#d8bc82', dirtDark: '#b99a62', pitIn: '#0f4f6a', pitOut: '#3fa3c4', roots: 'rgba(255,255,255,0.3)',
+  bogBank: '#c7a86c', bogEdge: '#a88a52', bog: '#8f7446', bogSheen: 'rgba(255,240,200,0.25)', lily: null, reeds: false,
+  rock: '#8a8177', rockLight: '#a79d90', basalt: '#6e665d', scorch: 'rgba(0,0,0,0)',
+  boulder: '#857c72', boulderLight: '#a39a8d', moss: null, barnacles: true,
+  border: 'rock', wall: '#8e7a5e', wallMid: '#7d6a50', wallLight: '#bba584',
+  stem: ['#7a5a3a', '#8d6b47'], thorn: '#f4efe6', leaf: '#3f7a55', berry: '#e0703a', burrow: null,
+  ambient: 'sand', leafCols: ['#f6ead0', '#e2cfa2', '#ffffff', '#d9c190'],
+};
 THEMES.spring = Object.assign({}, THEMES.meadow, {
   ground: '#57903f', patchA: 'rgba(130,190,95,0.24)', flowers: 40, fairy: false,
   leafCols: ['#f3d6e2', '#8fb44a', '#f4ecd2', '#b8c45a'],
@@ -1959,6 +1981,25 @@ function blob(g, x, y, r, inner, outer) {
 }
 
 // open water with a jagged rim of broken ice
+// a tide pool: wet sand rim, clear blue water, a few pebbles and a starfish
+function paintTidePool(g, h, R) {
+  const [cx, cy] = hazCentre(h);
+  hazP(g, h, 12); g.fillStyle = 'rgba(150,120,70,0.30)'; g.fill();
+  hazP(g, h, 6); g.fillStyle = '#b89c66'; g.fill();
+  hazP(g, h, 0);
+  const gr = g.createRadialGradient(cx, cy, 6, cx, cy, Math.max(h.w || h.r * 2, h.h || h.r * 2) * 0.7);
+  gr.addColorStop(0, '#0f4f6a'); gr.addColorStop(1, '#3fa3c4');
+  g.fillStyle = gr; g.fill();
+  for (const pt of perim(h, 2, 12, R)) { g.fillStyle = R() < 0.5 ? '#9c9084' : '#c9bfb2'; g.beginPath(); g.arc(pt.x, pt.y, 2 + R() * 3, 0, TAU); g.fill(); }
+  g.save(); hazP(g, h, 0); g.clip();
+  g.strokeStyle = 'rgba(255,255,255,0.55)'; g.lineWidth = 2; hazP(g, h, -4); g.stroke();
+  if (R() < 0.8) {
+    const x = cx + (R() - 0.5) * (h.w ? h.w * 0.5 : h.r), y = cy + (R() - 0.5) * (h.h ? h.h * 0.5 : h.r);
+    g.fillStyle = '#e0703a'; g.beginPath(); for (let k = 0; k < 10; k++) { const a = k / 10 * TAU, rr = k % 2 ? 2.5 : 7; k ? g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr) : g.moveTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } g.closePath(); g.fill();
+  }
+  g.restore();
+}
+const paintWater = (g, h, R) => (THEME.beach ? paintTidePool(g, h, R) : paintIceHole(g, h, R));
 function paintIceHole(g, h, R) {
   const [cx, cy] = hazCentre(h);
   hazP(g, h, 9); g.fillStyle = 'rgba(40,90,120,0.18)'; g.fill();
@@ -2027,6 +2068,27 @@ function paintFloor(s) {
       for (let b = 0; b < n; b++) { const a = -Math.PI / 2 + (b - (n - 1) / 2) * 0.45 + (R() - 0.5) * 0.2; g.moveTo(x, y); g.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len); }
       g.stroke();
     }
+  } else if (T.ground2 === 'sand') {
+    // wind ripples, footprints of the tide, shells
+    for (let i = 0; i < 140; i++) {
+      const x = R() * AW, y = R() * AH;
+      if (blocked(x, y, 16)) continue;
+      const L = 30 + R() * 50;
+      g.strokeStyle = R() < 0.5 ? 'rgba(180,145,90,0.35)' : 'rgba(255,248,225,0.45)'; g.lineWidth = 1.2 + R();
+      g.beginPath(); g.moveTo(x, y); g.bezierCurveTo(x + L * 0.3, y - 5, x + L * 0.6, y + 5, x + L, y); g.stroke();
+    }
+    for (let i = 0; i < 500; i++) {
+      const x = R() * AW, y = R() * AH;
+      if (blocked(x, y, 8)) continue;
+      g.fillStyle = T.blades[Math.floor(R() * T.blades.length)]; g.beginPath(); g.arc(x, y, 0.7 + R() * 1.3, 0, TAU); g.fill();
+    }
+    for (let i = 0; i < 22; i++) {
+      const x = R() * AW, y = R() * AH;
+      if (blocked(x, y, 14)) continue;
+      const a = R() * TAU, r = 3 + R() * 3;
+      g.fillStyle = R() < 0.5 ? '#fbf3e4' : '#f2cdb8'; g.beginPath(); g.moveTo(x, y); g.arc(x, y, r, a - 1.2, a + 1.2); g.closePath(); g.fill();
+      g.strokeStyle = 'rgba(160,120,90,0.6)'; g.lineWidth = 0.7; for (let k = -1; k <= 1; k++) { g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a + k * 0.6) * r, y + Math.sin(a + k * 0.6) * r); g.stroke(); }
+    }
   } else if (T.ground2 === 'ice') {
     // skate scratches, frozen bubbles and faint fault lines
     for (let i = 0; i < 160; i++) {
@@ -2094,7 +2156,7 @@ function paintFloor(s) {
   for (const h of HAZ) {
     const [cx, cy] = hazCentre(h);
     if (h.type === 'pit' && T.water) {
-      paintIceHole(g, h, R);
+      paintWater(g, h, R);
     } else if (h.type === 'pit') {
       hazP(g, h, 11); g.fillStyle = 'rgba(0,0,0,0.18)'; g.fill();
       hazP(g, h, 8); g.fillStyle = T.dirt; g.fill();
@@ -2119,6 +2181,14 @@ function paintFloor(s) {
         const L = 5 + R() * 6;
         g.beginPath(); g.moveTo(p.x + p.nx * 2, p.y + p.ny * 2); g.lineTo(p.x - p.nx * L + (R() - 0.5) * 4, p.y - p.ny * L + (R() - 0.5) * 4); g.stroke();
       }
+    } else if (h.type === 'tar' && T.beach) {
+      // soft wet sand: darker, glossy, pocked with little holes
+      hazP(g, h, 8); g.fillStyle = 'rgba(140,110,60,0.25)'; g.fill();
+      hazP(g, h, 0); g.fillStyle = '#a88a55'; g.fill();
+      g.save(); hazP(g, h, 0); g.clip();
+      blob(g, cx - 12, cy - 10, (h.r || 60) * 0.9, 'rgba(255,245,215,0.28)', 'rgba(0,0,0,0)');
+      for (let i = 0; i < 30; i++) { const x = cx + (R() - 0.5) * (h.w || h.r * 1.8), y = cy + (R() - 0.5) * (h.h || h.r * 1.8); g.fillStyle = 'rgba(70,52,28,0.55)'; g.beginPath(); g.arc(x, y, 0.8 + R() * 1.4, 0, TAU); g.fill(); }
+      g.restore();
     } else if (h.type === 'tar' && T.water) {
       // snowdrift: a soft white mound with a blue shadow along its lower edge
       hazP(g, h, 6); g.fillStyle = 'rgba(70,120,150,0.18)'; g.fill();
@@ -2176,6 +2246,9 @@ function paintFloor(s) {
     if (T.moss) {
       g.fillStyle = T.moss[0]; g.beginPath(); g.ellipse(p.x - 8, p.y - 12, p.r * 0.75, p.r * 0.45, -0.5, 0, TAU); g.fill();
       g.fillStyle = T.moss[1]; g.beginPath(); g.ellipse(p.x - 10, p.y - 14, p.r * 0.5, p.r * 0.3, -0.5, 0, TAU); g.fill();
+    } else if (T.barnacles) {
+      for (let i = 0; i < 9; i++) { const a = R() * TAU, rr = R() * p.r * 0.8; g.fillStyle = R() < 0.5 ? '#efe9dc' : '#d6cfc0'; g.beginPath(); g.arc(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr, 1.5 + R() * 2, 0, TAU); g.fill(); }
+      g.fillStyle = 'rgba(63,122,85,0.7)'; g.beginPath(); g.ellipse(p.x + 6, p.y + 10, p.r * 0.5, p.r * 0.25, 0.4, 0, TAU); g.fill();
     } else if (T.frosty) {
       g.fillStyle = 'rgba(255,255,255,0.85)'; g.beginPath(); g.ellipse(p.x - 6, p.y - 10, p.r * 0.7, p.r * 0.4, -0.4, 0, TAU); g.fill();
     } else {
@@ -2226,7 +2299,7 @@ function paintFloor(s) {
       const out = 6 + Math.sin(a * 0.09) * 3;
       const [x1, y1] = pt(a - 2.5, out), [x2, y2] = pt(a + 2.5, out), [tx, ty] = pt(a + (R() - 0.5) * 3, out + 8 + R() * 4);
       g.fillStyle = T.thorn; g.beginPath(); g.moveTo(x1, y1); g.lineTo(tx, ty); g.lineTo(x2, y2); g.fill();
-      if (T.border === 'rock') { g.strokeStyle = 'rgba(255,120,50,0.5)'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(x1, y1); g.lineTo(tx, ty); g.stroke(); }
+      if (T.border === 'rock' && !T.beach && !T.frosty) { g.strokeStyle = 'rgba(255,120,50,0.5)'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(x1, y1); g.lineTo(tx, ty); g.stroke(); }
     }
     for (let a = s.a + 10; a < s.b; a += 30 + R() * 30) {
       const [x, y] = pt(a, 3 + R() * 6);
@@ -2357,13 +2430,20 @@ function drawCracks(c) {
   const cr = (view && view.m && view.m.cr) || '', list = (MAPS[MAPKEY] && MAPS[MAPKEY].cracks) || [];
   list.forEach((h, i) => {
     const st = +cr[i] || 0;
-    if (st === 2) { paintIceHole(ctx, h, mulberry(400 + i)); drawWaterGlints(h, c); return; }
+    if (st === 2) { paintWater(ctx, h, mulberry(400 + i)); drawWaterGlints(h, c); return; }
     // outline the thin ice faintly all game, so players learn where it will go
-    ctx.save(); ctx.setLineDash([6, 8]); ctx.strokeStyle = st ? `rgba(20,70,110,${0.45 + 0.35 * Math.sin(c * 12)})` : 'rgba(40,100,140,0.16)'; ctx.lineWidth = st ? 2.5 : 1.5;
+    ctx.save(); ctx.setLineDash([6, 8]); ctx.strokeStyle = st ? `rgba(20,70,110,${0.45 + 0.35 * Math.sin(c * 12)})` : THEME.beach ? 'rgba(90,70,40,0.22)' : 'rgba(40,100,140,0.16)'; ctx.lineWidth = st ? 2.5 : 1.5;
     hazP(ctx, h, 0); ctx.stroke(); ctx.restore();
     if (st === 1) {
       const since = crackT[i] != null ? clock - crackT[i] : Sim.CRACK_WARN / 2, k = clamp(since / Sim.CRACK_WARN, 0, 1);
       ctx.save(); hazP(ctx, h, 0); ctx.clip();
+      if (THEME.beach) {
+        ctx.fillStyle = `rgba(120,95,55,${0.15 + 0.3 * k})`; ctx.fillRect(h.x, h.y, h.w, h.h);
+        ctx.fillStyle = `rgba(63,163,196,${0.15 + 0.45 * k})`; ctx.fillRect(h.x, h.y, h.w, h.h * k);
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 3; ctx.beginPath();
+        for (let x = h.x; x <= h.x + h.w; x += 8) { const yy = h.y + h.h * k + Math.sin(x * 0.08 + c * 4) * 4; x === h.x ? ctx.moveTo(x, yy) : ctx.lineTo(x, yy); }
+        ctx.stroke(); ctx.restore(); return;
+      }
       ctx.fillStyle = `rgba(30,90,130,${0.12 + 0.2 * k})`; ctx.fillRect(h.x, h.y, h.w, h.h);
       ctx.strokeStyle = 'rgba(15,55,90,0.85)'; ctx.lineWidth = 1.6;
       for (const l of crackPattern(i, h)) {
@@ -2438,6 +2518,10 @@ function drawArena() {
   const embers = THEME.ambient === 'embers';
   for (const l of leaves) {
     const col = THEME.leafCols[l.c];
+    if (THEME.ambient === 'sand') {
+      ctx.globalAlpha = 0.6; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(l.x, l.y, 1 + (l.c % 2) * 0.6, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
+      continue;
+    }
     if (THEME.ambient === 'snow') {
       ctx.globalAlpha = 0.75; ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(l.x, l.y, 1.4 + (l.c % 3) * 0.6, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
       continue;
@@ -2568,6 +2652,7 @@ function drawPlayer(p, isMe, bare) {
   if (sc <= 0) return;
   let alpha = p.iv ? 0.55 + 0.25 * Math.sin(clock * 14) : 1;
   if (p.ph) alpha *= 0.35; // Phase Step: arrows pass through
+  if (p.nb) alpha *= 0.55; // mid-blink
   let hideTag = false;
   if (!bare && !isMe && view && smokeHides(p, view.p.find(q => q.id === myId))) return;
   if (p.sth) {
@@ -2584,14 +2669,20 @@ function drawPlayer(p, isMe, bare) {
   if (p.f > 0) ctx.rotate(p.f * 8);
   ctx.scale(sc, sc);
   if (!p.f) { ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(3, 5, R, R * 0.8, 0, 0, TAU); ctx.fill(); }
-  if (!p.f && !bare) { ctx.strokeStyle = TEAM_COL[p.tm]; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(0, 5, R + 5, (R + 5) * 0.6, 0, 0, TAU); ctx.stroke(); }
+  if (!p.f && !bare) {
+    // a glow in the team's colour, so you can tell sides apart at a glance
+    const tg = ctx.createRadialGradient(0, 0, R * 0.7, 0, 0, R * 2.3);
+    tg.addColorStop(0, `rgba(${TEAM_RGB[p.tm]},0.42)`); tg.addColorStop(1, `rgba(${TEAM_RGB[p.tm]},0)`);
+    ctx.fillStyle = tg; ctx.beginPath(); ctx.arc(0, 0, R * 2.3, 0, TAU); ctx.fill();
+    ctx.strokeStyle = TEAM_COL[p.tm]; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(0, 5, R + 5, (R + 5) * 0.6, 0, 0, TAU); ctx.stroke();
+  }
 
   if (isMe && !p.f) {
     // a soft spotlight and bright ring so you can find yourself out of the corner of your eye
-    const sp = ctx.createRadialGradient(0, 0, R * 0.6, 0, 0, R * 3.6);
-    sp.addColorStop(0, 'rgba(255,255,255,0.20)'); sp.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = sp; ctx.beginPath(); ctx.arc(0, 0, R * 3.6, 0, TAU); ctx.fill();
-    ctx.strokeStyle = `rgba(255,255,255,${0.7 + 0.25 * Math.sin(clock * 4)})`; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(0, 0, R + 9, 0, TAU); ctx.stroke();
+    const sp = ctx.createRadialGradient(0, 0, R * 0.6, 0, 0, R * 4.2);
+    sp.addColorStop(0, 'rgba(255,255,255,0.34)'); sp.addColorStop(0.5, 'rgba(255,255,255,0.12)'); sp.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = sp; ctx.beginPath(); ctx.arc(0, 0, R * 4.2, 0, TAU); ctx.fill();
+    ctx.strokeStyle = `rgba(255,255,255,${0.8 + 0.2 * Math.sin(clock * 4)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, R + 9, 0, TAU); ctx.stroke();
   }
   if (p.em && !p.f) drawEmpower(p, R);
   if (p.pw && p.pw.aegis) {
@@ -2647,7 +2738,7 @@ function drawPlayer(p, isMe, bare) {
     for (let k = 0; k < 4; k++) { const a0 = k * Math.PI / 2; ctx.beginPath(); ctx.moveTo(Math.cos(a0) * (R + 6), Math.sin(a0) * (R + 6)); ctx.lineTo(Math.cos(a0) * (R + 16), Math.sin(a0) * (R + 16)); ctx.stroke(); }
   }
   if (p.arm && !p.f) { // an armed special shot waiting on the string
-    const ac = { recoil: '#ffcf5a', seeker: '#ff9a5a', swap: '#ff78e6', boomerang: '#d9a066', execute: '#ff4d5e' }[p.arm] || '#ffffff';
+    const ac = { recoil: '#ffcf5a', seeker: '#ff9a5a', trick: '#ff78e6', boomerang: '#d9a066', execute: '#ff4d5e' }[p.arm] || '#ffffff';
     ctx.fillStyle = ac; ctx.beginPath(); ctx.arc(0, R + 9, 3.2, 0, TAU); ctx.fill();
     ctx.strokeStyle = ac; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(0, R + 9, 5.5 + Math.sin(clock * 8), 0, TAU); ctx.stroke();
   }
@@ -2692,10 +2783,11 @@ function drawPlayer(p, isMe, bare) {
   if (!p.f && !hideTag && !bare) {
     const w = 38, y = p.y - R - 12;
     ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(p.x - w / 2, y, w, 4);
-    ctx.fillStyle = p.hp < 30 ? '#ff4d5e' : p.c; ctx.fillRect(p.x - w / 2, y, w * clamp(p.hp / (p.mh || 100), 0, 1), 4);
+    ctx.fillStyle = TEAM_COL[p.tm] || p.c; ctx.fillRect(p.x - w / 2, y, w * clamp(p.hp / (p.mh || 100), 0, 1), 4);
+    if (p.hp < 30) { ctx.fillStyle = `rgba(255,255,255,${0.35 + 0.3 * Math.sin(clock * 10)})`; ctx.fillRect(p.x - w / 2, y, w * clamp(p.hp / (p.mh || 100), 0, 1), 4); }
     ctx.font = "600 12px 'Barlow', sans-serif"; ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillText(isMe ? 'You' : p.n, p.x + 1, y - 4);
-    ctx.fillStyle = isMe ? '#ffffff' : p.c; ctx.fillText(isMe ? 'You' : p.n, p.x, y - 5);
+    ctx.fillStyle = isMe ? '#ffffff' : TEAM_COL[p.tm] || p.c; ctx.fillText(isMe ? 'You' : p.n, p.x, y - 5);
     if (isMe) { const by = y - 22 - Math.sin(clock * 4) * 2; ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(p.x - 6, by - 7); ctx.lineTo(p.x + 6, by - 7); ctx.lineTo(p.x, by); ctx.closePath(); ctx.fill(); }
   }
 }
@@ -2962,7 +3054,16 @@ function drawMarkers(v, me) {
   }
 }
 function drawAbilityFx(v) {
+  for (const g of fx.ghosts) {
+    if (g.life < 0) continue;
+    const k = 1 - g.life / g.max;
+    ctx.fillStyle = g.c; ctx.globalAlpha = 0.35 * k; ctx.beginPath(); ctx.arc(g.x, g.y, g.r * (0.85 + 0.15 * k), 0, TAU); ctx.fill();
+    ctx.globalAlpha = 0.5 * k; ctx.strokeStyle = '#1c1a2e'; ctx.lineWidth = 2; ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
   for (const b of fx.bolts) {
+    if (b.life < 0) continue;
+    if (b.straight) { ctx.strokeStyle = `rgba(${b.col},${0.6 * (1 - b.life / 0.3)})`; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(b.x1, b.y1); ctx.lineTo(b.x2, b.y2); ctx.stroke(); continue; }
     ctx.strokeStyle = `rgba(${b.col || '255,245,150'},${1 - b.life / 0.3})`; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(b.x1, b.y1);
     for (let i = 1; i < 6; i++) { const k = i / 6; ctx.lineTo(lerp(b.x1, b.x2, k) + rand(-8, 8), lerp(b.y1, b.y2, k) + rand(-8, 8)); }
     ctx.lineTo(b.x2, b.y2); ctx.stroke();
