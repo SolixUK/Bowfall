@@ -11,6 +11,8 @@ const PUBLIC = path.join(__dirname, 'public');
 const TICK = 1 / 60;          // simulation step
 const SNAP_EVERY = 2;         // send a snapshot every 2 ticks (30 per second)
 const MAX_ROOMS = 50;
+const MAX_PEOPLE = 16;        // players plus spectators in one room
+let nextCid = 1;
 // every finished game is appended here (one JSON object per line) for balance stats
 const DATA_FILE = process.env.BOWFALL_DATA || path.join(__dirname, 'data', 'games.jsonl');
 fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
@@ -66,24 +68,62 @@ function createRoom(opts = {}) {
   return room;
 }
 
-function roomInfo(room) {
-  return { t: 'room', code: room.code, host: room.host };
+// room.host is the host's connection id (cid); players on a team also have a sim id (pid), spectators don't
+function hostWs(room) { return [...room.clients].find(c => c.cid === room.host) || null; }
+function roomInfo(room, ws) {
+  const h = hostWs(room);
+  return {
+    t: 'room', code: room.code, host: h ? h.pid : null, hostName: h ? h.name : '', amHost: room.host === ws.cid,
+    spec: [...room.clients].filter(c => !c.pid).map(c => ({ cid: c.cid, n: c.name, h: c.cid === room.host ? 1 : 0, you: c === ws ? 1 : 0 })),
+  };
 }
+function sendRoom(room) { for (const c of room.clients) send(c, roomInfo(room, c)); }
 function broadcast(room, obj) { const s = JSON.stringify(obj); for (const c of room.clients) if (c.readyState === 1) c.send(s); }
+function sysChat(room, text) { broadcast(room, { t: 'chat', sys: 1, m: text }); }
+
+// put a connection onto a team (from spectating), replacing a bot if the team is full of them
+function joinTeam(room, ws, team) {
+  const w = room.world;
+  if (!Sim.TEAMS.includes(team)) return 'No such team.';
+  if (!['lobby', 'over', 'post'].includes(w.match.ph)) return 'You can join a team once this game ends.';
+  const on = w.players.filter(p => p.team === team);
+  if (on.length >= Sim.MAX_TEAM) {
+    const bot = on.filter(p => p.bot).pop();
+    if (!bot) return 'That team is full.';
+    Sim.removeBot(w, bot.id);
+  }
+  const p = Sim.join(w, { name: ws.name, team, element: ws.el, role: ws.ro });
+  if (!p) return 'That team is full.';
+  ws.pid = p.id;
+  if (ws.title) Sim.setTitle(w, p.id, ws.title);
+  send(ws, { t: 'you', id: p.id });
+  return null;
+}
+function toSpectator(room, ws) {
+  if (!ws.pid) return;
+  Sim.leave(room.world, ws.pid);
+  ws.pid = null;
+  send(ws, { t: 'you', id: null });
+}
 
 function leave(ws) {
   const room = ws.room;
   if (!room) return;
   room.clients.delete(ws);
-  Sim.leave(room.world, ws.pid);
-  if (room.host === ws.pid) room.host = [...room.clients][0]?.pid || null;
-  ws.room = null;
-  if (!room.clients.size) rooms.delete(room.code);
-  else broadcast(room, roomInfo(room));
+  if (ws.pid) Sim.leave(room.world, ws.pid);
+  ws.room = null; ws.pid = null;
+  if (!room.clients.size) { rooms.delete(room.code); return; }
+  if (room.host === ws.cid) {
+    // hand the room to someone on a team if possible, otherwise anyone
+    const next = [...room.clients].find(c => c.pid) || [...room.clients][0];
+    room.host = next.cid;
+    sysChat(room, `${ws.name} left. ${next.name} is now the host.`);
+  } else sysChat(room, `${ws.name} left.`);
+  sendRoom(room);
 }
 
 wss.on('connection', ws => {
-  ws.isAlive = true;
+  ws.isAlive = true; ws.cid = 'c' + (nextCid++); ws.chatT = [];
   ws.on('pong', () => { ws.isAlive = true; });
   ws.on('message', raw => {
     let m; try { m = JSON.parse(raw); } catch (e) { return; }
@@ -99,29 +139,45 @@ wss.on('connection', ws => {
         room = rooms.get(String(m.code || '').toUpperCase().trim());
         if (!room) return send(ws, { t: 'err', msg: 'No room with that code. Check it and try again.' });
       }
-      const p = Sim.join(room.world, { name: cleanName(m.name), element: String(m.el || ''), role: String(m.ro || '') });
-      if (!p) {
-        if (!room.clients.size) rooms.delete(room.code);
-        return send(ws, { t: 'err', msg: 'That room is full (8 people).' });
-      }
-      ws.room = room; ws.pid = p.id;
+      if (room.clients.size >= MAX_PEOPLE) return send(ws, { t: 'err', msg: `That room is full (${MAX_PEOPLE} people).` });
+      ws.name = cleanName(m.name); ws.el = String(m.el || ''); ws.ro = String(m.ro || ''); ws.pid = null;
+      ws.room = room;
       room.clients.add(ws);
-      if (!room.host) room.host = p.id;
-      send(ws, { t: 'welcome', id: p.id, code: room.code });
-      broadcast(room, roomInfo(room));
+      // whoever creates the room starts on Red; everyone else arrives unassigned (or spectating a match in progress) and picks a team
+      if (m.create) { room.host = ws.cid; joinTeam(room, ws, 'red'); }
+      else if (!room.host) room.host = ws.cid;
+      send(ws, { t: 'welcome', id: ws.pid, code: room.code });
+      sendRoom(room);
+      sysChat(room, room.world.match.ph === 'lobby' || room.world.match.ph === 'over' ? `${ws.name} joined.` : `${ws.name} joined and is spectating until this game ends.`);
       return;
     }
 
     const room = ws.room;
     if (!room) return;
-    const w = room.world, isHost = room.host === ws.pid;
+    const w = room.world, isHost = room.host === ws.cid;
     switch (m.t) {
-      case 'in': Sim.setInput(w, ws.pid, m); break;
+      case 'in': if (ws.pid) Sim.setInput(w, ws.pid, m); break;
       case 'ping': send(ws, { t: 'pong', c: m.c }); break;
-      case 'loadout': Sim.setLoadout(w, ws.pid, String(m.el), String(m.ro)); break;
-      case 'title': Sim.setTitle(w, ws.pid, m.v ? String(m.v) : null); break;
-      case 'choose': Sim.choose(w, ws.pid, m.i | 0); break;
-      case 'team': Sim.setTeam(w, ws.pid, String(m.team)); break;
+      case 'loadout': ws.el = String(m.el); ws.ro = String(m.ro); if (ws.pid) Sim.setLoadout(w, ws.pid, ws.el, ws.ro); break;
+      case 'title': ws.title = m.v ? String(m.v) : null; if (ws.pid) Sim.setTitle(w, ws.pid, ws.title); break;
+      case 'choose': if (ws.pid) Sim.choose(w, ws.pid, m.i | 0); break;
+      case 'team': {
+        const team = String(m.team);
+        if (ws.pid) Sim.setTeam(w, ws.pid, team);
+        else { const err = joinTeam(room, ws, team); if (err) send(ws, { t: 'note', msg: err }); else sendRoom(room); }
+        break;
+      }
+      case 'spec': if (ws.pid) { toSpectator(room, ws); sendRoom(room); } break;
+      case 'chat': {
+        const text = String(m.m || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 140);
+        if (!text) break;
+        const now = Date.now(); ws.chatT = ws.chatT.filter(t => now - t < 5000);
+        if (ws.chatT.length >= 5) { send(ws, { t: 'note', msg: 'Slow down a little.' }); break; }
+        ws.chatT.push(now);
+        const p = ws.pid && w.players.find(q => q.id === ws.pid);
+        broadcast(room, { t: 'chat', n: ws.name, tm: p ? p.team : 'spec', c: p ? p.color : null, m: text });
+        break;
+      }
       // host-only controls
       case 'bot':
         if (!isHost) break;
