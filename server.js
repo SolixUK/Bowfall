@@ -8,6 +8,7 @@ const { WebSocketServer } = require('ws');
 const Sim = require('./public/sim.js');
 const { createStore, BOARD_KEYS } = require('./lib/db');
 const A = require('./lib/auth');
+const O = require('./lib/oauth');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC = path.join(__dirname, 'public');
@@ -132,7 +133,44 @@ async function api(req, res, url) {
   }
   if (route === '/me' && method === 'GET') {
     if (!me) return json(res, 200, { user: null });
-    return json(res, 200, { user: Object.assign(publicUser(me), { ach: me.ach || {} }) });
+    return json(res, 200, { user: Object.assign(publicUser(me), { ach: me.ach || {}, logins: await store.loginsOf(me.id), hasPassword: !!me.passHash }) });
+  }
+  // ---- Google, Discord and friends
+  if (route === '/auth-providers' && method === 'GET') return json(res, 200, { providers: O.enabled().map(k => ({ key: k, name: O.PROVIDERS[k].name })) });
+  if (route === '/oauth/pending' && method === 'GET') {
+    const pend = O.unseal(A.parseCookies(req.headers.cookie).bf_pending);
+    if (!pend) return json(res, 200, { pending: null });
+    let name = O.suggestName(pend.suggest);
+    for (let i = 2; await store.userByName(name) && i < 99; i++) name = O.suggestName(pend.suggest).slice(0, 14) + i;
+    return json(res, 200, { pending: { provider: O.PROVIDERS[pend.p].name, name, next: pend.next || '' } });
+  }
+  if (route === '/oauth/finish' && method === 'POST') {
+    const pend = O.unseal(A.parseCookies(req.headers.cookie).bf_pending);
+    if (!pend) return json(res, 400, { error: 'That sign-in has expired. Try again.' });
+    const name = String(body.name || '').trim();
+    if (!A.validName(name)) return json(res, 400, { error: 'Names are 3 to 16 letters, numbers, _ or -.' });
+    if (await store.userForLogin(pend.p, pend.id)) return json(res, 409, { error: 'That account is already set up. Sign in again.' });
+    const first = (await store.userCount()) === 0;
+    const u = await store.createUser(name, '', first || ADMINS.includes(name.toLowerCase()));
+    if (!u) return json(res, 409, { error: 'That name is taken.' });
+    await store.addLogin(pend.p, pend.id, u.id);
+    return login(req, res, u, [clearCookie('bf_pending', req)]);
+  }
+  if (route === '/unlink' && method === 'POST') {
+    if (!me) return json(res, 401, { error: 'Sign in first.' });
+    const p = String(body.provider || ''), have = await store.loginsOf(me.id);
+    if (!have.includes(p)) return json(res, 400, { error: "That isn't linked." });
+    if (!me.passHash && have.length < 2) return json(res, 400, { error: 'Set a password first, or you would have no way to sign in.' });
+    await store.removeLogin(p, me.id);
+    return json(res, 200, { ok: true });
+  }
+  if (route === '/password' && method === 'POST') {
+    if (!me) return json(res, 401, { error: 'Sign in first.' });
+    if (me.passHash && !A.checkPassword(body.current, me.passHash)) return json(res, 401, { error: 'Your current password is wrong.' });
+    if (!A.validPassword(body.password)) return json(res, 400, { error: 'Passwords need at least 6 characters.' });
+    me.passHash = A.hashPassword(body.password);
+    await store.setPassword(me.id, me.passHash);
+    return json(res, 200, { ok: true });
   }
   if (route === '/title' && method === 'POST') {
     if (!me) return json(res, 401, { error: 'Sign in first.' });
@@ -211,16 +249,57 @@ async function api(req, res, url) {
   }
   return json(res, 404, { error: 'Not found.' });
 }
-async function login(req, res, u) {
+async function sessionFor(req, u) {
   const tok = A.newToken();
   await store.createSession(A.hashToken(tok), u.id, Date.now() + A.SESSION_DAYS * 86400 * 1000);
-  const t = track(u);
-  return json(res, 200, { user: Object.assign(publicUser(t), { ach: t.ach || {} }) }, { 'Set-Cookie': A.sessionCookie(tok, req) });
+  return A.sessionCookie(tok, req);
+}
+async function login(req, res, u, extraCookies = []) {
+  const ck = await sessionFor(req, u), t = track(u);
+  return json(res, 200, { user: Object.assign(publicUser(t), { ach: t.ach || {} }) }, { 'Set-Cookie': [ck].concat(extraCookies) });
+}
+const secure = req => (req.headers['x-forwarded-proto'] || '').includes('https');
+const tempCookie = (name, value, req, minutes) => `${name}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${minutes * 60}${secure(req) ? '; Secure' : ''}`;
+const clearCookie = (name, req) => `${name}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure(req) ? '; Secure' : ''}`;
+const redirect = (res, to, cookies = []) => { res.writeHead(302, { Location: to, 'Set-Cookie': cookies, 'Cache-Control': 'no-store' }); res.end(); };
+const safeNext = n => (typeof n === 'string' && /^\/(?!\/)/.test(n) ? n.slice(0, 200) : '');
+
+// /auth/google starts a sign-in; /auth/google/callback is where the provider sends people back
+async function oauth(req, res, url) {
+  const m = url.pathname.match(/^\/auth\/([a-z]+)(\/callback)?$/);
+  const p = m && m[1];
+  if (!p || !O.enabled().includes(p)) return redirect(res, '/#/login?err=' + encodeURIComponent('That sign-in option is not set up on this server.'));
+  const me = await userFromReq(req);
+  if (!m[2]) {
+    const state = crypto.randomBytes(16).toString('hex');
+    const st = O.seal({ s: state, p, next: safeNext(url.searchParams.get('next')), link: !!(me && url.searchParams.get('link')) }, 10);
+    return redirect(res, O.authorizeUrl(req, p, state), [tempCookie('bf_oauth', st, req, 10)]);
+  }
+  const st = O.unseal(A.parseCookies(req.headers.cookie).bf_oauth), clear = clearCookie('bf_oauth', req);
+  const fail = msg => redirect(res, '/#/login?err=' + encodeURIComponent(msg), [clear]);
+  if (url.searchParams.get('error')) return fail('Sign-in was cancelled.');
+  if (!st || st.p !== p || st.s !== url.searchParams.get('state')) return fail('That sign-in link has expired. Try again.');
+  let who;
+  try { who = await O.identify(req, p, String(url.searchParams.get('code') || '')); } catch (e) { return fail(`Couldn't sign in with ${O.PROVIDERS[p].name}. Try again.`); }
+  const existing = await store.userForLogin(p, who.id);
+  if (st.link && me) {
+    // adding this sign-in method to the account you're already signed in to
+    if (existing && existing.id !== me.id) return redirect(res, `/#/u/${encodeURIComponent(me.name)}?err=` + encodeURIComponent(`That ${O.PROVIDERS[p].name} account already belongs to another player.`), [clear]);
+    await store.addLogin(p, who.id, me.id);
+    return redirect(res, `/#/u/${encodeURIComponent(me.name)}`, [clear]);
+  }
+  if (existing) return redirect(res, st.next || '/#/u/' + encodeURIComponent(existing.name), [clear, await sessionFor(req, existing)]);
+  // someone new: choose a player name first
+  const pend = O.seal({ p, id: who.id, suggest: who.suggest, next: st.next }, 15);
+  return redirect(res, '/#/finish', [clear, tempCookie('bf_pending', pend, req, 15)]);
 }
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   if (url.pathname === '/health') { res.writeHead(200); return res.end('ok'); }
+  if (url.pathname.startsWith('/auth/')) {
+    try { return await oauth(req, res, url); } catch (e) { console.error(e); return redirect(res, '/#/login?err=' + encodeURIComponent('Something went wrong signing in.')); }
+  }
   if (url.pathname.startsWith('/api/')) {
     try { return await api(req, res, url); } catch (e) { console.error(e); return json(res, 500, { error: 'Something went wrong on the server.' }); }
   }

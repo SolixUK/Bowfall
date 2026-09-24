@@ -17,3 +17,14 @@ services:
       # optional: extra admin account names, comma-separated (the first account created is always an admin)
       - key: ADMIN_USERS
         sync: false
+      # optional sign-in with Google and Discord (see HOSTING.md); leave blank to hide the buttons
+      - key: PUBLIC_URL
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_CLIENT_SECRET
+        sync: false

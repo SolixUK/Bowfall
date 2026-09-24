@@ -49,6 +49,24 @@ Render's free servers wipe their files whenever they restart, and Render's own f
 
 The server log on Render says `(Postgres database)` when it's connected, or `(local database file)` when `DATABASE_URL` isn't set.
 
+### Sign in with Google and Discord (optional)
+
+The **Continue with Google** and **Continue with Discord** buttons appear once you give the server each service's client ID and secret. First add one more variable in Render's **Environment**: `PUBLIC_URL` = your site's address, e.g. `https://bowfall.onrender.com` (no slash at the end).
+
+**Google**
+1. Go to https://console.cloud.google.com, sign in, and create a project (top bar → project picker → **New project**, call it Bowfall).
+2. Open **APIs & Services → OAuth consent screen** (it may be called **Google Auth Platform → Branding**). Choose **External**, fill in the app name (Bowfall), your support email and developer email, and save. Under **Audience**, click **Publish app** so anyone can sign in (the app only asks for name and profile picture, so Google doesn't need to review it).
+3. Open **Credentials** (or **Clients**) → **Create credentials → OAuth client ID** → application type **Web application**.
+4. Under **Authorised redirect URIs** add: `https://bowfall.onrender.com/auth/google/callback` (your address + `/auth/google/callback`). Create it.
+5. Copy the **Client ID** and **Client secret** into Render as `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
+
+**Discord**
+1. Go to https://discord.com/developers/applications → **New Application**, call it Bowfall.
+2. Open **OAuth2**. Under **Redirects** add `https://bowfall.onrender.com/auth/discord/callback` and save.
+3. Copy the **Client ID**, click **Reset Secret** and copy the secret. Put them in Render as `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET`.
+
+Save the variables in Render; after the restart the buttons appear on the sign-in page. New players signing in this way pick a player name the first time. Existing players can link Google or Discord (and add or change a password) on their own profile page. Bowfall only receives an ID and a display name from them, no email address.
+
 Good to know:
 
 - On the free plan the server goes to sleep after 15 minutes with nobody connected. The first visit after that takes about 30–60 seconds to wake it.

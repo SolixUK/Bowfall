@@ -8,6 +8,7 @@ Run the server and open its address: `/` is the website and `/play` is the game.
 
 - **Website:** a front page with open games and recent forum threads, a **Games** list, a **Leaderboard** (game wins, knockouts, match wins, games played, ring-outs, bullseyes), player **profiles** and a **Forum**.
 - **Accounts:** sign up with a name (3-16 letters, numbers, _ or -) and a password. Passwords are stored as salted scrypt hashes; sessions are an HttpOnly cookie that lasts 30 days. Signed-in players always play under their account name, and guests can't use a registered name (they get a `~` added).
+- **Google and Discord sign-in:** "Continue with Google" and "Continue with Discord" appear once the server has each service's client ID and secret (see HOSTING.md). First-timers pick a player name; existing players can link either on their profile, add or change a password there, and unlink one as long as another way to sign in remains. The server keeps only the service's user ID, no email address.
 - **Stats and achievements:** for signed-in players the server records every online game (games, wins, knockouts, deaths, damage, accuracy, ring-outs, matches, favourite roles and elements) and works out achievements itself from the game's events, so they can't be faked from the browser. Titles are chosen on your profile (or in the game's Achievements screen) and only earned ones can be worn. Guests and practice games keep using the browser's own achievement list, as before.
 - **Hosting a game:** in the game, **Play online → Host**: give it a name, choose **Public** (shown in the games list on the site and in the game) or **Private** (join by code only), and optionally a **password**. The host can change all three in the lobby. Joining a game with a password asks for it.
 - **Forum:** categories for News (admins only), General, Builds and tactics, Looking for a game, Bugs and Ideas. Signed-in players can start threads and reply; you can delete your own posts. Admins can pin, lock and delete threads and delete any post. The first account created on a server is an admin; add more with the `ADMIN_USERS` setting (comma-separated names).
@@ -210,6 +211,7 @@ Friends can join straight from a link, for example `https://your-host/play?room=
 | `server.js` | Serves the website and game, the JSON API (accounts, profiles, leaderboard, games list, forum), and runs each room at 60 ticks per second with 30 snapshots per second. |
 | `lib/db.js` | Storage: Postgres when `DATABASE_URL` is set, otherwise `data/db.json`. Users, sessions, forum. |
 | `lib/auth.js` | Password hashing (scrypt), session tokens, name rules and rate limits. |
+| `lib/oauth.js` | Google and Discord sign-in (OAuth 2.0 authorisation code flow). |
 | `public/site.html` | The website: front page, games list, leaderboard, profiles, forum, sign in. |
 | `public/index.html` | Client: menus, rendering, sound, HUD, pick screen. Online it smooths other players with 100 ms interpolation. |
 | `build-offline.js` | `npm run build:offline` builds a single-file offline copy at `dist/bowfall-duels.html`: double-click it to play practice games with no server. |

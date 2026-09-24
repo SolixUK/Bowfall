@@ -71,6 +71,16 @@
   textarea { min-height: 130px; resize: vertical; }
   input:focus, textarea:focus, select:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
   .err { color: var(--bad); font-weight: 600; min-height: 1.2em; }
+  form.stack .err { margin: 0; }
+  form.stack .err:empty { display: none; }
+  .prov { display: flex; flex-direction: column; gap: 8px; }
+  .prov a { display: flex; align-items: center; justify-content: center; gap: 10px; font: 600 16px var(--display); padding: 11px 16px; border-radius: 12px; color: var(--text); background: var(--panel2); border: 1px solid var(--line); }
+  .prov a:hover { background: #29422f; text-decoration: none; }
+  .prov svg { width: 20px; height: 20px; }
+  .or { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; margin: 14px 0; }
+  .or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .methods { display: flex; flex-direction: column; gap: 8px; }
+  .methods > div { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; }
   .narrow { max-width: 440px; margin: 0 auto; }
   .crumbs { color: var(--muted); font-size: 14px; margin-bottom: 8px; }
   .cat { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
@@ -148,7 +158,13 @@ async function api(path, body) {
   if (!r.ok) throw new Error(d.error || 'Something went wrong.');
   return d;
 }
-let me = null;
+let me = null, providers = null;
+const ICONS = {
+  google: '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>',
+  discord: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#5865F2" d="M20.3 4.4A19.8 19.8 0 0 0 15.4 3l-.6 1.3a18.4 18.4 0 0 0-5.5 0L8.7 3a19.7 19.7 0 0 0-4.9 1.4C.7 9 0 13.6.3 18.1a19.9 19.9 0 0 0 6 3l1.3-2.1c-.7-.3-1.4-.6-2-1l.5-.4a14.2 14.2 0 0 0 12 0l.5.4c-.6.4-1.3.7-2 1l1.3 2.1a19.8 19.8 0 0 0 6-3c.4-5.2-.7-9.7-3.3-13.7zM8.5 15.4c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4zm7 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4z"/></svg>',
+};
+async function getProviders() { if (!providers) providers = (await api('/auth-providers').catch(() => ({ providers: [] }))).providers; return providers; }
+const qs = () => new URLSearchParams(location.hash.split('?')[1] || '');
 async function loadMe() { try { me = (await api('/me')).user; } catch (e) { me = null; } drawWho(); }
 function drawWho() {
   $('who').innerHTML = me
@@ -219,6 +235,7 @@ const pages = {
       </div>
       ${mine ? `<div class="card" style="margin-top:16px"><h3>Your title</h3><p class="muted" style="margin:4px 0 10px">Shown next to your name in games and on the forum.</p>
         <div style="display:flex;gap:8px;max-width:420px"><select id="titleSel"><option value="">No title</option>${Object.keys(A).filter(k => got.has(k)).map(k => `<option value="${k}"${u.title === k ? ' selected' : ''}>${esc(A[k].title)}</option>`).join('')}</select><button class="btn" id="titleSave" type="button">Save</button></div><p class="err" id="titleErr"></p></div>` : ''}
+      ${mine ? await methodsCard(u) : ''}
       <div class="grid g2" style="margin-top:16px">
         <div class="card"><h3 style="margin-bottom:10px">Favourite roles</h3>${bars(c.roles, Sim.ROLES)}</div>
         <div class="card"><h3 style="margin-bottom:10px">Favourite elements</h3>${bars(c.els, Sim.ELEMENTS)}</div>
@@ -226,6 +243,7 @@ const pages = {
       <div class="section-h"><h2>Achievements</h2><span class="muted">${got.size} of ${Object.keys(A).length}</span></div>
       <div class="achs">${Object.entries(A).map(([k, a]) => { const n = Math.min(a.goal, (u.stats || {})[a.stat] || 0);
         return `<div class="ach${got.has(k) ? ' got' : ''}"><b>${esc(a.title)}</b><div class="muted" style="font-size:14px">${esc(a.desc)}</div><div class="bar"><i style="width:${got.has(k) ? 100 : Math.round(n / a.goal * 100)}%"></i></div></div>`; }).join('')}</div>`;
+    if (mine) wireMethods(name);
     if (mine) $('titleSave').onclick = async () => { try { await api('/title', { title: $('titleSel').value || null }); await loadMe(); pages.user(name); } catch (e) { $('titleErr').textContent = e.message; } };
   },
   async forum() {
@@ -268,10 +286,12 @@ const pages = {
       if (b.dataset.mod === 'deleted') go('#/forum/c/' + d.category.slug); else pages.thread(id);
     });
   },
-  auth(kind) {
-    const reg = kind === 'register';
+  async auth(kind) {
+    const reg = kind === 'register', provs = await getProviders(), next = qs().get('next') || '';
     app.innerHTML = `<div class="card narrow"><h1 style="font-size:34px;margin-bottom:6px">${reg ? 'Create an account' : 'Sign in'}</h1>
       <p class="muted" style="margin:0 0 14px">${reg ? 'Keep your stats and achievements, wear titles and post on the forum.' : 'Welcome back.'}</p>
+      ${qs().get('err') ? `<p class="err">${esc(qs().get('err'))}</p>` : ''}
+      ${provs.length ? `<div class="prov">${provs.map(p => `<a href="/auth/${p.key}${next ? '?next=' + encodeURIComponent(next) : ''}">${ICONS[p.key] || ''}Continue with ${esc(p.name)}</a>`).join('')}</div><div class="or">or with a name and password</div>` : ''}
       <form class="stack" id="authF"><label>Name<input name="name" maxlength="16" autocomplete="username" required></label>
       <label>Password<input name="password" type="password" maxlength="100" autocomplete="${reg ? 'new-password' : 'current-password'}" required></label>
       ${reg ? '<p class="muted" style="margin:0;font-size:14px">3 to 16 letters, numbers, _ or -. Password at least 6 characters.</p>' : ''}
@@ -287,6 +307,38 @@ const pages = {
     };
   },
 };
+pages.finish = async () => {
+  const d = await api('/oauth/pending');
+  if (!d.pending) { app.innerHTML = '<div class="card narrow empty">That sign-in has expired. <a href="#/login">Try again</a></div>'; return; }
+  app.innerHTML = `<div class="card narrow"><h1 style="font-size:32px;margin-bottom:6px">Pick your player name</h1>
+    <p class="muted" style="margin:0 0 14px">You're signing up with ${esc(d.pending.provider)}. This is the name everyone sees in games and on the forum.</p>
+    <form class="stack" id="finF"><label>Player name<input name="name" maxlength="16" value="${esc(d.pending.name)}" required></label>
+    <p class="muted" style="margin:0;font-size:14px">3 to 16 letters, numbers, _ or -.</p><p class="err" id="fErr"></p><button class="btn" type="submit">Create account</button></form></div>`;
+  const f = $('finF'); f.name.select();
+  f.onsubmit = async e => {
+    e.preventDefault();
+    try { me = (await api('/oauth/finish', { name: f.name.value.trim() })).user; drawWho(); if (d.pending.next) location.href = d.pending.next; else go('#/u/' + me.name); }
+    catch (err) { $('fErr').textContent = err.message; }
+  };
+};
+// on your own profile: which ways you can sign in, and a password
+async function methodsCard(u) {
+  const provs = await getProviders(), linked = me.logins || [];
+  const rows = provs.map(p => linked.includes(p.key)
+    ? `<div><span>${ICONS[p.key] || ''} ${esc(p.name)} <span class="muted">linked</span></span><button class="btn alt small" data-unlink="${p.key}" type="button">Unlink</button></div>`
+    : `<div><span>${ICONS[p.key] || ''} ${esc(p.name)}</span><a class="btn alt small" href="/auth/${p.key}?link=1">Link</a></div>`).join('');
+  return `<div class="card" style="margin-top:16px"><h3>Signing in</h3>${qs().get('err') ? `<p class="err">${esc(qs().get('err'))}</p>` : ''}
+    ${rows ? `<div class="methods" style="margin:10px 0 16px">${rows}</div>` : ''}
+    <form class="stack" id="pwF" style="max-width:420px"><b>${me.hasPassword ? 'Change password' : 'Add a password'}</b>
+    ${me.hasPassword ? '<label>Current password<input name="current" type="password" autocomplete="current-password" required></label>' : '<p class="muted" style="margin:0;font-size:14px">Lets you sign in with your player name too.</p>'}
+    <label>New password<input name="password" type="password" autocomplete="new-password" minlength="6" required></label>
+    <p class="err" id="pwErr"></p><div><button class="btn" type="submit">Save password</button></div></form></div>`;
+}
+function wireMethods(name) {
+  app.querySelectorAll('[data-unlink]').forEach(b => b.onclick = async () => { try { await api('/unlink', { provider: b.dataset.unlink }); await loadMe(); pages.user(name); } catch (e) { alert(e.message); } });
+  const f = $('pwF');
+  if (f) f.onsubmit = async e => { e.preventDefault(); try { await api('/password', { current: f.current ? f.current.value : '', password: f.password.value }); await loadMe(); $('pwErr').style.color = 'var(--ok)'; $('pwErr').textContent = 'Saved.'; f.reset(); } catch (err) { $('pwErr').style.color = ''; $('pwErr').textContent = err.message; } };
+}
 function roomTable(list, short) {
   if (!list.length) return `<div class="empty">No public games right now. <a href="/play#create">Host one</a> and your friends can find it here.</div>`;
   const ph = { lobby: 'In lobby', pick: 'Picking', pre: 'Playing', play: 'Playing', post: 'Playing', over: 'Finished' };
@@ -336,7 +388,8 @@ async function route() {
     else if (parts[0] === 'forum' && parts[1] === 'c') await pages.cat(parts[2]);
     else if (parts[0] === 'forum' && parts[1] === 't') await pages.thread(+parts[2]);
     else if (parts[0] === 'forum') await pages.forum();
-    else if (parts[0] === 'login' || parts[0] === 'register') pages.auth(parts[0]);
+    else if (parts[0] === 'login' || parts[0] === 'register') await pages.auth(parts[0]);
+    else if (parts[0] === 'finish') await pages.finish();
     else app.innerHTML = '<div class="card empty">Page not found. <a href="#/">Home</a></div>';
     document.title = 'Bowfall' + (parts[0] ? ' · ' + ({ servers: 'Games', leaderboard: 'Leaderboard', forum: 'Forum', u: parts[1], login: 'Sign in', register: 'Create account' }[parts[0]] || '') : '');
   } catch (e) { app.innerHTML = `<div class="card empty">${esc(e.message)}</div>`; }
