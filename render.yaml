@@ -1,0 +1,12 @@
+# One-click deploy on Render (https://render.com): New + > Blueprint > pick this repo.
+services:
+  - type: web
+    name: bowfall
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
