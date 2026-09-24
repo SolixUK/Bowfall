@@ -299,6 +299,27 @@
   @media (max-width: 760px) { .cards { grid-template-columns: 1fr; } .pcard { min-height: 0; } }
   .card.lobby { max-width: 940px; }
   .teams { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .tcol.spec { grid-column: 1 / -1; border-top-color: var(--muted); }
+  .tcol.spec .specnames { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tcol.spec .slot { flex: 0 0 auto; }
+  .chatbox { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,.03); border: 1px solid var(--line); }
+  .chatlog { max-height: 130px; min-height: 48px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; font: 500 14px 'Barlow', sans-serif; }
+  .chatbox input, .gchat input { width: 100%; box-sizing: border-box; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: rgba(0,0,0,.35); color: inherit; font: 500 14px 'Barlow', sans-serif; }
+  .cline { line-height: 1.35; overflow-wrap: anywhere; }
+  .cline.sys { color: var(--muted); font-style: italic; }
+  .gchat { position: absolute; left: 16px; bottom: 64px; width: min(380px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+  .gchat-log { max-height: 170px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 3px; font: 500 14px 'Barlow', sans-serif; text-shadow: 0 1px 3px rgba(0,0,0,.9); }
+  .gchat-log .cline { animation: cfade 10s forwards; }
+  .gchat.open { pointer-events: auto; }
+  .gchat.open .gchat-log { overflow-y: auto; background: rgba(9,18,11,.7); border-radius: 8px; padding: 6px 8px; }
+  .gchat.open .gchat-log .cline { animation: none; opacity: 1; }
+  .gchat-hint { font: 500 11px 'Barlow', sans-serif; color: var(--muted); opacity: .6; }
+  .gchat.open .gchat-hint { display: none; }
+  @keyframes cfade { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+  .specbar { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 10px; background: rgba(9,18,11,.84); border: 1px solid var(--line); font: 500 14px 'Barlow', sans-serif; }
+  .specbar b { color: var(--gold); letter-spacing: .08em; text-transform: uppercase; font-size: 12px; }
+  .specbar button[disabled] { opacity: .4; }
+  body.spectating .hud-l, body.spectating #abil, body.spectating #powers { visibility: hidden; }
   .tcol { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 10px; background: rgba(255,255,255,.03); border: 1px solid var(--line); border-top: 3px solid var(--tc); }
   .thead { display: flex; justify-content: space-between; align-items: baseline; }
   .thead b { font: 700 18px 'Chakra Petch', monospace; text-transform: uppercase; letter-spacing: .06em; color: var(--tc); }
@@ -364,8 +385,10 @@
   <div class="countdown" id="countdown" hidden></div>
   <div class="banner" id="banner"></div>
   <div class="hurtfx" id="hurtFx"></div>
-  <div class="replay-badge" id="replayBadge" hidden><span class="rec"></span>Replay<small>Click or press Space to skip</small></div>
+  <div class="replay-badge" id="replayBadge" hidden><span class="rec"></span>Kill cam</div>
   <div class="notices" id="notices"></div>
+  <div class="gchat" id="gChat" hidden><div class="gchat-log" id="gChatLog"></div><input id="gChatIn" maxlength="140" placeholder="Say something… (Enter to send, Esc to cancel)" autocomplete="off" hidden><span class="gchat-hint" id="gChatHint">Enter to chat</span></div>
+  <div class="specbar" id="specBar" hidden><b>Spectating</b><span id="specTxt"></span><button type="button" class="ghost sm" data-join="red">Join Red</button><button type="button" class="ghost sm" data-join="blue">Join Blue</button></div>
   <div class="gamesum" id="gameSum" hidden><span class="eyebrow" id="gsEye"></span><h2 id="gsTitle"></h2><span class="gs-sub" id="gsSub"></span><ul id="gsList"></ul></div>
 
   <!-- home -->
@@ -417,6 +440,7 @@
       </div>
       <span class="status" id="lbShare" hidden></span>
       <div class="teams" id="lbTeams"></div>
+      <div class="chatbox" id="lbChat" hidden><div class="chatlog" id="lbChatLog"><div class="cline sys">Chat with everyone in the room here. In game, press Enter to chat.</div></div><input id="lbChatIn" maxlength="140" placeholder="Say something… (Enter to send)" autocomplete="off"></div>
       <div class="arch">
         <div class="archhead"><div style="display:flex;align-items:center;gap:12px"><canvas id="archPrev" width="128" height="128" style="width:64px;height:64px;border-radius:12px;background:rgba(255,255,255,.05)"></canvas><h3>Your archetype</h3></div><span class="archname" id="archName"></span></div>
         <div class="archrow"><span class="lbl">Element</span><div class="chips" id="elChips"></div></div>
@@ -743,7 +767,8 @@ addEventListener('keydown', e => {
   if (!$('helpScreen').hidden) { if (e.code === 'Escape') closeHelp(); return; }
   if (!$('balScreen').hidden) { if (e.code === 'Escape') closeBalance(); return; }
   if (!$('achScreen').hidden) { if (e.code === 'Escape') closeAch(); return; }
-  if (RP.on && view && view.m.ph === 'post' && (e.code === 'Space' || e.code === 'Escape')) { e.preventDefault(); endReplay(); return; }
+  if (RP.on && e.code === 'Space') { e.preventDefault(); return; } // the kill cam can't be skipped
+  if (e.code === 'Enter' && mode === 'online' && view && view.m.ph !== 'lobby') { e.preventDefault(); openGameChat(); return; }
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
   if (view && view.m.ph === 'pick' && mode !== 'menu') {
     if (['Digit1', 'Digit2', 'Digit3'].includes(e.code)) { choosePick(+e.code.slice(5) - 1); return; }
@@ -868,7 +893,7 @@ function pickArch(e) {
 }
 $('elChips').addEventListener('click', pickArch);
 $('roChips').addEventListener('click', pickArch);
-const isHost = () => mode === 'local' || !!(roomInfo && roomInfo.host === myId);
+const isHost = () => mode === 'local' || !!(roomInfo && roomInfo.amHost);
 
 function connect(joinMsg) {
   initAudio();
@@ -883,7 +908,7 @@ function connect(joinMsg) {
   sock.onmessage = e => {
     let m; try { m = JSON.parse(e.data); } catch (err) { return; }
     if (m.t === 'welcome') {
-      myId = m.id; mode = 'online'; snaps = []; feed = []; resultsFor = null; menuOpen = false;
+      myId = m.id; mode = 'online'; snaps = []; feed = []; resultsFor = null; menuOpen = false; clearChat();
       history.replaceState(null, '', '?room=' + m.code);
       hc = {}; setScreens();
       status.textContent = '';
@@ -895,6 +920,13 @@ function connect(joinMsg) {
       snaps.push({ time: performance.now(), s: m.s });
       if (snaps.length > 40) snaps.shift();
       handleEvents(m.ev || []);
+    } else if (m.t === 'you') {
+      // joined a team (or went back to spectating)
+      myId = m.id; hc = {}; meDraw = null; resultsFor = null; $('death').hidden = true;
+    } else if (m.t === 'note') {
+      notice(esc(m.msg), false);
+    } else if (m.t === 'chat') {
+      addChat(m);
     } else if (m.t === 'err') {
       status.classList.add('err'); status.textContent = m.msg;
     } else if (m.t === 'pong') {
@@ -909,8 +941,40 @@ function connect(joinMsg) {
   };
 }
 
+// ================= chat (online rooms) =================
+let chatMsgs = [];
+const chatLine = d => d.sys ? esc(d.m) : `<b style="color:${d.tm === 'spec' ? 'var(--muted)' : (d.c || TEAM_COL[d.tm])}">${esc(d.n)}${d.tm === 'spec' ? (d.lobby ? ' <small>(unassigned)</small>' : ' <small>(spectating)</small>') : ''}:</b> ${esc(d.m)}`;
+function addChat(m) {
+  const d = { n: m.n, tm: m.tm, c: m.c, m: m.m, sys: m.sys, lobby: !view || view.m.ph === 'lobby' };
+  chatMsgs.push(d); if (chatMsgs.length > 80) chatMsgs.shift();
+  for (const id of ['lbChatLog', 'gChatLog']) {
+    const box = $(id), el = document.createElement('div');
+    el.className = 'cline' + (d.sys ? ' sys' : ''); el.innerHTML = chatLine(d);
+    box.appendChild(el); while (box.children.length > 80) box.firstChild.remove();
+    box.scrollTop = box.scrollHeight;
+  }
+  if (!d.sys) tone(1100, 0.05, 'sine', 0.025);
+}
+function clearChat() { chatMsgs = []; $('gChatLog').innerHTML = ''; $('lbChatLog').innerHTML = '<div class="cline sys">Chat with everyone in the room here. In game, press Enter to chat.</div>'; closeGameChat(); }
+function sendChat(inp) { const t = inp.value.trim(); if (t) act({ t: 'chat', m: t }); inp.value = ''; }
+function openGameChat() {
+  if (mode !== 'online') return;
+  keys.clear(); mouse.down = false; dashLatch = qLatch = eLatch = false;
+  $('gChat').classList.add('open'); $('gChatIn').hidden = false; $('gChatIn').focus();
+  const log = $('gChatLog'); log.scrollTop = log.scrollHeight;
+}
+function closeGameChat() { $('gChat').classList.remove('open'); $('gChatIn').hidden = true; $('gChatIn').value = ''; $('gChatIn').blur(); }
+$('lbChatIn').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sendChat(e.target); } e.stopPropagation(); });
+$('gChatIn').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); sendChat(e.target); closeGameChat(); }
+  else if (e.key === 'Escape') { e.preventDefault(); closeGameChat(); }
+  e.stopPropagation();
+});
+$('gChatIn').addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== $('gChatIn')) closeGameChat(); }, 0));
+$('specBar').addEventListener('click', e => { const b = e.target.closest('button[data-join]'); if (b && !b.disabled) act({ t: 'team', team: b.dataset.join }); });
+
 function toMenu() {
-  mode = 'menu'; myId = null; world = null; view = null; menuOpen = false; roomInfo = null;
+  mode = 'menu'; myId = null; world = null; view = null; menuOpen = false; roomInfo = null; clearChat();
   if (ws) { const s = ws; ws = null; try { s.close(); } catch (e) {} }
   $('gameMenu').hidden = true; $('resultsScreen').hidden = true; $('death').hidden = true;
   history.replaceState(null, '', location.pathname);
@@ -1309,15 +1373,26 @@ function teamsHtml(v) {
       (p.b && host ? `<button type="button" class="xbtn" data-rm="${p.id}" aria-label="Remove ${esc(p.n)}">×</button>` : '') + '</div>').join('');
     const open = Array.from({ length: MAX_TEAM - list.length }, () => '<div class="slot empty">Open slot</div>').join('');
     const full = list.length >= MAX_TEAM;
-    const foot = (me && me.tm !== t && !full ? `<button type="button" class="ghost sm" data-join="${t}">Join ${teamName(t)}</button>` : '') +
+    const canJoin = me ? me.tm !== t && !full : mode === 'online' && ['lobby', 'over', 'post'].includes(v.m.ph) && (!full || list.some(p => p.b));
+    const foot = (canJoin ? `<button type="button" class="ghost sm" data-join="${t}">Join ${teamName(t)}</button>` : '') +
       (host && !full ? `<button type="button" class="ghost sm" data-addbot="${t}">+ Add bot</button>` : '');
     return `<div class="tcol" style="--tc:${TEAM_COL[t]}"><div class="thead"><b>${teamName(t)}</b><span>${list.length} / ${MAX_TEAM}</span></div>${slots}${open}` +
       (foot ? `<div class="tfoot">${foot}</div>` : '') + '</div>';
-  }).join('');
+  }).join('') + (mode === 'online' ? specHtml(v, me) : '');
+}
+// people in the room who aren't on a team yet (or joined mid-game and are watching)
+function specHtml(v, me) {
+  const spec = (roomInfo && roomInfo.spec) || [], lobby = v.m.ph === 'lobby' || v.m.ph === 'over';
+  const names = spec.map(c => `<div class="slot"><i class="dot" style="background:var(--muted)"></i><span class="nm">${esc(c.n)}</span>${c.you ? '<span class="tag you">You</span>' : ''}${c.h ? '<span class="tag">Host</span>' : ''}</div>`).join('');
+  const foot = me && lobby ? '<button type="button" class="ghost sm" data-spec="1">Move to unassigned</button>' : '';
+  return `<div class="tcol spec"><div class="thead"><b>${lobby ? 'Unassigned' : 'Spectating'}</b><span>${spec.length}</span></div>` +
+    (names ? `<div class="specnames">${names}</div>` : `<span class="status">${lobby ? 'People who join the room wait here until they pick a team.' : 'Nobody is watching.'}</span>`) +
+    (foot ? `<div class="tfoot">${foot}</div>` : '') + '</div>';
 }
 function onTeamsClick(e) {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.join) act({ t: 'team', team: b.dataset.join });
+  else if (b.dataset.spec) act({ t: 'spec' });
   else if (b.dataset.addbot) act({ t: 'bot', op: 'add', team: b.dataset.addbot });
   else if (b.dataset.rm) act({ t: 'bot', op: 'remove', id: b.dataset.rm });
   else if (b.dataset.hc) { const H = Sim.HANDICAPS, cur = +b.dataset.v; act({ t: 'hcap', id: b.dataset.hc, v: H[(H.indexOf(cur) + 1) % H.length] }); }
@@ -1355,7 +1430,8 @@ function renderLobby(v) {
     if (online && roomInfo) { $('lbCode').textContent = roomInfo.code; $('lbShare').textContent = `Friends open ${location.host} and enter this code, or use the link ${location.host}/?room=${roomInfo.code}.`; }
   });
   syncTitle(v.p.find(p => p.id === myId));
-  setC('lb', JSON.stringify(v.p.map(p => [p.id, p.n, p.tm, p.b, p.c, p.el, p.ro, p.hc, p.ti])) + host + (roomInfo && roomInfo.host), () => { $('lbTeams').innerHTML = teamsHtml(v); });
+  setC('lb', JSON.stringify(v.p.map(p => [p.id, p.n, p.tm, p.b, p.c, p.el, p.ro, p.hc, p.ti])) + host + myId + JSON.stringify(roomInfo && [roomInfo.host, roomInfo.spec]), () => { $('lbTeams').innerHTML = teamsHtml(v); });
+  setC('lbChat', online, x => { $('lbChat').hidden = !x; });
   const meL = v.p.find(p => p.id === myId);
   setC('arch', meL ? meL.el + meL.ro : '', () => syncArch(meL));
   setC('lbMap', v.m.map + host, () => {
@@ -1368,10 +1444,10 @@ function renderLobby(v) {
     for (const k in Sim.OPTIONS) { const el = $('opt-' + k); if (!el) continue; el.value = o[k] || Object.keys(Sim.OPTIONS[k].values)[0]; el.disabled = !host; if (el.selectedIndex > 0) custom++; }
     $('lbOptNote').textContent = custom ? `${custom} custom ${custom === 1 ? 'rule' : 'rules'} on. Balance data records the rules with every game.` : 'Standard rules.';
   });
-  setC('lbStart', String(v.m.cs) + host, () => {
+  setC('lbStart', String(v.m.cs) + host + !!meL, () => {
     $('lbStart').hidden = !host;
     $('lbStart').disabled = !v.m.cs;
-    $('lbStatus').textContent = !host ? 'Waiting for the host to start the match.' : v.m.cs ? '' : 'Both teams need at least one archer.';
+    $('lbStatus').textContent = !meL && online ? 'Pick a team to play.' : !host ? 'Waiting for the host to start the match.' : v.m.cs ? '' : 'Both teams need at least one archer.';
   });
 }
 function renderMenu(v) {
@@ -1383,7 +1459,7 @@ function renderMenu(v) {
     $('endBtn').hidden = !host;
     $('gmDiff').disabled = !host;
   });
-  setC('gm', JSON.stringify(v.p.map(p => [p.id, p.n, p.tm, p.b, p.c])) + host, () => { $('gmTeams').innerHTML = teamsHtml(v); });
+  setC('gm', JSON.stringify(v.p.map(p => [p.id, p.n, p.tm, p.b, p.c])) + host + myId + v.m.ph + JSON.stringify(roomInfo && roomInfo.spec), () => { $('gmTeams').innerHTML = teamsHtml(v); });
   setC('gmDiffV', v.m.df, x => { $('gmDiff').value = x; });
 }
 
@@ -2545,7 +2621,7 @@ function drawArrow(a) {
   const alpha = a.s > 0 && a.s < 1 ? a.s : 1;
   ctx.save(); ctx.globalAlpha = alpha;
   ctx.translate(a.x, a.y); ctx.rotate(a.g);
-  if (a.b) ctx.scale(1.6, 1.6);
+  if (a.b) ctx.scale(1.6, 1.6); else if (a.bg) ctx.scale(1.35, 1.35);
   if (!a.s) {
     const col = a.rl ? '140,255,255' : a.el === 'poison' ? '130,210,80' : a.sn ? '155,229,100' : a.el === 'storm' ? '255,242,122' : a.b ? '255,207,90' : a.el === 'frost' ? '159,220,255' : a.el === 'flame' ? '255,140,60' : a.el === 'stone' ? '201,168,120' : a.el === 'void' ? '180,140,255' : a.ex ? '255,90,122' : a.cr ? '255,255,255' : '255,207,90';
     if (a.el === 'flame' && Math.random() < 0.4) fx.parts.push({ x: a.x, y: a.y, vx: rand(-20, 20), vy: rand(-20, 20), life: 0, max: 0.35, color: Math.random() < 0.5 ? '#ff6a2b' : '#ffcf5a', r: rand(1, 2.2) });
@@ -2861,7 +2937,7 @@ function render(replaying) {
   }
   ctx.globalAlpha = 1;
   if (replaying) { drawReplayFrame(); return; }
-  if (!menuOpen && view.m.ph !== 'lobby' && view.m.ph !== 'pick') drawCrosshair(me, mode === 'local' ? (me ? me.ch : 0) : localCharge);
+  if (!menuOpen && view.m.ph !== 'lobby' && view.m.ph !== 'pick') me && drawCrosshair(me, mode === 'local' ? (me ? me.ch : 0) : localCharge);
   if (me && !me.d && me.hp < 30) {
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     const a = (1 - me.hp / 30) * (0.25 + 0.1 * Math.sin(clock * 7));
@@ -2877,10 +2953,21 @@ function setC(k, v, fn) { if (hc[k] !== v) { hc[k] = v; fn(v); } }
 const fmtT = v => Math.floor(v / 60) + ':' + String(v % 60).padStart(2, '0');
 function updateHud() {
   if (!view || mode === 'menu') return;
-  const me = view.p.find(p => p.id === myId);
-  if (!me) return;
+  const real = view.p.find(p => p.id === myId), spec = !real && mode === 'online';
+  if (!real && !spec) return;
+  // spectators get a stand-in with nothing to show, so the rest of the HUD (scores, timer, board) still updates
+  const me = real || { id: null, hp: 0, mh: 1, dn: 0, dk: 0, dc: 0, ab: [], am: 0, pw: {}, d: 0, tm: null, el: '', ro: '', pk: 1 };
   const m = view.m;
   const lobby = m.ph === 'lobby';
+  setC('spec', spec + ':' + lobby, () => { document.body.classList.toggle('spectating', spec && !lobby); });
+  setC('gChat', mode === 'online' && !lobby, x => { $('gChat').hidden = !x; if (!x) closeGameChat(); });
+  const canJoin = ['post', 'over'].includes(m.ph);
+  setC('specBar', spec && !lobby ? m.ph + ':' + canJoin : null, x => {
+    $('specBar').hidden = !x;
+    if (!x) return;
+    $('specTxt').textContent = canJoin ? 'Join a team for the next game:' : "You can join a team when this game ends.";
+    $('specBar').querySelectorAll('button').forEach(b => { b.disabled = !canJoin; });
+  });
   setC('inLobby', lobby, x => {
     $('lobby').hidden = !x;
     $('hud').hidden = $('side').hidden = $('powers').hidden = x;
@@ -2960,8 +3047,8 @@ function updateHud() {
   });
 
   const picking = m.ph === 'pick';
-  $('pickScreen').hidden = !picking;
-  if (picking) renderPick(me, view); else { hc.pk = null; lastPick = null; }
+  $('pickScreen').hidden = !picking || !real;
+  if (picking && real) renderPick(me, view); else { hc.pk = null; lastPick = null; }
 
   if (m.ph === 'over') {
     if (!resultsFor) {
@@ -3060,8 +3147,9 @@ function renderPick(me, v) {
   setC('pkHead', m.rd + ':' + m.op + archName(me), () => { $('pkEyebrow').textContent = m.op ? 'Before round 1 · opening pick' : `Round ${m.rd} done`; $('pkArch').textContent = archName(me); });
   setC('pkT', m.T, x => { $('pkTimer').textContent = x; });
   const hs = v.p.filter(p => !p.b), waiting = hs.filter(p => !p.pk).length;
-  setC('pkSt', me.pk + ':' + waiting + ':' + me.am, () => {
-    $('pkStatus').textContent = me.pk ? (waiting ? `Waiting for ${waiting} more ${waiting === 1 ? 'player' : 'players'}` : 'Starting the next round') : 'Press 1, 2 or 3, or click a card.';
+  setC('pkSt', me.pk + ':' + hs.filter(p => !p.pk).map(p => p.id).join() + ':' + me.am, () => {
+    const who = hs.filter(p => !p.pk).map(p => p.n).join(', ');
+    $('pkStatus').textContent = me.pk ? (waiting ? `Waiting for ${who}. The round starts as soon as everyone has picked, or when the timer runs out.` : 'Starting the next round') : 'Press 1, 2 or 3, or click a card.';
   });
 }
 function choosePick(i) {
@@ -3141,7 +3229,7 @@ const STEP = 1 / 60;
 let last = performance.now(), sendT = 0, pingT = 0;
 // ================= game-winning kill replay =================
 // The last few seconds of play are kept; when a knockout ends a game, it's replayed zoomed in and in slow motion,
-// following the killer's arrow, then the summary appears. Click, Space or Esc skips it.
+// following the killer's arrow, then the summary appears. It can't be skipped.
 const RP = { buf: [], evs: [], lastKill: null, on: null, cam: null, enabled: store.get('bowfall-replay', '1') === '1' };
 function replayRecord() {
   if (!view || view.m.ph === 'lobby' || view.m.ph === 'pick' || (RP.on && RP.on.started)) return;
@@ -3231,7 +3319,6 @@ function replayFx(e) {
 let pendingSummary = null;
 function showPendingSummary() { if (pendingSummary && view && view.m.ph === 'post') showGameSummary(pendingSummary); pendingSummary = null; }
 function endReplay() { if (!RP.on) return; RP.on = null; RP.cam = null; $('replayBadge').hidden = true; document.body.classList.remove('replaying'); showPendingSummary(); }
-addEventListener('pointerdown', () => { if (RP.on && view && view.m.ph === 'post') endReplay(); }, true);
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now; clock += dt;

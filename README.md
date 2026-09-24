@@ -6,7 +6,10 @@ Top-down knockback archery for teams: Red vs Blue, up to 4 per side, humans and 
 
 Every match starts in a lobby with a Red column and a Blue column:
 
-- **Everyone:** pick your team.
+- **Everyone:** pick your team. Online, whoever creates the room starts on Red; everyone else arrives in the **Unassigned** section and joins a team from there (or moves back to it).
+- **Chat (online):** a chat box in the lobby; in game press **Enter** to type, Enter to send, Esc to cancel. Messages fade out over the arena. Joins, leaves and host changes show up there too.
+- **Joining mid-match (online):** you spectate (the whole arena, scores and chat) until the current game ends, then a bar at the bottom lets you join Red or Blue for the next game, with as many upgrade picks as everyone else. A full team lets you in by replacing one of its bots.
+- **Choosing upgrades:** the next round starts as soon as every player has picked, or when the timer runs out (anyone who hasn't picked gets one of their three cards at random). The pick screen shows who you're waiting for.
 - **Host only:** add or remove bots on either side, choose the arena, bot skill and **custom rules**, then start once both teams have at least one archer.
 - **Handicap:** the host can click the Handicap button on any archer (in the lobby or the in-game menu) to cycle +25%, +50%, +75%, +100%, −25%, −50%. It scales that archer's health and arrow damage by the percentage, and their knockback resistance by half as much. Handy for uneven teams like 1v2. Games with a handicap are left out of Balance data unless you choose "Any rules".
 - **Custom rules:** archer size (small is the default, then medium and large), arrow speed (normal, fast, very fast, blazing), move speed (slow, normal, fast, very fast, blazing), knockback (low, normal, high, chaos) and health (low, normal, high). Every recorded game notes its rules, and Balance data shows standard-rules games only unless you ask for all.
@@ -64,7 +67,7 @@ Every role also has a built-in **trait**, always on:
 | Role | Type | Trait | Upgrades | Capstone |
 | --- | --- | --- | --- | --- |
 | Sniper | Power | **Marksman:** arrows 10% faster and up to 20% more damage at long range; 10 less health | Steady Draw · Heavy Fletching *or* Longbow · Deadeye (more damage at range, after Longbow) · Piercing Shot · Railshot *(new)* (Q/E: next shot flies 80% faster, never slows and pierces every archer in its path) · Pin (also in the Ranger and Juggernaut trees; a full-draw hit that slams an enemy hard (380px/s or faster) into a wall or boulder within 0.45s pins them for 3s; a long slow slide doesn't count; nothing can move them while pinned, and they can't be pinned again for 4s after) · *Glass Cannon* | Ballista |
-| Juggernaut | Power | **Heavyweight:** 20 more health, bigger body, 13% less knockback taken, heals 2 health a second after 4s unhurt; arrows deal 20% less damage but knock back 20% harder; 7% slower | Iron Stance · Vitality · Battering Ram · Riot Shield (head-on hits −35% damage, −30% knockback) · Deflect (Q/E: for 1s, head-on arrows bounce back at the shooter; needs Riot Shield or Iron Stance) · *Colossus* | Earthshaker (Q/E) |
+| Juggernaut | Power | **Heavyweight:** 20 more health, bigger body, 13% less knockback taken, heals 2 health a second after 4s unhurt; arrows deal 20% less damage but knock back 20% harder; 7% slower | Iron Stance (50% less knockback) · Vitality · Battering Ram · Riot Shield (head-on hits −35% damage, −30% knockback) · Deflect (Q/E: for 1s, head-on arrows bounce back at the shooter; needs Riot Shield or Iron Stance) · *Colossus* | Earthshaker (Q/E) |
 | Ranger | Agility | **Light-footed:** 8% faster, dash recharges 20% quicker; 10 less health | Fleet Foot · Quick Dash · Double Dash · Volley (Q/E: your next shot fires three arrows in quick succession, 65% damage and knockback each) · Quickshot · Sure Footing · *Featherweight* | Grapple (Q/E) |
 | Trickster | Agility | **Nimble Fingers:** draws 12% faster; arrows knock back 10% less | Ricochet · Split Arrow · Curve Shot · Smoke Bomb *(new)* (Q/E: a smoke cloud at your cursor for 5s; anyone inside is hidden from enemies outside it, bots included) · *Scattershot* | Arrow Rain (Q/E) |
 | Warden | Utility | **Mender:** you and teammates nearby heal 2 health a second after 4 seconds unhurt; 5% slower | Rally · Bond · Shield Wall (Q/E) *or* Gust (Q/E) · Mending Totem *(new)* (Q/E: a totem at your feet heals you and teammates within 120px 8 health a second for 5s) · *Guardian's Oath* | Revive |
@@ -80,7 +83,7 @@ Cards in *italics* are **trade-offs**: something big for a real cost.
 | Overload | Lightning does double damage | Dash recharges 30% slower |
 | Potent Toxin | Poison hurts 50% more | Arrows deal 15% less direct damage |
 | Glass Cannon | Arrows deal 30% more damage | 10 less health |
-| Colossus | A third larger: 40 more health, 25% less knockback | 10% slower, much easier to hit |
+| Colossus | A third larger: 40 more health, 40% less knockback; dashes slam 60% harder for +8 damage; bigger arrows (easier to land) | Arrows fly 15% slower, you move 10% slower, much easier to hit |
 | Featherweight | 15% faster, quicker build-up | Take 30% more knockback |
 | Scattershot | Full draws fire three arrows in a fan | Each deals 40% of the damage and 45% of the knockback |
 | Guardian's Oath | Teammates near you take 20% less damage | You take 10% more |
@@ -115,7 +118,7 @@ Cards in *italics* are **trade-offs**: something big for a real cost.
 
 **Achievements and titles:** 17 achievements (Blooded, Sharpshooter, Ringmaster, Pinmaster, Clutch, Lone Wolf, Legend, Champion and more), counted from your own games and saved in your browser. Each unlocks a title; pick one on the Achievements screen (main menu or in-game menu) and everyone sees it next to your name in the lobby and on the scoreboard. The list lives in `ACHIEVEMENTS` in `public/sim.js`.
 
-**Kill replays:** when a knockout ends a game, you see it again zoomed in and in slow motion: the winner loosing the shot, the camera riding the arrow in, then the victim going down with a flash. It slows right down as the arrow lands. For hazard, burn or poison finishes it follows the victim. Then the game summary appears. Click, Space or Esc skips it; turn replays off in the in-game menu. Games now pause 10 seconds between them (11.5 after a round) so there's time for both.
+**Kill replays:** when a knockout ends a game, you see it again zoomed in and in slow motion: the winner loosing the shot, the camera riding the arrow in, then the victim going down with a flash. It slows right down as the arrow lands. For hazard, burn or poison finishes it follows the victim. Then the game summary appears. It can't be skipped (Space used to skip it, which was easy to hit by accident while dashing); you can still turn replays off in the in-game menu. Games now pause 10 seconds between them (11.5 after a round) so there's time for both.
 
 **Telling archers apart:** every archer wears their element as a coloured trim and an emblem on their back (snowflake, flame, bolt, drop, hexagon, swirl), and their role as gear: a Sniper's hood, Juggernaut shoulder plates, a Ranger's quiver, a Trickster's jester points, a Warden's shield, a Trapper's bramble coil, an Assassin's dark cowl. The lobby shows a preview of yours.
 

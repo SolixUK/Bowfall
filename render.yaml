@@ -4,7 +4,7 @@ services:
     name: bowfall
     runtime: node
     plan: free
-    region: frankfurt
+    region: frankfurt   # closest to the UK and Europe; others: oregon, ohio, virginia, singapore
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /health

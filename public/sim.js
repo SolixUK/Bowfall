@@ -287,13 +287,13 @@ const TREE = {
   glass:     { tree: 'sniper', trade: true, name: 'Glass Cannon', desc: 'Your arrows deal 30% more damage, but you have 10 less health.' },
   ballista:  { tree: 'sniper', cap: true, name: 'Ballista', desc: 'Keep holding a full draw for 1 more second to load a bolt: double knockback and 50% more damage.' },
 
-  stance:    { tree: 'juggernaut', name: 'Iron Stance', desc: 'Take 30% less knockback.' },
+  stance:    { tree: 'juggernaut', name: 'Iron Stance', desc: 'Take 50% less knockback.' },
   vital:     { tree: 'juggernaut', name: 'Vitality', desc: '25 more health.' },
   ram:       { tree: 'juggernaut', name: 'Battering Ram', desc: 'Dashing into enemies shoves twice as hard and hurts more.' },
   riot:      { tree: 'juggernaut', name: 'Riot Shield', desc: 'Arrows that hit you head-on (from the direction you are aiming) deal 35% less damage and knock you back 30% less.' },
   railshot:  { tree: 'sniper', active: { cd: 14 }, name: 'Railshot', desc: 'Your next shot flies 80% faster, never slows down, and pierces every archer in its path.' },
   deflect:   { tree: 'juggernaut', active: { cd: 12 }, name: 'Deflect', desc: 'For 1 second, arrows that hit you head-on bounce straight back at whoever shot them, as your arrows, with 70% of their power.', reqAny: ['riot', 'stance'] },
-  colossus:  { tree: 'juggernaut', trade: true, name: 'Colossus', desc: 'Grow a third larger: 40 more health and 25% less knockback taken, but you move 10% slower and are much easier to hit.' },
+  colossus:  { tree: 'juggernaut', trade: true, name: 'Colossus', desc: 'Grow a third larger: 40 more health, 40% less knockback taken, and your dashes slam enemies 60% harder for 8 more damage. Your arrows are bigger (easier to land) but fly 15% slower, you move 10% slower and you are much easier to hit.' },
   quake:     { tree: 'juggernaut', cap: true, active: { cd: 14 }, name: 'Earthshaker', desc: 'Slam the ground and throw every nearby enemy outward.' },
 
   fleet:     { tree: 'ranger', name: 'Fleet Foot', desc: '10% higher top speed and a quicker build-up.' },
@@ -402,7 +402,7 @@ function applyStats(p) {
     - (has(p, 'glass') ? 10 : 0) + (has(p, 'colossus') ? 40 : 0) - (has(p, 'cloak') ? 10 : 0);
   p.maxHp = Math.round(p.maxHp * OPT('hp') * hc);
   if (p.hp > p.maxHp) p.hp = p.maxHp;
-  p.mass = (1 + (p.hcap || 0) / 200) * is(has(p, 'stance'), 1 / 0.7) * is(R === 'juggernaut', 1.15) * is(has(p, 'colossus'), 1 / 0.75) / is(has(p, 'feather'), 1.3);
+  p.mass = (1 + (p.hcap || 0) / 200) * is(has(p, 'stance'), 1 / 0.5) * is(R === 'juggernaut', 1.15) * is(has(p, 'colossus'), 1 / 0.6) / is(has(p, 'feather'), 1.3);
   p.r = 16 * is(R === 'juggernaut', 1.1) * is(has(p, 'colossus'), 1.35) * OPT('size');
   p.baseSpeed = 235 * (has(p, 'fleet') ? 1.1 : 1) * (1 + 0.05 * h('hone_speed')) * is(R === 'juggernaut', 0.93) * is(R === 'ranger', 1.08) * is(R === 'warden', 0.95)
     * is(has(p, 'colossus'), 0.9) * is(has(p, 'feather'), 1.15) * is(has(p, 'bramble'), 0.95) * is(has(p, 'quickfeet'), 1.08) * OPT('mspeed');
@@ -955,7 +955,7 @@ function fire(w, p, ang, c, burst) {
   }
   const heavy = p.pw.heavy > 0;
   const bolt = has(p, 'ballista') && p.over >= 1;
-  const speed = (380 + 920 * c) * (has(p, 'longbow') ? 1.2 : 1) * (p.role === 'sniper' ? 1.1 : 1) * (has(p, 'obsidian') ? 0.92 : 1) * OPT('aspeed');
+  const speed = (380 + 920 * c) * (has(p, 'longbow') ? 1.2 : 1) * (p.role === 'sniper' ? 1.1 : 1) * (has(p, 'obsidian') ? 0.92 : 1) * (has(p, 'colossus') ? 0.85 : 1) * OPT('aspeed');
   if (p.stealthT > 0) breakStealth(w, p);
   const full = c >= 0.99; // a full draw: flies fastest and triggers "fully drawn" upgrades
   let dmg = (2 + 10 * c) * (p.dmgMul || 1);
@@ -976,7 +976,7 @@ function fire(w, p, ang, c, burst) {
       id: w.nid++, owner: p.id, team: p.team, color: p.color, own: p,
       x: p.x + Math.cos(a) * (p.r + 8), y: p.y + Math.sin(a) * (p.r + 8),
       vx: Math.cos(a) * speed * (rail ? 1.8 : 1), vy: Math.sin(a) * speed * (rail ? 1.8 : 1), v0: speed * (rail ? 1.8 : 1), ang: a, dist: 0, age: 0,
-      dmg, kb, full, crit: false, heavy, el, bolt, snare, rail, drag: rail ? 0 : has(p, 'longbow') ? 0.2 : 0.45,
+      dmg, kb, full, crit: false, heavy, el, bolt, snare, rail, big: has(p, 'colossus'), drag: rail ? 0 : has(p, 'longbow') ? 0.2 : 0.45,
       burst: full && el && has(p, 'burst'), pierce: rail ? 99 : full && has(p, 'pierce') ? 1 : 0, hit: [],
       split: full && has(p, 'split'), curve: has(p, 'curve'),
       bounces: (p.pw.ricochet > 0 ? 2 : 0) + (has(p, 'ricochet') ? 1 : 0), explosive: p.pw.explosive > 0, life: 2.4, stuck: 0,
@@ -1503,8 +1503,8 @@ function separate(w) {
         if (s.dashT > 0 && s.team !== t.team && !s.shoved.includes(t.id)) {
           s.shoved.push(t.id);
           ev(w, { e: 'shove', x: r1((a.x + b.x) / 2), y: r1((a.y + b.y) / 2) });
-          const ram = has(s, 'ram') ? 2 : 1;
-          hurt(w, t, ram > 1 ? 14 : 4, s.dashDir[0] * 520 * ram, s.dashDir[1] * 520 * ram, 'shove', s.id);
+          const ram = (has(s, 'ram') ? 2 : 1) * (has(s, 'colossus') ? 1.6 : 1);
+          hurt(w, t, (has(s, 'ram') ? 14 : 4) + (has(s, 'colossus') ? 8 : 0), s.dashDir[0] * 520 * ram, s.dashDir[1] * 520 * ram, 'shove', s.id);
           s.vx *= 0.4; s.vy *= 0.4;
         }
       }
@@ -1755,7 +1755,7 @@ function updateArrows(w, dt) {
       }
       for (const f of w.players) {
         if (f.team === a.team || f.dead || f.falling > 0 || a.hit.includes(f.id)) continue;
-        if (Math.hypot(f.x - a.x, f.y - a.y) < f.r + 4) {
+        if (Math.hypot(f.x - a.x, f.y - a.y) < f.r + (a.big ? 10 : 4)) {
           if (f.deflectT > 0 && headOn(f, a)) {
             // Deflect: send it back where it came from, as the deflector's arrow
             const src = a.own && !a.own.dead ? a.own : null, sp2 = Math.hypot(a.vx, a.vy) * 1.05;
@@ -2256,7 +2256,7 @@ function snapshot(w) {
         pw, lc: p.lastCause, kb: p.killedBy,
       };
     }),
-    a: w.arrows.map(a => ({ id: a.id, o: a.owner, x: r1(a.x), y: r1(a.y), g: r3(a.ang), s: a.stuck > 0 ? r2(a.stuck) : 0, c: a.color, cr: a.full ? 1 : 0, ex: a.explosive ? 1 : 0, rl: a.rail ? 1 : 0, hv: a.heavy ? 1 : 0, el: a.el, b: a.bolt ? 1 : 0, sn: a.snare ? 1 : 0 })),
+    a: w.arrows.map(a => ({ id: a.id, o: a.owner, x: r1(a.x), y: r1(a.y), g: r3(a.ang), s: a.stuck > 0 ? r2(a.stuck) : 0, c: a.color, cr: a.full ? 1 : 0, ex: a.explosive ? 1 : 0, rl: a.rail ? 1 : 0, bg: a.big ? 1 : 0, hv: a.heavy ? 1 : 0, el: a.el, b: a.bolt ? 1 : 0, sn: a.snare ? 1 : 0 })),
     z: w.zones.filter(z => !(z.delay > 0)).map(z => ({ id: z.id, ty: z.ty, x: r1(z.x), y: r1(z.y), x2: z.x2 != null ? r1(z.x2) : undefined, y2: z.y2 != null ? r1(z.y2) : undefined, r: z.r, t: r2(z.t), tm: z.team, o: z.owner })),
     u: w.pickups.map(u => ({ id: u.id, x: r1(u.x), y: r1(u.y), ty: u.type, ag: r1(u.age), li: u.life, cp: u.chan ? r2(u.cp) : undefined, ct: u.chan ? u.ct : undefined, cs: u.chan ? u.cs : undefined })),
   };

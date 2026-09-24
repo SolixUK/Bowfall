@@ -35,7 +35,7 @@ Good to know:
 1. Create a GitHub repository and upload the project folder to it. Don't upload `node_modules` or `data`; the `.gitignore` already leaves them out.
 2. Sign up at https://render.com with your GitHub account.
 3. Choose **New + > Blueprint**, pick your repository, and click **Apply**. Render reads `render.yaml`, installs everything and starts the server.
-4. After a few minutes you get an address like `https://bowfall.onrender.com`. Share it with friends and play.
+4. The server runs in Frankfurt (set by `region` in `render.yaml`, good for the UK and Europe; change it to `oregon`, `ohio`, `virginia` or `singapore` if most players are elsewhere). After a few minutes you get an address like `https://bowfall.onrender.com`. Share it with friends and play.
 
 Good to know:
 
