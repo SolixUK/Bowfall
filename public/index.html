@@ -786,6 +786,7 @@
       <span><b>Menus:</b> D-pad or left stick to move, <b>A</b> to select, <b>B</b> to go back. On a list, left and right change it</span>
     </div>
     <div class="row" style="align-items:flex-end;gap:14px">
+      <div class="field"><label for="padAssist">Aim assist</label><select id="padAssist"><option value="none">Off</option><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></div>
       <div class="field"><label for="padSens">Aim sensitivity</label><select id="padSens"><option value="1">1 (slowest)</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7" selected>7</option><option value="8">8</option><option value="9">9</option><option value="10">10 (instant)</option></select></div>
       <div class="field"><label for="padAimR">Aim distance</label><select id="padAimR"><option value="0.8">Short</option><option value="1" selected>Normal</option><option value="1.3">Long</option></select></div>
       <div class="field"><label for="padDead">Stick dead zone</label><select id="padDead"><option value="0.12">Small</option><option value="0.2" selected>Normal</option><option value="0.3">Large</option></select></div>
@@ -1140,6 +1141,8 @@ $('padAimR').value = store.get('bowfall-pad-aim', '1'); $('padDead').value = sto
 $('padAimR').onchange = () => store.set('bowfall-pad-aim', $('padAimR').value);
 $('padDead').onchange = () => store.set('bowfall-pad-dead', $('padDead').value);
 $('padSens').value = store.get('bowfall-pad-sens', '7');
+$('padAssist').value = store.get('bowfall-pad-assist', 'medium');
+$('padAssist').onchange = () => store.set('bowfall-pad-assist', $('padAssist').value);
 $('padSens').onchange = () => store.set('bowfall-pad-sens', $('padSens').value);
 function padStatus() {
   const gp = navigator.getGamepads ? [...navigator.getGamepads()].find(g => g && g.connected) : null;
@@ -1152,6 +1155,24 @@ $('ctlBtn').onclick = openCtl; $('gmCtlBtn').onclick = openCtl; $('ctlClose').on
 // ---- gamepad: left stick moves, right stick aims, right trigger draws
 const pad = { on: false, mx: 0, my: 0, draw: false, aim: null, mag: 0, prev: [], want: null, wantMag: 0, t: 0, nav: { dir: null, t: 0 } };
 // controller aim sensitivity 1-10: how many radians a second the aim can swing round (10 is instant). The mouse is never affected.
+const PAD_ASSIST = { none: null, low: { slow: 0.35, pull: 0.35 }, medium: { slow: 0.55, pull: 0.65 }, high: { slow: 0.7, pull: 0.9 } };
+// the enemy nearest where the right stick points, if they're close enough to it: their direction, and how close (1 dead on, 0 at the edge)
+function padAssistTarget(aim) {
+  const me = view && view.p.find(q => q.id === myId);
+  if (!me || me.d || !view.m || view.m.ph !== 'play') return null;
+  let best = null;
+  for (const q of view.p) {
+    if (q.tm === me.tm || q.d || q.f || q.sth) continue;
+    const dx = q.x - me.x, dy = q.y - me.y, d = Math.hypot(dx, dy);
+    if (d > 850 || d < 1) continue;
+    const ang = Math.atan2(dy, dx), off = Math.abs(((ang - aim + Math.PI) % TAU + TAU) % TAU - Math.PI);
+    const half = Math.min(0.4, Math.atan2((q.rz || 16) * 2.5 + 25, d));
+    if (off > half) continue;
+    const k = Math.sqrt(1 - off / half); // strongest in the middle, fading out toward the edge
+    if (!best || k > best.k) best = { ang, k };
+  }
+  return best;
+}
 const padTurn = () => { const v = +store.get('bowfall-pad-sens', '7') || 7; return v >= 10 ? Infinity : 3 * Math.pow(1.5, v - 1); };
 addEventListener('gamepadconnected', () => { padStatus(); notice('Controller connected', false); });
 addEventListener('gamepaddisconnected', () => { pad.on = false; $('padStatus').textContent = 'Controller disconnected.'; });
@@ -1171,7 +1192,13 @@ function pollPad() {
   pad.mx = nav ? 0 : mx; pad.my = nav ? 0 : my;
   if (nav) { pad.prev = gp.buttons.map(b => !!(b && (b.pressed || b.value > 0.4))); return; }
   if (am > 0.25) {
-    const want = Math.atan2(ay, ax), rate = padTurn();
+    let want = Math.atan2(ay, ax), rate = padTurn();
+    // controller aim assist: near an enemy the aim slows down (so it's easy to stay on them) and is drawn onto them
+    const as = PAD_ASSIST[store.get('bowfall-pad-assist', 'medium')], t = as ? padAssistTarget(want) : null;
+    if (t) {
+      want += (((t.ang - want + Math.PI) % TAU + TAU) % TAU - Math.PI) * as.pull * t.k;
+      rate = Math.min(rate, 40) * (1 - as.slow * t.k);
+    }
     if (pad.aim == null || rate === Infinity) { pad.aim = want; pad.mag = am; }
     else {
       const diff = ((want - pad.aim + Math.PI) % TAU + TAU) % TAU - Math.PI, step = rate * pdt;
@@ -2155,7 +2182,7 @@ document.addEventListener('click', async e => {
 $('lbDiff').onchange = () => act({ t: 'cfg', diff: $('lbDiff').value });
 $('lbPts').onchange = () => act({ t: 'cfg', ptw: +$('lbPts').value });
 // custom rules: one select per option, first value is the default
-const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', none: 'None', tiny: 'Tiny', heavy: 'Heavy', extreme: 'Extreme' };
+const OPT_NAMES = Sim.OPT_NAMES;
 $('lbOpts').innerHTML = Object.entries(Sim.OPTIONS).map(([k, o]) => `<div class="field"><label for="opt-${k}">${esc(o.label)}</label><select id="opt-${k}" data-opt="${k}">` +
   Object.keys(o.values).map(v => `<option value="${v}">${OPT_NAMES[v] || v}${v === (o.def || Object.keys(o.values)[0]) ? ' (standard)' : ''}</option>`).join('') + '</select></div>').join('');
 $('lbOpts').addEventListener('change', e => { const sel = e.target.closest('[data-opt]'); if (sel) act({ t: 'cfg', opt: { [sel.dataset.opt]: sel.value } }); });

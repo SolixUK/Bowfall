@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.13.2';
+const VERSION = '0.13.4';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -166,8 +166,9 @@ const OPTIONS = {
   hp:     { label: 'Health',       def: 'normal', values: { normal: 1, low: 0.7, high: 1.5 } },
   dash:   { label: 'Dashes',       def: 'on', values: { on: 1, off: 0 } },
   // aim assist: every shot bends toward the enemy it's heading for, this many radians a second
-  assist: { label: 'Aim assist',   def: 'none', values: { none: 0, tiny: 0.5, small: 1, medium: 1.8, heavy: 3, extreme: 5 } },
+  assist: { label: 'Aim assist',   def: 'none', values: { none: 0, tiny: 0.25, small: 0.5, medium: 1, heavy: 1.8, extreme: 3 } },
 };
+const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', none: 'None', tiny: 'Tiny', heavy: 'Heavy', extreme: 'Extreme' };
 const optDefaults = () => Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.def || Object.keys(o.values)[0]]));
 let CFG = { opt: optDefaults() };
 const OPT = k => OPTIONS[k].values[(CFG.opt || {})[k]] || 1;
@@ -2121,6 +2122,7 @@ function onArrowEffects(w, a, f, primary) {
 const BULLSEYE = 0.4, CRIT_MUL = 1.5;
 // a pin needs a full-draw hit, then a slam into a wall or boulder within PIN_WINDOW seconds at PIN_SPEED or faster
 const NB_WIND = 0.05, NB_MOVE = 0.09; // Ninja blink: wind-up, then travel time
+const ASSIST_LANE = 220, ASSIST_RANGE = 900, ASSIST_RAMP = 600; // aim assist: how far to the side of your line, and how far ahead, it looks for a target
 const XBOW_RANGE = 480, XBOW_RELOAD = 1.15, XBOW_GAP = 0.16, AUTO_TIME = 2, AUTO_GAP = 0.12;
 // how far a player's shots reach before dropping, for roles with a short range (null: the whole arena)
 // (shuriken: 1050px/s slowed by drag 2.4 over their 0.45s life, about 0.275s worth of full speed)
@@ -2253,19 +2255,30 @@ function updateArrows(w, dt) {
         a.vx = Math.cos(h + turn) * sp; a.vy = Math.sin(h + turn) * sp;
       }
     }
-    // Aim assist (custom rule): bend toward the enemy the shot is heading for, if they're in front of it and in reach
+    // Aim assist (custom rule): when the shot leaves the bow it picks the enemy nearest its straight line of fire
+    // (ahead of it, and no more than ASSIST_LANE px to the side), then bends toward them for the rest of its flight
     const assist = OPTIONS.assist.values[(CFG.opt || {}).assist] || 0;
     if (assist > 0 && !a.seek && !a.back && !a.rail && a.age < 1.5) {
-      const h = Math.atan2(a.vy, a.vx); let best = null, bs = Infinity;
-      for (const q of w.players) {
-        if (q.team === a.team || q.dead || q.falling > 0 || q.stealthT > 0 || a.hit.includes(q.id)) continue;
-        const d = Math.hypot(q.x - a.x, q.y - a.y), off = angOff(Math.atan2(q.y - a.y, q.x - a.x), h);
-        if (d > 650 || off > 1.0) continue;
-        const sc = d * (1 + off); if (sc < bs) { bs = sc; best = q; }
+      const h = Math.atan2(a.vy, a.vx), ux = Math.cos(h), uy = Math.sin(h);
+      if (a.assistT === undefined) {
+        a.assistT = null; let bs = ASSIST_LANE;
+        for (const q of w.players) {
+          if (q.team === a.team || q.dead || q.falling > 0 || q.stealthT > 0 || a.hit.includes(q.id)) continue;
+          const dx = q.x - a.x, dy = q.y - a.y, along = dx * ux + dy * uy, side = Math.abs(dx * uy - dy * ux);
+          if (along <= 0 || along > ASSIST_RANGE || side >= bs) continue;
+          bs = side; a.assistT = q.id;
+        }
       }
-      if (best) {
+      let best = a.assistT != null ? w.players.find(q => q.id === a.assistT) : null;
+      if (best && (best.dead || best.falling > 0 || best.stealthT > 0 || a.hit.includes(best.id) || angOff(Math.atan2(best.y - a.y, best.x - a.x), h) > 1.4)) { best = null; a.assistT = null; }
+      // it bends gently early on and harder as it closes in, and not at all while a boulder is in the way,
+      // so you can shoot around cover and let the shot curl in at the end
+      if (best && clearShot(a.x, a.y, best.x, best.y)) {
         const want = Math.atan2(best.y - a.y, best.x - a.x), diff = ((want - h + Math.PI) % TAU + TAU) % TAU - Math.PI;
-        const turn = clamp(diff, -assist * dt, assist * dt), sp = Math.hypot(a.vx, a.vy);
+        // (turning scales with the shot's speed, so the curve is the same shape whatever the arrow speed rule)
+        const sp = Math.hypot(a.vx, a.vy), close = 1 - Math.min(1, Math.hypot(best.x - a.x, best.y - a.y) / ASSIST_RAMP);
+        const rate = assist * (0.2 + 2.6 * close * close) * sp / 1000;
+        const turn = clamp(diff, -rate * dt, rate * dt);
         a.vx = Math.cos(h + turn) * sp; a.vy = Math.sin(h + turn) * sp;
       }
     }
@@ -2905,7 +2918,7 @@ return {
   AW, AH, WALL, GATES, MAPS, MAP_KEYS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, createWorld, join, leave, addBot, removeBot, setTeam, setBotDifficulty, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
-  setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, HOLE_T, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
+  setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
   _grant(w, id, cards) { const p = w.players.find(q => q.id === id); for (const c of cards) takeCard(w, p, c); applyStats(p); p.picked = false; return p; },
 };

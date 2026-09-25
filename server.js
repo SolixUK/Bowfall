@@ -419,6 +419,25 @@ function applyRoomCfg(room, o, hostName) {
   if ('pw' in o) { const pw = String(o.pw || '').slice(0, 32); room.pwHash = pw ? pwHash(pw) : null; }
 }
 
+// the host's changes to the match, told to everyone in the room's chat ("Aim assist set to Heavy.")
+const DIFF_NAMES = { easy: 'Easy', normal: 'Normal', hard: 'Hard', extreme: 'Extreme' };
+const cfgState = w => ({ diff: w.cfg.diff, map: w.cfg.map, ptw: w.cfg.pointsToWin, opt: Object.assign({}, w.cfg.opt) });
+function announceCfg(room, a, b) {
+  const lines = [];
+  if (a.map !== b.map) lines.push(`Arena set to ${Sim.MAPS[b.map].name}.`);
+  if (a.diff !== b.diff) lines.push(`Bot skill set to ${DIFF_NAMES[b.diff] || b.diff}.`);
+  if (a.ptw !== b.ptw) lines.push(`Match length set to first to ${b.ptw} points.`);
+  for (const k of Object.keys(Sim.OPTIONS)) if (a.opt[k] !== b.opt[k]) lines.push(`${Sim.OPTIONS[k].label} set to ${Sim.OPT_NAMES[b.opt[k]] || b.opt[k]}.`);
+  for (const l of lines) sysChat(room, l);
+}
+const roomState = r => ({ name: r.name, pub: r.pub, max: r.max, pw: !!r.pwHash, pwh: r.pwHash });
+function announceRoom(room, a, b) {
+  if (a.name !== b.name) sysChat(room, `Game renamed to ${b.name}.`);
+  if (a.max !== b.max) sysChat(room, `Maximum players set to ${b.max}.`);
+  if (a.pub !== b.pub) sysChat(room, b.pub ? 'The game is now public: it shows in the games list.' : 'The game is now private: code only.');
+  if (a.pw !== b.pw) sysChat(room, b.pw ? 'A password is now needed to join.' : 'The password was removed.');
+  else if (b.pw && a.pwh !== b.pwh) sysChat(room, 'The password was changed.');
+}
 function createRoom(opts = {}) {
   const code = makeCode();
   const diff = Sim.DIFF[opts.diff] ? opts.diff : 'normal';
@@ -574,19 +593,22 @@ async function handle(ws, m) {
       break;
     }
     // host-only controls
-    case 'roomcfg': if (isHost) { applyRoomCfg(room, m, ws.name); sendRoom(room); } break;
+    case 'roomcfg': if (isHost) { const before = roomState(room); applyRoomCfg(room, m, ws.name); announceRoom(room, before, roomState(room)); sendRoom(room); } break;
     case 'bot':
       if (!isHost) break;
       if (m.op === 'add') Sim.addBot(w, String(m.team));
       if (m.op === 'remove') Sim.removeBot(w, String(m.id));
       break;
-    case 'cfg':
+    case 'cfg': {
       if (!isHost) break;
+      const before = cfgState(w);
       if (m.diff) Sim.setBotDifficulty(w, String(m.diff));
       if (m.map) Sim.setMap(w, String(m.map));
       if (m.ptw) Sim.setPointsToWin(w, m.ptw | 0);
       if (m.opt && typeof m.opt === 'object') for (const [k, v] of Object.entries(m.opt)) Sim.setOption(w, String(k), String(v));
+      announceCfg(room, before, cfgState(w));
       break;
+    }
     case 'hcap': if (isHost) Sim.setHandicap(w, String(m.id), m.v | 0); break;
     case 'start': if (isHost) Sim.startMatch(w); break;
     case 'lobby': if (isHost) Sim.toLobby(w); break;

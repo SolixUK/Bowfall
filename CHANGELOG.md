@@ -2,6 +2,27 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
 
+## 0.13.4
+
+**Aim assist (custom rule)**
+- Homing is gentle early in a shot's flight and gets stronger as it closes on its target.
+- It doesn't bend at all while a boulder is between the shot and the target. You can shoot round cover and let the shot curl in at the end, instead of it bending into the boulder.
+- How hard a shot turns now scales with its speed, so the curve is the same shape whatever the arrow speed rule.
+- Every level is a notch weaker. Tiny is now very slight, and each level takes roughly the strength of the one below it before.
+
+**Controller**
+- New **Aim assist** setting under Controls: off, low, medium (default) or high.
+  - When the right stick points near an enemy, the aim slows down so it's easy to stay on them, and it's drawn onto them, most strongly near their middle.
+  - It only affects controller aiming; the mouse is never assisted. It works in any game and doesn't change anything for other players.
+
+**Sounds**
+- Checked: the full-draw sound and the crossbow's reload sound only play for your own archer.
+
+## 0.13.3
+
+- Online lobbies announce the host's changes in chat: the arena, bot skill, match length, every custom rule ("Aim assist set to Heavy."), and the game's name, maximum players, listing and password.
+- Aim assist now homes on the enemy nearest your line of fire. That means whoever you were actually aiming at, not just the closest enemy. When the shot leaves the bow it picks a target up to 220px either side of that line and keeps it for the whole flight. If nobody's near the line, the shot flies straight.
+
 ## 0.13.2
 
 - New custom rule, **Aim assist**: none (standard), tiny, small, medium, heavy or extreme. Every arrow, bolt and shuriken bends toward the enemy it's heading for, if they're in front of it and within about 650px. The higher the setting, the harder it turns. It ignores stealthed archers. It applies to everyone, bots included.
