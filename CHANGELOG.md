@@ -2,6 +2,14 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
 
+## 0.13.7
+
+- Controller aim assist is now a gentle bias instead of a lock-on.
+  - Each enemy has a zone made of their body plus the spot you'd lead them to, worked out from how they're moving and how fast a full draw flies.
+  - Aiming anywhere in that zone is left alone, so leading a runner works, and your aim moves more slowly there so it's easy to stay on them.
+  - Aiming a little outside the zone nudges you part of the way back toward its edge. It never pulls you all the way, and never onto their middle.
+  - Aiming well away from anyone does nothing.
+
 ## 0.13.6
 
 - Fixed: aim assist ignored enemies more than 900px away when choosing a target. If you aimed dead on a far-away enemy with someone nearer off to the side, the shot veered onto the nearer one. It now chooses from everyone along your line of fire at any distance, picks whoever is closest to that line, and never switches target mid-flight.

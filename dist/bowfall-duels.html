@@ -773,7 +773,7 @@
     <div class="padmap">
       <span><b>Left stick</b> move</span><span><b>Right stick</b> aim</span><span><b>Right trigger</b> draw and fire</span><span><b>A / Cross</b> or <b>left trigger</b> dash</span>
       <span><b>LB / RB</b> abilities Q and E</span><span><b>Start</b> menu</span><span><b>X, Y, B</b> pick upgrade 1, 2, 3</span>
-      <span><b>Aim assist:</b> built in for controllers, one strength for everyone. Near an enemy your aim slows and is drawn onto them along your line of aim, at any distance. The mouse is never assisted</span>
+      <span><b>Aim assist:</b> built in for controllers, one strength for everyone. Near an enemy (or the spot you'd lead them to) your aim slows down and is nudged toward them, at any distance. It never locks on. The mouse is never assisted</span>
       <span><b>Menus:</b> D-pad or left stick to move, <b>A</b> to select, <b>B</b> to go back. On a list, left and right change it</span>
     </div>
     <div class="row" style="align-items:flex-end;gap:14px">
@@ -833,7 +833,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.13.6';
+const VERSION = '0.13.7';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -4072,24 +4072,31 @@ $('ctlBtn').onclick = openCtl; $('gmCtlBtn').onclick = openCtl; $('ctlClose').on
 // ---- gamepad: left stick moves, right stick aims, right trigger draws
 const pad = { on: false, mx: 0, my: 0, draw: false, aim: null, mag: 0, prev: [], want: null, wantMag: 0, t: 0, nav: { dir: null, t: 0 } };
 // controller aim sensitivity 1-10: how many radians a second the aim can swing round (10 is instant). The mouse is never affected.
-// controller aim assist: one fixed strength for everyone on a controller, tuned to make up for a stick's coarser aim
-// against a mouse. Slows the aim near an enemy by half, and corrects it by up to 3/4 of the window (at most about 7 degrees).
-const PAD_ASSIST = { slow: 0.5, pull: 0.75, maxPull: 0.12 };
-// the enemy nearest where the right stick points, if they're close enough to it: their direction, and how close (1 dead on, 0 at the edge)
+// controller aim assist: one fixed strength for everyone on a controller, to make up for a stick's coarser aim against a mouse.
+// It's a gentle bias, not a lock-on. Each enemy has a "zone": their body plus the spot you'd lead them to (where a full draw
+// would meet them, from how they're moving). Aiming anywhere inside the zone is left alone, so leading a runner still works;
+// the aim just moves more slowly there, which makes it easy to stay on them. Aiming a little outside it nudges you part of
+// the way back toward its edge, never all the way and never onto their middle.
+const PAD_ASSIST = { slow: 0.4, pull: 0.5 };
+const wrapA = a => ((a + Math.PI) % TAU + TAU) % TAU - Math.PI;
 function padAssistTarget(aim) {
   const me = view && view.p.find(q => q.id === myId);
   if (!me || me.d || !view.m || view.m.ph !== 'play') return null;
+  const opt = view.m.opt || {}, aspeed = (Sim.OPTIONS.aspeed.values[opt.aspeed] || 1);
+  const shot = (me.ro === 'ninja' ? 1050 : 1300 * (me.ro === 'sniper' ? 1.1 : 1)) * aspeed;
   let best = null;
   for (const q of view.p) {
     if (q.tm === me.tm || q.d || q.f || q.sth) continue;
     const dx = q.x - me.x, dy = q.y - me.y, d = Math.hypot(dx, dy);
     if (d < 1) continue;
-    // works along the whole line of aim: a band either side of it, never narrower than about 8 degrees, so far targets still catch
-    const ang = Math.atan2(dy, dx), off = Math.abs(((ang - aim + Math.PI) % TAU + TAU) % TAU - Math.PI);
-    const half = Math.min(0.4, Math.max(0.14, Math.atan2((q.rz || 16) * 2.5 + 40, d)));
-    if (off > half) continue;
-    const k = Math.sqrt(1 - off / half); // how strongly the aim slows: strongest in the middle, fading out toward the edge
-    if (!best || k > best.k) best = { ang, k, off, half };
+    const t = d / shot, lx = q.x + (q.vx || 0) * t - me.x, ly = q.y + (q.vy || 0) * t - me.y;
+    const oc = wrapA(Math.atan2(dy, dx) - aim), ol = wrapA(Math.atan2(ly, lx) - aim), body = Math.atan2(q.rz || 16, d);
+    const lo = Math.min(oc, ol) - body, hi = Math.max(oc, ol) + body;
+    const s = lo > 0 ? lo : hi < 0 ? hi : 0; // how far the aim is from the zone (0 inside it), and which way
+    const margin = Math.min(0.35, Math.max(0.12, Math.atan2(60, d)));
+    if (Math.abs(s) > margin) continue;
+    const k = 1 - Math.abs(s) / margin;
+    if (!best || k > best.k) best = { s, k };
   }
   return best;
 }
@@ -4116,10 +4123,8 @@ function pollPad() {
     // controller aim assist: near an enemy the aim slows down (so it's easy to stay on them) and is drawn onto them
     const as = PAD_ASSIST, t = padAssistTarget(want);
     if (t) {
-      // pull: corrects the aim by up to a share of the window, so near the enemy it lands right on them at any distance;
-      // the pull fades out over the outer part of the window so there's no snap as you cross its edge
-      const d = ((t.ang - want + Math.PI) % TAU + TAU) % TAU - Math.PI, fade = Math.min(1, (1 - t.off / t.half) / 0.35);
-      want += Math.sign(d) * Math.min(Math.abs(d), as.pull * t.half, as.maxPull) * fade;
+      // a partial nudge toward the zone, fading out toward the edge of its reach so it never snaps
+      want += t.s * as.pull * Math.min(1, t.k / 0.5);
       rate = Math.min(rate, 40) * (1 - as.slow * t.k);
     }
     if (pad.aim == null || rate === Infinity) { pad.aim = want; pad.mag = am; }
