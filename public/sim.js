@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.13.4';
+const VERSION = '0.13.6';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -2122,7 +2122,7 @@ function onArrowEffects(w, a, f, primary) {
 const BULLSEYE = 0.4, CRIT_MUL = 1.5;
 // a pin needs a full-draw hit, then a slam into a wall or boulder within PIN_WINDOW seconds at PIN_SPEED or faster
 const NB_WIND = 0.05, NB_MOVE = 0.09; // Ninja blink: wind-up, then travel time
-const ASSIST_LANE = 220, ASSIST_RANGE = 900, ASSIST_RAMP = 600; // aim assist: how far to the side of your line, and how far ahead, it looks for a target
+const ASSIST_LANE = 220, ASSIST_RAMP = 600; // aim assist: how far either side of your line of fire it looks for a target (at any range), and the distance over which its turning ramps up
 const XBOW_RANGE = 480, XBOW_RELOAD = 1.15, XBOW_GAP = 0.16, AUTO_TIME = 2, AUTO_GAP = 0.12;
 // how far a player's shots reach before dropping, for roles with a short range (null: the whole arena)
 // (shuriken: 1050px/s slowed by drag 2.4 over their 0.45s life, about 0.275s worth of full speed)
@@ -2255,8 +2255,9 @@ function updateArrows(w, dt) {
         a.vx = Math.cos(h + turn) * sp; a.vy = Math.sin(h + turn) * sp;
       }
     }
-    // Aim assist (custom rule): when the shot leaves the bow it picks the enemy nearest its straight line of fire
-    // (ahead of it, and no more than ASSIST_LANE px to the side), then bends toward them for the rest of its flight
+    // Aim assist (custom rule): the moment the shot leaves the bow it picks the enemy nearest its straight line of fire
+    // (ahead of it, at any distance, no more than ASSIST_LANE px to the side), then bends only toward them for the rest of
+    // its flight. It never switches to someone else it passes.
     const assist = OPTIONS.assist.values[(CFG.opt || {}).assist] || 0;
     if (assist > 0 && !a.seek && !a.back && !a.rail && a.age < 1.5) {
       const h = Math.atan2(a.vy, a.vx), ux = Math.cos(h), uy = Math.sin(h);
@@ -2265,7 +2266,7 @@ function updateArrows(w, dt) {
         for (const q of w.players) {
           if (q.team === a.team || q.dead || q.falling > 0 || q.stealthT > 0 || a.hit.includes(q.id)) continue;
           const dx = q.x - a.x, dy = q.y - a.y, along = dx * ux + dy * uy, side = Math.abs(dx * uy - dy * ux);
-          if (along <= 0 || along > ASSIST_RANGE || side >= bs) continue;
+          if (along <= 0 || side >= bs) continue;
           bs = side; a.assistT = q.id;
         }
       }

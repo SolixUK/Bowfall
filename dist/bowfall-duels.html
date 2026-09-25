@@ -773,10 +773,10 @@
     <div class="padmap">
       <span><b>Left stick</b> move</span><span><b>Right stick</b> aim</span><span><b>Right trigger</b> draw and fire</span><span><b>A / Cross</b> or <b>left trigger</b> dash</span>
       <span><b>LB / RB</b> abilities Q and E</span><span><b>Start</b> menu</span><span><b>X, Y, B</b> pick upgrade 1, 2, 3</span>
+      <span><b>Aim assist:</b> built in for controllers, one strength for everyone. Near an enemy your aim slows and is drawn onto them along your line of aim, at any distance. The mouse is never assisted</span>
       <span><b>Menus:</b> D-pad or left stick to move, <b>A</b> to select, <b>B</b> to go back. On a list, left and right change it</span>
     </div>
     <div class="row" style="align-items:flex-end;gap:14px">
-      <div class="field"><label for="padAssist">Aim assist</label><select id="padAssist"><option value="none">Off</option><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></div>
       <div class="field"><label for="padSens">Aim sensitivity</label><select id="padSens"><option value="1">1 (slowest)</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7" selected>7</option><option value="8">8</option><option value="9">9</option><option value="10">10 (instant)</option></select></div>
       <div class="field"><label for="padAimR">Aim distance</label><select id="padAimR"><option value="0.8">Short</option><option value="1" selected>Normal</option><option value="1.3">Long</option></select></div>
       <div class="field"><label for="padDead">Stick dead zone</label><select id="padDead"><option value="0.12">Small</option><option value="0.2" selected>Normal</option><option value="0.3">Large</option></select></div>
@@ -833,7 +833,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.13.4';
+const VERSION = '0.13.6';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -2946,7 +2946,7 @@ function onArrowEffects(w, a, f, primary) {
 const BULLSEYE = 0.4, CRIT_MUL = 1.5;
 // a pin needs a full-draw hit, then a slam into a wall or boulder within PIN_WINDOW seconds at PIN_SPEED or faster
 const NB_WIND = 0.05, NB_MOVE = 0.09; // Ninja blink: wind-up, then travel time
-const ASSIST_LANE = 220, ASSIST_RANGE = 900, ASSIST_RAMP = 600; // aim assist: how far to the side of your line, and how far ahead, it looks for a target
+const ASSIST_LANE = 220, ASSIST_RAMP = 600; // aim assist: how far either side of your line of fire it looks for a target (at any range), and the distance over which its turning ramps up
 const XBOW_RANGE = 480, XBOW_RELOAD = 1.15, XBOW_GAP = 0.16, AUTO_TIME = 2, AUTO_GAP = 0.12;
 // how far a player's shots reach before dropping, for roles with a short range (null: the whole arena)
 // (shuriken: 1050px/s slowed by drag 2.4 over their 0.45s life, about 0.275s worth of full speed)
@@ -3079,8 +3079,9 @@ function updateArrows(w, dt) {
         a.vx = Math.cos(h + turn) * sp; a.vy = Math.sin(h + turn) * sp;
       }
     }
-    // Aim assist (custom rule): when the shot leaves the bow it picks the enemy nearest its straight line of fire
-    // (ahead of it, and no more than ASSIST_LANE px to the side), then bends toward them for the rest of its flight
+    // Aim assist (custom rule): the moment the shot leaves the bow it picks the enemy nearest its straight line of fire
+    // (ahead of it, at any distance, no more than ASSIST_LANE px to the side), then bends only toward them for the rest of
+    // its flight. It never switches to someone else it passes.
     const assist = OPTIONS.assist.values[(CFG.opt || {}).assist] || 0;
     if (assist > 0 && !a.seek && !a.back && !a.rail && a.age < 1.5) {
       const h = Math.atan2(a.vy, a.vx), ux = Math.cos(h), uy = Math.sin(h);
@@ -3089,7 +3090,7 @@ function updateArrows(w, dt) {
         for (const q of w.players) {
           if (q.team === a.team || q.dead || q.falling > 0 || q.stealthT > 0 || a.hit.includes(q.id)) continue;
           const dx = q.x - a.x, dy = q.y - a.y, along = dx * ux + dy * uy, side = Math.abs(dx * uy - dy * ux);
-          if (along <= 0 || along > ASSIST_RANGE || side >= bs) continue;
+          if (along <= 0 || side >= bs) continue;
           bs = side; a.assistT = q.id;
         }
       }
@@ -4059,8 +4060,6 @@ $('padAimR').value = store.get('bowfall-pad-aim', '1'); $('padDead').value = sto
 $('padAimR').onchange = () => store.set('bowfall-pad-aim', $('padAimR').value);
 $('padDead').onchange = () => store.set('bowfall-pad-dead', $('padDead').value);
 $('padSens').value = store.get('bowfall-pad-sens', '7');
-$('padAssist').value = store.get('bowfall-pad-assist', 'medium');
-$('padAssist').onchange = () => store.set('bowfall-pad-assist', $('padAssist').value);
 $('padSens').onchange = () => store.set('bowfall-pad-sens', $('padSens').value);
 function padStatus() {
   const gp = navigator.getGamepads ? [...navigator.getGamepads()].find(g => g && g.connected) : null;
@@ -4073,7 +4072,9 @@ $('ctlBtn').onclick = openCtl; $('gmCtlBtn').onclick = openCtl; $('ctlClose').on
 // ---- gamepad: left stick moves, right stick aims, right trigger draws
 const pad = { on: false, mx: 0, my: 0, draw: false, aim: null, mag: 0, prev: [], want: null, wantMag: 0, t: 0, nav: { dir: null, t: 0 } };
 // controller aim sensitivity 1-10: how many radians a second the aim can swing round (10 is instant). The mouse is never affected.
-const PAD_ASSIST = { none: null, low: { slow: 0.35, pull: 0.35 }, medium: { slow: 0.55, pull: 0.65 }, high: { slow: 0.7, pull: 0.9 } };
+// controller aim assist: one fixed strength for everyone on a controller, tuned to make up for a stick's coarser aim
+// against a mouse. Slows the aim near an enemy by half, and corrects it by up to 3/4 of the window (at most about 7 degrees).
+const PAD_ASSIST = { slow: 0.5, pull: 0.75, maxPull: 0.12 };
 // the enemy nearest where the right stick points, if they're close enough to it: their direction, and how close (1 dead on, 0 at the edge)
 function padAssistTarget(aim) {
   const me = view && view.p.find(q => q.id === myId);
@@ -4082,12 +4083,13 @@ function padAssistTarget(aim) {
   for (const q of view.p) {
     if (q.tm === me.tm || q.d || q.f || q.sth) continue;
     const dx = q.x - me.x, dy = q.y - me.y, d = Math.hypot(dx, dy);
-    if (d > 850 || d < 1) continue;
+    if (d < 1) continue;
+    // works along the whole line of aim: a band either side of it, never narrower than about 8 degrees, so far targets still catch
     const ang = Math.atan2(dy, dx), off = Math.abs(((ang - aim + Math.PI) % TAU + TAU) % TAU - Math.PI);
-    const half = Math.min(0.4, Math.atan2((q.rz || 16) * 2.5 + 25, d));
+    const half = Math.min(0.4, Math.max(0.14, Math.atan2((q.rz || 16) * 2.5 + 40, d)));
     if (off > half) continue;
-    const k = Math.sqrt(1 - off / half); // strongest in the middle, fading out toward the edge
-    if (!best || k > best.k) best = { ang, k };
+    const k = Math.sqrt(1 - off / half); // how strongly the aim slows: strongest in the middle, fading out toward the edge
+    if (!best || k > best.k) best = { ang, k, off, half };
   }
   return best;
 }
@@ -4112,9 +4114,12 @@ function pollPad() {
   if (am > 0.25) {
     let want = Math.atan2(ay, ax), rate = padTurn();
     // controller aim assist: near an enemy the aim slows down (so it's easy to stay on them) and is drawn onto them
-    const as = PAD_ASSIST[store.get('bowfall-pad-assist', 'medium')], t = as ? padAssistTarget(want) : null;
+    const as = PAD_ASSIST, t = padAssistTarget(want);
     if (t) {
-      want += (((t.ang - want + Math.PI) % TAU + TAU) % TAU - Math.PI) * as.pull * t.k;
+      // pull: corrects the aim by up to a share of the window, so near the enemy it lands right on them at any distance;
+      // the pull fades out over the outer part of the window so there's no snap as you cross its edge
+      const d = ((t.ang - want + Math.PI) % TAU + TAU) % TAU - Math.PI, fade = Math.min(1, (1 - t.off / t.half) / 0.35);
+      want += Math.sign(d) * Math.min(Math.abs(d), as.pull * t.half, as.maxPull) * fade;
       rate = Math.min(rate, 40) * (1 - as.slow * t.k);
     }
     if (pad.aim == null || rate === Infinity) { pad.aim = want; pad.mag = am; }
@@ -4255,7 +4260,8 @@ function buildInput(me) {
   let mx = (held('right') ? 1 : 0) - (held('left') ? 1 : 0);
   let my = (held('down') ? 1 : 0) - (held('up') ? 1 : 0);
   if (pad.on && (pad.mx || pad.my)) { mx = pad.mx; my = pad.my; }
-  const aim = me ? Math.atan2(mouse.wy - me.y, mouse.wx - me.x) : 0;
+  // a controller aims along the stick's line (with its aim assist), not at the crosshair, so moving doesn't knock it off
+  const aim = pad.on && pad.aim != null ? pad.aim : me ? Math.atan2(mouse.wy - me.y, mouse.wx - me.x) : 0;
   return { mx, my, aim, draw: (mouse.down || held('draw') || (pad.on && pad.draw)) && !menuOpen, dash: dashLatch && !menuOpen, q: qLatch && !menuOpen, e: eLatch && !menuOpen, dp: drawLatch && !menuOpen, tx: Math.round(mouse.wx), ty: Math.round(mouse.wy) };
 }
 

@@ -2,6 +2,17 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
 
+## 0.13.6
+
+- Fixed: aim assist ignored enemies more than 900px away when choosing a target. If you aimed dead on a far-away enemy with someone nearer off to the side, the shot veered onto the nearer one. It now chooses from everyone along your line of fire at any distance, picks whoever is closest to that line, and never switches target mid-flight.
+
+## 0.13.5
+
+**Controller aim assist**
+- Fixed: it could miss while you were moving. The controller's aim went through the crosshair, which sits a short way out from your archer, so moving pulled the aim off the stick's line. The controller now aims straight along the stick's line of aim, with assist applied to that line.
+- It works at any distance. The zone around each enemy is at least about 8 degrees either side of your line of aim, so far-away enemies still catch. Near an enemy it can correct your aim by up to about 7 degrees, so it lands on them.
+- It's now one fixed strength for every controller player, tuned to close the gap with a mouse. The setting is gone. The mouse is never assisted.
+
 ## 0.13.4
 
 **Aim assist (custom rule)**
