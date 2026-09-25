@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.13.7';
+const VERSION = '0.14.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -537,12 +537,27 @@ const AMBER = { pickup: 2, kill: 2, hazardKill: 1, roundWin: 3, survive: 1 };
 const AMBER_BOOST = { hp: 8, dash: 0.5, ability: 1.5 };
 
 const BOT_NAMES = ['Fletch', 'Quill', 'Nock', 'Kestrel', 'Rowan', 'Sable', 'Flint', 'Wren', 'Yew', 'Hawk', 'Tamsin', 'Bramble'];
+// iq (0-1): how much of the smarter brain a level uses: planned positioning (stay safe from being knocked into
+// hazards, stand where your shots knock enemies into them), exact aim, reading incoming arrows, and learned upgrade picks
 const DIFF = {
-  easy:    { aimErr: 0.28, react: 0.75, dodge: 0.04, minCharge: 0.4,  lead: 0.15, speed: 0.75, turn: 2.5, see: 0.42 },
-  normal:  { aimErr: 0.17, react: 0.5,  dodge: 0.12, minCharge: 0.5,  lead: 0.4, speed: 0.85, turn: 3.5, see: 0.32 },
-  hard:    { aimErr: 0.08, react: 0.28, dodge: 0.4,  minCharge: 0.7,  lead: 0.8, speed: 1, turn: 5.5, see: 0.24 },
-  extreme: { aimErr: 0.035, react: 0.12, dodge: 0.75, minCharge: 0.82, lead: 1, speed: 1, turn: 8, see: 0.17 },
+  easy:    { aimErr: 0.28, react: 0.75, dodge: 0.04, minCharge: 0.4,  lead: 0.15, speed: 0.75, turn: 2.5, see: 0.42, iq: 0 },
+  normal:  { aimErr: 0.17, react: 0.5,  dodge: 0.12, minCharge: 0.5,  lead: 0.4, speed: 0.85, turn: 3.5, see: 0.32, iq: 0 },
+  hard:    { aimErr: 0.08, react: 0.28, dodge: 0.4,  minCharge: 0.7,  lead: 0.8, speed: 1, turn: 5.5, see: 0.24, iq: 0 },
+  extreme: { aimErr: 0.035, react: 0.12, dodge: 0.75, minCharge: 0.82, lead: 1, speed: 1, turn: 8, see: 0.17, iq: 0 },
+  master:  { aimErr: 0.012, react: 0.07, dodge: 1, minCharge: 0.85, lead: 1, speed: 1, turn: 12, see: 0.06, iq: 1 },
 };
+// any skill from 0 (Easy) to 1 (Master) as a set of bot settings, blended between the named levels;
+// AI players in matchmaking each have their own skill somewhere along this scale
+const SKILL_STOPS = [['easy', 0], ['normal', 0.3], ['hard', 0.55], ['extreme', 0.78], ['master', 1]];
+function skillParams(s) {
+  s = clamp(+s || 0, 0, 1);
+  let i = 0; while (i < SKILL_STOPS.length - 2 && s > SKILL_STOPS[i + 1][1]) i++;
+  const [a, sa] = SKILL_STOPS[i], [b, sb] = SKILL_STOPS[i + 1], k = (s - sa) / (sb - sa), A = DIFF[a], B = DIFF[b], out = {};
+  for (const key of Object.keys(A)) out[key] = A[key] + (B[key] - A[key]) * k;
+  out.iq = clamp((s - 0.72) / 0.2, 0, 1) >= 0.3 ? Math.max(0.5, clamp((s - 0.72) / 0.2, 0, 1)) : 0; // the smart brain switches on near Extreme
+  return out;
+}
+const botD = p => p.dparams || DIFF[p.diff] || DIFF.normal;
 const MAX_TEAM = 4;
 const _unused_ = 0;
 const LETHAL = { lava: 1, burn: 1, spikes: 1, wall: 1, crush: 1, pit: 1, water: 1, saw: 1 };
@@ -856,10 +871,16 @@ function restyle(p) {
   }
   ai.style = best;
 }
-// bots: capstones first, then abilities, cards that suit their playstyle, anything that builds toward one; boosts last
+// Learned upgrade values: how much each card changed a Master bot's chance of winning a game, compared with others
+// of the same role, over about 7,800 games where bots picked at random. Smart bots pick by these.
+const CARD_VALUE = { aftershock: -0.047, ambush: 0.003, ballista: -0.009, barbs: -0.021, blinding: -0.037, blink: 0.089, blossom: -0.008, bond: -0.02, boomerang: -0.007, boulder: -0.006, bramble: -0.014, burst: -0.058, cloak: -0.042, clone: 0.005, collapse: -0.017, colossus: 0.001, contagion: 0.028, creeping: -0.031, curve: 0.005, dance: 0.026, dash: 0.011, deadeye: -0.032, deathmark: -0.008, deepfreeze: -0.055, deeproots: 0.011, deflect: 0.007, double: 0.034, echo: -0.031, execute: -0.089, execution: -0.001, fanbolt: -0.004, feather: -0.012, fleet: -0.036, flurry: 0.034, forked: -0.024, fortify: -0.044, frostbite: -0.009, glass: 0.034, grapple: 0.01, gust: 0.012, hairtrig: 0.021, harpoon: 0.011, heavy: 0.026, heavybolt: 0.003, horizon: 0.001, inferno: 0.022, lingering: 0.002, longbow: -0.002, longstep: -0.074, longstock: 0.037, nullfield: 0.037, oath: -0.024, obsidian: -0.012, overload: -0.107, parry: 0.023, permafrost: -0.022, petrify: 0.062, phase: 0.06, pierce: 0.016, pin: -0.022, pointblank: -0.018, potent: 0.007, pyre: -0.011, quake: -0.02, quickfeet: -0.008, quickshot: 0.072, railshot: -0.03, rain: -0.016, rally: 0.001, ram: 0.01, recall: 0.014, recoil: -0.026, repeater: 0.112, revive: -0.003, ricochet: 0.001, riot: 0.032, rush: 0.048, scatter: 0.03, seeker: -0.001, shadowdash: 0.017, sharpstar: -0.028, shatter: -0.047, smoke: 0.007, snare: -0.014, split: 0.04, spot: -0.042, sstrike: -0.02, stance: 0.003, static: 0.063, steady: 0.102, stealth: -0.008, surefoot: -0.013, swiftstep: 0.034, terror: -0.022, thirdstep: 0.028, totem: -0.004, toxic: 0.026, trap: 0.01, trick: 0.004, twinload: 0.058, unstable: -0.039, virulent: -0.017, vital: 0.011, volley: 0.037, wall: -0.021, wildfire: 0.007, windlass: 0.084 };
+// bots: capstones first, then abilities, cards that suit their playstyle, anything that builds toward one; boosts last.
+// Smart bots (Master, and AI players near it) mostly go by what the learning showed actually wins.
 function botPickIndex(p) {
-  const st = STYLES[p.ai && p.ai.style];
-  const score = id => HONES[id] ? 0 : (TREE[id].cap ? 5 : 1) + (TREE[id].active ? 1 : 0) + (st && st.cards.includes(id) ? 1.8 : 0) + Math.random() * 1.5;
+  if (p.gene && p.gene.randPick) return Math.floor(Math.random() * p.offer.length); // exploring, for learning what works
+  const st = STYLES[p.ai && p.ai.style], iq = p.gene && p.gene.noLearn ? 0 : botD(p).iq || 0;
+  const score = id => HONES[id] ? 0.6 * iq + Math.random() * (1.5 - iq) :
+    (TREE[id].cap ? 5 - 3 * iq : 1) + (TREE[id].active ? 1 - 0.5 * iq : 0) + (st && st.cards.includes(id) ? 1.8 - 1.2 * iq : 0) + (CARD_VALUE[id] || 0) * 40 * iq + Math.random() * (1.5 - iq);
   let best = 0;
   p.offer.forEach((id, i) => { if (score(id) > score(p.offer[best])) best = i; });
   return best;
@@ -2548,8 +2569,111 @@ function botSteer(p, gx, gy) {
   return l < 0.05 ? [0, 0] : [dx / l, dy / l];
 }
 
+// ---- the smarter brain (used as far as a level's iq allows; Master uses all of it)
+// GENE holds the weights it balances; they were tuned by pitting variations against each other over thousands of games
+const GENE = { pref: 1, safety: 1, push: 1, los: 1, pick: 1, jink: 0.5, kbScale: 1, dodgeT: 0.55, retreat: 0.3, cand: 130, heal: 1, fireTol: 0.9, far: 380, quick: 0.45, mid: 0.8, riskFull: 0.5, planDt: 0.12 };
+// how far a hit of charge c would shove an archer of this mass (knockback, then the slide after it)
+function kbTravel(c, mass, mul) {
+  const v = (180 + 620 * c) * (mul || 1) * OPT('kb') / (mass || 1), T = 0.25 + v / 1600, e = Math.exp(-1.5 * T);
+  return v / 1.5 * (1 - e) + v * e / 9;
+}
+// how deadly being shoved `dist` along (ux, uy) from (x, y) would be: 0 safe, up to ~1.2 certain death
+function pushRisk(x, y, ux, uy, dist, r) {
+  let risk = 0;
+  for (const s of [0.25, 0.5, 0.75, 1]) {
+    const px = x + ux * dist * s, py = y + uy * dist * s, ld = lethalDist(px, py);
+    if (ld < r * 0.4) return Math.max(risk, 1.2 - s * 0.4);
+    if (ld < r + 25) risk = Math.max(risk, 0.3);
+    if (px < WALL + r || px > AW - WALL - r || py < WALL + r || py > AH - WALL - r) return Math.max(risk, 0.15); // stops at the wall
+  }
+  return risk;
+}
+// travel time of a shot to a point d away (speed v0, slowing with drag)
+function shotTime(d, v0, drag) { const q = 1 - d * drag / v0; return q > 0.05 ? -Math.log(q) / drag : d / (v0 * 0.3); }
+// where to aim to meet a moving target
+function interceptAim(p, T, v0, drag) {
+  let tx = T.x, ty = T.y;
+  for (let i = 0; i < 4; i++) {
+    const t = shotTime(Math.max(0, Math.hypot(tx - p.x, ty - p.y) - p.r - 8), v0, drag);
+    // a target sliding after a hit slows down; one walking keeps going
+    const k = T.knock > 0 ? (1 - Math.exp(-1.5 * t)) / (1.5 * t || 1) : 1;
+    tx = T.x + T.vx * t * k; ty = T.y + T.vy * t * k;
+  }
+  return Math.atan2(ty - p.y, tx - p.x);
+}
+function shotSpeed(p, c) {
+  if (p.role === 'ninja') return 1050 * OPT('aspeed');
+  return (380 + 920 * (p.role === 'crossbow' ? 1 : c)) * (has(p, 'longbow') ? 1.2 : 1) * (p.role === 'sniper' ? 1.1 : 1) * (has(p, 'obsidian') ? 0.92 : 1) * (has(p, 'colossus') ? 0.85 : 1) * OPT('aspeed');
+}
+const shotDrag = p => p.role === 'ninja' ? 2.4 : p.role === 'crossbow' ? 0.12 : has(p, 'longbow') ? 0.2 : 0.45;
+// the furthest a bot's shots are worth taking
+function botReach(p) { return p.role === 'ninja' ? 1050 * OPT('aspeed') * 0.27 : p.role === 'crossbow' ? (p.xbowRange || XBOW_RANGE) - 30 : 900; }
+// Planned positioning: score spots around the bot and head for the best one. A good spot is one where
+// no enemy's shot can knock us into anything deadly, our shot at the target would knock them into something,
+// we're at our preferred range with a clear line, and it's near a pickup worth having.
+function botPlan(w, p, T, foes, mates, D, G) {
+  const ai = p.ai, st = STYLES[ai.style] || STYLES.skirmisher;
+  const reach = botReach(p);
+  const pref = Math.min(reach * 0.8, (st.near + st.far) / 2 * G.pref);
+  const myKb = kbTravel(0.95, T ? T.mass : 1, p.kbMul) * G.kbScale;
+  const cand = [[p.x, p.y]];
+  for (let i = 0; i < 12; i++) { const a = i / 12 * TAU + (ai.planRot || 0); for (const r of [G.cand * 0.55, G.cand]) cand.push([p.x + Math.cos(a) * r, p.y + Math.sin(a) * r]); }
+  ai.planRot = ((ai.planRot || 0) + 0.37) % TAU;
+  let best = null;
+  for (const [x, y] of cand) {
+    if (x < WALL + p.r + 6 || x > AW - WALL - p.r - 6 || y < WALL + p.r + 6 || y > AH - WALL - p.r - 6) continue;
+    const ld = lethalDist(x, y);
+    if (ld < p.r + 18) continue;
+    if (PILLARS.some(q => Math.hypot(x - q.x, y - q.y) < q.r + p.r + 4)) continue;
+    let sc = -Math.max(0, 70 - ld) * 0.02; // a little breathing room from hazards
+    // safety: every enemy who could shoot us here
+    for (const q of foes) {
+      const dx = x - q.x, dy = y - q.y, d = Math.hypot(dx, dy) || 1;
+      if (d > 1100 || !clearShot(q.x, q.y, x, y)) continue;
+      const threat = (q.drawing ? 0.5 + q.charge : 0.6) * (d < 500 ? 1 : 500 / d);
+      sc -= pushRisk(x, y, dx / d, dy / d, kbTravel(q.drawing ? Math.max(0.7, q.charge) : 0.9, p.mass, q.kbMul) * G.kbScale, p.r) * threat * 3 * G.safety;
+    }
+    if (T) {
+      const dx = T.x - x, dy = T.y - y, d = Math.hypot(dx, dy) || 1, los = clearShot(x, y, T.x, T.y);
+      sc -= Math.abs(d - pref) / 300 * G.pref;
+      if (d > reach) sc -= (d - reach) / 120;
+      if (los) { sc += 0.4 * G.los; sc += pushRisk(T.x, T.y, dx / d, dy / d, myKb, T.r) * 1.6 * G.push; }
+      else sc -= 0.3 * G.los;
+    }
+    // amber and powerups nearby
+    for (const u of w.pickups) {
+      const du = Math.hypot(u.x - x, u.y - y);
+      if (du < 260) sc += (u.chan ? 0.9 : u.type === 'amber' ? 0.5 : 0.8) * (1 - du / 260) * G.pick;
+    }
+    if (HEAL && p.hp < p.maxHp * 0.6) { const dh = Math.hypot(HEAL.x - x, HEAL.y - y); if (dh < HEAL.r) sc += 0.8 * G.heal * (1 - p.hp / p.maxHp); }
+    // don't stand on a teammate
+    for (const m of mates) { const dm = Math.hypot(m.x - x, m.y - y); if (dm < 110) sc -= (110 - dm) / 110 * 0.5; }
+    sc -= Math.hypot(x - p.x, y - p.y) / 2000; // a slight preference for staying put
+    if (!best || sc > best.sc) best = { x, y, sc };
+  }
+  if (!best) return null;
+  let gx = best.x - p.x, gy = best.y - p.y; const gl = Math.hypot(gx, gy);
+  // arrive and settle (allowing for momentum), with a little side-to-side jink so we're not a sitting duck
+  if (gl > 1) { gx /= gl; gy /= gl; } else { gx = gy = 0; }
+  const k = Math.min(1, gl / 40); gx = gx * k - p.vx / 400; gy = gy * k - p.vy / 400;
+  if (T) { const dx = T.x - p.x, dy = T.y - p.y, d = Math.hypot(dx, dy) || 1; gx += -dy / d * ai.strafe * G.jink; gy += dx / d * ai.strafe * G.jink; }
+  return [gx, gy];
+}
+// Reading incoming shots: the soonest one that will hit, and the safer side to step to
+function incoming(w, p, horizon) {
+  let hit = null;
+  for (const a of w.arrows) {
+    if (a.team === p.team || a.stuck > 0) continue;
+    const rx = p.x - a.x, ry = p.y - a.y, v2 = a.vx * a.vx + a.vy * a.vy || 1;
+    const t = (rx * a.vx + ry * a.vy) / v2;
+    if (t <= 0 || t > horizon) continue;
+    const cx = rx - a.vx * t, cy = ry - a.vy * t, cd = Math.hypot(cx, cy);
+    if (cd < p.r + 12 && (!hit || t < hit.t)) hit = { a, t, cx, cy, cd };
+  }
+  return hit;
+}
 function botThink(w, p, dt) {
-  const ai = p.ai, inp = p.input, D = DIFF[p.diff] || DIFF.normal;
+  const ai = p.ai, inp = p.input, D = botD(p), G = p.gene ? Object.assign({}, GENE, p.gene) : GENE, iq = D.iq || 0;
   if (p.dead || p.falling > 0) { inp.draw = false; inp.mx = inp.my = 0; return; }
   // stealthed enemies are invisible to bots unless they're right next to them
   const foes = w.players.filter(q => q.team !== p.team && !q.dead && q.falling <= 0 && !(q.stealthT > 0 && Math.hypot(q.x - p.x, q.y - p.y) > 110) && !(inSmoke(w, q, p.x, p.y) && Math.hypot(q.x - p.x, q.y - p.y) > 60)
@@ -2560,7 +2684,12 @@ function botThink(w, p, dt) {
   if (!T || ai.retarget <= 0) {
     let bestS = Infinity;
     for (const q of foes) {
-      const s = Math.hypot(q.x - p.x, q.y - p.y) + q.hp * 1.5 - (lethalDist(q.x, q.y) < 120 ? 150 : 0) + (q.inv > 0 ? 400 : 0);
+      let s = Math.hypot(q.x - p.x, q.y - p.y) + q.hp * 1.5 - (lethalDist(q.x, q.y) < 120 ? 150 : 0) + (q.inv > 0 ? 400 : 0);
+      if (iq > 0) {
+        const d = Math.hypot(q.x - p.x, q.y - p.y) || 1;
+        if (clearShot(p.x, p.y, q.x, q.y)) s -= pushRisk(q.x, q.y, (q.x - p.x) / d, (q.y - p.y) / d, kbTravel(0.95, q.mass, p.kbMul), q.r) * 300 * iq; else s += 150 * iq;
+        if (d > botReach(p)) s += 400 * iq;
+      }
       if (s < bestS) { bestS = s; T = q; }
     }
     ai.target = T ? T.id : null;
@@ -2586,6 +2715,8 @@ function botThink(w, p, dt) {
   // big capture powerups: most bots go and stand in them, and fight over them
   const chan = w.pickups.find(u => u.chan);
   const chanD = chan ? Math.hypot(chan.x - p.x, chan.y - p.y) : Infinity;
+  let plan = null; // smart bots re-plan where to stand several times a second
+  if (T && iq >= 0.5) { ai.planT = (ai.planT || 0) - dt; if (ai.planT <= 0 || !ai.plan) { ai.planT = G.planDt; ai.plan = botPlan(w, p, T, foes, mates, D, G); } plan = ai.plan; }
   const wantChan = chan && chanD < 620 && (ai.aggr == null ? 0.6 : ai.aggr) > 0.3 && p.hp > p.maxHp * 0.3;
   if (wantChan && !safeToRevive) {
     gx = (chan.x - p.x) / 60 - p.vx / 160; gy = (chan.y - p.y) / 60 - p.vy / 160;
@@ -2598,8 +2729,17 @@ function botThink(w, p, dt) {
   } else if (hurtBad) {
     if (healD > HEAL.r * 0.5) { gx = (HEAL.x - p.x) / healD; gy = (HEAL.y - p.y) / healD; }
     else { gx = -(p.y - HEAL.y) / (healD || 1) * ai.strafe * 0.4; gy = (p.x - HEAL.x) / (healD || 1) * ai.strafe * 0.4; }
-  } else if (pk && !pk.u.chan && (!T || pk.d < dT * 1.2)) {
+  } else if (pk && !pk.u.chan && (!T || pk.d < dT * 1.2) && iq < 0.5) {
     gx = (pk.u.x - p.x) / pk.d; gy = (pk.u.y - p.y) / pk.d;
+  } else if (plan) {
+    [gx, gy] = plan;
+    const st = STYLES[ai.style] || STYLES.skirmisher, ag = ai.aggr == null ? 0.6 : ai.aggr;
+    ai.bashCd = (ai.bashCd || 0) - dt;
+    // a dash into them only when it would knock them into something and we'd land safely
+    if (dT < 220 && dT > 40 && p.dashN > 0 && ai.bashCd <= 0 && clearShot(p.x, p.y, T.x, T.y) && st.bash * ag > 0.1) {
+      const ang = Math.atan2(T.y - p.y, T.x - p.x);
+      if (pushRisk(T.x, T.y, Math.cos(ang), Math.sin(ang), 200, T.r) > 0.6 && lethalDist(p.x + Math.cos(ang) * (dT + 40), p.y + Math.sin(ang) * (dT + 40)) > 60) { p.wantDash = true; ai.dashAim = ang; ai.bashCd = rand(1.5, 3); }
+    }
   } else if (T) {
     // keep the distance this bot's playstyle likes; aggressive bots close in, cautious ones hang back
     const st = STYLES[ai.style] || STYLES.skirmisher, ag = ai.aggr == null ? 0.6 : ai.aggr;
@@ -2639,7 +2779,21 @@ function botThink(w, p, dt) {
 
   // --- dodge incoming enemy arrows
   ai.dodgeCd -= dt;
-  for (const a of w.arrows) {
+  if (iq >= 0.5) {
+    const hit = incoming(w, p, G.dodgeT);
+    if (hit) {
+      const a = hit.a; let px = -a.vy, py = a.vx; const pl = Math.hypot(px, py) || 1; px /= pl; py /= pl;
+      // step to whichever side is safer, preferring the side we're already off-centre toward
+      const sa = lethalDist(p.x + px * 90, p.y + py * 90), sb = lethalDist(p.x - px * 90, p.y - py * 90);
+      if (sb > sa + 20 || (Math.abs(sb - sa) <= 20 && px * hit.cx + py * hit.cy < 0)) { px = -px; py = -py; }
+      gx = px * 2 + gx * 0.2; gy = py * 2 + gy * 0.2;
+      // can we step clear in time? if not, dash (when it's safe to)
+      const need = p.r + 14 - hit.cd, canStep = p.baseSpeed * hit.t * 0.7;
+      if (need > canStep && hit.t < 0.3 && ai.dodgeCd <= 0 && p.dashN > 0 && Math.random() < D.dodge && lethalDist(p.x + px * 140, p.y + py * 140) > 50) {
+        ai.dodgeCd = 0.5; p.wantDash = true; ai.dashAim = Math.atan2(py, px);
+      }
+    }
+  } else for (const a of w.arrows) {
     if (a.team === p.team || a.stuck > 0) continue;
     const rx = p.x - a.x, ry = p.y - a.y, v2 = a.vx * a.vx + a.vy * a.vy || 1;
     const t = (rx * a.vx + ry * a.vy) / v2;
@@ -2667,9 +2821,16 @@ function botThink(w, p, dt) {
   const spd = (380 + 920 * (p.role === 'crossbow' ? 1 : Math.max(p.charge, ai.want))) * OPT('aspeed');
   // aim at where the target *appeared* to be (and to be heading) a reaction-time ago, like a person would
   const S = perceived(w, T, D.see || 0.24);
-  const lt = Math.hypot(S[0] - p.x, S[1] - p.y) / spd * D.lead;
-  const ax = S[0] + S[2] * (lt + (D.see || 0.24) * 0.5), ay = S[1] + S[3] * (lt + (D.see || 0.24) * 0.5);
-  const wantAim = Math.atan2(ay - p.y, ax - p.x) + ai.err;
+  let wantAim;
+  if (iq >= 0.5) {
+    // exact: where the shot will meet them, allowing for its slowing down (using what we saw a moment ago)
+    const P = { x: S[0], y: S[1], vx: S[2], vy: S[3], knock: T.knock };
+    wantAim = interceptAim(p, P, shotSpeed(p, Math.max(p.charge, ai.want)), shotDrag(p)) + ai.err;
+  } else {
+    const lt = Math.hypot(S[0] - p.x, S[1] - p.y) / spd * D.lead;
+    const ax = S[0] + S[2] * (lt + (D.see || 0.24) * 0.5), ay = S[1] + S[3] * (lt + (D.see || 0.24) * 0.5);
+    wantAim = Math.atan2(ay - p.y, ax - p.x) + ai.err;
+  }
   // like a person: a moment to notice a new target (longer if it's behind them), then a limited turning speed
   if (ai.aimA == null) ai.aimA = p.aim;
   if (T.id !== ai.lastT) {
@@ -2683,11 +2844,11 @@ function botThink(w, p, dt) {
     ai.aimA += clamp(diff, -step, step);
   }
   inp.aim = ai.aimA;
-  const onTarget = ai.reactT <= 0 && angOff(ai.aimA, wantAim) < 0.15;
+  const onTarget = ai.reactT <= 0 && angOff(ai.aimA, wantAim) < (iq >= 0.5 ? Math.max(0.02, Math.atan2(T.r * G.fireTol, dT)) : 0.15);
   const los = clearShot(p.x, p.y, T.x, T.y);
   if (p.role === 'ninja') {
     // shuriken: keep throwing while lined up and in range
-    const want = los && onTarget && dT < 520 && T.inv <= 0 && !(p.stealthT > 0.6 && dT > 170 && !(ai.ambush && Math.hypot(ai.ambush.x - p.x, ai.ambush.y - p.y) < 70));
+    const want = los && onTarget && dT < (iq >= 0.5 ? botReach(p) : 520) && T.inv <= 0 && !(p.stealthT > 0.6 && dT > 170 && !(ai.ambush && Math.hypot(ai.ambush.x - p.x, ai.ambush.y - p.y) < 70));
     inp.draw = want && !inp.draw; // bots click too
   } else if (p.role === 'crossbow') {
     // bolts: shoot when lined up and close enough for the bolt to arrive
@@ -2699,6 +2860,10 @@ function botThink(w, p, dt) {
       inp.draw = true;
       const st = STYLES[ai.style];
       ai.want = lethalDist(T.x, T.y) < 130 ? 1 : dT < 150 ? 0.35 : st && st.charge ? rand(Math.max(D.minCharge * 0.7, st.charge[0]), st.charge[1]) : rand(D.minCharge, 1);
+      if (iq >= 0.5) {
+        const d = dT || 1, risk = pushRisk(T.x, T.y, (T.x - p.x) / d, (T.y - p.y) / d, kbTravel(1, T.mass, p.kbMul), T.r);
+        ai.want = risk > G.riskFull || dT > G.far ? 1 : dT < 140 ? G.quick : Math.max(D.minCharge, G.mid);
+      }
     }
   } else if (p.charge >= ai.want && los && onTarget && T.inv <= 0 && !(has(p, 'ballista') && ai.want >= 1 && p.over < 1 && dT > 250) && !(p.stealthT > 0.6 && dT > 170 && !(ai.ambush && Math.hypot(ai.ambush.x - p.x, ai.ambush.y - p.y) < 70))) {
     inp.draw = false;
@@ -2837,7 +3002,7 @@ function step(w, dt) {
   for (const p of w.players) {
     if (p.dead) { p.revP = 0; continue; }
     const rallied = w.players.some(q => q !== p && q.team === p.team && !q.dead && has(q, 'rally') && Math.hypot(q.x - p.x, q.y - p.y) < 170);
-    p.speed = p.baseSpeed * (p.windT > 0 ? 1.4 : 1) * (p.fortT > 0 ? 0.6 : 1) * (p.shroudT > 0 && p.shroudSlow ? 0.85 : 1) * (p.trapSet ? 0.5 : 1) * (rallied ? 1.15 : 1) * (p.stealthT > 0 ? 1.3 : 1) * (p.bot ? (DIFF[p.diff] || DIFF.normal).speed : 1);
+    p.speed = p.baseSpeed * (p.windT > 0 ? 1.4 : 1) * (p.fortT > 0 ? 0.6 : 1) * (p.shroudT > 0 && p.shroudSlow ? 0.85 : 1) * (p.trapSet ? 0.5 : 1) * (rallied ? 1.15 : 1) * (p.stealthT > 0 ? 1.3 : 1) * (p.bot ? botD(p).speed : 1);
     p.rallied = rallied;
   }
   // what bots perceive lags reality: remember where everyone was over the last half second
@@ -2916,7 +3081,7 @@ function snapshot(w) {
 }
 
 return {
-  AW, AH, WALL, GATES, MAPS, MAP_KEYS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
+  AW, AH, WALL, GATES, MAPS, MAP_KEYS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, createWorld, join, leave, addBot, removeBot, setTeam, setBotDifficulty, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,

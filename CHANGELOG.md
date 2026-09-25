@@ -2,6 +2,27 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
 
+## 0.14.0
+
+**Find game: ranked matchmaking**
+- **Friends:** add friends by player name. You can accept or decline requests, and see who's online or in a game.
+- **Parties:** invite up to two online friends. The leader picks 1v1, 2v2 or 3v3 and starts the search.
+- **Matching:** you're matched by rating with the closest players searching. The rating gap allowed widens the longer you wait. Matches are private and start as soon as everyone's in.
+- **AI players:** if nobody near your rating turns up within 20 seconds, AI players fill the empty places.
+  - There are 60 of them, each with their own name, flag, rating, skill, a main archetype plus a few favourites, a playstyle, a personality and their own chat lines. Some are chatty, some hardly speak.
+  - They arrive with ratings, careers and achievements earned over 1,400 simulated matches against each other.
+  - They're rated like anyone else and appear on the leaderboards. They're always marked **AI**: on leaderboards, in the scoreboard, in chat and on their hover cards.
+- Guests can search too, but aren't rated.
+
+**Bots**
+- New **Master** difficulty, built from a large test of bots playing each other.
+  - It picks where to stand several times a second: never where an enemy shot could knock it into a hazard, and where its own shot would knock the target into one.
+  - It aims where a shot will actually meet a moving target, allowing for the arrow slowing down.
+  - It reads incoming arrows and steps to the safer side, dashing only when it has to.
+  - It chooses upgrades from values learned over about 7,800 games.
+  - It wins about 83% of 1v1 games and 90% of 2v2 games against Extreme.
+- The ladder below it stays as it was: each level wins about 66 to 78% of games against the one below.
+
 ## 0.13.7
 
 - Controller aim assist is now a gentle bias instead of a lock-on.

@@ -48,8 +48,8 @@ async function userFromReq(req) {
 }
 // a player's flag: the country they picked, none if they hid it ('-'), or unset (we fill it in from their location)
 const flagOf = u => (u && u.country && u.country !== '-' ? u.country : null);
-const publicUser = u => ({ name: u.name, title: u.title, admin: !!u.admin, created: u.created, career: u.career || {}, got: Object.keys((u.ach && u.ach.got) || {}), stats: (u.ach && u.ach.stats) || {},
-  country: flagOf(u), level: levelOf(u.career), border: (u.ach && u.ach.border) || null, avatar: (u.ach && u.ach.avatar) || null });
+const publicUser = u => ({ name: u.name, title: u.title, admin: !!u.admin, created: u.created, career: Object.assign({}, u.career || {}, { ai: undefined }), got: Object.keys((u.ach && u.ach.got) || {}), stats: (u.ach && u.ach.stats) || {},
+  ai: !!(u.career && u.career.ai), country: flagOf(u), level: levelOf(u.career), border: (u.ach && u.ach.border) || null, avatar: (u.ach && u.ach.avatar) || null });
 // the look of a signed-in player's name banner: the border they picked (if they've earned it) and how many achievements they have
 const lookOf = u => { const got = (u.ach && u.ach.got) || {}, bd = u.ach && u.ach.border; return { bd: bd && got[bd] ? bd : null, na: Object.keys(got).length || null }; };
 
@@ -81,7 +81,7 @@ function saveRecords(room) {
   for (const r of recs) {
     if (r.type === 'game') {
       const users = new Map();
-      for (const p of r.p) { const ws = [...room.clients].find(c => c.pid === p.id && c.user); if (ws) users.set(p.id, ws.user); }
+      for (const p of r.p) { const ws = [...room.clients].find(c => c.pid === p.id && c.user); if (ws) users.set(p.id, ws.user); else if (room.ai && room.ai.has(p.id)) users.set(p.id, room.ai.get(p.id)); }
       const rated = rateGame(r, users); // worked out for everyone first, from the ratings before this game
       for (const p of r.p) { const u = users.get(p.id); if (u) careerAdd(u, { type: 'game', pl: p }); }
       for (const [pid, u] of users) {
@@ -93,6 +93,7 @@ function saveRecords(room) {
       }
     } else if (r.type === 'match') {
       for (const ws of room.clients) if (ws.user && ws.pid) { const q = room.world.players.find(q => q.id === ws.pid); if (q) careerAdd(ws.user, r, q.team); }
+      if (room.ai) for (const [pid, u] of room.ai) { const q = room.world.players.find(q => q.id === pid); if (q) careerAdd(u, r, q.team); }
     }
   }
   for (const ws of room.clients) if (ws.user && ws.pid) Sim.setMeta(room.world, ws.pid, { lv: levelOf(ws.user.career).lv });
@@ -140,7 +141,7 @@ async function api(req, res, url) {
     const name = String(body.name || '').trim();
     if (!A.validName(name)) return json(res, 400, { error: 'Names are 3 to 16 letters, numbers, _ or -.' });
     if (!A.validPassword(body.password)) return json(res, 400, { error: 'Passwords need at least 6 characters.' });
-    const first = (await store.userCount()) === 0;
+    const first = (await store.userCount()) - social._ai().length === 0; // the first real player (not counting AI players) is the admin
     const u = await store.createUser(name, A.hashPassword(body.password), first || ADMINS.includes(name.toLowerCase()));
     if (!u) return json(res, 409, { error: 'That name is taken.' });
     return login(req, res, u);
@@ -186,7 +187,7 @@ async function api(req, res, url) {
     const name = String(body.name || '').trim();
     if (!A.validName(name)) return json(res, 400, { error: 'Names are 3 to 16 letters, numbers, _ or -.' });
     if (await store.userForLogin(pend.p, pend.id)) return json(res, 409, { error: 'That account is already set up. Sign in again.' });
-    const first = (await store.userCount()) === 0;
+    const first = (await store.userCount()) - social._ai().length === 0; // the first real player (not counting AI players) is the admin
     const u = await store.createUser(name, '', first || ADMINS.includes(name.toLowerCase()));
     if (!u) return json(res, 409, { error: 'That name is taken.' });
     await store.addLogin(pend.p, pend.id, u.id);
@@ -228,20 +229,20 @@ async function api(req, res, url) {
       // a role's board: rating in that role, for players with enough games in it; win rate alongside
       const all = (await store.leaderboard('games', 100000)).map(u => live.get(u.id) || u);
       const rows = all.filter(u => ((u.career || {}).roles || {})[role] >= ROLE_MIN)
-        .map(u => { const c = u.career, g = c.roles[role], wn = (c.roleW || {})[role] || 0; return { name: u.name, title: u.title, country: flagOf(u), level: levelOf(c).lv, value: Math.round((c.relo || {})[role] || ELO_START), games: g, wins: wn, rate: Math.round(wn / g * 100) }; })
+        .map(u => { const c = u.career, g = c.roles[role], wn = (c.roleW || {})[role] || 0; return { name: u.name, ai: social.isAI(u) ? 1 : undefined, title: u.title, country: flagOf(u), level: levelOf(c).lv, value: Math.round((c.relo || {})[role] || ELO_START), games: g, wins: wn, rate: Math.round(wn / g * 100) }; })
         .sort((a, b) => b.value - a.value).slice(0, 50);
       return json(res, 200, { by: 'elo', role, min: ROLE_MIN, rows });
     }
     const rows = (await store.leaderboard(by, 50)).map(u => live.get(u.id) || u).filter(u => (u.career || {}).games > 0);
-    return json(res, 200, { by, rows: rows.map(u => ({ name: u.name, title: u.title, country: flagOf(u), level: levelOf(u.career).lv, value: by === 'elo' ? Math.round((u.career || {}).elo || ELO_START) : (u.career || {})[by] || 0, games: (u.career || {}).games || 0, wins: (u.career || {}).wins || 0, kills: (u.career || {}).kills || 0, rate: (u.career || {}).games ? Math.round(((u.career || {}).wins || 0) / u.career.games * 100) : 0 })) });
+    return json(res, 200, { by, rows: rows.map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, title: u.title, country: flagOf(u), level: levelOf(u.career).lv, value: by === 'elo' ? Math.round((u.career || {}).elo || ELO_START) : (u.career || {})[by] || 0, games: (u.career || {}).games || 0, wins: (u.career || {}).wins || 0, kills: (u.career || {}).kills || 0, rate: (u.career || {}).games ? Math.round(((u.career || {}).wins || 0) / u.career.games * 100) : 0 })) });
   }
   // single-game records
   if (route === '/highscores' && method === 'GET') {
     const all = (await store.leaderboard('games', 100000)).map(u => live.get(u.id) || u);
     const top = k => all.filter(u => ((u.career || {}).best || {})[k] > 0).sort((a, b) => b.career.best[k] - a.career.best[k]).slice(0, 10)
-      .map(u => ({ name: u.name, country: flagOf(u), level: levelOf(u.career).lv, value: u.career.best[k] }));
+      .map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, country: flagOf(u), level: levelOf(u.career).lv, value: u.career.best[k] }));
     const peak = all.filter(u => (u.career || {}).eloPeak).sort((a, b) => b.career.eloPeak - a.career.eloPeak).slice(0, 10)
-      .map(u => ({ name: u.name, country: flagOf(u), level: levelOf(u.career).lv, value: Math.round(u.career.eloPeak) }));
+      .map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, country: flagOf(u), level: levelOf(u.career).lv, value: Math.round(u.career.eloPeak) }));
     return json(res, 200, { kills: top('k'), dmg: top('dmg'), ring: top('ring'), peak });
   }
   if (route === '/look' && method === 'POST') {
@@ -395,6 +396,8 @@ const server = http.createServer(async (req, res) => {
 // ---------------- rooms ----------------
 const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 4096 });
 const rooms = new Map();
+// friends, parties and matchmaking (lib/social.js)
+const social = require('./lib/social')({ store, track, markDirty, send, Sim, levelOf, flagOf, ELO_START, rooms, createRoom, sendRoom, sysChat, broadcast, live });
 
 function makeCode() {
   const L = 'ABCDEFGHJKMNPQRSTUVWXYZ';
@@ -420,7 +423,7 @@ function applyRoomCfg(room, o, hostName) {
 }
 
 // the host's changes to the match, told to everyone in the room's chat ("Aim assist set to Heavy.")
-const DIFF_NAMES = { easy: 'Easy', normal: 'Normal', hard: 'Hard', extreme: 'Extreme' };
+const DIFF_NAMES = { easy: 'Easy', normal: 'Normal', hard: 'Hard', extreme: 'Extreme', master: 'Master' };
 const cfgState = w => ({ diff: w.cfg.diff, map: w.cfg.map, ptw: w.cfg.pointsToWin, opt: Object.assign({}, w.cfg.opt) });
 function announceCfg(room, a, b) {
   const lines = [];
@@ -454,7 +457,8 @@ function roomInfo(room, ws) {
   return {
     t: 'room', code: room.code, host: h ? h.pid : null, hostName: h ? h.name : '', amHost: room.host === ws.cid,
     name: room.name, pub: room.pub, locked: !!room.pwHash, max: room.max || 8, people: room.clients.size,
-    cards: Object.fromEntries([...room.clients].map(c => [c.pid ? 'p' + c.pid : 'c' + c.cid, cardOf(c)])),
+    ranked: room.ranked ? room.ranked.mode : undefined,
+    cards: Object.fromEntries([...room.clients].map(c => [c.pid ? 'p' + c.pid : 'c' + c.cid, cardOf(c)]).concat([...(room.ai || new Map())].map(([pid, u]) => ['p' + pid, Object.assign(cardOf({ user: u }), { ai: 1 })]))),
     spec: [...room.clients].filter(c => !c.pid).map(c => ({ cid: c.cid, n: c.name, h: c.cid === room.host ? 1 : 0, you: c === ws ? 1 : 0, cc: c.cc || undefined, lv: c.lv || undefined, bd: c.bd || undefined, na: c.na || undefined })),
   };
 }
@@ -503,7 +507,8 @@ function leave(ws) {
   room.clients.delete(ws);
   if (ws.pid) Sim.leave(room.world, ws.pid);
   ws.room = null; ws.pid = null;
-  if (!room.clients.size) { rooms.delete(room.code); return; }
+  if (!room.clients.size) { social.freeAI(room); rooms.delete(room.code); return; }
+  if (room.ranked) { sysChat(room, `${ws.name} left.`); sendRoom(room); return; }
   if (room.host === ws.cid) {
     // hand the room to someone on a team if possible, otherwise anyone
     const next = [...room.clients].find(c => c.pid) || [...room.clients][0];
@@ -515,6 +520,7 @@ function leave(ws) {
 
 async function handle(ws, m) {
   if (!m || typeof m !== 'object') return;
+  if (await social.handle(ws, m)) return;
 
   if (m.t === 'join') {
     if (ws.room) leave(ws);
@@ -524,10 +530,12 @@ async function handle(ws, m) {
       room = createRoom({ diff: m.diff, map: m.map });
     } else {
       room = rooms.get(String(m.code || '').toUpperCase().trim());
-      if (!room) return send(ws, { t: 'err', msg: 'No game with that code. Check it and try again.' });
-      if (!pwOk(room, m.pw)) return send(ws, { t: 'needpw', code: room.code, msg: m.pw ? 'Wrong password.' : 'This game needs a password.' });
+      if (!room) return send(ws, { t: 'err', msg: m.ticket ? 'That match has expired. Search again.' : 'No game with that code. Check it and try again.' });
+      // a matchmade game: only people it was made for, with their ticket
+      if (room.ranked || m.ticket) { const err = room.ranked ? social.useTicket(ws, room, m.ticket) : 'That match has expired. Search again.'; if (err) return send(ws, { t: 'err', msg: err }); }
+      else if (!pwOk(room, m.pw)) return send(ws, { t: 'needpw', code: room.code, msg: m.pw ? 'Wrong password.' : 'This game needs a password.' });
     }
-    if (!m.create && room.clients.size >= (room.max || 8)) return send(ws, { t: 'err', msg: `That game is full (${room.clients.size}/${room.max || 8} players).` });
+    if (!m.create && !room.ranked && room.clients.size >= (room.max || 8)) return send(ws, { t: 'err', msg: `That game is full (${room.clients.size}/${room.max || 8} players).` });
     // signed-in players always play under their account name and wear their account's title
     ws.name = ws.user ? ws.user.name : cleanName(m.name);
     // guests can't pass themselves off as a registered player
@@ -544,10 +552,12 @@ async function handle(ws, m) {
     room.clients.add(ws);
     // whoever creates the room starts on Red; everyone else arrives unassigned (or spectating a match in progress) and picks a team
     if (m.create) { room.host = ws.cid; applyRoomCfg(room, Object.assign({ name: '' }, m.room || {}), ws.name); joinTeam(room, ws, 'red'); }
+    else if (room.ranked) { if (ws.mmTeam) joinTeam(room, ws, ws.mmTeam); }
     else if (!room.host) room.host = ws.cid;
     send(ws, { t: 'welcome', id: ws.pid, code: room.code, account: ws.user ? ws.user.name : null });
     sendRoom(room);
     sysChat(room, room.world.match.ph === 'lobby' || room.world.match.ph === 'over' ? `${ws.name} joined.` : `${ws.name} joined and is spectating until this game ends.`);
+    if (room.ranked) social.arrived(room, ws);
     return;
   }
 
@@ -590,6 +600,7 @@ async function handle(ws, m) {
       ws.chatT.push(now);
       const p = ws.pid && w.players.find(q => q.id === ws.pid);
       broadcast(room, { t: 'chat', n: ws.name, tm: p ? p.team : 'spec', c: p ? p.color : null, m: text, acc: ws.user ? 1 : 0 });
+      social.aiReply(room, text);
       break;
     }
     // host-only controls
@@ -637,7 +648,7 @@ wss.on('connection', (ws, req) => {
     ws.ready = ws.ready.then(() => handle(ws, m)).catch(e => console.error(e));
   });
   let gone = false;
-  const bye = () => { if (gone) return; gone = true; ws.ready.then(() => { leave(ws); if (ws.user) { markDirty(ws.user); flushUsers(); } }); };
+  const bye = () => { if (gone) return; gone = true; ws.ready.then(() => { social.gone(ws); leave(ws); if (ws.user) { markDirty(ws.user); flushUsers(); } }); };
   ws.on('close', bye);
   ws.on('error', bye);
 });
@@ -678,7 +689,7 @@ setInterval(() => {
       room.tick++;
       if (room.tick % SNAP_EVERY === 0) {
         const evs = room.world.events.splice(0);
-        if (evs.length) creditAchievements(room, evs);
+        if (evs.length) { creditAchievements(room, evs); social.aiEvents(room, evs); }
         const msg = JSON.stringify({ t: 'snap', s: Sim.snapshot(room.world), ev: evs });
         for (const c of room.clients) if (c.readyState === 1) c.send(msg);
       }
@@ -687,7 +698,7 @@ setInterval(() => {
   }
 }, 5);
 
-store.init().then(() => {
+store.init().then(() => social.initAI()).then(() => {
   server.listen(PORT, () => console.log(`Bowfall server running on http://localhost:${PORT} (${store.kind === 'postgres' ? 'Postgres database' : 'local database file'})`));
 }).catch(e => { console.error('Could not open the database:', e.message); process.exit(1); });
 process.on('SIGTERM', () => { flushUsers().finally(() => process.exit(0)); });

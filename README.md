@@ -1,6 +1,6 @@
 # Bowfall
 
-Version 0.13.7. See [CHANGELOG.md](CHANGELOG.md) for what changed in each version.
+Version 0.14.0. See [CHANGELOG.md](CHANGELOG.md) for what changed in each version.
 
 Top-down knockback archery for teams, with a website, accounts and a forum: Red vs Blue, up to 4 per side, humans and bots mixed however you like, across eight arenas. The main menu has a **How to play** screen (also in the in-game menu) that explains everything below.
 
@@ -200,11 +200,19 @@ Open http://localhost:3000 for the website, or http://localhost:3000/play for th
 
 **Practice vs bots** runs entirely in the browser and doesn't need the server.
 
-**Bot difficulty:** Easy, Normal, Hard and Extreme. In 0.9.0 every level moved down one: the old Easy is now Normal, the old Normal is Hard and the old Hard is Extreme, and there's a new, gentler Easy.
+**Bot difficulty:** Easy, Normal, Hard, Extreme and Master. Easy to Extreme differ in reflexes: aim, reaction time, dodging and turning. Master adds a smarter brain (`botPlan` and friends in `public/sim.js`):
+- **Positioning:** several times a second it scores the spots around it. It avoids anywhere an enemy's shot could knock it into a hazard, and looks for spots where its own shot would knock the target into one, at the right range with a clear line and near pickups.
+- **Aim:** it works out exactly where a shot will meet a moving target, allowing for the arrow slowing down.
+- **Dodging:** it reads incoming arrows further ahead and steps to the safer side, dashing only when a step won't clear it.
+- **Targets and upgrades:** it picks targets it can knock into something, and chooses upgrades from values learned over about 7,800 bot games.
 
-**Controls:** change any key (two per action) under **Controls** on the main screen or in the menu; they're saved in your browser. An Xbox or PlayStation controller works: left stick moves, right stick aims (the crosshair sits out from your archer in the stick's direction), right trigger draws, A or left trigger dashes, LB and RB are your abilities, Start opens the menu, and X, Y, B pick upgrade cards. Moving the mouse hands aiming back to it. Menus themselves still need the mouse.
+In testing Master won 82% of games against Extreme, and each lower level wins roughly 66 to 78% of games against the level below. Any skill between the levels can be blended with `skillParams(0..1)`, which is how matchmaking's AI players get their own skill.
 
-**Rating:** online games between teams with a winner update an Elo rating for each signed-in player (start 1000, K 32 for the first 20 games then 20). Each side's strength is the average of its archers: accounts use their rating, guests 1000, bots 700/900/1100/1300 for Easy/Normal/Hard/Extreme. Each account also has a rating per role (worked out the same way, using their rating in the role they played), which the role boards rank by once someone has 10 games in the role. The calculation is in `lib/rating.js`.
+**Find game (matchmaking):** signed-in players add friends by name, see who's online, and invite up to two friends to a party. The party leader chooses 1v1, 2v2 or 3v3 and searches. Matches are made by rating: the gap allowed starts at 120 and widens by 30 a second. If nobody suitable turns up within 20 seconds, the empty places go to **AI players**. There are 60 of them, each an account with its own name, flag, rating, skill, a main archetype and a few favourites, playstyle, aggression, and a personality with its own chat lines (`lib/ai-chat.js`); some chat a lot, some hardly at all. They come from `lib/ai-players.json`, made by `node tools/seed-ai.js`, which plays them against each other for 1,400 matches so their ratings settle naturally, then scales their careers and achievements to a believable size. They're created on the server's first start. They're rated like everyone else, appear on the leaderboards marked **AI**, and are shown as AI in games. Guests can search too, but aren't rated. Matches are private rooms reached with one-time tickets; they start as soon as everyone's arrived, or after 15 seconds. The code is in `lib/social.js`.
+
+**Controls:** change any key (two per action) under **Controls** on the main screen or in the menu; they're saved in your browser. An Xbox or PlayStation controller works: left stick moves, right stick aims (the crosshair sits out from your archer in the stick's direction), right trigger draws, A or left trigger dashes, LB and RB are your abilities, Start opens the menu, and X, Y, B pick upgrade cards. Moving the mouse hands aiming back to it. Menus work with the D-pad or left stick, A and B.
+
+**Rating:** online games between teams with a winner update an Elo rating for each signed-in player (start 1000, K 32 for the first 20 games then 20). Each side's strength is the average of its archers: accounts use their rating, guests 1000, bots 700/900/1100/1300/1550 for Easy/Normal/Hard/Extreme/Master, and matchmaking's AI players their own rating. Each account also has a rating per role (worked out the same way, using their rating in the role they played), which the role boards rank by once someone has 10 games in the role. The calculation is in `lib/rating.js`.
 
 **Name banners:** in online lobbies each name is a banner with the player's flag, rank badge and achievement count. Each achievement unlocks a border colour, which players pick in the Achievements screen. Accounts can only show borders they've earned on the server; guests' come from their browser, like titles.
 

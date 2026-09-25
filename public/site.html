@@ -235,7 +235,7 @@ const pages = {
     const L = { elo: 'Rating', wins: 'Game wins', kills: 'Knockouts', matchWins: 'Match wins', games: 'Games played', ring: 'Ring-outs', bull: 'Bullseyes' };
     const [d, hs] = await Promise.all([api('/leaderboard?by=' + (role ? 'elo&role=' + role : by)), by === 'records' ? api('/highscores') : null]);
     const tabs = `<div class="tabs">${Object.entries(L).map(([k, v]) => `<button type="button" data-by="${k}" class="${k === by ? 'on' : ''}">${v}</button>`).join('')}<button type="button" data-by="role" class="${role ? 'on' : ''}">By role</button><button type="button" data-by="records" class="${by === 'records' ? 'on' : ''}">Highscores</button></div>`;
-    const who = r => `${badge(r.level)}${flag(r.country)}<a href="#/u/${esc(r.name)}"><b>${esc(r.name)}</b></a>${r.title ? `<span class="tag">${esc(titleName(r.title))}</span>` : ''}`;
+    const who = r => `${badge(r.level)}${flag(r.country)}<a href="#/u/${esc(r.name)}"><b>${esc(r.name)}</b></a>${r.ai ? '<span class="tag" title="An AI player: fills matchmaking games when nobody close to your rating is searching">AI</span>' : ''}${r.title ? `<span class="tag">${esc(titleName(r.title))}</span>` : ''}`;
     let body;
     if (by === 'records') {
       const board = (title, list, unit) => { const max = list.length ? list[0].value : 1;
@@ -263,7 +263,7 @@ const pages = {
       return e.length ? `<div class="bars">${e.map(([k, v]) => `<div><span>${esc((names[k] || {}).name || k)}</span><i style="width:${Math.max(4, v / max * 100)}%"></i><span class="muted">${v}</span></div>`).join('')}</div>` : '<p class="muted">No games yet.</p>'; };
     app.innerHTML = `
       <div class="section-h" style="margin-top:0"><div><h1 style="font-size:44px;display:flex;align-items:center;flex-wrap:wrap">${badge(u.level && u.level.lv, true)}${u.country ? flag(u.country).replace('width="20" height="15"', 'width="32" height="24" style="width:32px;height:24px;vertical-align:2px"') : ''}${esc(u.name)}</h1>
-        <p class="muted" style="margin:6px 0 0">${u.title ? `<span class="tag" style="margin:0 6px 0 0">${esc(titleName(u.title))}</span>` : ''}${u.admin ? '<span class="tag admin" style="margin:0 6px 0 0">Admin</span>' : ''}Joined ${new Date(u.created).toLocaleDateString()}</p>
+        <p class="muted" style="margin:6px 0 0">${u.title ? `<span class="tag" style="margin:0 6px 0 0">${esc(titleName(u.title))}</span>` : ''}${u.admin ? '<span class="tag admin" style="margin:0 6px 0 0">Admin</span>' : ''}${u.ai ? '<span class="tag" style="margin:0 6px 0 0">AI player</span>An AI opponent that fills matchmaking games. ' : ''}Joined ${new Date(u.created).toLocaleDateString()}</p>
         ${u.level ? `<div style="width:380px;max-width:100%;margin-top:10px"><div class="muted" style="font-size:13px;display:flex;justify-content:space-between;gap:12px"><span>${rankOf(u.level.lv).name} · level ${u.level.lv}</span><span>${u.level.xp - u.level.cur} / ${u.level.next - u.level.cur} xp to level ${u.level.lv + 1}</span></div><div class="xp"><i style="width:${Math.round((u.level.xp - u.level.cur) / Math.max(1, u.level.next - u.level.cur) * 100)}%"></i></div></div>` : ''}</div>
         ${mine ? '<a class="btn" href="/play">Play</a>' : ''}</div>
       <div class="stats">
