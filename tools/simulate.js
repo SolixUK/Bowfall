@@ -14,7 +14,7 @@ fs.mkdirSync(path.dirname(FILE), { recursive: true });
 let games = 0;
 for (let m = 0; m < MATCHES; m++) {
   const map = Sim.MAP_KEYS[m % Sim.MAP_KEYS.length];
-  const w = Sim.createWorld({ map, diff: 'hard' });
+  const w = Sim.createWorld({ map, diff: 'extreme' }); // the old 'hard' bots, renamed in 0.9.0
   for (let i = 0; i < SIZE; i++) { Sim.addBot(w, 'red'); Sim.addBot(w, 'blue'); }
   // bots take roles their team lacks; give them random elements so every element gets played
   for (const p of w.players) { const els = Object.keys(Sim.ELEMENTS); p.element = els[Math.floor(Math.random() * els.length)]; }

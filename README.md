@@ -1,6 +1,8 @@
-# Bowfall Duels
+# Bowfall
 
-Top-down knockback archery for teams, with a website, accounts and a forum: Red vs Blue, up to 4 per side, humans and bots mixed however you like, across four arenas. The main menu has a **How to play** screen (also in the in-game menu) that explains everything below.
+Version 0.12.2. See [CHANGELOG.md](CHANGELOG.md) for what changed in each version.
+
+Top-down knockback archery for teams, with a website, accounts and a forum: Red vs Blue, up to 4 per side, humans and bots mixed however you like, across eight arenas. The main menu has a **How to play** screen (also in the in-game menu) that explains everything below.
 
 ## Website, accounts and games list
 
@@ -23,8 +25,8 @@ Every match starts in a lobby with a Red column and a Blue column:
 - **Joining mid-match (online):** you spectate (the whole arena, scores and chat) until the current game ends, then a bar at the bottom lets you join Red or Blue for the next game, with as many upgrade picks as everyone else. A full team lets you in by replacing one of its bots.
 - **Choosing upgrades:** the next round starts as soon as every player has picked, or when the timer runs out (anyone who hasn't picked gets one of their three cards at random). The pick screen shows who you're waiting for.
 - **Host only:** add or remove bots on either side, choose the arena, bot skill and **custom rules**, then start once both teams have at least one archer.
-- **Handicap:** the host can click the Handicap button on any archer (in the lobby or the in-game menu) to cycle +25%, +50%, +75%, +100%, −25%, −50%. It scales that archer's health and arrow damage by the percentage, and their knockback resistance by half as much. Handy for uneven teams like 1v2. Games with a handicap are left out of Balance data unless you choose "Any rules".
-- **Custom rules:** archer size (small is the default, then medium and large), arrow speed (normal, fast, very fast, blazing), move speed (slow, normal, fast, very fast, blazing), knockback (low, normal, high, chaos) and health (low, normal, high). Every recorded game notes its rules, and Balance data shows standard-rules games only unless you ask for all.
+- **Handicap:** the host can step any archer's handicap down or up with − and + (in the lobby or the in-game menu), in 10% steps from −50% to +100%. It scales that archer's health and arrow damage by the percentage, and their knockback resistance by half as much. Handy for uneven teams like 1v2. Games with a handicap are left out of Balance data unless you choose "Any rules".
+- **Custom rules:** archer size (small, medium, large), arrow speed (normal, fast, very fast, blazing), move speed (slow, normal, fast, very fast, blazing), knockback (low, normal, high, chaos) and health (low, normal, high). The standard rules are large archers, very fast arrows, fast movement, normal knockback and normal health. Every recorded game notes its rules, and Balance data shows standard-rules games only unless you ask for all.
 - **After a match:** everyone returns to the lobby, or the host can start a rematch straight away.
 - **During a match (Esc):** the menu shows the same team editor. Anyone who joins or switches team mid-round sits out until the next round starts.
 
@@ -38,8 +40,12 @@ Every arena is point-symmetric: each map defines one half, and the other half is
 | Spring Hollow | A healing spring in the middle (12 health per second while you stand in it), ringed by boulders. Hurt bots head for it. |
 | Ember Rift | A lava river splits the arena, with two bridges. Amber and powerups spawn on the bridges. Dashing jumps the lava. |
 | Tide Cove | A sandy beach with tide pools, soft wet sand (slows you like a bog) and barnacled rocks. Normal footing. The tide creeps in from the corners: the corner patches flood at 40 seconds, the top and bottom edges at 70 and the side edges at 95 (4 seconds of warning as the water rises), so the arena shrinks as the game goes on. |
+| Gale Cliffs | A clifftop with sheer drops. Every 9 seconds a gale blows the whole arena up, then down the next time: chevrons flash for 1.5 seconds as a warning, then the gust pushes everyone on the ground for 2.5 seconds. Arrows drift with it. Dashing ignores it. |
+| Sawmill | A plank yard with two saw blades racing along their tracks. Touching one deals 10 damage and throws you hard (they count as a hazard for kill credit). A deep mill pond and a mud patch. |
+| Portal Ruins | Old flagstones and four gates: each leads to its mirror image across the arena, keeping your speed. Arrows go through too, so you can shoot round corners. |
+| Mushroom Grove | Giant mushrooms fling anyone who touches them at high speed, and arrows ricochet off their caps. Good for banking shots or launching enemies into the pits. |
 
-To add an arena, add an entry to `MAPS` in `public/sim.js`: hazards, boulders, thorn strips, powerup spots, amber range, an optional `heal` zone, optional `ice` physics and optional `cracks` (hazards that appear `at` a number of seconds into each game). Then give it a colour theme in `THEMES` in `public/index.html`.
+To add an arena, add an entry to `MAPS` in `public/sim.js`: hazards, boulders, thorn strips, powerup spots, amber range, an optional `heal` zone, optional `ice` physics, optional `cracks` (hazards that appear `at` a number of seconds into each game), and optional moving parts: `saws`, `bumpers`, `portals` and `wind`. Then give it a colour theme in `THEMES` in `public/index.html`.
 
 ## How a match works
 
@@ -87,6 +93,7 @@ Every role also has a built-in **trait**, always on:
 | Trapper | Utility | **Hunter:** abilities recharge 30% faster, +15% damage to rooted, stuck or frozen enemies | Thorned Tips · Harpoon *(new)* (Q/E: a barbed line along your aim, up to 420px, yanks the first enemy hard toward you and sticks them for 0.5s) · Snare Arrow (Q/E, 5s cooldown, roots 1.8s) · Bramble Trap (Q/E, woven at your cursor up to 380px away over half a second while you move at half speed, roots 2.2s) · *Bramble Coat* | Deep Roots |
 | Assassin *(new)* | Agility | **Backstab:** arrows that hit an enemy from behind deal 40% more damage and knock back 30% harder | Coup de Grâce *(new)* (Q/E: next shot deals double damage to an enemy below 40% health) · Blink *(new)* (Q/E: reappear up to 220px toward your cursor, over pits and lava; doesn't break stealth) · Stealth (Q/E: vanish for 6s and move 30% faster; enemies see only a faint shimmer up close, and bots lose track of you; shooting, abilities, dashing or being hit by an arrow ends it, but burns, poison and blasts don't) · Ambush (draw 60% faster for 2.5s after stealth) · Shadow Dash (dashing keeps stealth; faster dash recharge while hidden) · Light Step (8% faster, 15% less damage from behind) · *Cloak and Dagger* | Death Mark (first hit after stealth: target takes 30% more damage from everyone for 5s) |
 | Ninja *(new)* | Agility | **Shadowstep:** no bow: click to throw a shuriken instantly (hold to keep throwing, a little over 2 a second; 6 damage and light knockback up close, slowing down fast and hurting less the further it flies, about 300px; bullseye shuriken count as fully drawn for upgrades). Dash replaced by a very quick ~150px blink toward your cursor (a brief crouch, then a 0.1s streak with afterimages), 2 charges usable back to back, crosses pits and lava. 10 less health, 10% more knockback taken | Shadow Strike (Q/E: teleport behind the enemy nearest your cursor; next 3 shuriken within 1.5s deal 75% more damage) · Shadow Clone (Q/E: vanish for 1.5s and leave a clone that looks real to enemies and throws shuriken for 4s) · Death Blossom (Q/E: 12 shuriken in a ring) · Shadow Mark (Q/E: leave a mark, use again within 5s to snap back to it, even mid-fall) · Honed Stars (+25% shuriken damage) · Flurry (throw 30% faster) · Execution (any damage that leaves an enemy under 15% health knocks them out) · Swift Shadows · Third Step · Phase Step · *Long Step* | Shadow Dance (knockouts refill blinks and reset ability cooldowns) |
+| Crossbowman *(new)* | Power | **Crank and Loose:** a crossbow, not a bow: click to fire a bolt at once (85% of a full draw, counts as fully drawn for upgrades), then 1.15s to reload; bolts drop after 480px. Takes 15% less damage from enemies and 15% less knockback. A faint ring shows your reach when you aim past it | Hair Trigger (Q/E: a 1s guard; block an arrow and go full auto for 2s at 50% damage) · Repeater (Q/E: load a bolt at once, then reload 3× as fast for 3s) · Scatter Bolts (Q/E: next shot is five bolts in a fan, 45% damage each) · Snare Arrow (Q/E, shared with Trapper) · Recoil Shot (Q/E, shared with Sniper) · Windlass (reload 25% faster) · Heavy Bolts (+20% knockback) · Point Blank (+30% damage within 220px) · *Long Stock* (40% more reach, 15% slower reload) | Double Crank (hold two bolts) |
 
 Cards in *italics* are **trade-offs**: something big for a real cost.
 
@@ -162,7 +169,7 @@ Bots take a role their team doesn't have yet, pick instantly and use their abili
 - **Marksman:** hangs back for full-draw long shots; takes Longbow, Deadeye, Ballista.
 - **Guardian:** sticks with the team; takes Rally, Shield Wall, snares and traps.
 
-The playstyle follows from the bot's role, with some surprises (an aggressive Ranger might brawl), and shifts as its picks line up: a bot that takes Battering Ram and Iron Stance turns into a brawler. Aggressive bots close in and bash more; cautious ones hang back and retreat when hurt. Bots aim like people: they take a moment to notice a new target (longer if it's behind them) and turn at a limited speed (easy 3.5, normal 5.5, hard 8 radians a second), and won't loose an arrow until they're lined up. The scoreboard shows each bot's playstyle.
+The playstyle follows from the bot's role, with some surprises (an aggressive Ranger might brawl), and shifts as its picks line up: a bot that takes Battering Ram and Iron Stance turns into a brawler. Aggressive bots close in and bash more; cautious ones hang back and retreat when hurt. Bots aim like people: they take a moment to notice a new target (longer if it's behind them) and turn at a limited speed (easy 2.5, normal 3.5, hard 5.5, extreme 8 radians a second), and won't loose an arrow until they're lined up. The scoreboard shows each bot's playstyle.
 
 ## Balance data
 
@@ -193,6 +200,18 @@ Open http://localhost:3000 for the website, or http://localhost:3000/play for th
 
 **Practice vs bots** runs entirely in the browser and doesn't need the server.
 
+**Bot difficulty:** Easy, Normal, Hard and Extreme. In 0.9.0 every level moved down one: the old Easy is now Normal, the old Normal is Hard and the old Hard is Extreme, and there's a new, gentler Easy.
+
+**Controls:** change any key (two per action) under **Controls** on the main screen or in the menu; they're saved in your browser. An Xbox or PlayStation controller works: left stick moves, right stick aims (the crosshair sits out from your archer in the stick's direction), right trigger draws, A or left trigger dashes, LB and RB are your abilities, Start opens the menu, and X, Y, B pick upgrade cards. Moving the mouse hands aiming back to it. Menus themselves still need the mouse.
+
+**Rating:** online games between teams with a winner update an Elo rating for each signed-in player (start 1000, K 32 for the first 20 games then 20). Each side's strength is the average of its archers: accounts use their rating, guests 1000, bots 700/900/1100/1300 for Easy/Normal/Hard/Extreme. Each account also has a rating per role (worked out the same way, using their rating in the role they played), which the role boards rank by once someone has 10 games in the role. The calculation is in `lib/rating.js`.
+
+**Name banners:** in online lobbies each name is a banner with the player's flag, rank badge and achievement count. Each achievement unlocks a border colour, which players pick in the Achievements screen. Accounts can only show borders they've earned on the server; guests' come from their browser, like titles.
+
+**Flags and levels:** online, each player has a flag by their name, taken at first from where they're playing (looked up from their IP address with api.country.is, or the host's `cf-ipcountry` header if it's behind Cloudflare). Signed-in players can pick a different flag, or none, on their profile. Accounts also have a level from their career (10 xp a game, 15 a win, 4 a knockout, 2 a ring-out, 40 a match win; level L needs 40 × (L − 1)² xp) shown as a badge whose colour is the rank: Recruit, Bronze (5+), Silver (10+), Gold (15+), Platinum (20+), Diamond (30+), Master (45+). Flag pictures come from flagcdn.com, so they don't show in the offline copy.
+
+**Version:** the game's version is on the main screen, in the menu and in the website footer, and every recorded game stores it. The Balance data screen can show only games from the current version.
+
 ## Playing with friends
 
 See **HOSTING.md** for step-by-step instructions: a free tunnel from your own computer (quickest), a permanent free site on Render (`render.yaml` is included for one-click setup), or the same Wi-Fi.
@@ -212,6 +231,9 @@ Friends can join straight from a link, for example `https://your-host/play?room=
 | `lib/db.js` | Storage: Postgres when `DATABASE_URL` is set, otherwise `data/db.json`. Users, sessions, forum. |
 | `lib/auth.js` | Password hashing (scrypt), session tokens, name rules and rate limits. |
 | `lib/oauth.js` | Google and Discord sign-in (OAuth 2.0 authorisation code flow). |
+| `lib/level.js` | Account xp and level from a player's career. |
+| `lib/rating.js` | Elo ratings, overall and per role, after each online game. |
+| `lib/geo.js` | Rough country from an IP address, for the starting flag (cached; set `GEO_OFF=1` to turn it off). |
 | `public/site.html` | The website: front page, games list, leaderboard, profiles, forum, sign in. |
 | `public/index.html` | Client: menus, rendering, sound, HUD, pick screen. Online it smooths other players with 100 ms interpolation. |
 | `build-offline.js` | `npm run build:offline` builds a single-file offline copy at `dist/bowfall-duels.html`: double-click it to play practice games with no server. |

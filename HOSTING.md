@@ -49,9 +49,17 @@ Render's free servers wipe their files whenever they restart, and Render's own f
 
 The server log on Render says `(Postgres database)` when it's connected, or `(local database file)` when `DATABASE_URL` isn't set.
 
+### Your own domain (e.g. bowfall.com)
+
+1. In Render, open the service → **Settings** → **Custom Domains** → **Add Custom Domain**, and add `bowfall.com` (Render also offers `www.bowfall.com`; keep both).
+2. Render shows the DNS records to create. At the company you bought the domain from, open its DNS settings and add exactly what Render shows: usually an **A** record for `@` pointing at Render's IP address, and a **CNAME** record for `www` pointing at `bowfall.onrender.com`. Delete any existing "parking" A or CNAME records for `@` and `www`.
+3. Back in Render, click **Verify**. Once it's verified Render issues the HTTPS certificate by itself (minutes to a few hours while DNS updates).
+4. Set `PUBLIC_URL` to `https://bowfall.com`. The server then sends anyone who uses the old onrender.com address or `www.` to `https://bowfall.com`, so everyone shares one address and one sign-in.
+5. Use `https://bowfall.com/auth/google/callback` and `https://bowfall.com/auth/discord/callback` as the redirect addresses below.
+
 ### Sign in with Google and Discord (optional)
 
-The **Continue with Google** and **Continue with Discord** buttons appear once you give the server each service's client ID and secret. First add one more variable in Render's **Environment**: `PUBLIC_URL` = your site's address, e.g. `https://bowfall.onrender.com` (no slash at the end).
+The **Continue with Google** and **Continue with Discord** buttons appear once you give the server each service's client ID and secret. First add one more variable in Render's **Environment**: `PUBLIC_URL` = your site's address, e.g. `https://bowfall.com` (no slash at the end).
 
 **Google**
 1. Go to https://console.cloud.google.com, sign in, and create a project (top bar → project picker → **New project**, call it Bowfall).

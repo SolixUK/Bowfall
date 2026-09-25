@@ -7,8 +7,12 @@ const crypto = require('crypto');
 const { WebSocketServer } = require('ws');
 const Sim = require('./public/sim.js');
 const { createStore, BOARD_KEYS } = require('./lib/db');
+const ROLE_MIN = 10; // games in a role before you appear on that role's board
 const A = require('./lib/auth');
 const O = require('./lib/oauth');
+const { levelOf } = require('./lib/level');
+const { countryOf } = require('./lib/geo');
+const { rateGame, START: ELO_START } = require('./lib/rating');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC = path.join(__dirname, 'public');
@@ -42,7 +46,12 @@ async function userFromReq(req) {
   const u = await store.sessionUser(A.hashToken(tok)).catch(() => null);
   return u ? track(u) : null;
 }
-const publicUser = u => ({ name: u.name, title: u.title, admin: !!u.admin, created: u.created, career: u.career || {}, got: Object.keys((u.ach && u.ach.got) || {}), stats: (u.ach && u.ach.stats) || {} });
+// a player's flag: the country they picked, none if they hid it ('-'), or unset (we fill it in from their location)
+const flagOf = u => (u && u.country && u.country !== '-' ? u.country : null);
+const publicUser = u => ({ name: u.name, title: u.title, admin: !!u.admin, created: u.created, career: u.career || {}, got: Object.keys((u.ach && u.ach.got) || {}), stats: (u.ach && u.ach.stats) || {},
+  country: flagOf(u), level: levelOf(u.career), border: (u.ach && u.ach.border) || null, avatar: (u.ach && u.ach.avatar) || null });
+// the look of a signed-in player's name banner: the border they picked (if they've earned it) and how many achievements they have
+const lookOf = u => { const got = (u.ach && u.ach.got) || {}, bd = u.ach && u.ach.border; return { bd: bd && got[bd] ? bd : null, na: Object.keys(got).length || null }; };
 
 function careerAdd(u, rec, team) {
   const c = u.career || (u.career = {});
@@ -52,6 +61,10 @@ function careerAdd(u, rec, team) {
     add('games', 1); if (p.w === 1) add('wins', 1); add('kills', p.k); if (!p.s) add('deaths', 1);
     add('dmg', p.dmg); add('ring', p.ring); add('shots', p.sh); add('hits', p.hi);
     c.roles = c.roles || {}; c.roles[p.ro] = (c.roles[p.ro] || 0) + 1;
+    c.roleW = c.roleW || {}; if (p.w === 1) c.roleW[p.ro] = (c.roleW[p.ro] || 0) + 1;
+    // personal bests in a single game, for the highscores
+    c.best = c.best || {};
+    for (const [k, v] of [['k', p.k], ['dmg', Math.round(p.dmg || 0)], ['ring', p.ring]]) if ((v || 0) > (c.best[k] || 0)) c.best[k] = v;
     c.els = c.els || {}; c.els[p.el] = (c.els[p.el] || 0) + 1;
   } else if (rec.type === 'match') {
     add('matches', 1); if (rec.win === team) add('matchWins', 1);
@@ -67,11 +80,22 @@ function saveRecords(room) {
   // credit signed-in players
   for (const r of recs) {
     if (r.type === 'game') {
-      for (const p of r.p) { const ws = [...room.clients].find(c => c.pid === p.id && c.user); if (ws) careerAdd(ws.user, { type: 'game', pl: p }); }
+      const users = new Map();
+      for (const p of r.p) { const ws = [...room.clients].find(c => c.pid === p.id && c.user); if (ws) users.set(p.id, ws.user); }
+      const rated = rateGame(r, users); // worked out for everyone first, from the ratings before this game
+      for (const p of r.p) { const u = users.get(p.id); if (u) careerAdd(u, { type: 'game', pl: p }); }
+      for (const [pid, u] of users) {
+        const x = rated.get(u.id); if (!x) continue;
+        const c = u.career; c.elo = x.elo; c.eloPeak = Math.max(c.eloPeak || ELO_START, x.elo);
+        c.relo = c.relo || {}; c.relo[x.role] = x.roleElo;
+        const ws = [...room.clients].find(q => q.user === u);
+        if (ws) send(ws, { t: 'rated', elo: x.elo, d: x.delta });
+      }
     } else if (r.type === 'match') {
       for (const ws of room.clients) if (ws.user && ws.pid) { const q = room.world.players.find(q => q.id === ws.pid); if (q) careerAdd(ws.user, r, q.team); }
     }
   }
+  for (const ws of room.clients) if (ws.user && ws.pid) Sim.setMeta(room.world, ws.pid, { lv: levelOf(ws.user.career).lv });
   const lines = recs.map(r => JSON.stringify(Object.assign({ src: 'online', room: room.code, humans }, r, r.p ? { p: r.p.map(({ id, ...x }) => x) } : {}))).join('\n') + '\n';
   fs.appendFile(DATA_FILE, lines, err => { if (err) console.error('Could not save game stats:', err.message); });
 }
@@ -133,7 +157,18 @@ async function api(req, res, url) {
   }
   if (route === '/me' && method === 'GET') {
     if (!me) return json(res, 200, { user: null });
-    return json(res, 200, { user: Object.assign(publicUser(me), { ach: me.ach || {}, logins: await store.loginsOf(me.id), hasPassword: !!me.passHash }) });
+    return json(res, 200, { user: Object.assign(publicUser(me), { ach: me.ach || {}, logins: await store.loginsOf(me.id), hasPassword: !!me.passHash, countryRaw: me.country || null }) });
+  }
+  if (route === '/version' && method === 'GET') return json(res, 200, { version: Sim.VERSION });
+  // the flag next to your name: a two-letter country code, '-' to hide it, or '' to go back to your location
+  if (route === '/country' && method === 'POST') {
+    if (!me) return json(res, 401, { error: 'Sign in first.' });
+    let v = String(body.country || '').toLowerCase().trim();
+    if (v && v !== '-' && !/^[a-z]{2}$/.test(v)) return json(res, 400, { error: 'Pick a country from the list.' });
+    if (!v) v = (await countryOf(req)) || null;
+    me.country = v; markDirty(me);
+    for (const r of rooms.values()) for (const c of r.clients) if (c.user && c.user.id === me.id && c.pid) Sim.setMeta(r.world, c.pid, { cc: flagOf(me) });
+    return json(res, 200, { ok: true, country: flagOf(me), countryRaw: me.country });
   }
   // ---- Google, Discord and friends
   if (route === '/auth-providers' && method === 'GET') return json(res, 200, { providers: O.enabled().map(k => ({ key: k, name: O.PROVIDERS[k].name })) });
@@ -186,16 +221,50 @@ async function api(req, res, url) {
     return json(res, 200, { user: publicUser(live.get(u.id) || u) });
   }
   if (route === '/leaderboard' && method === 'GET') {
-    const by = BOARD_KEYS.includes(url.searchParams.get('by')) ? url.searchParams.get('by') : 'wins';
-    const rows = (await store.leaderboard(by, 50)).map(u => live.get(u.id) || u);
-    return json(res, 200, { by, rows: rows.map(u => ({ name: u.name, title: u.title, value: (u.career || {})[by] || 0, games: (u.career || {}).games || 0, wins: (u.career || {}).wins || 0, kills: (u.career || {}).kills || 0 })) });
+    const by = BOARD_KEYS.includes(url.searchParams.get('by')) ? url.searchParams.get('by') : 'elo';
+    const role = Sim.ROLES[url.searchParams.get('role')] ? url.searchParams.get('role') : null;
+    if (role) {
+      // a role's board: rating in that role, for players with enough games in it; win rate alongside
+      const all = (await store.leaderboard('games', 100000)).map(u => live.get(u.id) || u);
+      const rows = all.filter(u => ((u.career || {}).roles || {})[role] >= ROLE_MIN)
+        .map(u => { const c = u.career, g = c.roles[role], wn = (c.roleW || {})[role] || 0; return { name: u.name, title: u.title, country: flagOf(u), level: levelOf(c).lv, value: Math.round((c.relo || {})[role] || ELO_START), games: g, wins: wn, rate: Math.round(wn / g * 100) }; })
+        .sort((a, b) => b.value - a.value).slice(0, 50);
+      return json(res, 200, { by: 'elo', role, min: ROLE_MIN, rows });
+    }
+    const rows = (await store.leaderboard(by, 50)).map(u => live.get(u.id) || u).filter(u => (u.career || {}).games > 0);
+    return json(res, 200, { by, rows: rows.map(u => ({ name: u.name, title: u.title, country: flagOf(u), level: levelOf(u.career).lv, value: by === 'elo' ? Math.round((u.career || {}).elo || ELO_START) : (u.career || {})[by] || 0, games: (u.career || {}).games || 0, wins: (u.career || {}).wins || 0, kills: (u.career || {}).kills || 0, rate: (u.career || {}).games ? Math.round(((u.career || {}).wins || 0) / u.career.games * 100) : 0 })) });
+  }
+  // single-game records
+  if (route === '/highscores' && method === 'GET') {
+    const all = (await store.leaderboard('games', 100000)).map(u => live.get(u.id) || u);
+    const top = k => all.filter(u => ((u.career || {}).best || {})[k] > 0).sort((a, b) => b.career.best[k] - a.career.best[k]).slice(0, 10)
+      .map(u => ({ name: u.name, country: flagOf(u), level: levelOf(u.career).lv, value: u.career.best[k] }));
+    const peak = all.filter(u => (u.career || {}).eloPeak).sort((a, b) => b.career.eloPeak - a.career.eloPeak).slice(0, 10)
+      .map(u => ({ name: u.name, country: flagOf(u), level: levelOf(u.career).lv, value: Math.round(u.career.eloPeak) }));
+    return json(res, 200, { kills: top('k'), dmg: top('dmg'), ring: top('ring'), peak });
+  }
+  if (route === '/look' && method === 'POST') {
+    if (!me) return json(res, 401, { error: 'Sign in first.' });
+    me.ach = me.ach || {};
+    // the profile picture: a drawing of an archer in the element, role and colour you choose
+    if (body.avatar && typeof body.avatar === 'object') {
+      const a = body.avatar;
+      if (!Sim.ELEMENTS[a.el] || !Sim.ROLES[a.ro] || !/^#[0-9a-f]{6}$/i.test(String(a.c || ''))) return json(res, 400, { error: 'Pick a picture from the list.' });
+      me.ach.avatar = { el: a.el, ro: a.ro, c: String(a.c) }; markDirty(me);
+      if (!('border' in body)) return json(res, 200, { ok: true, avatar: me.ach.avatar });
+    }
+    const bd = body.border ? String(body.border) : null;
+    if (bd && !(me.ach.got && me.ach.got[bd])) return json(res, 400, { error: "You haven't unlocked that border." });
+    me.ach.border = bd; markDirty(me);
+    for (const r of rooms.values()) for (const c of r.clients) if (c.user && c.user.id === me.id) { Object.assign(c, lookOf(me)); if (c.pid) Sim.setMeta(r.world, c.pid, lookOf(me)); sendRoom(r); }
+    return json(res, 200, { ok: true, border: bd });
   }
   // ---- rooms
   if (route === '/rooms' && method === 'GET') {
     const list = [...rooms.values()].filter(r => r.pub && r.clients.size).map(r => {
       const w = r.world, h = hostWs(r);
       return { code: r.code, name: r.name, host: h ? h.name : '', locked: !!r.pwHash, map: w.cfg.map, mapName: Sim.MAPS[w.cfg.map].name, phase: w.match.ph,
-        players: w.players.filter(p => !p.bot).length, bots: w.players.filter(p => p.bot).length, people: r.clients.size, max: Sim.MAX_TEAM * 2 };
+        players: w.players.filter(p => !p.bot).length, bots: w.players.filter(p => p.bot).length, people: r.clients.size, max: r.max || 8 };
     });
     return json(res, 200, { rooms: list, online: [...rooms.values()].reduce((n, r) => n + r.clients.size, 0) });
   }
@@ -211,7 +280,8 @@ async function api(req, res, url) {
     const t = await store.thread(+m[1]);
     if (!t) return json(res, 404, { error: 'That thread is gone.' });
     const c = await store.category(t.catId);
-    return json(res, 200, { thread: t, category: c, posts: await store.posts(t.id) });
+    const posts = (await store.posts(t.id)).map(p => { const u = live.get(p.userId); if (u) { p.authorCountry = flagOf(u); p.authorCareer = u.career; } p.authorLevel = levelOf(p.authorCareer).lv; p.authorCountry = p.authorCountry && p.authorCountry !== '-' ? p.authorCountry : null; delete p.authorCareer; return p; });
+    return json(res, 200, { thread: t, category: c, posts });
   }
   if (route === '/forum/threads' && method === 'POST') {
     if (!me) return json(res, 401, { error: 'Sign in to post.' });
@@ -297,6 +367,12 @@ async function oauth(req, res, url) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   if (url.pathname === '/health') { res.writeHead(200); return res.end('ok'); }
+  // with PUBLIC_URL set (e.g. https://bowfall.com), anyone arriving at another address (the onrender.com one, www.) is sent there,
+  // so sign-ins and links always use one address
+  const pub = process.env.PUBLIC_URL && new URL(process.env.PUBLIC_URL);
+  if (pub && req.headers.host && req.headers.host !== pub.host && !/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(req.headers.host)) {
+    res.writeHead(301, { Location: pub.origin + req.url }); return res.end();
+  }
   if (url.pathname.startsWith('/auth/')) {
     try { return await oauth(req, res, url); } catch (e) { console.error(e); return redirect(res, '/#/login?err=' + encodeURIComponent('Something went wrong signing in.')); }
   }
@@ -338,6 +414,7 @@ function applyRoomCfg(room, o, hostName) {
   if (!o || typeof o !== 'object') return;
   if ('name' in o) room.name = cleanRoomName(o.name) || `${hostName}'s game`;
   if ('pub' in o) room.pub = !!o.pub;
+  if ('max' in o) room.max = Math.max(2, room.clients.size, Math.min(MAX_PEOPLE, parseInt(o.max, 10) || 8));
   if ('pw' in o) { const pw = String(o.pw || '').slice(0, 32); room.pwHash = pw ? pwHash(pw) : null; }
 }
 
@@ -345,7 +422,7 @@ function createRoom(opts = {}) {
   const code = makeCode();
   const diff = Sim.DIFF[opts.diff] ? opts.diff : 'normal';
   const map = Sim.MAPS[opts.map] ? opts.map : 'meadow';
-  const room = { code, name: '', pub: true, pwHash: null, clients: new Set(), host: null, tick: 0, world: Sim.createWorld({ diff, map }) };
+  const room = { code, name: '', pub: true, max: 8, pwHash: null, clients: new Set(), host: null, tick: 0, world: Sim.createWorld({ diff, map }) };
   rooms.set(code, room);
   return room;
 }
@@ -356,8 +433,8 @@ function roomInfo(room, ws) {
   const h = hostWs(room);
   return {
     t: 'room', code: room.code, host: h ? h.pid : null, hostName: h ? h.name : '', amHost: room.host === ws.cid,
-    name: room.name, pub: room.pub, locked: !!room.pwHash,
-    spec: [...room.clients].filter(c => !c.pid).map(c => ({ cid: c.cid, n: c.name, h: c.cid === room.host ? 1 : 0, you: c === ws ? 1 : 0 })),
+    name: room.name, pub: room.pub, locked: !!room.pwHash, max: room.max || 8, people: room.clients.size,
+    spec: [...room.clients].filter(c => !c.pid).map(c => ({ cid: c.cid, n: c.name, h: c.cid === room.host ? 1 : 0, you: c === ws ? 1 : 0, cc: c.cc || undefined, lv: c.lv || undefined, bd: c.bd || undefined, na: c.na || undefined })),
   };
 }
 function sendRoom(room) { for (const c of room.clients) send(c, roomInfo(room, c)); }
@@ -379,6 +456,7 @@ function joinTeam(room, ws, team) {
   if (!p) return 'That team is full.';
   ws.pid = p.id;
   if (ws.title) Sim.setTitle(w, p.id, ws.title);
+  Sim.setMeta(w, p.id, { cc: ws.cc, lv: ws.lv, bd: ws.bd, na: ws.na });
   send(ws, { t: 'you', id: p.id });
   return null;
 }
@@ -419,12 +497,18 @@ async function handle(ws, m) {
       if (!room) return send(ws, { t: 'err', msg: 'No game with that code. Check it and try again.' });
       if (!pwOk(room, m.pw)) return send(ws, { t: 'needpw', code: room.code, msg: m.pw ? 'Wrong password.' : 'This game needs a password.' });
     }
-    if (room.clients.size >= MAX_PEOPLE) return send(ws, { t: 'err', msg: `That game is full (${MAX_PEOPLE} people).` });
+    if (!m.create && room.clients.size >= (room.max || 8)) return send(ws, { t: 'err', msg: `That game is full (${room.clients.size}/${room.max || 8} players).` });
     // signed-in players always play under their account name and wear their account's title
     ws.name = ws.user ? ws.user.name : cleanName(m.name);
     // guests can't pass themselves off as a registered player
     if (!ws.user && await store.userByName(ws.name).catch(() => null)) ws.name = ws.name.slice(0, 15) + '~';
+    // nobody shares a name inside one game: a second "Archer" becomes "Archer 2"
+    { const taken = n => [...room.clients].some(c => c !== ws && c.name && c.name.toLowerCase() === n.toLowerCase()); const base = ws.name.slice(0, 13);
+      for (let i = 2; taken(ws.name) && i < 99; i++) ws.name = base + ' ' + i; }
     ws.title = ws.user ? ws.user.title : null;
+    ws.lv = ws.user ? levelOf(ws.user.career).lv : null;
+    if (ws.user) Object.assign(ws, lookOf(ws.user));
+    if (ws.user) ws.cc = ws.user.country ? flagOf(ws.user) : ws.geo || null;
     ws.el = String(m.el || ''); ws.ro = String(m.ro || ''); ws.pid = null;
     ws.room = room;
     room.clients.add(ws);
@@ -452,6 +536,14 @@ async function handle(ws, m) {
       break;
     }
     case 'choose': if (ws.pid) Sim.choose(w, ws.pid, m.i | 0); break;
+    case 'look': {
+      // accounts show what the server knows they've earned; guests show what their browser says
+      const look = ws.user ? lookOf(ws.user) : { bd: Sim.ACHIEVEMENTS[m.bd] ? String(m.bd) : null, na: Math.max(0, Math.min(Object.keys(Sim.ACHIEVEMENTS).length, m.na | 0)) || null };
+      Object.assign(ws, look);
+      if (ws.pid) Sim.setMeta(w, ws.pid, look);
+      sendRoom(room);
+      break;
+    }
     case 'team': {
       const team = String(m.team);
       if (ws.pid) Sim.setTeam(w, ws.pid, team);
@@ -494,6 +586,16 @@ wss.on('connection', (ws, req) => {
   ws.isAlive = true; ws.cid = 'c' + (nextCid++); ws.chatT = [];
   // find out who this is (from the sign-in cookie) before handling anything they send
   ws.ready = userFromReq(req).then(u => { ws.user = u; }).catch(() => { ws.user = null; });
+  // where they're playing from, for the flag by their name (doesn't hold anything up; fills in when it arrives)
+  countryOf(req).then(cc => {
+    ws.geo = cc;
+    ws.ready.then(() => {
+      if (ws.user && !ws.user.country && cc) { ws.user.country = cc; markDirty(ws.user); }
+      ws.cc = ws.user ? flagOf(ws.user) : cc;
+      if (ws.room && ws.pid) Sim.setMeta(ws.room.world, ws.pid, { cc: ws.cc });
+      if (ws.room) sendRoom(ws.room);
+    });
+  }).catch(() => {});
   ws.on('pong', () => { ws.isAlive = true; });
   ws.on('message', raw => {
     let m; try { m = JSON.parse(raw); } catch (e) { return; }
@@ -524,6 +626,7 @@ function creditAchievements(room, evs) {
     const u = ws.user; u.ach = u.ach || {};
     const fresh = Sim.achApply(u.ach, adds);
     markDirty(u);
+    if (fresh.length) { Object.assign(ws, lookOf(u)); Sim.setMeta(room.world, ws.pid, lookOf(u)); }
     send(ws, { t: 'ach', keys: fresh, ach: u.ach });
   }
 }
