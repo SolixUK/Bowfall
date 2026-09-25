@@ -2,6 +2,33 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
 
+## 0.13.2
+
+- New custom rule, **Aim assist**: none (standard), tiny, small, medium, heavy or extreme. Every arrow, bolt and shuriken bends toward the enemy it's heading for, if they're in front of it and within about 650px. The higher the setting, the harder it turns. It ignores stealthed archers. It applies to everyone, bots included.
+- Tutorial: in the real game against the bot, the coach panel shrinks into the bottom-left corner. It fades almost away whenever an archer goes behind it, so it no longer covers the fight.
+
+## 0.13.1
+
+**Controller**
+- Menus work with a controller. Move the highlight with the D-pad or left stick (hold to repeat), press A to select and B to go back. On a list, left and right change the value. It works on every screen, including picking upgrades, and it remembers where you were on each screen. X, Y and B still pick upgrades 1, 2 and 3 directly.
+- New **Aim sensitivity** setting (1 to 10, default 7) under Controls: how quickly the aim swings round to where the right stick points. 10 is instant. It only affects the controller, not the mouse.
+
+**Custom rules**
+- New rule: **Dashes** on (standard) or off. Off also stops Ninja blinks, and the Dash meter shows "(off)".
+
+## 0.13.0
+
+**Void**
+- Empowered Void is now **Singularity**: every enemy you knock out collapses into a black hole for 3 seconds. It drags other enemies within 240px toward it, and touching its core burns 30 health a second. It replaces Displacement.
+- You can only have one rift open at a time. Opening a new one closes your old one.
+
+**Lobby**
+- Hover over anyone's name in the lobby (or the in-game menu) to see a card with their rank and level, rating, games played, win rate and their two best achievements. Guests show their achievements, and bots show their skill.
+- A **Copy invite link** button next to the room code, and in the in-game menu, copies a link that takes a friend straight into your game.
+
+**Menus**
+- Buttons make a soft tick when you point at them and a click when you press them.
+
 ## 0.12.2
 
 - Fixed: a Crossbowman (or Ninja) fired on their own when a round started. Clicks made while picking a card, or left over from the round before, were being saved up. Clicks now only count during play.

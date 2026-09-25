@@ -96,6 +96,7 @@ function saveRecords(room) {
     }
   }
   for (const ws of room.clients) if (ws.user && ws.pid) Sim.setMeta(room.world, ws.pid, { lv: levelOf(ws.user.career).lv });
+  if (recs.some(r => r.type === 'game')) sendRoom(room); // fresh stats for the hover cards
   const lines = recs.map(r => JSON.stringify(Object.assign({ src: 'online', room: room.code, humans }, r, r.p ? { p: r.p.map(({ id, ...x }) => x) } : {}))).join('\n') + '\n';
   fs.appendFile(DATA_FILE, lines, err => { if (err) console.error('Could not save game stats:', err.message); });
 }
@@ -434,8 +435,18 @@ function roomInfo(room, ws) {
   return {
     t: 'room', code: room.code, host: h ? h.pid : null, hostName: h ? h.name : '', amHost: room.host === ws.cid,
     name: room.name, pub: room.pub, locked: !!room.pwHash, max: room.max || 8, people: room.clients.size,
+    cards: Object.fromEntries([...room.clients].map(c => [c.pid ? 'p' + c.pid : 'c' + c.cid, cardOf(c)])),
     spec: [...room.clients].filter(c => !c.pid).map(c => ({ cid: c.cid, n: c.name, h: c.cid === room.host ? 1 : 0, you: c === ws ? 1 : 0, cc: c.cc || undefined, lv: c.lv || undefined, bd: c.bd || undefined, na: c.na || undefined })),
   };
+}
+// what the lobby's hover card shows about someone: accounts get their record, guests just what their browser says they've earned
+const topAch = got => Sim.ACH_ORDER.filter(k => got && got[k]).slice(0, 2);
+function cardOf(c) {
+  if (c.user) {
+    const k = c.user.career || {};
+    return { a: 1, g: k.games || 0, w: k.wins || 0, elo: Math.round(k.elo || ELO_START), lv: levelOf(k).lv, top: topAch(c.user.ach && c.user.ach.got) };
+  }
+  return { top: c.top || [] };
 }
 function sendRoom(room) { for (const c of room.clients) send(c, roomInfo(room, c)); }
 function broadcast(room, obj) { const s = JSON.stringify(obj); for (const c of room.clients) if (c.readyState === 1) c.send(s); }
@@ -539,6 +550,7 @@ async function handle(ws, m) {
     case 'look': {
       // accounts show what the server knows they've earned; guests show what their browser says
       const look = ws.user ? lookOf(ws.user) : { bd: Sim.ACHIEVEMENTS[m.bd] ? String(m.bd) : null, na: Math.max(0, Math.min(Object.keys(Sim.ACHIEVEMENTS).length, m.na | 0)) || null };
+      if (!ws.user) ws.top = (Array.isArray(m.top) ? m.top : []).map(String).filter(k => Sim.ACHIEVEMENTS[k]).slice(0, 2);
       Object.assign(ws, look);
       if (ws.pid) Sim.setMeta(w, ws.pid, look);
       sendRoom(room);

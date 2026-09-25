@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.12.2';
+const VERSION = '0.13.2';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -164,6 +164,9 @@ const OPTIONS = {
   mspeed: { label: 'Move speed',   def: 'fast', values: { normal: 1, slow: 0.85, fast: 1.2, vfast: 1.4, blazing: 1.7 } },
   kb:     { label: 'Knockback',    def: 'normal', values: { normal: 1, low: 0.75, high: 1.3, chaos: 1.8 } },
   hp:     { label: 'Health',       def: 'normal', values: { normal: 1, low: 0.7, high: 1.5 } },
+  dash:   { label: 'Dashes',       def: 'on', values: { on: 1, off: 0 } },
+  // aim assist: every shot bends toward the enemy it's heading for, this many radians a second
+  assist: { label: 'Aim assist',   def: 'none', values: { none: 0, tiny: 0.5, small: 1, medium: 1.8, heavy: 3, extreme: 5 } },
 };
 const optDefaults = () => Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.def || Object.keys(o.values)[0]]));
 let CFG = { opt: optDefaults() };
@@ -325,6 +328,8 @@ const ACHIEVEMENTS = {
   lifeline:    { title: 'Lifeline',       desc: 'Revive 5 teammates.',                              stat: 'revive', goal: 5 },
   champion:    { title: 'Champion',       desc: 'Win 10 matches.',                                  stat: 'match', goal: 10 },
 };
+// achievements from hardest to easiest, for showing someone's best ones
+const ACH_ORDER = ['legend', 'lonewolf', 'warlord', 'untouchable', 'champion', 'eagleeye', 'unstoppable', 'ringmaster', 'clutch', 'pinmaster', 'lifeline', 'stormkeeper', 'longshot', 'veteran', 'empowered', 'sharpshooter', 'blooded'];
 const HAZARD_OUTS = ['lava', 'burn', 'spikes', 'wall', 'crush', 'pit', 'water', 'saw'];
 // what these events add to one archer's achievement stats: a list of [stat, amount, keepMax]
 function achFromEvents(evs, pid, team) {
@@ -1098,9 +1103,10 @@ function safeMarker(f) {
 }
 // knockouts in a row needed to be empowered; knocking out someone empowered counts for EMPOWER_BONUS
 const EMPOWER_AT = 5, EMPOWER_BONUS = 3;
+const HOLE_R = 240, HOLE_CORE = 30, HOLE_T = 3, HOLE_PULL = 900, HOLE_DPS = 30;
 const EMPOWER = {
   stone:  { name: 'Landslide', desc: 'Your arrows knock back 35% harder and stagger for twice as long.' },
-  void:   { name: 'Displacement', desc: "Every arrow that hits teleports its target 120px further along the arrow's path: over edges, into lava, into walls." },
+  void:   { name: 'Singularity', desc: 'Every enemy you knock out collapses into a black hole for 3 seconds. It drags other enemies within 240px toward it, and touching its core deals 30 damage a second.' },
   frost:  { name: "Winter's Grip", desc: 'Your 2nd frost hit freezes, even without Frostbite.' },
   flame:  { name: 'Blaze', desc: 'You leave a trail of fire, and your arrows set the ground alight wherever they land.' },
   storm:  { name: 'Overcharge', desc: 'Lightning arcs 2 extra times and reaches enemies twice as far away, your dash recharges twice as fast, and a storm bullseye stuns the target and everyone the lightning reaches for 1 second.' },
@@ -1137,6 +1143,12 @@ function kill(w, f, cause) {
     if (LETHAL[cause]) killer.stats.ring++;
     gain = AMBER.kill + (LETHAL[cause] ? AMBER.hazardKill : 0);
     killer.amber += gain; killer.earned += gain;
+  }
+  // Singularity (empowered Void): the fallen enemy collapses into a black hole
+  if (killer && killer.emp && killer.element === 'void' && w.match.ph === 'play') {
+    const x = clamp(f.x, WALL + 30, AW - WALL - 30), y = clamp(f.y, WALL + 30, AH - WALL - 30);
+    w.zones.push({ id: w.nid++, ty: 'hole', x, y, r: HOLE_R, core: HOLE_CORE, t: HOLE_T, team: killer.team, owner: killer.id });
+    ev(w, { e: 'hole', x: r1(x), y: r1(y), id: killer.id });
   }
   const how = howKilled(f, cause);
   f.lastHow = how;
@@ -1415,6 +1427,7 @@ function updatePlayer(w, p, dt) {
   p.aim = inp.aim;
 
   // bogs hold you: no dashing while you're in one (Sure Footing ignores this)
+  if (p.wantDash && CFG.opt && CFG.opt.dash === 'off') p.wantDash = false; // custom rule: no dashing (or blinking)
   if (p.wantDash && p.inTar && !p.sure && p.dashN > 0) { if (!p.bot && !(p.bogMsgT > w.t)) { p.bogMsgT = w.t + 1.5; ev(w, { e: 'abFail', id: p.id, why: "Can't dash in the bog" }); } p.wantDash = false; }
   if (p.wantDash && p.role === 'ninja' && p.dashN > 0 && p.dashLock <= 0 && p.falling <= 0 && p.stuck <= 0 && !p.grap && !p.rush && p.blinkGap <= 0) {
     ninjaBlink(w, p);
@@ -1864,6 +1877,17 @@ function updateZones(w, dt) {
         if (q.team !== z.team || q.dead || q.falling > 0 || q.hp >= q.maxHp || Math.hypot(q.x - z.x, q.y - z.y) > z.r) continue;
         q.hp = Math.min(q.maxHp, q.hp + 8 * dt * (q.poisonT > 0 ? 0.5 : 1)); q.healing = true;
       }
+    } else if (z.ty === 'hole') {
+      // a black hole: drags enemies in, harder the closer they are, and burns anyone touching the core
+      for (const q of w.players) {
+        if (q.team === z.team || q.dead || q.falling > 0) continue;
+        const dx = z.x - q.x, dy = z.y - q.y, d = Math.hypot(dx, dy) || 1;
+        if (d > z.r) continue;
+        const k = HOLE_PULL * (0.35 + 0.65 * (1 - d / z.r)) * dt / q.mass;
+        q.vx += dx / d * k; q.vy += dy / d * k;
+        q.lastHitBy = z.owner; q.lastHitT = w.t;
+        if (d < z.core + q.r) { hurt(w, q, HOLE_DPS * dt, 0, 0, 'hole', z.owner, true); q.holeT = 0.15; }
+      }
     } else if (z.ty === 'rift') {
       for (const q of w.players) {
         if (q.team === z.team || q.dead || q.falling > 0 || q.pinned > 0) continue;
@@ -1988,18 +2012,6 @@ function stickArrow(w, a, t) {
   else ev(w, { e: 'thunk', x: r1(a.x), y: r1(a.y) });
 }
 
-// Displacement (empowered Void): shove the target through space along the arrow's line
-function displace(w, f, a) {
-  const v = Math.hypot(a.vx, a.vy) || 1, ux = a.vx / v, uy = a.vy / v;
-  let reach = 120, nx = f.x, ny = f.y;
-  for (; reach > 0; reach -= 10) {
-    nx = clamp(f.x + ux * reach, WALL + f.r, AW - WALL - f.r); ny = clamp(f.y + uy * reach, WALL + f.r, AH - WALL - f.r);
-    if (!PILLARS.some(q => Math.hypot(nx - q.x, ny - q.y) < q.r + f.r)) break;
-  }
-  if (reach <= 0) return;
-  ev(w, { e: 'warp', id: f.id, x1: r1(f.x), y1: r1(f.y), x2: r1(nx), y2: r1(ny) });
-  f.x = nx; f.y = ny;
-}
 function shroud(f, by) {
   f.shroudT = Math.max(f.shroudT || 0, by && has(by, 'lingering') ? 5 : 2.5);
   f.shroudR = by && has(by, 'blinding') ? 100 : 170;
@@ -2064,12 +2076,12 @@ function onArrowEffects(w, a, f, primary) {
       }
     }
   }
-  if (a.el === 'void' && primary && owner && owner.emp && owner.element === 'void' && !f.dead && f.falling <= 0) displace(w, f, a);
   if (a.el === 'void' && primary && a.crit) { // only bullseyes open a rift
     // a rift where the arrow struck; it drags in everyone else on their team
     const hz = owner && has(owner, 'horizon'), ecl = false;
     const r = 120 * (hz ? 1.3 : 1) * (owner && has(owner, 'unstable') ? 1.5 : 1) * (ecl ? 1.6 : 1);
-    // it opens a moment later where the knockback leaves the target, so it holds them there too
+    // it opens a moment later where the knockback leaves the target, so it holds them there too; only one rift per archer at a time
+    for (let i = w.zones.length - 1; i >= 0; i--) if (w.zones[i].ty === 'rift' && w.zones[i].owner === a.owner) { const o = w.zones[i]; if (!(o.delay > 0)) ev(w, { e: 'riftGone', x: r1(o.x), y: r1(o.y) }); w.zones.splice(i, 1); }
     w.zones.push({ id: w.nid++, ty: 'rift', x: f.x, y: f.y, r, t: (hz ? 3 : 2) + (ecl ? 1 : 0), pull: hz ? 980 : 820, team: a.team, owner: a.owner,
       delay: CLOUD_DELAY, follow: f.id, collapse: !!(owner && has(owner, 'collapse')), nul: !!(owner && has(owner, 'nullfield')) });
   } else if (a.el === 'storm' && primary) {
@@ -2238,6 +2250,22 @@ function updateArrows(w, dt) {
       if (best) {
         const want = Math.atan2(best.y - a.y, best.x - a.x), diff = ((want - h + Math.PI) % TAU + TAU) % TAU - Math.PI;
         const turn = clamp(diff, -2.2 * dt, 2.2 * dt), sp = Math.hypot(a.vx, a.vy);
+        a.vx = Math.cos(h + turn) * sp; a.vy = Math.sin(h + turn) * sp;
+      }
+    }
+    // Aim assist (custom rule): bend toward the enemy the shot is heading for, if they're in front of it and in reach
+    const assist = OPTIONS.assist.values[(CFG.opt || {}).assist] || 0;
+    if (assist > 0 && !a.seek && !a.back && !a.rail && a.age < 1.5) {
+      const h = Math.atan2(a.vy, a.vx); let best = null, bs = Infinity;
+      for (const q of w.players) {
+        if (q.team === a.team || q.dead || q.falling > 0 || q.stealthT > 0 || a.hit.includes(q.id)) continue;
+        const d = Math.hypot(q.x - a.x, q.y - a.y), off = angOff(Math.atan2(q.y - a.y, q.x - a.x), h);
+        if (d > 650 || off > 1.0) continue;
+        const sc = d * (1 + off); if (sc < bs) { bs = sc; best = q; }
+      }
+      if (best) {
+        const want = Math.atan2(best.y - a.y, best.x - a.x), diff = ((want - h + Math.PI) % TAU + TAU) % TAU - Math.PI;
+        const turn = clamp(diff, -assist * dt, assist * dt), sp = Math.hypot(a.vx, a.vy);
         a.vx = Math.cos(h + turn) * sp; a.vy = Math.sin(h + turn) * sp;
       }
     }
@@ -2868,7 +2896,7 @@ function snapshot(w) {
       };
     }),
     a: w.arrows.map(a => ({ id: a.id, o: a.owner, x: r1(a.x), y: r1(a.y), g: r3(a.ang), s: a.stuck > 0 ? r2(a.stuck) : 0, c: a.color, cr: a.full ? 1 : 0, ex: a.explosive ? 1 : 0, rl: a.rail ? 1 : 0, bg: a.big ? 1 : 0, sk: a.seek ? 1 : 0, bm: a.boom ? 1 : 0, sw: a.swap ? 1 : 0, xq: a.exec ? 1 : 0, sh: a.shur ? (a.dbl ? 2 : 1) : 0, xb: a.xb ? 1 : 0, hv: a.heavy ? 1 : 0, el: a.el, b: a.bolt ? 1 : 0, sn: a.snare ? 1 : 0 })),
-    z: w.zones.filter(z => !(z.delay > 0)).map(z => ({ id: z.id, ty: z.ty, x: r1(z.x), y: r1(z.y), x2: z.x2 != null ? r1(z.x2) : undefined, y2: z.y2 != null ? r1(z.y2) : undefined, r: z.r, t: r2(z.t), tm: z.team, o: z.owner })),
+    z: w.zones.filter(z => !(z.delay > 0)).map(z => ({ id: z.id, ty: z.ty, x: r1(z.x), y: r1(z.y), x2: z.x2 != null ? r1(z.x2) : undefined, y2: z.y2 != null ? r1(z.y2) : undefined, r: z.r, cr: z.core, t: r2(z.t), tm: z.team, o: z.owner })),
     u: w.pickups.map(u => ({ id: u.id, x: r1(u.x), y: r1(u.y), ty: u.type, ag: r1(u.age), li: u.life, cp: u.chan ? r2(u.cp) : undefined, ct: u.chan ? u.ct : undefined, cs: u.chan ? u.cs : undefined })),
   };
 }
@@ -2877,7 +2905,7 @@ return {
   AW, AH, WALL, GATES, MAPS, MAP_KEYS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, createWorld, join, leave, addBot, removeBot, setTeam, setBotDifficulty, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
-  setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
+  setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, HOLE_T, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
   _grant(w, id, cards) { const p = w.players.find(q => q.id === id); for (const c of cards) takeCard(w, p, c); applyStats(p); p.picked = false; return p; },
 };

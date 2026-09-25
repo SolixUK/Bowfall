@@ -1,6 +1,6 @@
 # Bowfall
 
-Version 0.12.2. See [CHANGELOG.md](CHANGELOG.md) for what changed in each version.
+Version 0.13.2. See [CHANGELOG.md](CHANGELOG.md) for what changed in each version.
 
 Top-down knockback archery for teams, with a website, accounts and a forum: Red vs Blue, up to 4 per side, humans and bots mixed however you like, across eight arenas. The main menu has a **How to play** screen (also in the in-game menu) that explains everything below.
 
@@ -26,7 +26,7 @@ Every match starts in a lobby with a Red column and a Blue column:
 - **Choosing upgrades:** the next round starts as soon as every player has picked, or when the timer runs out (anyone who hasn't picked gets one of their three cards at random). The pick screen shows who you're waiting for.
 - **Host only:** add or remove bots on either side, choose the arena, bot skill and **custom rules**, then start once both teams have at least one archer.
 - **Handicap:** the host can step any archer's handicap down or up with − and + (in the lobby or the in-game menu), in 10% steps from −50% to +100%. It scales that archer's health and arrow damage by the percentage, and their knockback resistance by half as much. Handy for uneven teams like 1v2. Games with a handicap are left out of Balance data unless you choose "Any rules".
-- **Custom rules:** archer size (small, medium, large), arrow speed (normal, fast, very fast, blazing), move speed (slow, normal, fast, very fast, blazing), knockback (low, normal, high, chaos) and health (low, normal, high). The standard rules are large archers, very fast arrows, fast movement, normal knockback and normal health. Every recorded game notes its rules, and Balance data shows standard-rules games only unless you ask for all.
+- **Custom rules:** archer size (small, medium, large), arrow speed (normal, fast, very fast, blazing), move speed (slow, normal, fast, very fast, blazing), knockback (low, normal, high, chaos), health (low, normal, high), dashes (on or off; off also stops Ninja blinks) and aim assist (none, tiny, small, medium, heavy, extreme: every shot bends toward the enemy it is heading for). The standard rules are large archers, very fast arrows, fast movement, normal knockback and normal health. Every recorded game notes its rules, and Balance data shows standard-rules games only unless you ask for all.
 - **After a match:** everyone returns to the lobby, or the host can start a rematch straight away.
 - **During a match (Esc):** the menu shows the same team editor. Anyone who joins or switches team mid-round sits out until the next round starts.
 
