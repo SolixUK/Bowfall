@@ -34,10 +34,43 @@ fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
 const live = new Map();   // user id -> user object
 const dirty = new Set();
 function track(u) { if (!u) return null; const have = live.get(u.id); if (have) return have; live.set(u.id, u); return u; }
-function markDirty(u) { if (u) dirty.add(u.id); }
+function markDirty(u) { if (!u) return; if (u.guest) guestDirty.add(u); else dirty.add(u.id); }
 async function flushUsers() {
   const ids = [...dirty]; dirty.clear();
   for (const id of ids) { const u = live.get(id); if (u) await store.saveUser(u).catch(e => console.error('Could not save a player:', e.message)); }
+  const gs = [...guestDirty]; guestDirty.clear();
+  for (const g of gs) await store.guestSave(g.key, { name: g.name, career: g.career, ach: g.ach }).catch(e => console.error('Could not save a guest:', e.message));
+}
+// ---------------- guests ----------------
+// A guest's browser keeps a random id; their rating, stats and achievements are kept against it (hashed) on the server,
+// so they carry on between visits, and move to an account when they make one or sign in to a fresh one.
+const guests = new Map(), guestDirty = new Set();
+const guestKey = tok => /^[A-Za-z0-9]{16,48}$/.test(String(tok || '')) ? crypto.createHash('sha256').update('bowfall-guest:' + tok).digest('hex').slice(0, 40) : null;
+async function loadGuest(tok, name) {
+  const key = guestKey(tok); if (!key) return null;
+  let g = guests.get(key);
+  if (!g) {
+    const d = await store.guestGet(key).catch(() => null);
+    g = { guest: true, id: 'g:' + key, key, name: (d && d.name) || 'Guest', career: (d && d.career) || {}, ach: (d && d.ach) || {} };
+    guests.set(key, g);
+  }
+  if (name) g.name = String(name).slice(0, 16);
+  return g;
+}
+// signing up or in: a guest's record becomes the account's, if the account hasn't played yet
+async function adoptGuest(u, tok) {
+  const key = guestKey(tok); if (!key || !u) return null;
+  const g = guests.get(key) || await store.guestGet(key).catch(() => null);
+  if (!g || !(g.career && g.career.games)) return null;
+  if (u.career && u.career.games) return { skipped: true };
+  u.career = Object.assign({}, g.career);
+  u.ach = u.ach || {}; const st = u.ach.stats = u.ach.stats || {}, got = u.ach.got = u.ach.got || {};
+  for (const [k, v] of Object.entries((g.ach && g.ach.stats) || {})) st[k] = Math.max(st[k] || 0, v);
+  Object.assign(got, (g.ach && g.ach.got) || {});
+  guests.delete(key); guestDirty.forEach(x => { if (x.key === key) guestDirty.delete(x); });
+  await store.guestSave(key, null);
+  await store.saveUser(u);
+  return { elo: Math.round(u.career.elo || ELO_START), games: u.career.games };
 }
 setInterval(flushUsers, 5000).unref();
 async function userFromReq(req) {
@@ -81,22 +114,22 @@ function saveRecords(room) {
   for (const r of recs) {
     if (r.type === 'game') {
       const users = new Map();
-      for (const p of r.p) { const ws = [...room.clients].find(c => c.pid === p.id && c.user); if (ws) users.set(p.id, ws.user); else if (room.ai && room.ai.has(p.id)) users.set(p.id, room.ai.get(p.id)); }
+      for (const p of r.p) { const ws = [...room.clients].find(c => c.pid === p.id && (c.user || c.guest)); if (ws) users.set(p.id, ws.user || ws.guest); else if (room.ai && room.ai.has(p.id)) users.set(p.id, room.ai.get(p.id)); }
       const rated = rateGame(r, users); // worked out for everyone first, from the ratings before this game
       for (const p of r.p) { const u = users.get(p.id); if (u) careerAdd(u, { type: 'game', pl: p }); }
       for (const [pid, u] of users) {
         const x = rated.get(u.id); if (!x) continue;
         const c = u.career; c.elo = x.elo; c.eloPeak = Math.max(c.eloPeak || ELO_START, x.elo);
         c.relo = c.relo || {}; c.relo[x.role] = x.roleElo;
-        const ws = [...room.clients].find(q => q.user === u);
-        if (ws) send(ws, { t: 'rated', elo: x.elo, d: x.delta });
+        const ws = [...room.clients].find(q => q.user === u || q.guest === u);
+        if (ws) send(ws, { t: 'rated', elo: x.elo, d: x.delta, guest: u.guest ? 1 : undefined });
       }
     } else if (r.type === 'match') {
-      for (const ws of room.clients) if (ws.user && ws.pid) { const q = room.world.players.find(q => q.id === ws.pid); if (q) careerAdd(ws.user, r, q.team); }
+      for (const ws of room.clients) if ((ws.user || ws.guest) && ws.pid) { const q = room.world.players.find(q => q.id === ws.pid); if (q) careerAdd(ws.user || ws.guest, r, q.team); }
       if (room.ai) for (const [pid, u] of room.ai) { const q = room.world.players.find(q => q.id === pid); if (q) careerAdd(u, r, q.team); }
     }
   }
-  for (const ws of room.clients) if (ws.user && ws.pid) Sim.setMeta(room.world, ws.pid, { lv: levelOf(ws.user.career).lv });
+  for (const ws of room.clients) if ((ws.user || ws.guest) && ws.pid) Sim.setMeta(room.world, ws.pid, { lv: levelOf((ws.user || ws.guest).career).lv });
   if (recs.some(r => r.type === 'game')) sendRoom(room); // fresh stats for the hover cards
   const lines = recs.map(r => JSON.stringify(Object.assign({ src: 'online', room: room.code, humans }, r, r.p ? { p: r.p.map(({ id, ...x }) => x) } : {}))).join('\n') + '\n';
   fs.appendFile(DATA_FILE, lines, err => { if (err) console.error('Could not save game stats:', err.message); });
@@ -144,13 +177,13 @@ async function api(req, res, url) {
     const first = (await store.userCount()) - social._ai().length === 0; // the first real player (not counting AI players) is the admin
     const u = await store.createUser(name, A.hashPassword(body.password), first || ADMINS.includes(name.toLowerCase()));
     if (!u) return json(res, 409, { error: 'That name is taken.' });
-    return login(req, res, u);
+    return login(req, res, u, [], await adoptGuest(u, body.guest));
   }
   if (route === '/login' && method === 'POST') {
     if (!authLimit(ip(req))) return json(res, 429, { error: 'Too many attempts. Wait a minute and try again.' });
     const u = await store.userByName(String(body.name || '').trim());
     if (!u || !A.checkPassword(body.password, u.passHash)) return json(res, 401, { error: 'Wrong name or password.' });
-    return login(req, res, u);
+    return login(req, res, track(u), [], await adoptGuest(track(u), body.guest));
   }
   if (route === '/logout' && method === 'POST') {
     const tok = A.parseCookies(req.headers.cookie)[A.COOKIE];
@@ -191,7 +224,7 @@ async function api(req, res, url) {
     const u = await store.createUser(name, '', first || ADMINS.includes(name.toLowerCase()));
     if (!u) return json(res, 409, { error: 'That name is taken.' });
     await store.addLogin(pend.p, pend.id, u.id);
-    return login(req, res, u, [clearCookie('bf_pending', req)]);
+    return login(req, res, u, [clearCookie('bf_pending', req)], await adoptGuest(u, body.guest));
   }
   if (route === '/unlink' && method === 'POST') {
     if (!me) return json(res, 401, { error: 'Sign in first.' });
@@ -326,9 +359,9 @@ async function sessionFor(req, u) {
   await store.createSession(A.hashToken(tok), u.id, Date.now() + A.SESSION_DAYS * 86400 * 1000);
   return A.sessionCookie(tok, req);
 }
-async function login(req, res, u, extraCookies = []) {
+async function login(req, res, u, extraCookies = [], moved = null) {
   const ck = await sessionFor(req, u), t = track(u);
-  return json(res, 200, { user: Object.assign(publicUser(t), { ach: t.ach || {} }) }, { 'Set-Cookie': [ck].concat(extraCookies) });
+  return json(res, 200, { user: Object.assign(publicUser(t), { ach: t.ach || {} }), guestMoved: moved }, { 'Set-Cookie': [ck].concat(extraCookies) });
 }
 const secure = req => (req.headers['x-forwarded-proto'] || '').includes('https');
 const tempCookie = (name, value, req, minutes) => `${name}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${minutes * 60}${secure(req) ? '; Secure' : ''}`;
@@ -397,7 +430,7 @@ const server = http.createServer(async (req, res) => {
 const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 4096 });
 const rooms = new Map();
 // friends, parties and matchmaking (lib/social.js)
-const social = require('./lib/social')({ store, track, markDirty, send, Sim, levelOf, flagOf, ELO_START, rooms, createRoom, sendRoom, sysChat, broadcast, live });
+const social = require('./lib/social')({ store, track, markDirty, send, Sim, levelOf, flagOf, ELO_START, rooms, createRoom, sendRoom, sysChat, broadcast, live, loadGuest });
 
 function makeCode() {
   const L = 'ABCDEFGHJKMNPQRSTUVWXYZ';
@@ -465,6 +498,7 @@ function roomInfo(room, ws) {
 // what the lobby's hover card shows about someone: accounts get their record, guests just what their browser says they've earned
 const topAch = got => Sim.ACH_ORDER.filter(k => got && got[k]).slice(0, 2);
 function cardOf(c) {
+  if (c.guest && !c.user && c.guest.career.games) { const k = c.guest.career; return { a: 1, guest: 1, g: k.games || 0, w: k.wins || 0, elo: Math.round(k.elo || ELO_START), lv: levelOf(k).lv, top: c.top || [] }; }
   if (c.user) {
     const k = c.user.career || {};
     return { a: 1, g: k.games || 0, w: k.wins || 0, elo: Math.round(k.elo || ELO_START), lv: levelOf(k).lv, top: topAch(c.user.ach && c.user.ach.got) };
@@ -543,8 +577,9 @@ async function handle(ws, m) {
     // nobody shares a name inside one game: a second "Archer" becomes "Archer 2"
     { const taken = n => [...room.clients].some(c => c !== ws && c.name && c.name.toLowerCase() === n.toLowerCase()); const base = ws.name.slice(0, 13);
       for (let i = 2; taken(ws.name) && i < 99; i++) ws.name = base + ' ' + i; }
+    if (!ws.user && m.gt) ws.guest = await loadGuest(m.gt, ws.name);
     ws.title = ws.user ? ws.user.title : null;
-    ws.lv = ws.user ? levelOf(ws.user.career).lv : null;
+    ws.lv = ws.user ? levelOf(ws.user.career).lv : ws.guest && ws.guest.career.games ? levelOf(ws.guest.career).lv : null;
     if (ws.user) Object.assign(ws, lookOf(ws.user));
     if (ws.user) ws.cc = ws.user.country ? flagOf(ws.user) : ws.geo || null;
     ws.el = String(m.el || ''); ws.ro = String(m.ro || ''); ws.pid = null;
@@ -664,15 +699,15 @@ setInterval(() => {
 // achievements for signed-in players, worked out here from the game's own events
 function creditAchievements(room, evs) {
   for (const ws of room.clients) {
-    if (!ws.user || !ws.pid) continue;
+    if (!(ws.user || ws.guest) || !ws.pid) continue;
     const p = room.world.players.find(q => q.id === ws.pid);
     const adds = Sim.achFromEvents(evs, ws.pid, p ? p.team : null);
     if (!adds.length) continue;
-    const u = ws.user; u.ach = u.ach || {};
+    const u = ws.user || ws.guest; u.ach = u.ach || {};
     const fresh = Sim.achApply(u.ach, adds);
     markDirty(u);
     if (fresh.length) { Object.assign(ws, lookOf(u)); Sim.setMeta(room.world, ws.pid, lookOf(u)); }
-    send(ws, { t: 'ach', keys: fresh, ach: u.ach });
+    if (ws.user) send(ws, { t: 'ach', keys: fresh, ach: u.ach }); // guests' browsers keep their own copy
   }
 }
 

@@ -2,6 +2,23 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
 
+## 0.14.1
+
+**Guests have a rating**
+- Guests are now rated too. Their browser keeps a private id, and their rating, stats and achievements are saved against it on the server, so they carry on between visits.
+- When a guest creates an account, or signs in to one that hasn't played yet, all of it moves across, and they're told so.
+- The Find game screen and the post-game rating banner both suggest making an account to keep it.
+
+**After each game**
+- A banner shows your new rating and how much it went up or down.
+- The results screen shows your rating and the change over the whole match.
+
+**Find game**
+- Redesigned. Your card shows your picture, name, flag, level, rating, games, win rate, knockouts and best achievements.
+- Choose your element and role right there. Party members show their rating and archetype.
+- Leaving a ranked game takes you back to Find game, and it doesn't start searching until you press the button.
+- Fixed: after a ranked match, the menu could still say "Searching…".
+
 ## 0.14.0
 
 **Find game: ranked matchmaking**

@@ -1,6 +1,6 @@
 # Bowfall
 
-Version 0.14.0. See [CHANGELOG.md](CHANGELOG.md) for what changed in each version.
+Version 0.14.1. See [CHANGELOG.md](CHANGELOG.md) for what changed in each version.
 
 Top-down knockback archery for teams, with a website, accounts and a forum: Red vs Blue, up to 4 per side, humans and bots mixed however you like, across eight arenas. The main menu has a **How to play** screen (also in the in-game menu) that explains everything below.
 

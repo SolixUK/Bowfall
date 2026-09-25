@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.14.0';
+const VERSION = '0.14.1';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);

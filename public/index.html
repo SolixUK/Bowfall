@@ -221,8 +221,23 @@
   .oltabs button.on { background: var(--panel); color: var(--text); }
   .olpane { display: flex; flex-direction: column; gap: 10px; }
   .roomlist { display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; }
-  .findgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
-  @media (max-width: 760px) { .findgrid { grid-template-columns: 1fr; } }
+  .findgrid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 26px; }
+  .card.wide.findcard { max-width: 1000px; }
+  .mecard { display: grid; grid-template-columns: 92px 1fr; gap: 6px 16px; align-items: center; padding: 14px; background: linear-gradient(135deg, rgba(255,207,90,.08), rgba(255,255,255,.02)); border: 1px solid var(--line); border-left: 3px solid var(--gold); }
+  .mecard canvas { grid-row: 1 / span 3; width: 92px; height: 92px; background: rgba(0,0,0,.25); border-radius: 50%; }
+  .mecard .nm { font: 700 24px 'Rajdhani', 'Arial Narrow', sans-serif; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .mecard .rt { display: flex; gap: 18px; flex-wrap: wrap; }
+  .mecard .rt span { display: flex; flex-direction: column; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+  .mecard .rt b { color: var(--text); font: 700 22px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: 0; text-transform: none; }
+  .mecard .rt .elo b { color: var(--gold); font-size: 30px; line-height: 1; }
+  .mecard .achs { display: flex; gap: 5px; flex-wrap: wrap; }
+  .mecard .achs span { border: 1px solid var(--bd); color: var(--bd); padding: 1px 6px; font: 600 11px 'Titillium Web', sans-serif; }
+  .fgguest { padding: 10px 12px; border: 1px dashed var(--gold); font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 8px; }
+  .fgguest b { color: var(--text); }
+  .fgchips .chip2 { padding: 5px 9px; font-size: 13px; }
+  .fr canvas { width: 38px; height: 38px; grid-row: 1 / span 2; border-radius: 50%; background: rgba(0,0,0,.25); }
+  .fr.mem { grid-template-columns: auto 1fr auto; }
+  @media (max-width: 820px) { .findgrid { grid-template-columns: 1fr; } }
   .fggo { font-size: 20px; padding: 14px; }
   #fgGo.searching { background: var(--panel); color: var(--gold); border: 1px solid var(--gold); }
   .fr { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: center; padding: 7px 10px; background: rgba(255,255,255,.04); border: 1px solid var(--line); }
@@ -231,6 +246,14 @@
   .fr b { font: 600 15px 'Rajdhani', 'Arial Narrow', sans-serif; } .fr small { color: var(--muted); font-size: 12px; grid-column: 2; }
   .fr .btnrow { grid-row: 1 / span 2; grid-column: 3; gap: 4px; }
   .fr .lead { color: var(--gold); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; margin-left: 6px; }
+  .ratedbox { position: fixed; z-index: 12; left: 50%; top: 84px; transform: translate(-50%, -12px); opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s;
+    display: flex; align-items: baseline; gap: 12px; padding: 10px 18px; background: rgba(9,18,11,.94); border: 1px solid var(--gold); box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+  .ratedbox.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  .ratedbox b { font: 700 30px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--gold); }
+  .ratedbox em, .resrated em { font: 700 18px 'Rajdhani', 'Arial Narrow', sans-serif; font-style: normal; }
+  .ratedbox .up, .resrated .up { color: #7dff8a; } .ratedbox .down, .resrated .down { color: #ff8a8a; }
+  .ratedbox a { font-size: 12px; color: var(--muted); }
+  .resrated { font-size: 16px; } .resrated b { font: 700 24px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--gold); margin: 0 6px; }
   .invite { position: fixed; z-index: 15; right: 16px; bottom: 16px; max-width: 320px; padding: 12px 14px; background: rgba(9,18,11,.96); border: 1px solid var(--gold); display: flex; flex-direction: column; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
   .invite[hidden] { display: none; }
   .aitag { font: 600 10px 'Titillium Web', sans-serif; letter-spacing: .08em; color: #9fb8ff; border: 1px solid #9fb8ff; padding: 0 4px; margin-left: 6px; vertical-align: 2px; }
@@ -551,7 +574,7 @@
       <div class="gatecols">
         <div class="mode">
           <h3>Quick play</h3>
-          <p>Pick a name and jump in. Your stats aren't saved.</p>
+          <p>Pick a name and jump in. Your rating and stats are saved in this browser, and move to an account if you make one later.</p>
           <div class="field"><label for="gateName">Your name</label><input id="gateName" maxlength="16" autocomplete="off" placeholder="Archer"></div>
           <button class="cta" id="gatePlay" type="button">Play</button>
         </div>
@@ -590,19 +613,26 @@
   <!-- custom games: the public list, join by code, host, practice -->
   <!-- find game: ranked matchmaking, your party and your friends -->
   <div class="overlay sub" id="findScr" hidden>
-    <div class="card wide">
-      <div class="shopbar"><div class="stat"><span class="eyebrow">Play</span><h2>Find game</h2></div>
+    <div class="card wide findcard">
+      <div class="shopbar"><div class="stat"><span class="eyebrow">Play · ranked</span><h2>Find game</h2></div>
         <div class="btnrow"><button class="ghost" type="button" data-back>Back</button></div></div>
       <div class="findgrid">
         <div class="olpane">
+          <div class="mecard" id="fgMe"></div>
           <h3>Mode</h3>
           <div class="oltabs" id="fgModes"><button type="button" data-mode="1v1">1v1</button><button type="button" data-mode="2v2">2v2</button><button type="button" data-mode="3v3">3v3</button></div>
-          <h3>Your party</h3>
-          <div class="roomlist" id="fgParty"></div>
           <button class="cta fggo" id="fgGo" type="button">Find match</button>
           <span class="status" id="fgStatus">Matched by rating with players near your level. If nobody close is searching, AI players fill in after a short wait.</span>
+          <div class="fgguest" id="fgGuest" hidden><b>Playing as a guest.</b> Your rating and stats are saved in this browser. Create an account to keep them everywhere, climb the leaderboards and add friends. Everything you've earned comes with you.
+            <div class="btnrow"><a class="cta sm" href="/#/register?next=/play">Create account</a><a class="ghost sm" href="/#/login?next=/play">Sign in</a></div></div>
+          <h3>Your archetype</h3>
+          <div class="chips fgchips" id="fgEl"></div>
+          <div class="chips fgchips" id="fgRo"></div>
+          <span class="status" id="fgArch"></span>
         </div>
         <div class="olpane">
+          <h3>Party</h3>
+          <div class="roomlist" id="fgParty"></div>
           <h3>Friends</h3>
           <div id="fgAddRow" class="row"><div class="field"><label for="fgAdd">Add a friend</label><input id="fgAdd" maxlength="16" autocomplete="off" placeholder="Player name"></div><button class="ghost" id="fgAddBtn" type="button">Send request</button></div>
           <div id="fgReq"></div>
@@ -611,6 +641,7 @@
       </div>
     </div>
   </div>
+  <div class="ratedbox" id="ratedBox" hidden></div>
   <div class="invite" id="inviteToast" hidden><span id="inviteText"></span><div class="btnrow"><button class="cta sm" id="inviteYes" type="button">Join party</button><button class="ghost sm" id="inviteNo" type="button">No thanks</button></div></div>
   <div class="overlay sub" id="customScr" hidden>
     <div class="card wide">
@@ -798,12 +829,13 @@
         <div class="shopbar"><h3>Rankings</h3><span class="status">Click a column to rank by it.</span></div>
         <div class="tablewrap"><table class="rank" id="resTable"></table></div>
       </div>
+      <div class="resrated" id="resRated" hidden></div>
       <span class="status" id="resNext"></span>
       <div class="btnrow">
         <button class="cta" id="rematchBtn" type="button">Rematch now</button>
         <button class="ghost" id="resLobbyBtn" type="button">Back to lobby</button>
         <button class="ghost" id="resBalBtn" type="button">Balance data</button>
-        <button class="cta" id="resFindBtn" type="button" hidden>Find another match</button>
+        <button class="cta" id="resFindBtn" type="button" hidden>Back to Find game</button>
         <button class="ghost" id="resLeaveBtn" type="button">Leave</button>
       </div>
     </div>
@@ -1597,6 +1629,8 @@ function act(m) {
   } else if (ws && ws.readyState === 1) ws.send(JSON.stringify(m));
 }
 // the archetype you last chose is remembered between sessions
+// a guest's browser keeps a random id, so their rating and stats carry on between visits (and move to an account later)
+const GUEST_TOKEN = (() => { let t = store.get('bowfall-guest', ''); if (!/^[A-Za-z0-9]{16,48}$/.test(t)) { t = Array.from(crypto.getRandomValues(new Uint8Array(18)), b => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[b % 62]).join(''); store.set('bowfall-guest', t); } return t; })();
 function myLoadout() {
   const el = store.get('bowfall-el', 'frost'), ro = store.get('bowfall-ro', 'sniper');
   return { el: ELEMENTS[el] ? el : 'frost', ro: ROLES[ro] ? ro : 'sniper' };
@@ -1637,7 +1671,7 @@ function connect(joinMsg) {
   let sock;
   try { sock = new WebSocket(url); } catch (e) { status.classList.add('err'); status.textContent = 'Could not reach the server.'; return; }
   ws = sock;
-  sock.onopen = () => sock.send(JSON.stringify(Object.assign({ t: 'join', name: playerName(), el: myLoadout().el, ro: myLoadout().ro }, joinMsg)));
+  sock.onopen = () => sock.send(JSON.stringify(Object.assign({ t: 'join', name: playerName(), el: myLoadout().el, ro: myLoadout().ro, gt: GUEST_TOKEN }, joinMsg)));
   sock.onmessage = e => {
     let m; try { m = JSON.parse(e.data); } catch (err) { return; }
     if (m.t === 'welcome') {
@@ -1666,7 +1700,7 @@ function connect(joinMsg) {
       olTab('code'); $('codeIn').value = m.code; $('pwWrap').hidden = false; $('pwIn').focus();
       status.classList.add('err'); status.textContent = m.msg;
     } else if (m.t === 'rated') {
-      feedAdd(`Rating <b>${Math.round(m.elo)}</b> <span class="cause">(${m.d >= 0 ? '+' : ''}${Math.round(m.d)})</span>`, true);
+      showRated(m);
     } else if (m.t === 'ach') {
       Ach.fromServer(m);
     } else if (m.t === 'err') {
@@ -1683,6 +1717,28 @@ function connect(joinMsg) {
   };
 }
 
+// ================= rating changes =================
+// after each game: a banner with the change and the new rating; the results screen shows the whole match's change
+const RATED = { start: null, now: null, match: null };
+function showRated(m) {
+  const d = Math.round(m.d), elo = Math.round(m.elo), up = d >= 0;
+  if (RATED.match !== (roomInfo && roomInfo.code) || RATED.start == null) { RATED.match = roomInfo && roomInfo.code; RATED.start = elo - d; }
+  RATED.now = elo;
+  const box = $('ratedBox');
+  box.innerHTML = `<span class="eyebrow">Rating</span><b>${elo}</b><em class="${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(d)}</em>` +
+    (m.guest ? `<a href="/#/register?next=/play" target="_blank" rel="noopener">Make an account to keep it</a>` : '');
+  box.classList.remove('show'); void box.offsetWidth; box.classList.add('show'); box.hidden = false;
+  clearTimeout(RATED.t); RATED.t = setTimeout(() => { box.classList.remove('show'); }, 6500);
+  tone(up ? 784 : 392, 0.12, 'triangle', 0.04); setTimeout(() => tone(up ? 1047 : 330, 0.16, 'triangle', 0.04), 110);
+  renderResRated();
+}
+function renderResRated() {
+  const el = $('resRated'); if (!el) return;
+  if (RATED.now == null || RATED.match !== (roomInfo && roomInfo.code)) { el.hidden = true; return; }
+  const d = Math.round(RATED.now - RATED.start);
+  el.hidden = false; el.innerHTML = `Your rating <b>${RATED.now}</b> <em class="${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '+' : '−'}${Math.abs(d)} this match</em>`;
+}
+
 // ================= friends, party and matchmaking =================
 // a second connection, just for these, open while you're on the site (games use their own)
 const SOC = { ws: null, st: null, mode: store.get('bowfall-mm-mode', '1v1'), retry: 0, invite: null };
@@ -1690,19 +1746,21 @@ function socialConnect() {
   if (OFFLINE || (SOC.ws && SOC.ws.readyState <= 1)) return;
   const sock = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
   SOC.ws = sock;
-  sock.onopen = () => { SOC.retry = 0; sock.send(JSON.stringify({ t: 'hello', name: playerName() })); };
+  sock.onopen = () => { SOC.retry = 0; socialHello(); };
   sock.onmessage = e => {
     let m; try { m = JSON.parse(e.data); } catch (err) { return; }
     if (m.t === 'social') { SOC.st = m; if (m.party && m.party.mode) SOC.mode = m.party.mode; renderFind(); findBadge(); }
     else if (m.t === 'note') notice(esc(m.msg), false);
     else if (m.t === 'invite') showInvite(m);
     else if (m.t === 'matched') {
+      if (SOC.st && SOC.st.party) SOC.st.party.queued = null; findBadge();
       $('fgStatus').textContent = 'Match found! Joining…'; uiSfx.click(); tone(660, 0.12, 'triangle', 0.05); setTimeout(() => tone(990, 0.16, 'triangle', 0.05), 120);
       closeSubs(); connect({ code: m.code, ticket: m.ticket });
     }
   };
   sock.onclose = () => { if (SOC.ws === sock) { SOC.ws = null; SOC.st = null; renderFind(); setTimeout(socialConnect, Math.min(15000, 1000 * 2 ** SOC.retry++)); } };
 }
+function socialHello() { socialSend({ t: 'hello', name: playerName(), gt: GUEST_TOKEN, el: myLoadout().el, ro: myLoadout().ro }); }
 function socialSend(m) { if (SOC.ws && SOC.ws.readyState === 1) SOC.ws.send(JSON.stringify(m)); }
 function findBadge() {
   const n = SOC.st ? SOC.st.inReq.length : 0, q = SOC.st && SOC.st.party && SOC.st.party.queued != null;
@@ -1712,17 +1770,51 @@ function renderFind() {
   if ($('findScr').hidden) return;
   const st = SOC.st, party = st && st.party, me = st && st.you, lead = !party || party.leader === me;
   const mode = (party && party.mode) || SOC.mode, queued = party && party.queued != null;
+  const P = st && st.me, lo = myLoadout();
+  // your card
+  if (!P) $('fgMe').innerHTML = '<div class="status">Connecting…</div>';
+  else {
+    const rate = P.games ? Math.round(P.wins / P.games * 100) + '%' : '–';
+    const key = [P.name, P.elo, P.games, P.lv, P.cc, P.top.join(), lo.el, lo.ro].join('|');
+    if (hc.fgMe !== key) {
+      hc.fgMe = key;
+      $('fgMe').innerHTML = `<canvas id="fgAv" width="184" height="184"></canvas>
+        <div class="nm">${rankHtml(P.lv)}${flagHtml(P.cc)}${esc(P.name)}${P.guest ? '<span class="tag">Guest</span>' : ''}</div>
+        <div class="rt"><span class="elo"><b>${P.elo}</b>Rating</span><span><b>${P.games}</b>Games</span><span><b>${rate}</b>Win rate</span><span><b>${P.kills}</b>Knockouts</span></div>
+        <div class="achs">${P.top.length ? P.top.map(k => `<span style="--bd:${BORDERS[k] || '#c9d1dc'}">${esc(Sim.ACHIEVEMENTS[k].title)}</span>`).join('') + (P.nAch > P.top.length ? `<small class="status">+${P.nAch - P.top.length} more</small>` : '') : '<small class="status">No achievements yet</small>'}</div>`;
+      const av = (account && account.avatar) || null;
+      try { drawPreview($('fgAv'), av ? av.el : lo.el, av ? av.ro : lo.ro, av ? av.c : TEAM_INFO.red.shades[0]); } catch (e) {}
+    }
+    $('fgGuest').hidden = !P.guest;
+  }
+  // archetype
+  if (!$('fgEl').children.length) {
+    $('fgEl').innerHTML = Object.entries(ELEMENTS).map(([k, e]) => `<button type="button" class="chip2" data-el="${k}" style="--cc:${e.color}"><i></i>${e.name}</button>`).join('');
+    $('fgRo').innerHTML = Object.entries(ROLES).map(([k, r]) => `<button type="button" class="chip2" data-ro="${k}" style="--cc:${CAT_COL[r.cat]}">${r.name}</button>`).join('');
+  }
+  $('fgEl').querySelectorAll('[data-el]').forEach(b => b.classList.toggle('sel', b.dataset.el === lo.el));
+  $('fgRo').querySelectorAll('[data-ro]').forEach(b => b.classList.toggle('sel', b.dataset.ro === lo.ro));
+  $('fgArch').innerHTML = `<b>${esc(ELEMENTS[lo.el].name + ' ' + ROLES[lo.ro].name)}</b> · ${esc(ELEMENTS[lo.el].blurb + ' ' + ROLES[lo.ro].blurb)}`;
+  // mode and search
   $('fgModes').querySelectorAll('button').forEach(b => { b.classList.toggle('on', b.dataset.mode === mode); b.disabled = !lead || queued; });
-  const members = party ? party.members : st ? [{ key: me, name: playerName(), you: 1 }] : [];
-  $('fgParty').innerHTML = !st ? '<div class="status">Connecting…</div>' : members.map(p => `<div class="fr"><i class="dot on"></i><b>${esc(p.name)}${party && p.key === party.leader && party.members.length > 1 ? '<span class="lead">Leader</span>' : ''}</b>` +
-    `<small>${p.key === me ? 'You' : 'Rating ' + p.elo}</small><div class="btnrow">${party && lead && p.key !== me ? `<button class="ghost sm" type="button" data-kick="${esc(p.key)}">Remove</button>` : ''}</div></div>`).join('') +
-    (party && party.members.length > 1 ? `<button class="ghost sm" type="button" id="fgLeave">Leave party</button>` : '') +
-    (st && st.account ? '<span class="status">Invite friends from the list to play together (up to 3).</span>' : '');
   const go = $('fgGo');
   go.disabled = !st || !lead; go.classList.toggle('searching', !!queued);
   go.textContent = queued ? `Searching… ${fmtWait(party.queued)} (cancel)` : `Find ${mode} match`;
   if (queued) $('fgStatus').textContent = party.queued < party.fill ? 'Looking for players near your rating…' : 'No close match yet: filling the gaps with AI players…';
   else if (st && !lead) $('fgStatus').textContent = 'Waiting for the party leader to start the search.';
+  else if (st && $('fgStatus').textContent.startsWith('Looking') || $('fgStatus').textContent.startsWith('No close')) $('fgStatus').textContent = 'Matched by rating with players near your level. If nobody close is searching, AI players fill in after a short wait.';
+  // party
+  const members = party ? party.members : P ? [P] : [];
+  const pkey = JSON.stringify(members) + (party && party.leader) + lead;
+  if (hc.fgParty !== pkey) {
+    hc.fgParty = pkey;
+    $('fgParty').innerHTML = !st ? '<div class="status">Connecting…</div>' : members.map((p, i) => `<div class="fr mem"><canvas data-av="${i}" width="76" height="76"></canvas>` +
+      `<b>${rankHtml(p.lv)}${flagHtml(p.cc)}${esc(p.name)}${p.key === me ? ' <small class="status">(you)</small>' : ''}${party && p.key === party.leader && party.members.length > 1 ? '<span class="lead">Leader</span>' : ''}</b>` +
+      `<small>Rating ${p.elo}${p.el && p.ro ? ' · ' + esc(ELEMENTS[p.el].name + ' ' + ROLES[p.ro].name) : ''}${p.games ? ` · ${p.games} games` : ''}</small><div class="btnrow">${party && lead && p.key !== me ? `<button class="ghost sm" type="button" data-kick="${esc(p.key)}">Remove</button>` : ''}</div></div>`).join('') +
+      (party && party.members.length > 1 ? `<button class="ghost sm" type="button" id="fgLeave">Leave party</button>` : '') +
+      (st && st.account && members.length < 3 ? '<span class="status">Invite friends from the list below to play together (up to 3).</span>' : '');
+    $('fgParty').querySelectorAll('canvas[data-av]').forEach(c => { const p = members[+c.dataset.av], el = p.el || (p.key === me ? lo.el : 'frost'), ro = p.ro || (p.key === me ? lo.ro : 'sniper'); try { drawPreview(c, p.avatar ? p.avatar.el : el, p.avatar ? p.avatar.ro : ro, p.avatar ? p.avatar.c : TEAM_INFO.red.shades[0]); } catch (e) {} });
+  }
   // friends
   const acct = st && st.account;
   $('fgAddRow').hidden = !acct;
@@ -1731,12 +1823,20 @@ function renderFind() {
   $('fgReq').innerHTML = st.inReq.map(f => `<div class="fr"><i class="dot"></i><b>${esc(f.name)}</b><small>Wants to be friends</small><div class="btnrow"><button class="cta sm" type="button" data-facc="${f.id}">Accept</button><button class="ghost sm" type="button" data-fdec="${f.id}">Decline</button></div></div>`).join('') +
     st.outReq.map(f => `<div class="fr"><i class="dot"></i><b>${esc(f.name)}</b><small>Request sent</small><div class="btnrow"><button class="ghost sm" type="button" data-fcan="${f.id}">Cancel</button></div></div>`).join('');
   const inParty = new Set((party ? party.members : []).map(p => p.key));
-  $('fgFriends').innerHTML = st.friends.length ? st.friends.sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name)).map(f => `<div class="fr"><i class="dot${f.inGame ? ' play' : f.online ? ' on' : ''}"></i><b>${esc(f.name)}</b>` +
-    `<small>${f.inGame ? 'In a game' : f.online ? 'Online' : 'Offline'} · Lv ${f.lv} · Rating ${f.elo}</small><div class="btnrow">` +
+  $('fgFriends').innerHTML = st.friends.length ? st.friends.sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name)).map(f => `<div class="fr"><i class="dot${f.inGame ? ' play' : f.online ? ' on' : ''}"></i><b>${rankHtml(f.lv)}${flagHtml(f.cc)}${esc(f.name)}</b>` +
+    `<small>${f.inGame ? 'In a game' : f.online ? 'Online' : 'Offline'} · Rating ${f.elo}</small><div class="btnrow">` +
     (f.online && lead && !inParty.has('u' + f.id) ? `<button class="ghost sm" type="button" data-finv="${f.id}">Invite</button>` : '') +
     `<button class="ghost sm" type="button" data-frem="${f.id}" aria-label="Remove ${esc(f.name)}">×</button></div></div>`).join('')
     : '<div class="status">No friends yet. Add someone by their player name.</div>';
 }
+function pickFgArch(e) {
+  const b = e.target.closest('.chip2'); if (!b) return;
+  const cur = myLoadout(), el = b.dataset.el || cur.el, ro = b.dataset.ro || cur.ro;
+  store.set('bowfall-el', el); store.set('bowfall-ro', ro);
+  socialSend({ t: 'party', op: 'loadout', el, ro }); hc.fgMe = hc.fgParty = null; renderFind();
+}
+$('fgEl').addEventListener('click', pickFgArch);
+$('fgRo').addEventListener('click', pickFgArch);
 const fmtWait = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 $('fgModes').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (!b) return; SOC.mode = b.dataset.mode; store.set('bowfall-mm-mode', SOC.mode); socialSend({ t: 'party', op: 'mode', mode: SOC.mode }); renderFind(); });
 $('fgGo').onclick = () => { const q = SOC.st && SOC.st.party && SOC.st.party.queued != null; initAudio(); socialSend({ t: 'queue', op: q ? 'cancel' : 'start', mode: SOC.mode }); };
@@ -1796,6 +1896,7 @@ $('gChatIn').addEventListener('blur', () => setTimeout(() => { if (document.acti
 $('specBar').addEventListener('click', e => { const b = e.target.closest('button[data-join]'); if (b && !b.disabled) act({ t: 'team', team: b.dataset.join }); });
 
 function toMenu() {
+  const wasRanked = mode === 'online' && !!(roomInfo && roomInfo.ranked);
   TUT.on = false;
   mode = 'menu'; myId = null; world = null; view = null; menuOpen = false; roomInfo = null; clearChat();
   if (ws) { const s = ws; ws = null; try { s.close(); } catch (e) {} }
@@ -1804,6 +1905,7 @@ function toMenu() {
   document.body.classList.remove('spectating'); hc = {};
   history.replaceState(null, '', location.pathname);
   setScreens();
+  if (wasRanked) openSub('findScr'); // after a ranked game, back to the Find game screen (searching only when you say so)
 }
 
 // ================= balance data =================
@@ -2438,7 +2540,7 @@ const SUBS = ['findScr', 'customScr', 'scoresScr', 'optScr', 'profScr'];
 function openSub(id) {
   for (const k of SUBS) $(k).hidden = k !== id;
   if (id === 'customScr') { $('olHost').hidden = true; refreshRooms(); }
-  if (id === 'findScr') { socialConnect(); renderFind(); }
+  if (id === 'findScr') { socialConnect(); socialHello(); renderFind(); }
   if (id === 'scoresScr') renderScores();
   if (id === 'optScr') syncOptions();
   if (id === 'profScr') renderProfile();
@@ -2481,6 +2583,7 @@ async function loadAccount() {
   $('siteLinks').hidden = false;
   try { account = (await (await fetch('/api/me', { cache: 'no-store' })).json()).user; } catch (e) { account = null; }
   const back = encodeURIComponent('/play' + location.search);
+  try { const mv = JSON.parse(sessionStorage.getItem('bowfall-moved') || 'null'); if (mv && account) { sessionStorage.removeItem('bowfall-moved'); setTimeout(() => notice(`Your guest rating (<b>${mv.elo}</b>) and ${mv.games} games moved to your account.`, false), 800); } } catch (e) {}
   if (account) {
     $('acctBar').innerHTML = `Signed in as <b>${esc(account.name)}</b> · <a href="/#/u/${encodeURIComponent(account.name)}">Stats and achievements on the website</a> · <a href="#" id="signOut">Sign out</a>`;
     $('nameIn').value = account.name; $('nameIn').disabled = true; $('nameIn').title = 'You play under your account name.';
@@ -2573,7 +2676,7 @@ $('menuBtn').onclick = () => (menuOpen ? closeMenu() : openMenu());
 $('resumeBtn').onclick = closeMenu;
 $('leaveBtn').onclick = toMenu;
 $('resLeaveBtn').onclick = toMenu;
-$('resFindBtn').onclick = () => { toMenu(); openSub('findScr'); socialSend({ t: 'queue', op: 'start', mode: SOC.mode }); };
+$('resFindBtn').onclick = toMenu;
 $('rematchBtn').onclick = () => act({ t: 'restart' });
 
 function banner(title, sub = '') {
@@ -4869,7 +4972,7 @@ function updateHud() {
       $('resultsScreen').hidden = false;
       $('gameMenu').hidden = true; menuOpen = false; paused = false;
     }
-    setC('next', isHost() + ':' + !!(roomInfo && roomInfo.ranked), h => { $('resFindBtn').hidden = !(mode === 'online' && roomInfo && roomInfo.ranked); if (roomInfo && roomInfo.ranked) { $('resNext').textContent = 'Ranked match over. Your new rating is on your profile.'; $('rematchBtn').hidden = $('resLobbyBtn').hidden = true; return; } h = isHost(); $('resNext').textContent = h ? 'Start a rematch or head back to the lobby when everyone is ready.' : 'Waiting for the host to start a rematch or return to the lobby.'; $('rematchBtn').hidden = $('resLobbyBtn').hidden = !h; });
+    setC('next', isHost() + ':' + !!(roomInfo && roomInfo.ranked), h => { renderResRated(); $('resFindBtn').hidden = !(mode === 'online' && roomInfo && roomInfo.ranked); $('resLeaveBtn').hidden = !$('resFindBtn').hidden; if (roomInfo && roomInfo.ranked) { $('resNext').textContent = 'Ranked match over.'; $('rematchBtn').hidden = $('resLobbyBtn').hidden = true; return; } h = isHost(); $('resNext').textContent = h ? 'Start a rematch or head back to the lobby when everyone is ready.' : 'Waiting for the host to start a rematch or return to the lobby.'; $('rematchBtn').hidden = $('resLobbyBtn').hidden = !h; });
   } else if (resultsFor) { resultsFor = null; $('resultsScreen').hidden = true; }
 }
 

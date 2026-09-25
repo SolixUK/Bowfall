@@ -174,6 +174,12 @@ const rankOf = lv => { let r = RANKS[0]; for (const x of RANKS) if (lv >= x[0]) 
 const badge = (lv, big) => (lv ? `<span class="rkb${big ? ' big' : ''}" style="--rc:${rankOf(lv).col}" title="${rankOf(lv).name} · level ${lv}">${lv}</span>` : '');
 // every two-letter region the browser knows a name for, for the flag picker
 const COUNTRIES = (() => { const out = []; const A = 'abcdefghijklmnopqrstuvwxyz'; for (const a of A) for (const b of A) { const cc = a + b, n = regionName(cc); if (n && n.toUpperCase() !== cc.toUpperCase() && !/unknown/i.test(n) && !/^(q.|x.|zz|ez|un|eu|aa)$/.test(cc)) out.push([cc, n]); } return out.sort((x, y) => x[1].localeCompare(y[1])); })();
+// a guest's rating and stats (kept against this browser's guest id) move to the account on sign-up or sign-in
+function guestToken() { try { return localStorage.getItem('bowfall-guest') || undefined; } catch (e) { return undefined; } }
+function guestMoved(r) {
+  if (!r || !r.guestMoved || r.guestMoved.skipped) return;
+  try { localStorage.removeItem('bowfall-guest'); sessionStorage.setItem('bowfall-moved', JSON.stringify(r.guestMoved)); } catch (e) {}
+}
 async function api(path, body) {
   const r = await fetch('/api' + path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), credentials: 'same-origin' } : { credentials: 'same-origin' });
   let d = {}; try { d = await r.json(); } catch (e) {}
@@ -255,13 +261,14 @@ const pages = {
     app.querySelectorAll('[data-role]').forEach(b => b.onclick = () => go('#/leaderboard/role?r=' + b.dataset.role));
   },
   async user(name) {
+    const movedNote = (() => { try { const m = JSON.parse(sessionStorage.getItem('bowfall-moved') || 'null'); sessionStorage.removeItem('bowfall-moved'); return m; } catch (e) { return null; } })();
     const d = await api('/users/' + encodeURIComponent(name)).catch(e => ({ error: e.message }));
     if (d.error) { app.innerHTML = `<div class="card empty">${esc(d.error)}</div>`; return; }
     const u = d.user, c = u.career || {}, A = Sim.ACHIEVEMENTS, got = new Set(u.got), mine = me && me.name.toLowerCase() === u.name.toLowerCase();
     const pct = (a, b) => (b ? Math.round(a / b * 100) + '%' : '–');
     const bars = (obj, names) => { const e = Object.entries(obj || {}).sort((a, b) => b[1] - a[1]).slice(0, 5), max = e.length ? e[0][1] : 1;
       return e.length ? `<div class="bars">${e.map(([k, v]) => `<div><span>${esc((names[k] || {}).name || k)}</span><i style="width:${Math.max(4, v / max * 100)}%"></i><span class="muted">${v}</span></div>`).join('')}</div>` : '<p class="muted">No games yet.</p>'; };
-    app.innerHTML = `
+    app.innerHTML = (movedNote ? `<div class="card" style="margin-bottom:16px;border-left:3px solid var(--gold)">Your guest rating (<b>${movedNote.elo}</b>) and ${movedNote.games} games moved to this account.</div>` : '') + `
       <div class="section-h" style="margin-top:0"><div><h1 style="font-size:44px;display:flex;align-items:center;flex-wrap:wrap">${badge(u.level && u.level.lv, true)}${u.country ? flag(u.country).replace('width="20" height="15"', 'width="32" height="24" style="width:32px;height:24px;vertical-align:2px"') : ''}${esc(u.name)}</h1>
         <p class="muted" style="margin:6px 0 0">${u.title ? `<span class="tag" style="margin:0 6px 0 0">${esc(titleName(u.title))}</span>` : ''}${u.admin ? '<span class="tag admin" style="margin:0 6px 0 0">Admin</span>' : ''}${u.ai ? '<span class="tag" style="margin:0 6px 0 0">AI player</span>An AI opponent that fills matchmaking games. ' : ''}Joined ${new Date(u.created).toLocaleDateString()}</p>
         ${u.level ? `<div style="width:380px;max-width:100%;margin-top:10px"><div class="muted" style="font-size:13px;display:flex;justify-content:space-between;gap:12px"><span>${rankOf(u.level.lv).name} · level ${u.level.lv}</span><span>${u.level.xp - u.level.cur} / ${u.level.next - u.level.cur} xp to level ${u.level.lv + 1}</span></div><div class="xp"><i style="width:${Math.round((u.level.xp - u.level.cur) / Math.max(1, u.level.next - u.level.cur) * 100)}%"></i></div></div>` : ''}</div>
@@ -340,7 +347,7 @@ const pages = {
     const f = $('authF'); f.name.focus();
     f.onsubmit = async e => {
       e.preventDefault();
-      try { me = (await api(reg ? '/register' : '/login', { name: f.name.value.trim(), password: f.password.value })).user; drawWho();
+      try { const r = await api(reg ? '/register' : '/login', { name: f.name.value.trim(), password: f.password.value, guest: guestToken() }); me = r.user; drawWho(); guestMoved(r);
         const next = new URLSearchParams(location.hash.split('?')[1] || '').get('next');
         if (next && next.startsWith('/')) location.href = next; else go('#/u/' + me.name);
       } catch (err) { $('aErr').textContent = err.message; }
@@ -357,7 +364,7 @@ pages.finish = async () => {
   const f = $('finF'); f.name.select();
   f.onsubmit = async e => {
     e.preventDefault();
-    try { me = (await api('/oauth/finish', { name: f.name.value.trim() })).user; drawWho(); if (d.pending.next) location.href = d.pending.next; else go('#/u/' + me.name); }
+    try { const r = await api('/oauth/finish', { name: f.name.value.trim(), guest: guestToken() }); me = r.user; drawWho(); guestMoved(r); if (d.pending.next) location.href = d.pending.next; else go('#/u/' + me.name); }
     catch (err) { $('fErr').textContent = err.message; }
   };
 };
