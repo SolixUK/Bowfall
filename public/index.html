@@ -308,6 +308,9 @@
   .frrow .frn small { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .frrow .ghost.sm { padding: 3px 8px; font-size: 12px; }
   .frpanel .frmore { font-size: 12px; }
+  .frrow .fracc { border-color: #3fd0c9; color: #7ff0ea; }
+  .frrow.frreq { background: rgba(63,208,201,.08); margin: 0 -6px; padding: 4px 6px; }
+  .fradd { display: flex; gap: 6px; margin-top: 4px; } .fradd input { flex: 1; min-width: 0; padding: 5px 8px; font-size: 13px; background: rgba(0,0,0,.3); border: 1px solid var(--line); color: inherit; }
   .lpkey { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 6px; background: rgba(255,255,255,.06); font-size: 13px; }
   .lpkey em { font-style: normal; font-weight: 700; color: var(--gold); }
   .lppickfloat { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 3; max-width: min(760px, calc(100vw - 32px)); background: rgba(8,14,10,.92); border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 8px 10px; }
@@ -371,7 +374,12 @@
   .ach h4 { margin: 0; font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .01em; }
   .ach.got h4 { color: var(--gold); }
   .ach .bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,.08); overflow: hidden; }
-  .ach .bar i { display: block; height: 100%; background: var(--gold); }
+  .ach .bar i { display: block; height: 100%; background: var(--tc, var(--gold)); }
+  .ach.got { border-color: color-mix(in srgb, var(--tc) 60%, transparent); background: color-mix(in srgb, var(--tc) 7%, transparent); }
+  .ach.got h4 { color: var(--tc); }
+  .achh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .achtier { font: 700 12px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--tc); letter-spacing: .04em; }
+  .achpips { display: flex; gap: 4px; } .achpips i { flex: 1; height: 5px; background: rgba(255,255,255,.08); }
   em.ttl { font-style: normal; color: var(--gold); font-weight: 600; }
   .card.wide.help-card { max-width: 900px; background: #122016; }
   .help-nav { display: flex; flex-wrap: wrap; gap: 6px; position: sticky; top: 0; z-index: 1; box-shadow: 0 8px 12px -8px rgba(0,0,0,.6); margin: -6px -8px 0; padding: 8px; background: #122016; border-bottom: 1px solid var(--line); }
@@ -989,7 +997,7 @@
     <div class="padmap">
       <span><b>Left stick</b> move</span><span><b>Right stick</b> aim</span><span><b>Right trigger</b> draw and fire</span><span><b>A / Cross</b> or <b>left trigger</b> dash</span>
       <span><b>LB / RB</b> abilities Q and E</span><span><b>Start</b> menu</span><span><b>X, Y, B</b> pick upgrade 1, 2, 3</span>
-      <span><b>Aim assist:</b> built in for controllers, one strength for everyone. Near an enemy (or the spot you'd lead them to) your aim slows down and is nudged toward them, at any distance. It never locks on. The mouse is never assisted</span>
+      <span><b>Aim assist:</b> built in for controllers, one strength for everyone. Near an enemy your aim slows down and is drawn most of the way toward a spot just ahead of them, in the direction they're moving. You still finish the aim yourself, and it never locks on. The mouse is never assisted</span>
       <span><b>Menus:</b> D-pad or left stick to move, <b>A</b> to select, <b>B</b> to go back. On a list, left and right change it</span>
     </div>
     <div class="row" style="align-items:flex-end;gap:14px">
@@ -1001,10 +1009,10 @@
 </div>
 <div class="overlay" id="achScreen" hidden role="dialog" aria-labelledby="achTitle">
   <div class="card wide bal-card">
-    <div class="shopbar"><div class="stat"><span class="eyebrow">Achievements</span><h2 id="achTitle">Titles to earn</h2></div><button class="cta" id="achClose" type="button">Close</button></div>
+    <div class="shopbar"><div class="stat"><span class="eyebrow">Achievements</span><h2 id="achTitle">Challenges</h2></div><button class="cta" id="achClose" type="button">Close</button></div>
     <div class="row" style="align-items:flex-end;gap:14px"><div class="field"><label for="titleSel">Your title</label><select id="titleSel"></select></div><div class="field"><label for="borderSel">Name banner border</label><select id="borderSel"></select></div><span class="status" id="achSum"></span></div>
     <div class="help-grid" id="achGrid"></div>
-    <p class="status">Progress is saved in this browser. Everyone in your games sees the title you pick, next to your name.</p>
+    <p class="status">Each achievement has five tiers, from Bronze to Diamond, and shows how rare your tier is among players. They're earned in ranked games and in custom games without bots. Everyone in your games sees the title you pick next to your name.</p>
   </div>
 </div>
 <div class="overlay" id="balScreen" hidden role="dialog" aria-labelledby="balTitle">
@@ -1371,11 +1379,10 @@ $('ctlBtn').onclick = openCtl; $('gmCtlBtn').onclick = openCtl; $('ctlClose').on
 const pad = { on: false, mx: 0, my: 0, draw: false, aim: null, mag: 0, prev: [], want: null, wantMag: 0, t: 0, nav: { dir: null, t: 0 } };
 // controller aim sensitivity 1-10: how many radians a second the aim can swing round (10 is instant). The mouse is never affected.
 // controller aim assist: one fixed strength for everyone on a controller, to make up for a stick's coarser aim against a mouse.
-// It's a gentle bias, not a lock-on. Each enemy has a "zone": their body plus the spot you'd lead them to (where a full draw
-// would meet them, from how they're moving). Aiming anywhere inside the zone is left alone, so leading a runner still works;
-// the aim just moves more slowly there, which makes it easy to stay on them. Aiming a little outside it nudges you part of
-// the way back toward its edge, never all the way and never onto their middle.
-const PAD_ASSIST = { slow: 0.55, pull: 0.55 };
+// It's a pull, not a lock-on. Near an enemy the aim slows down and is drawn 60% of the way toward a point just ahead of them:
+// their middle, shifted a third of the way toward where a full draw would meet them if they keep moving. You still have
+// to finish the aim (and lead a fast runner more), but it's easy to stay on them.
+const PAD_ASSIST = { slow: 0.55, pull: 0.6, lead: 0.35 };
 const wrapA = a => ((a + Math.PI) % TAU + TAU) % TAU - Math.PI;
 function padAssistTarget(aim, meP) {
   const me = meP || (view && view.p.find(q => q.id === myId));
@@ -1389,9 +1396,9 @@ function padAssistTarget(aim, meP) {
     if (d < 1) continue;
     const t = d / shot, lx = q.x + (q.vx || 0) * t - me.x, ly = q.y + (q.vy || 0) * t - me.y;
     const oc = wrapA(Math.atan2(dy, dx) - aim), ol = wrapA(Math.atan2(ly, lx) - aim), body = Math.atan2(q.rz || 16, d);
-    const lo = Math.min(oc, ol) - body, hi = Math.max(oc, ol) + body;
-    const s = lo > 0 ? lo : hi < 0 ? hi : 0; // how far the aim is from the zone (0 inside it), and which way
-    const margin = Math.min(0.35, Math.max(0.12, Math.atan2(60, d)));
+    // the point it pulls toward: their middle, shifted a third of the way toward where they're heading
+    const s = oc + wrapA(ol - oc) * PAD_ASSIST.lead;
+    const margin = Math.min(0.4, Math.max(0.14, Math.atan2(70, d) + body));
     if (Math.abs(s) > margin) continue;
     const k = 1 - Math.abs(s) / margin;
     if (!best || k > best.k) best = { s, k };
@@ -1427,7 +1434,7 @@ function pollPad() {
     const as = PAD_ASSIST, t = padAssistTarget(want);
     if (t) {
       // a partial nudge toward the zone, fading out toward the edge of its reach so it never snaps
-      want += t.s * as.pull * Math.min(1, t.k / 0.5);
+      want += t.s * as.pull * Math.min(1, t.k / 0.35);
       rate = Math.min(rate, 40) * (1 - as.slow * t.k);
     }
     if (pad.aim == null || rate === Infinity) { pad.aim = want; pad.mag = am; }
@@ -1917,11 +1924,11 @@ $('dfLeave').onclick = () => toMenu();
 // when a rated match ends: a banner with the change and the new rating, also shown on the results screen
 const RATED = { start: null, now: null, match: null };
 function showRated(m) {
-  const d = Math.round(m.d), elo = Math.round(m.elo), up = d >= 0;
+  const d = Math.round(m.d), elo = Math.round(m.elo), up = d >= 0, kind = m.key === 'eloT' ? 'Team rating' : '1v1 rating';
   RATED.match = roomInfo && roomInfo.code; RATED.start = elo - d;
-  RATED.now = elo;
+  RATED.now = elo; RATED.kind = kind;
   const box = $('ratedBox');
-  box.innerHTML = `<span class="eyebrow">Rating</span><b>${elo}</b><em class="${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(d)}</em>` +
+  box.innerHTML = `<span class="eyebrow">${kind}</span><b>${elo}</b><em class="${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(d)}</em>` +
     (m.guest ? `<a href="/#/register?next=/play" target="_blank" rel="noopener">Make an account to keep it</a>` : '');
   box.classList.remove('show'); void box.offsetWidth; box.classList.add('show'); box.hidden = false;
   clearTimeout(RATED.t); RATED.t = setTimeout(() => { box.classList.remove('show'); }, 6500);
@@ -1932,7 +1939,7 @@ function renderResRated() {
   const el = $('resRated'); if (!el) return;
   if (RATED.now == null || RATED.match !== (roomInfo && roomInfo.code)) { el.hidden = true; return; }
   const d = Math.round(RATED.now - RATED.start);
-  el.hidden = false; el.innerHTML = `Your rating <b>${RATED.now}</b> <em class="${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '+' : '−'}${Math.abs(d)} this match</em>`;
+  el.hidden = false; el.innerHTML = `Your ${(RATED.kind || 'rating').toLowerCase()} <b>${RATED.now}</b> <em class="${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '+' : '−'}${Math.abs(d)} this match</em>`;
 }
 
 // ================= extra players on controllers (the same screen) =================
@@ -2124,7 +2131,7 @@ function pollLocals(dt) {
     if (am > 0.25) {
       let want = Math.atan2(ay, ax);
       const t = me ? padAssistTarget(want, me) : null; // the same controller aim assist as everyone else's
-      if (t) want += t.s * PAD_ASSIST.pull * Math.min(1, t.k / 0.5);
+      if (t) want += t.s * PAD_ASSIST.pull * Math.min(1, t.k / 0.35);
       l.aim = want;
     }
     const ranked = mode === 'online' && !!(roomInfo && roomInfo.ranked);
@@ -2245,6 +2252,7 @@ function socialConnect() {
     if (m.t === 'social') { SOC.st = m; if (m.party && m.party.mode) SOC.mode = m.party.mode; renderFind(); findBadge(); renderHomeFriends(); }
     else if (m.t === 'note') notice(esc(m.msg), false);
     else if (m.t === 'invite') showInvite(m);
+    else if (m.t === 'ach') Ach.fromServer(m);
     else if (m.t === 'linkcode') lpLinkAll(m);
     else if (m.t === 'matched') {
       if (SOC.st && SOC.st.party) SOC.st.party.queued = null; findBadge();
@@ -2265,20 +2273,34 @@ function renderHomeFriends() {
   const fr = (st.friends || []).slice().sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name));
   const on = fr.filter(f => f.online), off = fr.length - on.length;
   const party = st.party, lead = !party || party.leader === st.you, inParty = new Set((party ? party.members : []).map(p => p.key));
-  const key = JSON.stringify([fr, lead, [...inParty]]);
+  const inReq = st.inReq || [], outReq = st.outReq || [];
+  // a new friend request: a notice, whatever screen you're on
+  const seen = SOC.seenReq || (SOC.seenReq = new Set(inReq.map(f => f.id)));
+  for (const f of inReq) if (!seen.has(f.id)) { seen.add(f.id); uiSfx.click(); } // the server's own notice says who it's from
+  const key = JSON.stringify([fr, lead, [...inParty], inReq, outReq]);
   if (hc.homeFr === key) return; hc.homeFr = key;
+  const typed = $('hfAdd') ? $('hfAdd').value : '', focused = document.activeElement && document.activeElement.id === 'hfAdd';
   box.hidden = false;
   box.innerHTML = `<div class="frh"><b>Friends</b><span>${on.length} online</span></div>` +
+    inReq.map(f => `<div class="frrow frreq"><i class="dot on"></i><div class="frn"><b>${esc(f.name)}</b><small>Wants to be friends</small></div><button type="button" class="ghost sm fracc" data-hacc="${f.id}">Accept</button><button type="button" class="ghost sm" data-hdec="${f.id}" aria-label="Decline">×</button></div>`).join('') +
     (on.length ? on.map(f => `<div class="frrow"><i class="dot${f.inGame ? ' play' : ' on'}"></i><div class="frn"><b>${rankHtml(f.lv)}${flagHtml(f.cc)}${esc(f.name)}</b><small>${esc(ACT_TEXT(f))}</small></div>` +
       (f.code && (f.act === 'customLobby' || f.act === 'custom') ? `<button type="button" class="ghost sm" data-hjoin="${esc(f.code)}">Join</button>` : '') +
       (lead && !inParty.has('u' + f.id) && !f.inGame && f.act !== 'searching' ? `<button type="button" class="ghost sm" data-hinv="${f.id}">Invite</button>` : '') + '</div>').join('')
-      : `<div class="status">${fr.length ? 'None of your friends are online.' : 'No friends yet. Add them in Find game.'}</div>`) +
-    (off ? `<div class="status frmore">${off} offline</div>` : '');
+      : `<div class="status">${fr.length ? 'None of your friends are online.' : 'No friends yet. Add one by name below.'}</div>`) +
+    (off ? `<div class="status frmore">${off} offline</div>` : '') +
+    (outReq.length ? `<div class="status frmore">Request sent to ${outReq.map(f => esc(f.name)).join(', ')}</div>` : '') +
+    `<div class="fradd"><input id="hfAdd" maxlength="16" placeholder="Add a friend by name" autocomplete="off"><button type="button" class="ghost sm" id="hfAddBtn">Add</button></div>`;
+  if ($('hfAdd')) { $('hfAdd').value = typed; if (focused) $('hfAdd').focus(); }
 }
+function homeAddFriend() { const n = $('hfAdd').value.trim(); if (!n) return; socialSend({ t: 'friend', op: 'add', name: n }); $('hfAdd').value = ''; }
+$('homeFriends').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter' && e.target.id === 'hfAdd') homeAddFriend(); });
 $('homeFriends').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.hjoin) { closeSubs(); connect({ code: b.dataset.hjoin }); }
   else if (b.dataset.hinv) { socialSend({ t: 'party', op: 'invite', id: +b.dataset.hinv }); b.disabled = true; b.textContent = 'Invited'; }
+  else if (b.dataset.hacc) socialSend({ t: 'friend', op: 'accept', id: +b.dataset.hacc });
+  else if (b.dataset.hdec) socialSend({ t: 'friend', op: 'decline', id: +b.dataset.hdec });
+  else if (b.id === 'hfAddBtn') homeAddFriend();
 });
 function findBadge() {
   const n = SOC.st ? SOC.st.inReq.length : 0, q = SOC.st && SOC.st.party && SOC.st.party.queued != null;
@@ -2293,13 +2315,13 @@ function renderFind() {
   if (!P) $('fgMe').innerHTML = '<div class="status">Connecting…</div>';
   else {
     const rate = P.games ? Math.round(P.wins / P.games * 100) + '%' : '–';
-    const key = [P.name, P.elo, P.games, P.lv, P.cc, P.top.join(), lo.el, lo.ro].join('|');
+    const team = mode !== '1v1', key = [P.name, P.elo, P.eloT, team, P.games, P.lv, P.cc, P.top.join(), lo.el, lo.ro].join('|');
     if (hc.fgMe !== key) {
       hc.fgMe = key;
       $('fgMe').innerHTML = `<canvas id="fgAv" width="184" height="184"></canvas>
         <div class="nm">${rankHtml(P.lv)}${flagHtml(P.cc)}${esc(P.name)}${ownHtml(P.own)}${P.guest ? '<span class="tag">Guest</span>' : ''}</div>
-        <div class="rt"><span class="elo"><b>${P.elo}</b>Rating</span><span><b>${P.games}</b>Games</span><span><b>${rate}</b>Win rate</span><span><b>${P.kills}</b>Knockouts</span></div>
-        <div class="achs">${P.top.length ? P.top.map(k => `<span style="--bd:${BORDERS[k] || '#c9d1dc'}">${esc(Sim.ACHIEVEMENTS[k].title)}</span>`).join('') + (P.nAch > P.top.length ? `<small class="status">+${P.nAch - P.top.length} more</small>` : '') : '<small class="status">No achievements yet</small>'}</div>`;
+        <div class="rt"><span class="elo"><b>${team ? P.eloT : P.elo}</b>${team ? 'Team rating' : '1v1 rating'}</span><span><b>${team ? P.elo : P.eloT}</b>${team ? '1v1' : 'Team'}</span><span><b>${P.games}</b>Games</span><span><b>${rate}</b>Win rate</span><span><b>${P.kills}</b>Knockouts</span></div>
+        <div class="achs">${P.top.length ? P.top.map(k => `<span style="--bd:${BORDERS[k] || '#c9d1dc'}">${esc(Sim.ACHIEVEMENTS[k].title)}${(P.tiers || {})[k] ? ' ' + Sim.ACH_TIERS[P.tiers[k] - 1].n : ''}</span>`).join('') + (P.nAch > P.top.length ? `<small class="status">+${P.nAch - P.top.length} more</small>` : '') : '<small class="status">No achievements yet</small>'}</div>`;
       const av = (account && account.avatar) || null;
       try { drawPreview($('fgAv'), av ? av.el : lo.el, av ? av.ro : lo.ro, av ? av.c : TEAM_INFO.red.shades[0]); } catch (e) {}
     }
@@ -2328,7 +2350,7 @@ function renderFind() {
     hc.fgParty = pkey;
     $('fgParty').innerHTML = !st ? '<div class="status">Connecting…</div>' : members.map((p, i) => `<div class="fr mem"><canvas data-av="${i}" width="76" height="76"></canvas>` +
       `<b>${rankHtml(p.lv)}${flagHtml(p.cc)}${esc(p.name)}${ownHtml(p.own)}${p.key === me ? ' <small class="status">(you)</small>' : ''}${party && p.key === party.leader && party.members.length > 1 ? '<span class="lead">Leader</span>' : ''}</b>` +
-      `<small>${p.inGame ? '<span class="fgwait">In a game</span> · ' : ''}Rating ${p.elo}${p.games ? ` · ${p.games} games` : ''}${p.local ? ' · on this screen' : ''}</small><div class="btnrow">${party && lead && p.key !== me ? `<button class="ghost sm" type="button" data-kick="${esc(p.key)}">Remove</button>` : ''}</div></div>`).join('') +
+      `<small>${p.inGame ? '<span class="fgwait">In a game</span> · ' : ''}Rating ${mode === '1v1' ? p.elo : p.eloT}${p.games ? ` · ${p.games} games` : ''}${p.local ? ' · on this screen' : ''}</small><div class="btnrow">${party && lead && p.key !== me ? `<button class="ghost sm" type="button" data-kick="${esc(p.key)}">Remove</button>` : ''}</div></div>`).join('') +
       (party && party.members.length > 1 ? `<button class="ghost sm" type="button" id="fgLeave">Leave party</button>` : '') +
       (st && st.account && members.length < 3 ? '<span class="status">Invite friends from the list below to play together (up to 3).</span>' : '');
     $('fgParty').querySelectorAll('canvas[data-av]').forEach(c => { const p = members[+c.dataset.av], el = p.el || (p.key === me ? lo.el : 'frost'), ro = p.ro || (p.key === me ? lo.ro : 'sniper'); try { drawPreview(c, p.avatar ? p.avatar.el : el, p.avatar ? p.avatar.ro : ro, p.avatar ? p.avatar.c : TEAM_INFO.red.shades[0]); } catch (e) {} });
@@ -2633,6 +2655,8 @@ function balCsv() {
     (r.up || []).join(';'), Object.entries(r.hn || {}).map(([k, v]) => k + 'x' + v).join(';'), r.w, r.s, r.k, r.dmg, r.tk, r.sh, r.hi, r.ring, r.e, r.how].map(q).join(','));
   return cols.join(',') + '\n' + lines.join('\n') + '\n';
 }
+// balance data is for the game's owner only (and the offline copy, which is yours anyway)
+function adminBits() { const on = OFFLINE || !!(account && account.admin); for (const id of ['balBtn', 'gmBalBtn', 'resBalBtn']) if ($(id)) $(id).hidden = !on; }
 $('balBtn').onclick = openBalance; $('gmBalBtn').onclick = openBalance; $('resBalBtn').onclick = openBalance;
 $('balClose').onclick = closeBalance;
 ['balWho', 'balMap', 'balSrc', 'balSize', 'balRules', 'balVer'].forEach(id => $(id).addEventListener('change', renderBalance));
@@ -2654,44 +2678,54 @@ $('balClear').onclick = async () => {
 };
 
 // ================= achievements =================
-// Counted from what happens to you in games, kept in this browser. Each unlocks a title you can wear.
+// Challenges with five tiers (Bronze to Diamond), earned in ranked games and in custom games without bots. The server
+// keeps them for accounts and guests alike and sends them here; each one you've reached is a title and a border.
 const Ach = {
-  KEY: 'bowfall-ach',
-  load() { try { return Object.assign({ stats: {}, got: {}, title: null }, JSON.parse(localStorage.getItem(this.KEY) || '{}')); } catch (e) { return { stats: {}, got: {}, title: null }; } },
-  save() { if (this.account) return; try { localStorage.setItem(this.KEY, JSON.stringify(this.d)); } catch (e) {} },
+  d: { stats: {}, got: {}, tier: {}, title: null, border: null },
+  rarity: null,
+  load() {
+    let pref = {}; try { pref = JSON.parse(localStorage.getItem('bowfall-ach-look') || '{}'); } catch (e) {}
+    return { stats: {}, got: {}, tier: {}, title: pref.title || null, border: pref.border || null };
+  },
+  save() { if (this.account) return; try { localStorage.setItem('bowfall-ach-look', JSON.stringify({ title: this.d.title, border: this.d.border })); } catch (e) {} },
   unlocked(keys) {
     for (const k of keys) {
-      const a = Sim.ACHIEVEMENTS[k]; if (!a) continue;
-      notice(`Achievement unlocked: <b style="color:var(--gold)">${esc(a.title)}</b><small>${esc(a.desc)} You can wear it as a title.</small>`, true, '#ffcf5a');
+      const a = Sim.ACHIEVEMENTS[k], t = (this.d.tier || {})[k] || 1, T = Sim.ACH_TIERS[t - 1]; if (!a || !T) continue;
+      notice(`Achievement: <b style="color:${T.col}">${esc(a.title)} ${T.n}</b> <small>${T.name}. ${esc(Sim.achText(k, t))}${t === 1 ? ' You can wear it as a title.' : ''}</small>`, true, T.col);
       fanfare([523, 659, 784, 1047, 784, 1047], 'triangle', 0.05, 90);
     }
   },
-  // watch game events for the ones that count toward achievements (guests; accounts are tracked by the server)
-  onEvents(evs) {
-    if (this.account || (mode !== 'local' && mode !== 'online')) return;
-    const adds = Sim.achFromEvents(evs, myId, myTeam());
-    if (!adds.length) return;
-    this.unlocked(Sim.achApply(this.d, adds));
-    this.save();
+  onEvents() {}, // progress is counted on the server now
+  useAccount(u) { this.account = u.name; const a = Sim.achMigrate(JSON.parse(JSON.stringify(u.ach || {}))); this.d = { stats: a.stats || {}, got: a.got || {}, tier: a.tier || {}, title: u.title || null, border: a.border || null }; hc.titleSent = hc.lookSent = null; },
+  fromServer(m) {
+    const a = Sim.achMigrate(JSON.parse(JSON.stringify(m.ach || {})));
+    this.d.stats = a.stats || {}; this.d.got = a.got || {}; this.d.tier = a.tier || {};
+    if (m.keys && m.keys.length) this.unlocked(m.keys);
+    if (!$('achScreen').hidden) renderAch();
   },
-  // signed in: progress lives on the server, which sends updates as you play online
-  useAccount(u) { this.account = u.name; this.d = { stats: Object.assign({}, (u.ach || {}).stats), got: Object.assign({}, (u.ach || {}).got), title: u.title || null, border: (u.ach || {}).border || null }; hc.titleSent = hc.lookSent = null; },
-  fromServer(m) { if (!this.account) return; this.d.stats = m.ach.stats || {}; this.d.got = m.ach.got || {}; if (m.keys && m.keys.length) this.unlocked(m.keys); },
+  async loadRarity() { if (OFFLINE) return; try { this.rarity = (await (await fetch('/api/achrarity', { cache: 'no-store' })).json()).rarity; } catch (e) {} },
 };
 Ach.d = Ach.load();
 function titleName(key) { const a = key && Sim.ACHIEVEMENTS[key]; return a ? a.title : ''; }
+const rarityText = p => (p == null ? '' : p <= 0 ? 'Nobody yet' : p < 1 ? 'Top 1%' : p <= 50 ? `Top ${Math.ceil(p)}%` : `${Math.round(p)}% of players`);
 function renderAch() {
-  const A = Sim.ACHIEVEMENTS, st = Ach.d.stats, got = Ach.d.got;
-  $('achGrid').innerHTML = Object.entries(A).map(([k, a]) => {
-    const n = Math.min(a.goal, st[a.stat] || 0);
-    return `<div class="ach${got[k] ? ' got' : ''}"><h4>${esc(a.title)}</h4><span class="status">${esc(a.desc)}</span><div class="bar"><i style="width:${Math.round(n / a.goal * 100)}%"></i></div><small class="status">${got[k] ? 'Unlocked' : `${n} / ${a.goal}`}</small></div>`;
+  const A = Sim.ACHIEVEMENTS, st = Ach.d.stats || {}, tier = Ach.d.tier || {}, R = Ach.rarity || {};
+  $('achGrid').innerHTML = Sim.ACH_ORDER.map(k => {
+    const a = A[k], t = tier[k] || 0, T = Sim.ACH_TIERS[t - 1], next = a.tiers[t], v = st[a.stat] || 0, u = a.unit || '';
+    const prev = t ? a.tiers[t - 1] : 0, frac = next == null ? 1 : a.kind === 'max' ? Math.min(1, v / next) : Math.min(1, (v - prev) / (next - prev) || 0);
+    const pips = a.tiers.map((g, i) => `<i class="${i < t ? 'on' : ''}" style="${i < t ? 'background:' + Sim.ACH_TIERS[i].col : ''}" title="${Sim.ACH_TIERS[i].name}: ${g}${u}${R[k] && R[k][i] != null ? ' · ' + rarityText(R[k][i]) : ''}"></i>`).join('');
+    return `<div class="ach${t ? ' got' : ''}" style="${T ? '--tc:' + T.col : ''}"><div class="achh"><h4>${esc(a.title)}</h4>${T ? `<span class="achtier">${T.n} · ${T.name}</span>` : ''}</div>
+      <span class="status">${esc(Sim.achText(k, Math.min(5, t + 1)))}</span>
+      <div class="achpips">${pips}</div>
+      <div class="bar"><i style="width:${Math.round(frac * 100)}%"></i></div>
+      <small class="status">${next == null ? 'Maxed out' : `${a.kind === 'max' ? 'Best' : 'So far'}: ${Math.round(v)}${u} of ${next}${u} for ${Sim.ACH_TIERS[t].name}`}${t && R[k] && R[k][t - 1] != null ? ` · <b style="color:${T.col}">${rarityText(R[k][t - 1])}</b>` : ''}</small></div>`;
   }).join('');
-  const have = Object.keys(A).filter(k => got[k]);
+  const have = Sim.ACH_ORDER.filter(k => tier[k] > 0);
   $('titleSel').innerHTML = '<option value="">No title</option>' + have.map(k => `<option value="${k}"${Ach.d.title === k ? ' selected' : ''}>${esc(A[k].title)}</option>`).join('');
-  $('achSum').textContent = `${have.length} of ${Object.keys(A).length} unlocked`;
+  $('achSum').textContent = `${have.length} of ${Sim.ACH_ORDER.length} started · ${have.reduce((s2, k) => s2 + tier[k], 0)} of ${Sim.ACH_ORDER.length * 5} tiers`;
   $('borderSel').innerHTML = '<option value="">Plain</option>' + have.filter(k => BORDERS[k]).map(k => `<option value="${k}"${Ach.d.border === k ? ' selected' : ''}>${esc(A[k].title)}</option>`).join('');
 }
-function openAch() { renderAch(); helpFrom = document.activeElement; $('achScreen').hidden = false; $('achClose').focus(); }
+function openAch() { renderAch(); Ach.loadRarity().then(() => { if (!$('achScreen').hidden) renderAch(); }); helpFrom = document.activeElement; $('achScreen').hidden = false; $('achClose').focus(); }
 function closeAch() { $('achScreen').hidden = true; if (helpFrom && helpFrom.focus) helpFrom.focus(); }
 $('achBtn').onclick = openAch; $('gmAchBtn').onclick = openAch; $('achClose').onclick = closeAch;
 function setMyBorder(v) {
@@ -2712,7 +2746,7 @@ function syncLook(me) {
   if ((me.bd || null) === bd && (me.na || null) === na) { hc.lookSent = key; return; }
   if (hc.lookSent === key) return;
   hc.lookSent = key;
-  act({ t: 'look', bd, na, top: Sim.ACH_ORDER.filter(k => Ach.d.got && Ach.d.got[k]).slice(0, 2) });
+  act({ t: 'look', bd, na, top: Sim.achBest(Ach.d, 2) });
 }
 function syncTitle(me) {
   syncLook(me);
@@ -2895,7 +2929,7 @@ function cardHtml(key) {
   const sp = !p && roomInfo ? (roomInfo.spec || []).find(c => 'c' + c.cid === key) : null;
   const who = p || sp; if (!who) return '';
   let c = roomInfo && roomInfo.cards ? roomInfo.cards[key] : null;
-  if (!c && mode === 'local' && p && p.id === myId) c = { local: 1, top: Sim.ACH_ORDER.filter(k => Ach.d.got && Ach.d.got[k]).slice(0, 2) };
+  if (!c && mode === 'local' && p && p.id === myId) c = { local: 1, top: Sim.achBest(Ach.d, 2) };
   const head = `<div class="pc-h">${idHtml(who)}<b>${esc(who.n)}</b>${ownHtml(who.ow)}</div>` + (p ? `<small>${esc(archName(p))}</small>` : '');
   let body;
   if (p && p.b && !(c && c.ai)) body = `<div class="pc-row">Bot · ${DIFF_LBL[view.m.df] || 'Normal'} skill</div>`;
@@ -2998,7 +3032,7 @@ function renderMenu(v) {
 const SC = { tab: 'elo', role: 'sniper', cache: {} };
 async function scFetch(path) { if (SC.cache[path] && Date.now() - SC.cache[path].t < 20000) return SC.cache[path].d; const d = await (await fetch('/api' + path, { cache: 'no-store' })).json(); SC.cache[path] = { t: Date.now(), d }; return d; }
 async function renderScores() {
-  const tabs = [['elo', 'Rating'], ['role', 'By role'], ['records', 'Single-game records'], ['wins', 'Wins'], ['kills', 'Knockouts']];
+  const tabs = [['elo', '1v1 rating'], ['eloT', 'Team rating'], ['role', 'By role'], ['records', 'Single-game records'], ['wins', 'Wins'], ['kills', 'Knockouts']];
   $('scTabs').innerHTML = tabs.map(([k, l]) => `<button type="button" data-sct="${k}" class="${k === SC.tab ? 'on' : ''}">${l}</button>`).join('');
   $('scSite').hidden = OFFLINE;
   if (OFFLINE) { $('scBody').innerHTML = '<p class="status">Highscores come from the online server. Play at your Bowfall site to get on the board.</p>'; return; }
@@ -3015,8 +3049,8 @@ async function renderScores() {
     } else {
       const d = await scFetch('/leaderboard?by=' + SC.tab);
       const rows = d.rows.filter(r => r.value > 0).slice(0, 20);
-      $('scBody').innerHTML = box(SC.tab === 'elo' ? 'Top ratings' : SC.tab === 'wins' ? 'Most game wins' : 'Most knockouts', rows.map((r, i) => row(r, i, r.value, SC.tab === 'elo' ? `${r.rate}% of ${r.games}` : '')).join('')) +
-        (SC.tab === 'elo' ? '<p class="status" style="margin-top:8px">Everyone starts at 1000. Online games move your rating up or down depending on the result and how strong both teams were.</p>' : '');
+      $('scBody').innerHTML = box(SC.tab === 'elo' ? 'Top 1v1 ratings' : SC.tab === 'eloT' ? 'Top team ratings (2v2 and 3v3)' : SC.tab === 'wins' ? 'Most game wins' : 'Most knockouts', rows.map((r, i) => row(r, i, r.value, SC.tab === 'elo' || SC.tab === 'eloT' ? `${r.rate}% of ${r.games}` : '')).join('')) +
+        (SC.tab === 'elo' || SC.tab === 'eloT' ? '<p class="status" style="margin-top:8px">Two ratings: 1v1, and team games (2v2 and 3v3). Everyone starts at 800, and only ranked matches count. In team games how much you did for your team also counts, so being carried gains less.</p>' : '');
     }
   } catch (e) { $('scBody').innerHTML = '<p class="status">Couldn\'t load the highscores.</p>'; }
 }
@@ -3107,10 +3141,12 @@ if (!OFFLINE) { refreshRooms(); roomsT = setInterval(() => { if (mode === 'menu'
 
 // ---- accounts: sign in on the website; here we just find out who you are
 let account = null;
+adminBits();
 async function loadAccount() {
   if (OFFLINE) return;
   $('siteLinks').hidden = false;
   try { account = (await (await fetch('/api/me', { cache: 'no-store' })).json()).user; } catch (e) { account = null; }
+  adminBits();
   const back = encodeURIComponent('/play' + location.search);
   try { const mv = JSON.parse(sessionStorage.getItem('bowfall-moved') || 'null'); if (mv && account) { sessionStorage.removeItem('bowfall-moved'); setTimeout(() => notice(`Your guest rating (<b>${mv.elo}</b>) and ${mv.games} games moved to your account.`, false), 800); } } catch (e) {}
   if (account) {
@@ -3152,7 +3188,7 @@ function drawProfChip() {
   const a = myAvatar();
   try { drawPreview($('profAv'), a.el, a.ro, a.c); } catch (e) {}
   $('profName').innerHTML = (account ? rankHtml(account.level && account.level.lv) + flagHtml(account.country) : '') + esc(account ? account.name : ($('nameIn').value.trim() || 'Archer'));
-  $('profSub').textContent = account ? `Rating ${Math.round((account.career || {}).elo || 800)} · edit profile` : 'Guest · edit profile';
+  $('profSub').textContent = account ? `1v1 ${Math.round((account.career || {}).elo || 800)} · Team ${Math.round((account.career || {}).eloT != null ? account.career.eloT : (account.career || {}).elo || 800)}` : 'Guest · edit profile';
 }
 function myPlateHtml() {
   const bd = Ach.d.border && Ach.d.got[Ach.d.border] ? Ach.d.border : null, na = Object.keys(Ach.d.got || {}).length;
@@ -3252,8 +3288,8 @@ const idHtml = p => rankHtml(p.lv) + flagHtml(p.cc);
 const OWNER_SVG = '<svg viewBox="0 0 20 16" aria-hidden="true"><path d="M1.5 4.5l4.3 3.6L10 1.5l4.2 6.6 4.3-3.6-1.7 9.5H3.2z" fill="#ffcf5a" stroke="#a86f00" stroke-width="1" stroke-linejoin="round"/><circle cx="10" cy="10.2" r="2.1" fill="none" stroke="#7a4a00" stroke-width="1.5"/></svg>';
 const ownHtml = on => (on ? `<span class="owner" title="Game owner">${OWNER_SVG}</span>` : '');
 // border colours for name banners, each unlocked by an achievement
-const BORDERS = { blooded: '#cd8a4e', veteran: '#c9d1dc', warlord: '#f2c14e', sharpshooter: '#5ad1ff', eagleeye: '#3fe0ff', ringmaster: '#ff6a2b', longshot: '#7dff8a',
-  pinmaster: '#d8c7a0', clutch: '#ff5a7a', lonewolf: '#9aa3b5', unstoppable: '#ff8a3d', legend: '#ff2e55', empowered: '#b48cff', untouchable: '#ffffff', stormkeeper: '#fff27a', lifeline: '#5dffb0', champion: '#ffd23f' };
+const BORDERS = { onfire: '#ff5a2e', unstoppable: '#ff8a3d', untouchable: '#ffffff', flawless: '#e8f4ff', sharpshooter: '#5ad1ff', eagleeye: '#3fe0ff', bruiser: '#ff4d6a', ringmaster: '#ff6a2b',
+  longshot: '#7dff8a', clutch: '#ff5a7a', lonewolf: '#9aa3b5', giantslayer: '#c58bff', champion: '#ffd23f', warlord: '#f2c14e', pinmaster: '#d8c7a0', empowered: '#b48cff', stormkeeper: '#fff27a', lifeline: '#5dffb0' };
 const trophyHtml = n => (n ? `<span class="troph" title="${n} achievement${n === 1 ? '' : 's'}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h8v2h2.5v1.5A3.5 3.5 0 0 1 11.3 9 4 4 0 0 1 9 10.8V12h2v2H5v-2h2v-1.2A4 4 0 0 1 4.7 9 3.5 3.5 0 0 1 1.5 5.5V4H4zm0 3.5H3a2 2 0 0 0 1.2 1.8zM12 5.5v1.8a2 2 0 0 0 1-1.8z" fill="currentColor"/></svg>${n}</span>` : '');
 const plateStyle = p => (p.bd && BORDERS[p.bd] ? ` style="--bd:${BORDERS[p.bd]}"` : '');
 const flagImgs = {};
@@ -4926,6 +4962,14 @@ function drawPlayer(p, isMe, bare) {
 }
 
 function drawArrow(a) {
+  // a soft shadow on the ground under anything in flight, so arrows stand out on every arena
+  if (!a.s) {
+    ctx.save(); ctx.translate(a.x + 4, a.y + 7); ctx.rotate(a.g); ctx.lineCap = 'round';
+    const k = a.b ? 1.6 : a.bg ? 1.35 : 1;
+    if (a.sh || a.bm) { ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.arc(0, 0, a.sh === 2 ? 9 : 8, 0, TAU); ctx.fill(); }
+    else { ctx.strokeStyle = 'rgba(0,0,0,0.32)'; ctx.lineWidth = (a.xb ? 6 : 5) * k; ctx.beginPath(); ctx.moveTo(-24 * k, 0); ctx.lineTo(9 * k, 0); ctx.stroke(); }
+    ctx.restore();
+  }
   if (a.sh) { // shuriken: a spinning four-point star
     ctx.save(); ctx.globalAlpha = a.s > 0 && a.s < 1 ? a.s : 1; ctx.translate(a.x, a.y); ctx.rotate(a.s ? a.id * 0.7 : clock * 26 + a.id); // stuck in a wall: stops spinning
     if (!a.s && (a.sh === 2 || EL_COL[a.el])) { ctx.fillStyle = a.sh === 2 ? 'rgba(255,77,94,0.35)' : `rgba(${EL_RGB[a.el]},0.3)`; ctx.beginPath(); ctx.arc(0, 0, a.sh === 2 ? 11 : 9, 0, TAU); ctx.fill(); }
@@ -4954,7 +4998,7 @@ function drawArrow(a) {
   }
   ctx.save(); ctx.globalAlpha = alpha;
   ctx.translate(a.x, a.y); ctx.rotate(a.g);
-  if (a.b) ctx.scale(1.6, 1.6); else if (a.bg) ctx.scale(1.35, 1.35);
+  if (a.b) ctx.scale(1.7, 1.7); else if (a.bg) ctx.scale(1.45, 1.45); else ctx.scale(1.12, 1.12); // a touch bigger than life, to be easy to see
   if (!a.s) {
     const col = a.rl ? '140,255,255' : a.xq ? '255,70,90' : a.sw ? '255,120,230' : a.sk ? '255,150,90' : a.el === 'blood' ? '224,52,74' : a.el === 'shadow' ? '142,149,201' : a.el === 'poison' ? '130,210,80' : a.sn ? '155,229,100' : a.el === 'storm' ? '255,242,122' : a.b ? '255,207,90' : a.el === 'frost' ? '159,220,255' : a.el === 'flame' ? '255,140,60' : a.el === 'stone' ? '201,168,120' : a.el === 'void' ? '180,140,255' : a.ex ? '255,90,122' : a.cr ? '255,255,255' : '255,207,90';
     if (a.el === 'flame' && Math.random() < 0.4) fx.parts.push({ x: a.x, y: a.y, vx: rand(-20, 20), vy: rand(-20, 20), life: 0, max: 0.35, color: Math.random() < 0.5 ? '#ff6a2b' : '#ffcf5a', r: rand(1, 2.2) });
@@ -4967,9 +5011,10 @@ function drawArrow(a) {
       ctx.strokeStyle = g2; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(-190, 0); ctx.lineTo(-10, 0); ctx.stroke();
     }
   }
+  ctx.strokeStyle = 'rgba(20,14,8,0.75)'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-21, 0); ctx.lineTo(8, 0); ctx.stroke(); // dark edge for contrast
   ctx.strokeStyle = '#d8c7a0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(4, 0); ctx.stroke();
   ctx.fillStyle = a.el === 'blood' ? '#e0344a' : a.el === 'shadow' ? '#8e95c9' : a.el === 'poison' ? '#7fcf4a' : a.sn ? '#9be564' : a.el === 'storm' ? '#fff27a' : a.el === 'frost' ? '#bfe8ff' : a.el === 'flame' ? '#ff7a2b' : a.el === 'stone' ? '#b8966a' : a.el === 'void' ? '#b48cff' : a.ex ? '#ff5a7a' : a.hv ? '#ff8a3d' : '#c9d1dc';
-  ctx.beginPath(); ctx.moveTo(8, 0); ctx.lineTo(1, -3.5); ctx.lineTo(1, 3.5); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(8, 0); ctx.lineTo(1, -3.5); ctx.lineTo(1, 3.5); ctx.closePath(); ctx.fill(); ctx.strokeStyle = 'rgba(20,14,8,0.6)'; ctx.lineWidth = 1; ctx.stroke();
   ctx.fillStyle = a.c; ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(-25, -4); ctx.lineTo(-17, 0); ctx.lineTo(-25, 4); ctx.fill();
   ctx.restore();
 }
@@ -5312,7 +5357,10 @@ function drawAimGuide(me, ang, charge) {
 // filling in as the bow draws (white at full draw)
 function drawAimArrow(me, ang, charge, col) {
   const R = (me.rz || 16), ax = Math.cos(ang), ay = Math.sin(ang), nx = -ay, ny = ax;
-  const tip = R + 34, base = R + 20, half = 7;
+  const tip = R + 72, base = R + 57, half = 7.5;
+  // a faint dotted line from the archer out to the arrow, always, so the aim is easy to read
+  ctx.save(); ctx.setLineDash([3, 7]); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(me.x + ax * (R + 10), me.y + ay * (R + 10)); ctx.lineTo(me.x + ax * (base - 4), me.y + ay * (base - 4)); ctx.stroke(); ctx.restore();
   const tx = me.x + ax * tip, ty = me.y + ay * tip, bx = me.x + ax * base, by = me.y + ay * base;
   ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(bx + nx * half, by + ny * half); ctx.lineTo(bx - nx * half, by - ny * half); ctx.closePath();
   ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fill();

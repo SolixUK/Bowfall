@@ -13,7 +13,7 @@ const A = require('./lib/auth');
 const O = require('./lib/oauth');
 const { levelOf } = require('./lib/level');
 const { countryOf } = require('./lib/geo');
-const { rateGame, START: ELO_START } = require('./lib/rating');
+const { rateGame, keyFor, ratingOf, START: ELO_START } = require('./lib/rating');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC = path.join(__dirname, 'public');
@@ -36,7 +36,7 @@ fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
 // Signed-in players' records live here while they're around and are written back every few seconds.
 const live = new Map();   // user id -> user object
 const dirty = new Set();
-function track(u) { if (!u) return null; const have = live.get(u.id); if (have) return have; u.admin = isOwner(u); live.set(u.id, u); return u; }
+function track(u) { if (!u) return null; const have = live.get(u.id); if (have) return have; u.admin = isOwner(u); u.ach = Sim.achMigrate(u.ach || {}); live.set(u.id, u); return u; }
 function markDirty(u) { if (!u) return; if (u.guest) guestDirty.add(u); else dirty.add(u.id); }
 async function flushUsers() {
   const ids = [...dirty]; dirty.clear();
@@ -54,7 +54,7 @@ async function loadGuest(tok, name) {
   let g = guests.get(key);
   if (!g) {
     const d = await store.guestGet(key).catch(() => null);
-    g = { guest: true, id: 'g:' + key, key, name: (d && d.name) || 'Guest', career: (d && d.career) || {}, ach: (d && d.ach) || {} };
+    g = { guest: true, id: 'g:' + key, key, name: (d && d.name) || 'Guest', career: (d && d.career) || {}, ach: Sim.achMigrate((d && d.ach) || {}) };
     guests.set(key, g);
   }
   if (name) g.name = String(name).slice(0, 16);
@@ -67,9 +67,7 @@ async function adoptGuest(u, tok) {
   if (!g || !(g.career && g.career.games)) return null;
   if (u.career && u.career.games) return { skipped: true };
   u.career = Object.assign({}, g.career);
-  u.ach = u.ach || {}; const st = u.ach.stats = u.ach.stats || {}, got = u.ach.got = u.ach.got || {};
-  for (const [k, v] of Object.entries((g.ach && g.ach.stats) || {})) st[k] = Math.max(st[k] || 0, v);
-  Object.assign(got, (g.ach && g.ach.got) || {});
+  u.ach = Sim.achMigrate(JSON.parse(JSON.stringify(g.ach || {}))); // they hadn't played, so the guest's achievements become theirs
   guests.delete(key); guestDirty.forEach(x => { if (x.key === key) guestDirty.delete(x); });
   await store.guestSave(key, null);
   await store.saveUser(u);
@@ -85,7 +83,46 @@ async function userFromReq(req) {
 // a player's flag: the country they picked, none if they hid it ('-'), or unset (we fill it in from their location)
 const flagOf = u => (u && u.country && u.country !== '-' ? u.country : null);
 const publicUser = u => ({ name: u.name, title: u.title, admin: !!u.admin, created: u.created, career: Object.assign({}, u.career || {}, { ai: undefined }), got: Object.keys((u.ach && u.ach.got) || {}), stats: (u.ach && u.ach.stats) || {},
-  ai: !!(u.career && u.career.ai), country: flagOf(u), level: levelOf(u.career), border: (u.ach && u.ach.border) || null, avatar: (u.ach && u.ach.avatar) || null });
+  ai: !!(u.career && u.career.ai), country: flagOf(u), level: levelOf(u.career), border: (u.ach && u.ach.border) || null, avatar: (u.ach && u.ach.avatar) || null,
+  tier: (u.ach && u.ach.tier) || {}, play: playstyleOf(u) });
+
+// ---------------- playstyle and achievement rarity ----------------
+// Every 10 minutes the server looks at everyone: what share of players has each achievement tier, and where each
+// playstyle measure sits among players with at least 10 games (so a profile can say "top 8%").
+const PLAY = [
+  { k: 'dmg', name: 'Damage dealer', what: 'damage per game', v: c => c.dmg / c.games, fmt: v => Math.round(v) },
+  { k: 'acc', name: 'Sharpshooter', what: 'of shots hit', v: c => (c.shots >= 30 ? c.hits / c.shots : null), fmt: v => Math.round(v * 100) + '%' },
+  { k: 'surv', name: 'Survivor', what: 'of games survived', v: c => 1 - (c.deaths || 0) / c.games, fmt: v => Math.round(v * 100) + '%' },
+  { k: 'evade', name: 'Evasive', what: 'damage taken per game (less is better)', v: c => (c.taken != null && c.tg >= 10 ? c.taken / c.tg : null), low: true, fmt: v => Math.round(v) },
+  { k: 'kpg', name: 'Finisher', what: 'knockouts per game', v: c => (c.kills || 0) / c.games, fmt: v => v.toFixed(2) },
+  { k: 'apg', name: 'Team player', what: 'assists per game', v: c => (c.assists != null && c.tg >= 10 ? c.assists / c.tg : null), fmt: v => v.toFixed(2) },
+  { k: 'ring', name: 'Ring-out specialist', what: 'of knockouts into hazards', v: c => (c.kills >= 10 ? (c.ring || 0) / c.kills : null), fmt: v => Math.round(v * 100) + '%' },
+  { k: 'carry', name: 'Carry', what: 'of the team\'s damage in team games', v: c => (c.shareN >= 5 ? c.shareSum / c.shareN : null), fmt: v => Math.round(v * 100) + '%' },
+];
+let RANKS = { rarity: {}, dist: {}, players: 0, at: 0 };
+const pctBelow = (arr, v) => { let lo = 0, hi = arr.length; while (lo < hi) { const m = (lo + hi) >> 1; if (arr[m] < v) lo = m + 1; else hi = m; } return arr.length ? lo / arr.length : 0; };
+function playstyleOf(u) {
+  const c = u && u.career; if (!c || !c.games) return null;
+  const out = [];
+  for (const P of PLAY) {
+    const v = P.v(c); if (v == null || !isFinite(v)) continue;
+    const arr = RANKS.dist[P.k] || [], enough = c.games >= 10 && arr.length >= 10, why = c.games < 10 ? 'needs 10 games' : arr.length < 10 ? 'not enough players yet' : null;
+    let pct = enough ? pctBelow(arr, v) : null; if (pct != null && P.low) pct = 1 - pct - 1 / arr.length;
+    out.push({ k: P.k, name: P.name, what: P.what, value: P.fmt(v), pct: pct == null ? null : Math.max(0, Math.min(1, pct)), why: why || undefined });
+  }
+  const best = out.filter(x => x.pct != null && x.pct >= 0.6).sort((a, b) => b.pct - a.pct).slice(0, 2).map(x => x.name);
+  return { traits: out, style: best.length ? best : (c.games >= 10 ? ['All-rounder'] : []) };
+}
+async function computeRanks() {
+  const all = (await store.leaderboard('games', 100000).catch(() => [])).map(u => live.get(u.id) || u).filter(u => (u.career || {}).games > 0);
+  const real = all.filter(u => !social.isAI(u));
+  const rarity = {};
+  for (const k of Sim.ACH_ORDER) rarity[k] = [1, 2, 3, 4, 5].map(t => real.length ? Math.round(real.filter(u => (Sim.achMigrate(u.ach || (u.ach = {})).tier || {})[k] >= t).length / real.length * 1000) / 10 : null);
+  const dist = {};
+  for (const P of PLAY) dist[P.k] = all.filter(u => u.career.games >= 10).map(u => P.v(u.career)).filter(v => v != null && isFinite(v)).sort((a, b) => a - b);
+  RANKS = { rarity, dist, players: real.length, at: Date.now() };
+}
+setInterval(() => computeRanks().catch(e => console.error('Ranks:', e.message)), 10 * 60 * 1000).unref();
 // the look of a signed-in player's name banner: the border they picked (if they've earned it) and how many achievements they have
 const lookOf = u => { const got = (u.ach && u.ach.got) || {}, bd = u.ach && u.ach.border; return { bd: bd && got[bd] ? bd : null, na: Object.keys(got).length || null, ow: u.admin ? 1 : null }; };
 
@@ -96,6 +133,9 @@ function careerAdd(u, rec, team) {
     const p = rec.pl;
     add('games', 1); if (p.w === 1) add('wins', 1); add('kills', p.k); if (!p.s) add('deaths', 1);
     add('dmg', p.dmg); add('ring', p.ring); add('shots', p.sh); add('hits', p.hi);
+    add('taken', p.tk); add('assists', p.a); add('bulls', p.bu); add('tg', 1);
+    // share of the team's damage in team games (for the playstyle "carry" measure)
+    if (rec.teamDmg != null && rec.teamSize > 1) { add('shareSum', rec.teamDmg > 0 ? Math.round(p.dmg / rec.teamDmg * 1000) / 1000 : 1 / rec.teamSize); add('shareN', 1); }
     c.roles = c.roles || {}; c.roles[p.ro] = (c.roles[p.ro] || 0) + 1;
     c.roleW = c.roleW || {}; if (p.w === 1) c.roleW[p.ro] = (c.roleW[p.ro] || 0) + 1;
     // personal bests in a single game, for the highscores
@@ -105,10 +145,8 @@ function careerAdd(u, rec, team) {
   } else if (rec.type === 'match') {
     add('matches', 1); if (rec.win === team) add('matchWins', 1);
   }
-  c.bull = (u.ach && u.ach.stats && u.ach.stats.bull) || 0;
   markDirty(u);
 }
-
 // the account (or guest record, or matchmaking AI player) behind a player in a room
 function userOfPid(room, pid) {
   const ws = [...room.clients].find(c => c.pid === pid && (c.user || c.guest));
@@ -120,35 +158,63 @@ let balanceCache = null; // the /api/balance response, until the next game is sa
 function saveRecords(room) {
   const recs = room.world.records.splice(0);
   if (!recs.length) return;
-  const humans = room.world.players.filter(p => !p.bot).length;
-  // credit signed-in players
+  const humans = room.world.players.filter(p => !p.bot).length, counts = achCounts(room);
   for (const r of recs) {
     if (r.type === 'game') {
-      for (const p of r.p) { const u = userOfPid(room, p.id); if (u) careerAdd(u, { type: 'game', pl: p }); }
+      // this match so far: games won by each side, and each archer's knockouts, assists, deaths, damage and ring-outs
+      const T = room.tally && room.tally.mid === r.mid ? room.tally : (room.tally = { mid: r.mid, gw: { red: 0, blue: 0 }, p: {} });
+      if (r.win) T.gw[r.win]++;
+      for (const p of r.p) {
+        const t = T.p[p.id] || (T.p[p.id] = { k: 0, a: 0, d: 0, dmg: 0, ring: 0, games: 0 });
+        t.k += p.k; t.a += p.a || 0; t.d += p.s ? 0 : 1; t.dmg += p.dmg; t.ring += p.ring; t.games++; t.el = p.el; t.ro = p.ro; t.tm = p.tm;
+      }
+      for (const p of r.p) {
+        const u = userOfPid(room, p.id); if (!u) continue;
+        const team = r.p.filter(q => q.tm === p.tm);
+        careerAdd(u, { type: 'game', pl: p, teamDmg: team.reduce((s2, q) => s2 + q.dmg, 0), teamSize: team.length });
+        if (counts) achNote(u, Sim.achApply(u.ach || (u.ach = {}), Sim.achFromGame(r, p.id, (u.ach.stats || {}))));
+      }
       // ratings only change when the whole match is decided, so remember who played (and as what) for then
       room.rateRoster = { mid: r.mid, df: r.df, p: r.p.map(p => ({ id: p.id, b: p.b, df: p.df, tm: p.tm, ro: p.ro })) };
     } else if (r.type === 'match') {
       const ros = room.rateRoster && room.rateRoster.mid === r.mid ? room.rateRoster : null;
-      room.rateRoster = null;
+      const T = room.tally && room.tally.mid === r.mid ? room.tally : { gw: { red: 0, blue: 0 }, p: {} };
+      room.rateRoster = null; room.tally = null;
+      const rated = new Map(), users = new Map();
+      if (ros) for (const p of ros.p) { const u = userOfPid(room, p.id); if (u) users.set(p.id, u); }
       if (ros && r.win && room.ranked) { // only matchmade (ranked) games change ratings; custom games don't
-        const users = new Map();
-        for (const p of ros.p) { const u = userOfPid(room, p.id); if (u) users.set(p.id, u); }
-        const rec = { win: r.win, df: ros.df, p: ros.p.map(p => Object.assign({}, p, { w: p.tm === r.win ? 1 : 0 })) };
-        const rated = rateGame(rec, users); // worked out for everyone first, from the ratings before this match
+        const key = keyFor(room.ranked.mode);
+        // each player's share of what their team did this match: knockouts, assists (half) and damage (per 40)
+        const contrib = pid => { const t = T.p[pid] || {}; return (t.k || 0) + 0.5 * (t.a || 0) + (t.dmg || 0) / 40; };
+        const share = p => { const team = ros.p.filter(q => q.tm === p.tm), tot = team.reduce((s2, q) => s2 + contrib(q.id), 0); return tot > 0 ? contrib(p.id) / tot * team.length : 1; };
+        const rec = { win: r.win, df: ros.df, key, p: ros.p.map(p => Object.assign({}, p, { w: p.tm === r.win ? 1 : 0, share: share(p) })) };
+        for (const [k, v] of rateGame(rec, users)) rated.set(k, v); // worked out for everyone first, from the ratings before this match
         for (const [pid, u] of users) {
           const x = rated.get(u.id); if (!x) continue;
-          const c = u.career; c.elo = x.elo; c.eloPeak = Math.max(c.eloPeak || ELO_START, x.elo);
+          const c = u.career; c[key] = x.elo;
+          const pk = key === 'elo' ? 'eloPeak' : 'eloTPeak'; c[pk] = Math.max(c[pk] || ELO_START, x.elo);
           c.relo = c.relo || {}; c.relo[x.role] = x.roleElo;
           const ws = [...room.clients].find(q => q.user === u || q.guest === u);
-          if (ws) send(ws, { t: 'rated', elo: x.elo, d: x.delta, guest: u.guest ? 1 : undefined });
+          if (ws) send(ws, { t: 'rated', elo: x.elo, d: x.delta, key, guest: u.guest ? 1 : undefined });
         }
       }
-      for (const ws of room.clients) if ((ws.user || ws.guest) && ws.pid) { const q = room.world.players.find(q => q.id === ws.pid); if (q) careerAdd(ws.user || ws.guest, r, q.team); }
-      if (room.ai) for (const [pid, u] of room.ai) { const q = room.world.players.find(q => q.id === pid); if (q) careerAdd(u, r, q.team); }
+      for (const [pid, u] of users) {
+        const q = room.world.players.find(q2 => q2.id === pid), t = T.p[pid]; if (!q) continue;
+        careerAdd(u, r, q.team);
+        const won = r.win === q.team, opp = q.team === 'red' ? 'blue' : 'red', x = rated.get(u.id);
+        if (counts) achNote(u, Sim.achApply(u.ach || (u.ach = {}), Sim.achFromMatch(won, { lostGames: T.gw[opp], ring: t ? t.ring : 0, giant: !!(x && x.opp - x.mine >= 150) }, (u.ach.stats || {}))));
+        // match history: the last 10 ranked matches
+        if (room.ranked && t) {
+          const c = u.career; c.hist = c.hist || [];
+          c.hist.unshift({ t: Date.now(), mode: room.ranked.mode, won: won ? 1 : 0, score: [T.gw[q.team], T.gw[opp]], k: t.k, d: t.d, a: t.a, el: t.el, ro: t.ro, map: r.map, de: x ? x.delta : undefined });
+          c.hist.length = Math.min(c.hist.length, 10);
+          markDirty(u);
+        }
+      }
     }
   }
-  for (const ws of room.clients) if ((ws.user || ws.guest) && ws.pid) Sim.setMeta(room.world, ws.pid, { lv: levelOf((ws.user || ws.guest).career).lv });
-  if (room.ai) for (const [pid, u] of room.ai) Sim.setMeta(room.world, pid, { lv: levelOf(u.career).lv });
+  for (const ws of room.clients) if ((ws.user || ws.guest) && ws.pid) { const u = ws.user || ws.guest; Object.assign(ws, lookOf(u)); Sim.setMeta(room.world, ws.pid, Object.assign({ lv: levelOf(u.career).lv }, lookOf(u))); }
+  if (room.ai) for (const [pid, u] of room.ai) Sim.setMeta(room.world, pid, Object.assign({ lv: levelOf(u.career).lv }, lookOf(u)));
   if (recs.some(r => r.type === 'game')) sendRoom(room); // fresh stats for the hover cards
   const lines = recs.map(r => JSON.stringify(Object.assign({ src: 'online', room: room.code, humans }, r, r.p ? { p: r.p.map(({ id, ...x }) => x) } : {}))).join('\n') + '\n';
   balanceCache = null;
@@ -182,6 +248,7 @@ async function api(req, res, url) {
 
   // balance data for the in-game screen
   if (route === '/balance' && method === 'GET') {
+    if (!me || !me.admin) return json(res, 403, { error: 'Only the game owner can see balance data.' });
     // built once and reused until a new game is saved (it's the whole history, so it's worth not redoing per visit)
     if (balanceCache) { res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); return res.end(balanceCache); }
     return fs.readFile(DATA_FILE, 'utf8', (err, text) => {
@@ -280,6 +347,7 @@ async function api(req, res, url) {
     me.title = key; markDirty(me);
     return json(res, 200, { ok: true, title: me.title });
   }
+  if (route === '/achrarity' && method === 'GET') return json(res, 200, { rarity: RANKS.rarity, players: RANKS.players });
   let m;
   if ((m = route.match(/^\/users\/([A-Za-z0-9_-]{1,16})$/)) && method === 'GET') {
     const u = await store.userByName(m[1]);
@@ -303,8 +371,8 @@ async function api(req, res, url) {
         .sort((a, b) => b.value - a.value).slice(0, 50);
       return board({ by: 'elo', role, min: ROLE_MIN, rows });
     }
-    const rows = (await store.leaderboard(by, 50)).map(u => live.get(u.id) || u).filter(u => (u.career || {}).games > 0);
-    return board({ by, rows: rows.map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, title: u.title, country: flagOf(u), level: levelOf(u.career).lv, value: by === 'elo' ? Math.round((u.career || {}).elo || ELO_START) : (u.career || {})[by] || 0, games: (u.career || {}).games || 0, wins: (u.career || {}).wins || 0, kills: (u.career || {}).kills || 0, rate: (u.career || {}).games ? Math.round(((u.career || {}).wins || 0) / u.career.games * 100) : 0 })) });
+    const rows = (await store.leaderboard(by, 50)).map(u => live.get(u.id) || u).filter(u => (u.career || {}).games > 0 && (by !== 'eloT' || (u.career || {}).eloT != null));
+    return board({ by, rows: rows.map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, title: u.title, country: flagOf(u), level: levelOf(u.career).lv, value: by === 'elo' || by === 'eloT' ? Math.round((u.career || {})[by] || ELO_START) : (u.career || {})[by] || 0, games: (u.career || {}).games || 0, wins: (u.career || {}).wins || 0, kills: (u.career || {}).kills || 0, rate: (u.career || {}).games ? Math.round(((u.career || {}).wins || 0) / u.career.games * 100) : 0 })) });
   }
   // single-game records
   if (route === '/highscores' && method === 'GET') {
@@ -488,7 +556,7 @@ const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 4096,
   perMessageDeflate: { threshold: 200, zlibDeflateOptions: { level: 1, memLevel: 7 }, serverMaxWindowBits: 12, clientNoContextTakeover: true, concurrencyLimit: 16 } });
 const rooms = new Map();
 // friends, parties and matchmaking (lib/social.js)
-const social = require('./lib/social')({ store, track, markDirty, send, Sim, levelOf, flagOf, ELO_START, rooms, createRoom, sendRoom, sysChat, broadcast, live, loadGuest });
+const social = require('./lib/social')({ store, track, markDirty, send, Sim, levelOf, flagOf, ELO_START, ratingOf, keyFor, rooms, createRoom, sendRoom, sysChat, broadcast, live, loadGuest });
 
 function makeCode() {
   const L = 'ABCDEFGHJKMNPQRSTUVWXYZ';
@@ -557,12 +625,12 @@ function roomInfo(room, ws) {
   };
 }
 // what the lobby's hover card shows about someone: accounts get their record, guests just what their browser says they've earned
-const topAch = got => Sim.ACH_ORDER.filter(k => got && got[k]).slice(0, 2);
+const topAch = ach => Sim.achBest(ach, 2);
 function cardOf(c) {
-  if (c.guest && !c.user && c.guest.career.games) { const k = c.guest.career; return { a: 1, guest: 1, g: k.games || 0, w: k.wins || 0, elo: Math.round(k.elo || ELO_START), lv: levelOf(k).lv, top: c.top || [] }; }
+  if (c.guest && !c.user && c.guest.career.games) { const k = c.guest.career; return { a: 1, guest: 1, g: k.games || 0, w: k.wins || 0, elo: Math.round(k.elo || ELO_START), lv: levelOf(k).lv, top: topAch(c.guest.ach) }; }
   if (c.user) {
     const k = c.user.career || {};
-    return { a: 1, g: k.games || 0, w: k.wins || 0, elo: Math.round(k.elo || ELO_START), lv: levelOf(k).lv, top: topAch(c.user.ach && c.user.ach.got) };
+    return { a: 1, g: k.games || 0, w: k.wins || 0, elo: Math.round(k.elo || ELO_START), lv: levelOf(k).lv, top: topAch(c.user.ach) };
   }
   return { top: c.top || [] };
 }
@@ -623,7 +691,7 @@ const CMD_HELP = {
   admin: ['/kick <name> – remove someone from this game', '/mute <name> [minutes] – stop someone chatting here (default 10)', '/unmute <name>',
     '/ban <name> – ban an account (or a guest, until the server restarts) and kick them from every game', '/unban <name>',
     '/announce <text> – message every game on the server', '/host <name> – hand this game to someone', '/start – start the match', '/end – end the match and go back to the lobby',
-    '/rooms – list the games running on the server', '/who <name> – rating, games and where they are playing', '/setelo <name> <rating> – set an account\'s rating'],
+    '/rooms – list the games running on the server', '/who <name> – ratings, games and where they are playing', '/setelo <name> <rating> [team] – set an account\'s 1v1 (or team) rating'],
 };
 function findIn(clients, q) {
   q = String(q || '').toLowerCase(); if (!q) return null;
@@ -677,16 +745,16 @@ async function chatCommand(room, ws, text) {
       const u = online ? (online.user || online.guest) : track(await store.userByName(name).catch(() => null));
       if (!u && !online) return tell(`No one called "${name}".`);
       const c = (u && u.career) || {};
-      tell(`${online ? online.name : u.name}: ${online && !online.user ? 'guest' : 'account'}${u && u.social && u.social.ban ? ' (banned)' : ''} · rating ${Math.round(c.elo || ELO_START)} · ${c.matches || 0} matches, ${c.games || 0} battles · ${online && online.room ? 'in game ' + online.room.code : 'not in a game'}`);
+      tell(`${online ? online.name : u.name}: ${online && !online.user ? 'guest' : 'account'}${u && u.social && u.social.ban ? ' (banned)' : ''} · 1v1 ${Math.round(c.elo || ELO_START)}, team ${Math.round(c.eloT != null ? c.eloT : c.elo || ELO_START)} · ${c.matches || 0} matches, ${c.games || 0} battles · ${online && online.room ? 'in game ' + online.room.code : 'not in a game'}`);
       return;
     }
     case 'setelo': {
-      const name = args[0], v = parseInt(args[1], 10); if (!name || !Number.isFinite(v)) return tell('Usage: /setelo <name> <rating>');
+      const name = args[0], v = parseInt(args[1], 10), which = /^team$/i.test(args[2] || '') ? 'eloT' : 'elo'; if (!name || !Number.isFinite(v)) return tell('Usage: /setelo <name> <rating> [team]');
       const online = findIn(everyone(), name);
       const u = online && online.user ? online.user : track(await store.userByName(name).catch(() => null));
       if (!u) return tell(`No account called "${name}".`);
-      u.career = u.career || {}; u.career.elo = Math.max(0, Math.min(4000, v)); markDirty(u); flushUsers();
-      return tell(`${u.name}'s rating is now ${u.career.elo}.`);
+      u.career = u.career || {}; u.career[which] = Math.max(0, Math.min(4000, v)); markDirty(u); flushUsers();
+      return tell(`${u.name}'s ${which === 'eloT' ? 'team' : '1v1'} rating is now ${u.career[which]}.`);
     }
     default: return tell(`Unknown command /${cmd}. Type /help for the list.`);
   }
@@ -850,7 +918,14 @@ setInterval(() => {
 }, 10000);
 
 // achievements for signed-in players, worked out here from the game's own events
+// achievements only count in ranked games and in custom games with no bots, so they can't be farmed
+const achCounts = room => !!room.ranked || room.world.players.every(p => !p.bot);
+function achNote(u, fresh) { // tell the owner (an account or a guest) what they just reached
+  if (!fresh.length) return;
+  for (const r of rooms.values()) for (const c of r.clients) if ((c.user && c.user === u) || (c.guest && c.guest === u)) send(c, { t: 'ach', keys: fresh, ach: u.ach });
+}
 function creditAchievements(room, evs) {
+  if (!achCounts(room)) return;
   for (const ws of room.clients) {
     if (!(ws.user || ws.guest) || !ws.pid) continue;
     const p = room.world.players.find(q => q.id === ws.pid);
@@ -860,7 +935,7 @@ function creditAchievements(room, evs) {
     const fresh = Sim.achApply(u.ach, adds);
     markDirty(u);
     if (fresh.length) { Object.assign(ws, lookOf(u)); Sim.setMeta(room.world, ws.pid, lookOf(u)); }
-    if (ws.user) send(ws, { t: 'ach', keys: fresh, ach: u.ach }); // guests' browsers keep their own copy
+    send(ws, { t: 'ach', keys: fresh, ach: u.ach });
   }
   // matchmaking's AI players earn achievements from real games too, just like everyone else
   if (room.ai) for (const [pid, u] of room.ai) {
@@ -904,7 +979,7 @@ setInterval(() => {
   }
 }, 5);
 
-store.init().then(() => store.setOnlyAdmin(OWNER)).then(() => social.initAI()).then(() => {
+store.init().then(() => store.setOnlyAdmin(OWNER)).then(() => social.initAI()).then(() => computeRanks()).then(() => {
   server.listen(PORT, () => console.log(`Bowfall server running on http://localhost:${PORT} (${store.kind === 'postgres' ? 'Postgres database' : 'local database file'})`));
 }).catch(e => { console.error('Could not open the database:', e.message); process.exit(1); });
 process.on('SIGTERM', () => { flushUsers().finally(() => process.exit(0)); });

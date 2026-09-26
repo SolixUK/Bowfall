@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.16.1';
+const VERSION = '0.17.2';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -160,7 +160,7 @@ const CRACK_WARN = 4;
 // custom game options; def is the standard rule
 const OPTIONS = {
   size:   { label: 'Archer size',  def: 'large', values: { small: 1, medium: 1.25, large: 1.5 } },
-  aspeed: { label: 'Arrow speed',  def: 'vfast', values: { normal: 1, fast: 1.25, vfast: 1.5, blazing: 1.8 } },
+  aspeed: { label: 'Arrow speed',  def: 'vfast', values: { normal: 1.2, fast: 1.5, vfast: 1.8, blazing: 2.2 } },
   mspeed: { label: 'Move speed',   def: 'fast', values: { normal: 1, slow: 0.85, fast: 1.2, vfast: 1.4, blazing: 1.7 } },
   kb:     { label: 'Knockback',    def: 'normal', values: { normal: 1, low: 0.75, high: 1.3, chaos: 1.8 } },
   hp:     { label: 'Health',       def: 'normal', values: { normal: 1, low: 0.7, high: 1.5 } },
@@ -311,53 +311,105 @@ const ELEMENTS = {
 // (e.g. later, behind an unlock); for now everything is free to play.
 const LOCK_PREMIUM = false;
 // Achievements unlock titles. Progress is kept by each player's own browser; the server only checks the title exists.
+// ---- achievements: challenges with five tiers each (I to V). What counts: ranked games, and custom games with no bots.
+// kind 'max': your best ever (a streak, a best single game); 'sum': a running total. {n} in the text is the tier's goal.
+const ACH_TIERS = [
+  { n: 'I', name: 'Bronze', col: '#cd8a4e' }, { n: 'II', name: 'Silver', col: '#c9d1dc' }, { n: 'III', name: 'Gold', col: '#f2c14e' },
+  { n: 'IV', name: 'Platinum', col: '#7fe3e0' }, { n: 'V', name: 'Diamond', col: '#b9a7ff' },
+];
 const ACHIEVEMENTS = {
-  blooded:     { title: 'Blooded',        desc: 'Get your first knockout.',                         stat: 'ko', goal: 1 },
-  veteran:     { title: 'Veteran',        desc: 'Get 50 knockouts.',                                stat: 'ko', goal: 50 },
-  warlord:     { title: 'Warlord',        desc: 'Get 250 knockouts.',                               stat: 'ko', goal: 250 },
-  sharpshooter:{ title: 'Sharpshooter',   desc: 'Land 25 bullseyes.',                               stat: 'bull', goal: 25 },
-  eagleeye:    { title: 'Eagle Eye',      desc: 'Land 200 bullseyes.',                              stat: 'bull', goal: 200 },
-  ringmaster:  { title: 'Ringmaster',     desc: 'Knock 20 archers into hazards.',                   stat: 'ring', goal: 20 },
-  longshot:    { title: 'Longshot',       desc: 'Knock someone out from 20 metres or more.',        stat: 'long', goal: 1 },
-  pinmaster:   { title: 'Pinmaster',      desc: 'Pin 10 archers to a wall.',                        stat: 'pin', goal: 10 },
-  clutch:      { title: 'Clutch',         desc: 'Win a game as the last archer standing against 2 or more.', stat: 'clutch', goal: 1 },
-  lonewolf:    { title: 'Lone Wolf',      desc: 'Win a 1v3 or bigger clutch.',                      stat: 'clutch3', goal: 1 },
-  unstoppable: { title: 'Unstoppable',    desc: 'Knock out 5 in a row without going down.',         stat: 'streak5', goal: 1 },
-  legend:      { title: 'Legend',         desc: 'Knock out 10 in a row without going down.',        stat: 'streak10', goal: 1 },
-  empowered:   { title: 'Empowered',      desc: 'Become empowered.',                                stat: 'emp', goal: 1 },
-  untouchable: { title: 'Untouchable',    desc: 'Win 5 flawless games (your team loses nobody).',   stat: 'flawless', goal: 5 },
-  stormkeeper: { title: 'Keeper',         desc: 'Capture 5 capture powerups.',                      stat: 'capture', goal: 5 },
-  lifeline:    { title: 'Lifeline',       desc: 'Revive 5 teammates.',                              stat: 'revive', goal: 5 },
-  champion:    { title: 'Champion',       desc: 'Win 10 matches.',                                  stat: 'match', goal: 10 },
+  onfire:       { title: 'On Fire',        desc: 'Win {n} matches in a row.',                                         stat: 'mstreak', kind: 'max', tiers: [3, 5, 10, 15, 25] },
+  unstoppable:  { title: 'Unstoppable',    desc: 'Knock out {n} in a row without going down.',                       stat: 'kstreak', kind: 'max', tiers: [3, 5, 8, 12, 16] },
+  untouchable:  { title: 'Untouchable',    desc: 'Win {n} games in a row without being knocked out.',                stat: 'dstreak', kind: 'max', tiers: [3, 6, 10, 15, 25] },
+  flawless:     { title: 'Flawless',       desc: 'Win a match without losing a single game, {n} times.',             stat: 'perfect', kind: 'sum', tiers: [1, 3, 10, 25, 60] },
+  sharpshooter: { title: 'Sharpshooter',   desc: 'Hit {n}% of your shots in a game (at least 6 shots).',             stat: 'acc',     kind: 'max', tiers: [60, 70, 80, 90, 100], unit: '%' },
+  eagleeye:     { title: 'Eagle Eye',      desc: 'Land {n} bullseyes in a single game.',                             stat: 'bullG',   kind: 'max', tiers: [2, 3, 5, 7, 10] },
+  bruiser:      { title: 'Damage Dealer',  desc: 'Deal the most damage on your team in a team game, {n} times.',     stat: 'topdmg',  kind: 'sum', tiers: [5, 25, 75, 200, 500] },
+  ringmaster:   { title: 'Ringmaster',     desc: 'Knock {n} archers into hazards in a single match.',                stat: 'ringM',   kind: 'max', tiers: [2, 4, 6, 9, 12] },
+  longshot:     { title: 'Longshot',       desc: 'Knock someone out from {n} metres away.',                          stat: 'longM',   kind: 'max', tiers: [15, 20, 25, 30, 35], unit: 'm' },
+  clutch:       { title: 'Clutch',         desc: 'Win a game as the last archer standing against 2 or more, {n} times.', stat: 'clutch', kind: 'sum', tiers: [1, 5, 15, 40, 100] },
+  lonewolf:     { title: 'Lone Wolf',      desc: 'Win a 1v3 or bigger clutch, {n} times.',                           stat: 'clutch3', kind: 'sum', tiers: [1, 3, 10, 25, 50] },
+  giantslayer:  { title: 'Giant Slayer',   desc: 'Win a ranked match against a team rated 150 or more above yours, {n} times.', stat: 'giant', kind: 'sum', tiers: [1, 3, 10, 25, 50] },
+  champion:     { title: 'Champion',       desc: 'Win {n} matches.',                                                 stat: 'mw',      kind: 'sum', tiers: [5, 25, 100, 250, 600] },
+  warlord:      { title: 'Warlord',        desc: 'Get {n} knockouts.',                                               stat: 'ko',      kind: 'sum', tiers: [50, 250, 1000, 2500, 5000] },
+  pinmaster:    { title: 'Pinmaster',      desc: 'Pin {n} archers to a wall.',                                       stat: 'pin',     kind: 'sum', tiers: [10, 50, 150, 400, 1000] },
+  empowered:    { title: 'Empowered',      desc: 'Become empowered {n} times.',                                      stat: 'emp',     kind: 'sum', tiers: [1, 10, 40, 100, 250] },
+  stormkeeper:  { title: 'Keeper',         desc: 'Capture {n} capture powerups.',                                    stat: 'capture', kind: 'sum', tiers: [5, 25, 75, 200, 500] },
+  lifeline:     { title: 'Lifeline',       desc: 'Revive {n} teammates.',                                            stat: 'revive',  kind: 'sum', tiers: [5, 25, 75, 200, 500] },
 };
-// achievements from hardest to easiest, for showing someone's best ones
-const ACH_ORDER = ['legend', 'lonewolf', 'warlord', 'untouchable', 'champion', 'eagleeye', 'unstoppable', 'ringmaster', 'clutch', 'pinmaster', 'lifeline', 'stormkeeper', 'longshot', 'veteran', 'empowered', 'sharpshooter', 'blooded'];
+const ACH_ORDER = Object.keys(ACHIEVEMENTS);
+const achText = (k, t) => { const a = ACHIEVEMENTS[k]; return a ? a.desc.replace('{n}', a.tiers[Math.max(0, Math.min(4, t - 1))]).replace(/, 1 times\.$/, ', once.').replace(/ 1 times\.$/, ' once.') : ''; };
+// someone's best achievements: highest tier first (then the list order, roughly hardest first)
+const achBest = (rec, n) => ACH_ORDER.filter(k => ((rec && rec.tier) || {})[k] > 0).sort((a, b) => rec.tier[b] - rec.tier[a] || ACH_ORDER.indexOf(a) - ACH_ORDER.indexOf(b)).slice(0, n);
 const HAZARD_OUTS = ['lava', 'burn', 'spikes', 'wall', 'crush', 'pit', 'water', 'saw'];
-// what these events add to one archer's achievement stats: a list of [stat, amount, keepMax]
+// what these events add to one archer's achievement stats: a list of [stat, amount, 'max'|'sum'|'set']
 function achFromEvents(evs, pid, team) {
   const out = [];
   for (const e of evs) switch (e.e) {
-    case 'kill': if (e.k === pid) { out.push(['ko', 1]); if (HAZARD_OUTS.includes(e.c)) out.push(['ring', 1]); if (e.how === 'longshot' && e.m >= 20) out.push(['long', 1, true]); } break;
-    case 'hit': if (e.by === pid && e.cr) out.push(['bull', 1]); break;
+    case 'kill':
+      if (e.k === pid) { out.push(['ko', 1]); if (e.ks) out.push(['kstreak', e.ks, 'max']); if (e.m) out.push(['longM', e.m, 'max']); }
+      break;
     case 'pinned': if (e.by === pid) out.push(['pin', 1]); break;
-    case 'clutch': if (e.id === pid) { out.push(['clutch', 1, true]); if (e.vs >= 3) out.push(['clutch3', 1, true]); } break;
-    case 'streak': if (e.id === pid) { if (e.s >= 5) out.push(['streak5', 1, true]); if (e.s >= 10) out.push(['streak10', 1, true]); } break;
-    case 'empowered': if (e.id === pid) { out.push(['emp', 1, true]); if (e.s >= 5) out.push(['streak5', 1, true]); } break;
-    case 'gameEnd': if ((e.hl || []).some(h => h.t === 'flawless' && h.tm === team)) out.push(['flawless', 1]); break;
+    case 'clutch': if (e.id === pid) { out.push(['clutch', 1]); if (e.vs >= 3) out.push(['clutch3', 1]); } break;
+    case 'empowered': if (e.id === pid) out.push(['emp', 1]); break;
     case 'chanDone': if (e.id === pid) out.push(['capture', 1]); break;
     case 'revive': if (e.by === pid) out.push(['revive', 1]); break;
-    case 'matchEnd': if (e.mw === team) out.push(['match', 1]); break;
   }
   return out;
 }
-// apply them to a {stats, got} record; returns the achievements newly unlocked
+// what one finished game (a battle) adds, from its record: accuracy, bullseyes, top damage, and the deathless run
+function achFromGame(rec, pid, cur) {
+  const me = rec.p.find(p => p.id === pid); if (!me || !rec.win) return [];
+  const out = [];
+  if (me.sh >= 6) out.push(['acc', Math.round(me.hi / me.sh * 100), 'max']);
+  if (me.bu) out.push(['bullG', me.bu, 'max']);
+  const team = rec.p.filter(p => p.tm === me.tm);
+  if (team.length >= 2 && me.dmg > 0 && team.every(p => p === me || p.dmg < me.dmg)) out.push(['topdmg', 1]);
+  const run = me.w === 1 && me.s ? (cur.dstreak || 0) + 1 : 0;
+  out.push(['_dstreak', run, 'set']); if (run) out.push(['dstreak', run, 'max']);
+  return out;
+}
+// what a finished match adds: wins, the winning run, a flawless match, ring-outs in the match
+function achFromMatch(won, m, cur) {
+  const out = [];
+  const run = won ? (cur.mstreak || 0) + 1 : 0;
+  out.push(['_mstreak', run, 'set']);
+  if (won) { out.push(['mw', 1]); out.push(['mstreak', run, 'max']); if (m.lostGames === 0) out.push(['perfect', 1]); if (m.giant) out.push(['giant', 1]); }
+  if (m.ring) out.push(['ringM', m.ring, 'max']);
+  return out;
+}
+const achTierOf = (k, v) => { const a = ACHIEVEMENTS[k]; let t = 0; for (const g of a.tiers) if (v >= g) t++; return t; };
+// apply them to a {stats, got, tier} record; returns the achievements that reached a new tier
 function achApply(rec, adds) {
-  const st = rec.stats || (rec.stats = {}), got = rec.got || (rec.got = {}), fresh = [];
-  for (const [stat, n, max] of adds) {
-    st[stat] = max ? Math.max(st[stat] || 0, n) : (st[stat] || 0) + n;
-    for (const [k, a] of Object.entries(ACHIEVEMENTS)) if (a.stat === stat && !got[k] && st[stat] >= a.goal) { got[k] = Date.now(); fresh.push(k); }
+  const st = rec.stats || (rec.stats = {}), got = rec.got || (rec.got = {}), tier = rec.tier || (rec.tier = {}), fresh = [];
+  for (const [stat, n, op] of adds) {
+    st[stat] = op === 'set' ? n : op === 'max' ? Math.max(st[stat] || 0, n) : (st[stat] || 0) + n;
+    for (const [k, a] of Object.entries(ACHIEVEMENTS)) {
+      if (a.stat !== stat) continue;
+      const t = achTierOf(k, st[stat]);
+      if (t > (tier[k] || 0)) { tier[k] = t; if (!got[k]) got[k] = Date.now(); if (!fresh.includes(k)) fresh.push(k); }
+    }
   }
   return fresh;
+}
+// records from before tiers: keep what carries over (knockouts, pins, captures, revives, clutches, streaks) and drop the rest
+function achMigrate(rec) {
+  if (!rec) return rec;
+  if (rec.v === 2) { // tiers always follow the stats, so changing a tier's goal later just works
+    const st = rec.stats || {}; rec.got = rec.got || {}; rec.tier = {};
+    for (const k of ACH_ORDER) { const t = achTierOf(k, st[ACHIEVEMENTS[k].stat] || 0); if (t) { rec.tier[k] = t; if (!rec.got[k]) rec.got[k] = Date.now(); } else delete rec.got[k]; }
+    return rec;
+  }
+  const o = rec.stats || {}, st = {};
+  for (const k of ['ko', 'pin', 'capture', 'revive', 'clutch', 'clutch3', 'emp']) if (o[k]) st[k] = o[k];
+  if (o.match) st.mw = o.match;
+  if (o.long) st.longM = 20;
+  if (o.streak10) st.kstreak = 10; else if (o.streak5) st.kstreak = 5;
+  const old = rec.got || {};
+  rec.stats = st; rec.got = {}; rec.tier = {}; rec.v = 2;
+  for (const k of ACH_ORDER) { const t = achTierOf(k, st[ACHIEVEMENTS[k].stat] || 0); if (t) { rec.tier[k] = t; rec.got[k] = old[k] || Date.now(); } }
+  if (rec.border && !rec.got[rec.border]) rec.border = null;
+  return rec;
 }
 // country flag and account level shown next to a name; the server fills these in
 function setMeta(w, id, m) {
@@ -444,7 +496,7 @@ const TREE = {
   terror:    { tree: 'shadow', name: 'Night Terror', desc: 'Enemies you shroud take 25% more damage from your whole team.' },
   blood:     { tree: 'blood', base: true, name: 'Blood Arrows', desc: 'Damage you deal heals you for 25% of it (half as much while you are poisoned).' },
   hemorrhage:{ tree: 'blood', name: 'Hemorrhage', desc: 'Fully drawn hits make the target bleed for 8 damage over 4 seconds. The bleeding heals you too.' },
-  frenzy:    { tree: 'blood', name: 'Blood Frenzy', desc: 'Below half health, your hits heal you twice as much.' },
+  frenzy:    { tree: 'blood', name: 'Blood Frenzy', desc: 'Below half health, your hits heal you twice as much. And the more health you have lost, the faster you draw: up to 60% faster near death.' },
   transfusion:{ tree: 'blood', name: 'Transfusion', desc: 'Healing you would waste at full health goes to your most hurt teammate within 300px instead.' },
   bloodpact: { tree: 'blood', trade: true, name: 'Blood Pact', desc: 'Your hits heal you for 45% of their damage instead of 25%, but you have 15 less health.' },
   lingering: { tree: 'shadow', trade: true, name: 'Lingering Dark', desc: 'Your shrouds last 5 seconds, but your arrows knock back 15% less.' },
@@ -466,7 +518,7 @@ const TREE = {
   spot:      { tree: 'ranger', active: { cd: 12 }, name: "Spotter's Mark", desc: 'Mark the enemy nearest your cursor for 5 seconds: they take 30% more damage from everyone.' },
   rush:      { tree: 'juggernaut', active: { cd: 10 }, name: 'Bull Rush', desc: 'Charge along your aim for half a second, barely moved by hits, bulldozing every enemy in the way for 9 damage and a big shove.' },
   fortify:   { tree: 'juggernaut', active: { cd: 11 }, name: 'Fortify', desc: 'For 3 seconds take 90% less knockback and 30% less damage, but move 40% slower.' },
-  parry:     { tree: 'ranger', active: { cd: 9 }, name: 'Parry', desc: 'Raise a guard for 1 second that stops arrows from any side. Block one and you draw twice as fast for 3 seconds.' },
+  parry:     { tree: 'ranger', active: { cd: 9 }, name: 'Parry', desc: 'Raise a guard for 1 second that stops arrows from any side. Block one and you riposte: for 3 seconds your bow draws instantly, your next shot hits 30% harder, you move 20% faster, and Parry\'s cooldown is halved.' },
   seeker:    { tree: 'ranger', active: { cd: 12 }, name: 'Seeker Arrow', desc: 'Your next shot curves toward the nearest enemy ahead of it.' },
   trick:     { tree: 'trickster', active: { cd: 8 }, name: 'Trick Shot', desc: 'Your next shot bounces off walls and boulders up to 3 times, hitting 25% harder and knocking back 10% harder after every bounce.' },
   boomerang: { tree: 'trickster', active: { cd: 6 }, name: 'Boomerang', desc: 'Your next shot flies out, passes through enemies and comes back to you, able to hit each of them again on the way. It deals 25% more damage.' },
@@ -486,12 +538,12 @@ const TREE = {
   vital:     { tree: 'juggernaut', name: 'Vitality', desc: '25 more health.' },
   ram:       { tree: 'juggernaut', name: 'Battering Ram', desc: 'Dashing into enemies shoves twice as hard and hurts more.' },
   riot:      { tree: 'juggernaut', name: 'Riot Shield', desc: 'Arrows that hit you head-on (from the direction you are aiming) deal 35% less damage and knock you back 30% less.' },
-  railshot:  { tree: 'sniper', active: { cd: 14 }, name: 'Railshot', desc: 'Your next shot flies 80% faster, never slows down, and pierces every archer in its path.' },
+  railshot:  { tree: 'sniper', active: { cd: 11 }, name: 'Railshot', desc: 'Your next shot flies 80% faster, never slows down, pierces every archer in its path, and deals 35% more damage and 30% more knockback.' },
   deflect:   { tree: 'juggernaut', active: { cd: 14 }, name: 'Deflect', desc: 'For 1 second, arrows that hit you head-on bounce straight back at whoever shot them, as your arrows, with 60% of their power.' },
   colossus:  { tree: 'juggernaut', trade: true, name: 'Colossus', desc: 'Grow a third larger: 30 more health, 35% less knockback taken, and your dashes slam enemies 40% harder for 6 more damage. Your arrows are bigger (easier to land) but fly 15% slower, you move 10% slower and you are much easier to hit.' },
   quake:     { tree: 'juggernaut', cap: true, active: { cd: 14 }, name: 'Earthshaker', desc: 'Slam the ground and throw every nearby enemy outward.' },
 
-  fleet:     { tree: 'ranger', name: 'Fleet Foot', desc: '10% higher top speed and a quicker build-up.' },
+  fleet:     { tree: 'ranger', name: 'Fleet Foot', desc: '15% faster, you reach full speed almost twice as quickly, and you turn and change direction much more sharply.' },
   dash:      { tree: 'ranger', name: 'Quick Dash', desc: 'Dash recharges 40% faster.' },
   double:    { tree: 'ranger', name: 'Double Dash', desc: 'Hold two dash charges.' },
   volley:    { tree: 'sniper', also: ['ranger'], active: { cd: 10 }, name: 'Volley', desc: 'Your next shot fires as a burst of three arrows, one after another along your aim. Each deals 65% of the damage and knockback.' },
@@ -623,9 +675,10 @@ function applyStats(p) {
   if (p.hp > p.maxHp) p.hp = p.maxHp;
   p.mass = (1 + (p.hcap || 0) / 200) * is(has(p, 'stance'), 1 / 0.5) * is(R === 'juggernaut', 1.25) * is(has(p, 'colossus'), 1 / 0.65) / is(has(p, 'feather'), 1.3) / is(R === 'ninja', 1.1) / is(has(p, 'longstep'), 1.15) / is(R === 'crossbow', 0.85);
   p.r = 16 * is(R === 'juggernaut', 1.1) * is(has(p, 'colossus'), 1.35) * OPT('size');
-  p.baseSpeed = 235 * (has(p, 'fleet') ? 1.1 : 1) * (1 + 0.05 * h('hone_speed')) * is(R === 'juggernaut', 0.93) * is(R === 'ranger', 1.08) * is(R === 'warden', 0.95)
+  p.baseSpeed = 235 * (has(p, 'fleet') ? 1.15 : 1) * (1 + 0.05 * h('hone_speed')) * is(R === 'juggernaut', 0.93) * is(R === 'ranger', 1.08) * is(R === 'warden', 0.95)
     * is(has(p, 'colossus'), 0.9) * is(has(p, 'feather'), 1.15) * is(has(p, 'bramble'), 0.95) * is(has(p, 'quickfeet'), 1.08) * OPT('mspeed');
-  p.rampMul = has(p, 'fleet') || has(p, 'feather') ? 0.8 : 1;
+  p.rampMul = has(p, 'fleet') ? 0.4 : has(p, 'feather') ? 0.8 : 1;
+  p.agile = has(p, 'fleet') ? 3 : 1; p.resp = has(p, 'fleet') ? 1.6 : 1; // Fleet Foot: sharper turns and stops
   p.dashCdMax = R === 'ninja' ? 1.5 * is(has(p, 'swiftstep'), 0.65) * is(has(p, 'overload'), 1.3)
     : (has(p, 'dash') ? 0.66 : 1.1) * is(R === 'ranger', 0.8) * is(has(p, 'overload'), 1.3);
   p.dashMaxN = R === 'ninja' ? (has(p, 'thirdstep') ? 3 : 2) : has(p, 'double') ? 2 : 1;
@@ -662,7 +715,7 @@ function makePlayer(w, opts) {
     element: ELEMENTS[opts.element] ? opts.element : pick(Object.keys(ELEMENTS)), role: ROLES[opts.role] ? opts.role : pick(Object.keys(ROLES)),
     poisonN: 0, poisonT: 0, poisonMax: 3, poisonMul: 1, burnDps: 5, quickT: 0,
     abCd: [0, 0], wantAb: [false, false], reviveUsed: false, revT: 0, revOf: null, revP: 0,
-    lastHitBy: null, lastHitT: -99, lastCause: '', killedBy: null, stats: { shots: 0, hits: 0, dmg: 0, taken: 0, ring: 0, longest: 0 }, disarm: 0, poisonBy: null, contT: 0,
+    lastHitBy: null, lastHitT: -99, lastCause: '', killedBy: null, stats: { shots: 0, hits: 0, dmg: 0, taken: 0, ring: 0, longest: 0, as: 0 }, disarm: 0, poisonBy: null, contT: 0,
     pw: emptyPowers(), input: { mx: 0, my: 0, aim: 0, draw: false, tx: AW / 2, ty: AH / 2 }, wantDash: false,
     ai: { target: null, retarget: 0, strafe: 1, strafeT: 0, reload: 0.5, want: 0.8, err: 0, errT: 0, dodgeCd: 0 },
   };
@@ -952,7 +1005,7 @@ function placeForRound(w, p) {
     knock: 0, inv: 0, dashT: 0, dashCd: 0, dashN: p.dashMaxN, charge: 0, drawing: false, thr: 0, tdx: 0, tdy: 0,
     lastHitBy: null, lastHitT: -99, lastCause: '', killedBy: null, pw: emptyPowers(), wantDash: false, lastHurtT: -99, pinT: 0, pinned: 0, dashK: 1,
     pinSafe: 0, volleyArmed: false, railArmed: false, recoilArmed: false, seekArmed: false, swapArmed: false, boomArmed: false, execArmed: false,
-    windT: 0, parryT: 0, focusT: 0, sawCd: 0, bumpCd: 0, portCd: 0, fortT: 0, phaseT: 0, shroudT: 0, blinkGap: 0, caltT: 0, rush: null, nblink: null, trickArmed: false, throwCd: 0, wasDraw: false, bolts: null, reloadT: 0, repeatT: 0, fanArmed: false, autoT: 0, parryAuto: false, wantThrow: false, throwQ: 0, strikeN: 0, strikeT: 0, markPos: null, staggerT: 0, markT: 0, stealthT: 0, ambushT: 0, markReady: 0, slowK: 0.5, fallCause: 'pit', coat: {},
+    windT: 0, parryT: 0, focusT: 0, riposteT: 0, riposteUsed: false, parryRefunded: false, sawCd: 0, bumpCd: 0, portCd: 0, fortT: 0, phaseT: 0, shroudT: 0, blinkGap: 0, caltT: 0, rush: null, nblink: null, trickArmed: false, throwCd: 0, wasDraw: false, bolts: null, reloadT: 0, repeatT: 0, fanArmed: false, autoT: 0, parryAuto: false, wantThrow: false, throwQ: 0, strikeN: 0, strikeT: 0, markPos: null, staggerT: 0, markT: 0, stealthT: 0, ambushT: 0, markReady: 0, slowK: 0.5, fallCause: 'pit', coat: {},
     abCd: [0, 0], wantAb: [false, false], reviveUsed: false, revT: 0, revOf: null, revP: 0,
   });
   p.aim = Math.atan2(AH / 2 - s.y, AW / 2 - s.x);
@@ -963,7 +1016,7 @@ function startPre(w) {
   M.ph = 'pre'; M.T = TIMES.pre; M.rw = null; M.clutch = {}; M.first = null;
   w.arrows = []; w.pickups = []; w.zones = []; w.later = [];
   w.cracks = MAP.cracks.map(() => 0); useMap(w);
-  for (const p of w.players) { placeForRound(w, p); p.g0 = { k: p.kills, dmg: p.stats.dmg, hits: p.stats.hits, shots: p.stats.shots, ring: p.stats.ring, taken: p.stats.taken }; p.gEmp = p.emp; }
+  for (const p of w.players) { placeForRound(w, p); p.g0 = { k: p.kills, dmg: p.stats.dmg, hits: p.stats.hits, shots: p.stats.shots, ring: p.stats.ring, taken: p.stats.taken, as: p.stats.as || 0, bull: p.stats.bull || 0 }; p.hitBy = {}; p.gEmp = p.emp; }
   ev(w, { e: 'phase', ph: 'pre', rd: M.rd, gm: M.gm });
 }
 // ends one game; the first team to win gamesToWin games takes the round and a point
@@ -1014,7 +1067,7 @@ function gameRecord(w, winner, timedOut) {
         up: p.up.filter(id => TREE[id] && !TREE[id].base), hn: Object.assign({}, p.hones),
         w: winner ? (p.team === winner ? 1 : 0) : 0.5, s: p.dead ? 0 : 1,
         k: p.kills - g.k, dmg: r(p.stats.dmg - g.dmg), tk: r(p.stats.taken - g.taken),
-        sh: p.stats.shots - g.shots, hi: p.stats.hits - g.hits, ring: p.stats.ring - g.ring,
+        sh: p.stats.shots - g.shots, hi: p.stats.hits - g.hits, ring: p.stats.ring - g.ring, a: (p.stats.as || 0) - (g.as || 0), bu: (p.stats.bull || 0) - (g.bull || 0),
         e: p.gEmp ? 1 : 0, how: p.dead ? (p.lastHow || p.lastCause || '') : '',
       };
     }),
@@ -1085,7 +1138,7 @@ function hurt(w, f, dmg, kx, ky, src, by, quiet) {
     if (!quiet) ev(w, { e: 'block', x: f.x, y: f.y - 26 });
     return false;
   }
-  if (by && by !== f.id) { f.lastHitBy = by; f.lastHitT = w.t; }
+  if (by && by !== f.id) { f.lastHitBy = by; f.lastHitT = w.t; (f.hitBy || (f.hitBy = {}))[by] = w.t; } // hitBy: for assists
   // Guardian's Oath: the Warden takes a little more so the team around them takes less
   if (has(f, 'oath')) dmg *= 1.1;
   else if (w.players.some(q => q !== f && q.team === f.team && !q.dead && has(q, 'oath') && Math.hypot(q.x - f.x, q.y - f.y) < 170)) dmg *= 0.8;
@@ -1183,6 +1236,13 @@ function kill(w, f, cause) {
   if (f.lastHitBy && w.t - f.lastHitT < 5) killer = w.players.find(q => q.id === f.lastHitBy && q.team !== f.team) || null;
   f.killedBy = killer ? killer.name : null;
   let gain = 0;
+  // assists: every other enemy who hurt them in the last 8 seconds
+  for (const id in (f.hitBy || {})) {
+    if (killer && id === killer.id) continue;
+    const q = w.t - f.hitBy[id] < 8 && w.players.find(x => x.id === id && x.team !== f.team);
+    if (q) q.stats.as = (q.stats.as || 0) + 1;
+  }
+  f.hitBy = {};
   if (killer) {
     const topKills = Math.max(...members(w, f.team).map(q => q.kills));
     killer.kills++;
@@ -1202,7 +1262,7 @@ function kill(w, f, cause) {
   f.lastHow = how;
   const dist = cause === 'arrow' && f.lastArrow && f.lastArrow.dist ? Math.round(f.lastArrow.dist / 50) : 0;
   ev(w, { e: 'kill', k: killer ? killer.id : null, kn: killer ? killer.name : null, kc: killer ? killer.color : null,
-    v: f.id, vn: f.name, vc: f.color, vt: f.team, c: cause, how, m: dist, x: r1(f.x), y: r1(f.y), am: gain });
+    v: f.id, vn: f.name, vc: f.color, vt: f.team, c: cause, how, m: dist, x: r1(f.x), y: r1(f.y), am: gain, ks: killer ? killer.streak + 1 : undefined });
   // streaks: knockouts in a row without being knocked out
   const wasEmp = f.emp;
   if ((f.streak >= 3 || wasEmp) && killer) ev(w, { e: 'shutdown', k: killer.id, kn: killer.name, v: f.id, vn: f.name, n: f.streak, emp: wasEmp ? 1 : 0 });
@@ -1246,7 +1306,8 @@ function fire(w, p, ang, c, burst, vol) {
   if (xb) { dmg *= 0.85; kb *= 0.85 * (has(p, 'heavybolt') ? 1.2 : 1); }
   const auto = xb && p.autoT > 0; if (auto) { dmg *= 0.5; kb *= 0.5; }
   if (burst) { dmg *= 0.65; kb *= 0.65; }
-  const rail = !burst && p.railArmed; if (rail) p.railArmed = false;
+  const rail = !burst && p.railArmed; if (rail) { p.railArmed = false; dmg *= 1.35; kb *= 1.3; }
+  if (!burst && p.riposteT > 0 && !p.riposteUsed) { p.riposteUsed = true; dmg *= 1.3; kb *= 1.3; } // Parry's riposte
   const take = k => { const v = !burst && p[k]; if (v) p[k] = false; return v; };
   const recoil = take('recoilArmed'), seek = take('seekArmed'), swap = false, trick = take('trickArmed'), boom = take('boomArmed'), exec = take('execArmed');
   if (boom) dmg *= 1.25;
@@ -1341,18 +1402,21 @@ const MOVE = {
   dashTime: 0.34,  // seconds of dash (you clear pits during this)
 };
 
+// Blood Frenzy: the lower your health, the faster you draw (up to 60% near death)
+const frenzyDraw = p => (has(p, 'frenzy') ? 1 + 0.6 * clamp(1 - p.hp / p.maxHp, 0, 1) : 1);
 function accelerate(f, mx, my, sp, dt) {
   const moving = !!(mx || my);
   // throttle ramps with an ease-in so the very first moment is slowest
   f.thr = clamp(f.thr + (moving ? dt / (MOVE.rampUp * (f.rampMul || 1)) : -dt / MOVE.rampDown), 0, 1);
   if (moving) {
-    const k = 1 - Math.exp(-MOVE.turnRate * dt);
+    const k = 1 - Math.exp(-MOVE.turnRate * (f.agile || 1) * dt);
     f.tdx += (mx - f.tdx) * k; f.tdy += (my - f.tdy) * k;
   }
   const push = f.thr * f.thr * (3 - 2 * f.thr); // smoothstep
   const glide = ICE ? ICE.glide : MOVE.glide;
   let drag = glide + (MOVE.drag - glide) * push;
   let thrust = sp * MOVE.drag * push;
+  if (f.resp && f.resp !== 1) { drag *= f.resp; thrust *= f.resp; } // Fleet Foot: same top speed, snappier response
   if (f.inTar && !f.sure) drag *= 3; // bog: same push, triple drag, so about a third of the speed
   if (f.knock > 0) { drag = f.inTar && !f.sure ? 7 : ICE ? ICE.knock : MOVE.knockDrag; thrust *= MOVE.knockPush; }
   if (f.stuck > 0 && f.knock <= 0) drag = 12; // rooted: can't walk, but hits still send you flying
@@ -1362,7 +1426,7 @@ function accelerate(f, mx, my, sp, dt) {
   // turning: bleed off motion that goes against the held direction
   if (moving && f.knock <= 0) {
     const along = f.vx * mx + f.vy * my;
-    if (along < 0) { const b = along * (1 - Math.exp(-(ICE ? ICE.brake : MOVE.brake) * dt)); f.vx -= mx * b; f.vy -= my * b; }
+    if (along < 0) { const b = along * (1 - Math.exp(-(ICE ? ICE.brake : MOVE.brake * (f.agile || 1)) * dt)); f.vx -= mx * b; f.vy -= my * b; }
   }
   const cur = Math.hypot(f.vx, f.vy), cap = f.speed;
   if (cur > cap * 1.05 && f.knock <= 0) {
@@ -1450,7 +1514,7 @@ function updatePlayer(w, p, dt) {
   p.quickT = Math.max(0, p.quickT - dt);
   p.deflectT = Math.max(0, (p.deflectT || 0) - dt);
   p.stunT = Math.max(0, (p.stunT || 0) - dt);
-  p.parryT = Math.max(0, (p.parryT || 0) - dt); p.focusT = Math.max(0, (p.focusT || 0) - dt);
+  p.parryT = Math.max(0, (p.parryT || 0) - dt); p.focusT = Math.max(0, (p.focusT || 0) - dt); p.riposteT = Math.max(0, (p.riposteT || 0) - dt);
   p.windT = Math.max(0, (p.windT || 0) - dt); p.fortT = Math.max(0, (p.fortT || 0) - dt); p.phaseT = Math.max(0, (p.phaseT || 0) - dt);
   p.shroudT = Math.max(0, (p.shroudT || 0) - dt); p.blinkGap = Math.max(0, (p.blinkGap || 0) - dt);
   if (p.markPos) {
@@ -1506,6 +1570,7 @@ function updatePlayer(w, p, dt) {
     if (id !== 'stealth' && id !== 'blink' && p.stealthT > 0) breakStealth(w, p);
     const ok = useAbility(w, p, id);
     p.abCd[i] = ok === 'rearm' ? 0.35 : ok ? TREE[id].active.cd * (p.abCdMul || 1) : 0.8;
+    if (p.parryHalf) { p.abCd[i] *= 0.5; p.parryHalf = false; }
   }
 
   p.disarm = Math.max(0, p.disarm - dt);
@@ -1528,7 +1593,7 @@ function updatePlayer(w, p, dt) {
     p.repeatT = Math.max(0, (p.repeatT || 0) - dt);
     if (p.bolts == null) p.bolts = p.xbowMax;
     if (p.bolts < p.xbowMax) {
-      if (p.falling <= 0) p.reloadT += dt * (p.pw.quick > 0 ? 1.8 : 1) * (p.focusT > 0 ? 2 : 1) * (p.repeatT > 0 ? 3 : 1) / p.xbowReload;
+      if (p.falling <= 0) p.reloadT += dt * frenzyDraw(p) * (p.pw.quick > 0 ? 1.8 : 1) * (p.focusT > 0 ? 2 : 1) * (p.repeatT > 0 ? 3 : 1) / p.xbowReload;
       if (p.reloadT >= 1) { p.reloadT = 0; p.bolts++; ev(w, { e: 'reloaded', id: p.id }); }
     } else { p.bolts = p.xbowMax; p.reloadT = 0; }
     p.autoT = Math.max(0, (p.autoT || 0) - dt);
@@ -1545,7 +1610,7 @@ function updatePlayer(w, p, dt) {
   } else if (inp.draw && p.falling <= 0 && p.disarm <= 0) {
     const prev = p.charge;
     p.drawing = true;
-    p.charge = Math.min(1, p.charge + dt * p.drawMul * (p.pw.quick > 0 ? 2.2 : 1) * (p.quickT > 0 ? 3 : 1) * (p.ambushT > 0 ? 1.6 : 1) * (p.focusT > 0 ? 2 : 1));
+    p.charge = p.riposteT > 0 ? 1 : Math.min(1, p.charge + dt * p.drawMul * frenzyDraw(p) * (p.pw.quick > 0 ? 2.2 : 1) * (p.quickT > 0 ? 3 : 1) * (p.ambushT > 0 ? 1.6 : 1) * (p.focusT > 0 ? 2 : 1));
     if (prev < 1 && p.charge >= 1) ev(w, { e: 'full', id: p.id });
     if (p.charge >= 1 && has(p, 'ballista')) { const was = p.over; p.over += dt; if (was < 1 && p.over >= 1) ev(w, { e: 'loaded', id: p.id }); }
   } else if (p.drawing) {
@@ -1584,6 +1649,7 @@ function dashAngle(p) {
   if (p.dashMove && !p.bot && (i.mx || i.my)) return Math.atan2(i.my, i.mx);
   return p.aim;
 }
+const PARRY_REACH = 0.15; // seconds a Parry can reach back to undo a hit that just landed
 function ninjaBlink(w, p) {
   const a = dashAngle(p);
   const dx = Math.cos(a), dy = Math.sin(a);
@@ -1725,7 +1791,18 @@ function useAbility(w, p, id) {
       return true;
     case 'fortify': p.fortT = 3; ev(w, { e: 'fortify', id: p.id, x: r1(p.x), y: r1(p.y) }); return true;
     case 'hairtrig': p.parryT = 1; p.parryAuto = true; ev(w, { e: 'parry', id: p.id, x: r1(p.x), y: r1(p.y), k: 'auto' }); return true;
-    case 'parry': p.parryT = 1; p.parryAuto = false; ev(w, { e: 'parry', id: p.id, x: r1(p.x), y: r1(p.y) }); return true;
+    case 'parry': {
+      p.parryT = 1; p.parryAuto = false; p.parryRefunded = false; ev(w, { e: 'parry', id: p.id, x: r1(p.x), y: r1(p.y) });
+      // a shot that landed in the last 0.15s is parried after all: online, what you see is a moment behind the server
+      const h = p.preHit;
+      if (h && w.t - h.t <= PARRY_REACH && !p.dead && p.falling <= 0) {
+        Object.assign(p, { hp: Math.max(p.hp, h.hp), vx: h.vx, vy: h.vy, knock: h.knock, burn: h.burn, slow: h.slow, frozen: h.frozen, stunT: h.stunT, bleedT: h.bleedT, staggerT: h.staggerT, stuck: h.stuck });
+        p.preHit = null; p.focusT = 3; p.riposteT = 3; p.riposteUsed = false;
+        p.parryHalf = true; p.parryRefunded = true; // the cooldown, set just after this, is halved
+        ev(w, { e: 'parried', id: p.id, x: r1(p.x), y: r1(p.y), au: 0, late: 1 });
+      }
+      return true;
+    }
     case 'flash': {
       const dx = p.input.tx - p.x, dy = p.input.ty - p.y, d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d;
       let reach = Math.min(FLASH_RANGE, Math.max(d, 60)), nx = p.x, ny = p.y;
@@ -2264,6 +2341,7 @@ function arrowHit(w, a, f) {
   if (f.stealthT > 0) breakStealth(w, f); // only an arrow hit breaks stealth; burns, poison and blasts don't
   if (a.own && !a.counted) { a.counted = true; a.own.stats.hits++; a.own.stats.longest = Math.max(a.own.stats.longest, a.dist); }
   ev(w, { e: 'hit', x: r1(a.x), y: r1(a.y), cr: a.crit ? 1 : 0, id: f.id, by: a.owner, el: a.el, b: a.bolt ? 1 : 0, ls: range > 0.3 ? 1 : 0 });
+  if (a.crit && a.own) a.own.stats.bull = (a.own.stats.bull || 0) + 1;
   if (a.sneak && !f.dead) { a.sneak = false; stun(w, f, 1); ev(w, { e: 'ambushHit', id: f.id, by: a.owner, x: r1(f.x), y: r1(f.y) }); }
   if (a.vol && a.own && !a.vol.done) {
     a.vol.hits[f.id] = (a.vol.hits[f.id] || 0) + 1;
@@ -2414,7 +2492,11 @@ function updateArrows(w, dt) {
         if (Math.hypot(f.x - a.x, f.y - a.y) < f.r + (a.big ? 10 : 4)) {
           if (f.parryT > 0) {
             // Parry: the arrow is knocked aside, and the Ranger's next draws come fast
-            if (f.parryAuto) { f.autoT = AUTO_TIME; f.parryT = 0; } else f.focusT = 3;
+            if (f.parryAuto) { f.autoT = AUTO_TIME; f.parryT = 0; }
+            else { // riposte: instant draws, a harder next shot, a burst of speed and half the cooldown back
+              f.focusT = 3; f.riposteT = 3; f.riposteUsed = false;
+              const si = f.slots.indexOf('parry'); if (si >= 0 && !f.parryRefunded) { f.abCd[si] *= 0.5; f.parryRefunded = true; }
+            }
             ev(w, { e: 'parried', id: f.id, x: r1(a.x), y: r1(a.y), au: f.parryAuto ? 1 : 0 });
             w.arrows.splice(i, 1); continue outer;
           }
@@ -2427,6 +2509,8 @@ function updateArrows(w, dt) {
             ev(w, { e: 'deflect', x: r1(a.x), y: r1(a.y), id: f.id });
             continue outer;
           }
+          // remembered for a moment, so a Parry pressed just after the hit (online, a blink late) can still undo it
+          f.preHit = { t: w.t, hp: f.hp, vx: f.vx, vy: f.vy, knock: f.knock, burn: f.burn, slow: f.slow, frozen: f.frozen, stunT: f.stunT, bleedT: f.bleedT, staggerT: f.staggerT, stuck: f.stuck };
           arrowHit(w, a, f);
           // Switcheroo: trade places with whoever the arrow hit
           if (a.swap && a.own && !a.own.dead && a.own.falling <= 0 && !f.dead && f.falling <= 0) {
@@ -3037,7 +3121,7 @@ function step(w, dt) {
   for (const p of w.players) {
     if (p.dead) { p.revP = 0; continue; }
     const rallied = w.players.some(q => q !== p && q.team === p.team && !q.dead && has(q, 'rally') && Math.hypot(q.x - p.x, q.y - p.y) < 170);
-    p.speed = p.baseSpeed * (p.windT > 0 ? 1.4 : 1) * (p.fortT > 0 ? 0.6 : 1) * (p.shroudT > 0 && p.shroudSlow ? 0.85 : 1) * (p.trapSet ? 0.5 : 1) * (rallied ? 1.15 : 1) * (p.stealthT > 0 ? 1.3 : 1) * (p.bot ? botD(p).speed : 1);
+    p.speed = p.baseSpeed * (p.windT > 0 ? 1.4 : 1) * (p.fortT > 0 ? 0.6 : 1) * (p.shroudT > 0 && p.shroudSlow ? 0.85 : 1) * (p.trapSet ? 0.5 : 1) * (rallied ? 1.15 : 1) * (p.stealthT > 0 ? 1.3 : 1) * (p.riposteT > 0 ? 1.2 : 1) * (p.bot ? botD(p).speed : 1);
     p.rallied = rallied;
   }
   // what bots perceive lags reality: remember where everyone was over the last half second
@@ -3148,7 +3232,7 @@ return {
   AW, AH, WALL, GATES, MAPS, MAP_KEYS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
-  setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
+  setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
   _grant(w, id, cards) { const p = w.players.find(q => q.id === id); for (const c of cards) takeCard(w, p, c); applyStats(p); p.picked = false; return p; },
 };

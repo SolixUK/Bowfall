@@ -105,10 +105,9 @@ function finish(list) {
     c.wins = Math.min(c.wins, c.games); c.matchWins = Math.min(c.matchWins || 0, c.matches || 0);
     const st = p.ach.stats || {}, keepFlag = Math.min(1, f * 3), ns = {};
     for (const [k, v] of Object.entries(st)) ns[k] = ['clutch', 'clutch3', 'streak5', 'streak10', 'emp'].includes(k) ? (rnd() < keepFlag ? v : 0) : sc(v);
-    p.ach = { stats: ns, got: {} };
-    for (const [k, a] of Object.entries(Sim.ACHIEVEMENTS)) if ((ns[a.stat] || 0) >= a.goal) p.ach.got[k] = p.created + Math.floor(rnd() * (Date.now() - p.created));
-    c.bull = ns.bull || 0;
-    const got = Sim.ACH_ORDER.filter(k => p.ach.got[k]);
+    p.ach = { stats: ns, got: {}, tier: {}, v: 2 };
+    for (const [k, a] of Object.entries(Sim.ACHIEVEMENTS)) { const t = Sim.achTierOf(k, ns[a.stat] || 0); if (t) { p.ach.tier[k] = t; p.ach.got[k] = p.created + Math.floor(rnd() * (Date.now() - p.created)); } }
+    const got = Sim.achBest(p.ach, 20);
     p.title = got.length && rnd() < 0.6 ? got[Math.floor(rnd() * Math.min(2, got.length))] : null;
     if (got.length && rnd() < 0.7) p.ach.border = got[Math.floor(rnd() * Math.min(3, got.length))];
   }

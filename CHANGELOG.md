@@ -2,6 +2,82 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
 
+## 0.17.2
+
+**Parry forgives a late press**
+- Online, what you see is a moment behind the server (the game shows the world about a tenth of a second late to keep it smooth, plus your connection's delay). So a parry that looked perfectly timed could arrive just after the arrow had already landed.
+- Now a Parry pressed up to 0.15 seconds after an arrow hits you undoes that hit, as long as it didn't knock you out: the damage, knockback, burns, slows and stuns from it. You still get the riposte and the halved cooldown.
+
+## 0.17.1
+
+**Controller aiming**
+- The aim arrow sits further out from your archer, with a faint dotted line out to it, all the time.
+- While drawing you also get the full aim guide, as before.
+- Stronger aim assist, between the old sticky lock-on and the gentle nudge. Near an enemy the aim slows and is drawn 60% of the way toward a point just ahead of them: their middle, shifted a third of the way toward where they're heading. In testing, a stick 0.1 radians off a still target ended up 0.04 off. On a target running across your aim, it leans a little their way.
+
+## 0.17.0
+
+**Achievements, rebuilt as challenges**
+- 18 achievements, each with five tiers: Bronze, Silver, Gold, Platinum and Diamond. Most are real challenges:
+  - **On Fire:** win matches in a row.
+  - **Unstoppable:** knockouts in a row without going down.
+  - **Untouchable:** win games in a row without being knocked out.
+  - **Flawless:** win a match without losing a game.
+  - **Sharpshooter:** accuracy in a game.
+  - **Eagle Eye:** bullseyes in one game.
+  - **Damage Dealer:** top damage on your team.
+  - **Ringmaster:** ring-outs in one match.
+  - **Longshot:** knockout distance.
+  - **Clutch** and **Lone Wolf**.
+  - **Giant Slayer:** beat a team rated 150 or more above yours.
+- A few are totals, since volume is a virtue too: Champion, Warlord, Pinmaster, Empowered, Keeper and Lifeline.
+- Each tier shows how rare it is among players ("Top 3%").
+- They count only in ranked games and in custom games with no bots, so they can't be farmed against easy bots.
+- Knockouts, pins, captures, revives, clutches, streaks, long shots and match wins carry over from the old achievements.
+
+**Playstyle on profiles**
+- Stats are separate from achievements. A profile now shows how the player plays compared with everyone else:
+  - damage per game
+  - accuracy
+  - games survived
+  - damage taken (evasive)
+  - knockouts
+  - assists
+  - share of knockouts into hazards
+  - share of the team's damage (carry)
+- Each is shown as "top X%", with the player's two strongest traits as their headline style.
+- Assists are now tracked: hurting someone in the 8 seconds before a teammate knocks them out.
+
+**Match history**
+- Profiles show the last 10 ranked matches: mode, win or loss, score, K / D / A, archetype, rating change and when.
+
+**Ratings**
+- Separate **1v1** and **team** (2v2 and 3v3) ratings, each with its own leaderboard. Your team rating starts from your 1v1 rating.
+- Anti-boosting in team games:
+  - A side's strength leans toward its best player, so a strong friend can't carry a weak account into easy wins.
+  - Each player's change is scaled by how much they did (their share of the team's knockouts, assists and damage). Someone who was carried gains as little as half. Someone who carried a losing team loses less.
+
+**Friends**
+- Add a friend by name from the Friends panel on the main menu.
+- Friend requests pop up as a notice, and you can accept or decline them right in the panel.
+
+**Website**
+- New home page:
+  - The Bowfall name is the headline.
+  - A live bot match plays in your browser.
+  - Sections on how it plays, the arenas, the top players, open games and the forum.
+- Balance data is now only for the game's owner, on the website and in the game.
+
+**Balance**
+- **Blood Frenzy:** also draws faster the more health you've lost, up to 60% faster near death.
+- **Railshot:** now deals 35% more damage and 30% more knockback, and the cooldown is down from 14 to 11 seconds.
+- **Parry:** blocking an arrow now gives a riposte. For 3 seconds your bow draws instantly, your next shot hits 30% harder, you move 20% faster, and Parry's cooldown is halved.
+- **Fleet Foot:** 15% faster (was 10%). You reach full speed about twice as quickly and turn much more sharply, so reversing takes about half the time.
+- **Arrow speed:** the old Blazing speed is now Very fast and is the default. Normal, Fast and Blazing moved up with it, so Blazing is faster still.
+
+**Easier to see arrows**
+- Arrows in flight cast a soft shadow on the ground and have a dark outline, and are a little bigger, so they stand out on every arena.
+
 ## 0.16.1
 
 **Much less bandwidth**
