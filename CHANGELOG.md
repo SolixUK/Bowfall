@@ -2,6 +2,68 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
 
+## 0.16.1
+
+**Much less bandwidth**
+- Game traffic is now compressed (WebSocket permessage-deflate). A 2v2 game measured 62 KB a second per player before and 8.4 KB a second after, about 7 times less. Together with 0.16.0's smaller snapshots, a player now uses roughly 30 MB an hour of play, down from about 400 MB in 0.15.
+- The game and website pages are sent compressed (brotli or gzip, about a quarter of the size). Browsers that already have the latest copy get a tiny "not changed" reply instead of downloading the whole game again.
+
+## 0.16.0
+
+**Players on controllers**
+- Adding a player: the sign-in fields start empty, so the browser no longer fills in the main player's account.
+  - **Add from friends list** picks the friend, and they only type their password.
+  - Each player must use their own account.
+- Extra players no longer pick an archetype when they're added. They do everything in the lobby with their own controller:
+  - Custom games: **X** joins Red (left), **B** joins Blue (right), **Y** goes to unassigned.
+  - **A** opens their element and role picker: D-pad up and down switches between element and role, left and right changes it, A closes it.
+  - Ranked draft: **A** opens the picker, **X** is ready.
+- Their upgrade cards now appear under yours on the upgrade screen, picked with X, Y and B (or clicked).
+- No more cursor on a controller. A small arrow just outside the archer points where they're aiming and fills in as the bow draws (white at full draw).
+  - Extra players now get the aim guide while drawing, like you do.
+  - This also applies to you when you play on a controller.
+
+**Dash direction**
+- New option under Controls: dash **the way you're moving** (the new default) or **where you're aiming**. Standing still, a dash always goes where you aim.
+- Ninja blinks follow the same setting. Extra players on controllers dash the way they move.
+
+**Custom game lobby**
+- Redesigned to fit on one screen:
+  - Left column: teams, players on controllers and chat.
+  - Right column: your archetype and the match settings.
+- Arenas are compact thumbnails, with the chosen arena's description underneath.
+- Custom rules and room settings fold away.
+- Start and Leave stay pinned at the bottom.
+- **Practice vs bots** on the Custom games screen plays against bots in your browser, without using the server.
+
+**Find game**
+- You no longer choose your archetype before searching. You pick it in the draft, once you can see the arena.
+- A chime plays when a match is found, and another when the draft opens.
+- The last five seconds of the draft tick down, and so do the last five seconds of an upgrade pick you haven't made.
+- Fixed: "Waiting for teammates to return" could show after a game even when nobody was still in one.
+
+**Friends on the main menu**
+- A Friends panel under your profile shows who's online and what they're doing:
+  - main menu, practising or playing the tutorial
+  - finding a match
+  - in a ranked match
+  - in a custom lobby, or playing a custom game
+- **Join** jumps into a friend's public custom game. **Invite** asks them into your party.
+
+**AI players**
+- Matchmaking's AI players now earn achievements from real games too, and their level updates as they play. They already gained and lost rating and stats like everyone else.
+
+**Other fixes**
+- The pause menu now opens over the upgrade screen, not under it.
+- Moving to unassigned no longer says the player left.
+
+**Lighter on the server**
+- Snapshots leave out every field that's at rest (0 or empty). The client fills them back in, so each snapshot is about half the size. That halves the bandwidth each player uses in a game.
+- In the lobby, during upgrade picks and on the results screen, snapshots go out 10 times a second instead of 30, since little moves there.
+- A room with nobody watching builds no snapshots at all.
+- Leaderboards and highscores (which read every account) are kept for 30 seconds. The balance data is built once and reused until the next game is saved.
+- If the server has been updated since your page loaded, joining a game reloads the page, so you always play the version that matches the server.
+
 ## 0.15.0
 
 **Play together on one screen**

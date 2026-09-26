@@ -4,6 +4,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const zlib = require('zlib');
 const { WebSocketServer } = require('ws');
 const Sim = require('./public/sim.js');
 const { createStore, BOARD_KEYS } = require('./lib/db');
@@ -114,6 +115,8 @@ function userOfPid(room, pid) {
   if (ws) return ws.user || ws.guest;
   return room.ai && room.ai.has(pid) ? room.ai.get(pid) : null;
 }
+const boardCache = new Map(); // leaderboard and highscores answers, briefly
+let balanceCache = null; // the /api/balance response, until the next game is saved
 function saveRecords(room) {
   const recs = room.world.records.splice(0);
   if (!recs.length) return;
@@ -145,8 +148,10 @@ function saveRecords(room) {
     }
   }
   for (const ws of room.clients) if ((ws.user || ws.guest) && ws.pid) Sim.setMeta(room.world, ws.pid, { lv: levelOf((ws.user || ws.guest).career).lv });
+  if (room.ai) for (const [pid, u] of room.ai) Sim.setMeta(room.world, pid, { lv: levelOf(u.career).lv });
   if (recs.some(r => r.type === 'game')) sendRoom(room); // fresh stats for the hover cards
   const lines = recs.map(r => JSON.stringify(Object.assign({ src: 'online', room: room.code, humans }, r, r.p ? { p: r.p.map(({ id, ...x }) => x) } : {}))).join('\n') + '\n';
+  balanceCache = null;
   fs.appendFile(DATA_FILE, lines, err => { if (err) console.error('Could not save game stats:', err.message); });
 }
 
@@ -177,10 +182,13 @@ async function api(req, res, url) {
 
   // balance data for the in-game screen
   if (route === '/balance' && method === 'GET') {
+    // built once and reused until a new game is saved (it's the whole history, so it's worth not redoing per visit)
+    if (balanceCache) { res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); return res.end(balanceCache); }
     return fs.readFile(DATA_FILE, 'utf8', (err, text) => {
       const recs = [];
       if (!err) for (const line of text.split('\n')) { if (!line.trim()) continue; try { recs.push(JSON.parse(line)); } catch (e) { /* half-written line */ } }
-      json(res, 200, { records: recs });
+      balanceCache = JSON.stringify({ records: recs });
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(balanceCache);
     });
   }
   // ---- accounts
@@ -278,6 +286,12 @@ async function api(req, res, url) {
     if (!u) return json(res, 404, { error: 'No player with that name.' });
     return json(res, 200, { user: publicUser(live.get(u.id) || u) });
   }
+  // leaderboards and highscores read every account, so each answer is kept for 30 seconds
+  if ((route === '/leaderboard' || route === '/highscores') && method === 'GET') {
+    const hit = boardCache.get(route + url.search);
+    if (hit && hit.until > Date.now()) return json(res, 200, hit.v);
+  }
+  const board = v => { if (boardCache.size > 200) boardCache.clear(); boardCache.set(route + url.search, { v, until: Date.now() + 30000 }); return json(res, 200, v); };
   if (route === '/leaderboard' && method === 'GET') {
     const by = BOARD_KEYS.includes(url.searchParams.get('by')) ? url.searchParams.get('by') : 'elo';
     const role = Sim.ROLES[url.searchParams.get('role')] ? url.searchParams.get('role') : null;
@@ -287,10 +301,10 @@ async function api(req, res, url) {
       const rows = all.filter(u => ((u.career || {}).roles || {})[role] >= ROLE_MIN)
         .map(u => { const c = u.career, g = c.roles[role], wn = (c.roleW || {})[role] || 0; return { name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, title: u.title, country: flagOf(u), level: levelOf(c).lv, value: Math.round((c.relo || {})[role] || ELO_START), games: g, wins: wn, rate: Math.round(wn / g * 100) }; })
         .sort((a, b) => b.value - a.value).slice(0, 50);
-      return json(res, 200, { by: 'elo', role, min: ROLE_MIN, rows });
+      return board({ by: 'elo', role, min: ROLE_MIN, rows });
     }
     const rows = (await store.leaderboard(by, 50)).map(u => live.get(u.id) || u).filter(u => (u.career || {}).games > 0);
-    return json(res, 200, { by, rows: rows.map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, title: u.title, country: flagOf(u), level: levelOf(u.career).lv, value: by === 'elo' ? Math.round((u.career || {}).elo || ELO_START) : (u.career || {})[by] || 0, games: (u.career || {}).games || 0, wins: (u.career || {}).wins || 0, kills: (u.career || {}).kills || 0, rate: (u.career || {}).games ? Math.round(((u.career || {}).wins || 0) / u.career.games * 100) : 0 })) });
+    return board({ by, rows: rows.map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, title: u.title, country: flagOf(u), level: levelOf(u.career).lv, value: by === 'elo' ? Math.round((u.career || {}).elo || ELO_START) : (u.career || {})[by] || 0, games: (u.career || {}).games || 0, wins: (u.career || {}).wins || 0, kills: (u.career || {}).kills || 0, rate: (u.career || {}).games ? Math.round(((u.career || {}).wins || 0) / u.career.games * 100) : 0 })) });
   }
   // single-game records
   if (route === '/highscores' && method === 'GET') {
@@ -299,7 +313,7 @@ async function api(req, res, url) {
       .map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, country: flagOf(u), level: levelOf(u.career).lv, value: u.career.best[k] }));
     const peak = all.filter(u => (u.career || {}).eloPeak).sort((a, b) => b.career.eloPeak - a.career.eloPeak).slice(0, 10)
       .map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, country: flagOf(u), level: levelOf(u.career).lv, value: Math.round(u.career.eloPeak) }));
-    return json(res, 200, { kills: top('k'), dmg: top('dmg'), ring: top('ring'), peak });
+    return board({ kills: top('k'), dmg: top('dmg'), ring: top('ring'), peak });
   }
   if (route === '/look' && method === 'POST') {
     if (!me) return json(res, 401, { error: 'Sign in first.' });
@@ -442,15 +456,36 @@ const server = http.createServer(async (req, res) => {
   const page = url.pathname === '/' ? 'site.html' : url.pathname === '/play' ? 'index.html' : url.pathname;
   const file = path.normalize(path.join(PUBLIC, page));
   if (!file.startsWith(PUBLIC)) { res.writeHead(403); return res.end(); }
-  fs.readFile(file, (err, data) => {
-    if (err) { res.writeHead(404); return res.end('Not found'); }
-    res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
-    res.end(data);
-  });
+  sendStatic(req, res, file);
 });
 
+// static files are compressed once (brotli and gzip, about a quarter of the size) and kept in memory with an ETag,
+// so a returning visitor's browser gets a tiny "not changed" answer instead of the whole game again
+const staticCache = new Map();
+function sendStatic(req, res, file) {
+  const done = f => {
+    if (req.headers['if-none-match'] === f.etag) { res.writeHead(304, { ETag: f.etag, 'Cache-Control': 'no-cache' }); return res.end(); }
+    const ae = String(req.headers['accept-encoding'] || ''), enc = f.br && /\bbr\b/.test(ae) ? 'br' : f.gz && /\bgzip\b/.test(ae) ? 'gzip' : null;
+    const h = { 'Content-Type': f.type, 'Cache-Control': 'no-cache', ETag: f.etag, Vary: 'Accept-Encoding' };
+    if (enc) h['Content-Encoding'] = enc;
+    res.writeHead(200, h); res.end(enc === 'br' ? f.br : enc === 'gzip' ? f.gz : f.raw);
+  };
+  const have = staticCache.get(file);
+  if (have) return done(have);
+  fs.readFile(file, (err, data) => {
+    if (err) { res.writeHead(404); return res.end('Not found'); }
+    const type = TYPES[path.extname(file)] || 'application/octet-stream', text = /^(text|application\/json|image\/svg)/.test(type) || /javascript/.test(type);
+    const f = { type, raw: data, etag: '"' + crypto.createHash('sha1').update(data).digest('base64').slice(0, 20) + '"',
+      gz: text && data.length > 1024 ? zlib.gzipSync(data, { level: 9 }) : null, br: text && data.length > 1024 ? zlib.brotliCompressSync(data) : null };
+    staticCache.set(file, f);
+    done(f);
+  });
+}
+
 // ---------------- rooms ----------------
-const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 4096 });
+// messages over about 200 bytes (snapshots, room updates) are compressed, which cuts game traffic by around two thirds
+const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 4096,
+  perMessageDeflate: { threshold: 200, zlibDeflateOptions: { level: 1, memLevel: 7 }, serverMaxWindowBits: 12, clientNoContextTakeover: true, concurrencyLimit: 16 } });
 const rooms = new Map();
 // friends, parties and matchmaking (lib/social.js)
 const social = require('./lib/social')({ store, track, markDirty, send, Sim, levelOf, flagOf, ELO_START, rooms, createRoom, sendRoom, sysChat, broadcast, live, loadGuest });
@@ -556,7 +591,7 @@ function joinTeam(room, ws, team) {
 }
 function toSpectator(room, ws) {
   if (!ws.pid) return;
-  Sim.leave(room.world, ws.pid);
+  Sim.leave(room.world, ws.pid, true);
   ws.pid = null;
   send(ws, { t: 'you', id: null });
 }
@@ -567,6 +602,7 @@ function leave(ws) {
   room.clients.delete(ws);
   if (ws.pid) Sim.leave(room.world, ws.pid);
   ws.room = null; ws.pid = null;
+  setTimeout(() => social.presence(ws), 0);
   if (!room.clients.size) { social.freeAI(room); rooms.delete(room.code); return; }
   if (room.ranked) { sysChat(room, `${ws.name} left.`); sendRoom(room); return; }
   if (room.host === ws.cid) {
@@ -700,10 +736,11 @@ async function handle(ws, m) {
     if (m.create) { room.host = ws.cid; applyRoomCfg(room, Object.assign({ name: '' }, m.room || {}), ws.name); joinTeam(room, ws, 'red'); }
     else if (room.ranked) { if (ws.mmTeam) joinTeam(room, ws, ws.mmTeam); }
     else if (!room.host) room.host = ws.cid;
-    send(ws, { t: 'welcome', id: ws.pid, code: room.code, account: ws.user ? ws.user.name : null });
+    send(ws, { t: 'welcome', id: ws.pid, code: room.code, account: ws.user ? ws.user.name : null, v: Sim.VERSION });
     sendRoom(room);
     sysChat(room, room.world.match.ph === 'lobby' || room.world.match.ph === 'over' ? `${ws.name} joined.` : `${ws.name} joined and is spectating until this game ends.`);
     if (room.ranked) social.arrived(room, ws);
+    social.presence(ws);
     return;
   }
 
@@ -825,6 +862,15 @@ function creditAchievements(room, evs) {
     if (fresh.length) { Object.assign(ws, lookOf(u)); Sim.setMeta(room.world, ws.pid, lookOf(u)); }
     if (ws.user) send(ws, { t: 'ach', keys: fresh, ach: u.ach }); // guests' browsers keep their own copy
   }
+  // matchmaking's AI players earn achievements from real games too, just like everyone else
+  if (room.ai) for (const [pid, u] of room.ai) {
+    const p = room.world.players.find(q => q.id === pid); if (!p) continue;
+    const adds = Sim.achFromEvents(evs, pid, p.team);
+    if (!adds.length) continue;
+    u.ach = u.ach || {};
+    if (Sim.achApply(u.ach, adds).length) Sim.setMeta(room.world, pid, lookOf(u));
+    markDirty(u);
+  }
 }
 
 // fixed-step game loop
@@ -838,11 +884,20 @@ setInterval(() => {
     for (const room of rooms.values()) {
       Sim.step(room.world, TICK);
       room.tick++;
-      if (room.tick % SNAP_EVERY === 0) {
+      // 30 snapshots a second while archers are fighting; 10 in the lobby, upgrade picks and results, where little moves
+      const ph = room.world.match.ph;
+      // leaving or going back to the lobby: friends' lists say "in a custom game" or "in a lobby"
+      if ((ph === 'lobby') !== (room.lastPh === 'lobby') && room.lastPh) for (const c of room.clients) if (c.user && c.pid) social.presence(c);
+      room.lastPh = ph;
+      const every = ph === 'play' || ph === 'pre' || ph === 'post' ? SNAP_EVERY : SNAP_EVERY * 3;
+      if (room.tick % every === 0) {
         const evs = room.world.events.splice(0);
         if (evs.length) { creditAchievements(room, evs); social.aiEvents(room, evs); }
-        const msg = JSON.stringify({ t: 'snap', s: Sim.snapshot(room.world), ev: evs });
-        for (const c of room.clients) if (c.readyState === 1 && !c.quiet) c.send(msg);
+        let watchers = 0; for (const c of room.clients) if (c.readyState === 1 && !c.quiet) watchers++;
+        if (watchers) { // built once and sent to everyone in the room, leaving out fields at their resting value
+          const msg = JSON.stringify({ t: 'snap', s: Sim.packSnap(Sim.snapshot(room.world)), ev: evs });
+          for (const c of room.clients) if (c.readyState === 1 && !c.quiet) c.send(msg);
+        }
       }
       if (room.world.records.length) saveRecords(room);
     }

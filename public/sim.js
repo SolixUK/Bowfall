@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.15.0';
+const VERSION = '0.16.1';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -701,11 +701,11 @@ function join(w, opts = {}) {
   ev(w, { e: 'join', id: p.id, n: p.name, tm: team });
   return p;
 }
-function leave(w, id) {
+function leave(w, id, spec) {
   useMap(w);
   const p = w.players.find(q => q.id === id);
   if (!p) return;
-  ev(w, { e: 'leave', id, n: p.name });
+  ev(w, { e: 'leave', id, n: p.name, sp: spec ? 1 : undefined }); // sp: they stayed, as unassigned
   removeObj(w, p);
 }
 function botName(w) {
@@ -791,6 +791,7 @@ function setInput(w, id, inp) {
   // a click, even one too quick to show up in draw; clicks outside play (picking a card, the countdown) don't count
   if (inp.dp && w.match.ph === 'play') p.wantThrow = true;
   if (inp.dash) p.wantDash = true;
+  if ('dmv' in inp) p.dashMove = !!inp.dmv; // dash the way you're moving (the default) or the way you're aiming
   if (inp.q) p.wantAb[0] = true;
   if (inp.e) p.wantAb[1] = true;
 }
@@ -1482,7 +1483,7 @@ function updatePlayer(w, p, dt) {
     p.wantDash = false;
   }
   if (p.wantDash && p.role !== 'ninja' && p.dashN > 0 && p.dashLock <= 0 && p.falling <= 0 && p.stuck <= 0 && !p.grap && !p.rush) {
-    const dx = Math.cos(p.aim), dy = Math.sin(p.aim); // dash always goes where you're aiming
+    const da = dashAngle(p), dx = Math.cos(da), dy = Math.sin(da); // where you're aiming, or the way you're moving
     // frost: the dash is slower but goes as far (speed, fade and duration all stretch together)
     const k = p.slow > 0 ? (p.sure ? 0.9 : 0.7) : 1;
     p.dashK = k;
@@ -1577,8 +1578,14 @@ function updatePlayer(w, p, dt) {
 
 // ---------------- abilities ----------------
 // Ninja: a short, near-instant hop toward the cursor, over pits and lava
+// which way a dash (or blink) goes: where you're aiming, or, if you've chosen it, the way you're moving
+function dashAngle(p) {
+  const i = p.input || {};
+  if (p.dashMove && !p.bot && (i.mx || i.my)) return Math.atan2(i.my, i.mx);
+  return p.aim;
+}
 function ninjaBlink(w, p) {
-  const a = p.aim;
+  const a = dashAngle(p);
   const dx = Math.cos(a), dy = Math.sin(a);
   let reach = NINJA_BLINK * (has(p, 'longstep') ? 1.4 : 1) * (p.slow > 0 && !p.sure ? 0.7 : 1), nx = p.x, ny = p.y;
   for (; reach > 10; reach -= 8) {
@@ -3108,10 +3115,39 @@ function snapshot(w) {
   };
 }
 
+// ---- smaller snapshots over the network
+// Most of an archer's fields are 0 (or empty) most of the time. The server leaves those out and the client puts
+// them back, which roughly halves what each snapshot costs to send.
+let ZP = null;
+const ZA = ['s', 'cr', 'ex', 'rl', 'bg', 'sk', 'bm', 'sw', 'xq', 'sh', 'xb', 'hv', 'b', 'sn'];
+function zeroKeys() {
+  if (ZP) return ZP;
+  const w = createWorld({}); join(w, { name: 'x', team: 'red' });
+  const p = snapshot(w).p[0]; ZP = {};
+  for (const k in p) {
+    const v = p[k];
+    if (typeof v === 'number') ZP[k] = 0; else if (typeof v === 'string') ZP[k] = ''; else if (v === null) ZP[k] = null;
+    else if (v && typeof v === 'object' && !Array.isArray(v)) ZP[k] = '{}';
+  }
+  return ZP;
+}
+function packSnap(s) {
+  const Z = zeroKeys();
+  for (const p of s.p) for (const k in Z) { const z = Z[k], v = p[k]; if (z === '{}' ? v && !Object.keys(v).length : v === z) p[k] = undefined; }
+  for (const a of s.a) for (const k of ZA) if (a[k] === 0) a[k] = undefined;
+  return s;
+}
+function unpackSnap(s) {
+  const Z = zeroKeys();
+  for (const p of s.p) for (const k in Z) if (!(k in p)) p[k] = Z[k] === '{}' ? {} : Z[k];
+  for (const a of s.a) for (const k of ZA) if (!(k in a)) a[k] = 0;
+  return s;
+}
+
 return {
   AW, AH, WALL, GATES, MAPS, MAP_KEYS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
-  plagueR, createWorld, join, leave, addBot, removeBot, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
+  plagueR, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
   _grant(w, id, cards) { const p = w.players.find(q => q.id === id); for (const c of cards) takeCard(w, p, c); applyStats(p); p.picked = false; return p; },

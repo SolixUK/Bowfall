@@ -261,6 +261,7 @@
   /* extra players on controllers */
   .lpbox { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
   .hometop { flex-direction: column; align-items: flex-end; gap: 8px; }
+  @media (min-width: 960px) { .homewrap { position: relative; padding-top: 84px; } .hometop { position: absolute; top: 8px; right: 0; z-index: 1; } }
   .lplist { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
   .lpchip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 4px 3px 10px; border-radius: 999px; border: 1px solid var(--pc); background: rgba(0,0,0,.35); font-size: 13px; }
   .lpchip b { color: var(--pc); font-family: 'Rajdhani', 'Arial Narrow', sans-serif; }
@@ -279,10 +280,38 @@
   .lprow .lptag { background: var(--pc); }
   .lprow select { max-width: 150px; }
   .lprow .ghost.on { border-color: var(--pc); color: var(--pc); }
+  .lprow .lpst { font-size: 13px; color: var(--muted); } .lprow .lpst.on { color: #7dff8a; }
+  .lparch { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; } .lparch i { width: 9px; height: 9px; border-radius: 50%; }
+  .lpmouse { display: inline-flex; flex-wrap: wrap; gap: 6px; margin-left: auto; align-items: center; }
+  .lprow.picking { outline: 2px solid var(--pc); }
+  .lppicker { flex-basis: 100%; display: flex; flex-direction: column; gap: 6px; padding: 6px 0 2px; }
+  .lppk { display: flex; gap: 8px; align-items: flex-start; opacity: .55; } .lppk.on { opacity: 1; }
+  .lppk .lbl { width: 60px; font-size: 12px; color: var(--muted); padding-top: 6px; }
+  .lppk.on .lbl { color: var(--pc); font-weight: 700; }
+  .lppk .chip2 { cursor: default; }
+  .lpkeys { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .lpkeys em { font-style: normal; font-weight: 700; color: var(--gold); margin-right: 4px; }
+  #pkLocals:empty { display: none; }
+  #pkLocals { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .lppick { border-left: 3px solid var(--pc); padding: 6px 0 0 10px; }
+  .lppick .lptag { background: var(--pc); }
+  .cards.mini { gap: 8px; }
+  .pcard.mini { padding: 10px 12px; min-height: 0; }
+  .pcard.mini b { font-size: 16px; } .pcard.mini p { font-size: 12.5px; margin: 4px 0 0; } .pcard.mini .pk-tree { font-size: 11px; }
+  .frpanel { width: 260px; max-height: 300px; overflow-y: auto; padding: 10px 12px; background: rgba(10,18,12,.82); border: 1px solid var(--line); border-top: 2px solid var(--teal); display: flex; flex-direction: column; gap: 6px; }
+  .frpanel .frh { display: flex; justify-content: space-between; align-items: baseline; font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; }
+  .frpanel .frh span { font: 500 12px 'Titillium Web', sans-serif; color: #7dff8a; }
+  .frrow { display: flex; align-items: center; gap: 8px; }
+  .frrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; } .frrow .dot.on { background: #7dff8a; } .frrow .dot.play { background: var(--gold); }
+  .frrow .frn { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .frrow .frn b { font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .frrow .frn small { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .frrow .ghost.sm { padding: 3px 8px; font-size: 12px; }
+  .frpanel .frmore { font-size: 12px; }
   .lpkey { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 6px; background: rgba(255,255,255,.06); font-size: 13px; }
   .lpkey em { font-style: normal; font-weight: 700; color: var(--gold); }
-  .lppickfloat { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 6; max-width: min(760px, calc(100vw - 32px)); background: rgba(8,14,10,.92); border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 8px 10px; }
-  #draftScr { z-index: 4; }
+  .lppickfloat { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 3; max-width: min(760px, calc(100vw - 32px)); background: rgba(8,14,10,.92); border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 8px 10px; }
+  #draftScr { z-index: 3; }
   .dfgrid { display: grid; grid-template-columns: 260px 1fr; gap: 16px; align-items: start; margin: 8px 0 12px; }
   .dfgrid canvas { width: 100%; border-radius: 10px; background: rgba(255,255,255,.04); }
   @media (max-width: 720px) { .dfgrid { grid-template-columns: 1fr; } }
@@ -476,6 +505,7 @@
   .board .nm small { overflow: hidden; text-overflow: ellipsis; }
   .board .nm small em { font-style: normal; color: #9fb3a4; }
   .pick-ov { background: rgba(9,18,11,.55); }
+  #gameMenu { z-index: 4; } /* the pause menu sits over the upgrade picks and everything else in a game */
   .card.pick { max-width: 900px; }
   .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
   .pcard { position: relative; display: flex; flex-direction: column; gap: 8px; min-height: 190px; text-align: left; padding: 18px 16px 16px; border-radius: 2px; border: 1px solid var(--line); border-top: 4px solid var(--cc); background: rgba(255,255,255,.035); color: var(--text); font: 500 14px 'Titillium Web', 'Segoe UI', sans-serif; cursor: pointer; transition: transform .12s, background .12s; }
@@ -493,7 +523,35 @@
   .build { display: flex; flex-wrap: wrap; gap: 6px; max-width: 560px; }
   .build span { font-size: 12px; padding: 3px 8px; border-radius: 4px; background: rgba(255,255,255,.06); color: var(--muted); }
   @media (max-width: 760px) { .cards { grid-template-columns: 1fr; } .pcard { min-height: 0; } }
-  .card.lobby { max-width: 940px; }
+  .card.lobby { max-width: 1240px; padding-bottom: 0; }
+  .lbgrid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  .lobby .slot { flex-wrap: wrap; row-gap: 2px; padding: 3px 8px; }
+  .lobby .slot .nm { flex: 1 1 130px; }
+  .lobby .tcol { padding: 12px; gap: 6px; }
+  .lobby .tcol.spec { padding: 10px 12px; }
+  .lobby .teams { gap: 10px; }
+  .lbcol { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  @media (max-width: 1000px) { .lbgrid { grid-template-columns: 1fr; } }
+  .lbset { display: flex; flex-direction: column; gap: 10px; padding: 14px; background: rgba(255,255,255,.03); border: 1px solid var(--line); }
+  .lbset h3 { margin: 0; }
+  .lobby .maps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .lobby .mapcard { padding: 4px 4px 6px; gap: 3px; }
+  .lobby .mapcard small { display: none; }
+  .lobby .mapcard b { font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lbrow2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .lbrules { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; padding-top: 8px; }
+  .lbrules select { width: 100%; }
+  .lbfold { border-top: 1px solid var(--line); padding-top: 8px; }
+  .lbfold summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .lbfold summary::before { content: '▸'; color: var(--gold); } .lbfold[open] summary::before { content: '▾'; }
+  .lbfold .roomcfg { padding-top: 8px; }
+  .lbtop .stat { gap: 4px; }
+  .lbfoot { position: sticky; bottom: -16px; z-index: 2; display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin: 0 -28px; padding: 14px 28px 20px; background: linear-gradient(to top, rgba(12,22,15,.98) 70%, rgba(12,22,15,0)); }
+  .lbfoot .status { margin-right: auto; }
+  .lobby .arch { gap: 8px; padding: 12px; }
+  .lobby .archrow { grid-template-columns: 58px 1fr; }
+  .lobby .archrow .chip2 { padding: 4px 8px; font-size: 12.5px; }
+  .lobby .tcol.spec .status { font-size: 12.5px; }
   .teams { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .tcol.spec { grid-column: 1 / -1; border-top-color: var(--muted); }
   .tcol.spec .specnames { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -636,6 +694,7 @@
       <div class="hometop">
         <button type="button" class="profchip" id="profChip" title="Edit your profile and banner"><canvas id="profAv" width="96" height="96"></canvas><span class="pcn"><b id="profName">Archer</b><small id="profSub">Guest · edit profile</small></span></button>
         <div class="lpbox"><div class="lplist" id="lpList"></div><button type="button" class="ghost sm" id="lpAdd" title="Another player with their own controller, on this screen">+ Add player on controller</button></div>
+        <div class="frpanel" id="homeFriends" hidden></div>
       </div>
       <div class="hometitle"><span class="eyebrow">Knockback archery · Team rounds</span><h1>Bow<span>fall</span></h1></div>
       <nav class="mainmenu" aria-label="Main menu">
@@ -668,10 +727,7 @@
           <span class="status" id="fgStatus">Matched by rating with players near your level. If nobody close is searching, AI players fill in after a short wait.</span>
           <div class="fgguest" id="fgGuest" hidden><b>Playing as a guest.</b> Your rating and stats are saved in this browser. Create an account to keep them everywhere, climb the leaderboards and add friends. Everything you've earned comes with you.
             <div class="btnrow"><a class="cta sm" href="/#/register?next=/play">Create account</a><a class="ghost sm" href="/#/login?next=/play">Sign in</a></div></div>
-          <h3>Your archetype</h3>
-          <div class="chips fgchips" id="fgEl"></div>
-          <div class="chips fgchips" id="fgRo"></div>
-          <span class="status" id="fgArch"></span>
+          <span class="status">You choose your element and role once a match is found and you can see the arena.</span>
         </div>
         <div class="olpane">
           <h3>Party</h3>
@@ -716,7 +772,7 @@
   <div class="overlay sub" id="customScr" hidden>
     <div class="card wide">
       <div class="shopbar"><div class="stat"><span class="eyebrow">Play</span><h2>Custom games</h2></div>
-        <div class="btnrow"><button class="cta" type="button" data-ol="host" id="hostBtn">Host custom game</button><button class="ghost" type="button" data-back>Back</button></div></div>
+        <div class="btnrow"><button class="cta" type="button" data-ol="host" id="hostBtn">Host custom game</button><button class="ghost" type="button" id="pracBtn" title="Play against bots right here in your browser, no server needed">Practice vs bots</button><button class="ghost" type="button" data-back>Back</button></div></div>
       <div id="onlineOn" class="olpane">
         <div id="olHost" class="olpane hostpanel" hidden>
           <h3>Host custom game</h3>
@@ -805,43 +861,50 @@
   <!-- lobby -->
   <div class="overlay lobby-ov" id="lobby" hidden>
     <div class="card wide lobby">
-      <div class="shopbar">
-        <div class="stat"><span class="eyebrow" id="lbEyebrow">Practice lobby</span><h2>Set up the match</h2></div>
+      <div class="shopbar lbtop">
+        <div class="stat"><span class="eyebrow" id="lbEyebrow">Practice lobby</span><h2>Set up the match</h2><span class="status" id="lbShare" hidden></span></div>
         <div class="codebox" id="lbRoom" hidden><button class="ghost sm" type="button" data-invite>Copy invite link</button><div class="stat" style="align-items:flex-end"><span class="lbl">Room code</span><span class="num" id="lbCode"></span></div></div>
       </div>
-      <span class="status" id="lbShare" hidden></span>
-      <div class="roomcfg" id="lbRoomCfg" hidden>
-        <div class="field"><label for="lbRmName">Game name</label><input id="lbRmName" maxlength="32" autocomplete="off"></div>
-        <div class="field"><label for="lbRmMax">Max players</label><select id="lbRmMax"><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="8">8</option><option value="10">10</option><option value="12">12</option><option value="16">16</option></select></div>
-        <div class="field"><label for="lbRmPub">Listed</label><select id="lbRmPub"><option value="1">Public</option><option value="0">Private</option></select></div>
-        <div class="field"><label for="lbRmPw">Password</label><input id="lbRmPw" maxlength="32" autocomplete="off" placeholder="Unchanged"></div>
-        <button class="ghost" id="lbRmSave" type="button">Save</button><button class="ghost" id="lbRmNoPw" type="button">Remove password</button>
-      </div>
-      <div class="teams" id="lbTeams"></div>
-      <div class="chatbox" id="lbChat" hidden><div class="chatlog" id="lbChatLog"><div class="cline sys">Chat with everyone in the room here. In game, press Enter to chat.</div></div><input id="lbChatIn" maxlength="140" placeholder="Say something… (Enter to send)" autocomplete="off"></div>
-      <div class="arch">
-        <div class="archhead"><div style="display:flex;align-items:center;gap:12px"><canvas id="archPrev" width="128" height="128" style="width:64px;height:64px;border-radius:12px;background:rgba(255,255,255,.05)"></canvas><h3>Your archetype</h3></div><span class="archname" id="archName"></span></div>
-        <div class="archrow"><span class="lbl">Element</span><div class="chips" id="elChips"></div></div>
-        <div class="archrow"><span class="lbl">Role</span><div class="chips" id="roChips"></div></div>
-        <span class="status" id="archBlurb"></span>
-      </div>
-      <div id="lbLocals"></div>
-      <div class="stat" style="gap:10px"><h3>Arena</h3><div class="maps" id="lbMaps"></div></div>
-      <div class="shopbar">
-        <div class="row">
-        <div class="field"><label for="lbPts">Match length</label>
-          <select id="lbPts"><option value="3">First to 3 points</option><option value="5">First to 5 points</option></select></div>
-        <div class="field" id="lbDiffWrap"><label for="lbDiff">Bot skill (sets all bots)</label>
-          <select id="lbDiff"><option value="easy">Easy</option><option value="normal">Normal</option><option value="hard">Hard</option><option value="extreme">Extreme</option><option value="master">Master</option></select></div>
+      <div class="lbgrid">
+        <div class="lbcol">
+          <div class="teams" id="lbTeams"></div>
+          <div id="lbLocals"></div>
+          <div class="chatbox" id="lbChat" hidden><div class="chatlog" id="lbChatLog"><div class="cline sys">Chat with everyone in the room here. In game, press Enter to chat.</div></div><input id="lbChatIn" maxlength="140" placeholder="Say something… (Enter to send)" autocomplete="off"></div>
+        </div>
+        <div class="lbcol">
+          <div class="arch">
+            <div class="archhead"><div style="display:flex;align-items:center;gap:12px"><canvas id="archPrev" width="128" height="128" style="width:52px;height:52px;border-radius:10px;background:rgba(255,255,255,.05)"></canvas><div class="stat"><h3>Your archetype</h3><span class="archname" id="archName"></span></div></div></div>
+            <div class="archrow"><span class="lbl">Element</span><div class="chips" id="elChips"></div></div>
+            <div class="archrow"><span class="lbl">Role</span><div class="chips" id="roChips"></div></div>
+            <span class="status" id="archBlurb"></span>
+          </div>
+          <div class="lbset">
+            <h3>Arena</h3>
+            <div class="maps" id="lbMaps"></div>
+            <span class="status" id="lbMapDesc"></span>
+            <div class="lbrow2">
+              <div class="field"><label for="lbPts">Match length</label>
+                <select id="lbPts"><option value="3">First to 3 points</option><option value="5">First to 5 points</option></select></div>
+              <div class="field" id="lbDiffWrap"><label for="lbDiff">Bot skill (sets all bots)</label>
+                <select id="lbDiff"><option value="easy">Easy</option><option value="normal">Normal</option><option value="hard">Hard</option><option value="extreme">Extreme</option><option value="master">Master</option></select></div>
+            </div>
+            <details class="lbfold" id="lbRulesFold"><summary><b>Custom rules</b> <span class="status" id="lbOptNote"></span></summary><div class="lbrules" id="lbOpts"></div></details>
+            <details class="lbfold" id="lbRoomFold" hidden><summary><b>Room settings</b> <span class="status">name, size, listing, password</span></summary>
+              <div class="roomcfg" id="lbRoomCfg" hidden>
+                <div class="field"><label for="lbRmName">Game name</label><input id="lbRmName" maxlength="32" autocomplete="off"></div>
+                <div class="field"><label for="lbRmMax">Max players</label><select id="lbRmMax"><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="8">8</option><option value="10">10</option><option value="12">12</option><option value="16">16</option></select></div>
+                <div class="field"><label for="lbRmPub">Listed</label><select id="lbRmPub"><option value="1">Public</option><option value="0">Private</option></select></div>
+                <div class="field"><label for="lbRmPw">Password</label><input id="lbRmPw" maxlength="32" autocomplete="off" placeholder="Unchanged"></div>
+                <button class="ghost" id="lbRmSave" type="button">Save</button><button class="ghost" id="lbRmNoPw" type="button">Remove password</button>
+              </div>
+            </details>
+          </div>
         </div>
       </div>
-      <div class="stat" style="gap:8px"><h3>Custom rules</h3><div class="row" id="lbOpts"></div><span class="status" id="lbOptNote"></span></div>
-      <div class="shopbar" style="justify-content:flex-end">
-        <div class="btnrow" style="align-items:center">
-          <span class="status" id="lbStatus"></span>
-          <button class="ghost" id="lbLeave" type="button">Leave</button>
-          <button class="cta" id="lbStart" type="button">Start match</button>
-        </div>
+      <div class="lbfoot">
+        <span class="status" id="lbStatus"></span>
+        <button class="ghost" id="lbLeave" type="button">Leave</button>
+        <button class="cta" id="lbStart" type="button">Start match</button>
       </div>
     </div>
   </div>
@@ -881,6 +944,7 @@
         <div class="stat" style="align-items:flex-end"><span class="lbl" id="pkArch"></span><span class="num" id="pkTimer">12</span></div>
       </div>
       <div class="cards" id="pkCards"></div>
+      <div id="pkLocals"></div>
       <div class="shopbar">
         <div class="build" id="pkBuild"></div>
         <div class="btnrow" style="align-items:center">
@@ -919,6 +983,7 @@
     <p class="status">Click a key to change it, then press the new key (Esc cancels, Backspace clears). Each action can have two keys.</p>
     <div class="binds" id="bindList"></div>
     <div class="btnrow" style="justify-content:flex-start"><button class="ghost" id="bindReset" type="button">Reset to defaults</button></div>
+    <div class="row" style="align-items:flex-end;gap:14px"><div class="field"><label for="dashDir">Dash direction</label><select id="dashDir"><option value="move">The way you're moving</option><option value="aim">Where you're aiming</option></select></div><span class="status">Standing still, a dash always goes where you're aiming. Applies to keyboard and controller.</span></div>
     <h3 style="margin-top:6px">Controller</h3>
     <p class="status" id="padStatus">No controller found. Plug one in (Xbox or PlayStation style) and press any button.</p>
     <div class="padmap">
@@ -1210,6 +1275,9 @@ const sfx = {
   },
   // full draw: a low, dry wooden click
   full: () => { nz(0.018, 0.1, 'bandpass', 1400, 1800, 2); os('sine', 150, 115, 0.12, 0.05); tone(698, 0.12, 'triangle', 0.018); setTimeout(() => tone(932, 0.12, 'triangle', 0.013), 55); },
+  // a match has been found: a bright rising chord; the draft opening: two quick notes
+  found: () => { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.22, 'triangle', 0.055), i * 90)); },
+  draft: () => { tone(392, 0.14, 'triangle', 0.05); setTimeout(() => tone(784, 0.24, 'triangle', 0.05), 130); },
   count: n => { if (n > 0) { tone(n === 1 ? 587 : 440, 0.14, 'triangle', 0.05); nz(0.03, 0.04, 'bandpass', 1800, 1400, 3); } },
   rush: (v = 1) => {
     // a charge: a low roar under stamping feet
@@ -1286,6 +1354,10 @@ $('padAimR').value = store.get('bowfall-pad-aim', '1'); $('padDead').value = sto
 $('padAimR').onchange = () => store.set('bowfall-pad-aim', $('padAimR').value);
 $('padDead').onchange = () => store.set('bowfall-pad-dead', $('padDead').value);
 $('padSens').value = store.get('bowfall-pad-sens', '7');
+// dash the way you're moving (the default) or where you're aiming
+const dashMove = () => store.get('bowfall-dashdir', 'move') !== 'aim';
+$('dashDir').value = dashMove() ? 'move' : 'aim';
+$('dashDir').onchange = () => store.set('bowfall-dashdir', $('dashDir').value);
 $('padSens').onchange = () => store.set('bowfall-pad-sens', $('padSens').value);
 function padStatus() {
   const gp = navigator.getGamepads ? [...navigator.getGamepads()].find(g => g && g.connected) : null;
@@ -1498,7 +1570,7 @@ function buildInput(me) {
   if (pad.on && (pad.mx || pad.my)) { mx = pad.mx; my = pad.my; }
   // a controller aims along the stick's line (with its aim assist), not at the crosshair, so moving doesn't knock it off
   const aim = pad.on && pad.aim != null ? pad.aim : me ? Math.atan2(mouse.wy - me.y, mouse.wx - me.x) : 0;
-  return { mx, my, aim, draw: (mouse.down || held('draw') || (pad.on && pad.draw)) && !menuOpen, dash: dashLatch && !menuOpen, q: qLatch && !menuOpen, e: eLatch && !menuOpen, dp: drawLatch && !menuOpen, tx: Math.round(mouse.wx), ty: Math.round(mouse.wy) };
+  return { mx, my, aim, draw: (mouse.down || held('draw') || (pad.on && pad.draw)) && !menuOpen, dash: dashLatch && !menuOpen, q: qLatch && !menuOpen, e: eLatch && !menuOpen, dp: drawLatch && !menuOpen, tx: Math.round(mouse.wx), ty: Math.round(mouse.wy), dmv: dashMove() ? 1 : 0 };
 }
 
 // ================= view sizing =================
@@ -1531,6 +1603,7 @@ function resize() {
 // ================= flow =================
 function setScreens() {
   const inGame = mode !== 'menu';
+  socialSend({ t: 'status', s: mode === 'local' ? (TUT.on ? 'tutorial' : 'practice') : 'menu' }); // for friends' lists
   $('home').hidden = inGame;
   if (inGame) { for (const k of SUBS) $(k).hidden = true; $('gate').hidden = true; } else drawProfChip();
   $('coach').hidden = !TUT.on || !inGame;
@@ -1548,7 +1621,7 @@ const TUT_STEPS = [
   { title: 'Move', text: 'Move with W A S D, or the left stick.', hint: 'You speed up over a moment and glide when you let go, like an air-hockey puck.' },
   { title: 'Shoot', text: 'Aim with the mouse. Hold the left button to draw, then let go to shoot the dummy.', hint: 'The longer you hold, the faster and harder the arrow flies.' },
   { title: 'Full draw', text: 'Hold until the ring round your cursor turns white, then hit the dummy with a full draw.', hint: 'Full draws hit hardest and trigger many upgrades. A shot through the middle of a target is a bullseye.' },
-  { title: 'Dash', text: 'Press Space to dash toward your cursor.', hint: 'Dashing jumps pits, lava and water, and shoves enemies you run into.' },
+  { title: 'Dash', text: 'Press Space to dash the way you\'re moving (standing still, it goes toward your cursor).', hint: 'Dashing jumps pits, lava and water, and shoves enemies you run into.' },
   { title: 'Ability', text: 'Press Q to use your ability, {ab}, then shoot the dummy.', hint: 'You pick abilities before round 1 and upgrades after each round.' },
   { title: 'Knockback', text: 'Knockback is your real weapon. Shoot the dummy into the pit.', hint: 'Anyone knocked into a pit or water is out on the spot, however much health they had. Lava doesn\'t knock you out at once: it burns hard every moment you stand in it and keeps you burning after.' },
   { title: 'Elements and roles', info: true, text: 'Every archer is an element plus a role. You\'re playing a Frost Sniper.', hint: 'Your element adds an effect to every arrow: Frost slows, Flame burns, Storm arcs lightning to nearby enemies, Poison stacks damage over time, Stone staggers, Void opens rifts that drag enemies in, Shadow blinds, and Blood heals you from the damage you deal. Your role sets your health, speed, a built-in trait and the abilities you can pick: Sniper, Juggernaut, Ranger, Trickster, Warden, Trapper, Assassin or Ninja. You choose both in the lobby before a match. Upgrades from both trees come after each round.' },
@@ -1756,6 +1829,8 @@ function connect(joinMsg) {
   sock.onmessage = e => {
     let m; try { m = JSON.parse(e.data); } catch (err) { return; }
     if (m.t === 'welcome') {
+      // the server has been updated since this page loaded: reload to get the matching game
+      if (m.v && m.v !== Sim.VERSION && !OFFLINE) { notice('Bowfall has been updated. Loading the new version…', true); ws = null; try { sock.close(); } catch (e) {} if (!joinMsg.ticket) history.replaceState(null, '', (location.pathname.endsWith('.html') ? '' : '/play') + '?room=' + m.code); setTimeout(() => location.reload(), 1200); return; }
       myId = m.id; mode = 'online'; snaps = []; feed = []; resultsFor = null; menuOpen = false; clearChat();
       history.replaceState(null, '', (location.pathname.endsWith('.html') ? '' : '/play') + '?room=' + m.code);
       $('pwWrap').hidden = true; $('pwIn').value = '';
@@ -1768,7 +1843,7 @@ function connect(joinMsg) {
       $('roomTag').innerHTML = 'Room <b>' + esc(m.code) + '</b>';
       hc.lb = hc.gm = hc.lbHead = hc.gmHead = null;
     } else if (m.t === 'snap') {
-      snaps.push({ time: performance.now(), s: m.s });
+      snaps.push({ time: performance.now(), s: Sim.unpackSnap(m.s) });
       if (snaps.length > 40) snaps.shift();
       handleEvents(m.ev || []);
     } else if (m.t === 'you') {
@@ -1817,7 +1892,8 @@ function renderDraft(v) {
     hc.dfArch = null;
   });
   const left = R.draft != null ? Math.max(0, Math.ceil(R.draft - (performance.now() - (R.rcv || performance.now())) / 1000)) : null;
-  setC('dfT', left, x => { $('dfTimer').textContent = x == null ? '–' : x; $('dfTimer').classList.toggle('low', x != null && x <= 5); if (x != null && x <= 5 && x > 0) tone(660, 0.05, 'sine', 0.03); });
+  setC('dfOpen', R.draft != null, x => { if (x) sfx.draft(); });
+  setC('dfT', left, x => { $('dfTimer').textContent = x == null ? '–' : x; $('dfTimer').classList.toggle('low', x != null && x <= 5); if (x != null && x <= 5 && x > 0) sfx.count(x); });
   const ready = R.ready || [];
   setC('dfTeams', JSON.stringify([v.p.map(p => [p.id, p.n, p.tm, p.el, p.ro, p.b, p.c]), ready]), () => {
     $('dfTeams').innerHTML = TEAMS.map(t => `<div><h3 style="color:${TEAM_COL[t]}">${teamName(t)}</h3>` + v.p.filter(p => p.tm === t).map(p => {
@@ -1830,7 +1906,7 @@ function renderDraft(v) {
   const arriving = R.draft == null;
   setC('dfReady', iReady + ':' + arriving, () => { $('dfReady').disabled = !!iReady || arriving; $('dfReady').textContent = iReady ? 'Ready ✓' : 'Ready'; });
   setC('dfSt', arriving, x => { $('dfStatus').textContent = x ? 'Waiting for everyone to arrive…' : 'The match starts when everyone is ready, or when the timer runs out.'; });
-  setC('dfLp', JSON.stringify([LP.list.map(l => [l.n, l.el, l.ro, l.pid]), ready]), () => { $('dfLocals').innerHTML = lpPanel('draft'); });
+  setC('dfLp', JSON.stringify([LP.list.map(l => [l.n, l.el, l.ro, l.pid, l.picker]), ready]), () => { $('dfLocals').innerHTML = lpPanel('draft'); });
 }
 $('dfEl').addEventListener('click', pickArch);
 $('dfRo').addEventListener('click', pickArch);
@@ -1896,23 +1972,26 @@ function lpRenderScr() {
   const box = $('lpBody');
   if (C.step === 'press') { box.innerHTML = `<div class="lpwait"><b>Press any button on the controller for Player ${lpNextSlot()}</b><span class="status">Use a controller that isn't already playing. B on your own controller cancels.</span></div>
       <div class="btnrow"><button class="ghost" id="lpCancel" type="button">Cancel</button></div>`; return; }
-  const P = C.player, friends = SOC.st && SOC.st.friends ? SOC.st.friends : [];
+  const P = C.player, friends = SOC.st && SOC.st.account && SOC.st.friends ? SOC.st.friends : [];
+  // fields start empty and read-only until clicked, so the browser doesn't fill in the main player's own sign-in
+  const ro = ' readonly onfocus="this.removeAttribute(\'readonly\')"', nm = 'lp' + Math.random().toString(36).slice(2, 8);
   box.innerHTML = `<div class="lphead"><span class="lptag" style="--pc:${lpColor(P.n)}">P${P.n}</span><b>Controller ${P.pad + 1} is Player ${P.n}</b></div>
     ${P.acct ? `<div class="status">Signed in as <b>${esc(P.acct.name)}</b>. <a href="#" id="lpOut">Use a different account</a></div>` : `
     <div class="lpcols">
-      <div class="olpane"><h3>Play as a guest</h3><div class="field"><label for="lpName">Name</label><input id="lpName" maxlength="16" value="${esc(P.name)}" autocomplete="off"></div>
+      <div class="olpane"><h3>Play as a guest</h3><div class="field"><label for="lpName">Name</label><input id="lpName" name="${nm}n" maxlength="16" placeholder="Player ${P.n}" autocomplete="off"${ro}></div>
         <span class="status">Guests can play custom games. Ranked games need an account.</span></div>
       <div class="olpane"><h3>Or sign in</h3>
-        ${friends.length ? `<div class="chips" id="lpFriends">${friends.map(f => `<button type="button" class="chip2" data-fname="${esc(f.name)}">${esc(f.name)}</button>`).join('')}</div><span class="status">Pick a friend, then they type their password.</span>` : ''}
-        <div class="field"><label for="lpUser">Player name</label><input id="lpUser" maxlength="16" autocomplete="off" value="${esc(C.signName || '')}"></div>
-        <div class="field"><label for="lpPass">Password</label><input id="lpPass" type="password" maxlength="100" autocomplete="off"></div>
+        ${friends.length ? `<button type="button" class="ghost sm" id="lpFrBtn">${C.showFriends ? 'Hide friends list' : 'Add from friends list'}</button>` : ''}
+        ${C.showFriends ? `<div class="chips" id="lpFriends">${friends.map(f => `<button type="button" class="chip2${C.signName === f.name ? ' sel' : ''}" data-fname="${esc(f.name)}">${esc(f.name)}</button>`).join('')}</div>` : ''}
+        ${C.signName ? `<div class="status">Signing in as <b>${esc(C.signName)}</b>: they just type their password. <a href="#" id="lpOther">Someone else</a></div>` :
+          `<div class="field"><label for="lpUser">Player name</label><input id="lpUser" name="${nm}u" maxlength="16" autocomplete="off"${ro}></div>`}
+        <div class="field"><label for="lpPass">Password</label><input id="lpPass" name="${nm}p" type="password" maxlength="100" autocomplete="new-password"${ro}></div>
         <button class="ghost" id="lpSign" type="button">Sign in</button><span class="status err" id="lpErr"></span></div>
     </div>`}
-    <h3>Archetype</h3>
-    <div class="chips fgchips" id="lpEl">${Object.entries(ELEMENTS).map(([k, e]) => `<button type="button" class="chip2${k === P.el ? ' sel' : ''}" data-lpe="${k}" style="--cc:${e.color}"><i></i>${e.name}</button>`).join('')}</div>
-    <div class="chips fgchips" id="lpRo">${Object.entries(ROLES).map(([k, r]) => `<button type="button" class="chip2${k === P.ro ? ' sel' : ''}" data-lpr="${k}" style="--cc:${CAT_COL[r.cat]}">${r.name}</button>`).join('')}</div>
-    <span class="status">They can also change element with left and right on their D-pad, and role with up and down, in any lobby.</span>
+    <span class="status">They choose their team, element and role themselves in the game lobby, with their own controller.</span>
     <div class="btnrow"><button class="cta" id="lpDone" type="button">${C.editing ? 'Done' : 'Add Player ' + P.n}</button><button class="ghost" id="lpCancel" type="button">Cancel</button></div>`;
+  for (const id of ['lpName', 'lpUser', 'lpPass']) if ($(id)) $(id).value = '';
+  if (C.signName && $('lpPass')) { $('lpPass').removeAttribute('readonly'); $('lpPass').focus(); }
 }
 $('lpScr').addEventListener('click', async e => {
   const C = LP.capture; if (!C) return;
@@ -1920,14 +1999,19 @@ $('lpScr').addEventListener('click', async e => {
   const P = C.player;
   if (b.id === 'lpCancel' || b.id === 'lpClose') { LP.capture = null; $('lpScr').hidden = true; return; }
   if (!P) return;
-  if (b.dataset.lpe) { P.el = b.dataset.lpe; lpRenderKeep(); return; }
-  if (b.dataset.lpr) { P.ro = b.dataset.lpr; lpRenderKeep(); return; }
-  if (b.dataset.fname) { C.signName = b.dataset.fname; $('lpUser').value = C.signName; $('lpPass').focus(); return; }
-  if (b.id === 'lpOut') { e.preventDefault(); P.acct = null; P.token = null; if (P.soc) { try { P.soc.close(); } catch (err) {} P.soc = null; } lpRenderScr(); return; }
+  const keepName = () => { const n = $('lpName') && $('lpName').value; lpRenderScr(); if (n && $('lpName')) { $('lpName').removeAttribute('readonly'); $('lpName').value = n; } };
+  if (b.id === 'lpFrBtn') { C.showFriends = !C.showFriends; keepName(); return; }
+  if (b.dataset.fname) { C.signName = b.dataset.fname; C.showFriends = false; keepName(); return; }
+  if (b.id === 'lpOther') { e.preventDefault(); C.signName = ''; keepName(); return; }
+  if (b.id === 'lpOut') { e.preventDefault(); P.acct = null; P.token = null; C.signName = ''; if (P.soc) { try { P.soc.close(); } catch (err) {} P.soc = null; } lpRenderScr(); return; }
   if (b.id === 'lpSign') {
+    const name = C.signName || ($('lpUser') ? $('lpUser').value.trim() : '');
+    if (!name || !$('lpPass').value) { $('lpErr').textContent = 'Enter their player name and password.'; return; }
     try {
-      const r = await fetch('/api/device-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: $('lpUser').value.trim(), password: $('lpPass').value }) });
+      const r = await fetch('/api/device-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, password: $('lpPass').value }) });
       const d = await r.json(); if (!r.ok) throw new Error(d.error || 'Could not sign in.');
+      if (account && d.user.name.toLowerCase() === account.name.toLowerCase()) throw new Error("That's the main player's account. Each player needs their own.");
+      if (LP.list.some(l => l !== P && l.acct && l.acct.name.toLowerCase() === d.user.name.toLowerCase())) throw new Error('That account is already playing on another controller.');
       P.token = d.token; P.acct = d.user; P.name = d.user.name; lpRenderScr();
     } catch (err) { $('lpErr').textContent = OFFLINE ? 'Signing in needs the Bowfall server.' : err.message; }
     return;
@@ -1943,14 +2027,13 @@ $('lpScr').addEventListener('click', async e => {
 // sign in (or change) a player who's already been added
 function lpEdit(n) {
   const l = LP.list.find(x => x.n === n); if (!l) return;
-  LP.capture = { step: 'who', player: l, editing: true, signName: '' };
+  LP.capture = { step: 'who', player: l, editing: true, signName: '', showFriends: false };
   lpRenderScr(); $('lpScr').hidden = false;
 }
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-lpsign], [data-lprm2]'); if (!b) return;
   if (b.dataset.lpsign) lpEdit(+b.dataset.lpsign); else { lpRemove(+b.dataset.lprm2); hc.fgLp = null; renderFind(); }
 });
-function lpRenderKeep() { const u = $('lpUser') && $('lpUser').value, n = $('lpName') && $('lpName').value; lpRenderScr(); if ($('lpUser')) $('lpUser').value = u || ''; if ($('lpName') && n != null) $('lpName').value = n; }
 function lpRemove(n) {
   const l = LP.list.find(x => x.n === n); if (!l) return;
   lpLeaveGame(l); if (l.soc) { try { l.soc.close(); } catch (e) {} l.soc = null; }
@@ -1997,12 +2080,14 @@ function lpSend(l, m) { if (l.sock && l.sock.readyState === 1) l.sock.send(JSON.
 function lpLeaveGame(l) { if (l.sock) { const s = l.sock; l.sock = null; try { s.close(); } catch (e) {} } l.pid = null; }
 // things a local player does in a lobby, from the panel or their own controller
 function lpAct(l, m) {
+  if (m.t === 'choose') { const p = view && view.p.find(q => q.id === l.pid); if (p && p.of && !p.pk) l.lastPick = p.of[m.i]; }
   if (mode === 'local' && world) {
-    if (m.t === 'team') { if (l.pid) Sim.setTeam(world, l.pid, m.team); else lpJoinLocal(l); l.team = m.team; }
+    if (m.t === 'team' && !m.team) { if (l.pid) Sim.leave(world, l.pid, true); l.pid = null; l.team = null; } // unassigned: out of the game until they pick a team
+    else if (m.t === 'team') { l.team = m.team; if (l.pid) Sim.setTeam(world, l.pid, m.team); else lpJoinLocal(l); }
     else if (m.t === 'loadout') { l.el = m.el; l.ro = m.ro; if (l.pid) Sim.setLoadout(world, l.pid, m.el, m.ro); }
     else if (m.t === 'choose' && l.pid) Sim.choose(world, l.pid, m.i);
   } else {
-    if (m.t === 'team') l.team = m.team;
+    if (m.t === 'team') { l.team = m.team; if (!m.team) { lpSend(l, { t: 'spec' }); hc.lbLp = hc.dfLp = null; return; } }
     if (m.t === 'loadout') { l.el = m.el; l.ro = m.ro; if (l.soc) socialSendL(l, { t: 'party', op: 'loadout', el: m.el, ro: m.ro }); }
     lpSend(l, m);
   }
@@ -2042,19 +2127,34 @@ function pollLocals(dt) {
       if (t) want += t.s * PAD_ASSIST.pull * Math.min(1, t.k / 0.5);
       l.aim = want;
     }
-    const lobbyish = ph === 'lobby' || (!ph && mode === 'menu');
-    if (lobbyish || ph === 'pick') {
-      // lobbies: D-pad changes their archetype; in custom games LB / RB pick a team; A is ready in a ranked draft
-      const E = Object.keys(ELEMENTS), Ro = Object.keys(ROLES);
-      if (press(14) || press(15)) { const i = (E.indexOf(l.el) + (press(15) ? 1 : -1) + E.length) % E.length; lpAct(l, { t: 'loadout', el: E[i], ro: l.ro }); }
-      if (press(12) || press(13)) { const i = (Ro.indexOf(l.ro) + (press(13) ? 1 : -1) + Ro.length) % Ro.length; lpAct(l, { t: 'loadout', el: l.el, ro: Ro[i] }); }
-      if (ph === 'lobby' && !(roomInfo && roomInfo.ranked)) { if (press(4)) lpAct(l, { t: 'team', team: 'red' }); if (press(5)) lpAct(l, { t: 'team', team: 'blue' }); }
-      if (ph === 'lobby' && roomInfo && roomInfo.ranked && press(0)) lpSend(l, { t: 'ready' });
-      if (ph === 'pick') { if (press(2)) lpAct(l, { t: 'choose', i: 0 }); if (press(3)) lpAct(l, { t: 'choose', i: 1 }); if (press(1)) lpAct(l, { t: 'choose', i: 2 }); }
-    }
+    const ranked = mode === 'online' && !!(roomInfo && roomInfo.ranked);
+    if (ph === 'lobby' || ph === 'over') {
+      // in a lobby, on their own controller: A opens their element and role picker; in custom games X joins the
+      // left team (Red), B the right team (Blue) and Y goes back to unassigned; in a ranked draft X is ready
+      if (l.picker) {
+        const E = Object.keys(ELEMENTS), Ro = Object.keys(ROLES), P = l.picker;
+        if (press(12) || press(13)) { P.row = P.row ? 0 : 1; hc.lbLp = hc.dfLp = null; }
+        if (press(14) || press(15)) {
+          const d = press(15) ? 1 : -1;
+          if (P.row === 0) { const i = (E.indexOf(l.el) + d + E.length) % E.length; lpAct(l, { t: 'loadout', el: E[i], ro: l.ro }); }
+          else { const i = (Ro.indexOf(l.ro) + d + Ro.length) % Ro.length; lpAct(l, { t: 'loadout', el: l.el, ro: Ro[i] }); }
+          uiSfx.hover();
+        }
+        if (press(0) || press(1) || press(9)) { l.picker = null; hc.lbLp = hc.dfLp = null; uiSfx.click(); }
+      } else if (ph === 'lobby') {
+        if (press(0)) { l.picker = { row: 0 }; hc.lbLp = hc.dfLp = null; uiSfx.click(); }
+        else if (ranked) { if (press(2)) { lpSend(l, { t: 'ready' }); uiSfx.click(); } }
+        else {
+          if (press(2)) lpAct(l, { t: 'team', team: 'red' });
+          if (press(1)) lpAct(l, { t: 'team', team: 'blue' });
+          if (press(3)) lpAct(l, { t: 'team', team: null });
+        }
+      }
+    } else l.picker = null;
+    if (ph === 'pick') { if (press(2)) lpAct(l, { t: 'choose', i: 0 }); if (press(3)) lpAct(l, { t: 'choose', i: 1 }); if (press(1)) lpAct(l, { t: 'choose', i: 2 }); }
     const I = l.inp || {};
     const x = me ? me.x : 0, y = me ? me.y : 0;
-    l.inp = { mx, my, aim: l.aim, draw: btn(7), dash: I.dash || (ph === 'play' && (press(0) || press(6))), q: I.q || (ph === 'play' && press(4)), e: I.e || (ph === 'play' && press(5)), dp: I.dp || press(7), tx: Math.round(x + Math.cos(l.aim) * 220), ty: Math.round(y + Math.sin(l.aim) * 220) };
+    l.inp = { dmv: 1, mx, my, aim: l.aim, draw: btn(7), dash: I.dash || (ph === 'play' && (press(0) || press(6))), q: I.q || (ph === 'play' && press(4)), e: I.e || (ph === 'play' && press(5)), dp: I.dp || press(7), tx: Math.round(x + Math.cos(l.aim) * 220), ty: Math.round(y + Math.sin(l.aim) * 220) };
     l.prev = g.buttons.map(b => !!(b && (b.pressed || b.value > 0.4)));
     if (mode === 'online' && l.sock && l.sock.readyState === 1) {
       l.sendT = (l.sendT || 0) - dt;
@@ -2067,16 +2167,14 @@ function lpClear(l) { if (l.inp) l.inp.dash = l.inp.q = l.inp.e = l.inp.dp = fal
 function drawLocalMarks(v) {
   for (const l of LP.list) {
     const p = v.p.find(q => q.id === l.pid); if (!p || p.d || p.f) continue;
-    const R = p.rz || 16, col = lpColor(l.n);
+    const R = p.rz || 16, col = lpColor(l.n), fighting = v.m.ph === 'play' || v.m.ph === 'pre';
+    // no cursor on a controller: their aim guide while drawing, and a small arrow showing where they point
+    const ch = p.ro === 'ninja' || p.ro === 'crossbow' ? 0 : (p.ch || 0);
+    if (fighting && ch > 0 && OPTS.guide) drawAimGuide(p, l.aim, ch);
     ctx.save(); ctx.fillStyle = col; ctx.font = "700 12px 'Rajdhani', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center';
     ctx.fillText('P' + l.n, p.x, p.y - R - 30);
-    ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(p.x, p.y, R + 7, 0, TAU); ctx.stroke();
-    if (v.m.ph === 'play' || v.m.ph === 'pre') {
-      const d = 150, rx = p.x + Math.cos(l.aim) * d, ry = p.y + Math.sin(l.aim) * d;
-      ctx.globalAlpha = 0.85; ctx.beginPath(); ctx.arc(rx, ry, 8, 0, TAU); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(rx - 12, ry); ctx.lineTo(rx - 4, ry); ctx.moveTo(rx + 4, ry); ctx.lineTo(rx + 12, ry); ctx.moveTo(rx, ry - 12); ctx.lineTo(rx, ry - 4); ctx.moveTo(rx, ry + 4); ctx.lineTo(rx, ry + 12); ctx.stroke();
-      ctx.fillText('P' + l.n, rx, ry - 14);
-    }
+    ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.globalAlpha = 0.8; ctx.beginPath(); ctx.arc(p.x, p.y, R + 7, 0, TAU); ctx.stroke(); ctx.globalAlpha = 1;
+    if (fighting) drawAimArrow(p, l.aim, ch, col);
     ctx.restore();
   }
 }
@@ -2084,16 +2182,26 @@ function drawLocalMarks(v) {
 function lpPanel(kind) {
   if (!LP.list.length) return '';
   const ranked = kind === 'draft';
+  const chipRow = (list, cur, lbl, on) => `<div class="lppk${on ? ' on' : ''}"><span class="lbl">${lbl}</span><div class="chips">${list.map(([k, x, col]) => `<span class="chip2${k === cur ? ' sel' : ''}" style="--cc:${col}">${x}</span>`).join('')}</div></div>`;
   return `<h3>Players on controllers</h3>` + LP.list.map(l => {
     const p = view && view.p.find(q => q.id === l.pid), team = p ? p.tm : null;
     const ready = ranked && roomInfo && (roomInfo.ready || []).includes(l.pid);
-    return `<div class="lprow" style="--pc:${lpColor(l.n)}"><span class="lptag">P${l.n}</span><b>${esc(l.name)}</b>
-      <select data-lpel="${l.n}" aria-label="Element for player ${l.n}">${Object.entries(ELEMENTS).map(([k, e]) => `<option value="${k}"${k === l.el ? ' selected' : ''}>${e.name}</option>`).join('')}</select>
+    const E = ELEMENTS[l.el] || {}, R = ROLES[l.ro] || {};
+    const where = ranked ? (ready ? '<span class="lpst on">Ready</span>' : '<span class="lpst">Picking…</span>') :
+      `<span class="lpst" style="color:${team ? TEAM_COL[team] : 'var(--muted)'}">${team ? teamName(team) : 'Unassigned'}</span>`;
+    const picker = l.picker ? `<div class="lppicker">` +
+      chipRow(Object.entries(ELEMENTS).map(([k, e]) => [k, e.name, e.color]), l.el, 'Element', l.picker.row === 0) +
+      chipRow(Object.entries(ROLES).map(([k, r]) => [k, r.name, CAT_COL[r.cat]]), l.ro, 'Role', l.picker.row === 1) +
+      `<small class="status">D-pad up and down: element or role · left and right: change · A: done</small></div>` : '';
+    return `<div class="lprow${l.picker ? ' picking' : ''}" style="--pc:${lpColor(l.n)}"><span class="lptag">P${l.n}</span><b>${esc(l.name)}</b>${where}
+      <span class="lparch"><i style="background:${E.color || '#888'}"></i>${esc((E.name || '') + ' ' + (R.name || ''))}</span>
+      <span class="lpmouse"><select data-lpel="${l.n}" aria-label="Element for player ${l.n}">${Object.entries(ELEMENTS).map(([k, e]) => `<option value="${k}"${k === l.el ? ' selected' : ''}>${e.name}</option>`).join('')}</select>
       <select data-lpro="${l.n}" aria-label="Role for player ${l.n}">${Object.entries(ROLES).map(([k, r]) => `<option value="${k}"${k === l.ro ? ' selected' : ''}>${r.name}</option>`).join('')}</select>
       ${ranked ? `<button type="button" class="ghost sm" data-lpready="${l.n}"${ready ? ' disabled' : ''}>${ready ? 'Ready ✓' : 'Ready'}</button>` :
-        `<button type="button" class="ghost sm${team === 'red' ? ' on' : ''}" data-lpteam="${l.n}" data-t="red">Red</button><button type="button" class="ghost sm${team === 'blue' ? ' on' : ''}" data-lpteam="${l.n}" data-t="blue">Blue</button>`}
-      ${!l.pid ? '<small class="status">joining…</small>' : ''}</div>`;
-  }).join('') + `<span class="status">On their controller: D-pad left and right for element, up and down for role${ranked ? ', A when ready' : ', LB / RB for Red / Blue'}. X, Y and B pick upgrades.</span>`;
+        `<button type="button" class="ghost sm${team === 'red' ? ' on' : ''}" data-lpteam="${l.n}" data-t="red">Red</button><button type="button" class="ghost sm${team === 'blue' ? ' on' : ''}" data-lpteam="${l.n}" data-t="blue">Blue</button><button type="button" class="ghost sm${!team ? ' on' : ''}" data-lpteam="${l.n}" data-t="">Unassigned</button>`}</span>
+      ${picker}</div>`;
+  }).join('') + `<div class="lpkeys">On their own controller: ${ranked ? '<span><em>A</em> element and role</span><span><em>X</em> ready</span>' :
+    '<span><em>X</em> join Red (left)</span><span><em>B</em> join Blue (right)</span><span><em>Y</em> unassigned</span><span><em>A</em> element and role</span>'}<span><em>X Y B</em> pick upgrades</span></div>`;
 }
 document.addEventListener('change', e => {
   const t = e.target, n = +(t.dataset.lpel || t.dataset.lpro || 0); if (!n) return;
@@ -2103,17 +2211,26 @@ document.addEventListener('change', e => {
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-lpteam], [data-lpready]'); if (!b) return;
   const l = LP.list.find(x => x.n === +(b.dataset.lpteam || b.dataset.lpready)); if (!l) return;
-  if (b.dataset.lpteam) lpAct(l, { t: 'team', team: b.dataset.t }); else lpSend(l, { t: 'ready' });
+  if (b.dataset.lpteam != null) lpAct(l, { t: 'team', team: b.dataset.t || null }); else lpSend(l, { t: 'ready' });
 });
-// ---- their upgrade picks, under the main player's cards
-function lpPickStrip(v) {
-  const rows = LP.list.map(l => {
-    const p = v.p.find(q => q.id === l.pid); if (!p || !p.of) return '';
-    const name = id => (Sim.TREE[id] ? Sim.TREE[id].name : (Sim.HONES && Sim.HONES[id] ? Sim.HONES[id].name : id));
-    return `<div class="lprow" style="--pc:${lpColor(l.n)}"><span class="lptag">P${l.n}</span><b>${esc(l.name)}</b>${p.pk ? '<span class="status">Picked ✓</span>' : p.of.map((id, i) => `<span class="lpkey"><em>${['X', 'Y', 'B'][i]}</em>${esc(name(id))}</span>`).join('')}</div>`;
+// ---- their upgrade picks: their own cards under the main player's, picked with X, Y and B on their controller
+function lpPickHtml(v) {
+  return LP.list.map(l => {
+    const p = v.p.find(q => q.id === l.pid); if (!p || !(p.of || p.pk)) return '';
+    const offer = p.of || (l.lastPick ? [l.lastPick] : []);
+    if (!offer.length) return '';
+    return `<div class="lppick" style="--pc:${lpColor(l.n)}"><div class="lphead"><span class="lptag">P${l.n}</span><b>${esc(l.name)}</b><small class="status">${p.pk ? 'Picked' : 'Press X, Y or B on their controller'}</small></div>
+      <div class="cards mini">${offer.map((id, i) => {
+        const n = cardInfo(id), t = cardTree(id), chosen = p.pk && id === l.lastPick;
+        return `<button type="button" class="pcard mini${chosen ? ' chosen' : ''}" data-lpcard="${l.n}:${i}" style="--cc:${t.col}"${p.pk ? ' disabled' : ''}>${p.pk ? '' : `<kbd class="pk-key">${['X', 'Y', 'B'][i]}</kbd>`}<span class="pk-tree">${t.label}</span><b>${n.name}</b><p>${n.desc}</p></button>`;
+      }).join('')}</div></div>`;
   }).join('');
-  return rows ? `<div class="lppick">${rows}</div>` : '';
 }
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-lpcard]'); if (!b) return;
+  const [n, i] = b.dataset.lpcard.split(':').map(Number), l = LP.list.find(x => x.n === n);
+  if (l) lpAct(l, { t: 'choose', i });
+});
 
 // ================= friends, party and matchmaking =================
 // a second connection, just for these, open while you're on the site (games use their own)
@@ -2125,13 +2242,13 @@ function socialConnect() {
   sock.onopen = () => { SOC.retry = 0; socialHello(); };
   sock.onmessage = e => {
     let m; try { m = JSON.parse(e.data); } catch (err) { return; }
-    if (m.t === 'social') { SOC.st = m; if (m.party && m.party.mode) SOC.mode = m.party.mode; renderFind(); findBadge(); }
+    if (m.t === 'social') { SOC.st = m; if (m.party && m.party.mode) SOC.mode = m.party.mode; renderFind(); findBadge(); renderHomeFriends(); }
     else if (m.t === 'note') notice(esc(m.msg), false);
     else if (m.t === 'invite') showInvite(m);
     else if (m.t === 'linkcode') lpLinkAll(m);
     else if (m.t === 'matched') {
       if (SOC.st && SOC.st.party) SOC.st.party.queued = null; findBadge();
-      $('fgStatus').textContent = 'Match found! Joining…'; uiSfx.click(); tone(660, 0.12, 'triangle', 0.05); setTimeout(() => tone(990, 0.16, 'triangle', 0.05), 120);
+      $('fgStatus').textContent = 'Match found! Joining…'; initAudio(); sfx.found();
       closeSubs(); connect({ code: m.code, ticket: m.ticket });
     }
   };
@@ -2139,6 +2256,30 @@ function socialConnect() {
 }
 function socialHello() { socialSend({ t: 'hello', name: playerName(), gt: GUEST_TOKEN, el: myLoadout().el, ro: myLoadout().ro }); }
 function socialSend(m) { if (SOC.ws && SOC.ws.readyState === 1) SOC.ws.send(JSON.stringify(m)); }
+// ---- friends on the main menu: who's online and what they're doing, with a quick join or invite
+const ACT_TEXT = f => ({ menu: 'Main menu', practice: 'Practising against bots', tutorial: 'Playing the tutorial', searching: `Finding a ${f.mode || ''} match`,
+  ranked: `In a ranked ${f.mode || ''} match`, customLobby: `In a custom game lobby${f.n ? ` (${f.n}/${f.max})` : ''}`, custom: `Playing a custom game${f.n ? ` (${f.n}/${f.max})` : ''}` }[f.act] || 'Online');
+function renderHomeFriends() {
+  const st = SOC.st, box = $('homeFriends');
+  if (!st || !st.account) { box.hidden = true; return; }
+  const fr = (st.friends || []).slice().sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name));
+  const on = fr.filter(f => f.online), off = fr.length - on.length;
+  const party = st.party, lead = !party || party.leader === st.you, inParty = new Set((party ? party.members : []).map(p => p.key));
+  const key = JSON.stringify([fr, lead, [...inParty]]);
+  if (hc.homeFr === key) return; hc.homeFr = key;
+  box.hidden = false;
+  box.innerHTML = `<div class="frh"><b>Friends</b><span>${on.length} online</span></div>` +
+    (on.length ? on.map(f => `<div class="frrow"><i class="dot${f.inGame ? ' play' : ' on'}"></i><div class="frn"><b>${rankHtml(f.lv)}${flagHtml(f.cc)}${esc(f.name)}</b><small>${esc(ACT_TEXT(f))}</small></div>` +
+      (f.code && (f.act === 'customLobby' || f.act === 'custom') ? `<button type="button" class="ghost sm" data-hjoin="${esc(f.code)}">Join</button>` : '') +
+      (lead && !inParty.has('u' + f.id) && !f.inGame && f.act !== 'searching' ? `<button type="button" class="ghost sm" data-hinv="${f.id}">Invite</button>` : '') + '</div>').join('')
+      : `<div class="status">${fr.length ? 'None of your friends are online.' : 'No friends yet. Add them in Find game.'}</div>`) +
+    (off ? `<div class="status frmore">${off} offline</div>` : '');
+}
+$('homeFriends').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.hjoin) { closeSubs(); connect({ code: b.dataset.hjoin }); }
+  else if (b.dataset.hinv) { socialSend({ t: 'party', op: 'invite', id: +b.dataset.hinv }); b.disabled = true; b.textContent = 'Invited'; }
+});
 function findBadge() {
   const n = SOC.st ? SOC.st.inReq.length : 0, q = SOC.st && SOC.st.party && SOC.st.party.queued != null;
   $('mFindBadge').hidden = !n && !q; $('mFindBadge').textContent = q ? 'Searching…' : n + (n === 1 ? ' friend request' : ' friend requests');
@@ -2164,20 +2305,12 @@ function renderFind() {
     }
     $('fgGuest').hidden = !P.guest;
   }
-  // archetype
-  if (!$('fgEl').children.length) {
-    $('fgEl').innerHTML = Object.entries(ELEMENTS).map(([k, e]) => `<button type="button" class="chip2" data-el="${k}" style="--cc:${e.color}"><i></i>${e.name}</button>`).join('');
-    $('fgRo').innerHTML = Object.entries(ROLES).map(([k, r]) => `<button type="button" class="chip2" data-ro="${k}" style="--cc:${CAT_COL[r.cat]}">${r.name}</button>`).join('');
-  }
-  $('fgEl').querySelectorAll('[data-el]').forEach(b => b.classList.toggle('sel', b.dataset.el === lo.el));
-  $('fgRo').querySelectorAll('[data-ro]').forEach(b => b.classList.toggle('sel', b.dataset.ro === lo.ro));
-  $('fgArch').innerHTML = `<b>${esc(ELEMENTS[lo.el].name + ' ' + ROLES[lo.ro].name)}</b> · ${esc(ELEMENTS[lo.el].blurb + ' ' + ROLES[lo.ro].blurb)}`;
   // mode and search
   $('fgModes').querySelectorAll('button').forEach(b => { b.classList.toggle('on', b.dataset.mode === mode); b.disabled = !lead || queued; });
   const go = $('fgGo');
   // players on controllers: signed-in ones join your party; guests have to sign in first
   for (const l of LP.list) if (l.token) lpSocial(l);
-  const lpGuests = LP.list.filter(l => !l.token), away = party ? party.members.filter(p => p.inGame) : [];
+  const lpGuests = LP.list.filter(l => !l.token), away = party ? party.members.filter(p => p.inGame && p.key !== me) : [];
   setC('fgLp', JSON.stringify(LP.list.map(l => [l.n, l.name, !!l.token])), () => {
     $('fgLocals').innerHTML = LP.list.length ? '<h3>Players on controllers</h3>' + LP.list.map(l => `<div class="lprow" style="--pc:${lpColor(l.n)}"><span class="lptag">P${l.n}</span><b>${esc(l.name)}</b>${l.token ? '<small class="status">Signed in</small>' : `<small class="status">Guest</small><button type="button" class="ghost sm" data-lpsign="${l.n}">Sign in</button>`}<button type="button" class="ghost sm" data-lprm2="${l.n}">Remove</button></div>`).join('') : '';
   });
@@ -2195,7 +2328,7 @@ function renderFind() {
     hc.fgParty = pkey;
     $('fgParty').innerHTML = !st ? '<div class="status">Connecting…</div>' : members.map((p, i) => `<div class="fr mem"><canvas data-av="${i}" width="76" height="76"></canvas>` +
       `<b>${rankHtml(p.lv)}${flagHtml(p.cc)}${esc(p.name)}${ownHtml(p.own)}${p.key === me ? ' <small class="status">(you)</small>' : ''}${party && p.key === party.leader && party.members.length > 1 ? '<span class="lead">Leader</span>' : ''}</b>` +
-      `<small>${p.inGame ? '<span class="fgwait">In a game</span> · ' : ''}Rating ${p.elo}${p.el && p.ro ? ' · ' + esc(ELEMENTS[p.el].name + ' ' + ROLES[p.ro].name) : ''}${p.games ? ` · ${p.games} games` : ''}${p.local ? ' · on this screen' : ''}</small><div class="btnrow">${party && lead && p.key !== me ? `<button class="ghost sm" type="button" data-kick="${esc(p.key)}">Remove</button>` : ''}</div></div>`).join('') +
+      `<small>${p.inGame ? '<span class="fgwait">In a game</span> · ' : ''}Rating ${p.elo}${p.games ? ` · ${p.games} games` : ''}${p.local ? ' · on this screen' : ''}</small><div class="btnrow">${party && lead && p.key !== me ? `<button class="ghost sm" type="button" data-kick="${esc(p.key)}">Remove</button>` : ''}</div></div>`).join('') +
       (party && party.members.length > 1 ? `<button class="ghost sm" type="button" id="fgLeave">Leave party</button>` : '') +
       (st && st.account && members.length < 3 ? '<span class="status">Invite friends from the list below to play together (up to 3).</span>' : '');
     $('fgParty').querySelectorAll('canvas[data-av]').forEach(c => { const p = members[+c.dataset.av], el = p.el || (p.key === me ? lo.el : 'frost'), ro = p.ro || (p.key === me ? lo.ro : 'sniper'); try { drawPreview(c, p.avatar ? p.avatar.el : el, p.avatar ? p.avatar.ro : ro, p.avatar ? p.avatar.c : TEAM_INFO.red.shades[0]); } catch (e) {} });
@@ -2214,14 +2347,6 @@ function renderFind() {
     `<button class="ghost sm" type="button" data-frem="${f.id}" aria-label="Remove ${esc(f.name)}">×</button></div></div>`).join('')
     : '<div class="status">No friends yet. Add someone by their player name.</div>';
 }
-function pickFgArch(e) {
-  const b = e.target.closest('.chip2'); if (!b) return;
-  const cur = myLoadout(), el = b.dataset.el || cur.el, ro = b.dataset.ro || cur.ro;
-  store.set('bowfall-el', el); store.set('bowfall-ro', ro);
-  socialSend({ t: 'party', op: 'loadout', el, ro }); hc.fgMe = hc.fgParty = null; renderFind();
-}
-$('fgEl').addEventListener('click', pickFgArch);
-$('fgRo').addEventListener('click', pickFgArch);
 const fmtWait = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 $('fgModes').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (!b) return; SOC.mode = b.dataset.mode; store.set('bowfall-mm-mode', SOC.mode); socialSend({ t: 'party', op: 'mode', mode: SOC.mode }); renderFind(); });
 $('fgGo').onclick = () => { const q = SOC.st && SOC.st.party && SOC.st.party.queued != null; initAudio(); socialSend({ t: 'queue', op: q ? 'cancel' : 'start', mode: SOC.mode }); };
@@ -2611,7 +2736,7 @@ function helpHtml() {
         <li><b>Move</b> with <kbd>WASD</kbd>. You build up speed over about 2 seconds and glide when you let go, like an air-hockey puck.</li>
         <li><b>Aim</b> with the mouse. <b>Hold click</b> to draw, release to shoot. A longer draw flies faster, hits harder and knocks back further. Some upgrades trigger on a <b>full draw</b>.</li>
         <li><b>Critical hits</b> aren't random: an arrow whose path runs through the middle of the target (the centre ${Math.round(Sim.BULLSEYE * 100)}% of its body) is a <b>bullseye</b> and deals ${Sim.CRIT_MUL}× damage.</li>
-        <li><b>Dash</b> with <kbd>Space</kbd> or <kbd>Shift</kbd>. It always goes toward your cursor, jumps pits, lava and water, and shoves enemies you hit. Ninjas blink instead: a near-instant hop toward your cursor, twice in a row. Ninjas also throw shuriken instead of drawing a bow: click once for each shuriken.</li>
+        <li><b>Dash</b> with <kbd>Space</kbd> or <kbd>Shift</kbd>. It goes the way you're moving (or where you're aiming, if you choose that in Controls; standing still, it always goes where you aim), jumps pits, lava and water, and shoves enemies you hit. Ninjas blink instead: a near-instant hop toward your cursor, twice in a row. Ninjas also throw shuriken instead of drawing a bow: click once for each shuriken.</li>
         <li><b>Abilities</b> go on <kbd>Q</kbd> and <kbd>E</kbd> once you pick them. <kbd>Esc</kbd> opens the menu.</li>
         <li><b>Controls</b> can be changed in <b>Controls</b> on the main screen or in the menu. A <b>controller</b> works too: left stick moves, right stick aims, right trigger draws, A or left trigger dashes, LB and RB are your abilities.</li>
         <li><b>Knockback is the main weapon.</b> Knocking an enemy into a hazard, a wall or another archer does far more than the arrow alone.</li>
@@ -2748,7 +2873,7 @@ $('gmTeams').addEventListener('click', onTeamsClick);
 // arena cards are built once; selection and host-only state update in place
 function buildMapCards() {
   paintThumbs();
-  $('lbMaps').innerHTML = MAP_KEYS.map(k => `<button type="button" class="mapcard" data-map="${k}"><canvas width="${thumbs[k].width}" height="${thumbs[k].height}"></canvas><b>${esc(MAPS[k].name)}</b><small>${esc(MAPS[k].desc)}</small></button>`).join('');
+  $('lbMaps').innerHTML = MAP_KEYS.map(k => `<button type="button" class="mapcard" data-map="${k}" title="${esc(MAPS[k].desc)}"><canvas width="${thumbs[k].width}" height="${thumbs[k].height}"></canvas><b>${esc(MAPS[k].name)}</b><small>${esc(MAPS[k].desc)}</small></button>`).join('');
   $('lbMaps').querySelectorAll('.mapcard').forEach(el => el.querySelector('canvas').getContext('2d').drawImage(thumbs[el.dataset.map], 0, 0));
 }
 $('lbMaps').addEventListener('click', e => { const b = e.target.closest('.mapcard'); if (b && !b.disabled) act({ t: 'cfg', map: b.dataset.map }); });
@@ -2826,7 +2951,7 @@ $('resLobbyBtn').onclick = () => act({ t: 'lobby' });
 function renderLobby(v) {
   const host = isHost(), online = mode === 'online';
   setC('lbCfg', online && host ? JSON.stringify([roomInfo && roomInfo.name, roomInfo && roomInfo.pub, roomInfo && roomInfo.locked, roomInfo && roomInfo.max]) : '', x => {
-    $('lbRoomCfg').hidden = !x;
+    $('lbRoomCfg').hidden = !x; $('lbRoomFold').hidden = !x;
     if (x && roomInfo && document.activeElement !== $('lbRmName')) { $('lbRmName').value = roomInfo.name || ''; $('lbRmPub').value = roomInfo.pub ? '1' : '0'; $('lbRmMax').value = String(roomInfo.max || 8); $('lbRmNoPw').hidden = !roomInfo.locked; }
   });
   setC('lbHead', mode + (roomInfo && roomInfo.code) + (roomInfo && [roomInfo.name, roomInfo.pub, roomInfo.locked].join()), () => {
@@ -2837,11 +2962,12 @@ function renderLobby(v) {
   syncTitle(v.p.find(p => p.id === myId));
   setC('lb', JSON.stringify(v.p.map(p => [p.id, p.n, p.ow, p.tm, p.b, p.dv, p.c, p.el, p.ro, p.hc, p.ti, p.cc, p.lv, p.bd, p.na])) + host + myId + JSON.stringify(roomInfo && [roomInfo.host, roomInfo.spec]), () => { $('lbTeams').innerHTML = teamsHtml(v); });
   setC('lbChat', online, x => { $('lbChat').hidden = !x; });
-  setC('lbLp', JSON.stringify(LP.list.map(l => [l.n, l.name, l.el, l.ro, l.pid, (v.p.find(p => p.id === l.pid) || {}).tm])), () => { $('lbLocals').innerHTML = lpPanel('lobby'); });
+  setC('lbLp', JSON.stringify(LP.list.map(l => [l.n, l.name, l.el, l.ro, l.pid, l.picker, (v.p.find(p => p.id === l.pid) || {}).tm])), () => { $('lbLocals').innerHTML = lpPanel('lobby'); });
   const meL = v.p.find(p => p.id === myId);
   setC('arch', meL ? meL.el + meL.ro : '', () => syncArch(meL));
   setC('lbMap', v.m.map + host, () => {
     $('lbMaps').querySelectorAll('.mapcard').forEach(el => { el.classList.toggle('sel', el.dataset.map === v.m.map); el.disabled = !host; });
+    $('lbMapDesc').innerHTML = MAPS[v.m.map] ? `<b>${esc(MAPS[v.m.map].name)}:</b> ${esc(MAPS[v.m.map].desc)}` : '';
   });
   setC('lbDiff', v.m.df + host, () => { $('lbDiff').value = v.m.df; $('lbDiff').disabled = !host; });
   setC('lbPts', v.m.ptw + ':' + host, () => { $('lbPts').value = String(v.m.ptw); $('lbPts').disabled = !host; });
@@ -2956,6 +3082,8 @@ $('mScores').onclick = () => openSub('scoresScr');
 $('mOpts').onclick = () => openSub('optScr');
 $('profChip').onclick = () => openSub('profScr');
 $('mTut').onclick = startTutorial;
+$('pracBtn').onclick = () => { closeSubs(); startPractice(); };
+if (OFFLINE) $('pracBtn').hidden = true; // offline, Host custom game already is practice
 $('hostBtn').onclick = () => { if (OFFLINE) { closeSubs(); startPractice(); return; } $('olHost').hidden = !$('olHost').hidden; if (!$('olHost').hidden) $('rmName').focus(); };
 let roomsT = 0;
 async function refreshRooms() {
@@ -3355,7 +3483,7 @@ function handleEvents(evs) {
       case 'hcap': feedAdd(`${esc(e.n)} <span class="cause">handicap ${e.v ? hcapLabel(e.v) : 'off'}</span>`, e.id === myId); break;
       case 'join': if (mode === 'online') feedAdd(`${nameTag(e.n, TEAM_COL[e.tm])} joined ${teamName(e.tm)}`); break;
       case 'switch': if (mode === 'online') feedAdd(`${nameTag(e.n, TEAM_COL[e.tm])} moved to ${teamName(e.tm)}`); break;
-      case 'leave': if (mode === 'online') feedAdd(`${esc(e.n)} left`); break;
+      case 'leave': if (mode === 'online' || e.sp) feedAdd(e.sp ? `${esc(e.n)} is unassigned` : `${esc(e.n)} left`); break;
       case 'volleyReset': if (e.id === myId) { floater(e.x, e.y - 44, 'Volley ready!', '#8fdcff', 16); fanfare([784, 988, 1175], 'triangle', 0.04, 60); } break;
       default: mechFx(e);
     }
@@ -5158,18 +5286,9 @@ function drawAllyAim(v, me, charge) {
     ctx.strokeStyle = 'rgba(125,255,138,0.8)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(q.x, q.y, (q.rz || 16) + 10, 0, TAU); ctx.stroke();
   }
 }
-const rangeRing = { a: 0, t: 0 };
-function drawCrosshair(me, charge) {
-  const x = mouse.wx, y = mouse.wy;
-  drawAllyAim(view, me, charge);
-  if (me && !me.d && me.ab) { const i = me.ab.indexOf('rain'); if (i >= 0 && !((me.ac || [])[i] > 0)) { ctx.strokeStyle = 'rgba(255,160,130,0.35)'; ctx.lineWidth = 1.5; ctx.setLineDash([6, 8]); ctx.beginPath(); ctx.arc(x, y, 88, 0, TAU); ctx.stroke(); ctx.setLineDash([]); } }
-  if (me && !me.d && me.ab) { const i = me.ab.indexOf('trap'); if (i >= 0 && !((me.ac || [])[i] > 0)) {
-    // where a trap would land: the cursor, or as far as it can be thrown
-    const dx = x - me.x, dy = y - me.y, d = Math.hypot(dx, dy), k = d > Sim.TRAP_RANGE ? Sim.TRAP_RANGE / d : 1;
-    ctx.strokeStyle = 'rgba(217,160,102,0.45)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 5]); ctx.beginPath(); ctx.arc(me.x + dx * k, me.y + dy * k, 22, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
-  } }
-  if (me && !me.d && charge > 0 && OPTS.guide) {
-    const len = 60 + charge * 220, ax = Math.cos(me.a), ay = Math.sin(me.a);
+function drawAimGuide(me, ang, charge) {
+  {
+    const len = 60 + charge * 220, ax = Math.cos(ang), ay = Math.sin(ang);
     // walk along the shot to find the first wall or boulder within reach
     let hit = null;
     for (let t = 30; t <= 30 + len + 60; t += 6) {
@@ -5188,6 +5307,30 @@ function drawCrosshair(me, charge) {
       ctx.strokeStyle = 'rgba(255,70,60,0.9)'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(hx - 6, hy - 6); ctx.lineTo(hx + 6, hy + 6); ctx.moveTo(hx + 6, hy - 6); ctx.lineTo(hx - 6, hy + 6); ctx.stroke();
     }
   }
+}
+// on a controller there's no cursor: a small arrow just outside the archer shows where they're aiming,
+// filling in as the bow draws (white at full draw)
+function drawAimArrow(me, ang, charge, col) {
+  const R = (me.rz || 16), ax = Math.cos(ang), ay = Math.sin(ang), nx = -ay, ny = ax;
+  const tip = R + 34, base = R + 20, half = 7;
+  const tx = me.x + ax * tip, ty = me.y + ay * tip, bx = me.x + ax * base, by = me.y + ay * base;
+  ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(bx + nx * half, by + ny * half); ctx.lineTo(bx - nx * half, by - ny * half); ctx.closePath();
+  ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fill();
+  if (charge > 0) { ctx.globalAlpha = 0.35 + 0.65 * charge; ctx.fillStyle = charge >= 1 ? '#ffffff' : col; ctx.fill(); ctx.globalAlpha = 1; }
+  ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.strokeStyle = col; ctx.stroke();
+  return { x: me.x + ax * (tip + 12), y: me.y + ay * (tip + 12) };
+}
+const rangeRing = { a: 0, t: 0 };
+function drawCrosshair(me, charge) {
+  const x = mouse.wx, y = mouse.wy;
+  drawAllyAim(view, me, charge);
+  if (me && !me.d && me.ab) { const i = me.ab.indexOf('rain'); if (i >= 0 && !((me.ac || [])[i] > 0)) { ctx.strokeStyle = 'rgba(255,160,130,0.35)'; ctx.lineWidth = 1.5; ctx.setLineDash([6, 8]); ctx.beginPath(); ctx.arc(x, y, 88, 0, TAU); ctx.stroke(); ctx.setLineDash([]); } }
+  if (me && !me.d && me.ab) { const i = me.ab.indexOf('trap'); if (i >= 0 && !((me.ac || [])[i] > 0)) {
+    // where a trap would land: the cursor, or as far as it can be thrown
+    const dx = x - me.x, dy = y - me.y, d = Math.hypot(dx, dy), k = d > Sim.TRAP_RANGE ? Sim.TRAP_RANGE / d : 1;
+    ctx.strokeStyle = 'rgba(217,160,102,0.45)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 5]); ctx.beginPath(); ctx.arc(me.x + dx * k, me.y + dy * k, 22, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+  } }
+  if (me && !me.d && charge > 0 && OPTS.guide) drawAimGuide(me, me.a, charge);
   if (me && !me.d && me.rg) {
     // short-range roles: a faint ring showing how far your shots reach fades in when you aim past it
     const d = Math.hypot(x - me.x, y - me.y), want = d > me.rg ? 1 : 0, now = performance.now();
@@ -5205,6 +5348,7 @@ function drawCrosshair(me, charge) {
     if (me.xr != null && me.xr < 1) { ctx.strokeStyle = 'rgba(255,207,90,0.8)'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, 14, -Math.PI / 2, -Math.PI / 2 + me.xr * TAU); ctx.stroke(); }
     for (let i = 0; i < (me.xm || 1); i++) { ctx.fillStyle = i < (me.xn || 0) ? '#ffcf5a' : 'rgba(233,237,242,0.25)'; ctx.fillRect(x - ((me.xm || 1) - 1) * 4 + i * 8 - 2.5, y + 18, 5, 3); }
   }
+  if (pad.on && pad.aim != null && me && !me.d) { drawAimArrow(me, pad.aim, charge, '#ffcf5a'); return; }
   ctx.strokeStyle = 'rgba(233,237,242,0.85)'; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.arc(x, y, 9, 0, TAU); ctx.stroke();
   ctx.beginPath();
@@ -5302,8 +5446,11 @@ function updateHud() {
     if (x) $('abil').hidden = true; else hc.abSet = null;
     if (x) { $('resultsScreen').hidden = true; resultsFor = null; closeMenu(); }
   });
-  if (m.ph === 'pick' && LP.list.length) setC('lpPick', JSON.stringify(LP.list.map(l => { const p = view.p.find(q => q.id === l.pid); return p ? [p.of, p.pk] : 0; })), () => { const h = lpPickStrip(view); $('lpPick').innerHTML = h; $('lpPick').hidden = !h; });
-  else if (hc.lpPick !== undefined) { $('lpPick').hidden = true; hc.lpPick = undefined; }
+  if (m.ph === 'pick' && LP.list.length) setC('lpPick', JSON.stringify([real && !!real.of, LP.list.map(l => { const p = view.p.find(q => q.id === l.pid); return p ? [p.of, p.pk, l.lastPick] : 0; })]), () => {
+    const h = lpPickHtml(view), inside = !!real; // their cards sit under yours; if you're only watching they float on their own
+    $('pkLocals').innerHTML = inside ? h : ''; $('lpPick').innerHTML = inside ? '' : h; $('lpPick').hidden = inside || !h;
+  });
+  else if (hc.lpPick !== undefined) { $('lpPick').hidden = true; $('pkLocals').innerHTML = ''; hc.lpPick = undefined; }
   if (draft) { renderDraft(view); $('death').hidden = $('countdown').hidden = $('pickScreen').hidden = true; return; }
   if (lobby) { renderLobby(view); $('death').hidden = $('countdown').hidden = $('pickScreen').hidden = true; return; }
   if (menuOpen) renderMenu(view);
@@ -5478,7 +5625,7 @@ function renderPick(me, v) {
       Object.keys(hn).map(h => `<span>${HONES[h].name} ×${hn[h]}</span>`).join('');
   });
   setC('pkHead', m.rd + ':' + m.op + archName(me), () => { $('pkEyebrow').textContent = m.op ? 'Before round 1 · choose your first ability' : `Round ${m.rd} done`; $('pkArch').textContent = archName(me); });
-  setC('pkT', m.T, x => { $('pkTimer').textContent = x; });
+  setC('pkT', m.T, x => { $('pkTimer').textContent = x; if (x > 0 && x <= 5 && !me.pk) sfx.count(x); }); // the last five seconds to pick tick down
   const hs = v.p.filter(p => !p.b), waiting = hs.filter(p => !p.pk).length;
   setC('pkSt', me.pk + ':' + hs.filter(p => !p.pk).map(p => p.id).join() + ':' + me.am, () => {
     const who = hs.filter(p => !p.pk).map(p => p.n).join(', ');
