@@ -14,8 +14,8 @@ services:
       # the Postgres connection string from Neon (or any Postgres); Render asks for it when you apply the blueprint
       - key: DATABASE_URL
         sync: false
-      # optional: extra admin account names, comma-separated (the first account created is always an admin)
-      - key: ADMIN_USERS
+      # optional: the name of the one admin account (Tom if not set)
+      - key: ADMIN_NAME
         sync: false
       # optional sign-in with Google and Discord (see HOSTING.md); leave blank to hide the buttons
       - key: PUBLIC_URL

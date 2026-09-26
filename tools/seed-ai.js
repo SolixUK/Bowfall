@@ -125,11 +125,14 @@ if (process.argv[2] === '--finish') { // redo just the last step on the saved li
       const byPid = pid => players[r.seat[pid]];
       for (const rec of r.recs) {
         if (rec.type === 'game') {
-          const users = new Map(rec.p.map(p => [p.id, byPid(p.id)]).filter(x => x[1]).map(([pid, u]) => [pid, Object.assign(u, { id: u.i })]));
-          const rated = rateGame(rec, users);
           for (const p of rec.p) { const u = byPid(p.id); if (u) careerAdd(u, { type: 'game', pl: p }); }
-          for (const u of users.values()) { const x = rated.get(u.id); if (!x) continue; u.career.elo = x.elo; u.career.eloPeak = Math.max(u.career.eloPeak || 1000, x.elo); u.career.relo = u.career.relo || {}; u.career.relo[x.role] = x.roleElo; }
+          r.roster = rec; // rated once the match is decided, like the server does
         } else if (rec.type === 'match') {
+          if (r.roster && rec.win) {
+            const ros = r.roster, users = new Map(ros.p.map(p => [p.id, byPid(p.id)]).filter(x => x[1]).map(([pid, u]) => [pid, Object.assign(u, { id: u.i })]));
+            const rated = rateGame({ win: rec.win, df: ros.df, p: ros.p.map(p => Object.assign({}, p, { w: p.tm === rec.win ? 1 : 0 })) }, users);
+            for (const u of users.values()) { const x = rated.get(u.id); if (!x) continue; u.career.elo = x.elo; u.career.eloPeak = Math.max(u.career.eloPeak || 1000, x.elo); u.career.relo = u.career.relo || {}; u.career.relo[x.role] = x.roleElo; }
+          }
           for (const [pid, i] of Object.entries(r.seat)) careerAdd(players[i], rec, r.teams[pid]);
         }
       }

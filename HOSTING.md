@@ -45,7 +45,7 @@ Render's free servers wipe their files whenever they restart, and Render's own f
 2. Create a project. Pick the **AWS Europe (Frankfurt)** region so it's next to your Render server.
 3. On the project dashboard click **Connect** and copy the connection string. It looks like `postgresql://user:password@ep-something.eu-central-1.aws.neon.tech/neondb?sslmode=require`.
 4. In Render, open your **bowfall** service, go to **Environment**, click **Add environment variable**, set the key to `DATABASE_URL` and paste the connection string as the value, then **Save changes**. Render restarts the server, and it creates its tables on first start.
-5. Open your site and create your account first: the first account on a server is an admin (it can post news and moderate the forum). To make other people admins too, add an `ADMIN_USERS` variable with their names, comma-separated.
+5. Open your site and create the account named **Tom** straight away: that account is the only admin (it can post news, moderate the forum and use the admin chat commands). To use a different name, set an `ADMIN_NAME` variable. Every other account loses admin whenever the server starts.
 
 The server log on Render says `(Postgres database)` when it's connected, or `(local database file)` when `DATABASE_URL` isn't set.
 

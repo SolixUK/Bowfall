@@ -1,5 +1,5 @@
 // Bowfall shared simulation. Runs on the server (authoritative) and in the browser (offline practice).
-// Red vs Blue: the last team standing wins a game, 3 games take a round (a point), and points win the match.
+// Red vs Blue: the last team standing wins a game, 2 games (best of three) take a round (a point), and points win the match.
 // Between rounds everyone picks one of three upgrade cards from their element and role.
 (function (root, factory) {
   const Sim = factory();
@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.14.1';
+const VERSION = '0.15.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -305,6 +305,7 @@ const ELEMENTS = {
   stone:  { name: 'Stone',  color: '#c9a878', blurb: 'Crushing hits that break a draw and leave targets easier to knock around.', premium: true },
   void:   { name: 'Void',   color: '#b48cff', blurb: 'Rifts that drag other enemies in: into hazards, or into each other.', premium: true },
   shadow: { name: 'Shadow', color: '#8e95c9', blurb: 'Shroud targets in darkness so they can only see what is right next to them.', premium: true },
+  blood:  { name: 'Blood',  color: '#e0344a', blurb: 'Every bit of damage you deal heals you.', premium: true },
 };
 // New elements and roles are tagged premium. Set LOCK_PREMIUM to true to lock them in the lobby
 // (e.g. later, behind an unlock); for now everything is free to play.
@@ -366,6 +367,7 @@ function setMeta(w, id, m) {
   if ('lv' in m) p.lv = Math.max(0, Math.min(999, m.lv | 0)) || null;
   if ('bd' in m) p.bd = m.bd && ACHIEVEMENTS[m.bd] ? m.bd : null;
   if ('na' in m) p.na = Math.max(0, Math.min(Object.keys(ACHIEVEMENTS).length, m.na | 0)) || null;
+  if ('ow' in m) p.ow = m.ow ? 1 : null; // the game's owner: a crown by their name
   return true;
 }
 function setTitle(w, id, key) {
@@ -440,6 +442,11 @@ const TREE = {
   blinding:  { tree: 'shadow', name: 'Blinding Dark', desc: 'Your shroud closes in to 100px, and shrouded bots aim far worse.' },
   creeping:  { tree: 'shadow', name: 'Creeping Dark', desc: 'Shrouded enemies move 15% slower.' },
   terror:    { tree: 'shadow', name: 'Night Terror', desc: 'Enemies you shroud take 25% more damage from your whole team.' },
+  blood:     { tree: 'blood', base: true, name: 'Blood Arrows', desc: 'Damage you deal heals you for 25% of it (half as much while you are poisoned).' },
+  hemorrhage:{ tree: 'blood', name: 'Hemorrhage', desc: 'Fully drawn hits make the target bleed for 8 damage over 4 seconds. The bleeding heals you too.' },
+  frenzy:    { tree: 'blood', name: 'Blood Frenzy', desc: 'Below half health, your hits heal you twice as much.' },
+  transfusion:{ tree: 'blood', name: 'Transfusion', desc: 'Healing you would waste at full health goes to your most hurt teammate within 300px instead.' },
+  bloodpact: { tree: 'blood', trade: true, name: 'Blood Pact', desc: 'Your hits heal you for 45% of their damage instead of 25%, but you have 15 less health.' },
   lingering: { tree: 'shadow', trade: true, name: 'Lingering Dark', desc: 'Your shrouds last 5 seconds, but your arrows knock back 15% less.' },
 
   sstrike:   { tree: 'ninja', active: { cd: 10 }, name: 'Shadow Strike', desc: 'Teleport behind the enemy nearest your cursor (up to 360px away). Your next 3 shuriken within 1.5 seconds deal 75% more damage.' },
@@ -587,11 +594,11 @@ function createWorld(cfg = {}) {
   const w = {
     t: 0, nid: 1, players: [], arrows: [], pickups: [], zones: [], events: [], amberT: 2, puT: 8,
     cfg: {
-      pointsToWin: cfg.pointsToWin === 5 ? 5 : 3, gamesToWin: 3,
+      pointsToWin: cfg.pointsToWin === 5 ? 5 : 3, gamesToWin: 2, // each round is best of three games
       diff: DIFF[cfg.diff] ? cfg.diff : 'normal', map: MAPS[cfg.map] ? cfg.map : 'meadow',
       opt: Object.assign(optDefaults(), cfg.opt || {}),
     },
-    // a match is won on points; each round (1 point) is won by the first team to win 3 games
+    // a match is won on points; each round (1 point) is won by the first team to win 2 games (best of three)
     match: { ph: 'lobby', rd: 1, gm: 1, T: 0, wins: { red: 0, blue: 0 }, gw: { red: 0, blue: 0 }, picks: 0, opening: false, rw: null, mw: null },
     powerIdx: 0,
     // finished games and matches for balance stats; the server or the page drains this
@@ -611,7 +618,7 @@ function applyStats(p) {
   // role traits (always on) and trade-off cards
   p.maxHp = 100 + (has(p, 'vital') ? 25 : 0) + 15 * h('hone_hp')
     + (R === 'juggernaut' ? 15 : 0) - (R === 'sniper' || R === 'ranger' ? 10 : 0)
-    - (has(p, 'glass') ? 10 : 0) + (has(p, 'colossus') ? 30 : 0) - (has(p, 'cloak') ? 10 : 0) - (R === 'ninja' ? 10 : 0);
+    - (has(p, 'glass') ? 10 : 0) + (has(p, 'colossus') ? 30 : 0) - (has(p, 'cloak') ? 10 : 0) - (R === 'ninja' ? 10 : 0) - (has(p, 'bloodpact') ? 15 : 0);
   p.maxHp = Math.round(p.maxHp * OPT('hp') * hc);
   if (p.hp > p.maxHp) p.hp = p.maxHp;
   p.mass = (1 + (p.hcap || 0) / 200) * is(has(p, 'stance'), 1 / 0.5) * is(R === 'juggernaut', 1.25) * is(has(p, 'colossus'), 1 / 0.65) / is(has(p, 'feather'), 1.3) / is(R === 'ninja', 1.1) / is(has(p, 'longstep'), 1.15) / is(R === 'crossbow', 0.85);
@@ -739,6 +746,8 @@ function setTeam(w, id, team) {
   return true;
 }
 function setBotDifficulty(w, diff) { if (!DIFF[diff]) return; w.cfg.diff = diff; for (const p of w.players) if (p.bot) p.diff = diff; }
+// one bot's skill, in custom games (matchmaking's AI players have their own and can't be changed)
+function setBotSkill(w, id, diff) { const p = w.players.find(q => q.id === id); if (!p || !p.bot || p.dparams || !DIFF[diff]) return false; p.diff = diff; return true; }
 function setMap(w, key) {
   if (!MAPS[key] || w.match.ph !== 'lobby') return false;
   w.cfg.map = key; w.cracks = []; useMap(w);
@@ -938,7 +947,7 @@ function placeForRound(w, p) {
   applyStats(p);
   Object.assign(p, {
     x: s.x, y: s.y, vx: 0, vy: 0, hp: p.maxHp, dead: false, falling: 0, stuck: 0, burn: 0, slow: 0,
-    frozen: 0, frostN: 0, frostT: 0, dashLock: 0, snare: false, grap: null, over: 0, poisonN: 0, poisonT: 0, burnDps: 5, quickT: 0, disarm: 0, poisonBy: null, contT: 0,
+    frozen: 0, frostN: 0, frostT: 0, dashLock: 0, snare: false, grap: null, over: 0, poisonN: 0, poisonT: 0, bleedT: 0, bleedBy: null, burnDps: 5, quickT: 0, disarm: 0, poisonBy: null, contT: 0,
     knock: 0, inv: 0, dashT: 0, dashCd: 0, dashN: p.dashMaxN, charge: 0, drawing: false, thr: 0, tdx: 0, tdy: 0,
     lastHitBy: null, lastHitT: -99, lastCause: '', killedBy: null, pw: emptyPowers(), wantDash: false, lastHurtT: -99, pinT: 0, pinned: 0, dashK: 1,
     pinSafe: 0, volleyArmed: false, railArmed: false, recoilArmed: false, seekArmed: false, swapArmed: false, boomArmed: false, execArmed: false,
@@ -1000,7 +1009,7 @@ function gameRecord(w, winner, timedOut) {
     p: played.map(p => {
       const g = p.g0 || { k: 0, dmg: 0, hits: 0, shots: 0, ring: 0, taken: 0 };
       return {
-        id: p.id, n: p.name, b: p.bot ? 1 : 0, tm: p.team, el: p.element, ro: p.role, hc: p.hcap || 0,
+        id: p.id, n: p.name, b: p.bot ? 1 : 0, df: p.bot ? p.diff : undefined, tm: p.team, el: p.element, ro: p.role, hc: p.hcap || 0,
         up: p.up.filter(id => TREE[id] && !TREE[id].base), hn: Object.assign({}, p.hones),
         w: winner ? (p.team === winner ? 1 : 0) : 0.5, s: p.dead ? 0 : 1,
         k: p.kills - g.k, dmg: r(p.stats.dmg - g.dmg), tk: r(p.stats.taken - g.taken),
@@ -1089,6 +1098,7 @@ function hurt(w, f, dmg, kx, ky, src, by, quiet) {
   const creditId = by && by !== f.id ? by : (f.lastHitBy && w.t - f.lastHitT < 5 ? f.lastHitBy : null);
   const credit = creditId && w.players.find(q => q.id === creditId && q.team !== f.team);
   if (credit) credit.stats.dmg += applied;
+  if (credit && !hazard && src !== 'wall' && applied > 0 && !credit.dead && has(credit, 'blood')) bloodHeal(w, credit, applied);
   f.stats.taken += applied;
   f.hp -= dmg;
   if (!quiet) { f.flash = 0.12; ev(w, { e: 'dmg', id: f.id, by: creditId || undefined, x: r1(f.x), y: r1(f.y - f.r - 8), v: Math.round(dmg) }); }
@@ -1112,6 +1122,20 @@ function hurt(w, f, dmg, kx, ky, src, by, quiet) {
   return true;
 }
 
+// Blood: damage you deal heals you (and with Transfusion or Bloodbath, your team)
+function bloodHeal(w, p, dealt) {
+  const emp = p.emp && p.element === 'blood';
+  let heal = dealt * (has(p, 'bloodpact') ? 0.45 : 0.25) * (has(p, 'frenzy') && p.hp < p.maxHp * 0.5 ? 2 : 1) * (emp ? 2 : 1) * (p.poisonT > 0 ? 0.5 : 1);
+  const room = p.maxHp - p.hp, used = Math.min(room, heal);
+  p.hp += used; p.leechAcc = (p.leechAcc || 0) + used;
+  if (p.leechAcc >= 1) { ev(w, { e: 'leech', id: p.id, v: Math.round(p.leechAcc) }); p.leechAcc = 0; }
+  const spare = heal - used;
+  if (spare > 0.05 && has(p, 'transfusion')) {
+    const mate = w.players.filter(q => q !== p && q.team === p.team && !q.dead && q.hp < q.maxHp && Math.hypot(q.x - p.x, q.y - p.y) < 300).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
+    if (mate) { mate.hp = Math.min(mate.maxHp, mate.hp + spare); ev(w, { e: 'transfuse', from: p.id, to: mate.id }); }
+  }
+  if (emp) for (const q of w.players) if (q !== p && q.team === p.team && !q.dead && Math.hypot(q.x - p.x, q.y - p.y) < 220) q.hp = Math.min(q.maxHp, q.hp + dealt * 0.2);
+}
 // move a knocked-out archer's marker out of pits and lava so teammates can reach it to revive
 function safeMarker(f) {
   for (let k = 0; k < 4; k++) {
@@ -1128,6 +1152,7 @@ const EMPOWER_AT = 5, EMPOWER_BONUS = 3;
 const HOLE_R = 240, HOLE_CORE = 30, HOLE_T = 3, HOLE_PULL = 900, HOLE_DPS = 30;
 const EMPOWER = {
   stone:  { name: 'Landslide', desc: 'Your arrows knock back 35% harder and stagger for twice as long.' },
+  blood:  { name: 'Bloodbath', desc: 'Your hits heal you twice as much, and heal every teammate within 220px for a fifth of the damage.' },
   void:   { name: 'Singularity', desc: 'Every enemy you knock out collapses into a black hole for 3 seconds. It drags other enemies within 240px toward it, and touching its core deals 30 damage a second.' },
   frost:  { name: "Winter's Grip", desc: 'Your 2nd frost hit freezes, even without Frostbite.' },
   flame:  { name: 'Blaze', desc: 'You leave a trail of fire, and your arrows set the ground alight wherever they land.' },
@@ -1405,6 +1430,7 @@ function stepBody(w, f, mx, my, dt) {
   f.inTar = inTar;
   if (inLava) { hurt(w, f, 30 * dt, 0, 0, 'lava', null, true); f.burn = Math.max(f.burn, 1.5); }
   else if (f.burn > 0) { f.burn -= dt; hurt(w, f, (f.burnDps || 5) * dt, 0, 0, 'burn', null, true); if (f.burn <= 0) f.burnDps = 5; }
+  if (!f.dead && f.bleedT > 0) { f.bleedT -= dt; hurt(w, f, 2 * dt, 0, 0, 'bleed', f.bleedBy, true); } // Hemorrhage
   if (!f.dead && f.poisonT > 0) { f.poisonT -= dt; hurt(w, f, f.poisonN * 1.6 * f.poisonMul * dt, 0, 0, 'poison', null, true); if (f.poisonT <= 0) f.poisonN = 0; }
   if (f.dead) return;
   if (inPit) {
@@ -2064,6 +2090,8 @@ function onArrowEffects(w, a, f, primary) {
     if (primary && a.full && owner && has(owner, 'toxic')) {
       w.zones.push({ id: w.nid++, ty: 'toxic', x: f.x, y: f.y, r: 56, t: 3, team: a.team, owner: a.owner, ticks: {}, delay: CLOUD_DELAY, follow: f.id });
     }
+  } else if (a.el === 'blood') {
+    if (a.full && owner && has(owner, 'hemorrhage')) { f.bleedT = 4; f.bleedBy = a.owner; ev(w, { e: 'bleed', id: f.id, x: r1(f.x), y: r1(f.y) }); }
   } else if (a.el === 'flame') {
     const inf = owner && has(owner, 'inferno');
     f.burn = Math.max(f.burn, inf ? 5 : 2); f.burnDps = Math.max(f.burnDps || 4.5, (inf ? 5.5 : 4.5) * (owner && has(owner, 'pyre') ? 1.5 : 1));
@@ -3059,17 +3087,17 @@ function snapshot(w) {
       const pw = {};
       for (const k in p.pw) if (p.pw[k] > 0) pw[k] = r1(p.pw[k]);
       return {
-        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined,
+        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined,
         x: r1(p.x), y: r1(p.y), vx: Math.round(p.vx), vy: Math.round(p.vy), a: r3(p.aim),
         hp: Math.max(0, Math.ceil(p.hp)), mh: p.maxHp, ch: r2(p.charge), dr: p.drawing ? 1 : 0,
-        f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, bu: p.burn > 0 ? 1 : 0, sl: p.slow > 0 ? 1 : 0, iv: p.inv > 0 ? 1 : 0,
+        f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, bu: p.burn > 0 ? 1 : 0, bl: p.bleedT > 0 ? 1 : 0, sl: p.slow > 0 ? 1 : 0, iv: p.inv > 0 ? 1 : 0,
         da: p.dashT > 0 ? 1 : 0, hl: p.healing ? 1 : 0, dn: p.dashN, dk: p.dashMaxN, ra: p.rallied ? 1 : 0,
         ab: p.slots, ac: p.abCd.map(r1), fz: p.frozen > 0 ? 1 : 0, sx: p.dashLock > 0 ? 1 : 0, ov: p.over >= 1 ? 1 : 0,
         sn: p.snare ? 1 : 0, vl: p.volleyArmed ? 1 : 0, rl: p.railArmed ? 1 : 0,
         arm: p.recoilArmed ? 'recoil' : p.seekArmed ? 'seeker' : p.trickArmed ? 'trick' : p.boomArmed ? 'boomerang' : p.execArmed ? 'execute' : undefined,
         sr: p.shroudT > 0 ? p.shroudR : undefined, rsh: p.rush ? 1 : 0, sk: p.strikeN || 0, nb: p.nblink ? 1 : 0, ft: p.fortT > 0 ? 1 : 0, wd: p.windT > 0 ? 1 : 0, ph: p.phaseT > 0 ? 1 : 0, gr: p.grap ? [r1(p.grap.x), r1(p.grap.y)] : 0, rp: r2(p.revP || 0), rv: p.reviveUsed ? 1 : 0, fl: p.flash > 0 ? 1 : 0, dc: r2(p.dashCd), dm: p.dashCdMax, d: p.dead ? 1 : 0,
         k: p.kills, de: p.deaths, am: p.amber, er: p.earned, up: p.up, hn: p.hones, el: p.element, ro: p.role,
-        of: p.offer, pk: p.picked ? 1 : 0, po: p.poisonN, dz: p.disarm > 0 ? 1 : 0, hc: p.hcap || 0, dfl: p.deflectT > 0 ? 1 : 0, pr: p.parryT > 0 ? (p.parryAuto ? 2 : 1) : 0, su: p.stunT > 0 ? 1 : 0, rg: rangeOf(w, p) || undefined, xr: p.role === 'crossbow' ? (p.bolts >= p.xbowMax ? 1 : r2(p.reloadT)) : undefined, xn: p.role === 'crossbow' ? p.bolts : undefined, xm: p.role === 'crossbow' ? p.xbowMax : undefined, xf: p.fanArmed ? 1 : 0, rpt: p.repeatT > 0 ? 1 : 0, au: p.autoT > 0 ? r2(p.autoT) : 0, fo: p.focusT > 0 ? 1 : 0, ts: p.trapSet ? [r1(p.trapSet.x), r1(p.trapSet.y), r2(1 - p.trapSet.t / TRAP_SET)] : undefined, ti: p.title || undefined, pn: p.pinned > 0 && p.stuck > 0 ? 1 : 0, pa: p.pinned > 0 ? r2(p.pinAng || 0) : undefined, sg: p.staggerT > 0 ? 1 : 0, mk: p.markT > 0 ? 1 : 0, sth: p.stealthT > 0 ? 1 : 0, amb: p.ambushT > 0 ? 1 : 0, bs: p.bot && p.ai.style ? p.ai.style : undefined, em: p.emp ? 1 : 0, sk: p.streak, lh: p.lastHow, ep: Math.min(p.empPts, EMPOWER_AT), rz: r1(p.r),
+        of: p.offer, pk: p.picked ? 1 : 0, po: p.poisonN, dz: p.disarm > 0 ? 1 : 0, hc: p.hcap || 0, dfl: p.deflectT > 0 ? 1 : 0, pr: p.parryT > 0 ? (p.parryAuto ? 2 : 1) : 0, su: p.stunT > 0 ? 1 : 0, rg: rangeOf(w, p) || undefined, xr: p.role === 'crossbow' ? (p.bolts >= p.xbowMax ? 1 : r2(p.reloadT)) : undefined, xn: p.role === 'crossbow' ? p.bolts : undefined, xm: p.role === 'crossbow' ? p.xbowMax : undefined, xf: p.fanArmed ? 1 : 0, rpt: p.repeatT > 0 ? 1 : 0, au: p.autoT > 0 ? r2(p.autoT) : 0, fo: p.focusT > 0 ? 1 : 0, ts: p.trapSet ? [r1(p.trapSet.x), r1(p.trapSet.y), r2(1 - p.trapSet.t / TRAP_SET)] : undefined, ti: p.title || undefined, pn: p.pinned > 0 && p.stuck > 0 ? 1 : 0, pa: p.pinned > 0 ? r2(p.pinAng || 0) : undefined, sg: p.staggerT > 0 ? 1 : 0, mk: p.markT > 0 ? 1 : 0, sth: p.stealthT > 0 ? 1 : 0, amb: p.ambushT > 0 ? 1 : 0, bs: p.bot && p.ai.style ? p.ai.style : undefined, dv: p.bot && !p.dparams ? p.diff : undefined, em: p.emp ? 1 : 0, sk: p.streak, lh: p.lastHow, ep: Math.min(p.empPts, EMPOWER_AT), rz: r1(p.r),
         ss: [p.stats.shots, p.stats.hits, Math.round(p.stats.dmg), Math.round(p.stats.taken), p.stats.ring, Math.round(p.stats.longest)],
         pw, lc: p.lastCause, kb: p.killedBy,
       };
@@ -3083,7 +3111,7 @@ function snapshot(w) {
 return {
   AW, AH, WALL, GATES, MAPS, MAP_KEYS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
-  plagueR, createWorld, join, leave, addBot, removeBot, setTeam, setBotDifficulty, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
+  plagueR, createWorld, join, leave, addBot, removeBot, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
   _grant(w, id, cards) { const p = w.players.find(q => q.id === id); for (const c of cards) takeCard(w, p, c); applyStats(p); p.picked = false; return p; },

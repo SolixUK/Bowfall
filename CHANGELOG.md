@@ -2,6 +2,55 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
 
+## 0.15.0
+
+**Play together on one screen**
+- **Add player on controller**, under your profile on the main screen, adds up to three extra players. The new player presses any button on their controller to claim it.
+- Extra players play as a guest with just a name, or sign in to their own account. If they're one of your friends, pick them from the list and they only type their password.
+- You run the menus. Extra players join practice, custom games and ranked searches with you.
+- In a lobby they pick element and role, and their team in custom games, from a panel or from their own controller: D-pad for archetype, LB / RB for team, A for ready.
+- Upgrades: their cards appear in a strip along the bottom, picked with X, Y and B.
+- Each extra player has a coloured P2/P3/P4 marker and their own reticle.
+- Ranked: extra players must be signed in, because each is rated on their own account. They join your party automatically.
+
+**Ranked draft**
+- When a match is found, the arena is drawn at random and everyone gets 25 seconds to pick an element and role for it. The match starts as soon as everyone is ready.
+- After the match, **Back to Find game** takes you back to your party. The leader can search again once everyone in the party is back from the game. Party members still in a game show as "In a game".
+
+**New element: Blood**
+- Every bit of damage you deal heals you for 25% of it.
+- Upgrades:
+  - **Hemorrhage:** full-draw hits make the target bleed, and the bleeding heals you too.
+  - **Frenzy:** double healing below half health.
+  - **Transfusion:** healing past full health goes to your most hurt teammate.
+  - **Blood Pact** (trade-off): 45% lifesteal, but 15 less max health.
+- Empowered, **Bloodbath:** double healing, and nearby teammates heal from your damage too.
+
+**Controller aim assist**
+- A bit stickier: near an enemy the aim slows down more (by up to 55%, was 40%), and the nudge toward them is a little stronger.
+
+**Shorter matches**
+- Each round is now best of three games (first to 2) instead of first to 3.
+
+**Rating**
+- Your rating now changes once per match, when it's decided, depending only on whether your team won the match. It no longer changes after each game within it.
+- New players' ratings move faster for their first 10 matches.
+- New players now start at 800 instead of 1000. Existing ratings aren't changed.
+- Only ranked games (from Find game) change ratings. Custom games no longer do, though they still count for stats and achievements.
+
+**Custom games: skill per bot**
+- The host can set each bot's skill (Easy to Master) from a list next to it, in the lobby and the in-game menu.
+- The Bot skill setting still changes every bot at once.
+
+**Owner, admin and chat commands**
+- The account named Tom is the game owner and the only admin.
+- Type `/help` in chat. Everyone has `/roll`. The admin can:
+  - kick, mute and ban players
+  - send announcements to every game
+  - hand over host, and start or end matches
+  - list the games running, look players up and set ratings
+- The owner account has a gold crown after its name everywhere it's shown: lobbies, the scoreboard, chat, over their archer, the highscores and on the website.
+
 ## 0.14.1
 
 **Guests have a rating**

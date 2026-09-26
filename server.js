@@ -20,7 +20,9 @@ const TICK = 1 / 60;          // simulation step
 const SNAP_EVERY = 2;         // send a snapshot every 2 ticks (30 per second)
 const MAX_ROOMS = 50;
 const MAX_PEOPLE = 16;        // players plus spectators in one room
-const ADMINS = String(process.env.ADMIN_USERS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+// the one admin account (by name); everyone else is an ordinary player
+const OWNER = String(process.env.ADMIN_NAME || 'Tom').trim().toLowerCase();
+const isOwner = u => !!(u && !u.guest && u.name && u.name.toLowerCase() === OWNER);
 let nextCid = 1;
 
 const store = createStore();
@@ -33,7 +35,7 @@ fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
 // Signed-in players' records live here while they're around and are written back every few seconds.
 const live = new Map();   // user id -> user object
 const dirty = new Set();
-function track(u) { if (!u) return null; const have = live.get(u.id); if (have) return have; live.set(u.id, u); return u; }
+function track(u) { if (!u) return null; const have = live.get(u.id); if (have) return have; u.admin = isOwner(u); live.set(u.id, u); return u; }
 function markDirty(u) { if (!u) return; if (u.guest) guestDirty.add(u); else dirty.add(u.id); }
 async function flushUsers() {
   const ids = [...dirty]; dirty.clear();
@@ -84,7 +86,7 @@ const flagOf = u => (u && u.country && u.country !== '-' ? u.country : null);
 const publicUser = u => ({ name: u.name, title: u.title, admin: !!u.admin, created: u.created, career: Object.assign({}, u.career || {}, { ai: undefined }), got: Object.keys((u.ach && u.ach.got) || {}), stats: (u.ach && u.ach.stats) || {},
   ai: !!(u.career && u.career.ai), country: flagOf(u), level: levelOf(u.career), border: (u.ach && u.ach.border) || null, avatar: (u.ach && u.ach.avatar) || null });
 // the look of a signed-in player's name banner: the border they picked (if they've earned it) and how many achievements they have
-const lookOf = u => { const got = (u.ach && u.ach.got) || {}, bd = u.ach && u.ach.border; return { bd: bd && got[bd] ? bd : null, na: Object.keys(got).length || null }; };
+const lookOf = u => { const got = (u.ach && u.ach.got) || {}, bd = u.ach && u.ach.border; return { bd: bd && got[bd] ? bd : null, na: Object.keys(got).length || null, ow: u.admin ? 1 : null }; };
 
 function careerAdd(u, rec, team) {
   const c = u.career || (u.career = {});
@@ -106,6 +108,12 @@ function careerAdd(u, rec, team) {
   markDirty(u);
 }
 
+// the account (or guest record, or matchmaking AI player) behind a player in a room
+function userOfPid(room, pid) {
+  const ws = [...room.clients].find(c => c.pid === pid && (c.user || c.guest));
+  if (ws) return ws.user || ws.guest;
+  return room.ai && room.ai.has(pid) ? room.ai.get(pid) : null;
+}
 function saveRecords(room) {
   const recs = room.world.records.splice(0);
   if (!recs.length) return;
@@ -113,18 +121,25 @@ function saveRecords(room) {
   // credit signed-in players
   for (const r of recs) {
     if (r.type === 'game') {
-      const users = new Map();
-      for (const p of r.p) { const ws = [...room.clients].find(c => c.pid === p.id && (c.user || c.guest)); if (ws) users.set(p.id, ws.user || ws.guest); else if (room.ai && room.ai.has(p.id)) users.set(p.id, room.ai.get(p.id)); }
-      const rated = rateGame(r, users); // worked out for everyone first, from the ratings before this game
-      for (const p of r.p) { const u = users.get(p.id); if (u) careerAdd(u, { type: 'game', pl: p }); }
-      for (const [pid, u] of users) {
-        const x = rated.get(u.id); if (!x) continue;
-        const c = u.career; c.elo = x.elo; c.eloPeak = Math.max(c.eloPeak || ELO_START, x.elo);
-        c.relo = c.relo || {}; c.relo[x.role] = x.roleElo;
-        const ws = [...room.clients].find(q => q.user === u || q.guest === u);
-        if (ws) send(ws, { t: 'rated', elo: x.elo, d: x.delta, guest: u.guest ? 1 : undefined });
-      }
+      for (const p of r.p) { const u = userOfPid(room, p.id); if (u) careerAdd(u, { type: 'game', pl: p }); }
+      // ratings only change when the whole match is decided, so remember who played (and as what) for then
+      room.rateRoster = { mid: r.mid, df: r.df, p: r.p.map(p => ({ id: p.id, b: p.b, df: p.df, tm: p.tm, ro: p.ro })) };
     } else if (r.type === 'match') {
+      const ros = room.rateRoster && room.rateRoster.mid === r.mid ? room.rateRoster : null;
+      room.rateRoster = null;
+      if (ros && r.win && room.ranked) { // only matchmade (ranked) games change ratings; custom games don't
+        const users = new Map();
+        for (const p of ros.p) { const u = userOfPid(room, p.id); if (u) users.set(p.id, u); }
+        const rec = { win: r.win, df: ros.df, p: ros.p.map(p => Object.assign({}, p, { w: p.tm === r.win ? 1 : 0 })) };
+        const rated = rateGame(rec, users); // worked out for everyone first, from the ratings before this match
+        for (const [pid, u] of users) {
+          const x = rated.get(u.id); if (!x) continue;
+          const c = u.career; c.elo = x.elo; c.eloPeak = Math.max(c.eloPeak || ELO_START, x.elo);
+          c.relo = c.relo || {}; c.relo[x.role] = x.roleElo;
+          const ws = [...room.clients].find(q => q.user === u || q.guest === u);
+          if (ws) send(ws, { t: 'rated', elo: x.elo, d: x.delta, guest: u.guest ? 1 : undefined });
+        }
+      }
       for (const ws of room.clients) if ((ws.user || ws.guest) && ws.pid) { const q = room.world.players.find(q => q.id === ws.pid); if (q) careerAdd(ws.user || ws.guest, r, q.team); }
       if (room.ai) for (const [pid, u] of room.ai) { const q = room.world.players.find(q => q.id === pid); if (q) careerAdd(u, r, q.team); }
     }
@@ -174,10 +189,19 @@ async function api(req, res, url) {
     const name = String(body.name || '').trim();
     if (!A.validName(name)) return json(res, 400, { error: 'Names are 3 to 16 letters, numbers, _ or -.' });
     if (!A.validPassword(body.password)) return json(res, 400, { error: 'Passwords need at least 6 characters.' });
-    const first = (await store.userCount()) - social._ai().length === 0; // the first real player (not counting AI players) is the admin
-    const u = await store.createUser(name, A.hashPassword(body.password), first || ADMINS.includes(name.toLowerCase()));
+    const u = await store.createUser(name, A.hashPassword(body.password), name.toLowerCase() === OWNER);
     if (!u) return json(res, 409, { error: 'That name is taken.' });
     return login(req, res, u, [], await adoptGuest(u, body.guest));
+  }
+  if (route === '/device-login' && method === 'POST') {
+    if (!authLimit(ip(req))) return json(res, 429, { error: 'Too many attempts. Wait a minute and try again.' });
+    const u = await store.userByName(String(body.name || '').trim());
+    if (!u || !u.passHash || !A.checkPassword(body.password, u.passHash)) return json(res, 401, { error: 'Wrong name or password.' });
+    if (u.career && u.career.ai) return json(res, 401, { error: 'Wrong name or password.' });
+    const tok = A.newToken();
+    await store.createSession(A.hashToken(tok), u.id, Date.now() + A.SESSION_DAYS * 86400 * 1000);
+    const t = track(u);
+    return json(res, 200, { token: tok, user: publicUser(t) });
   }
   if (route === '/login' && method === 'POST') {
     if (!authLimit(ip(req))) return json(res, 429, { error: 'Too many attempts. Wait a minute and try again.' });
@@ -220,8 +244,7 @@ async function api(req, res, url) {
     const name = String(body.name || '').trim();
     if (!A.validName(name)) return json(res, 400, { error: 'Names are 3 to 16 letters, numbers, _ or -.' });
     if (await store.userForLogin(pend.p, pend.id)) return json(res, 409, { error: 'That account is already set up. Sign in again.' });
-    const first = (await store.userCount()) - social._ai().length === 0; // the first real player (not counting AI players) is the admin
-    const u = await store.createUser(name, '', first || ADMINS.includes(name.toLowerCase()));
+    const u = await store.createUser(name, '', name.toLowerCase() === OWNER);
     if (!u) return json(res, 409, { error: 'That name is taken.' });
     await store.addLogin(pend.p, pend.id, u.id);
     return login(req, res, u, [clearCookie('bf_pending', req)], await adoptGuest(u, body.guest));
@@ -262,20 +285,20 @@ async function api(req, res, url) {
       // a role's board: rating in that role, for players with enough games in it; win rate alongside
       const all = (await store.leaderboard('games', 100000)).map(u => live.get(u.id) || u);
       const rows = all.filter(u => ((u.career || {}).roles || {})[role] >= ROLE_MIN)
-        .map(u => { const c = u.career, g = c.roles[role], wn = (c.roleW || {})[role] || 0; return { name: u.name, ai: social.isAI(u) ? 1 : undefined, title: u.title, country: flagOf(u), level: levelOf(c).lv, value: Math.round((c.relo || {})[role] || ELO_START), games: g, wins: wn, rate: Math.round(wn / g * 100) }; })
+        .map(u => { const c = u.career, g = c.roles[role], wn = (c.roleW || {})[role] || 0; return { name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, title: u.title, country: flagOf(u), level: levelOf(c).lv, value: Math.round((c.relo || {})[role] || ELO_START), games: g, wins: wn, rate: Math.round(wn / g * 100) }; })
         .sort((a, b) => b.value - a.value).slice(0, 50);
       return json(res, 200, { by: 'elo', role, min: ROLE_MIN, rows });
     }
     const rows = (await store.leaderboard(by, 50)).map(u => live.get(u.id) || u).filter(u => (u.career || {}).games > 0);
-    return json(res, 200, { by, rows: rows.map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, title: u.title, country: flagOf(u), level: levelOf(u.career).lv, value: by === 'elo' ? Math.round((u.career || {}).elo || ELO_START) : (u.career || {})[by] || 0, games: (u.career || {}).games || 0, wins: (u.career || {}).wins || 0, kills: (u.career || {}).kills || 0, rate: (u.career || {}).games ? Math.round(((u.career || {}).wins || 0) / u.career.games * 100) : 0 })) });
+    return json(res, 200, { by, rows: rows.map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, title: u.title, country: flagOf(u), level: levelOf(u.career).lv, value: by === 'elo' ? Math.round((u.career || {}).elo || ELO_START) : (u.career || {})[by] || 0, games: (u.career || {}).games || 0, wins: (u.career || {}).wins || 0, kills: (u.career || {}).kills || 0, rate: (u.career || {}).games ? Math.round(((u.career || {}).wins || 0) / u.career.games * 100) : 0 })) });
   }
   // single-game records
   if (route === '/highscores' && method === 'GET') {
     const all = (await store.leaderboard('games', 100000)).map(u => live.get(u.id) || u);
     const top = k => all.filter(u => ((u.career || {}).best || {})[k] > 0).sort((a, b) => b.career.best[k] - a.career.best[k]).slice(0, 10)
-      .map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, country: flagOf(u), level: levelOf(u.career).lv, value: u.career.best[k] }));
+      .map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, country: flagOf(u), level: levelOf(u.career).lv, value: u.career.best[k] }));
     const peak = all.filter(u => (u.career || {}).eloPeak).sort((a, b) => b.career.eloPeak - a.career.eloPeak).slice(0, 10)
-      .map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, country: flagOf(u), level: levelOf(u.career).lv, value: Math.round(u.career.eloPeak) }));
+      .map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, country: flagOf(u), level: levelOf(u.career).lv, value: Math.round(u.career.eloPeak) }));
     return json(res, 200, { kills: top('k'), dmg: top('dmg'), ring: top('ring'), peak });
   }
   if (route === '/look' && method === 'POST') {
@@ -491,8 +514,11 @@ function roomInfo(room, ws) {
     t: 'room', code: room.code, host: h ? h.pid : null, hostName: h ? h.name : '', amHost: room.host === ws.cid,
     name: room.name, pub: room.pub, locked: !!room.pwHash, max: room.max || 8, people: room.clients.size,
     ranked: room.ranked ? room.ranked.mode : undefined,
+    // the ranked draft: seconds left to choose, and who's ready
+    draft: room.ranked && room.ranked.draftUntil && !room.ranked.go ? Math.max(0, Math.ceil((room.ranked.draftUntil - Date.now()) / 1000)) : undefined,
+    ready: room.ranked && room.ranked.ready ? [...room.clients].filter(c => room.ranked.ready.has(c.cid) && c.pid).map(c => c.pid) : undefined,
     cards: Object.fromEntries([...room.clients].map(c => [c.pid ? 'p' + c.pid : 'c' + c.cid, cardOf(c)]).concat([...(room.ai || new Map())].map(([pid, u]) => ['p' + pid, Object.assign(cardOf({ user: u }), { ai: 1 })]))),
-    spec: [...room.clients].filter(c => !c.pid).map(c => ({ cid: c.cid, n: c.name, h: c.cid === room.host ? 1 : 0, you: c === ws ? 1 : 0, cc: c.cc || undefined, lv: c.lv || undefined, bd: c.bd || undefined, na: c.na || undefined })),
+    spec: [...room.clients].filter(c => !c.pid).map(c => ({ cid: c.cid, n: c.name, h: c.cid === room.host ? 1 : 0, you: c === ws ? 1 : 0, cc: c.cc || undefined, lv: c.lv || undefined, bd: c.bd || undefined, na: c.na || undefined, ow: c.ow || undefined })),
   };
 }
 // what the lobby's hover card shows about someone: accounts get their record, guests just what their browser says they've earned
@@ -524,7 +550,7 @@ function joinTeam(room, ws, team) {
   if (!p) return 'That team is full.';
   ws.pid = p.id;
   if (ws.title) Sim.setTitle(w, p.id, ws.title);
-  Sim.setMeta(w, p.id, { cc: ws.cc, lv: ws.lv, bd: ws.bd, na: ws.na });
+  Sim.setMeta(w, p.id, { cc: ws.cc, lv: ws.lv, bd: ws.bd, na: ws.na, ow: ws.ow });
   send(ws, { t: 'you', id: p.id });
   return null;
 }
@@ -552,12 +578,97 @@ function leave(ws) {
   sendRoom(room);
 }
 
+// ---------------- chat commands ----------------
+// Anyone: /help, /roll. The admin account also gets moderation and server tools.
+const guestBans = new Map(); // ip -> reason (guests; lasts until the server restarts)
+const bannedWs = ws => ws.user ? !!(ws.user.social && ws.user.social.ban) : guestBans.has(ws.ip);
+const CMD_HELP = {
+  all: ['/help – this list', '/roll [max] – roll a number (1–100 unless you give a max)'],
+  admin: ['/kick <name> – remove someone from this game', '/mute <name> [minutes] – stop someone chatting here (default 10)', '/unmute <name>',
+    '/ban <name> – ban an account (or a guest, until the server restarts) and kick them from every game', '/unban <name>',
+    '/announce <text> – message every game on the server', '/host <name> – hand this game to someone', '/start – start the match', '/end – end the match and go back to the lobby',
+    '/rooms – list the games running on the server', '/who <name> – rating, games and where they are playing', '/setelo <name> <rating> – set an account\'s rating'],
+};
+function findIn(clients, q) {
+  q = String(q || '').toLowerCase(); if (!q) return null;
+  const list = [...clients].filter(c => c.name);
+  return list.find(c => c.name.toLowerCase() === q) || (list.filter(c => c.name.toLowerCase().startsWith(q)).length === 1 ? list.find(c => c.name.toLowerCase().startsWith(q)) : null);
+}
+const everyone = () => [...rooms.values()].flatMap(r => [...r.clients]);
+async function chatCommand(room, ws, text) {
+  const [cmd0, ...args] = text.slice(1).split(/\s+/), cmd = (cmd0 || '').toLowerCase(), rest = text.slice(1 + cmd0.length).trim();
+  const tell = msg => send(ws, { t: 'chat', sys: 1, m: msg });
+  const admin = !!(ws.user && ws.user.admin), w = room.world;
+  if (cmd === 'help') { for (const l of CMD_HELP.all.concat(admin ? CMD_HELP.admin : [])) tell(l); return; }
+  if (cmd === 'roll') { const max = Math.max(2, Math.min(1e6, parseInt(args[0], 10) || 100)); sysChat(room, `${ws.name} rolled ${1 + Math.floor(Math.random() * max)} (1–${max}).`); return; }
+  if (!admin) return tell(`Unknown command /${cmd}. Type /help for the list.`);
+  const target = () => { const c = findIn(room.clients, args[0]); if (!c) tell(`No one called "${args[0] || ''}" in this game.`); return c; };
+  switch (cmd) {
+    case 'kick': { const c = target(); if (!c) return; if (c === ws) return tell('You can\'t kick yourself.'); send(c, { t: 'kicked', msg: 'You were removed from the game by an admin.' }); leave(c); sysChat(room, `${c.name} was removed by an admin.`); return; }
+    case 'mute': { const c = target(); if (!c) return; const mins = Math.max(1, Math.min(1440, parseInt(args[1], 10) || 10)); (room.muted || (room.muted = new Map())).set(c.name.toLowerCase(), Date.now() + mins * 60000); sysChat(room, `${c.name} was muted for ${mins} minute${mins === 1 ? '' : 's'}.`); return; }
+    case 'unmute': { const c = target(); if (!c) return; if (room.muted) room.muted.delete(c.name.toLowerCase()); sysChat(room, `${c.name} can chat again.`); return; }
+    case 'ban': {
+      const name = args[0]; if (!name) return tell('Usage: /ban <name>');
+      const online = findIn(everyone(), name);
+      let u = online && online.user ? online.user : (!online ? track(await store.userByName(name).catch(() => null)) : null);
+      if (u && u.admin) return tell('You can\'t ban the admin account.');
+      if (u) { u.social = u.social || {}; u.social.ban = { t: Date.now(), by: ws.user.name }; markDirty(u); flushUsers(); }
+      else if (online) guestBans.set(online.ip, online.name);
+      else return tell(`No account or player called "${name}".`);
+      for (const c of everyone()) if (c.name && ((u && c.user === u) || (!u && c.ip === online.ip))) { const r = c.room; send(c, { t: 'kicked', msg: 'You have been banned from online games.' }); leave(c); if (r) sysChat(r, `${c.name} was banned.`); }
+      return tell(`${u ? u.name : online.name} is banned${u ? '' : ' (guest, until the server restarts)'}.`);
+    }
+    case 'unban': {
+      const name = args[0]; if (!name) return tell('Usage: /unban <name>');
+      const u = track(await store.userByName(name).catch(() => null));
+      if (u && u.social && u.social.ban) { delete u.social.ban; markDirty(u); flushUsers(); return tell(`${u.name} is no longer banned.`); }
+      for (const [k, n] of guestBans) if (n.toLowerCase() === name.toLowerCase()) { guestBans.delete(k); return tell(`${n} (guest) is no longer banned.`); }
+      return tell(`"${name}" isn't banned.`);
+    }
+    case 'announce': case 'a': { if (!rest) return tell('Usage: /announce <text>'); for (const r of rooms.values()) sysChat(r, `[Announcement] ${rest.slice(0, 140)}`); return; }
+    case 'host': { const c = target(); if (!c) return; if (room.ranked) return tell('Matchmade games have no host.'); room.host = c.cid; sysChat(room, `${c.name} is now the host.`); sendRoom(room); return; }
+    case 'start': if (w.match.ph !== 'lobby') return tell('The match has already started.'); Sim.startMatch(w); if (w.match.ph === 'lobby') return tell('Could not start: each team needs at least one archer.'); sysChat(room, 'An admin started the match.'); return;
+    case 'end': if (w.match.ph === 'lobby') return tell('No match is running.'); Sim.toLobby(w); sysChat(room, 'An admin ended the match.'); return;
+    case 'rooms': {
+      if (!rooms.size) return tell('No games running.');
+      tell(`${rooms.size} game${rooms.size === 1 ? '' : 's'}, ${everyone().length} player${everyone().length === 1 ? '' : 's'}:`);
+      for (const r of rooms.values()) tell(`${r.code}${r.name ? ' “' + r.name + '”' : ''}${r.ranked ? ' (ranked)' : ''} – ${r.world.match.ph} – ${[...r.clients].map(c => c.name).filter(Boolean).join(', ')}`);
+      return;
+    }
+    case 'who': {
+      const name = args[0]; if (!name) return tell('Usage: /who <name>');
+      const online = findIn(everyone(), name);
+      const u = online ? (online.user || online.guest) : track(await store.userByName(name).catch(() => null));
+      if (!u && !online) return tell(`No one called "${name}".`);
+      const c = (u && u.career) || {};
+      tell(`${online ? online.name : u.name}: ${online && !online.user ? 'guest' : 'account'}${u && u.social && u.social.ban ? ' (banned)' : ''} · rating ${Math.round(c.elo || ELO_START)} · ${c.matches || 0} matches, ${c.games || 0} battles · ${online && online.room ? 'in game ' + online.room.code : 'not in a game'}`);
+      return;
+    }
+    case 'setelo': {
+      const name = args[0], v = parseInt(args[1], 10); if (!name || !Number.isFinite(v)) return tell('Usage: /setelo <name> <rating>');
+      const online = findIn(everyone(), name);
+      const u = online && online.user ? online.user : track(await store.userByName(name).catch(() => null));
+      if (!u) return tell(`No account called "${name}".`);
+      u.career = u.career || {}; u.career.elo = Math.max(0, Math.min(4000, v)); markDirty(u); flushUsers();
+      return tell(`${u.name}'s rating is now ${u.career.elo}.`);
+    }
+    default: return tell(`Unknown command /${cmd}. Type /help for the list.`);
+  }
+}
+
 async function handle(ws, m) {
   if (!m || typeof m !== 'object') return;
+  if ((m.t === 'join' || m.t === 'hello') && m.local && !ws.localSet) {
+    ws.localSet = true; ws.quiet = m.t === 'join'; // an extra player's game connection doesn't need its own copy of every snapshot
+    ws.user = null;
+    if (m.auth && typeof m.auth === 'string') { const u = await store.sessionUser(A.hashToken(m.auth)).catch(() => null); ws.user = u ? track(u) : null; }
+  }
+  if (m.t === 'queue' && m.op !== 'stop' && m.op !== 'cancel' && bannedWs(ws)) return send(ws, { t: 'note', msg: 'You have been banned from online games.' });
   if (await social.handle(ws, m)) return;
 
   if (m.t === 'join') {
     if (ws.room) leave(ws);
+    if (bannedWs(ws)) return send(ws, { t: 'err', msg: 'You have been banned from online games.' });
     let room;
     if (m.create) {
       if (rooms.size >= MAX_ROOMS) return send(ws, { t: 'err', msg: 'The server is full. Try again later.' });
@@ -602,7 +713,7 @@ async function handle(ws, m) {
   switch (m.t) {
     case 'in': if (ws.pid) Sim.setInput(w, ws.pid, m); break;
     case 'ping': send(ws, { t: 'pong', c: m.c }); break;
-    case 'loadout': ws.el = String(m.el); ws.ro = String(m.ro); if (ws.pid) Sim.setLoadout(w, ws.pid, ws.el, ws.ro); break;
+    case 'loadout': ws.el = String(m.el); ws.ro = String(m.ro); if (ws.pid) Sim.setLoadout(w, ws.pid, ws.el, ws.ro); if (room.ranked && !room.ranked.go) sendRoom(room); break;
     case 'title': {
       // accounts can only wear titles they've earned on this server; guests pick from their own browser's list
       const v = m.v ? String(m.v) : null;
@@ -611,6 +722,7 @@ async function handle(ws, m) {
       break;
     }
     case 'choose': if (ws.pid) Sim.choose(w, ws.pid, m.i | 0); break;
+    case 'ready': social.draftReady(room, ws); break;
     case 'look': {
       // accounts show what the server knows they've earned; guests show what their browser says
       const look = ws.user ? lookOf(ws.user) : { bd: Sim.ACHIEVEMENTS[m.bd] ? String(m.bd) : null, na: Math.max(0, Math.min(Object.keys(Sim.ACHIEVEMENTS).length, m.na | 0)) || null };
@@ -631,10 +743,13 @@ async function handle(ws, m) {
       const text = String(m.m || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 140);
       if (!text) break;
       const now = Date.now(); ws.chatT = ws.chatT.filter(t => now - t < 5000);
-      if (ws.chatT.length >= 5) { send(ws, { t: 'note', msg: 'Slow down a little.' }); break; }
+      if (ws.chatT.length >= 5 && !(ws.user && ws.user.admin)) { send(ws, { t: 'note', msg: 'Slow down a little.' }); break; }
       ws.chatT.push(now);
+      if (text[0] === '/') { await chatCommand(room, ws, text); break; }
+      const mute = room.muted && room.muted.get(ws.name.toLowerCase());
+      if (mute && mute > now) { send(ws, { t: 'chat', sys: 1, m: `You're muted for ${Math.ceil((mute - now) / 60000)} more minute(s).` }); break; }
       const p = ws.pid && w.players.find(q => q.id === ws.pid);
-      broadcast(room, { t: 'chat', n: ws.name, tm: p ? p.team : 'spec', c: p ? p.color : null, m: text, acc: ws.user ? 1 : 0 });
+      broadcast(room, { t: 'chat', n: ws.name, tm: p ? p.team : 'spec', c: p ? p.color : null, m: text, acc: ws.user ? 1 : 0, adm: ws.user && ws.user.admin ? 1 : undefined });
       social.aiReply(room, text);
       break;
     }
@@ -644,6 +759,7 @@ async function handle(ws, m) {
       if (!isHost) break;
       if (m.op === 'add') Sim.addBot(w, String(m.team));
       if (m.op === 'remove') Sim.removeBot(w, String(m.id));
+      if (m.op === 'diff' && Sim.setBotSkill(w, String(m.id), String(m.diff))) { const b = w.players.find(q => q.id === String(m.id)); sysChat(room, `${b.name} is now ${String(m.diff)[0].toUpperCase() + String(m.diff).slice(1)}.`); }
       break;
     case 'cfg': {
       if (!isHost) break;
@@ -663,7 +779,7 @@ async function handle(ws, m) {
 }
 
 wss.on('connection', (ws, req) => {
-  ws.isAlive = true; ws.cid = 'c' + (nextCid++); ws.chatT = [];
+  ws.isAlive = true; ws.cid = 'c' + (nextCid++); ws.chatT = []; ws.ip = ip(req);
   // find out who this is (from the sign-in cookie) before handling anything they send
   ws.ready = userFromReq(req).then(u => { ws.user = u; }).catch(() => { ws.user = null; });
   // where they're playing from, for the flag by their name (doesn't hold anything up; fills in when it arrives)
@@ -726,14 +842,14 @@ setInterval(() => {
         const evs = room.world.events.splice(0);
         if (evs.length) { creditAchievements(room, evs); social.aiEvents(room, evs); }
         const msg = JSON.stringify({ t: 'snap', s: Sim.snapshot(room.world), ev: evs });
-        for (const c of room.clients) if (c.readyState === 1) c.send(msg);
+        for (const c of room.clients) if (c.readyState === 1 && !c.quiet) c.send(msg);
       }
       if (room.world.records.length) saveRecords(room);
     }
   }
 }, 5);
 
-store.init().then(() => social.initAI()).then(() => {
+store.init().then(() => store.setOnlyAdmin(OWNER)).then(() => social.initAI()).then(() => {
   server.listen(PORT, () => console.log(`Bowfall server running on http://localhost:${PORT} (${store.kind === 'postgres' ? 'Postgres database' : 'local database file'})`));
 }).catch(e => { console.error('Could not open the database:', e.message); process.exit(1); });
 process.on('SIGTERM', () => { flushUsers().finally(() => process.exit(0)); });
