@@ -530,6 +530,56 @@
   .plate.fin-diamond { background: linear-gradient(100deg, rgba(185,167,255,.35), rgba(255,255,255,.3) 45%, rgba(127,227,224,.3)) !important; box-shadow: inset 0 0 0 1px rgba(255,255,255,.7), 0 0 18px -3px #fff !important; }
   .plate.fin-diamond b { color: #fff; text-shadow: 0 0 6px rgba(255,255,255,.6); }
   .plate.fin-ember b, .plate.fin-royal b { text-shadow: 0 0 6px rgba(255,207,90,.5); }
+  .plate.fin-aurora { background: linear-gradient(100deg, rgba(63,208,201,.32), rgba(180,140,255,.32), rgba(125,255,138,.22), rgba(63,208,201,.32)) !important; background-size: 300% 100% !important; animation: aurora 7s linear infinite; box-shadow: inset 0 0 0 1px rgba(143,243,255,.6), 0 0 16px -4px #8ff3ff !important; }
+  @keyframes aurora { from { background-position: 0% 0; } to { background-position: 300% 0; } }
+  .plate.fin-founder { background: linear-gradient(90deg, rgba(142,23,48,.55), rgba(20,10,10,.4) 55%, rgba(255,207,90,.18)) !important; box-shadow: inset 0 0 0 1px #ffcf5a, 0 0 16px -4px #ffcf5a !important; }
+  .plate.fin-founder b { color: #ffe39a; text-shadow: 0 0 6px rgba(255,207,90,.55); }
+  .plate.fin-rose { background: linear-gradient(90deg, rgba(255,111,145,.35), rgba(255,200,215,.12) 60%, rgba(255,255,255,.02)) !important; box-shadow: inset 0 0 0 1px rgba(255,111,145,.6), 0 0 14px -4px #ff6f91 !important; }
+  .card.wide.abcard { max-width: 1320px; }
+  .abtabs { flex: 0 1 420px; }
+  .abgrid { display: grid; grid-template-columns: 150px 1fr 290px; gap: 14px; align-items: start; }
+  @media (max-width: 1000px) { .abgrid { grid-template-columns: 1fr; } }
+  .abtools { display: flex; flex-direction: column; gap: 5px; }
+  .abtools button { display: flex; align-items: center; gap: 8px; text-align: left; font: 600 13px 'Titillium Web', sans-serif; color: var(--text); background: rgba(255,255,255,.04); border: 1px solid var(--line); padding: 7px 9px; cursor: pointer; }
+  .abtools button.on { border-color: var(--gold); background: rgba(255,207,90,.12); }
+  .abtools button i { width: 14px; height: 14px; border-radius: 50%; flex: none; background: var(--sw); }
+  .abtools button i.sq { border-radius: 3px; }
+  .abwrap { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .abwrap canvas { width: 100%; height: auto; aspect-ratio: 3 / 2; background: #122016; border: 1px solid var(--line); cursor: crosshair; touch-action: none; }
+  .abside { display: flex; flex-direction: column; gap: 10px; }
+  .abside section { display: flex; flex-direction: column; gap: 8px; }
+  .abcheck { font-size: 13px; }
+  .abcheck .ok { color: #7dff8a; } .abcheck .bad { color: #ff8a8a; }
+  .ablist { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .abitem { display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.03); }
+  .abitem canvas { width: 100%; height: auto; border-radius: 2px; }
+  .abitem b { font: 700 17px 'Rajdhani', 'Arial Narrow', sans-serif; }
+  .abitem .btnrow { gap: 6px; } .abitem .btnrow button { padding: 6px 9px; font-size: 12.5px; }
+  .abitem .liked { color: #ff6f91; border-color: #ff6f91; }
+  .card.wide.storecard { max-width: 1000px; }
+  .storecard h3 { margin-top: 6px; }
+  .crestbal { display: inline-flex; align-items: center; gap: 6px; font: 700 22px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--gold); }
+  .crestico { display: inline-block; width: 1em; height: 1em; vertical-align: -2px; }
+  .stgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+  .stitem { display: flex; flex-direction: column; gap: 6px; padding: 12px; border: 1px solid var(--line); border-left: 3px solid var(--cc); background: rgba(255,255,255,.03); }
+  .stitem b { font: 700 18px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--cc); }
+  .stitem .status { font-size: 12.5px; }
+  .stitem .own { color: #7dff8a; font-weight: 600; }
+  .stitem .free { color: var(--gold); font-weight: 600; }
+  .stitem .btnrow { gap: 6px; }
+  .stitem .btnrow button { padding: 7px 10px; font-size: 13px; }
+  .mode.member { border-color: rgba(143,243,255,.4); }
+  .mode.founderc { border-color: rgba(255,207,90,.55); background: linear-gradient(135deg, rgba(142,23,48,.25), rgba(255,255,255,.02)); }
+  .mode ul.perks { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13.5px; display: flex; flex-direction: column; gap: 3px; }
+  .mode .price { font: 700 26px 'Rajdhani', 'Arial Narrow', sans-serif; }
+  .mode .price small { font: 500 13px 'Titillium Web', sans-serif; color: var(--muted); }
+  .donrow { display: flex; gap: 6px; flex-wrap: wrap; }
+  .donrow .chip2.sel { border-color: #ff6f91; }
+  .stearn { color: var(--muted); }
+  .stearn summary { cursor: pointer; color: var(--gold); }
+  .emb { display: inline-block; width: 1em; height: 1em; margin-left: 4px; vertical-align: -2px; }
+  .emb svg { width: 100%; height: 100%; display: block; }
+  @media (prefers-reduced-motion: reduce) { .plate.fin-aurora { animation: none; } }
   .troph { display: inline-flex; align-items: center; gap: 2px; margin-left: 7px; color: #f2c14e; font: 700 11px 'Rajdhani', 'Arial Narrow', sans-serif; }
   .troph svg { width: 12px; height: 12px; }
   .slot .nm small, .board .nm small { display: block; font-size: 11px; color: var(--muted); font-weight: 500; }
@@ -740,10 +790,12 @@
       <nav class="mainmenu" aria-label="Main menu">
         <button class="mm" id="mFind" type="button"><span class="mmk">01</span><b>Find game</b><small>Ranked matchmaking by rating: 1v1, 2v2 or 3v3, on your own or with friends.</small><em class="mmlock" id="mFindBadge" hidden></em></button>
         <button class="mm" id="mCustom" type="button"><span class="mmk">02</span><b>Custom games</b><small>Browse public games, join with a code, host your own or practise against bots.</small></button>
-        <button class="mm" id="mScores" type="button"><span class="mmk">03</span><b>Highscores</b><small>Top ratings, the best at each role, and single-game records.</small></button>
-        <button class="mm" id="mTut" type="button"><span class="mmk">04</span><b>Tutorial</b><small>Learn the basics on a practice dummy, then beat an easy bot.</small></button>
-        <button class="mm" id="mTrain" type="button"><span class="mmk">05</span><b>Training</b><small>Graded drills: target practice, dodging with dashes, and shooting from cover.</small></button>
-        <button class="mm" id="mOpts" type="button"><span class="mmk">06</span><b>Options</b><small>Controls, controller, sound and graphics.</small></button>
+        <button class="mm" id="mTrain" type="button"><span class="mmk">03</span><b>Training</b><small>Graded drills: target practice, dodging with dashes, and shooting from cover.</small></button>
+        <button class="mm" id="mArena" type="button"><span class="mmk">04</span><b>Arena builder</b><small>Build your own arena, test it against bots, share it with a code, or play the community's.</small></button>
+        <button class="mm" id="mStore" type="button"><span class="mmk">05</span><b>Store</b><small>Unlock elements and roles with Crests, become a supporter, or grab the Founder pack.</small><em class="mmlock" id="mStoreBadge" hidden></em></button>
+        <button class="mm" id="mScores" type="button"><span class="mmk">06</span><b>Highscores</b><small>Top ratings, the best at each role, and single-game records.</small></button>
+        <button class="mm" id="mTut" type="button"><span class="mmk">07</span><b>Tutorial</b><small>Learn the basics on a practice dummy, then beat an easy bot.</small></button>
+        <button class="mm" id="mOpts" type="button"><span class="mmk">08</span><b>Options</b><small>Controls, controller, sound and graphics.</small></button>
       </nav>
       <div class="homefoot">
         <div class="btnrow"><button class="ghost sm" id="helpBtn" type="button">How to play</button><button class="ghost sm" id="achBtn" type="button">Achievements</button><button class="ghost sm" id="balBtn" type="button">Balance data</button></div>
@@ -862,6 +914,48 @@
     </div>
   </div>
 
+  <!-- the store: Crests, unlocks, membership -->
+  <div class="overlay sub" id="storeScr" hidden>
+    <div class="card wide storecard">
+      <div class="shopbar"><div class="stat"><span class="eyebrow">Support Bowfall</span><h2>Store</h2></div><div class="btnrow" data-navsec style="align-items:center"><span class="crestbal" id="stCrests"></span><button class="ghost" type="button" data-back>Back</button></div></div>
+      <p class="status" id="stNote"></p>
+      <h3>Elements and roles</h3>
+      <div class="stgrid" id="stUnlocks" data-navsec></div>
+      <h3>Membership</h3>
+      <div class="modes" id="stMember"></div>
+      <details class="stearn"><summary>How to earn Crests</summary><div id="stEarn" class="status"></div></details>
+    </div>
+  </div>
+
+  <!-- the arena builder -->
+  <div class="overlay sub" id="arenaScr" hidden>
+    <div class="card wide abcard">
+      <div class="shopbar"><div class="stat"><span class="eyebrow">Build your own</span><h2>Arena builder</h2></div>
+        <nav class="oltabs abtabs" id="abTabs" data-navsec><button type="button" data-abtab="edit" class="on">Build</button><button type="button" data-abtab="mine">My arenas</button><button type="button" data-abtab="browse">Community</button></nav>
+        <button class="ghost" type="button" data-back>Back</button></div>
+      <div id="abEdit" class="abgrid">
+        <div class="abtools" id="abTools" data-navsec></div>
+        <div class="abwrap"><canvas id="abCv" width="1200" height="800"></canvas><small class="status" id="abHint">Place things on the left half: the right half copies it, turned round, so both teams get the same. Drag to move, scroll (or the Size slider) to resize, Delete to remove, Ctrl+Z to undo.</small></div>
+        <div class="abside">
+          <section data-navsec>
+            <div class="field"><label for="abName">Name</label><input id="abName" maxlength="32" autocomplete="off" placeholder="My arena"></div>
+            <div class="row"><div class="field"><label for="abTheme">Look</label><select id="abTheme"></select></div><div class="field"><label for="abBall">Football</label><select id="abBall"><option value="0">No</option><option value="1">Yes</option></select></div></div>
+          </section>
+          <section id="abSel" data-navsec></section>
+          <div class="abcheck" id="abCheck"></div>
+          <section class="btnrow" data-navsec><button class="cta" type="button" id="abTest">Test vs bots</button><button class="ghost" type="button" id="abSave">Save</button><button class="ghost" type="button" id="abSaveNew">Save as new</button><button class="ghost" type="button" id="abNew">New</button></section>
+          <section data-navsec><div class="field"><label for="abPub">Who can find it</label><select id="abPub"><option value="0">Anyone with the code</option><option value="1">Everyone (Community tab)</option></select></div></section>
+          <div class="status" id="abStatus"></div>
+        </div>
+      </div>
+      <div id="abMine" hidden><p class="status" id="abMineNote"></p><div class="ablist" id="abMineList" data-navsec></div></div>
+      <div id="abBrowse" hidden>
+        <div class="row" data-navsec><div class="field"><label for="abSort">Show</label><select id="abSort"><option value="featured">Featured</option><option value="top">Most liked</option><option value="new">Newest</option></select></div><div class="field"><label for="abCode">Open by code</label><input id="abCode" class="code" maxlength="9" placeholder="A1F"></div><button class="ghost" type="button" id="abCodeGo">Open</button></div>
+        <div class="ablist" id="abBrowseList" data-navsec></div>
+      </div>
+    </div>
+  </div>
+
   <!-- options -->
   <div class="overlay sub" id="optScr" hidden>
     <div class="card wide">
@@ -933,6 +1027,7 @@
             <h3>Arena</h3>
             <div class="maps" id="lbMaps"></div>
             <span class="status" id="lbMapDesc"></span>
+            <div class="lbrow2" id="lbArenaRow"><div class="field"><label for="lbArenaCode">Player arena</label><input id="lbArenaCode" class="code" maxlength="9" placeholder="Code, e.g. A1F" autocomplete="off"></div><button class="ghost sm" type="button" id="lbArenaUse">Use</button></div>
             <div class="lbrow2">
               <div class="field"><label for="lbPts">Match length</label>
                 <select id="lbPts"><option value="3">First to 3 points</option><option value="5">First to 5 points</option></select></div>
@@ -1122,7 +1217,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.20.0';
+const VERSION = '0.21.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1331,6 +1426,61 @@ MAPS.holes = buildMap({
     power: [{ x: AW - 50, y: AH - 50 }], amberY: [WALL + 44, 330],
   });
 const MAP_KEYS = Object.keys(MAPS).filter(k => !MAPS[k].hidden);
+
+// ---- player-made arenas (the Arena builder). A definition lists one half, like the built-in arenas, and is checked
+// and tidied by cleanArena before it can be played: sizes and counts are capped, the spawns must be clear, and the
+// two sides must be able to reach each other on foot. registerArena() adds it to MAPS under a key like 'a12'.
+const ARENA_LIMITS = { haz: 12, pillars: 8, bumpers: 4, spikes: 4, portals: 2 };
+const ARENA_THEMES = ['meadow', 'spring', 'rift', 'beach', 'mill', 'ruins', 'grove', 'pitch'];
+const HALF = AW / 2;
+function cleanArena(def) {
+  const errors = [], d = def && typeof def === 'object' ? def : {};
+  const num = (v, a, b, dflt) => { v = +v; return Number.isFinite(v) ? Math.round(Math.max(a, Math.min(b, v))) : dflt; };
+  const list = (a, n) => (Array.isArray(a) ? a.slice(0, n) : []);
+  const inX = x => num(x, WALL, HALF, HALF / 2), inY = y => num(y, WALL, AH - WALL, AH / 2);
+  const atCentre = o => Math.hypot(o.x - HALF, o.y - AH / 2) < 12;
+  const out = { v: 1, name: String(d.name || 'My arena').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 32) || 'My arena', theme: ARENA_THEMES.includes(d.theme) ? d.theme : 'meadow',
+    haz: [], pillars: [], bumpers: [], spikes: [], portals: [], ball: !!d.ball };
+  if (Array.isArray(d.haz) && d.haz.length > ARENA_LIMITS.haz) errors.push(`At most ${ARENA_LIMITS.haz} hazards on a side.`);
+  for (const h of list(d.haz, ARENA_LIMITS.haz)) {
+    if (!h || !['pit', 'lava', 'tar'].includes(h.type)) continue;
+    const o = { type: h.type };
+    if (h.type === 'pit' && h.water) o.water = true;
+    if (h.shape === 'rect') { o.shape = 'rect'; o.w = num(h.w, 24, 420, 120); o.h = num(h.h, 24, 420, 90); o.x = num(h.x, WALL - 20, HALF - 12, 200); o.y = num(h.y, WALL - 20, AH - WALL - o.h + 20, 200); }
+    else { o.shape = 'circle'; o.r = num(h.r, 18, 180, 50); o.x = inX(h.x); o.y = inY(h.y); if (atCentre(o)) { o.x = HALF; o.y = AH / 2; o.centre = true; } }
+    out.haz.push(o);
+  }
+  for (const q of list(d.pillars, ARENA_LIMITS.pillars)) { if (!q) continue; const o = { x: inX(q.x), y: inY(q.y), r: num(q.r, 14, 70, 26) }; if (atCentre(o)) { o.x = HALF; o.y = AH / 2; o.centre = true; } out.pillars.push(o); }
+  for (const q of list(d.bumpers, ARENA_LIMITS.bumpers)) { if (!q) continue; const o = { x: inX(q.x), y: inY(q.y), r: num(q.r, 18, 44, 30) }; if (atCentre(o)) { o.x = HALF; o.y = AH / 2; o.centre = true; } out.bumpers.push(o); }
+  for (const q of list(d.spikes, ARENA_LIMITS.spikes)) { if (!q || !['top', 'left'].includes(q.side)) continue; const span = q.side === 'top' ? AW : AH; const a = num(Math.min(q.a, q.b), WALL, span - WALL - 40, 100), b = num(Math.max(q.a, q.b), a + 40, span - WALL, a + 200); out.spikes.push({ side: q.side, a, b }); }
+  for (const q of list(d.portals, ARENA_LIMITS.portals)) { if (!q) continue; out.portals.push({ x: num(q.x, WALL + 30, HALF - 40, 280), y: num(q.y, WALL + 30, AH - WALL - 30, 200) }); }
+  const M = buildMap(Object.assign({}, out, { ball: out.ball ? { x: HALF, y: AH / 2, r: 30 } : null, power: [{ x: HALF, y: AH / 2 }], amberY: [WALL + 44, 330] }));
+  // checks on the whole (mirrored) arena
+  const lethal = M.haz.filter(h => h.type !== 'tar'), gapTo = (h, x, y) => h.shape === 'circle' ? Math.hypot(x - h.x, y - h.y) - h.r : Math.hypot(Math.max(h.x - x, 0, x - h.x - h.w), Math.max(h.y - y, 0, y - h.y - h.h));
+  const blocked = (x, y, pad) => lethal.some(h => gapTo(h, x, y) < pad) || M.pillars.concat(M.bumpers || []).some(q => Math.hypot(x - q.x, y - q.y) < q.r + pad);
+  if (RED_SPAWNS.some(sp => blocked(sp.x, sp.y, 40) || M.haz.some(h => h.type === 'tar' && gapTo(h, sp.x, sp.y) < 20))) errors.push('Keep the spawn points (the ringed spots on the left) clear: nothing within about 40 px of them.');
+  let area = 0; for (const h of lethal) area += h.shape === 'circle' ? Math.PI * h.r * h.r : h.w * h.h;
+  if (area > 0.4 * (AW - 2 * WALL) * (AH - 2 * WALL)) errors.push('Too much of the arena is pits and lava: keep it under 40%.');
+  // flood fill on foot from Red's spawn: Blue's spawn has to be reachable, and most of the arena open
+  const G = 20, cols = Math.floor(AW / G), rows = Math.floor(AH / G), seen = new Uint8Array(cols * rows), open = (i, j) => { const x = i * G + G / 2, y = j * G + G / 2; return x > WALL + 16 && x < AW - WALL - 16 && y > WALL + 16 && y < AH - WALL - 16 && !blocked(x, y, 14); };
+  const st = [[Math.floor(RED_SPAWNS[0].x / G), Math.floor(RED_SPAWNS[0].y / G)]]; let reach = 0, openN = 0;
+  for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) if (open(i, j)) openN++;
+  while (st.length) { const [i, j] = st.pop(); if (i < 0 || j < 0 || i >= cols || j >= rows || seen[i * rows + j] || !open(i, j)) continue; seen[i * rows + j] = 1; reach++; st.push([i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]); }
+  const bs = mirrorItem(RED_SPAWNS[0]);
+  if (!seen[Math.floor(bs.x / G) * rows + Math.floor(bs.y / G)]) errors.push('Red and Blue must be able to walk to each other: open a path through the middle.');
+  else if (reach < openN * 0.8) errors.push('Parts of the arena are cut off: every open area should be reachable on foot.');
+  return { def: out, errors };
+}
+function registerArena(key, def, meta, force) { // force: register even with problems (the builder's live preview)
+  const c = cleanArena(def); if (c.errors.length && !force) return null;
+  const d = c.def;
+  MAPS[key] = buildMap({ name: d.name, theme: d.theme, desc: (meta && meta.author ? `A player arena by ${meta.author}.` : 'A player arena.'), hidden: true, custom: true, def: d,
+    haz: d.haz, pillars: d.pillars, spikes: d.spikes, bumpers: d.bumpers, portals: d.portals, ball: d.ball ? { x: HALF, y: AH / 2, r: 30 } : undefined,
+    power: [{ x: HALF, y: AH / 2 }].filter(p => !d.haz.some(h => h.centre)).concat(d.haz.some(h => h.centre) ? [{ x: HALF, y: 220 }, { x: HALF, y: 580 }] : []), amberY: [WALL + 44, 330] });
+  return MAPS[key];
+}
+const arenaCode = id => 'A' + Number(id).toString(36).toUpperCase();
+const arenaId = code => { const m = /^A([0-9A-Z]{1,8})$/i.exec(String(code || '').trim()); return m ? parseInt(m[1], 36) : null; };
 // training drills: the most points a run can score (grades and the server's checks use these)
 const TRAIN_MAX = { target: 7500, dodge: 1000, peek: 3600, knock: 3000 };
 const TRAIN_GRADES = [['S', 0.8], ['A', 0.65], ['B', 0.5], ['C', 0.35], ['D', 0]];
@@ -1542,12 +1692,18 @@ const BANNER_FINISH = {
   storm:   { name: 'Stormfront',   tiers: 25 },
   royal:   { name: 'Royal',        tiers: 40 },
   diamond: { name: 'Diamond',      tiers: 60 },
+  // status finishes: for supporters (while their membership is active), founders and patrons
+  aurora:  { name: 'Aurora',       need: 'sp', label: 'Supporters' },
+  founder: { name: 'Founder',      need: 'fd', label: 'Founders' },
+  rose:    { name: 'Patron rose',  need: 'pt', label: 'Patrons' },
 };
+// may this record (and status: { sp, fd, pt }) wear this finish?
+const finishAllowed = (f, rec, st) => { const F = BANNER_FINISH[f]; if (!F) return false; return F.need ? !!(st && st[F.need]) : F.tiers <= tierTotal(rec); };
 const tierTotal = rec => Object.values((rec && rec.tier) || {}).reduce((s, t) => s + t, 0);
 // what someone's banner is allowed to show, from their record: the finish (if earned) and up to 3 medals they've reached
-function bannerOf(rec) {
-  const total = tierTotal(rec), tier = (rec && rec.tier) || {};
-  const fin = rec && rec.finish && BANNER_FINISH[rec.finish] && BANNER_FINISH[rec.finish].tiers <= total ? rec.finish : null;
+function bannerOf(rec, st) {
+  const tier = (rec && rec.tier) || {};
+  const fin = rec && rec.finish && finishAllowed(rec.finish, rec, st) ? rec.finish : null;
   const want = Array.isArray(rec && rec.show) ? rec.show.filter(k => tier[k] > 0) : achBest(rec, 3);
   return { fin, sc: want.slice(0, 3).map(k => [k, tier[k]]) };
 }
@@ -1631,6 +1787,9 @@ function setMeta(w, id, m) {
   if ('na' in m) p.na = Math.max(0, Math.min(Object.keys(ACHIEVEMENTS).length, m.na | 0)) || null;
   if ('ow' in m) p.ow = m.ow ? 1 : null; // the game's owner: a crown by their name
   if ('fin' in m) p.fin = BANNER_FINISH[m.fin] ? m.fin : null; // banner finish
+  if ('sp' in m) p.sp = Math.max(0, Math.min(4, m.sp | 0)) || null; // supporter emblem tier (1-4)
+  if ('fd' in m) p.fd = m.fd ? 1 : null; // founder
+  if ('pt' in m) p.pt = m.pt ? 1 : null; // patron
   if ('sc' in m) p.sc = Array.isArray(m.sc) ? m.sc.filter(x => Array.isArray(x) && ACHIEVEMENTS[x[0]] && x[1] >= 1 && x[1] <= 5).slice(0, 3).map(x => [x[0], x[1] | 0]) : null; // showcase medals
   return true;
 }
@@ -4440,7 +4599,7 @@ function snapshot(w) {
       const pw = {};
       for (const k in p.pw) if (p.pw[k] > 0) pw[k] = r1(p.pw[k]);
       return {
-        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, fin: p.fin || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
+        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, sp: p.sp || undefined, fd: p.fd || undefined, pt: p.pt || undefined, fin: p.fin || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
         x: r1(p.x), y: r1(p.y), vx: Math.round(p.vx), vy: Math.round(p.vy), a: r3(p.aim),
         hp: Math.max(0, Math.ceil(p.hp)), mh: p.maxHp, ch: r2(p.charge), dr: p.drawing ? 1 : 0,
         f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, bu: p.burn > 0 ? 1 : 0, bl: p.bleedT > 0 ? 1 : 0, sl: p.slow > 0 ? 1 : 0, iv: p.inv > 0 ? 1 : 0,
@@ -4578,10 +4737,10 @@ function unpackSnap(s) {
 }
 
 return {
-  AW, AH, WALL, GATES, MAPS, MAP_KEYS, TRAIN_MAX, TRAIN_GRADES, trainGrade, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
+  AW, AH, WALL, GATES, MAPS, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
-  setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
+  setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
   _grant(w, id, cards) { const p = w.players.find(q => q.id === id); for (const c of cards) takeCard(w, p, c); applyStats(p); p.picked = false; return p; },
 };
@@ -5012,7 +5171,7 @@ function pollPad() {
   }
 }
 // ---- controller in the menus: move a highlight between buttons with the D-pad or left stick, A to press, B to go back
-const NAV_LAYERS = ['gate', 'lpScr', 'draftScr', 'ctlScreen', 'helpScreen', 'achScreen', 'balScreen', 'gameMenu', 'findScr', 'customScr', 'scoresScr', 'trainScr', 'optScr', 'profScr', 'pickScreen', 'resultsScreen', 'lobby', 'home'];
+const NAV_LAYERS = ['gate', 'lpScr', 'draftScr', 'ctlScreen', 'helpScreen', 'achScreen', 'balScreen', 'gameMenu', 'findScr', 'customScr', 'scoresScr', 'trainScr', 'storeScr', 'arenaScr', 'optScr', 'profScr', 'pickScreen', 'resultsScreen', 'lobby', 'home'];
 const NAV_SEL = 'button, select, input:not([type=hidden]), [data-map], .chip2, a[href]';
 const shown = el => !!(el && !el.hidden && el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden');
 function navLayer() {
@@ -5383,16 +5542,411 @@ function renderCoach() {
   $('coachQuit').onclick = () => toMenu();
   const b = $('coachBar'); if (b) b.style.width = Math.round(TUT.step / TUT_STEPS.length * 100) + '%';
 }
-function startPractice() {
+function startPractice(mapKey) {
   initAudio();
   const opt = {}; for (const k in Sim.OPTIONS) { const v = store.get('bowfall-opt-' + k, null); if (v && v in Sim.OPTIONS[k].values) opt[k] = v; }
-  world = Sim.createWorld({ map: store.get('bowfall-map', 'meadow'), diff: store.get('bowfall-diff', 'normal'), opt });
+  world = Sim.createWorld({ map: mapKey || store.get('bowfall-map', 'meadow'), diff: store.get('bowfall-diff', 'normal'), opt });
   const me = Sim.join(world, { name: playerName(), team: 'red', element: myLoadout().el, role: myLoadout().ro });
   for (const l of LP.list) { l.pid = null; l.team = null; lpJoinLocal(l); } // players on controllers join too
   world.events.length = 0;
   myId = me.id; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {};
   setScreens();
 }
+
+// ================= the store: Crests, unlocks and membership =================
+// The server keeps the real numbers (GET /api/wallet); this screen shows them and starts purchases. Unlocks only matter
+// in ranked drafts, and only once the owner switches locks on; practice, training and custom games have everything.
+let WALLET = null;
+const CREST_SVG = '<svg class="crestico" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5l6.8 2.6v5.2c0 4.3-2.9 7.4-6.8 9.2-3.9-1.8-6.8-4.9-6.8-9.2V4.1z" fill="#ffcf5a" stroke="#8a5a00" stroke-width="1.2" stroke-linejoin="round"/><path d="M7 13.5c2.5-1 4.6-3.6 5.8-7.3M9.2 11.4l-1.9-.4M11 9.1l-2-.3M12.2 7.2l-1.7-.5" stroke="#8a5a00" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>';
+const crestTxt = n => `${CREST_SVG} ${Math.max(0, Math.round(n || 0)).toLocaleString()}`;
+const fmtGBP = p => '£' + (p / 100).toFixed(p % 100 ? 2 : 0);
+async function loadWallet() {
+  if (OFFLINE) return;
+  try { const w = await (await fetch('/api/wallet', { cache: 'no-store' })).json(); setWallet(w); } catch (e) {}
+}
+function setWallet(w, gained, why) {
+  if (!w || typeof w !== 'object') return;
+  const hadStatus = WALLET && JSON.stringify(WALLET.status);
+  WALLET = w;
+  if (gained > 0) notice(`+${gained.toLocaleString()} Crests${why === 'ach' ? ' for an achievement tier' : why === 'train' ? ' for your training grade' : why === 'renewal' ? ': thanks for supporting Bowfall!' : why === 'founder' ? ': welcome, Founder!' : ''}<small>You have ${Math.round(w.crests).toLocaleString()}</small>`, false, '#ffcf5a');
+  if (why === 'supporter') notice('You\'re a Bowfall supporter. Thank you!', true, '#8ff3ff');
+  if (why === 'donate') notice('Thank you for supporting Bowfall!', true, '#ff6f91');
+  if (why === 'unlock' && gained == null) notice('Unlocked!', false, '#7dff8a');
+  if (!$('storeScr').hidden) renderStore();
+  if (hadStatus !== JSON.stringify(w.status)) { try { if (!$('achScreen').hidden) Ach.render(); } catch (e) {} drawProfChip(); }
+  hc.df = null; // redraw the draft's locks
+}
+// may I pick this in a ranked draft?
+function mayPick(k) {
+  const W = WALLET; if (!W || !W.locks) return true;
+  const x = ELEMENTS[k] || ROLES[k]; if (!x || !x.premium) return true;
+  if (W.rotation && (W.rotation.el === k || W.rotation.ro === k)) return true;
+  return W.founder || (W.unlocks || []).includes(k);
+}
+function renderStore() {
+  const W = WALLET, signed = !!account;
+  $('stCrests').innerHTML = W && signed ? crestTxt(W.crests) : '';
+  if (OFFLINE) { $('stNote').textContent = 'The store needs the Bowfall server.'; $('stUnlocks').innerHTML = ''; $('stMember').innerHTML = ''; return; }
+  if (!W) { $('stNote').textContent = 'Loading…'; return; }
+  const notes = [];
+  if (!signed) notes.push('Sign in to earn Crests and keep what you unlock.');
+  notes.push(W.locks ? 'Ranked drafts use what you own, plus this week\'s free picks. Practice, training and custom games always have everything.' : 'Everything is free to play right now. Anything you unlock now stays yours if that changes.');
+  if (!W.payments) notes.push('Card payments aren\'t switched on on this server yet.');
+  $('stNote').textContent = notes.join(' ');
+  const R = W.rotation || {}, own = k => W.founder || (W.unlocks || []).includes(k);
+  const item = (k, x, kind, col) => {
+    const owned = own(k), free = R.el === k || R.ro === k;
+    const state = owned ? '<span class="own">Owned</span>' : free ? '<span class="free">Free this week</span>' : W.locks ? 'Locked in ranked' : 'Free for now';
+    const can = signed && !owned;
+    return `<div class="stitem" style="--cc:${col}"><b>${esc(x.name)}</b><span class="status">${esc(kind)} · ${state}</span><span class="status">${esc(x.blurb || '')}</span>
+      ${can ? `<div class="btnrow"><button type="button" class="cta" data-unlock="${k}"${W.crests < W.cost ? ' disabled' : ''}>${crestTxt(W.cost)}</button>${W.payments ? `<button type="button" class="ghost" data-buy="${k}">${fmtGBP(W.prices.unlock)}</button>` : ''}</div>` : ''}</div>`;
+  };
+  $('stUnlocks').innerHTML = W.premium.el.map(k => item(k, ELEMENTS[k], 'Element', ELEMENTS[k].color)).join('') + W.premium.ro.map(k => item(k, ROLES[k], 'Role · ' + ROLES[k].cat, CAT_COL[ROLES[k].cat])).join('');
+  const S = W.sup || {}, P = W.prices, st = W.status || {};
+  const tierName = st.sp ? SUP_NAME[st.sp] : null, nextT = [3, 6, 12].find(m => m > (S.months || 0));
+  const member = `<div class="mode member"><h3>${embSvg('sp', st.sp || 1).replace('<svg', '<svg class="crestico"')} Supporter</h3><div class="price">${fmtGBP(P.supporter)} <small>a month</small></div>
+    <ul class="perks"><li>A supporter emblem by your name everywhere, bronze to diamond as the months add up (silver at 3, gold at 6, diamond at 12)</li><li>The animated <b>Aurora</b> banner finish</li><li>${Number(1000).toLocaleString()} Crests every month, and 25% more from every game</li><li>No effect on ranked: it's all looks and thanks</li></ul>
+    ${S.active ? `<p class="status">You're a <b>${esc(tierName || 'supporter')}</b> · ${S.months || 0} month${S.months === 1 ? '' : 's'}${nextT ? ` · ${nextT - (S.months || 0)} to the next emblem` : ''}${S.cancelling ? ' · ends at the end of this month' : ''}</p><div class="btnrow"><button type="button" class="ghost" id="stManage">Manage membership</button></div>`
+      : `<div class="btnrow"><button type="button" class="cta" id="stJoin"${signed && W.payments ? '' : ' disabled'}>Become a supporter</button></div>${S.months ? `<p class="status">${S.months} month${S.months === 1 ? '' : 's'} supported so far: they still count toward your emblem.</p>` : ''}`}</div>`;
+  const founder = `<div class="mode founderc"><h3>${embSvg('fd').replace('<svg', '<svg class="crestico"')} Founder pack</h3><div class="price">${fmtGBP(P.founder)} <small>once, while it lasts</small></div>
+    <ul class="perks"><li>Every element and role, for good</li><li>The Founder emblem, never sold again</li><li>The <b>Founder</b> banner finish</li><li>${Number(2000).toLocaleString()} Crests</li></ul>
+    ${W.founder ? '<p class="status"><b>You\'re a Founder.</b> Thank you for backing Bowfall early.</p>' : `<div class="btnrow"><button type="button" class="cta" id="stFounder"${signed && W.payments ? '' : ' disabled'}>Get the Founder pack</button></div>`}</div>`;
+  const donate = `<div class="mode"><h3>${embSvg('pt').replace('<svg', '<svg class="crestico"')} Support the game</h3><p class="status">A one-off thank you, any amount. You get the Patron heart by your name and the <b>Patron rose</b> banner finish.</p>
+    <div class="donrow" id="stDon">${[300, 500, 1000, 2000].map((a, i) => `<button type="button" class="chip2${i === 1 ? ' sel' : ''}" data-don="${a}">${fmtGBP(a)}</button>`).join('')}</div>
+    <div class="btnrow"><button type="button" class="cta" id="stDonate"${signed && W.payments ? '' : ' disabled'}>Donate</button></div>${W.patron ? '<p class="status">You\'re a Patron. Thank you!</p>' : ''}</div>`;
+  $('stMember').innerHTML = member + founder + donate;
+  const E = { g: 8, gw: 8, m: 25, mw: 25, fw: 100, a: 40 };
+  $('stEarn').innerHTML = `Ranked games, and custom games without bots, earn Crests: ${E.g} a game (${E.g + E.gw} for a win), ${E.m} a match (${E.m + E.mw} for a win), and ${E.fw} extra for your first match win each day. Every achievement tier is worth ${E.a}, and reaching B, A and S in each training drill for the first time is worth 50, 100 and 200 (sign in to keep them). An unlock costs ${W.cost.toLocaleString()}: about five hours of play. This week's free picks: <b>${esc(R.el ? ELEMENTS[R.el].name : '–')}</b> and <b>${esc(R.ro ? ROLES[R.ro].name : '–')}</b>.`;
+  // wiring
+  $('stUnlocks').querySelectorAll('[data-unlock]').forEach(b => b.onclick = async () => {
+    b.disabled = true;
+    const r = await fetch('/api/unlock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: b.dataset.unlock }) }).then(r => r.json()).catch(() => ({ error: 'Could not reach the server.' }));
+    if (r.error) { notice(esc(r.error), false); b.disabled = false; return; }
+    uiSfx.click(); setWallet(r); notice(`${esc((ELEMENTS[b.dataset.unlock] || ROLES[b.dataset.unlock]).name)} unlocked!`, true, '#7dff8a');
+  });
+  $('stUnlocks').querySelectorAll('[data-buy]').forEach(b => b.onclick = () => checkoutGo({ kind: 'unlock', item: b.dataset.buy }));
+  if ($('stJoin')) $('stJoin').onclick = () => checkoutGo({ kind: 'supporter' });
+  if ($('stFounder')) $('stFounder').onclick = () => checkoutGo({ kind: 'founder' });
+  if ($('stManage')) $('stManage').onclick = async () => { const r = await fetch('/api/billing', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }).then(r => r.json()).catch(() => ({})); if (r.url) location.href = r.url; else notice(esc(r.error || 'Could not open the billing page.'), false); };
+  $('stDon').querySelectorAll('[data-don]').forEach(b => b.onclick = () => { $('stDon').querySelectorAll('.chip2').forEach(x => x.classList.toggle('sel', x === b)); });
+  $('stDonate').onclick = () => { const sel = $('stDon').querySelector('.sel'); checkoutGo({ kind: 'donate', amount: sel ? +sel.dataset.don : 500 }); };
+}
+async function checkoutGo(o) {
+  const r = await fetch('/api/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(o) }).then(r => r.json()).catch(() => ({ error: 'Could not reach the server.' }));
+  if (r.url) { location.href = r.url; return; }
+  notice(esc(r.error || 'Could not start the payment.'), false);
+}
+// back from Stripe's checkout page
+(() => {
+  const paid = params.get('paid'); if (!paid) return;
+  history.replaceState(null, '', location.pathname);
+  if (paid === 'cancel') { setTimeout(() => notice('Payment cancelled: nothing was charged.', false), 600); return; }
+  setTimeout(() => notice('Thank you! Your purchase will show in a moment.', true, '#7dff8a'), 600);
+  let n = 0; const iv = setInterval(() => { loadWallet(); if (++n >= 6) clearInterval(iv); }, 2500);
+  setTimeout(() => openSub('storeScr'), 900);
+})();
+
+// ================= the arena builder =================
+// You draw the left half; the right half is the same turned round (as on every arena). Everything is checked by
+// Sim.cleanArena (sizes, counts, clear spawns, a walkable path between the sides) before it can be played or saved.
+// Saved arenas live on your account (3, or 25 for supporters), each with a share code like A1F; supporters can publish
+// to the Community tab, where anyone can like and play them. Without an account (or offline) they're kept in this browser.
+const AB_TOOLS = [
+  { k: 'sel', name: 'Select and move', sw: 'transparent' },
+  { k: 'pit', name: 'Sinkhole', kind: 'haz', o: { type: 'pit', shape: 'circle', r: 55 }, sw: '#20150c' },
+  { k: 'pitr', name: 'Sinkhole (square)', kind: 'haz', o: { type: 'pit', shape: 'rect', w: 130, h: 100 }, sw: '#20150c', sq: 1 },
+  { k: 'water', name: 'Water', kind: 'haz', o: { type: 'pit', water: true, shape: 'circle', r: 60 }, sw: '#3fa3c4' },
+  { k: 'lava', name: 'Lava', kind: 'haz', o: { type: 'lava', shape: 'circle', r: 55 }, sw: '#ff6a2b' },
+  { k: 'lavar', name: 'Lava (square)', kind: 'haz', o: { type: 'lava', shape: 'rect', w: 130, h: 90 }, sw: '#ff6a2b', sq: 1 },
+  { k: 'tar', name: 'Bog', kind: 'haz', o: { type: 'tar', shape: 'circle', r: 55 }, sw: '#6b5a3a' },
+  { k: 'tarr', name: 'Bog (square)', kind: 'haz', o: { type: 'tar', shape: 'rect', w: 130, h: 90 }, sw: '#6b5a3a', sq: 1 },
+  { k: 'pillar', name: 'Boulder', kind: 'pillars', o: { r: 28 }, sw: '#9a9a8e' },
+  { k: 'bump', name: 'Mushroom', kind: 'bumpers', o: { r: 30 }, sw: '#ff8ad8' },
+  { k: 'gate', name: 'Gate', kind: 'portals', o: {}, sw: '#b48cff' },
+  { k: 'spike', name: 'Thorns (edge)', kind: 'spikes', o: {}, sw: '#7a6a3a', sq: 1 },
+];
+const AB_THEME_NAMES = { meadow: 'Meadow', spring: 'Spring', rift: 'Volcanic', beach: 'Beach', mill: 'Sawmill', ruins: 'Ruins', grove: 'Mushroom grove', pitch: 'Football pitch' };
+const abBlank = () => ({ v: 1, name: '', theme: 'meadow', haz: [], pillars: [], bumpers: [], spikes: [], portals: [], ball: false });
+const AB = {
+  def: abBlank(), id: null, code: null, pub: false, sel: null, tool: 'sel', hist: [], floor: null, drag: null, testing: false, tab: 'edit', check: null, repaintT: null,
+  open() {
+    if (!this.built) this.build();
+    this.showTab(this.tab); this.syncForm(); this.changed(true);
+  },
+  build() {
+    this.built = true;
+    $('abTools').innerHTML = AB_TOOLS.map(t => `<button type="button" data-abtool="${t.k}"${t.k === this.tool ? ' class="on"' : ''}><i${t.sq ? ' class="sq"' : ''} style="--sw:${t.sw}${t.k === 'sel' ? ';border:1px dashed var(--muted)' : ''}"></i>${esc(t.name)}</button>`).join('');
+    $('abTools').onclick = e => { const b = e.target.closest('[data-abtool]'); if (!b) return; this.tool = b.dataset.abtool; $('abTools').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); if (this.tool !== 'sel') { this.sel = null; this.syncSel(); } this.draw(); };
+    $('abTheme').innerHTML = Sim.ARENA_THEMES.map(k => `<option value="${k}">${AB_THEME_NAMES[k] || k}</option>`).join('');
+    $('abTheme').onchange = () => { this.push(); this.def.theme = $('abTheme').value; this.changed(); };
+    $('abBall').onchange = () => { this.push(); this.def.ball = $('abBall').value === '1'; this.changed(); };
+    $('abName').oninput = () => { this.def.name = $('abName').value; };
+    $('abPub').onchange = () => { this.pub = $('abPub').value === '1'; };
+    $('abTabs').onclick = e => { const b = e.target.closest('[data-abtab]'); if (b) this.showTab(b.dataset.abtab); };
+    $('abTest').onclick = () => this.test();
+    $('abSave').onclick = () => this.save(false);
+    $('abSaveNew').onclick = () => this.save(true);
+    $('abNew').onclick = () => { this.push(); this.def = abBlank(); this.id = null; this.code = null; this.pub = false; this.sel = null; this.syncForm(); this.changed(); $('abStatus').textContent = 'A fresh arena.'; };
+    $('abSort').onchange = () => this.loadBrowse();
+    $('abCodeGo').onclick = () => this.openCode($('abCode').value);
+    const cv = $('abCv');
+    const pt = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * AW, y: (e.clientY - r.top) / r.height * AH }; };
+    cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); this.down(pt(e)); });
+    cv.addEventListener('pointermove', e => this.move(pt(e)));
+    cv.addEventListener('pointerup', () => this.up());
+    cv.addEventListener('wheel', e => { if (!this.sel) return; e.preventDefault(); this.resize(e.deltaY < 0 ? 1 : -1); }, { passive: false });
+    addEventListener('keydown', e => {
+      if ($('arenaScr').hidden || this.tab !== 'edit' || typing()) return;
+      if ((e.key === 'Delete' || e.key === 'Backspace') && this.sel) { e.preventDefault(); this.remove(); }
+      if (e.key === 'z' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); this.undo(); }
+    });
+  },
+  showTab(t) {
+    this.tab = t;
+    $('abTabs').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.abtab === t));
+    $('abEdit').hidden = t !== 'edit'; $('abMine').hidden = t !== 'mine'; $('abBrowse').hidden = t !== 'browse';
+    if (t === 'mine') this.loadMine(); if (t === 'browse') this.loadBrowse(); if (t === 'edit') this.draw();
+  },
+  syncForm() { $('abName').value = this.def.name || ''; $('abTheme').value = this.def.theme || 'meadow'; $('abBall').value = this.def.ball ? '1' : '0'; $('abPub').value = this.pub ? '1' : '0'; this.syncSel(); },
+  push() { this.hist.push(JSON.stringify(this.def)); if (this.hist.length > 60) this.hist.shift(); },
+  undo() { const h = this.hist.pop(); if (!h) return; this.def = JSON.parse(h); this.sel = null; this.syncForm(); this.changed(); },
+  item(sel) { return sel ? (this.def[sel.kind] || [])[sel.i] : null; },
+  // everything drawn, with its mirrored copy: [{ kind, i, o, m (mirrored), x, y }]
+  shapes() {
+    const out = [];
+    for (const kind of ['haz', 'pillars', 'bumpers', 'portals']) (this.def[kind] || []).forEach((o, i) => {
+      const cx = o.shape === 'rect' ? o.x + o.w / 2 : o.x, cy = o.shape === 'rect' ? o.y + o.h / 2 : o.y;
+      out.push({ kind, i, o, m: false, cx, cy });
+      if (!(Math.hypot(cx - AW / 2, cy - AH / 2) < 12)) out.push({ kind, i, o, m: true, cx: AW - cx, cy: AH - cy });
+    });
+    (this.def.spikes || []).forEach((o, i) => { out.push({ kind: 'spikes', i, o, m: false }); out.push({ kind: 'spikes', i, o, m: true }); });
+    return out;
+  },
+  hit(p) {
+    const list = this.shapes();
+    for (let j = list.length - 1; j >= 0; j--) {
+      const S = list[j], o = S.o;
+      if (S.kind === 'spikes') {
+        const q = S.m ? { x: AW - p.x, y: AH - p.y } : p;
+        if (o.side === 'top' && q.y < WALL + 26 && q.x >= o.a && q.x <= o.b) return S;
+        if (o.side === 'left' && q.x < WALL + 26 && q.y >= o.a && q.y <= o.b) return S;
+        continue;
+      }
+      if (o.shape === 'rect') { if (Math.abs(p.x - S.cx) <= o.w / 2 + 4 && Math.abs(p.y - S.cy) <= o.h / 2 + 4) return S; continue; }
+      const r = S.kind === 'portals' ? 30 : o.r; if (Math.hypot(p.x - S.cx, p.y - S.cy) <= r + 6) return S;
+    }
+    return null;
+  },
+  down(p) {
+    if (this.tool === 'sel') {
+      const S = this.hit(p);
+      this.sel = S ? { kind: S.kind, i: S.i } : null; this.syncSel();
+      if (S) { this.push(); this.drag = { S, last: p }; }
+      this.draw(); return;
+    }
+    // place: from either half (the right half places the mirrored spot)
+    const T = AB_TOOLS.find(t => t.k === this.tool); if (!T) return;
+    const L = Sim.ARENA_LIMITS[T.kind], arr = this.def[T.kind] || (this.def[T.kind] = []);
+    if (arr.length >= L) { $('abStatus').textContent = `That's the most ${T.name.toLowerCase()} things a side can have (${L}).`; return; }
+    let q = p.x > AW / 2 + 8 ? { x: AW - p.x, y: AH - p.y } : { x: p.x, y: p.y };
+    if (Math.hypot(q.x - AW / 2, q.y - AH / 2) < 24) q = { x: AW / 2, y: AH / 2 }; // snap to the centre spot
+    let o;
+    if (T.kind === 'spikes') {
+      if (q.y < 140) o = { side: 'top', a: Math.round(q.x - 110), b: Math.round(q.x + 110) };
+      else if (q.x < 150) o = { side: 'left', a: Math.round(q.y - 110), b: Math.round(q.y + 110) };
+      else { $('abStatus').textContent = 'Thorns run along a wall: click near the top or left edge.'; return; }
+    } else {
+      o = Object.assign({}, T.o);
+      if (o.shape === 'rect') { o.x = Math.round(q.x - o.w / 2); o.y = Math.round(q.y - o.h / 2); } else { o.x = Math.round(q.x); o.y = Math.round(q.y); }
+    }
+    this.push(); arr.push(o); this.sel = { kind: T.kind, i: arr.length - 1 }; this.syncSel();
+    this.drag = { S: { kind: T.kind, i: arr.length - 1, o, m: p.x > AW / 2 + 8 }, last: p };
+    uiSfx.click(); this.changed();
+  },
+  move(p) {
+    const D = this.drag; if (!D) { const S = this.tool === 'sel' ? this.hit(p) : null; $('abCv').style.cursor = S ? 'move' : this.tool === 'sel' ? 'default' : 'crosshair'; return; }
+    let dx = p.x - D.last.x, dy = p.y - D.last.y; D.last = p;
+    if (D.S.m) { dx = -dx; dy = -dy; }
+    const o = D.S.o;
+    if (D.S.kind === 'spikes') { const d = o.side === 'top' ? dx : dy; o.a = Math.round(o.a + d); o.b = Math.round(o.b + d); }
+    else { o.x = Math.round(o.x + dx); o.y = Math.round(o.y + dy); if (o.centre) delete o.centre; }
+    this.changed(false, true);
+  },
+  up() { if (!this.drag) return; this.drag = null; const o = this.item(this.sel); if (o && o.shape !== 'rect' && o.x != null && Math.hypot(o.x - AW / 2, o.y - AH / 2) < 20) { o.x = AW / 2; o.y = AH / 2; } this.changed(); },
+  resize(dir) {
+    const o = this.item(this.sel); if (!o) return;
+    if (!this.resizing) { this.push(); this.resizing = setTimeout(() => { this.resizing = null; }, 600); } else { clearTimeout(this.resizing); this.resizing = setTimeout(() => { this.resizing = null; }, 600); }
+    if (this.sel.kind === 'spikes') { o.b = Math.round(o.b + dir * 12); }
+    else if (o.shape === 'rect') { const k = dir > 0 ? 1.08 : 1 / 1.08, cx = o.x + o.w / 2, cy = o.y + o.h / 2; o.w = Math.round(Math.max(24, Math.min(420, o.w * k))); o.h = Math.round(Math.max(24, Math.min(420, o.h * k))); o.x = Math.round(cx - o.w / 2); o.y = Math.round(cy - o.h / 2); }
+    else if (o.r != null) { const lim = this.sel.kind === 'pillars' ? [14, 70] : this.sel.kind === 'bumpers' ? [18, 44] : [18, 180]; o.r = Math.max(lim[0], Math.min(lim[1], o.r + dir * 3)); }
+    this.syncSel(); this.changed();
+  },
+  remove() { if (!this.sel) return; this.push(); this.def[this.sel.kind].splice(this.sel.i, 1); this.sel = null; this.syncSel(); this.changed(); },
+  // the panel for the selected thing: sizes, water, delete
+  syncSel() {
+    const o = this.item(this.sel), el = $('abSel');
+    if (!o) { el.innerHTML = '<span class="status">Nothing selected. Pick a tool on the left and click the arena to place it.</span>'; return; }
+    const K = this.sel.kind, T = K === 'haz' ? (o.type === 'pit' ? (o.water ? 'Water' : 'Sinkhole') : o.type === 'lava' ? 'Lava' : 'Bog') : K === 'pillars' ? 'Boulder' : K === 'bumpers' ? 'Mushroom' : K === 'portals' ? 'Gate' : 'Thorns';
+    const rng = (id, lbl, v, a, b) => `<div class="field"><label for="${id}">${lbl}: <b id="${id}V">${v}</b></label><input type="range" id="${id}" min="${a}" max="${b}" value="${v}"></div>`;
+    let h = `<h3>${T}</h3>`;
+    if (K === 'spikes') h += rng('abS1', 'Length', o.b - o.a, 40, 700);
+    else if (o.shape === 'rect') h += rng('abS1', 'Width', o.w, 24, 420) + rng('abS2', 'Height', o.h, 24, 420);
+    else if (o.r != null) h += rng('abS1', 'Size', o.r, K === 'pillars' ? 14 : 18, K === 'pillars' ? 70 : K === 'bumpers' ? 44 : 180);
+    if (K === 'haz' && o.type === 'pit') h += `<div class="field"><label for="abWater">Kind</label><select id="abWater"><option value="0"${o.water ? '' : ' selected'}>Sinkhole</option><option value="1"${o.water ? ' selected' : ''}>Water</option></select></div>`;
+    h += '<div class="btnrow"><button class="ghost sm" type="button" id="abDel">Delete</button></div>';
+    el.innerHTML = h;
+    const bind = (id, fn) => { const x = $(id); if (!x) return; x.onpointerdown = () => this.push(); x.oninput = () => { fn(+x.value); $(id + 'V').textContent = x.value; this.changed(false, true); }; x.onchange = () => this.changed(); };
+    if (K === 'spikes') bind('abS1', v => { o.b = o.a + v; });
+    else if (o.shape === 'rect') { bind('abS1', v => { const cx = o.x + o.w / 2; o.w = v; o.x = Math.round(cx - v / 2); }); bind('abS2', v => { const cy = o.y + o.h / 2; o.h = v; o.y = Math.round(cy - v / 2); }); }
+    else bind('abS1', v => { o.r = v; });
+    if ($('abWater')) $('abWater').onchange = () => { this.push(); if ($('abWater').value === '1') o.water = true; else delete o.water; this.changed(); this.syncSel(); };
+    $('abDel').onclick = () => this.remove();
+  },
+  // after any change: check it, and repaint the floor a moment later (outlines show straight away)
+  changed(now, dragging) {
+    this.check = Sim.cleanArena(this.def);
+    const C = this.check;
+    $('abCheck').innerHTML = C.errors.length ? C.errors.map(e => `<div class="bad">✗ ${esc(e)}</div>`).join('') : '<div class="ok">✓ Ready to play</div>';
+    this.draw();
+    clearTimeout(this.repaintT);
+    if (!dragging || now) this.repaintT = setTimeout(() => this.repaint(), now ? 0 : 140);
+  },
+  repaint() {
+    Sim.registerArena('edit', this.def, null, true);
+    const keep = MAPKEY; setArena('edit'); this.floor = paintFloor(0.6); setArena(keep); floorKey = null;
+    this.draw();
+  },
+  draw() {
+    const cv = $('abCv'); if (!cv || $('arenaScr').hidden) return;
+    const g = cv.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, AW, AH);
+    if (this.floor) g.drawImage(this.floor, -MARGIN, -MARGIN, AW + MARGIN * 2, AH + MARGIN * 2); else { g.fillStyle = '#2f5a2a'; g.fillRect(0, 0, AW, AH); }
+    // the mirrored half, slightly dimmed; the centre line and spot
+    g.fillStyle = 'rgba(0,0,0,0.16)'; g.fillRect(AW / 2, 0, AW / 2, AH);
+    g.setLineDash([10, 10]); g.strokeStyle = 'rgba(255,255,255,0.35)'; g.lineWidth = 2; g.beginPath(); g.moveTo(AW / 2, WALL); g.lineTo(AW / 2, AH - WALL); g.stroke(); g.setLineDash([]);
+    g.strokeStyle = 'rgba(255,255,255,0.4)'; g.beginPath(); g.arc(AW / 2, AH / 2, 10, 0, TAU); g.stroke();
+    // spawn points
+    for (const sp of Sim.RED_SPAWNS) for (const [x, y, c] of [[sp.x, sp.y, '#ff6b5a'], [AW - sp.x, AH - sp.y, '#4fa8ff']]) { g.strokeStyle = c; g.lineWidth = 3; g.beginPath(); g.arc(x, y, 16, 0, TAU); g.stroke(); g.globalAlpha = 0.25; g.beginPath(); g.arc(x, y, 40, 0, TAU); g.stroke(); g.globalAlpha = 1; }
+    // outlines (so moves show at once) and the things the floor painting leaves out
+    for (const S of this.shapes()) {
+      const o = S.o, sel = this.sel && this.sel.kind === S.kind && this.sel.i === S.i;
+      g.lineWidth = sel ? 3 : 1.5; g.strokeStyle = sel ? (S.m ? 'rgba(255,207,90,0.55)' : '#ffcf5a') : 'rgba(255,255,255,0.35)'; g.setLineDash(sel ? [8, 5] : []);
+      if (S.kind === 'spikes') {
+        const top = o.side === 'top', m = S.m;
+        g.fillStyle = 'rgba(122,106,58,0.55)';
+        if (top) { const a = m ? AW - o.b : o.a, b = m ? AW - o.a : o.b, y = m ? AH - WALL - 22 : WALL; g.fillRect(a, y, b - a, 22); g.strokeRect(a, y, b - a, 22); }
+        else { const a = m ? AH - o.b : o.a, b = m ? AH - o.a : o.b, x = m ? AW - WALL - 22 : WALL; g.fillRect(x, a, 22, b - a); g.strokeRect(x, a, 22, b - a); }
+      } else if (o.shape === 'rect') g.strokeRect(S.cx - o.w / 2, S.cy - o.h / 2, o.w, o.h);
+      else {
+        const r = S.kind === 'portals' ? 26 : o.r;
+        if (S.kind === 'bumpers') { g.fillStyle = 'rgba(255,138,216,0.55)'; g.beginPath(); g.arc(S.cx, S.cy, r, 0, TAU); g.fill(); }
+        if (S.kind === 'portals') { g.save(); g.setLineDash([]); g.strokeStyle = '#b48cff'; g.lineWidth = 5; g.beginPath(); g.arc(S.cx, S.cy, r, 0, TAU); g.stroke(); g.restore(); }
+        g.beginPath(); g.arc(S.cx, S.cy, r, 0, TAU); g.stroke();
+      }
+      g.setLineDash([]);
+    }
+    if (this.def.ball) { g.fillStyle = '#f7f7f2'; g.strokeStyle = '#222'; g.lineWidth = 2; g.beginPath(); g.arc(AW / 2, AH / 2, 30, 0, TAU); g.fill(); g.stroke(); }
+  },
+  // try it: a practice game on it against one bot (add more in the lobby)
+  test() {
+    const m = Sim.registerArena('edit', this.def);
+    if (!m) { notice(esc((this.check && this.check.errors[0]) || 'Fix the problems first.'), false); return; }
+    this.testing = true; closeSubs(); startPractice('edit');
+    Sim.addBot(world, 'blue');
+    notice('Testing your arena: start the match from the lobby. Leave from the menu to come back to the builder.', false);
+  },
+  local() { try { return JSON.parse(store.get('bowfall-arenas', '[]')) || []; } catch (e) { return []; } },
+  async save(asNew) {
+    this.def.name = ($('abName').value || '').trim() || 'My arena';
+    const C = Sim.cleanArena(this.def);
+    if (C.errors.length) { $('abStatus').textContent = 'Fix the problems first: ' + C.errors[0]; return; }
+    if (OFFLINE || !account) { // kept in this browser
+      const L = this.local(); let id = asNew ? null : this.id;
+      if (id == null || !String(id).startsWith('L')) { if (L.length >= 3) { $('abStatus').textContent = 'This browser keeps 3 arenas. Sign in to save them to your account and share them.'; return; } id = 'L' + Date.now().toString(36); }
+      const i = L.findIndex(a => a.id === id); const rec = { id, name: C.def.name, def: C.def, updated: Date.now() };
+      if (i >= 0) L[i] = rec; else L.unshift(rec);
+      store.set('bowfall-arenas', JSON.stringify(L)); this.id = id;
+      $('abStatus').textContent = `Saved in this browser.${OFFLINE ? '' : ' Sign in to share it with a code.'}`; return;
+    }
+    const r = await fetch('/api/arenas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: asNew || typeof this.id !== 'number' ? undefined : this.id, name: C.def.name, def: C.def, pub: this.pub }) }).then(r => r.json()).catch(() => ({ error: 'Could not reach the server.' }));
+    if (r.error) { $('abStatus').textContent = r.error; return; }
+    this.id = r.arena.id; this.code = r.arena.code;
+    $('abStatus').innerHTML = `Saved. Share code <b class="code">${esc(r.arena.code)}</b> <button class="ghost sm" type="button" id="abCopy">Copy</button>${r.arena.pub ? ' · in the Community tab' : ''}`;
+    $('abCopy').onclick = () => { try { navigator.clipboard.writeText(r.arena.code); notice('Code copied', false); } catch (e) {} };
+    uiSfx.click();
+  },
+  edit(a) { this.push(); this.def = Object.assign(abBlank(), JSON.parse(JSON.stringify(a.def)), { name: a.name }); this.id = a.mine || String(a.id).startsWith('L') ? a.id : null; this.code = a.code || null; this.pub = !!a.pub && !!a.mine; this.sel = null; this.syncForm(); this.showTab('edit'); this.changed(true); $('abStatus').textContent = this.id ? `Editing ${a.name}.` : `A copy of ${a.name}: save it as your own.`; },
+  thumb(a, cv) {
+    try { Sim.registerArena('pv', a.def, null, true); const keep = MAPKEY; setArena('pv'); const t = paintFloor(0.2); setArena(keep); floorKey = null; cv.width = t.width; cv.height = t.height; cv.getContext('2d').drawImage(t, 0, 0); } catch (e) {}
+  },
+  card(a, mine) {
+    return `<div class="abitem" data-abid="${esc(String(a.id))}"><canvas></canvas><b>${esc(a.name)}</b><span class="status">${a.author ? 'by ' + esc(a.author) + ' · ' : ''}${a.code ? `<span class="code">${esc(a.code)}</span> · ` : 'this browser · '}${a.votes || 0} like${a.votes === 1 ? '' : 's'} · ${a.plays || 0} play${a.plays === 1 ? '' : 's'}${a.featured ? ' · <b style="color:var(--gold)">Featured</b>' : ''}${a.ranked ? ' · in ranked' : ''}${mine && a.pub ? ' · public' : ''}</span>
+      <div class="btnrow">${!OFFLINE && a.code ? '<button class="cta" type="button" data-abplay>Play online</button>' : ''}<button class="ghost" type="button" data-abtest>Test</button><button class="ghost" type="button" data-abedit>${mine ? 'Edit' : 'Copy to builder'}</button>${!mine && account && a.code ? `<button class="ghost${a.voted ? ' liked' : ''}" type="button" data-ablike>♥ ${a.votes || 0}</button>` : ''}${mine ? '<button class="ghost" type="button" data-abdel>Delete</button>' : ''}</div></div>`;
+  },
+  wire(list, el, mine) {
+    el.innerHTML = list.length ? list.map(a => this.card(a, mine)).join('') : `<p class="status">${mine ? 'Nothing saved yet: build one in the Build tab.' : 'No arenas here yet.'}</p>`;
+    el.querySelectorAll('.abitem').forEach((node, i) => {
+      const a = list[i]; this.thumb(a, node.querySelector('canvas'));
+      const on = (sel, fn) => { const b = node.querySelector(sel); if (b) b.onclick = fn; };
+      on('[data-abedit]', () => this.edit(Object.assign({}, a, { mine })));
+      on('[data-abtest]', () => { this.def = Object.assign(abBlank(), JSON.parse(JSON.stringify(a.def))); this.test(); });
+      on('[data-abplay]', () => hostArena(a));
+      on('[data-abdel]', async () => {
+        if (!confirmTwice(node.querySelector('[data-abdel]'))) return;
+        if (String(a.id).startsWith('L')) store.set('bowfall-arenas', JSON.stringify(this.local().filter(x => x.id !== a.id)));
+        else await fetch(`/api/arenas/${a.id}/delete`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+        this.loadMine();
+      });
+      on('[data-ablike]', async () => { const r = await fetch(`/api/arenas/${a.id}/vote`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }).then(r => r.json()).catch(() => ({})); if (r.votes != null) { a.votes = r.votes; a.voted = r.voted; const b = node.querySelector('[data-ablike]'); b.textContent = '♥ ' + r.votes; b.classList.toggle('liked', r.voted); } });
+    });
+  },
+  async loadMine() {
+    const L = this.local().map(a => Object.assign({}, a, { mine: true }));
+    let server = [], limit = 3, canPub = false;
+    if (!OFFLINE && account) { const r = await fetch('/api/arenas?list=mine', { cache: 'no-store' }).then(r => r.json()).catch(() => ({})); server = r.arenas || []; limit = r.limit || 3; canPub = r.canPublish; }
+    $('abMineNote').textContent = OFFLINE ? 'Arenas saved in this browser (up to 3).' : !account ? 'Arenas saved in this browser (up to 3). Sign in to keep them on your account and share them with a code.'
+      : `${server.length} of ${limit} saved on your account.${canPub ? ' You can publish arenas to the Community tab.' : ' Supporters can keep 25 and publish to the Community tab.'}`;
+    this.wire(server.concat(L), $('abMineList'), true);
+  },
+  async loadBrowse() {
+    if (OFFLINE) { $('abBrowseList').innerHTML = '<p class="status">The Community tab needs the Bowfall server.</p>'; return; }
+    const v = $('abSort').value, url = v === 'featured' ? '/api/arenas?list=featured' : '/api/arenas?list=pub' + (v === 'new' ? '&sort=new' : '');
+    const r = await fetch(url, { cache: 'no-store' }).then(r => r.json()).catch(() => ({}));
+    let list = r.arenas || [];
+    if (v === 'featured' && !list.length) { const r2 = await fetch('/api/arenas?list=pub', { cache: 'no-store' }).then(r => r.json()).catch(() => ({})); list = r2.arenas || []; }
+    this.wire(list.slice(0, 40), $('abBrowseList'), false);
+  },
+  async openCode(code) {
+    const r = await fetch('/api/arenas/' + encodeURIComponent(String(code || '').trim().toUpperCase()), { cache: 'no-store' }).then(r => r.json()).catch(() => ({ error: 'Could not reach the server.' }));
+    if (r.error) { notice(esc(r.error), false); return; }
+    this.wire([r.arena], $('abBrowseList'), false);
+  },
+};
+function confirmTwice(btn) { if (btn.dataset.sure) return true; btn.dataset.sure = '1'; btn.textContent = 'Sure?'; setTimeout(() => { if (btn.isConnected) { delete btn.dataset.sure; btn.textContent = 'Delete'; } }, 2500); return false; }
+// a player arena arriving from the server with a room: register it so the lobby, draft and game can draw it
+function useRoomArena(A) {
+  const M = Sim.MAPS[A.key];
+  if (M && M.custom && JSON.stringify(M.def) === JSON.stringify(A.def)) return;
+  if (!Sim.registerArena(A.key, A.def, { author: A.author }, true)) return;
+  const keep = MAPKEY; setArena(A.key); thumbs[A.key] = paintFloor(0.2); setArena(keep); floorKey = null;
+  hc.lbMap = null; hc.df = null;
+}
+// practice (in the browser) on a player arena: by code from the server, or one saved in this browser
+async function localArena(code) {
+  const c = String(code).trim().toUpperCase();
+  let a = AB.local().find(x => x.id.toUpperCase() === c || x.name.toUpperCase() === c);
+  if (!a && !OFFLINE) { const r = await fetch('/api/arenas/' + encodeURIComponent(c), { cache: 'no-store' }).then(r => r.json()).catch(() => ({})); a = r.arena; }
+  if (!a || !world) { notice('No arena with that code.', false); return; }
+  if (!Sim.registerArena('pl', a.def, { author: a.author })) { notice('That arena has problems and can\'t be played.', false); return; }
+  Sim.setMap(world, 'pl'); hc.lbMap = null;
+}
+// host a custom game on a player arena
+let pendingArena = null;
+function hostArena(a) {
+  if (OFFLINE) return;
+  pendingArena = a.code; closeSubs();
+  connect({ create: true, map: 'meadow', diff: 'normal', room: { name: a.name.slice(0, 32), pub: true, max: 8, pw: '' } });
+}
+$('lbArenaUse').onclick = () => { const c = $('lbArenaCode').value.trim().toUpperCase(); if (c) act({ t: 'cfg', arena: c }); };
 
 // ================= training drills =================
 // Four graded drills on the training grounds (hidden arenas). Targets, turrets and the shooter are practice dummies the
@@ -5772,6 +6326,7 @@ function act(m) {
       case 'team': Sim.setTeam(world, myId, m.team); break;
       case 'bot': if (m.op === 'add') Sim.addBot(world, m.team); else if (m.op === 'diff') Sim.setBotSkill(world, m.id, m.diff); else Sim.removeBot(world, m.id); break;
       case 'cfg':
+        if (m.arena) { localArena(m.arena); break; }
         if (m.opt) for (const [k, val] of Object.entries(m.opt)) if (Sim.setOption(world, k, val)) store.set('bowfall-opt-' + k, val);
         if (m.diff) { Sim.setBotDifficulty(world, m.diff); store.set('bowfall-diff', m.diff); }
         if (m.map) { Sim.setMap(world, m.map); store.set('bowfall-map', m.map); }
@@ -5852,6 +6407,8 @@ function connect(joinMsg) {
       if (!joinMsg.ticket) for (const l of LP.list) { l.team = null; lpConnect(l, { code: m.code, pw: LP.joinPw }); }
     } else if (m.t === 'room') {
       m.rcv = performance.now(); roomInfo = m;
+      if (m.arena && m.arena.def) useRoomArena(m.arena);
+      if (pendingArena && m.amHost) { act({ t: 'cfg', arena: pendingArena }); pendingArena = null; }
       $('roomTag').innerHTML = 'Room <b>' + esc(m.code) + '</b>';
       hc.lb = hc.gm = hc.lbHead = hc.gmHead = null;
     } else if (m.t === 'snap') {
@@ -5879,6 +6436,8 @@ function connect(joinMsg) {
       status.classList.add('err'); status.textContent = m.msg;
     } else if (m.t === 'rated') {
       showRated(m);
+    } else if (m.t === 'wallet') {
+      setWallet(m, m.gained, m.why);
     } else if (m.t === 'ach') {
       Ach.fromServer(m);
     } else if (m.t === 'err') {
@@ -5907,8 +6466,10 @@ function renderDraft(v) {
     $('dfMap').textContent = MAPS[v.m.map] ? MAPS[v.m.map].name : 'Arena';
     const c = $('dfThumb'), t = thumbs[v.m.map];
     if (t) { c.width = t.width; c.height = t.height; c.getContext('2d').drawImage(t, 0, 0); }
-    $('dfEl').innerHTML = Object.entries(ELEMENTS).map(([k, e]) => `<button type="button" class="chip2" data-el="${k}" style="--cc:${e.color}"><i></i>${e.name}</button>`).join('');
-    $('dfRo').innerHTML = Object.entries(ROLES).map(([k, r]) => `<button type="button" class="chip2" data-ro="${k}" style="--cc:${CAT_COL[r.cat]}">${r.name}<em>${r.cat}</em></button>`).join('');
+    // with locks on: what you don't own is locked (this week's free picks are marked)
+    const R = (WALLET && WALLET.rotation) || {}, tg = k => !mayPick(k) ? ' disabled title="Locked: unlock it in the Store"' : '', tag = k => !mayPick(k) ? '<em class="lock">Locked</em>' : WALLET && WALLET.locks && (R.el === k || R.ro === k) ? '<em class="new">Free this week</em>' : '';
+    $('dfEl').innerHTML = Object.entries(ELEMENTS).map(([k, e]) => `<button type="button" class="chip2" data-el="${k}" style="--cc:${e.color}"${tg(k)}><i></i>${e.name}${tag(k)}</button>`).join('');
+    $('dfRo').innerHTML = Object.entries(ROLES).map(([k, r]) => `<button type="button" class="chip2" data-ro="${k}" style="--cc:${CAT_COL[r.cat]}"${tg(k)}>${r.name}<em>${r.cat}</em>${tag(k)}</button>`).join('');
     hc.dfArch = null;
   });
   const left = R.draft != null ? Math.max(0, Math.ceil(R.draft - (performance.now() - (R.rcv || performance.now())) / 1000)) : null;
@@ -5918,7 +6479,7 @@ function renderDraft(v) {
   setC('dfTeams', JSON.stringify([v.p.map(p => [p.id, p.n, p.tm, p.el, p.ro, p.b, p.c]), ready]), () => {
     $('dfTeams').innerHTML = TEAMS.map(t => `<div><h3 style="color:${TEAM_COL[t]}">${teamName(t)}</h3>` + v.p.filter(p => p.tm === t).map(p => {
       const lp = LP.list.find(l => l.pid === p.id), on = p.b || ready.includes(p.id);
-      return `<div class="dfp"><span class="dot" style="background:${p.c}"></span><span class="nm"><b>${esc(p.n)}</b>${ownHtml(p.ow)}${p.b ? '<span class="aitag">AI</span>' : ''}${p.id === myId ? ' <small>(you)</small>' : ''}${lp ? ` <span class="lptag" style="--pc:${lpColor(lp.n)}">P${lp.n}</span>` : ''}${medalsHtml(p.sc, 13)}</span><span class="rdy${on ? ' on' : ''}">${on ? 'Ready' : 'Picking…'}</span><small class="status">${esc(archName(p))}</small></div>`;
+      return `<div class="dfp"><span class="dot" style="background:${p.c}"></span><span class="nm"><b>${esc(p.n)}</b>${ownHtml(p.ow)}${statusHtml(p)}${p.b ? '<span class="aitag">AI</span>' : ''}${p.id === myId ? ' <small>(you)</small>' : ''}${lp ? ` <span class="lptag" style="--pc:${lpColor(lp.n)}">P${lp.n}</span>` : ''}${medalsHtml(p.sc, 13)}</span><span class="rdy${on ? ' on' : ''}">${on ? 'Ready' : 'Picking…'}</span><small class="status">${esc(archName(p))}</small></div>`;
     }).join('') + '</div>').join('');
   });
   setC('dfArch', me ? me.el + me.ro : '', () => { if (me) { syncArch(me); $('dfArch').textContent = archName(me); } });
@@ -6280,6 +6841,7 @@ function socialConnect() {
     else if (m.t === 'note') notice(esc(m.msg), false);
     else if (m.t === 'invite') showInvite(m);
     else if (m.t === 'ach') Ach.fromServer(m);
+    else if (m.t === 'wallet') setWallet(m, m.gained, m.why);
     else if (m.t === 'linkcode') lpLinkAll(m);
     else if (m.t === 'matched') {
       if (SOC.st && SOC.st.party) SOC.st.party.queued = null; findBadge();
@@ -6346,7 +6908,7 @@ function renderFind() {
     if (hc.fgMe !== key) {
       hc.fgMe = key;
       $('fgMe').innerHTML = `<canvas id="fgAv" width="184" height="184"></canvas>
-        <div class="nm">${rankHtml(P.lv)}${flagHtml(P.cc)}${esc(P.name)}${ownHtml(P.own)}${P.guest ? '<span class="tag">Guest</span>' : ''}</div>
+        <div class="nm">${rankHtml(P.lv)}${flagHtml(P.cc)}${esc(P.name)}${ownHtml(P.own)}${statusHtml(P)}${P.guest ? '<span class="tag">Guest</span>' : ''}</div>
         <div class="rt"><span class="elo"><b>${team ? P.eloT : P.elo}</b>${team ? 'Team rating' : '1v1 rating'}</span><span><b>${team ? P.elo : P.eloT}</b>${team ? '1v1' : 'Team'}</span><span><b>${P.games}</b>Games</span><span><b>${rate}</b>Win rate</span><span><b>${P.kills}</b>Knockouts</span></div>
         <div class="achs">${P.top.length ? P.top.map(k => `<span style="--bd:${BORDERS[k] || '#c9d1dc'}">${esc(Sim.ACHIEVEMENTS[k].title)}${(P.tiers || {})[k] ? ' ' + Sim.ACH_TIERS[P.tiers[k] - 1].n : ''}</span>`).join('') + (P.nAch > P.top.length ? `<small class="status">+${P.nAch - P.top.length} more</small>` : '') : '<small class="status">No achievements yet</small>'}</div>`;
       const av = (account && account.avatar) || null;
@@ -6376,7 +6938,7 @@ function renderFind() {
   if (hc.fgParty !== pkey) {
     hc.fgParty = pkey;
     $('fgParty').innerHTML = !st ? '<div class="status">Connecting…</div>' : members.map((p, i) => `<div class="fr mem"><canvas data-av="${i}" width="76" height="76"></canvas>` +
-      `<b>${rankHtml(p.lv)}${flagHtml(p.cc)}${esc(p.name)}${ownHtml(p.own)}${p.key === me ? ' <small class="status">(you)</small>' : ''}${party && p.key === party.leader && party.members.length > 1 ? '<span class="lead">Leader</span>' : ''}</b>` +
+      `<b>${rankHtml(p.lv)}${flagHtml(p.cc)}${esc(p.name)}${ownHtml(p.own)}${statusHtml(p)}${p.key === me ? ' <small class="status">(you)</small>' : ''}${party && p.key === party.leader && party.members.length > 1 ? '<span class="lead">Leader</span>' : ''}</b>` +
       `<small>${p.inGame ? '<span class="fgwait">In a game</span> · ' : ''}Rating ${mode === '1v1' ? p.elo : p.eloT}${p.games ? ` · ${p.games} games` : ''}${p.local ? ' · on this screen' : ''}</small><div class="btnrow">${party && lead && p.key !== me ? `<button class="ghost sm" type="button" data-kick="${esc(p.key)}">Remove</button>` : ''}</div></div>`).join('') +
       (party && party.members.length > 1 ? `<button class="ghost sm" type="button" id="fgLeave">Leave party</button>` : '') +
       (st && st.account && members.length < 3 ? '<span class="status">Invite friends from the list below to play together (up to 3).</span>' : '');
@@ -6424,9 +6986,9 @@ if (!OFFLINE) setTimeout(socialConnect, 400);
 
 // ================= chat (online rooms) =================
 let chatMsgs = [];
-const chatLine = d => d.sys ? esc(d.m) : `<b style="color:${d.tm === 'spec' ? 'var(--muted)' : (d.c || TEAM_COL[d.tm])}">${esc(d.n)}${ownHtml(d.adm)}${d.ai ? '<span class="aitag">AI</span>' : ''}${d.tm === 'spec' ? (d.lobby ? ' <small>(unassigned)</small>' : ' <small>(spectating)</small>') : ''}:</b> ${esc(d.m)}`;
+const chatLine = d => d.sys ? esc(d.m) : `<b style="color:${d.tm === 'spec' ? 'var(--muted)' : (d.c || TEAM_COL[d.tm])}">${esc(d.n)}${ownHtml(d.adm)}${statusHtml(d)}${d.ai ? '<span class="aitag">AI</span>' : ''}${d.tm === 'spec' ? (d.lobby ? ' <small>(unassigned)</small>' : ' <small>(spectating)</small>') : ''}:</b> ${esc(d.m)}`;
 function addChat(m) {
-  const d = { n: m.n, tm: m.tm, c: m.c, m: m.m, sys: m.sys, ai: m.ai, adm: m.adm, lobby: !view || view.m.ph === 'lobby' };
+  const d = { n: m.n, tm: m.tm, c: m.c, m: m.m, sys: m.sys, ai: m.ai, adm: m.adm, sp: m.sp, fd: m.fd, pt: m.pt, lobby: !view || view.m.ph === 'lobby' };
   chatMsgs.push(d); if (chatMsgs.length > 80) chatMsgs.shift();
   for (const id of ['lbChatLog', 'gChatLog']) {
     const box = $(id), el = document.createElement('div');
@@ -6457,6 +7019,7 @@ $('specBar').addEventListener('click', e => { const b = e.target.closest('button
 function toMenu() {
   const wasRanked = mode === 'online' && !!(roomInfo && roomInfo.ranked);
   TUT.on = false; TR.on = false;
+  if (AB.testing) { AB.testing = false; setTimeout(() => openSub('arenaScr'), 0); }
   mode = 'menu'; myId = null; world = null; view = null; menuOpen = false; roomInfo = null; clearChat();
   if (ws) { const s = ws; ws = null; try { s.close(); } catch (e) {} }
   for (const l of LP.list) lpLeaveGame(l);
@@ -6716,7 +7279,7 @@ const Ach = {
   },
   save() { if (this.account) return; try { localStorage.setItem('bowfall-ach-look', JSON.stringify({ title: this.d.title, border: this.d.border, finish: this.d.finish, show: this.d.show })); } catch (e) {} },
   // what my banner shows: finish (if earned) and up to 3 medals (my choice, else my best)
-  banner() { return Sim.bannerOf({ tier: this.d.tier, finish: this.d.finish, show: this.d.show }); },
+  banner() { return Sim.bannerOf({ tier: this.d.tier, finish: this.d.finish, show: this.d.show }, (WALLET && WALLET.status) || {}); },
   unlocked(keys) {
     for (const k of keys) {
       const a = Sim.ACHIEVEMENTS[k], t = (this.d.tier || {})[k] || 1, T = Sim.ACH_TIERS[t - 1]; if (!a || !T) continue;
@@ -6751,7 +7314,8 @@ function renderAch() {
   }).join('');
   const have = Sim.ACH_ORDER.filter(k => tier[k] > 0), total = Sim.tierTotal(Ach.d);
   // banner: finish (unlocked by total tiers), medals to show, and a live preview
-  $('finSel').innerHTML = Object.entries(Sim.BANNER_FINISH).map(([k, f]) => `<option value="${k}"${(Ach.d.finish || 'plain') === k ? ' selected' : ''}${f.tiers > total ? ' disabled' : ''}>${esc(f.name)}${f.tiers ? ` (${f.tiers} tiers${f.tiers > total ? ', ' + (f.tiers - total) + ' to go' : ''})` : ''}</option>`).join('');
+  const myst = (WALLET && WALLET.status) || {};
+  $('finSel').innerHTML = Object.entries(Sim.BANNER_FINISH).map(([k, f]) => { const ok = Sim.finishAllowed(k, { tier: Ach.d.tier }, myst); return `<option value="${k}"${(Ach.d.finish || 'plain') === k ? ' selected' : ''}${ok ? '' : ' disabled'}>${esc(f.name)}${f.need ? ` (${f.label})` : f.tiers ? ` (${f.tiers} tiers${f.tiers > total ? ', ' + (f.tiers - total) + ' to go' : ''})` : ''}</option>`; }).join('');
   const shown = Ach.banner().sc.map(x => x[0]);
   $('bnShow').innerHTML = have.length ? have.map(k => `<button type="button" class="chip2${shown.includes(k) ? ' sel' : ''}" data-bnpick="${k}" style="--cc:${Sim.ACH_TIERS[tier[k] - 1].col}">${medalSvg(k, tier[k], 12)} ${esc(A[k].title)}</button>`).join('') : '<span class="status">Reach a tier in any challenge to earn a medal.</span>';
   renderBannerPreview();
@@ -6760,8 +7324,8 @@ function renderAch() {
   $('borderSel').innerHTML = '<option value="">Plain</option>' + have.filter(k => BORDERS[k]).map(k => `<option value="${k}"${Ach.d.border === k ? ' selected' : ''}>${esc(A[k].title)}</option>`).join('');
 }
 function renderBannerPreview() {
-  const b = Ach.banner(), me = { n: account ? account.name : ($('nameIn').value.trim() || 'Archer'), bd: Ach.d.border && Ach.d.got[Ach.d.border] ? Ach.d.border : null, na: Object.keys(Ach.d.got || {}).length || null, sc: b.sc, fin: b.fin, ti: Ach.d.title && Ach.d.got[Ach.d.title] ? Ach.d.title : null, lv: account && account.level && account.level.lv, cc: account && account.country, ow: account && account.admin };
-  $('bnPrev').innerHTML = `<i class="dot" style="background:${TEAM_INFO.red.shades[0]}"></i><span class="nm plate${plateClass(me)}"${plateStyle(me)}><span class="pl1">${idHtml(me)}<b>${esc(me.n)}</b>${ownHtml(me.ow)}${trophyHtml(me.na)}${medalsHtml(me.sc)}${me.ti ? ` <em class="ttl">${esc(titleName(me.ti))}</em>` : ''}</span><small>${esc(ELEMENTS[myLoadout().el].name + ' ' + ROLES[myLoadout().ro].name)}</small></span><span class="tag you">You</span>`;
+  const b = Ach.banner(), me = { n: account ? account.name : ($('nameIn').value.trim() || 'Archer'), bd: Ach.d.border && Ach.d.got[Ach.d.border] ? Ach.d.border : null, na: Object.keys(Ach.d.got || {}).length || null, sc: b.sc, fin: b.fin, ti: Ach.d.title && Ach.d.got[Ach.d.title] ? Ach.d.title : null, lv: account && account.level && account.level.lv, cc: account && account.country, ow: account && account.admin, ...((WALLET && WALLET.status) || {}) };
+  $('bnPrev').innerHTML = `<i class="dot" style="background:${TEAM_INFO.red.shades[0]}"></i><span class="nm plate${plateClass(me)}"${plateStyle(me)}><span class="pl1">${idHtml(me)}<b>${esc(me.n)}</b>${ownHtml(me.ow)}${statusHtml(me)}${trophyHtml(me.na)}${medalsHtml(me.sc)}${me.ti ? ` <em class="ttl">${esc(titleName(me.ti))}</em>` : ''}</span><small>${esc(ELEMENTS[myLoadout().el].name + ' ' + ROLES[myLoadout().ro].name)}</small></span><span class="tag you">You</span>`;
 }
 function setMyBanner(patch) {
   Object.assign(Ach.d, patch); Ach.save(); hc.lookSent = null;
@@ -6921,7 +7485,7 @@ function teamsHtml(v) {
   const host = isHost(), me = v.p.find(p => p.id === myId), hostId = mode === 'local' ? myId : roomInfo && roomInfo.host;
   return TEAMS.map(t => {
     const list = v.p.filter(p => p.tm === t).sort((a, b) => a.b - b.b);
-    const slots = list.map(p => `<div class="slot" data-card="p${p.id}"><i class="dot" style="background:${p.c}"></i><span class="nm plate${plateClass(p)}"${plateStyle(p)}><span class="pl1">${idHtml(p)}<b>${esc(p.n)}</b>${ownHtml(p.ow)}${trophyHtml(p.na)}${medalsHtml(p.sc)}${p.ti ? ` <em class="ttl">${esc(titleName(p.ti))}</em>` : ''}</span><small>${esc(archName(p))}</small></span>` +
+    const slots = list.map(p => `<div class="slot" data-card="p${p.id}"><i class="dot" style="background:${p.c}"></i><span class="nm plate${plateClass(p)}"${plateStyle(p)}><span class="pl1">${idHtml(p)}<b>${esc(p.n)}</b>${ownHtml(p.ow)}${statusHtml(p)}${trophyHtml(p.na)}${medalsHtml(p.sc)}${p.ti ? ` <em class="ttl">${esc(titleName(p.ti))}</em>` : ''}</span><small>${esc(archName(p))}</small></span>` +
       (p.id === myId ? '<span class="tag you">You</span>' : '') + (p.id === hostId && mode === 'online' ? '<span class="tag">Host</span>' : '') +
       (p.b ? (p.dv && host ? botSkillHtml(p) : `<span class="tag">${p.dv ? esc(BOT_SKILL[p.dv] || 'Bot') : 'Bot'}</span>`) : '') + hcapHtml(p, host) +
       (p.b && host ? `<button type="button" class="xbtn" data-rm="${p.id}" aria-label="Remove ${esc(p.n)}">×</button>` : '') + '</div>').join('');
@@ -6937,7 +7501,7 @@ function teamsHtml(v) {
 // people in the room who aren't on a team yet (or joined mid-game and are watching)
 function specHtml(v, me) {
   const spec = (roomInfo && roomInfo.spec) || [], lobby = v.m.ph === 'lobby' || v.m.ph === 'over';
-  const names = spec.map(c => `<div class="slot" data-card="c${c.cid}"><i class="dot" style="background:var(--muted)"></i><span class="nm plate${plateClass(c)}"${plateStyle(c)}><span class="pl1">${idHtml(c)}<b>${esc(c.n)}</b>${ownHtml(c.ow)}${trophyHtml(c.na)}${medalsHtml(c.sc)}</span></span>${c.you ? '<span class="tag you">You</span>' : ''}${c.h ? '<span class="tag">Host</span>' : ''}</div>`).join('');
+  const names = spec.map(c => `<div class="slot" data-card="c${c.cid}"><i class="dot" style="background:var(--muted)"></i><span class="nm plate${plateClass(c)}"${plateStyle(c)}><span class="pl1">${idHtml(c)}<b>${esc(c.n)}</b>${ownHtml(c.ow)}${statusHtml(c)}${trophyHtml(c.na)}${medalsHtml(c.sc)}</span></span>${c.you ? '<span class="tag you">You</span>' : ''}${c.h ? '<span class="tag">Host</span>' : ''}</div>`).join('');
   const foot = me && lobby ? '<button type="button" class="ghost sm" data-spec="1">Move to unassigned</button>' : '';
   return `<div class="tcol spec" data-navsec><div class="thead"><b>${lobby ? 'Unassigned' : 'Spectating'}</b><span>${spec.length}</span></div>` +
     (names ? `<div class="specnames">${names}</div>` : `<span class="status">${lobby ? 'People who join the room wait here until they pick a team.' : 'Nobody is watching.'}</span>`) +
@@ -6980,7 +7544,7 @@ function cardHtml(key) {
   const who = p || sp; if (!who) return '';
   let c = roomInfo && roomInfo.cards ? roomInfo.cards[key] : null;
   if (!c && mode === 'local' && p && p.id === myId) c = { local: 1, top: Sim.achBest(Ach.d, 2) };
-  const head = `<div class="pc-h">${idHtml(who)}<b>${esc(who.n)}</b>${ownHtml(who.ow)}${medalsHtml(who.sc, 16)}</div>` + (p ? `<small>${esc(archName(p))}</small>` : '');
+  const head = `<div class="pc-h">${idHtml(who)}<b>${esc(who.n)}</b>${ownHtml(who.ow)}${statusHtml(who)}${medalsHtml(who.sc, 16)}</div>` + (p ? `<small>${esc(archName(p))}</small>` : '');
   let body;
   if (p && p.b && !(c && c.ai)) body = `<div class="pc-row">Bot · ${DIFF_LBL[view.m.df] || 'Normal'} skill</div>`;
   else if (c && c.a) {
@@ -7044,14 +7608,15 @@ function renderLobby(v) {
     if (online && roomInfo) { $('lbCode').textContent = roomInfo.code; $('lbShare').textContent = `${roomInfo.name ? roomInfo.name + ' · ' : ''}${roomInfo.pub ? 'Public' : 'Private'}${roomInfo.locked ? ', password protected' : ''}. Friends can join with the code, or send them the invite link.`; }
   });
   syncTitle(v.p.find(p => p.id === myId));
-  setC('lb', JSON.stringify(v.p.map(p => [p.id, p.n, p.ow, p.fin, p.sc, p.tm, p.b, p.dv, p.c, p.el, p.ro, p.hc, p.ti, p.cc, p.lv, p.bd, p.na])) + host + myId + JSON.stringify(roomInfo && [roomInfo.host, roomInfo.spec]), () => { $('lbTeams').innerHTML = teamsHtml(v); });
+  setC('lb', JSON.stringify(v.p.map(p => [p.id, p.n, p.ow, p.sp, p.fd, p.pt, p.fin, p.sc, p.tm, p.b, p.dv, p.c, p.el, p.ro, p.hc, p.ti, p.cc, p.lv, p.bd, p.na])) + host + myId + JSON.stringify(roomInfo && [roomInfo.host, roomInfo.spec]), () => { $('lbTeams').innerHTML = teamsHtml(v); });
   setC('lbChat', online, x => { $('lbChat').hidden = !x; });
   setC('lbLp', JSON.stringify(LP.list.map(l => [l.n, l.name, l.el, l.ro, l.pid, l.picker, (v.p.find(p => p.id === l.pid) || {}).tm])), () => { $('lbLocals').innerHTML = lpPanel('lobby'); });
   const meL = v.p.find(p => p.id === myId);
   setC('arch', meL ? meL.el + meL.ro : '', () => syncArch(meL));
   setC('lbMap', v.m.map + host, () => {
     $('lbMaps').querySelectorAll('.mapcard').forEach(el => { el.classList.toggle('sel', el.dataset.map === v.m.map); el.disabled = !host; });
-    $('lbMapDesc').innerHTML = MAPS[v.m.map] ? `<b>${esc(MAPS[v.m.map].name)}:</b> ${esc(MAPS[v.m.map].desc)}` : '';
+    $('lbMapDesc').innerHTML = MAPS[v.m.map] ? `<b>${esc(MAPS[v.m.map].name)}:</b> ${esc(MAPS[v.m.map].desc)}${MAPS[v.m.map].custom && roomInfo && roomInfo.arena ? ` Code <b class="code">${esc(roomInfo.arena.code)}</b>.` : ''}` : '';
+    $('lbArenaRow').hidden = !host || OFFLINE; $('lbArenaCode').disabled = $('lbArenaUse').disabled = !host;
   });
   setC('lbDiff', v.m.df + host, () => { $('lbDiff').value = v.m.df; $('lbDiff').disabled = !host; });
   setC('lbPts', v.m.ptw + ':' + host, () => { $('lbPts').value = String(v.m.ptw); $('lbPts').disabled = !host; });
@@ -7086,7 +7651,7 @@ async function renderScores() {
   $('scTabs').innerHTML = tabs.map(([k, l]) => `<button type="button" data-sct="${k}" class="${k === SC.tab ? 'on' : ''}">${l}</button>`).join('');
   $('scSite').hidden = OFFLINE;
   if (OFFLINE) { $('scBody').innerHTML = '<p class="status">Highscores come from the online server. Play at your Bowfall site to get on the board.</p>'; return; }
-  const row = (r, i, val, sub) => `<div class="scrow"><span class="n">${i + 1}</span><span>${rankHtml(r.level)}${flagHtml(r.country)}<b style="font:600 15px 'Titillium Web',sans-serif">${esc(r.name)}</b>${ownHtml(r.own)}${r.ai ? '<span class="aitag" title="AI player">AI</span>' : ''}${sub ? ` <small class="status">${sub}</small>` : ''}</span><b>${val}</b></div>`;
+  const row = (r, i, val, sub) => `<div class="scrow"><span class="n">${i + 1}</span><span>${rankHtml(r.level)}${flagHtml(r.country)}<b style="font:600 15px 'Titillium Web',sans-serif">${esc(r.name)}</b>${ownHtml(r.own)}${statusHtml(r)}${r.ai ? '<span class="aitag" title="AI player">AI</span>' : ''}${sub ? ` <small class="status">${sub}</small>` : ''}</span><b>${val}</b></div>`;
   const box = (title, rows) => `<div class="scbox"><h4>${title}</h4>${rows || '<span class="status">Nobody yet.</span>'}</div>`;
   try {
     if (SC.tab === 'records') {
@@ -7148,13 +7713,15 @@ function olTab(k) {
   else refreshRooms();
 }
 // the main menu's screens
-const SUBS = ['findScr', 'customScr', 'scoresScr', 'trainScr', 'optScr', 'profScr'];
+const SUBS = ['findScr', 'customScr', 'scoresScr', 'trainScr', 'storeScr', 'arenaScr', 'optScr', 'profScr'];
 function openSub(id) {
   for (const k of SUBS) $(k).hidden = k !== id;
   if (id === 'customScr') { $('olHost').hidden = true; refreshRooms(); }
   if (id === 'findScr') { socialConnect(); socialHello(); renderFind(); }
   if (id === 'scoresScr') renderScores();
   if (id === 'trainScr') renderDrills();
+  if (id === 'storeScr') { renderStore(); loadWallet(); }
+  if (id === 'arenaScr') AB.open();
   if (id === 'optScr') syncOptions();
   if (id === 'profScr') renderProfile();
   const f = $(id).querySelector('[data-back]'); if (f) setTimeout(() => f.focus(), 0);
@@ -7169,6 +7736,8 @@ $('mOpts').onclick = () => openSub('optScr');
 $('profChip').onclick = () => openSub('profScr');
 $('mTut').onclick = startTutorial;
 $('mTrain').onclick = () => openSub('trainScr');
+$('mStore').onclick = () => openSub('storeScr');
+$('mArena').onclick = () => openSub('arenaScr');
 $('pracBtn').onclick = () => { closeSubs(); startPractice(); };
 if (OFFLINE) $('pracBtn').hidden = true; // offline, Host custom game already is practice
 $('hostBtn').onclick = () => { if (OFFLINE) { closeSubs(); startPractice(); return; } $('olHost').hidden = !$('olHost').hidden; if (!$('olHost').hidden) $('rmName').focus(); };
@@ -7199,7 +7768,7 @@ async function loadAccount() {
   if (OFFLINE) return;
   $('siteLinks').hidden = false;
   try { account = (await (await fetch('/api/me', { cache: 'no-store' })).json()).user; } catch (e) { account = null; }
-  adminBits();
+  adminBits(); loadWallet();
   const back = encodeURIComponent('/play' + location.search);
   try { const mv = JSON.parse(sessionStorage.getItem('bowfall-moved') || 'null'); if (mv && account) { sessionStorage.removeItem('bowfall-moved'); setTimeout(() => notice(`Your guest rating (<b>${mv.elo}</b>) and ${mv.games} games moved to your account.`, false), 800); } } catch (e) {}
   if (account) {
@@ -7240,8 +7809,8 @@ function saveAvatar(a) {
 function drawProfChip() {
   const a = myAvatar();
   try { drawPreview($('profAv'), a.el, a.ro, a.c); } catch (e) {}
-  $('profName').innerHTML = (account ? rankHtml(account.level && account.level.lv) + flagHtml(account.country) : '') + esc(account ? account.name : ($('nameIn').value.trim() || 'Archer'));
-  $('profSub').textContent = account ? `1v1 ${Math.round((account.career || {}).elo || 800)} · Team ${Math.round((account.career || {}).eloT != null ? account.career.eloT : (account.career || {}).elo || 800)}` : 'Guest · edit profile';
+  $('profName').innerHTML = (account ? rankHtml(account.level && account.level.lv) + flagHtml(account.country) : '') + esc(account ? account.name : ($('nameIn').value.trim() || 'Archer')) + (account ? ownHtml(account.admin) + statusHtml(WALLET && WALLET.status) : '');
+  $('profSub').innerHTML = account ? `1v1 ${Math.round((account.career || {}).elo || 800)} · Team ${Math.round((account.career || {}).eloT != null ? account.career.eloT : (account.career || {}).elo || 800)}${WALLET && !WALLET.guest ? ' · ' + crestTxt(WALLET.crests) : ''}` : 'Guest · edit profile';
 }
 function myPlateHtml() {
   const bd = Ach.d.border && Ach.d.got[Ach.d.border] ? Ach.d.border : null, na = Object.keys(Ach.d.got || {}).length, bn = Ach.banner();
@@ -7340,6 +7909,29 @@ const idHtml = p => rankHtml(p.lv) + flagHtml(p.cc);
 // the game's owner: a gold crown with an O after their name
 const OWNER_SVG = '<svg viewBox="0 0 20 16" aria-hidden="true"><path d="M1.5 4.5l4.3 3.6L10 1.5l4.2 6.6 4.3-3.6-1.7 9.5H3.2z" fill="#ffcf5a" stroke="#a86f00" stroke-width="1" stroke-linejoin="round"/><circle cx="10" cy="10.2" r="2.1" fill="none" stroke="#7a4a00" stroke-width="1.5"/></svg>';
 const ownHtml = on => (on ? `<span class="owner" title="Game owner">${OWNER_SVG}</span>` : '');
+// status emblems: supporter (a shield with a star, bronze/silver/gold/diamond by months supported), founder (a gold
+// fletched arrow on crimson) and patron (a rose-red heart). The same shapes are drawn on the canvas over archers.
+const SUP_COL = [null, ['#e0a060', '#7a4418'], ['#dfe6ef', '#6b7788'], ['#ffcf5a', '#8a5a00'], ['#8ff3ff', '#2a7f95']];
+const SUP_NAME = [null, 'Supporter', 'Silver supporter', 'Gold supporter', 'Diamond supporter'];
+const EMB = {
+  sp: 'M10 1.2l7.2 2.7v5.4c0 4.4-3 7.7-7.2 9.5C5.8 17 2.8 13.7 2.8 9.3V3.9z', spStar: 'M10 5.1l1.35 2.9 3.15.35-2.35 2.1.65 3.1L10 12l-2.8 1.55.65-3.1-2.35-2.1 3.15-.35z',
+  fd: 'M10 1.5a8.5 8.5 0 1 0 0 17a8.5 8.5 0 1 0 0-17z', fdArrow: 'M4.8 15.2l9.3-9.3M14.1 5.9l-3.2.4M14.1 5.9l-.4 3.2M4.8 15.2l.1-2.4M4.8 15.2l2.4-.1M6.3 13.7l.1-2.3M6.3 13.7l2.3-.1',
+  pt: 'M10 17.2S2.5 12.6 2.5 7.4C2.5 4.9 4.3 3.3 6.4 3.3c1.5 0 2.8.8 3.6 2.1.8-1.3 2.1-2.1 3.6-2.1 2.1 0 3.9 1.6 3.9 4.1 0 5.2-7.5 9.8-7.5 9.8z',
+};
+const embSvg = (k, t) => k === 'sp' ? `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="${EMB.sp}" fill="${SUP_COL[t][0]}" stroke="${SUP_COL[t][1]}" stroke-width="1.2" stroke-linejoin="round"/><path d="${EMB.spStar}" fill="${SUP_COL[t][1]}"/></svg>`
+  : k === 'fd' ? `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="${EMB.fd}" fill="#8e1730" stroke="#ffcf5a" stroke-width="1.3"/><path d="${EMB.fdArrow}" stroke="#ffcf5a" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>`
+  : `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="${EMB.pt}" fill="#ff6f91" stroke="#9c2446" stroke-width="1.1" stroke-linejoin="round"/></svg>`;
+const statusHtml = p => !p ? '' : (p.fd ? `<span class="emb" title="Founder">${embSvg('fd')}</span>` : '') + (p.sp ? `<span class="emb" title="${SUP_NAME[p.sp]}">${embSvg('sp', p.sp)}</span>` : '') + (p.pt ? `<span class="emb" title="Patron: supported Bowfall">${embSvg('pt')}</span>` : '');
+const EMB_P = {}; const embPath = k => EMB_P[k] || (EMB_P[k] = new Path2D(EMB[k]));
+// the same emblems on the canvas, left to right from x; returns the width used
+function drawStatus(p, x, y, w) {
+  let dx = 0; const k = w / 20;
+  const one = fn => { ctx.save(); ctx.translate(x + dx, y); ctx.scale(k, k); fn(); ctx.restore(); dx += w + 2; };
+  if (p.fd) one(() => { ctx.fillStyle = '#8e1730'; ctx.fill(embPath('fd')); ctx.lineWidth = 1.3; ctx.strokeStyle = '#ffcf5a'; ctx.stroke(embPath('fd')); ctx.lineWidth = 1.6; ctx.lineCap = 'round'; ctx.stroke(embPath('fdArrow')); });
+  if (p.sp && SUP_COL[p.sp]) one(() => { ctx.fillStyle = SUP_COL[p.sp][0]; ctx.fill(embPath('sp')); ctx.lineWidth = 1.2; ctx.strokeStyle = SUP_COL[p.sp][1]; ctx.lineJoin = 'round'; ctx.stroke(embPath('sp')); ctx.fillStyle = SUP_COL[p.sp][1]; ctx.fill(embPath('spStar')); });
+  if (p.pt) one(() => { ctx.fillStyle = '#ff6f91'; ctx.fill(embPath('pt')); ctx.lineWidth = 1.1; ctx.strokeStyle = '#9c2446'; ctx.stroke(embPath('pt')); });
+  return dx;
+}
 // border colours for name banners, each unlocked by an achievement
 const BORDERS = { onfire: '#ff5a2e', unstoppable: '#ff8a3d', untouchable: '#ffffff', flawless: '#e8f4ff', sharpshooter: '#5ad1ff', eagleeye: '#3fe0ff', bruiser: '#ff4d6a', ringmaster: '#ff6a2b',
   longshot: '#7dff8a', clutch: '#ff5a7a', lonewolf: '#9aa3b5', giantslayer: '#c58bff', champion: '#ffd23f', warlord: '#f2c14e', pinmaster: '#d8c7a0', empowered: '#b48cff', stormkeeper: '#fff27a', lifeline: '#5dffb0' };
@@ -9206,7 +9798,9 @@ function drawPlayer(p, isMe, bare) {
     const label = isMe && !LP.list.some(l => l.pid) ? 'You' : p.n;
     ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillText(label, p.x + 1, y - 4);
     ctx.fillStyle = isMe ? '#ffffff' : TEAM_COL[p.tm] || p.c; ctx.fillText(label, p.x, y - 5);
-    if (p.ow) drawCrown(p.x + ctx.measureText(label).width / 2 + 3, y - 15, 13);
+    let ex = p.x + ctx.measureText(label).width / 2 + 3;
+    if (p.ow) { drawCrown(ex, y - 15, 13); ex += 15; }
+    if (p.sp || p.fd || p.pt) drawStatus(p, ex, y - 16, 12);
     if (!isMe && (p.cc || p.lv)) {
       let lx = p.x - ctx.measureText(p.n).width / 2 - 5;
       const fi = flagImg(p.cc);
@@ -9875,7 +10469,7 @@ function updateHud() {
     for (const t of TEAMS) {
       const rows = view.p.filter(p => p.tm === t).sort((a, b) => a.d - b.d || b.k - a.k);
       html += `<span class="team-h" style="color:${TEAM_COL[t]}">${teamName(t)} · ${t === 'red' ? m.wr : m.wb}</span>`;
-      html += rows.map(p => { const o = p.d ? ' out' : ''; return `<span class="dot${o}" style="background:${p.c}"></span><span class="nm${p.id === myId ? ' me' : ''}${o}">${idHtml(p)}${esc(p.n)}${ownHtml(p.ow)}${p.b ? '<span class="aitag">AI</span>' : ''}${p.id === myId ? ' (you)' : ''}${p.ti ? ` <em class="ttl">${esc(titleName(p.ti))}</em>` : ''}<small>${esc(archName(p))}${p.bs && Sim.STYLES[p.bs] ? ` · <em>${Sim.STYLES[p.bs].name}</em>` : ''}</small></span><span class="n${o}">${p.k}</span><span class="n${o}" style="color:${AMBER_COL}">${p.am}</span>`; }).join('');
+      html += rows.map(p => { const o = p.d ? ' out' : ''; return `<span class="dot${o}" style="background:${p.c}"></span><span class="nm${p.id === myId ? ' me' : ''}${o}">${idHtml(p)}${esc(p.n)}${ownHtml(p.ow)}${statusHtml(p)}${p.b ? '<span class="aitag">AI</span>' : ''}${p.id === myId ? ' (you)' : ''}${p.ti ? ` <em class="ttl">${esc(titleName(p.ti))}</em>` : ''}<small>${esc(archName(p))}${p.bs && Sim.STYLES[p.bs] ? ` · <em>${Sim.STYLES[p.bs].name}</em>` : ''}</small></span><span class="n${o}">${p.k}</span><span class="n${o}" style="color:${AMBER_COL}">${p.am}</span>`; }).join('');
     }
     $('board').innerHTML = html;
   });
@@ -9969,7 +10563,7 @@ function renderRanking() {
   $('resTable').innerHTML = '<thead><tr><th><button type="button" disabled>#</button></th><th><button type="button" disabled>Archer</button></th>' +
     STAT_COLS.map(c => `<th class="${c.k === col.k ? 'sorted' : ''}"><button type="button" data-sort="${c.k}">${c.label}${c.k === col.k ? (c.low ? ' ↑' : ' ↓') : ''}</button></th>`).join('') + '</tr></thead><tbody>' +
     rows.map((p, i) => `<tr class="${p.id === myId ? 'me' : ''}"><td class="rk">${i + 1}</td>` +
-      `<td class="who" style="--tc:${TEAM_COL[p.tm]}"><i class="dot" style="background:${p.c};display:inline-block;margin-right:7px"></i>${idHtml(p)}${esc(p.n)}${ownHtml(p.ow)}${p.id === myId ? ' (you)' : ''}<small>${esc(archName(p))}</small></td>` +
+      `<td class="who" style="--tc:${TEAM_COL[p.tm]}"><i class="dot" style="background:${p.c};display:inline-block;margin-right:7px"></i>${idHtml(p)}${esc(p.n)}${ownHtml(p.ow)}${statusHtml(p)}${p.id === myId ? ' (you)' : ''}<small>${esc(archName(p))}</small></td>` +
       STAT_COLS.map(c => {
         const val = c.val(p), isBest = val >= 0 && best[c.k] === val && val !== 0 && (!c.minFor || c.minFor(p)) && !c.low;
         const txt = c.fmt ? c.fmt(val, p) : val;

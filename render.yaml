@@ -28,3 +28,10 @@ services:
         sync: false
       - key: DISCORD_CLIENT_SECRET
         sync: false
+      # payments (see HOSTING.md): Stripe's secret key and webhook signing secret; leave blank until you're ready
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: FOUNDERS_UNTIL
+        sync: false

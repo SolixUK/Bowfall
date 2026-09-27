@@ -11,6 +11,8 @@ const { createStore, BOARD_KEYS } = require('./lib/db');
 const ROLE_MIN = 10; // games in a role before you appear on that role's board
 const A = require('./lib/auth');
 const O = require('./lib/oauth');
+const E = require('./lib/economy')(require('./public/sim.js'));
+const PAY = require('./lib/pay');
 const { levelOf } = require('./lib/level');
 const { countryOf } = require('./lib/geo');
 const { rateGame, keyFor, ratingOf, START: ELO_START } = require('./lib/rating');
@@ -82,7 +84,7 @@ async function userFromReq(req) {
 }
 // a player's flag: the country they picked, none if they hid it ('-'), or unset (we fill it in from their location)
 const flagOf = u => (u && u.country && u.country !== '-' ? u.country : null);
-const publicUser = u => ({ name: u.name, title: u.title, admin: !!u.admin, created: u.created, career: Object.assign({}, u.career || {}, { ai: undefined }), got: Object.keys((u.ach && u.ach.got) || {}), stats: (u.ach && u.ach.stats) || {},
+const publicUser = u => ({ status: (u.career && u.career.ai) ? {} : E.statusOf(u), name: u.name, title: u.title, admin: !!u.admin, created: u.created, career: Object.assign({}, u.career || {}, { ai: undefined }), got: Object.keys((u.ach && u.ach.got) || {}), stats: (u.ach && u.ach.stats) || {},
   ai: !!(u.career && u.career.ai), country: flagOf(u), level: levelOf(u.career), border: (u.ach && u.ach.border) || null, avatar: (u.ach && u.ach.avatar) || null,
   tier: (u.ach && u.ach.tier) || {}, play: playstyleOf(u) });
 
@@ -143,7 +145,85 @@ function trainTop(k, v, inList) {
 const trainHits = new Map();
 function trainLimit(key) { const now = Date.now(), h = (trainHits.get(key) || []).filter(t => now - t < 60000); h.push(now); trainHits.set(key, h); return h.length <= 20; }
 // the look of a signed-in player's name banner: the border they picked (if they've earned it) and how many achievements they have
-const lookOf = u => { const got = (u.ach && u.ach.got) || {}, bd = u.ach && u.ach.border; return Object.assign({ bd: bd && got[bd] ? bd : null, na: Object.keys(got).length || null, ow: u.admin ? 1 : null }, Sim.bannerOf(u.ach)); };
+const lookOf = u => { const got = (u.ach && u.ach.got) || {}, bd = u.ach && u.ach.border, st = u.guest ? {} : E.statusOf(u); return Object.assign({ bd: bd && got[bd] ? bd : null, na: Object.keys(got).length || null, ow: u.admin ? 1 : null, sp: st.sp || null, fd: st.fd || null, pt: st.pt || null }, Sim.bannerOf(u.ach, st)); };
+// ---- the owner's switches (kept in the database): whether ranked drafts respect unlocks, and a pinned free rotation
+const SETTINGS = { locks: false, rotPin: null, events: [] };
+async function loadSettings() {
+  const l = await store.getSetting('locks').catch(() => null), r = await store.getSetting('rotPin').catch(() => null), ev = await store.getSetting('stripeEvents').catch(() => null);
+  SETTINGS.locks = !!(l && l.on); SETTINGS.rotPin = r || null; SETTINGS.events = Array.isArray(ev) ? ev : [];
+  SETTINGS.foundersOff = !!(await store.getSetting('foundersOff').catch(() => null));
+}
+const rot = () => E.rotation(Date.now(), SETTINGS.rotPin);
+const walletOf = u => Object.assign(E.wallet(u, SETTINGS.locks, rot()), { payments: PAY.configured() });
+// tell someone online that their Crests, unlocks or status changed (and refresh how their name looks in games)
+function walletNote(u, gained, why) {
+  const w = walletOf(u);
+  for (const r of rooms.values()) for (const c of r.clients) if (c.user === u) { send(c, Object.assign({ t: 'wallet', gained: gained || 0, why: why || null }, w)); if (c.pid) { Object.assign(c, lookOf(u)); Sim.setMeta(r.world, c.pid, lookOf(u)); } }
+  social.walletNote(u, Object.assign({ t: 'wallet', gained: gained || 0, why: why || null }, w));
+}
+// the founder pack is on sale until FOUNDERS_UNTIL (a date, e.g. 2027-03-31) if set, or until the owner closes it (/founders off)
+const foundersOpen = () => SETTINGS.foundersOff ? false : process.env.FOUNDERS_UNTIL ? Date.now() < +new Date(process.env.FOUNDERS_UNTIL) : true;
+// what Stripe tells us: payments completed, membership renewals and cancellations. Each event is applied once.
+async function stripeEvent(ev) {
+  if (!ev || !ev.id || SETTINGS.events.includes(ev.id)) return;
+  const o = (ev.data && ev.data.object) || {};
+  const uidOf = x => +((x && x.metadata && x.metadata.uid) || 0);
+  let uid = 0;
+  if (ev.type === 'checkout.session.completed') uid = uidOf(o) || +o.client_reference_id;
+  else if (ev.type === 'invoice.paid') uid = uidOf(o.subscription_details) || uidOf(o.parent && o.parent.subscription_details) || uidOf(((o.lines || {}).data || [])[0]);
+  else if (ev.type.startsWith('customer.subscription.')) uid = uidOf(o);
+  else return;
+  const u = uid ? track(await store.userById(uid)) : null;
+  if (!u) { console.error('Stripe event for unknown account', ev.type, uid); return; }
+  const c = u.career || (u.career = {}), soc = u.social || (u.social = {}), bill = soc.bill || (soc.bill = {});
+  let gained = 0, why = null;
+  if (ev.type === 'checkout.session.completed') {
+    if (o.payment_status && o.payment_status !== 'paid' && o.mode !== 'subscription') return; // not paid yet (e.g. bank transfer): wait for the next event
+    if (o.customer) bill.cust = o.customer;
+    const kind = (o.metadata || {}).kind, item = (o.metadata || {}).item;
+    if (kind === 'supporter') { bill.sub = o.subscription || bill.sub; const sp = c.sup || (c.sup = {}); sp.active = true; sp.cancelling = false; sp.since = sp.since || Date.now(); sp.until = Math.max(sp.until || 0, Date.now() + 32 * 86400000); why = 'supporter'; }
+    else if (kind === 'founder') { if (!c.founder) { c.founder = Date.now(); gained = E.give(u, E.FOUNDER_CRESTS, 'founder'); } why = 'founder'; }
+    else if (kind === 'donate') { c.patron = true; bill.donated = (bill.donated || 0) + (o.amount_total || 0); why = 'donate'; }
+    else if (kind === 'unlock') { E.unlock(u, item); why = 'unlock'; }
+    (bill.log = bill.log || []).unshift({ t: Date.now(), kind, item, amount: o.amount_total || 0, id: o.id }); bill.log.length = Math.min(bill.log.length, 50);
+  } else if (ev.type === 'invoice.paid') {
+    const sp = c.sup || (c.sup = {}); sp.active = true; sp.since = sp.since || Date.now(); sp.months = (sp.months || 0) + 1;
+    const end = (((o.lines || {}).data || [])[0] || {}).period ? o.lines.data[0].period.end : o.period_end;
+    sp.until = Math.max(sp.until || 0, (end ? end * 1000 : Date.now() + 31 * 86400000) + 86400000);
+    gained = E.give(u, E.SUP_STIPEND, 'stipend'); why = 'renewal';
+  } else if (ev.type === 'customer.subscription.updated' || ev.type === 'customer.subscription.deleted') {
+    const sp = c.sup || (c.sup = {});
+    if (ev.type === 'customer.subscription.deleted' || ['canceled', 'unpaid', 'incomplete_expired'].includes(o.status)) { sp.active = false; sp.cancelling = false; why = 'ended'; }
+    else { sp.active = ['active', 'trialing', 'past_due'].includes(o.status); sp.cancelling = !!o.cancel_at_period_end; if (o.current_period_end) sp.until = o.current_period_end * 1000 + 86400000; why = sp.cancelling ? 'cancelling' : 'updated'; }
+  }
+  SETTINGS.events.push(ev.id); if (SETTINGS.events.length > 500) SETTINGS.events.splice(0, SETTINGS.events.length - 500);
+  markDirty(u); await flushUsers(); store.setSetting('stripeEvents', SETTINGS.events).catch(() => {});
+  walletNote(u, gained, why);
+}
+// in a ranked room with locks on, swap a locked element or role for a free one
+function lockedFix(ws) {
+  if (!SETTINGS.locks) return;
+  const u = ws.user || ws.guest, R = rot();
+  if (!E.owns(u, ws.el, true, R)) ws.el = 'frost';
+  if (!E.owns(u, ws.ro, true, R)) ws.ro = 'sniper';
+}
+// supporter / founder / patron flags for lists (leaderboards)
+const stOf = u => { if (!u || u.guest || (u.career && u.career.ai)) return {}; const st = E.statusOf(u); const o = {}; if (st.sp) o.sp = st.sp; if (st.fd) o.fd = 1; if (st.pt) o.pt = 1; return o; };
+// ---- player arenas: loaded from the database and registered with the simulation as 'a<id>'
+const ARENAS = new Map(); // id -> the database row (def, name, author, flags)
+const arenaKey = id => 'a' + id;
+const canPublish = u => !!u && (E.supActive(u) || !!(u.career && u.career.founder) || !!u.admin);
+const arenaLimit = u => (canPublish(u) ? 25 : 3);
+function useArenaRow(a) { if (!a) return null; ARENAS.set(a.id, a); return Sim.registerArena(arenaKey(a.id), a.def, { author: a.author }) ? a : null; }
+async function loadArena(id) { const have = ARENAS.get(id); if (have && Sim.MAPS[arenaKey(id)]) return have; return useArenaRow(await store.arenaGet(id).catch(() => null)); }
+const arenaOut = (a, me) => ({ id: a.id, code: Sim.arenaCode(a.id), name: a.name, author: a.author, theme: a.def && a.def.theme, pub: a.pub, featured: a.featured, ranked: a.ranked, votes: a.votes, plays: a.plays, voted: me ? (a.voters || []).includes(me.id) : false, mine: me ? a.userId === me.id : false, def: a.def, updated: a.updated });
+// what clients need to draw a room's arena when it's a player-made one
+function arenaInfo(key) { const M = Sim.MAPS[key]; if (!M || !M.custom) return undefined; const id = +key.slice(1), a = ARENAS.get(id); return { key, id, code: Sim.arenaCode(id), name: M.name, author: a ? a.author : null, def: M.def }; }
+// the ranked map pool: the built-in arenas plus any the owner has put in the ranked rotation
+let RANKED_ARENAS = [];
+async function loadRankedArenas() { const list = await store.arenasWhere('ranked').catch(() => []); RANKED_ARENAS = list.filter(useArenaRow).map(a => arenaKey(a.id)); }
+const rankedMaps = () => Sim.MAP_KEYS.concat(RANKED_ARENAS.filter(k => Sim.MAPS[k]));
+const isAccount = (room, u) => !!u && !u.guest && !(u.career && u.career.ai) && [...room.clients].some(c => c.user === u);
 
 function careerAdd(u, rec, team) {
   const c = u.career || (u.career = {});
@@ -191,6 +271,7 @@ function saveRecords(room) {
         const u = userOfPid(room, p.id); if (!u) continue;
         const team = r.p.filter(q => q.tm === p.tm);
         careerAdd(u, { type: 'game', pl: p, teamDmg: team.reduce((s2, q) => s2 + q.dmg, 0), teamSize: team.length });
+        if (counts && isAccount(room, u)) { const n = E.earnGame(u, p.w === 1); (room.crestGain || (room.crestGain = new Map())).set(u, ((room.crestGain.get(u)) || 0) + n); }
         if (counts) achNote(u, Sim.achApply(u.ach || (u.ach = {}), Sim.achFromGame(r, p.id, (u.ach.stats || {}))));
       }
       // ratings only change when the whole match is decided, so remember who played (and as what) for then
@@ -221,6 +302,7 @@ function saveRecords(room) {
         const q = room.world.players.find(q2 => q2.id === pid), t = T.p[pid]; if (!q) continue;
         careerAdd(u, r, q.team);
         const won = r.win === q.team, opp = q.team === 'red' ? 'blue' : 'red', x = rated.get(u.id);
+        if (counts && isAccount(room, u)) { const n = E.earnMatch(u, won); (room.crestGain || (room.crestGain = new Map())).set(u, ((room.crestGain.get(u)) || 0) + n); }
         if (counts) achNote(u, Sim.achApply(u.ach || (u.ach = {}), Sim.achFromMatch(won, { lostGames: T.gw[opp], ring: t ? t.ring : 0, giant: !!(x && x.opp - x.mine >= 150) }, (u.ach.stats || {}))));
         // match history: the last 10 ranked matches
         if (room.ranked && t) {
@@ -232,6 +314,7 @@ function saveRecords(room) {
       }
     }
   }
+  if (room.crestGain && recs.some(r => r.type === 'match')) { for (const [u, n] of room.crestGain) { markDirty(u); walletNote(u, n, 'match'); } room.crestGain = null; }
   for (const ws of room.clients) if ((ws.user || ws.guest) && ws.pid) { const u = ws.user || ws.guest; Object.assign(ws, lookOf(u)); Sim.setMeta(room.world, ws.pid, Object.assign({ lv: levelOf(u.career).lv }, lookOf(u))); }
   if (room.ai) for (const [pid, u] of room.ai) Sim.setMeta(room.world, pid, Object.assign({ lv: levelOf(u.career).lv }, lookOf(u)));
   if (recs.some(r => r.type === 'game')) sendRoom(room); // fresh stats for the hover cards
@@ -261,6 +344,7 @@ const cleanText = (s, max) => String(s || '').replace(/\r\n/g, '\n').replace(/[\
 async function api(req, res, url) {
   const route = url.pathname.slice(4); // after /api
   const method = req.method;
+  let m;
   const me = await userFromReq(req);
   const body = method === 'POST' ? await readBody(req).catch(() => null) : null;
   if (method === 'POST' && !body) return json(res, 400, { error: 'Bad request.' });
@@ -310,7 +394,7 @@ async function api(req, res, url) {
   }
   if (route === '/me' && method === 'GET') {
     if (!me) return json(res, 200, { user: null });
-    return json(res, 200, { user: Object.assign(publicUser(me), { ach: me.ach || {}, logins: await store.loginsOf(me.id), hasPassword: !!me.passHash, countryRaw: me.country || null }) });
+    return json(res, 200, { user: Object.assign(publicUser(me), { id: me.id, ach: me.ach || {}, logins: await store.loginsOf(me.id), hasPassword: !!me.passHash, countryRaw: me.country || null }) });
   }
   if (route === '/version' && method === 'GET') return json(res, 200, { version: Sim.VERSION });
   // the flag next to your name: a two-letter country code, '-' to hide it, or '' to go back to your location
@@ -366,6 +450,73 @@ async function api(req, res, url) {
     me.title = key; markDirty(me);
     return json(res, 200, { ok: true, title: me.title });
   }
+  // ---- the store: Crests, unlocks and payments
+  if (route === '/wallet' && method === 'GET') return json(res, 200, me ? walletOf(me) : Object.assign(E.wallet(null, SETTINGS.locks, rot()), { guest: true, payments: PAY.configured() }));
+  if (route === '/unlock' && method === 'POST') {
+    if (!me) return json(res, 401, { error: 'Sign in to unlock things.' });
+    const err = E.buyWithCrests(me, String(body.key || '')); if (err) return json(res, 400, { error: err });
+    markDirty(me); flushUsers(); walletNote(me, 0, 'unlock');
+    return json(res, 200, walletOf(me));
+  }
+  if (route === '/checkout' && method === 'POST') {
+    if (!me) return json(res, 401, { error: 'Sign in first, so the purchase goes on your account.' });
+    if (!PAY.configured()) return json(res, 503, { error: 'Payments aren\'t set up on this server yet.' });
+    const kind = String(body.kind || ''), P = E.PRICES, bill = (me.social && me.social.bill) || {};
+    let o = null;
+    if (kind === 'supporter') { if (E.supActive(me)) return json(res, 400, { error: 'You\'re already a supporter. Thank you!' }); o = { mode: 'subscription', name: 'Bowfall Supporter (monthly)', amount: P.supporter }; }
+    else if (kind === 'founder') { if (me.career && me.career.founder) return json(res, 400, { error: 'You\'re already a founder.' }); if (!foundersOpen()) return json(res, 400, { error: 'The founder pack is no longer available.' }); o = { mode: 'payment', name: 'Bowfall Founder pack', amount: P.founder }; }
+    else if (kind === 'donate') { const a = Math.round(+body.amount); if (!(a >= P.donateMin && a <= P.donateMax)) return json(res, 400, { error: 'Pick an amount between £1 and £200.' }); o = { mode: 'payment', name: 'Support Bowfall', amount: a }; }
+    else if (kind === 'unlock') { const k = String(body.item || ''); if (!E.isPremium(k)) return json(res, 400, { error: 'That one is free for everyone.' }); if ((me.career.unlocks || []).includes(k) || me.career.founder) return json(res, 400, { error: 'You already own that.' }); o = { mode: 'payment', name: 'Unlock ' + ((Sim.ELEMENTS[k] || Sim.ROLES[k]).name), amount: P.unlock, item: k }; }
+    else return json(res, 400, { error: 'Unknown item.' });
+    const base = process.env.PUBLIC_URL ? process.env.PUBLIC_URL.replace(/\/$/, '') : (req.headers['x-forwarded-proto'] || 'http') + '://' + req.headers.host;
+    try { const sess = await PAY.checkout(Object.assign(o, { uid: me.id, kind, base, customer: bill.cust })); return json(res, 200, { url: sess.url }); }
+    catch (e) { console.error('Checkout:', e.message); return json(res, 502, { error: 'Could not start the payment. Try again in a moment.' }); }
+  }
+  if (route === '/billing' && method === 'POST') {
+    if (!me) return json(res, 401, { error: 'Sign in first.' });
+    const cust = me.social && me.social.bill && me.social.bill.cust; if (!cust || !PAY.configured()) return json(res, 400, { error: 'No membership to manage.' });
+    const base = process.env.PUBLIC_URL ? process.env.PUBLIC_URL.replace(/\/$/, '') : (req.headers['x-forwarded-proto'] || 'http') + '://' + req.headers.host;
+    try { const p2 = await PAY.portal(cust, base + '/play'); return json(res, 200, { url: p2.url }); } catch (e) { return json(res, 502, { error: 'Could not open the billing page.' }); }
+  }
+  // ---- player arenas
+  if (route === '/arenas' && method === 'GET') {
+    const which = url.searchParams.get('list') || 'pub';
+    let rows;
+    if (which === 'mine') { if (!me) return json(res, 200, { arenas: [], limit: 3 }); rows = await store.arenasOf(me.id); }
+    else rows = await store.arenasWhere(which === 'featured' ? 'featured' : which === 'ranked' ? 'ranked' : 'pub');
+    const sort = url.searchParams.get('sort');
+    if (sort === 'new') rows.sort((a, b) => b.updated - a.updated);
+    return json(res, 200, { arenas: rows.slice(0, 100).map(a => arenaOut(a, me)), limit: me ? arenaLimit(me) : 3, canPublish: canPublish(me) });
+  }
+  if ((m = route.match(/^\/arenas\/(A[0-9A-Za-z]{1,8}|\d{1,9})$/)) && method === 'GET') {
+    const id = /^\d+$/.test(m[1]) ? +m[1] : Sim.arenaId(m[1]); const a = id ? await store.arenaGet(id) : null;
+    if (!a) return json(res, 404, { error: 'No arena with that code.' });
+    return json(res, 200, { arena: arenaOut(a, me) });
+  }
+  if (route === '/arenas' && method === 'POST') {
+    if (!me) return json(res, 401, { error: 'Sign in to save arenas.' });
+    const c = Sim.cleanArena(body.def); if (c.errors.length) return json(res, 400, { error: c.errors[0], errors: c.errors });
+    const name = String(body.name || c.def.name).replace(/[\u0000-\u001f]/g, '').trim().slice(0, 32) || 'My arena'; c.def.name = name;
+    const pub = !!body.pub;
+    if (pub && !canPublish(me)) return json(res, 403, { error: 'Publishing arenas is a supporter perk. You can still save and share them by code.' });
+    if (body.id) {
+      const a = await store.arenaGet(+body.id); if (!a || a.userId !== me.id) return json(res, 404, { error: 'Not your arena.' });
+      await store.arenaUpdate(a.id, { name, def: c.def, pub });
+      const fresh = await store.arenaGet(a.id); useArenaRow(fresh); return json(res, 200, { arena: arenaOut(fresh, me) });
+    }
+    const mine = await store.arenasOf(me.id);
+    if (mine.length >= arenaLimit(me)) return json(res, 403, { error: canPublish(me) ? `You can keep up to ${arenaLimit(me)} arenas.` : `Free accounts can keep ${arenaLimit(me)} arenas; supporters get 25. Delete one, or overwrite it.` });
+    const id = await store.arenaCreate(me.id, name, c.def, pub); const fresh = await store.arenaGet(id); useArenaRow(fresh);
+    return json(res, 200, { arena: arenaOut(fresh, me) });
+  }
+  if ((m = route.match(/^\/arenas\/(\d{1,9})\/(delete|vote)$/)) && method === 'POST') {
+    if (!me) return json(res, 401, { error: 'Sign in first.' });
+    const a = await store.arenaGet(+m[1]); if (!a) return json(res, 404, { error: 'No arena with that code.' });
+    if (m[2] === 'delete') { if (a.userId !== me.id && !me.admin) return json(res, 403, { error: 'Not your arena.' }); await store.arenaUpdate(a.id, { deleted: true, pub: false, featured: false, ranked: false }); ARENAS.delete(a.id); RANKED_ARENAS = RANKED_ARENAS.filter(k => k !== arenaKey(a.id)); return json(res, 200, { ok: true }); }
+    const voters = new Set(a.voters || []); if (voters.has(me.id)) voters.delete(me.id); else voters.add(me.id);
+    await store.arenaUpdate(a.id, { voters: [...voters], votes: voters.size });
+    return json(res, 200, { votes: voters.size, voted: voters.has(me.id) });
+  }
   if (route === '/perf' && method === 'GET') {
     if (!me || !me.admin) return json(res, 403, { error: 'Only the game owner can see this.' });
     return json(res, 200, { now: PERF.now, history: PERF.hist, reports: PERF.reports.slice(-100), node: process.version, uptime: Math.round(process.uptime()) });
@@ -390,13 +541,14 @@ async function api(req, res, url) {
         isNew = true;
         if (old) { const d = TRAIN.dist[k], i = d.indexOf(old.s); if (i >= 0) d.splice(i, 1); }
         t[k] = { s: sc, g: Sim.trainGrade(k, sc), at: Date.now() }; markDirty(me);
+        const got = E.earnTraining(me, k, t[k].g); if (got) walletNote(me, got, 'train');
         trainInsert(k, sc);
       }
       best = t[k].s;
     }
     return json(res, 200, { kind: k, score: sc, best, isNew, g: Sim.trainGrade(k, best), top: trainTop(k, sc, !!me && best === sc), topBest: me ? trainTop(k, best, true) : null, n: TRAIN.dist[k].length + (me ? 0 : 1) });
   }
-  let m;
+  // (m is declared at the top of api)
   if ((m = route.match(/^\/users\/([A-Za-z0-9_-]{1,16})$/)) && method === 'GET') {
     const u = await store.userByName(m[1]);
     if (!u) return json(res, 404, { error: 'No player with that name.' });
@@ -415,20 +567,20 @@ async function api(req, res, url) {
       // a role's board: rating in that role, for players with enough games in it; win rate alongside
       const all = (await store.leaderboard('games', 100000)).map(u => live.get(u.id) || u);
       const rows = all.filter(u => ((u.career || {}).roles || {})[role] >= ROLE_MIN)
-        .map(u => { const c = u.career, g = c.roles[role], wn = (c.roleW || {})[role] || 0; return { name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, title: u.title, country: flagOf(u), level: levelOf(c).lv, value: Math.round((c.relo || {})[role] || ELO_START), games: g, wins: wn, rate: Math.round(wn / g * 100) }; })
+        .map(u => { const c = u.career, g = c.roles[role], wn = (c.roleW || {})[role] || 0; return { name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, ...stOf(u), title: u.title, country: flagOf(u), level: levelOf(c).lv, value: Math.round((c.relo || {})[role] || ELO_START), games: g, wins: wn, rate: Math.round(wn / g * 100) }; })
         .sort((a, b) => b.value - a.value).slice(0, 50);
       return board({ by: 'elo', role, min: ROLE_MIN, rows });
     }
     const rows = (await store.leaderboard(by, 50)).map(u => live.get(u.id) || u).filter(u => (u.career || {}).games > 0 && (by !== 'eloT' || (u.career || {}).eloT != null));
-    return board({ by, rows: rows.map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, title: u.title, country: flagOf(u), level: levelOf(u.career).lv, value: by === 'elo' || by === 'eloT' ? Math.round((u.career || {})[by] || ELO_START) : (u.career || {})[by] || 0, games: (u.career || {}).games || 0, wins: (u.career || {}).wins || 0, kills: (u.career || {}).kills || 0, rate: (u.career || {}).games ? Math.round(((u.career || {}).wins || 0) / u.career.games * 100) : 0 })) });
+    return board({ by, rows: rows.map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, ...stOf(u), title: u.title, country: flagOf(u), level: levelOf(u.career).lv, value: by === 'elo' || by === 'eloT' ? Math.round((u.career || {})[by] || ELO_START) : (u.career || {})[by] || 0, games: (u.career || {}).games || 0, wins: (u.career || {}).wins || 0, kills: (u.career || {}).kills || 0, rate: (u.career || {}).games ? Math.round(((u.career || {}).wins || 0) / u.career.games * 100) : 0 })) });
   }
   // single-game records
   if (route === '/highscores' && method === 'GET') {
     const all = (await store.leaderboard('games', 100000)).map(u => live.get(u.id) || u);
     const top = k => all.filter(u => ((u.career || {}).best || {})[k] > 0).sort((a, b) => b.career.best[k] - a.career.best[k]).slice(0, 10)
-      .map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, country: flagOf(u), level: levelOf(u.career).lv, value: u.career.best[k] }));
+      .map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, ...stOf(u), country: flagOf(u), level: levelOf(u.career).lv, value: u.career.best[k] }));
     const peak = all.filter(u => (u.career || {}).eloPeak).sort((a, b) => b.career.eloPeak - a.career.eloPeak).slice(0, 10)
-      .map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, country: flagOf(u), level: levelOf(u.career).lv, value: Math.round(u.career.eloPeak) }));
+      .map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, ...stOf(u), country: flagOf(u), level: levelOf(u.career).lv, value: Math.round(u.career.eloPeak) }));
     return board({ kills: top('k'), dmg: top('dmg'), ring: top('ring'), peak });
   }
   if (route === '/look' && method === 'POST') {
@@ -442,7 +594,7 @@ async function api(req, res, url) {
       if (!('border' in body)) return json(res, 200, { ok: true, avatar: me.ach.avatar });
     }
     if ('finish' in body || 'show' in body) { // banner finish and showcase medals, checked against what they've earned
-      if ('finish' in body) { const f = body.finish ? String(body.finish) : null; if (f && !(Sim.BANNER_FINISH[f] && Sim.BANNER_FINISH[f].tiers <= Sim.tierTotal(me.ach))) return json(res, 400, { error: "You haven't unlocked that finish." }); me.ach.finish = f; }
+      if ('finish' in body) { const f = body.finish ? String(body.finish) : null; if (f && !Sim.finishAllowed(f, me.ach, E.statusOf(me))) return json(res, 400, { error: "You haven't unlocked that finish." }); me.ach.finish = f; }
       if ('show' in body) { const tier = me.ach.tier || {}; me.ach.show = (Array.isArray(body.show) ? body.show : []).map(String).filter(k => tier[k] > 0).slice(0, 3); }
       markDirty(me);
       for (const r of rooms.values()) for (const c of r.clients) if (c.user && c.user.id === me.id) { Object.assign(c, lookOf(me)); if (c.pid) Sim.setMeta(r.world, c.pid, lookOf(me)); sendRoom(r); }
@@ -571,6 +723,12 @@ const server = http.createServer(async (req, res) => {
   if (url.pathname.startsWith('/auth/')) {
     try { return await oauth(req, res, url); } catch (e) { console.error(e); return redirect(res, '/#/login?err=' + encodeURIComponent('Something went wrong signing in.')); }
   }
+  if (url.pathname === '/api/stripe/webhook' && req.method === 'POST') {
+    const raw = await new Promise((resolve, reject) => { const ch = []; let n = 0; req.on('data', c => { n += c.length; if (n > 1e6) { reject(new Error('too big')); req.destroy(); } else ch.push(c); }); req.on('end', () => resolve(Buffer.concat(ch).toString('utf8'))); req.on('error', reject); }).catch(() => null);
+    if (raw == null || !PAY.verify(raw, req.headers['stripe-signature'])) { res.writeHead(400); return res.end('bad signature'); }
+    try { await stripeEvent(JSON.parse(raw)); res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end('{"ok":true}'); }
+    catch (e) { console.error('Stripe webhook:', e.message); res.writeHead(500); return res.end('error'); } // Stripe retries later
+  }
   if (url.pathname.startsWith('/api/')) {
     try { return await api(req, res, url); } catch (e) { console.error(e); return json(res, 500, { error: 'Something went wrong on the server.' }); }
   }
@@ -611,7 +769,7 @@ const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 4096,
   perMessageDeflate: { threshold: 200, zlibDeflateOptions: { level: 1, memLevel: 7 }, serverMaxWindowBits: 12, clientNoContextTakeover: true, concurrencyLimit: 16 } });
 const rooms = new Map();
 // friends, parties and matchmaking (lib/social.js)
-const social = require('./lib/social')({ store, track, markDirty, send, Sim, levelOf, flagOf, ELO_START, ratingOf, keyFor, rooms, createRoom, sendRoom, sysChat, broadcast, live, loadGuest });
+const social = require('./lib/social')({ rankedMaps: () => rankedMaps(), statusOf: u => E.statusOf(u), store, track, markDirty, send, Sim, levelOf, flagOf, ELO_START, ratingOf, keyFor, rooms, createRoom, sendRoom, sysChat, broadcast, live, loadGuest });
 
 function makeCode() {
   const L = 'ABCDEFGHJKMNPQRSTUVWXYZ';
@@ -671,12 +829,12 @@ function roomInfo(room, ws) {
   return {
     t: 'room', code: room.code, host: h ? h.pid : null, hostName: h ? h.name : '', amHost: room.host === ws.cid,
     name: room.name, pub: room.pub, locked: !!room.pwHash, max: room.max || 8, people: room.clients.size,
-    ranked: room.ranked ? room.ranked.mode : undefined,
+    ranked: room.ranked ? room.ranked.mode : undefined, arena: arenaInfo(room.world.cfg.map),
     // the ranked draft: seconds left to choose, and who's ready
     draft: room.ranked && room.ranked.draftUntil && !room.ranked.go ? Math.max(0, Math.ceil((room.ranked.draftUntil - Date.now()) / 1000)) : undefined,
     ready: room.ranked && room.ranked.ready ? [...room.clients].filter(c => room.ranked.ready.has(c.cid) && c.pid).map(c => c.pid) : undefined,
     cards: Object.fromEntries([...room.clients].map(c => [c.pid ? 'p' + c.pid : 'c' + c.cid, cardOf(c)]).concat([...(room.ai || new Map())].map(([pid, u]) => ['p' + pid, Object.assign(cardOf({ user: u }), { ai: 1 })]))),
-    spec: [...room.clients].filter(c => !c.pid).map(c => ({ cid: c.cid, n: c.name, h: c.cid === room.host ? 1 : 0, you: c === ws ? 1 : 0, cc: c.cc || undefined, lv: c.lv || undefined, bd: c.bd || undefined, na: c.na || undefined, ow: c.ow || undefined, fin: c.fin || undefined, sc: c.sc && c.sc.length ? c.sc : undefined })),
+    spec: [...room.clients].filter(c => !c.pid).map(c => ({ cid: c.cid, n: c.name, h: c.cid === room.host ? 1 : 0, you: c === ws ? 1 : 0, cc: c.cc || undefined, lv: c.lv || undefined, bd: c.bd || undefined, sp: c.sp || undefined, fd: c.fd || undefined, pt: c.pt || undefined, na: c.na || undefined, ow: c.ow || undefined, fin: c.fin || undefined, sc: c.sc && c.sc.length ? c.sc : undefined })),
   };
 }
 // what the lobby's hover card shows about someone: accounts get their record, guests just what their browser says they've earned
@@ -704,11 +862,12 @@ function joinTeam(room, ws, team) {
     if (!bot) return 'That team is full.';
     Sim.removeBot(w, bot.id);
   }
+  if (room.ranked) lockedFix(ws);
   const p = Sim.join(w, { name: ws.name, team, element: ws.el, role: ws.ro });
   if (!p) return 'That team is full.';
   ws.pid = p.id;
   if (ws.title) Sim.setTitle(w, p.id, ws.title);
-  Sim.setMeta(w, p.id, { cc: ws.cc, lv: ws.lv, bd: ws.bd, na: ws.na, ow: ws.ow });
+  Sim.setMeta(w, p.id, { cc: ws.cc, lv: ws.lv, bd: ws.bd, na: ws.na, ow: ws.ow, sp: ws.sp, fd: ws.fd, pt: ws.pt });
   send(ws, { t: 'you', id: p.id });
   return null;
 }
@@ -746,6 +905,9 @@ const CMD_HELP = {
   admin: ['/kick <name> – remove someone from this game', '/mute <name> [minutes] – stop someone chatting here (default 10)', '/unmute <name>',
     '/ban <name> – ban an account (or a guest, until the server restarts) and kick them from every game', '/unban <name>',
     '/announce <text> – message every game on the server', '/host <name> – hand this game to someone', '/start – start the match', '/end – end the match and go back to the lobby',
+    '/locks on|off – whether ranked drafts respect unlocks (off: everything free)', '/rotation [element role|clear] – show or pin this week\'s free picks', '/founders on|off – open or close Founder pack sales',
+    '/grant <name> supporter <months>|founder|patron|crests <n>|unlock <key>|revoke <supporter|founder|patron> – for testing and support',
+    '/feature <arena code> [ranked|off] – feature a player arena (ranked: also in the ranked map pool)',
     '/perf – how hard the server is working right now, and the last lag reports from players', '/rooms – list the games running on the server', '/who <name> – ratings, games and where they are playing', '/setelo <name> <rating> [team] – set an account\'s 1v1 (or team) rating'],
 };
 function findIn(clients, q) {
@@ -783,6 +945,45 @@ async function chatCommand(room, ws, text) {
       if (u && u.social && u.social.ban) { delete u.social.ban; markDirty(u); flushUsers(); return tell(`${u.name} is no longer banned.`); }
       for (const [k, n] of guestBans) if (n.toLowerCase() === name.toLowerCase()) { guestBans.delete(k); return tell(`${n} (guest) is no longer banned.`); }
       return tell(`"${name}" isn't banned.`);
+    }
+    case 'locks': {
+      if (args[0] === 'on' || args[0] === 'off') { SETTINGS.locks = args[0] === 'on'; await store.setSetting('locks', { on: SETTINGS.locks }); for (const u of live.values()) if (!u.guest) walletNote(u, 0, null); }
+      return tell(`Locks are ${SETTINGS.locks ? 'ON: ranked drafts use what each player owns plus this week\'s free picks' : 'OFF: everything is free to play'}.`);
+    }
+    case 'rotation': {
+      if (args[0] === 'clear') { SETTINGS.rotPin = null; await store.setSetting('rotPin', null); }
+      else if (args.length >= 1) {
+        const el = args.find(a => Sim.ELEMENTS[a] && Sim.ELEMENTS[a].premium) || null, ro = args.find(a => Sim.ROLES[a] && Sim.ROLES[a].premium) || null;
+        if (!el && !ro) return tell('Usage: /rotation <premium element> <premium role>, or /rotation clear');
+        SETTINGS.rotPin = { el, ro }; await store.setSetting('rotPin', SETTINGS.rotPin);
+      }
+      const R = rot(); return tell(`Free this week${R.pinned ? ' (pinned)' : ''}: ${R.el ? Sim.ELEMENTS[R.el].name : '–'} and ${R.ro ? Sim.ROLES[R.ro].name : '–'}.`);
+    }
+    case 'founders': {
+      if (args[0] === 'on' || args[0] === 'off') { SETTINGS.foundersOff = args[0] === 'off'; await store.setSetting('foundersOff', SETTINGS.foundersOff); }
+      return tell(`Founder pack sales are ${foundersOpen() ? 'open' : 'closed'}.`);
+    }
+    case 'grant': {
+      const name = args[0], what = (args[1] || '').toLowerCase(), n = args[2];
+      if (!name || !what) return tell('Usage: /grant <name> supporter <months>|founder|patron|crests <n>|unlock <key>|revoke <what>');
+      const u = track(await store.userByName(name).catch(() => null)); if (!u) return tell(`No account called "${name}".`);
+      const c = u.career || (u.career = {});
+      if (what === 'supporter') { const sp = c.sup || (c.sup = {}); sp.active = true; sp.since = sp.since || Date.now(); sp.months = Math.max(0, parseInt(n, 10) || 1); sp.until = Date.now() + 31 * 86400000; }
+      else if (what === 'founder') { if (!c.founder) { c.founder = Date.now(); E.give(u, E.FOUNDER_CRESTS, 'founder'); } }
+      else if (what === 'patron') c.patron = true;
+      else if (what === 'crests') { const k = parseInt(n, 10); if (!isFinite(k)) return tell('Usage: /grant <name> crests <n> (can be negative)'); E.give(u, k, 'admin'); }
+      else if (what === 'unlock') { if (!E.unlock(u, String(n || ''))) return tell('Not a premium element or role, or already owned.'); }
+      else if (what === 'revoke') { if (n === 'supporter' && c.sup) c.sup.active = false; else if (n === 'founder') c.founder = null; else if (n === 'patron') c.patron = false; else return tell('Usage: /grant <name> revoke supporter|founder|patron'); }
+      else return tell('Unknown grant. Try supporter, founder, patron, crests, unlock or revoke.');
+      markDirty(u); flushUsers(); walletNote(u, 0, null);
+      const w = walletOf(u); return tell(`${u.name}: ${w.crests} Crests · unlocks ${w.unlocks.join(', ') || 'none'}${w.founder ? ' · founder' : ''}${w.sup.active ? ` · supporter (${w.sup.months} months)` : ''}${w.patron ? ' · patron' : ''}.`);
+    }
+    case 'feature': {
+      const id = Sim.arenaId(args[0]); const a = id ? await store.arenaGet(id) : null; if (!a) return tell('Usage: /feature <arena code> [ranked|off]');
+      const mode = (args[1] || '').toLowerCase();
+      const f = mode === 'off' ? { featured: false, ranked: false } : mode === 'ranked' ? { featured: true, ranked: true, pub: true } : { featured: true, pub: true };
+      await store.arenaUpdate(a.id, f); await loadRankedArenas();
+      return tell(`${a.name} (${Sim.arenaCode(a.id)}) by ${a.author}: ${mode === 'off' ? 'no longer featured' : mode === 'ranked' ? 'featured and in the ranked map pool' : 'featured'}.`);
     }
     case 'perf': {
       const h = PERF.hist.slice(-30), s = PERF.now || {};
@@ -890,7 +1091,12 @@ async function handle(ws, m) {
       if (PERF.reports.length > 300) PERF.reports.shift();
       break;
     }
-    case 'loadout': ws.el = String(m.el); ws.ro = String(m.ro); if (ws.pid) Sim.setLoadout(w, ws.pid, ws.el, ws.ro); if (room.ranked && !room.ranked.go) sendRoom(room); break;
+    case 'loadout': {
+      const el = String(m.el), ro = String(m.ro), u = ws.user || ws.guest;
+      // ranked drafts: only what you own, this week's free picks, or everything if locks are off
+      if (room.ranked && SETTINGS.locks && !(E.owns(u, el, true, rot()) && E.owns(u, ro, true, rot()))) { send(ws, { t: 'note', msg: 'That one is locked. Unlock it in the Store, or pick from your own and this week\'s free ones.' }); break; }
+      ws.el = el; ws.ro = ro; if (ws.pid) Sim.setLoadout(w, ws.pid, ws.el, ws.ro); if (room.ranked && !room.ranked.go) sendRoom(room); break;
+    }
     case 'title': {
       // accounts can only wear titles they've earned on this server; guests pick from their own browser's list
       const v = m.v ? String(m.v) : null;
@@ -935,7 +1141,7 @@ async function handle(ws, m) {
       const mute = room.muted && room.muted.get(ws.name.toLowerCase());
       if (mute && mute > now) { send(ws, { t: 'chat', sys: 1, m: `You're muted for ${Math.ceil((mute - now) / 60000)} more minute(s).` }); break; }
       const p = ws.pid && w.players.find(q => q.id === ws.pid);
-      broadcast(room, { t: 'chat', n: ws.name, tm: p ? p.team : 'spec', c: p ? p.color : null, m: text, acc: ws.user ? 1 : 0, adm: ws.user && ws.user.admin ? 1 : undefined });
+      broadcast(room, { t: 'chat', n: ws.name, tm: p ? p.team : 'spec', c: p ? p.color : null, m: text, acc: ws.user ? 1 : 0, adm: ws.user && ws.user.admin ? 1 : undefined, sp: ws.sp || undefined, fd: ws.fd || undefined, pt: ws.pt || undefined });
       social.aiReply(room, text);
       break;
     }
@@ -951,14 +1157,19 @@ async function handle(ws, m) {
       if (!isHost) break;
       const before = cfgState(w);
       if (m.diff) Sim.setBotDifficulty(w, String(m.diff));
-      if (m.map) Sim.setMap(w, String(m.map));
+      if (m.map && Sim.MAPS[String(m.map)] && !Sim.MAPS[String(m.map)].hidden && Sim.setMap(w, String(m.map)) && before.map !== String(m.map) && Sim.MAPS[before.map] && Sim.MAPS[before.map].custom) sendRoom(room);
+      if (m.arena != null && w.match.ph === 'lobby') { // a player arena, by code (A1F) or id
+        const id = typeof m.arena === 'number' ? m.arena : Sim.arenaId(m.arena);
+        const a = id ? await loadArena(id) : null;
+        if (!a) send(ws, { t: 'note', msg: 'No arena with that code.' }); else if (Sim.setMap(w, arenaKey(a.id))) sendRoom(room);
+      }
       if (m.ptw) Sim.setPointsToWin(w, m.ptw | 0);
       if (m.opt && typeof m.opt === 'object') for (const [k, v] of Object.entries(m.opt)) Sim.setOption(w, String(k), String(v));
       announceCfg(room, before, cfgState(w));
       break;
     }
     case 'hcap': if (isHost) Sim.setHandicap(w, String(m.id), m.v | 0); break;
-    case 'start': if (isHost) Sim.startMatch(w); break;
+    case 'start': if (isHost) { Sim.startMatch(w); const A = Sim.MAPS[w.cfg.map]; if (A && A.custom && w.match.ph !== 'lobby') { const a = ARENAS.get(+w.cfg.map.slice(1)); if (a) { a.plays = (a.plays || 0) + 1; store.arenaUpdate(a.id, { plays: a.plays }).catch(() => {}); } } } break;
     case 'lobby': if (isHost) Sim.toLobby(w); break;
     case 'restart': if (isHost && w.match.ph === 'over') Sim.resetMatch(w); break;
   }
@@ -1003,6 +1214,7 @@ setInterval(() => {
 const achCounts = room => !!room.ranked || room.world.players.every(p => !p.bot);
 function achNote(u, fresh) { // tell the owner (an account or a guest) what they just reached
   if (!fresh.length) return;
+  if (!u.guest && !(u.career && u.career.ai) && live.get(u.id) === u) { const n = E.give(u, E.EARN.achTier * fresh.length, 'ach'); markDirty(u); setTimeout(() => walletNote(u, n, 'ach'), 0); }
   for (const r of rooms.values()) for (const c of r.clients) if ((c.user && c.user === u) || (c.guest && c.guest === u)) send(c, { t: 'ach', keys: fresh, ach: u.ach });
 }
 function creditAchievements(room, evs) {
@@ -1090,6 +1302,8 @@ function sendSnap(room, cur, evs) {
   const prev = room.lastSnap; room.lastSnap = cur;
   if (!zc.length) { if (room.z) { room.z.d.close(); room.z = null; } return; }
   const fresh = !room.z || !prev || zc.some(c => c.zRoom !== room.z);
+  // a full snapshot every 10 seconds as well, so the stream can never drift for long whatever happens
+  const key = !fresh && room.tick - (room.zKey || 0) >= 600; if (fresh || key) room.zKey = room.tick;
   if (fresh) {
     if (room.z) room.z.d.close();
     const Z = room.z = { d: zlib.createDeflateRaw({ level: 1, memLevel: 7, windowBits: 12 }), out: [] };
@@ -1097,7 +1311,7 @@ function sendSnap(room, cur, evs) {
     for (const c of zc) c.zRoom = Z;
   }
   const Z = room.z, t0 = process.hrtime.bigint();
-  Z.d.write(fresh ? frameJson({ t: 'snap', k: room.tick, s: cur, f: 1, ev: evs }) : frameDelta({ t: 'snap', k: room.tick, d: Sim.snapDelta(prev, cur), ev: evs }));
+  Z.d.write(fresh || key ? frameJson({ t: 'snap', k: room.tick, s: cur, f: 1, ev: evs }) : frameDelta({ t: 'snap', k: room.tick, d: Sim.snapDelta(prev, cur), ev: evs }));
   // the stream finishes this update on a helper thread; updates come out in order, the same bytes for everyone
   Z.d.flush(zlib.constants.Z_SYNC_FLUSH, () => {
     const body = Buffer.concat(Z.out.splice(0)); if (!body.length) return;
@@ -1153,7 +1367,7 @@ function gameLoop() {
 }
 setTimeout(gameLoop, 5);
 
-store.init().then(() => store.setOnlyAdmin(OWNER)).then(() => social.initAI()).then(() => computeRanks()).then(() => {
+store.init().then(() => loadSettings()).then(() => loadRankedArenas()).then(() => store.setOnlyAdmin(OWNER)).then(() => social.initAI()).then(() => computeRanks()).then(() => {
   server.listen(PORT, () => console.log(`Bowfall server running on http://localhost:${PORT} (${store.kind === 'postgres' ? 'Postgres database' : 'local database file'})`));
 }).catch(e => { console.error('Could not open the database:', e.message); process.exit(1); });
 process.on('SIGTERM', () => { flushUsers().finally(() => process.exit(0)); });

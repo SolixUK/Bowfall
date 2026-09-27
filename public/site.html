@@ -114,6 +114,7 @@
   .owner { display: inline-block; width: 1.15em; height: .95em; margin-left: 5px; vertical-align: -1px; filter: drop-shadow(0 0 3px rgba(255,207,90,.45)); }
   .owner.big { width: 38px; height: 30px; margin-left: 10px; vertical-align: middle; }
   .owner svg { width: 100%; height: 100%; display: block; }
+  .emb { display: inline-block; width: 1em; height: 1em; margin-left: 4px; vertical-align: -2px; } .emb svg { width: 100%; height: 100%; display: block; }
   .post { display: grid; grid-template-columns: 160px 1fr; gap: 16px; }
   .post .by { border-right: 1px solid var(--line); padding-right: 14px; }
   .post .by b { font: 700 17px var(--display); display: block; }
@@ -214,6 +215,13 @@ document.addEventListener('error', e => { const t = e.target; if (t && t.classLi
 const RANKS = [[1, 'Recruit', '#a8835a'], [5, 'Bronze', '#cd8a4e'], [10, 'Silver', '#c9d1dc'], [15, 'Gold', '#f2c14e'], [20, 'Platinum', '#7fe0d8'], [30, 'Diamond', '#9fb8ff'], [45, 'Master', '#ff6a8a']];
 const rankOf = lv => { let r = RANKS[0]; for (const x of RANKS) if (lv >= x[0]) r = x; return { name: r[1], col: r[2] }; };
 // the game's owner: a gold crown with an O after their name
+// supporter, founder and patron emblems (the same as in the game)
+const SUP_COL = [null, ['#e0a060', '#7a4418'], ['#dfe6ef', '#6b7788'], ['#ffcf5a', '#8a5a00'], ['#8ff3ff', '#2a7f95']], SUP_NAME = [null, 'Supporter', 'Silver supporter', 'Gold supporter', 'Diamond supporter'];
+const status = (r, big) => { if (!r) return ''; const sz = big ? ' style="width:30px;height:30px"' : ''; let h = '';
+  if (r.fd) h += `<span class="emb" title="Founder"${sz}><svg viewBox="0 0 20 20"><path d="M10 1.5a8.5 8.5 0 1 0 0 17a8.5 8.5 0 1 0 0-17z" fill="#8e1730" stroke="#ffcf5a" stroke-width="1.3"/><path d="M4.8 15.2l9.3-9.3M14.1 5.9l-3.2.4M14.1 5.9l-.4 3.2M4.8 15.2l.1-2.4M4.8 15.2l2.4-.1M6.3 13.7l.1-2.3M6.3 13.7l2.3-.1" stroke="#ffcf5a" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg></span>`;
+  if (r.sp && SUP_COL[r.sp]) h += `<span class="emb" title="${SUP_NAME[r.sp]}"${sz}><svg viewBox="0 0 20 20"><path d="M10 1.2l7.2 2.7v5.4c0 4.4-3 7.7-7.2 9.5C5.8 17 2.8 13.7 2.8 9.3V3.9z" fill="${SUP_COL[r.sp][0]}" stroke="${SUP_COL[r.sp][1]}" stroke-width="1.2"/><path d="M10 5.1l1.35 2.9 3.15.35-2.35 2.1.65 3.1L10 12l-2.8 1.55.65-3.1-2.35-2.1 3.15-.35z" fill="${SUP_COL[r.sp][1]}"/></svg></span>`;
+  if (r.pt) h += `<span class="emb" title="Patron"${sz}><svg viewBox="0 0 20 20"><path d="M10 17.2S2.5 12.6 2.5 7.4C2.5 4.9 4.3 3.3 6.4 3.3c1.5 0 2.8.8 3.6 2.1.8-1.3 2.1-2.1 3.6-2.1 2.1 0 3.9 1.6 3.9 4.1 0 5.2-7.5 9.8-7.5 9.8z" fill="#ff6f91" stroke="#9c2446" stroke-width="1.1"/></svg></span>`;
+  return h; };
 const crown = (on, big) => (on ? `<span class="owner${big ? ' big' : ''}" title="Game owner"><svg viewBox="0 0 20 16" aria-hidden="true"><path d="M1.5 4.5l4.3 3.6L10 1.5l4.2 6.6 4.3-3.6-1.7 9.5H3.2z" fill="#ffcf5a" stroke="#a86f00" stroke-width="1" stroke-linejoin="round"/><circle cx="10" cy="10.2" r="2.1" fill="none" stroke="#7a4a00" stroke-width="1.5"/></svg></span>` : '');
 const badge = (lv, big) => (lv ? `<span class="rkb${big ? ' big' : ''}" style="--rc:${rankOf(lv).col}" title="${rankOf(lv).name} · level ${lv}">${lv}</span>` : '');
 // every two-letter region the browser knows a name for, for the flag picker
@@ -302,7 +310,7 @@ const pages = {
       <div class="section-h"><h2>The arenas</h2></div>
       <div class="arenas">${Sim.MAP_KEYS.map(k => `<div class="arena" style="--c:${THEME[Sim.MAPS[k].theme] || '#5f9a3e'}"><b>${esc(Sim.MAPS[k].name)}</b><span class="muted">${esc(Sim.MAPS[k].desc)}</span></div>`).join('')}</div>
       <div class="grid g3" style="margin-top:16px">
-        <div class="card"><div class="section-h" style="margin-top:0"><h2>Top players</h2><a href="#/leaderboard">Leaderboard</a></div>${(lb.rows || []).length ? `<ol class="toplist">${lb.rows.slice(0, 6).map(r => `<li>${badge(r.level)}${flag(r.country)}<a href="#/u/${esc(r.name)}"><b>${esc(r.name)}</b></a>${crown(r.own)}${r.ai ? '<span class="tag">AI</span>' : ''}<span class="v">${r.value}</span></li>`).join('')}</ol>` : '<p class="muted">Nobody yet.</p>'}</div>
+        <div class="card"><div class="section-h" style="margin-top:0"><h2>Top players</h2><a href="#/leaderboard">Leaderboard</a></div>${(lb.rows || []).length ? `<ol class="toplist">${lb.rows.slice(0, 6).map(r => `<li>${badge(r.level)}${flag(r.country)}<a href="#/u/${esc(r.name)}"><b>${esc(r.name)}</b></a>${crown(r.own)}${status(r)}${r.ai ? '<span class="tag">AI</span>' : ''}<span class="v">${r.value}</span></li>`).join('')}</ol>` : '<p class="muted">Nobody yet.</p>'}</div>
         <div class="card"><div class="section-h" style="margin-top:0"><h2>Open games</h2><a href="#/servers">All games</a></div>${roomTable(rooms.rooms.slice(0, 5), true)}</div>
         <div class="card"><div class="section-h" style="margin-top:0"><h2>From the forum</h2><a href="#/forum">Forum</a></div>${threadList(forum.recent || [], true)}</div>
       </div>`;
@@ -322,7 +330,7 @@ const pages = {
     const L = { elo: '1v1 rating', eloT: 'Team rating', wins: 'Game wins', kills: 'Knockouts', matchWins: 'Match wins', games: 'Games played', ring: 'Ring-outs', bulls: 'Bullseyes' };
     const [d, hs] = await Promise.all([api('/leaderboard?by=' + (role ? 'elo&role=' + role : by)), by === 'records' ? api('/highscores') : null]);
     const tabs = `<div class="tabs">${Object.entries(L).map(([k, v]) => `<button type="button" data-by="${k}" class="${k === by ? 'on' : ''}">${v}</button>`).join('')}<button type="button" data-by="role" class="${role ? 'on' : ''}">By role</button><button type="button" data-by="records" class="${by === 'records' ? 'on' : ''}">Highscores</button></div>`;
-    const who = r => `${badge(r.level)}${flag(r.country)}<a href="#/u/${esc(r.name)}"><b>${esc(r.name)}</b></a>${crown(r.own)}${r.ai ? '<span class="tag" title="An AI player: fills matchmaking games when nobody close to your rating is searching">AI</span>' : ''}${r.title ? `<span class="tag">${esc(titleName(r.title))}</span>` : ''}`;
+    const who = r => `${badge(r.level)}${flag(r.country)}<a href="#/u/${esc(r.name)}"><b>${esc(r.name)}</b></a>${crown(r.own)}${status(r)}${r.ai ? '<span class="tag" title="An AI player: fills matchmaking games when nobody close to your rating is searching">AI</span>' : ''}${r.title ? `<span class="tag">${esc(titleName(r.title))}</span>` : ''}`;
     let body;
     if (by === 'records') {
       const board = (title, list, unit) => { const max = list.length ? list[0].value : 1;
@@ -350,7 +358,7 @@ const pages = {
     const bars = (obj, names) => { const e = Object.entries(obj || {}).sort((a, b) => b[1] - a[1]).slice(0, 5), max = e.length ? e[0][1] : 1;
       return e.length ? `<div class="bars">${e.map(([k, v]) => `<div><span>${esc((names[k] || {}).name || k)}</span><i style="width:${Math.max(4, v / max * 100)}%"></i><span class="muted">${v}</span></div>`).join('')}</div>` : '<p class="muted">No games yet.</p>'; };
     app.innerHTML = (movedNote ? `<div class="card" style="margin-bottom:16px;border-left:3px solid var(--gold)">Your guest rating (<b>${movedNote.elo}</b>) and ${movedNote.games} games moved to this account.</div>` : '') + `
-      <div class="section-h" style="margin-top:0"><div><h1 style="font-size:44px;display:flex;align-items:center;flex-wrap:wrap">${badge(u.level && u.level.lv, true)}${u.country ? flag(u.country).replace('width="20" height="15"', 'width="32" height="24" style="width:32px;height:24px;vertical-align:2px"') : ''}${esc(u.name)}${crown(u.admin, true)}</h1>
+      <div class="section-h" style="margin-top:0"><div><h1 style="font-size:44px;display:flex;align-items:center;flex-wrap:wrap">${badge(u.level && u.level.lv, true)}${u.country ? flag(u.country).replace('width="20" height="15"', 'width="32" height="24" style="width:32px;height:24px;vertical-align:2px"') : ''}${esc(u.name)}${crown(u.admin, true)}${status(u.status, true)}</h1>
         <p class="muted" style="margin:6px 0 0">${u.title ? `<span class="tag" style="margin:0 6px 0 0">${esc(titleName(u.title))}</span>` : ''}${u.admin ? '<span class="tag admin" style="margin:0 6px 0 0">Game owner</span>' : ''}${u.ai ? '<span class="tag" style="margin:0 6px 0 0">AI player</span>An AI opponent that fills matchmaking games. ' : ''}Joined ${new Date(u.created).toLocaleDateString()}</p>
         ${u.level ? `<div style="width:380px;max-width:100%;margin-top:10px"><div class="muted" style="font-size:13px;display:flex;justify-content:space-between;gap:12px"><span>${rankOf(u.level.lv).name} · level ${u.level.lv}</span><span>${u.level.xp - u.level.cur} / ${u.level.next - u.level.cur} xp to level ${u.level.lv + 1}</span></div><div class="xp"><i style="width:${Math.round((u.level.xp - u.level.cur) / Math.max(1, u.level.next - u.level.cur) * 100)}%"></i></div></div>` : ''}</div>
         ${mine ? '<a class="btn" href="/play">Play</a>' : ''}</div>

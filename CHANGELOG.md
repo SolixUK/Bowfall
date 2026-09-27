@@ -2,6 +2,27 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
 
+## 0.21.0
+
+**Crests and unlocks**
+- Accounts earn **Crests** from ranked games and custom games without bots (a game 8, won 16; a match 25, won 50; +100 for the first match win of the day), achievement tiers (40 each) and first B/A/S training grades (50/100/200).
+- Premium elements (Stone, Void, Shadow, Blood) and roles (Assassin, Ninja, Crossbowman) can be unlocked for 4,000 Crests or £2.49. One premium element and role are free each week.
+- **Locks are off** until the owner types `/locks on`: everything stays free, and unlocks bought now are kept. With locks on they only apply in ranked drafts (locked chips are greyed out; the server checks too). Practice, training and custom games always have everything.
+
+**Supporters, Founders and Patrons** (cosmetic only)
+- **Supporter** (£4 a month): an emblem everywhere your name appears, bronze → silver (3 months) → gold (6) → diamond (12); the animated **Aurora** banner finish; 1,000 Crests a month and +25% Crests.
+- **Founder pack** (£15, limited): every element and role for good, the Founder emblem, the **Founder** finish and 2,000 Crests.
+- **Donations** (any amount): the Patron heart and the **Patron rose** finish.
+- A new **Store** screen on the main menu. Payments use Stripe Checkout with a signed webhook; nothing is charged until the owner adds Stripe keys (HOSTING.md). Emblems also show on the website's leaderboards and profiles.
+- Owner commands: `/locks`, `/rotation`, `/founders`, `/grant`.
+
+**Arena builder**
+- Build your own arena on the main menu: sinkholes, water, lava, bogs, boulders, mushrooms, gates, thorns, a football and any arena's look. It mirrors itself for fairness and is checked as you go (clear spawns, a path between the teams, no cut-off areas, size and count limits).
+- Test it against bots, save it (3 on a free account, 25 for supporters) with a share code, host custom games on it by code, and (supporters) publish it to the **Community** tab where players like and play arenas. The owner can feature arenas and add them to the ranked map pool (`/feature`).
+
+**Other**
+- The compressed update stream also sends a full snapshot every 10 seconds, so a game's view can never drift for long.
+
 ## 0.20.0
 
 **Lighter on the server and the network** (gameplay unchanged)

@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.20.0';
+const VERSION = '0.21.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -218,6 +218,61 @@ MAPS.holes = buildMap({
     power: [{ x: AW - 50, y: AH - 50 }], amberY: [WALL + 44, 330],
   });
 const MAP_KEYS = Object.keys(MAPS).filter(k => !MAPS[k].hidden);
+
+// ---- player-made arenas (the Arena builder). A definition lists one half, like the built-in arenas, and is checked
+// and tidied by cleanArena before it can be played: sizes and counts are capped, the spawns must be clear, and the
+// two sides must be able to reach each other on foot. registerArena() adds it to MAPS under a key like 'a12'.
+const ARENA_LIMITS = { haz: 12, pillars: 8, bumpers: 4, spikes: 4, portals: 2 };
+const ARENA_THEMES = ['meadow', 'spring', 'rift', 'beach', 'mill', 'ruins', 'grove', 'pitch'];
+const HALF = AW / 2;
+function cleanArena(def) {
+  const errors = [], d = def && typeof def === 'object' ? def : {};
+  const num = (v, a, b, dflt) => { v = +v; return Number.isFinite(v) ? Math.round(Math.max(a, Math.min(b, v))) : dflt; };
+  const list = (a, n) => (Array.isArray(a) ? a.slice(0, n) : []);
+  const inX = x => num(x, WALL, HALF, HALF / 2), inY = y => num(y, WALL, AH - WALL, AH / 2);
+  const atCentre = o => Math.hypot(o.x - HALF, o.y - AH / 2) < 12;
+  const out = { v: 1, name: String(d.name || 'My arena').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 32) || 'My arena', theme: ARENA_THEMES.includes(d.theme) ? d.theme : 'meadow',
+    haz: [], pillars: [], bumpers: [], spikes: [], portals: [], ball: !!d.ball };
+  if (Array.isArray(d.haz) && d.haz.length > ARENA_LIMITS.haz) errors.push(`At most ${ARENA_LIMITS.haz} hazards on a side.`);
+  for (const h of list(d.haz, ARENA_LIMITS.haz)) {
+    if (!h || !['pit', 'lava', 'tar'].includes(h.type)) continue;
+    const o = { type: h.type };
+    if (h.type === 'pit' && h.water) o.water = true;
+    if (h.shape === 'rect') { o.shape = 'rect'; o.w = num(h.w, 24, 420, 120); o.h = num(h.h, 24, 420, 90); o.x = num(h.x, WALL - 20, HALF - 12, 200); o.y = num(h.y, WALL - 20, AH - WALL - o.h + 20, 200); }
+    else { o.shape = 'circle'; o.r = num(h.r, 18, 180, 50); o.x = inX(h.x); o.y = inY(h.y); if (atCentre(o)) { o.x = HALF; o.y = AH / 2; o.centre = true; } }
+    out.haz.push(o);
+  }
+  for (const q of list(d.pillars, ARENA_LIMITS.pillars)) { if (!q) continue; const o = { x: inX(q.x), y: inY(q.y), r: num(q.r, 14, 70, 26) }; if (atCentre(o)) { o.x = HALF; o.y = AH / 2; o.centre = true; } out.pillars.push(o); }
+  for (const q of list(d.bumpers, ARENA_LIMITS.bumpers)) { if (!q) continue; const o = { x: inX(q.x), y: inY(q.y), r: num(q.r, 18, 44, 30) }; if (atCentre(o)) { o.x = HALF; o.y = AH / 2; o.centre = true; } out.bumpers.push(o); }
+  for (const q of list(d.spikes, ARENA_LIMITS.spikes)) { if (!q || !['top', 'left'].includes(q.side)) continue; const span = q.side === 'top' ? AW : AH; const a = num(Math.min(q.a, q.b), WALL, span - WALL - 40, 100), b = num(Math.max(q.a, q.b), a + 40, span - WALL, a + 200); out.spikes.push({ side: q.side, a, b }); }
+  for (const q of list(d.portals, ARENA_LIMITS.portals)) { if (!q) continue; out.portals.push({ x: num(q.x, WALL + 30, HALF - 40, 280), y: num(q.y, WALL + 30, AH - WALL - 30, 200) }); }
+  const M = buildMap(Object.assign({}, out, { ball: out.ball ? { x: HALF, y: AH / 2, r: 30 } : null, power: [{ x: HALF, y: AH / 2 }], amberY: [WALL + 44, 330] }));
+  // checks on the whole (mirrored) arena
+  const lethal = M.haz.filter(h => h.type !== 'tar'), gapTo = (h, x, y) => h.shape === 'circle' ? Math.hypot(x - h.x, y - h.y) - h.r : Math.hypot(Math.max(h.x - x, 0, x - h.x - h.w), Math.max(h.y - y, 0, y - h.y - h.h));
+  const blocked = (x, y, pad) => lethal.some(h => gapTo(h, x, y) < pad) || M.pillars.concat(M.bumpers || []).some(q => Math.hypot(x - q.x, y - q.y) < q.r + pad);
+  if (RED_SPAWNS.some(sp => blocked(sp.x, sp.y, 40) || M.haz.some(h => h.type === 'tar' && gapTo(h, sp.x, sp.y) < 20))) errors.push('Keep the spawn points (the ringed spots on the left) clear: nothing within about 40 px of them.');
+  let area = 0; for (const h of lethal) area += h.shape === 'circle' ? Math.PI * h.r * h.r : h.w * h.h;
+  if (area > 0.4 * (AW - 2 * WALL) * (AH - 2 * WALL)) errors.push('Too much of the arena is pits and lava: keep it under 40%.');
+  // flood fill on foot from Red's spawn: Blue's spawn has to be reachable, and most of the arena open
+  const G = 20, cols = Math.floor(AW / G), rows = Math.floor(AH / G), seen = new Uint8Array(cols * rows), open = (i, j) => { const x = i * G + G / 2, y = j * G + G / 2; return x > WALL + 16 && x < AW - WALL - 16 && y > WALL + 16 && y < AH - WALL - 16 && !blocked(x, y, 14); };
+  const st = [[Math.floor(RED_SPAWNS[0].x / G), Math.floor(RED_SPAWNS[0].y / G)]]; let reach = 0, openN = 0;
+  for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) if (open(i, j)) openN++;
+  while (st.length) { const [i, j] = st.pop(); if (i < 0 || j < 0 || i >= cols || j >= rows || seen[i * rows + j] || !open(i, j)) continue; seen[i * rows + j] = 1; reach++; st.push([i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]); }
+  const bs = mirrorItem(RED_SPAWNS[0]);
+  if (!seen[Math.floor(bs.x / G) * rows + Math.floor(bs.y / G)]) errors.push('Red and Blue must be able to walk to each other: open a path through the middle.');
+  else if (reach < openN * 0.8) errors.push('Parts of the arena are cut off: every open area should be reachable on foot.');
+  return { def: out, errors };
+}
+function registerArena(key, def, meta, force) { // force: register even with problems (the builder's live preview)
+  const c = cleanArena(def); if (c.errors.length && !force) return null;
+  const d = c.def;
+  MAPS[key] = buildMap({ name: d.name, theme: d.theme, desc: (meta && meta.author ? `A player arena by ${meta.author}.` : 'A player arena.'), hidden: true, custom: true, def: d,
+    haz: d.haz, pillars: d.pillars, spikes: d.spikes, bumpers: d.bumpers, portals: d.portals, ball: d.ball ? { x: HALF, y: AH / 2, r: 30 } : undefined,
+    power: [{ x: HALF, y: AH / 2 }].filter(p => !d.haz.some(h => h.centre)).concat(d.haz.some(h => h.centre) ? [{ x: HALF, y: 220 }, { x: HALF, y: 580 }] : []), amberY: [WALL + 44, 330] });
+  return MAPS[key];
+}
+const arenaCode = id => 'A' + Number(id).toString(36).toUpperCase();
+const arenaId = code => { const m = /^A([0-9A-Z]{1,8})$/i.exec(String(code || '').trim()); return m ? parseInt(m[1], 36) : null; };
 // training drills: the most points a run can score (grades and the server's checks use these)
 const TRAIN_MAX = { target: 7500, dodge: 1000, peek: 3600, knock: 3000 };
 const TRAIN_GRADES = [['S', 0.8], ['A', 0.65], ['B', 0.5], ['C', 0.35], ['D', 0]];
@@ -429,12 +484,18 @@ const BANNER_FINISH = {
   storm:   { name: 'Stormfront',   tiers: 25 },
   royal:   { name: 'Royal',        tiers: 40 },
   diamond: { name: 'Diamond',      tiers: 60 },
+  // status finishes: for supporters (while their membership is active), founders and patrons
+  aurora:  { name: 'Aurora',       need: 'sp', label: 'Supporters' },
+  founder: { name: 'Founder',      need: 'fd', label: 'Founders' },
+  rose:    { name: 'Patron rose',  need: 'pt', label: 'Patrons' },
 };
+// may this record (and status: { sp, fd, pt }) wear this finish?
+const finishAllowed = (f, rec, st) => { const F = BANNER_FINISH[f]; if (!F) return false; return F.need ? !!(st && st[F.need]) : F.tiers <= tierTotal(rec); };
 const tierTotal = rec => Object.values((rec && rec.tier) || {}).reduce((s, t) => s + t, 0);
 // what someone's banner is allowed to show, from their record: the finish (if earned) and up to 3 medals they've reached
-function bannerOf(rec) {
-  const total = tierTotal(rec), tier = (rec && rec.tier) || {};
-  const fin = rec && rec.finish && BANNER_FINISH[rec.finish] && BANNER_FINISH[rec.finish].tiers <= total ? rec.finish : null;
+function bannerOf(rec, st) {
+  const tier = (rec && rec.tier) || {};
+  const fin = rec && rec.finish && finishAllowed(rec.finish, rec, st) ? rec.finish : null;
   const want = Array.isArray(rec && rec.show) ? rec.show.filter(k => tier[k] > 0) : achBest(rec, 3);
   return { fin, sc: want.slice(0, 3).map(k => [k, tier[k]]) };
 }
@@ -518,6 +579,9 @@ function setMeta(w, id, m) {
   if ('na' in m) p.na = Math.max(0, Math.min(Object.keys(ACHIEVEMENTS).length, m.na | 0)) || null;
   if ('ow' in m) p.ow = m.ow ? 1 : null; // the game's owner: a crown by their name
   if ('fin' in m) p.fin = BANNER_FINISH[m.fin] ? m.fin : null; // banner finish
+  if ('sp' in m) p.sp = Math.max(0, Math.min(4, m.sp | 0)) || null; // supporter emblem tier (1-4)
+  if ('fd' in m) p.fd = m.fd ? 1 : null; // founder
+  if ('pt' in m) p.pt = m.pt ? 1 : null; // patron
   if ('sc' in m) p.sc = Array.isArray(m.sc) ? m.sc.filter(x => Array.isArray(x) && ACHIEVEMENTS[x[0]] && x[1] >= 1 && x[1] <= 5).slice(0, 3).map(x => [x[0], x[1] | 0]) : null; // showcase medals
   return true;
 }
@@ -3327,7 +3391,7 @@ function snapshot(w) {
       const pw = {};
       for (const k in p.pw) if (p.pw[k] > 0) pw[k] = r1(p.pw[k]);
       return {
-        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, fin: p.fin || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
+        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, sp: p.sp || undefined, fd: p.fd || undefined, pt: p.pt || undefined, fin: p.fin || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
         x: r1(p.x), y: r1(p.y), vx: Math.round(p.vx), vy: Math.round(p.vy), a: r3(p.aim),
         hp: Math.max(0, Math.ceil(p.hp)), mh: p.maxHp, ch: r2(p.charge), dr: p.drawing ? 1 : 0,
         f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, bu: p.burn > 0 ? 1 : 0, bl: p.bleedT > 0 ? 1 : 0, sl: p.slow > 0 ? 1 : 0, iv: p.inv > 0 ? 1 : 0,
@@ -3465,10 +3529,10 @@ function unpackSnap(s) {
 }
 
 return {
-  AW, AH, WALL, GATES, MAPS, MAP_KEYS, TRAIN_MAX, TRAIN_GRADES, trainGrade, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
+  AW, AH, WALL, GATES, MAPS, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
-  setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
+  setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
   _grant(w, id, cards) { const p = w.players.find(q => q.id === id); for (const c of cards) takeCard(w, p, c); applyStats(p); p.picked = false; return p; },
 };

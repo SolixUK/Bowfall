@@ -102,3 +102,18 @@ Every 10 seconds each player's browser sends a one-line summary to the server. T
 **Render's free plan** gives the server a tenth of one CPU core, enforced in 100 ms slices: the server may use 10 ms of CPU in each 100 ms, and anything over that waits for the next slice. A 3v3 with five AI players averages about a third of a millisecond of CPU per tick, which fits, but bots, garbage collection and compressing updates cause occasional ticks of 5 to 15 ms, and one of those can use up a whole slice and freeze the game for up to 100 ms. If the Server row shows throttling ("held back") during laggy moments, a paid instance (Starter: half a core) is the fix.
 
 Measured for this project: one 3v3 with five AI players uses roughly 60 to 90 ms of CPU per second on a modern core (the game simulation itself about 20 ms; the rest is networking, timers and garbage collection, some of it on helper threads that also count against the allowance). That is most of the free plan's 100 ms per second, so bursts get throttled; a second game at the same time can't fit at all. The Starter plan (half a core, 500 ms per second) leaves plenty of room for several games.
+
+## Payments (Stripe)
+
+The Store's paid items (Supporter membership, Founder pack, donations and single unlocks) use Stripe Checkout. Nothing is sold until you set it up; until then the buttons say payments aren't switched on. Earning and spending Crests works without Stripe.
+
+1. Make a Stripe account (stripe.com) and finish its business details so it can take live payments. You can do all of this in **test mode** first.
+2. **Developers → API keys:** copy the secret key (`sk_test_...` in test mode, `sk_live_...` for real).
+3. **Developers → Webhooks → Add endpoint:** URL `https://your-site/api/stripe/webhook` (e.g. `https://bowfall.com/api/stripe/webhook`). Choose these events: `checkout.session.completed`, `invoice.paid`, `customer.subscription.updated`, `customer.subscription.deleted`. Copy its **signing secret** (`whsec_...`).
+4. **Settings → Billing → Customer portal:** turn it on, and allow customers to cancel subscriptions. The Store's **Manage membership** button opens it.
+5. On Render: **Environment**, add `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` (never put these in GitHub), and make sure `PUBLIC_URL` is set to your address so Stripe sends buyers back to the right place. Optionally set `FOUNDERS_UNTIL` to a date (e.g. `2027-03-31`) to end Founder pack sales then; the owner can also close or reopen them in game with `/founders off` or `/founders on`.
+6. Test with Stripe's test card `4242 4242 4242 4242` (any future date, any CVC). When everything works, swap both variables for the live-mode key and a live-mode webhook secret.
+
+Prices are in `lib/economy.js` (`PRICES`, in pence). Stripe charges its own fees per payment. Selling digital content in the UK usually means charging VAT once you pass the registration threshold, and buyers have refund rights: Stripe Tax can handle VAT, and it's worth checking the rules (or asking an accountant) before taking real money.
+
+**Owner commands** (type in any game's chat): `/locks on|off` switches ranked unlocks on or off (off: everything free); `/rotation stone ninja` pins the free picks, `/rotation clear` goes back to the weekly rotation; `/grant <name> supporter <months>|founder|patron|crests <n>|unlock <key>|revoke <what>` for testing and for sorting out support requests; `/feature <arena code> [ranked|off]` for player arenas.
