@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.19.2';
+const VERSION = '0.20.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -235,7 +235,7 @@ function useMap(w) {
   MAP = MAPS[w.cfg.map] || MAPS.meadow;
   PILLARS = MAP.pillars; SPIKES = MAP.spikes; HEAL = MAP.heal || null; ICE = MAP.ice || null;
   SAWS = MAP.saws || []; BUMPERS = MAP.bumpers || []; PORTALS = MAP.portals || []; WIND = MAP.wind || null; BALL = MAP.ball || null;
-  SPAWNS = MAP.spawns ? { red: MAP.spawns, blue: MAP.spawns.map(mirrorItem) } : { red: RED_SPAWNS, blue: RED_SPAWNS.map(mirrorItem) };
+  SPAWNS = MAP.spawnsBoth || (MAP.spawnsBoth = MAP.spawns ? { red: MAP.spawns, blue: MAP.spawns.map(mirrorItem) } : { red: RED_SPAWNS, blue: RED_SPAWNS.map(mirrorItem) });
   SAWPOS = SAWS.map(o => sawAt(o, gameTime(w)));
   // thin ice that has given way joins the arena's hazards; ice about to go is something bots steer clear of
   const cr = w.cracks || [];
@@ -2920,7 +2920,7 @@ function incoming(w, p, horizon) {
   return hit;
 }
 function botThink(w, p, dt) {
-  const ai = p.ai, inp = p.input, D = botD(p), G = p.gene ? Object.assign({}, GENE, p.gene) : GENE, iq = D.iq || 0;
+  const ai = p.ai, inp = p.input, D = botD(p), G = p.gene ? (p.geneSrc === p.gene ? p.geneAll : (p.geneSrc = p.gene, p.geneAll = Object.assign({}, GENE, p.gene))) : GENE, iq = D.iq || 0;
   if (p.dead || p.falling > 0) { inp.draw = false; inp.mx = inp.my = 0; return; }
   // stealthed enemies are invisible to bots unless they're right next to them
   const foes = w.players.filter(q => q.team !== p.team && !q.dead && q.falling <= 0 && !(q.stealthT > 0 && Math.hypot(q.x - p.x, q.y - p.y) > 110) && !(inSmoke(w, q, p.x, p.y) && Math.hypot(q.x - p.x, q.y - p.y) > 60)
@@ -3269,7 +3269,15 @@ function step(w, dt) {
     (w.hist = w.hist || []).push({ t: w.t, p: w.players.map(q => [q.id, q.x, q.y, q.vx, q.vy]) });
     while (w.hist.length > 40) w.hist.shift();
   }
-  for (const p of w.players) if (p.bot) botThink(w, p, dt);
+  // bots think 30 times a second (half of them on each tick, so the work is spread evenly); what they decided holds in
+  // between, and each think gets the full time since the last, so timers and turning speeds are unchanged
+  w.tk = (w.tk || 0) + 1;
+  for (const p of w.players) {
+    if (!p.bot) continue;
+    p.thinkAcc = (p.thinkAcc || 0) + dt;
+    if (p.thinkPar == null) p.thinkPar = (w.nbot = (w.nbot || 0) + 1) % 2;
+    if ((w.tk + p.thinkPar) % 2 === 0 || p.thinkAcc > dt * 2.5) { botThink(w, p, p.thinkAcc); p.thinkAcc = 0; }
+  }
   updateCracks(w);
   updateMapMech(w, dt);
   // things that happen a moment later (Echo Strike)
@@ -3307,28 +3315,29 @@ function step(w, dt) {
   if (M.ph === 'play' && M.T <= 0) timeoutRound(w);
 }
 
+// (every array and object in a snapshot is its own copy, so an older snapshot never changes under you: deltas rely on it)
 function snapshot(w) {
   const M = w.match;
   return {
     t: r3(w.t),
     m: { ph: M.ph, rd: M.rd, gm: M.gm, T: Math.max(0, Math.ceil(M.T)), wr: M.wins.red, wb: M.wins.blue, gr: M.gw.red, gb: M.gw.blue, rw: M.rw, mw: M.mw,
-      op: M.opening ? 1 : 0, opt: w.cfg.opt, ptw: w.cfg.pointsToWin, gtw: w.cfg.gamesToWin, df: w.cfg.diff, map: w.cfg.map, cs: canStart(w) ? 1 : 0,
+      op: M.opening ? 1 : 0, opt: Object.assign({}, w.cfg.opt), ptw: w.cfg.pointsToWin, gtw: w.cfg.gamesToWin, df: w.cfg.diff, map: w.cfg.map, cs: canStart(w) ? 1 : 0,
       cr: w.cracks && w.cracks.length ? w.cracks.join('') : '', gt: r2(gameTime(w)) },
     p: w.players.map(p => {
       const pw = {};
       for (const k in p.pw) if (p.pw[k] > 0) pw[k] = r1(p.pw[k]);
       return {
-        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, fin: p.fin || undefined, sc: p.sc && p.sc.length ? p.sc : undefined,
+        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, fin: p.fin || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
         x: r1(p.x), y: r1(p.y), vx: Math.round(p.vx), vy: Math.round(p.vy), a: r3(p.aim),
         hp: Math.max(0, Math.ceil(p.hp)), mh: p.maxHp, ch: r2(p.charge), dr: p.drawing ? 1 : 0,
         f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, bu: p.burn > 0 ? 1 : 0, bl: p.bleedT > 0 ? 1 : 0, sl: p.slow > 0 ? 1 : 0, iv: p.inv > 0 ? 1 : 0,
         da: p.dashT > 0 ? 1 : 0, hl: p.healing ? 1 : 0, dn: p.dashN, dk: p.dashMaxN, ra: p.rallied ? 1 : 0,
-        ab: p.slots, ac: p.abCd.map(r1), fz: p.frozen > 0 ? 1 : 0, sx: p.dashLock > 0 ? 1 : 0, ov: p.over >= 1 ? 1 : 0,
+        ab: p.slots.slice(), ac: p.abCd.map(r1), fz: p.frozen > 0 ? 1 : 0, sx: p.dashLock > 0 ? 1 : 0, ov: p.over >= 1 ? 1 : 0,
         sn: p.snare ? 1 : 0, vl: p.volleyArmed ? 1 : 0, rl: p.railArmed ? 1 : 0,
         arm: p.recoilArmed ? 'recoil' : p.seekArmed ? 'seeker' : p.trickArmed ? 'trick' : p.boomArmed ? 'boomerang' : p.execArmed ? 'execute' : undefined,
         sr: p.shroudT > 0 ? p.shroudR : undefined, rsh: p.rush ? 1 : 0, sk: p.strikeN || 0, nb: p.nblink ? 1 : 0, ft: p.fortT > 0 ? 1 : 0, wd: p.windT > 0 ? 1 : 0, ph: p.phaseT > 0 ? 1 : 0, gr: p.grap ? [r1(p.grap.x), r1(p.grap.y)] : 0, rp: r2(p.revP || 0), rv: p.reviveUsed ? 1 : 0, fl: p.flash > 0 ? 1 : 0, dc: r2(p.dashCd), dm: p.dashCdMax, d: p.dead ? 1 : 0,
-        k: p.kills, de: p.deaths, am: p.amber, er: p.earned, up: p.up, hn: p.hones, el: p.element, ro: p.role,
-        of: p.offer, pk: p.picked ? 1 : 0, po: p.poisonN, dz: p.disarm > 0 ? 1 : 0, hc: p.hcap || 0, dfl: p.deflectT > 0 ? 1 : 0, pr: p.parryT > 0 ? (p.parryAuto ? 2 : 1) : 0, su: p.stunT > 0 ? 1 : 0, rg: rangeOf(w, p) || undefined, xr: p.role === 'crossbow' ? (p.bolts >= p.xbowMax ? 1 : r2(p.reloadT)) : undefined, xn: p.role === 'crossbow' ? p.bolts : undefined, xm: p.role === 'crossbow' ? p.xbowMax : undefined, xf: p.fanArmed ? 1 : 0, rpt: p.repeatT > 0 ? 1 : 0, au: p.autoT > 0 ? r2(p.autoT) : 0, fo: p.focusT > 0 ? 1 : 0, ts: p.trapSet ? [r1(p.trapSet.x), r1(p.trapSet.y), r2(1 - p.trapSet.t / TRAP_SET)] : undefined, ti: p.title || undefined, pn: p.pinned > 0 && p.stuck > 0 ? 1 : 0, pa: p.pinned > 0 ? r2(p.pinAng || 0) : undefined, sg: p.staggerT > 0 ? 1 : 0, mk: p.markT > 0 ? 1 : 0, sth: p.stealthT > 0 ? 1 : 0, amb: p.ambushT > 0 ? 1 : 0, bs: p.bot && p.ai.style ? p.ai.style : undefined, dv: p.bot && !p.dparams ? p.diff : undefined, em: p.emp ? 1 : 0, sk: p.streak, lh: p.lastHow, ep: Math.min(p.empPts, EMPOWER_AT), rz: r1(p.r),
+        k: p.kills, de: p.deaths, am: p.amber, er: p.earned, up: p.up.slice(), hn: p.hones ? Object.assign({}, p.hones) : p.hones, el: p.element, ro: p.role,
+        of: p.offer ? JSON.parse(JSON.stringify(p.offer)) : p.offer, pk: p.picked ? 1 : 0, po: p.poisonN, dz: p.disarm > 0 ? 1 : 0, hc: p.hcap || 0, dfl: p.deflectT > 0 ? 1 : 0, pr: p.parryT > 0 ? (p.parryAuto ? 2 : 1) : 0, su: p.stunT > 0 ? 1 : 0, rg: rangeOf(w, p) || undefined, xr: p.role === 'crossbow' ? (p.bolts >= p.xbowMax ? 1 : r2(p.reloadT)) : undefined, xn: p.role === 'crossbow' ? p.bolts : undefined, xm: p.role === 'crossbow' ? p.xbowMax : undefined, xf: p.fanArmed ? 1 : 0, rpt: p.repeatT > 0 ? 1 : 0, au: p.autoT > 0 ? r2(p.autoT) : 0, fo: p.focusT > 0 ? 1 : 0, ts: p.trapSet ? [r1(p.trapSet.x), r1(p.trapSet.y), r2(1 - p.trapSet.t / TRAP_SET)] : undefined, ti: p.title || undefined, pn: p.pinned > 0 && p.stuck > 0 ? 1 : 0, pa: p.pinned > 0 ? r2(p.pinAng || 0) : undefined, sg: p.staggerT > 0 ? 1 : 0, mk: p.markT > 0 ? 1 : 0, sth: p.stealthT > 0 ? 1 : 0, amb: p.ambushT > 0 ? 1 : 0, bs: p.bot && p.ai.style ? p.ai.style : undefined, dv: p.bot && !p.dparams ? p.diff : undefined, em: p.emp ? 1 : 0, sk: p.streak, lh: p.lastHow, ep: Math.min(p.empPts, EMPOWER_AT), rz: r1(p.r),
         ss: [p.stats.shots, p.stats.hits, Math.round(p.stats.dmg), Math.round(p.stats.taken), p.stats.ring, Math.round(p.stats.longest)],
         pw, lc: p.lastCause, kb: p.killedBy,
       };
@@ -3362,6 +3371,92 @@ function packSnap(s) {
   for (const a of s.a) for (const k of ZA) if (a[k] === 0) a[k] = undefined;
   return s;
 }
+// ---- deltas: after the first full snapshot, each update carries only what changed since the one before it.
+// Entities (archers, arrows, zones, pickups) are matched by id: new ones come whole, changed ones bring only their
+// changed fields (nested values like upgrade lists are compared as a whole), and removed ones are listed by id.
+// applyDelta(base, d) rebuilds the full snapshot as a fresh object, so the client can keep a history of them.
+const SAME = (x, y) => x === y || (x !== null && y !== null && typeof x === 'object' && typeof y === 'object' && JSON.stringify(x) === JSON.stringify(y));
+function objDelta(a, b) {
+  let d = null, gone = null;
+  for (const k in b) { const v = b[k]; if (v === undefined) continue; if (!(k in a) || a[k] === undefined || !SAME(a[k], v)) (d || (d = {}))[k] = v; }
+  for (const k in a) if (a[k] !== undefined && (!(k in b) || b[k] === undefined)) (gone || (gone = [])).push(k);
+  if (gone) (d || (d = {}))._x = gone;
+  return d;
+}
+function listDelta(A, B) {
+  const byId = new Map(); for (const e of A) byId.set(e.id, e);
+  const out = {}; let any = false;
+  const seen = new Set();
+  for (const e of B) {
+    seen.add(e.id);
+    const o = byId.get(e.id);
+    if (!o) { (out.n || (out.n = [])).push(e); any = true; continue; }
+    const d = objDelta(o, e); if (d) { d.id = e.id; (out.c || (out.c = [])).push(d); any = true; }
+  }
+  for (const e of A) if (!seen.has(e.id)) { (out.r || (out.r = [])).push(e.id); any = true; }
+  // order: kept ones in their old order, then the new ones; if that isn't the real order, send it
+  const guess = A.filter(e => seen.has(e.id)).map(e => e.id).concat((out.n || []).map(e => e.id));
+  if (guess.length !== B.length || guess.some((id, i) => id !== B[i].id)) { out.o = B.map(e => e.id); any = true; }
+  return any ? out : null;
+}
+const SNAP_LISTS = ['p', 'a', 'z', 'u'];
+function snapDelta(prev, cur) {
+  const d = { t: cur.t };
+  const m = objDelta(prev.m, cur.m); if (m) d.m = m;
+  for (const k of SNAP_LISTS) { const x = listDelta(prev[k] || [], cur[k] || []); if (x) d[k] = x; }
+  if (cur.b || prev.b) { if (!cur.b) d.b = 0; else if (!prev.b) d.b = cur.b; else { const x = objDelta(prev.b, cur.b); if (x) d.b = x; } }
+  return d;
+}
+const deltaEmpty = d => Object.keys(d).length === 1;
+function applyObj(o, d) { const r = Object.assign({}, o); for (const k in d) if (k !== '_x' && k !== 'id') r[k] = d[k]; if (d._x) for (const k of d._x) delete r[k]; return r; }
+function applyDelta(base, d) {
+  const s = { t: d.t, m: d.m ? applyObj(base.m, d.m) : base.m };
+  for (const k of SNAP_LISTS) {
+    const L = base[k] || [], x = d[k];
+    if (!x) { s[k] = L.map(e => Object.assign({}, e)); continue; }
+    const ch = new Map((x.c || []).map(c => [c.id, c])), rm = new Set(x.r || []);
+    let list = L.filter(e => !rm.has(e.id)).map(e => (ch.has(e.id) ? applyObj(e, ch.get(e.id)) : Object.assign({}, e))).concat((x.n || []).map(e => Object.assign({}, e)));
+    if (x.o) { const byId = new Map(list.map(e => [e.id, e])); list = x.o.map(id => byId.get(id)).filter(Boolean); }
+    s[k] = list;
+  }
+  s.b = d.b === 0 ? undefined : d.b ? applyObj(base.b || {}, d.b) : base.b ? Object.assign({}, base.b) : undefined;
+  return s;
+}
+// ---- binary packing of a delta. The fields that change every update (archer position, velocity, aim and draw; arrow
+// position and heading) leave the JSON and go into a compact list of 16-bit integers; everything else stays JSON.
+// Each changed archer or arrow with any of these fields gets a one-byte mask of which follow. Snapshots already round
+// these values (0.1 px, 0.001 rad, 0.01 draw), so scaling them to integers loses nothing.
+const HOT = { p: [['x', 10], ['y', 10], ['vx', 1], ['vy', 1], ['a', 1000], ['ch', 100]], a: [['x', 10], ['y', 10], ['g', 1000]] };
+const I16 = v => Math.max(-32768, Math.min(32767, Math.round(v)));
+function packDelta(d) {
+  const bytes = [], dv = new DataView(new ArrayBuffer(2));
+  let json = d;
+  for (const L of ['p', 'a']) {
+    if (!d[L] || !d[L].c) continue;
+    if (json === d) json = Object.assign({}, d);
+    json[L] = Object.assign({}, d[L], { c: d[L].c.map(c => {
+      let mask = 0; const vals = [];
+      HOT[L].forEach(([k, sc], i) => { const v = c[k]; if (typeof v === 'number' && Math.abs(v * sc) < 32767) { mask |= 1 << i; vals.push(I16(v * sc)); } });
+      if (!mask) return c;
+      const o = {}; for (const k in c) if (!(mask & (1 << HOT[L].findIndex(h => h[0] === k)))) o[k] = c[k];
+      o.h = 1; bytes.push(mask); for (const v of vals) { dv.setInt16(0, v, true); bytes.push(dv.getUint8(0), dv.getUint8(1)); }
+      return o;
+    }) });
+  }
+  return { json, bytes: Uint8Array.from(bytes) };
+}
+function unpackDelta(json, bytes) {
+  let i = 0; const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  for (const L of ['p', 'a']) {
+    if (!json[L] || !json[L].c) continue;
+    for (const c of json[L].c) {
+      if (!c.h) continue;
+      delete c.h; const mask = bytes[i++];
+      HOT[L].forEach(([k, sc], j) => { if (mask & (1 << j)) { c[k] = Math.round(dv.getInt16(i, true)) / sc; i += 2; } });
+    }
+  }
+  return json;
+}
 function unpackSnap(s) {
   const Z = zeroKeys();
   for (const p of s.p) for (const k in Z) if (!(k in p)) p[k] = Z[k] === '{}' ? {} : Z[k];
@@ -3372,7 +3467,7 @@ function unpackSnap(s) {
 return {
   AW, AH, WALL, GATES, MAPS, MAP_KEYS, TRAIN_MAX, TRAIN_GRADES, trainGrade, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
-  plagueR, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
+  plagueR, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
   _grant(w, id, cards) { const p = w.players.find(q => q.id === id); for (const c of cards) takeCard(w, p, c); applyStats(p); p.picked = false; return p; },

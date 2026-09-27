@@ -2,6 +2,26 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
 
+## 0.20.0
+
+**Lighter on the server and the network** (gameplay unchanged)
+- **Delta updates:** after the first full snapshot, each update sends only what changed since the one before (new, changed and removed archers, arrows, zones and pickups, matched by id). Checked against full snapshots over whole matches: identical every time.
+- **Binary packing:** the fields that change every update (archer position, velocity, aim and draw; arrow position and heading) go as 16-bit integers instead of JSON text, at the precision the snapshots already had.
+- Together with the per-game compression stream from 0.19.4: a 3v3 update is about 100–200 bytes on the wire (it was about 430 in 0.19.3 and 3.3 KB uncompressed). Messages in the stream are framed [length][kind][body].
+- **Quiet phases:** in the lobby, upgrade picks and results the server sends an update only when something changed, at least once a second, instead of 10 a second.
+- **Inputs:** the browser sends its input only when it changes (still up to 30 a second, with a heartbeat every 250 ms) instead of 30 a second regardless.
+- **Bots** decide 30 times a second instead of 60 (half of them on each tick, with the full elapsed time, so turning speeds and timers are unchanged). Simulation cost of a 3v3 of bots: about 20% lower; a 1v1: about 38% lower. Their reactions can be up to 1/60 s later, which is well inside their built-in reaction delays.
+- Performance stats no longer count the pause before a fight starts as a late packet.
+
+## 0.19.4
+
+- **Snapshots compressed once per game, not once per player.** Each game keeps one running compression stream (so each update still compresses against the ones before it: a 3v3 update goes from about 2.5 KB to about 350 bytes) and sends the same bytes to everyone in it, as binary frames. Before, the server compressed every update separately for every connection. Compression cost for a 6-player game drops from about 21 ms of CPU per second to about 3.5. Someone joining (or moving games) restarts the stream for that game so everyone can always unpack it. Browsers unpack it with the built-in DecompressionStream, in order with the other messages; one that can't gets plain JSON.
+
+## 0.19.3
+
+- **Server:** the game loop now wakes once per tick (about 60 times a second) instead of every 5 ms, and every 50 ms when no games are running. On a tiny host the wake-ups alone were a noticeable share of the CPU allowance: an idle server now uses about half the CPU it did.
+- The first lag report (a ranked 3v3 with AI players) showed the server's host holding it back for about a third of every second (Render's free plan allows a tenth of one core), so the lag was the server, not the player's PC or connection. See HOSTING.md.
+
 ## 0.19.2
 
 **Tracking down lag**

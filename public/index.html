@@ -1220,7 +1220,7 @@ const SELF = { pit: 'fell into a pit', lava: 'burned in the lava', burn: 'burned
 let mode = 'menu';     // menu | local | online
 let myId = null, paused = false, menuOpen = false;
 let world = null, acc = 0;
-let ws = null, roomInfo = null, snaps = [], pingMs = 0;
+let ws = null, roomInfo = null, snaps = [], pingMs = 0, lastSent = null;
 let view = null, clock = 0;
 let localCharge = 0;
 let xbPredict = 0;
@@ -2364,9 +2364,14 @@ function connect(joinMsg) {
   let sock;
   try { sock = new WebSocket(url); } catch (e) { status.classList.add('err'); status.textContent = 'Could not reach the server.'; return; }
   ws = sock; LP.joinPw = joinMsg.pw || '';
-  sock.onopen = () => sock.send(JSON.stringify(Object.assign({ t: 'join', name: playerName(), el: myLoadout().el, ro: myLoadout().ro, gt: GUEST_TOKEN }, joinMsg)));
-  sock.onmessage = e => {
-    let m; try { m = JSON.parse(e.data); } catch (err) { return; }
+  sock.binaryType = 'arraybuffer';
+  const rx = zReceiver(sock, x => onMsg(x));
+  let zBase = null; // the last full snapshot from the stream; deltas build on it
+  sock.onopen = () => sock.send(JSON.stringify(Object.assign({ t: 'join', name: playerName(), el: myLoadout().el, ro: myLoadout().ro, gt: GUEST_TOKEN, z: rx.ok ? 1 : 0 }, joinMsg)));
+  sock.onmessage = rx.push;
+  const onMsg = e => {
+    let m = e.obj; if (!m) { try { m = JSON.parse(e.data); } catch (err) { return; } }
+    m._at = e.at;
     if (m.t === 'welcome') {
       // the server has been updated since this page loaded: reload to get the matching game
       if (m.v && m.v !== Sim.VERSION && !OFFLINE) { notice('Bowfall has been updated. Loading the new version…', true); ws = null; try { sock.close(); } catch (e) {} if (!joinMsg.ticket) history.replaceState(null, '', (location.pathname.endsWith('.html') ? '' : '/play') + '?room=' + m.code); setTimeout(() => location.reload(), 1200); return; }
@@ -2382,8 +2387,13 @@ function connect(joinMsg) {
       $('roomTag').innerHTML = 'Room <b>' + esc(m.code) + '</b>';
       hc.lb = hc.gm = hc.lbHead = hc.gmHead = null;
     } else if (m.t === 'snap') {
-      NET.snap(m.k, performance.now());
-      snaps.push({ time: performance.now(), s: Sim.unpackSnap(m.s) });
+      const at = m._at || performance.now();
+      let snap;
+      if (m.d) { if (!zBase) return; zBase = Sim.applyDelta(zBase, m.d); snap = Sim.applyDelta(zBase, { t: zBase.t }); } // a copy to draw from; the base stays untouched
+      else if (m.f) { zBase = m.s; snap = Sim.applyDelta(zBase, { t: zBase.t }); }
+      else snap = Sim.unpackSnap(m.s);
+      NET.snap(m.k, at, snap.m && snap.m.ph);
+      snaps.push({ time: at, s: snap });
       if (snaps.length > 40) snaps.shift();
       handleEvents(m.ev || []);
     } else if (m.t === 'you') {
@@ -4242,6 +4252,62 @@ function updateFx(dt) {
 
 // ================= online interpolation =================
 const DELAY = 100;
+// ---- compressed game updates. The server compresses each game's snapshots once, in one running stream per game, and
+// sends the same bytes to everyone in it (binary frames: a first byte of 1 starts a fresh stream, 0 continues it; each
+// update is one line of JSON). Other messages stay plain text. Everything is handled in the order it arrived, even though
+// unpacking happens in the background. Browsers without DecompressionStream get plain snapshots instead.
+function zReceiver(sock, handle) {
+  const ok = typeof DecompressionStream === 'function' && typeof TextDecoder === 'function';
+  const queue = []; let inf = null; const td = new TextDecoder();
+  const drain = () => {
+    while (queue.length) {
+      const q = queue[0];
+      if (q.text != null) { queue.shift(); handle({ data: q.text, at: q.at }); continue; }
+      if (!q.inf.msgs.length) { if (q.inf.dead) { queue.shift(); continue; } break; }
+      queue.shift(); const m = q.inf.msgs.shift(); handle(Object.assign(m, { at: q.at }));
+    }
+  };
+  // the unpacked stream is a run of [4-byte length][kind][body] messages (see sendSnap on the server)
+  const parse = body => {
+    if (body[0] === 0) return { data: td.decode(body.subarray(1)) };
+    const dv = new DataView(body.buffer, body.byteOffset, body.byteLength), jl = dv.getUint32(1, true);
+    const o = JSON.parse(td.decode(body.subarray(5, 5 + jl)));
+    o.d = Sim.unpackDelta(o.d, body.subarray(5 + jl));
+    return { obj: o };
+  };
+  const makeInf = () => {
+    const ds = new DecompressionStream('deflate-raw'), w = ds.writable.getWriter(), r = ds.readable.getReader();
+    const I = { msgs: [], w, dead: false }; let buf = new Uint8Array(0);
+    (async () => {
+      try {
+        for (;;) {
+          const { value, done } = await r.read(); if (done) break;
+          const nb = new Uint8Array(buf.length + value.length); nb.set(buf); nb.set(value, buf.length); buf = nb;
+          let off = 0;
+          while (buf.length - off >= 4) {
+            const len = buf[off] | buf[off + 1] << 8 | buf[off + 2] << 16 | buf[off + 3] << 24;
+            if (buf.length - off - 4 < len) break;
+            I.msgs.push(parse(buf.subarray(off + 4, off + 4 + len))); off += 4 + len;
+          }
+          buf = buf.slice(off);
+          drain();
+        }
+      } catch (e) { I.dead = true; if (!I.old && sock.readyState === 1) { try { sock.send(JSON.stringify({ t: 'nz' })); } catch (e2) {} } drain(); }
+    })();
+    return I;
+  };
+  const push = e => {
+    const at = performance.now();
+    if (typeof e.data === 'string') { queue.push({ text: e.data, at }); drain(); return; }
+    if (!ok) return;
+    const u8 = new Uint8Array(e.data);
+    if (u8[0] === 1) { if (inf) inf.old = true; inf = makeInf(); } // the old stream just stops: its last messages still arrive
+    if (!inf) return; // joined mid-stream: wait for the next fresh start
+    queue.push({ inf, at });
+    inf.w.write(u8.subarray(1)).catch(() => {});
+  };
+  return { ok, push };
+}
 // ---- performance stats (F3): where lag comes from. Three places can cause it, each measured separately:
 // your computer (frames that take too long to draw), the connection (packets arriving late or bunched up, measured
 // against the server's own tick numbers), and the server (a stalled game loop, CPU held back by the host). The server
@@ -4255,9 +4321,11 @@ const NET = {
     this.t += ms; if (this.t > 250) { this.t = 0; this.render(); }
     this.repT += ms; if (this.repT > 10000) { this.repT = 0; this.report(); }
   },
-  snap(k, t) {
-    if (k != null && this.lastK != null && k > this.lastK) this.g.push([t, t - this.lastT, (k - this.lastK) * 1000 / 60]);
-    this.lastK = k; this.lastT = t;
+  snap(k, t, ph) {
+    // gaps only count while fighting (the lobby and upgrade picks only send updates when something changes)
+    const fight = ph === 'play' || ph === 'pre' || ph === 'post';
+    if (k != null && this.lastK != null && k > this.lastK && fight && this.lastFight) this.g.push([t, t - this.lastT, (k - this.lastK) * 1000 / 60]);
+    this.lastK = k; this.lastT = t; this.lastFight = fight;
     while (this.g.length && this.g[0][0] < t - 10000) this.g.shift();
   },
   ping(ms) { this.p.push(ms); if (this.p.length > 10) this.p.shift(); },
@@ -6687,7 +6755,14 @@ function frame(now) {
     else localCharge = 0;
     sendT -= dt; pingT -= dt;
     if (ws && ws.readyState === 1) {
-      if (sendT <= 0 && me) { ws.send(JSON.stringify(Object.assign({ t: 'in' }, buildInput(me)))); dashLatch = qLatch = eLatch = drawLatch = false; sendT = 1 / 30; }
+      if (sendT <= 0 && me) {
+        // up to 30 a second, but only when something changed (the server keeps the last input), plus a heartbeat
+        const inp = buildInput(me), L = lastSent, now2 = performance.now();
+        const same = L && !inp.dash && !inp.q && !inp.e && !inp.dp && inp.draw === L.draw && inp.dmv === L.dmv && Math.abs(inp.mx - L.mx) < 0.02 && Math.abs(inp.my - L.my) < 0.02
+          && Math.abs(inp.aim - L.aim) < 0.002 && Math.abs(inp.tx - L.tx) < 2 && Math.abs(inp.ty - L.ty) < 2 && now2 - L.at < 250;
+        if (!same) { ws.send(JSON.stringify(Object.assign({ t: 'in' }, inp))); lastSent = Object.assign({ at: now2 }, inp); dashLatch = qLatch = eLatch = drawLatch = false; }
+        sendT = 1 / 30;
+      }
       if (pingT <= 0) { ws.send(JSON.stringify({ t: 'ping', c: performance.now() })); pingT = 1; }
     }
   } else view = null;

@@ -726,7 +726,7 @@ function leave(ws) {
   if (ws.pid) Sim.leave(room.world, ws.pid);
   ws.room = null; ws.pid = null;
   setTimeout(() => social.presence(ws), 0);
-  if (!room.clients.size) { social.freeAI(room); rooms.delete(room.code); return; }
+  if (!room.clients.size) { social.freeAI(room); if (room.z) { room.z.d.close(); room.z = null; } rooms.delete(room.code); return; }
   if (room.ranked) { sysChat(room, `${ws.name} left.`); sendRoom(room); return; }
   if (room.host === ws.cid) {
     // hand the room to someone on a team if possible, otherwise anyone
@@ -835,6 +835,7 @@ async function handle(ws, m) {
   if (await social.handle(ws, m)) return;
 
   if (m.t === 'join') {
+    ws.zOk = m.z === 1 && !ws.quiet; ws.zRoom = null; // can unpack compressed snapshot streams
     if (ws.room) leave(ws);
     if (bannedWs(ws)) return send(ws, { t: 'err', msg: 'You have been banned from online games.' });
     let room;
@@ -882,6 +883,7 @@ async function handle(ws, m) {
   switch (m.t) {
     case 'in': if (ws.pid) Sim.setInput(w, ws.pid, m); break;
     case 'ping': send(ws, { t: 'pong', c: m.c }); break;
+    case 'nz': ws.zOk = false; break; // this browser couldn't unpack the stream: plain snapshots from now on
     case 'perfRep': { // a player's own view of the last 10 seconds (frame rate, ping, late packets), for the owner's lag reports
       const n = k => Math.max(0, Math.min(99999, Math.round(+m[k] || 0)));
       PERF.reports.push({ t: Date.now(), name: ws.name || 'Guest', room: room.code, fps: n('fps'), fMax: n('fMax'), slow: n('slow'), ping: n('ping'), jit: n('jit'), gapMax: n('gapMax'), late: n('late'), starve: n('starve'), verdict: String(m.v || '').slice(0, 40) });
@@ -1031,7 +1033,7 @@ function creditAchievements(room, evs) {
 // or the server. Measured every second and sent to everyone in a game (a few dozen bytes); the owner also gets the last
 // two minutes and players' own reports from GET /api/perf and the /perf chat command.
 const { monitorEventLoopDelay } = require('perf_hooks');
-const eld = monitorEventLoopDelay({ resolution: 10 }); eld.enable();
+const eld = monitorEventLoopDelay({ resolution: 20 }); eld.enable();
 // the CPU the host gives us (Render's free plan is a tenth of one core) and how long it held us back, from the cgroup
 const CG = (() => {
   const rd = f => { try { return fs.readFileSync(f, 'utf8').trim(); } catch (e) { return null; } };
@@ -1063,12 +1065,56 @@ function perfSecond() {
 }
 setInterval(perfSecond, 1000).unref();
 
-// fixed-step game loop
+// Snapshots are compressed once per game, not once per player: one running deflate stream per game (so each update
+// compresses against the ones before it, as well as per-connection compression did) whose output goes to everyone in
+// it. Someone new to the stream (just joined, or moved games) makes it start afresh, flagged by the first byte, so
+// every client can always unpack from the start. Browsers that can't unpack a stream get plain JSON.
+// Each message in the stream is framed as [4-byte length][kind][body]: kind 0 is JSON (the full snapshot that starts a
+// stream), kind 1 a delta: [4-byte JSON length][JSON][packed numbers] (Sim.packDelta).
+const u32 = n => { const b = Buffer.alloc(4); b.writeUInt32LE(n, 0); return b; };
+function frameJson(o) { const j = Buffer.from(JSON.stringify(o)); return Buffer.concat([u32(j.length + 1), Buffer.from([0]), j]); }
+function frameDelta(o) {
+  const { json, bytes } = Sim.packDelta(o.d); const j = Buffer.from(JSON.stringify(Object.assign({}, o, { d: json })));
+  const body = Buffer.concat([Buffer.from([1]), u32(j.length), j, Buffer.from(bytes)]);
+  return Buffer.concat([u32(body.length), body]);
+}
+function sendSnap(room, cur, evs) {
+  const zc = []; let plain = null;
+  for (const c of room.clients) {
+    if (c.readyState !== 1 || c.quiet) continue;
+    if (c.zOk) { zc.push(c); continue; }
+    // browsers that can't unpack the stream: the full snapshot as before (packed, so leave cur itself alone)
+    if (!plain) plain = JSON.stringify({ t: 'snap', k: room.tick, s: Sim.packSnap(JSON.parse(JSON.stringify(cur))), ev: evs });
+    c.send(plain);
+  }
+  const prev = room.lastSnap; room.lastSnap = cur;
+  if (!zc.length) { if (room.z) { room.z.d.close(); room.z = null; } return; }
+  const fresh = !room.z || !prev || zc.some(c => c.zRoom !== room.z);
+  if (fresh) {
+    if (room.z) room.z.d.close();
+    const Z = room.z = { d: zlib.createDeflateRaw({ level: 1, memLevel: 7, windowBits: 12 }), out: [] };
+    Z.d.on('data', ch => Z.out.push(ch)); Z.d.on('error', () => { if (room.z === Z) room.z = null; });
+    for (const c of zc) c.zRoom = Z;
+  }
+  const Z = room.z, t0 = process.hrtime.bigint();
+  Z.d.write(fresh ? frameJson({ t: 'snap', k: room.tick, s: cur, f: 1, ev: evs }) : frameDelta({ t: 'snap', k: room.tick, d: Sim.snapDelta(prev, cur), ev: evs }));
+  // the stream finishes this update on a helper thread; updates come out in order, the same bytes for everyone
+  Z.d.flush(zlib.constants.Z_SYNC_FLUSH, () => {
+    const body = Buffer.concat(Z.out.splice(0)); if (!body.length) return;
+    const frame = Buffer.concat([Buffer.from([fresh ? 1 : 0]), body]);
+    for (const c of zc) if (c.readyState === 1 && c.zRoom === Z) c.send(frame, { binary: true, compress: false });
+    PERF.w.zBytes = (PERF.w.zBytes || 0) + frame.length;
+  });
+  PERF.w.zMs = (PERF.w.zMs || 0) + Number(process.hrtime.bigint() - t0) / 1e6;
+}
+
+// fixed-step game loop. It wakes once per tick (about 60 times a second, not every few milliseconds) and sleeps longer
+// when no games are running: on a small host the wake-ups themselves were a big share of the CPU allowance.
 let last = process.hrtime.bigint(), acc = 0;
-setInterval(() => {
+function gameLoop() {
   const now = process.hrtime.bigint(), gap = Number(now - last) / 1e6;
   acc += gap / 1000; last = now;
-  if (gap > PERF.w.gap) PERF.w.gap = gap; // the loop should run every ~5 ms; a long gap means the server was stalled
+  if (gap > PERF.w.gap && rooms.size) PERF.w.gap = gap; // the loop should run every tick (~17 ms); a long gap means the server was stalled
   if (acc > 0.25) { PERF.w.drop += acc - 0.25; acc = 0.25; } // don't spiral after a stall (that time is lost: the game jumps)
   if (acc >= TICK * 3) PERF.w.catchup++;
   while (acc >= TICK) {
@@ -1090,17 +1136,22 @@ setInterval(() => {
         const evs = room.world.events.splice(0);
         if (evs.length) { creditAchievements(room, evs); social.aiEvents(room, evs); }
         let watchers = 0; for (const c of room.clients) if (c.readyState === 1 && !c.quiet) watchers++;
-        if (watchers) { // built once and sent to everyone in the room, leaving out fields at their resting value
+        if (watchers) { // built once and sent to everyone in the room
           const t1 = process.hrtime.bigint();
-          const msg = JSON.stringify({ t: 'snap', k: room.tick, s: Sim.packSnap(Sim.snapshot(room.world)), ev: evs });
-          for (const c of room.clients) if (c.readyState === 1 && !c.quiet) c.send(msg);
+          const cur = Sim.snapshot(room.world);
+          // in the lobby, upgrade picks and results little moves: send only when something changed (or once a second)
+          const quietPh = !(ph === 'play' || ph === 'pre' || ph === 'post');
+          const skip = quietPh && room.lastSnap && !evs.length && room.tick - (room.sentTick || 0) < 60 && Sim.deltaEmpty(Sim.snapDelta(room.lastSnap, cur));
+          if (!skip) { sendSnap(room, cur, evs); room.sentTick = room.tick; }
           PERF.w.send += Number(process.hrtime.bigint() - t1) / 1e6;
         }
       }
       if (room.world.records.length) saveRecords(room);
     }
   }
-}, 5);
+  setTimeout(gameLoop, rooms.size ? Math.max(1, Math.floor((TICK - acc) * 1000)) : 50);
+}
+setTimeout(gameLoop, 5);
 
 store.init().then(() => store.setOnlyAdmin(OWNER)).then(() => social.initAI()).then(() => computeRanks()).then(() => {
   server.listen(PORT, () => console.log(`Bowfall server running on http://localhost:${PORT} (${store.kind === 'postgres' ? 'Postgres database' : 'local database file'})`));
