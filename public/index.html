@@ -507,6 +507,22 @@
   .slot .plate .pl1 { display: flex; align-items: center; gap: 0; }
   .slot .plate b { font-weight: 600; }
   .slot .plate .ttl { margin-left: 7px; }
+  .bannered { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 16px; padding: 14px; background: rgba(255,255,255,.03); border: 1px solid var(--line); align-items: start; }
+  @media (max-width: 760px) { .bannered { grid-template-columns: 1fr; } }
+  .bnprev { display: flex; flex-direction: column; gap: 8px; } .bnprev .slot { min-height: 44px; }
+  .bnopts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .bnopts .bnshow { grid-column: 1 / -1; }
+  #bnShow .chip2 { display: inline-flex; align-items: center; gap: 5px; }
+  .medals { display: inline-flex; gap: 2px; margin-left: 7px; vertical-align: middle; }
+  .medal { display: inline-block; width: 15px; height: 17px; filter: drop-shadow(0 1px 1px rgba(0,0,0,.5)); } .medal svg { width: 100%; height: 100%; display: block; }
+  /* banner finishes */
+  .plate.fin-brushed { background: repeating-linear-gradient(90deg, rgba(255,255,255,.09) 0 2px, rgba(255,255,255,.03) 2px 5px) !important; }
+  .plate.fin-chevron { background: repeating-linear-gradient(-45deg, rgba(255,255,255,.1) 0 6px, rgba(255,255,255,.02) 6px 14px) !important; }
+  .plate.fin-ember { background: linear-gradient(90deg, rgba(255,106,43,.35), rgba(255,207,90,.12) 60%, rgba(255,255,255,.02)) !important; box-shadow: inset 0 0 0 1px rgba(255,140,60,.5), 0 0 14px -4px #ff6a2b !important; }
+  .plate.fin-storm { background: linear-gradient(90deg, rgba(63,208,201,.3), rgba(255,242,122,.12) 55%, rgba(255,255,255,.02)) !important; box-shadow: inset 0 0 0 1px rgba(255,242,122,.45), 0 0 14px -4px #3fd0c9 !important; }
+  .plate.fin-royal { background: linear-gradient(90deg, rgba(120,60,200,.4), rgba(255,207,90,.18) 60%, rgba(255,255,255,.02)) !important; box-shadow: inset 0 0 0 1px rgba(255,207,90,.6), 0 0 14px -4px #b48cff !important; }
+  .plate.fin-diamond { background: linear-gradient(100deg, rgba(185,167,255,.35), rgba(255,255,255,.3) 45%, rgba(127,227,224,.3)) !important; box-shadow: inset 0 0 0 1px rgba(255,255,255,.7), 0 0 18px -3px #fff !important; }
+  .plate.fin-diamond b { color: #fff; text-shadow: 0 0 6px rgba(255,255,255,.6); }
+  .plate.fin-ember b, .plate.fin-royal b { text-shadow: 0 0 6px rgba(255,207,90,.5); }
   .troph { display: inline-flex; align-items: center; gap: 2px; margin-left: 7px; color: #f2c14e; font: 700 11px 'Rajdhani', 'Arial Narrow', sans-serif; }
   .troph svg { width: 12px; height: 12px; }
   .slot .nm small, .board .nm small { display: block; font-size: 11px; color: var(--muted); font-weight: 500; }
@@ -629,6 +645,18 @@
   .binds button { font: 600 14px 'Titillium Web', 'Segoe UI', sans-serif; color: var(--text); background: rgba(255,255,255,.05); border: 1px solid var(--line); padding: 7px 10px; cursor: pointer; text-align: center; }
   .binds button.wait { border-color: var(--gold); color: var(--gold); }
   .binds button[disabled] { opacity: .55; cursor: default; }
+  .ctlcard { max-width: 1100px; }
+  .ctlgrid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 18px; }
+  @media (max-width: 860px) { .ctlgrid { grid-template-columns: 1fr; } }
+  .ctlsec { display: flex; flex-direction: column; gap: 10px; padding: 14px; background: rgba(255,255,255,.03); border: 1px solid var(--line); min-width: 0; }
+  .ctlsec h3 { margin: 0; display: flex; flex-direction: column; gap: 2px; } .ctlsec h3 .status { font-weight: 500; font-size: 13px; letter-spacing: 0; text-transform: none; }
+  .ctlsec .binds { grid-template-columns: minmax(110px, 1fr) repeat(2, minmax(96px, 140px)); gap: 4px 8px; }
+  .ctlsec .binds button { padding: 5px 8px; font-size: 13px; }
+  .padmap2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; font-size: 14px; }
+  .padmap2 span { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .padmap2 kbd { font-size: 12px; padding: 3px 7px; color: var(--gold); border-color: rgba(255,207,90,.4); }
+  .ctlopts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; align-items: end; }
+  .ctlboth { margin-top: 0; }
   .padmap { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 6px 14px; font-size: 14px; }
   .padmap b { color: var(--gold); font-family: 'Rajdhani', 'Arial Narrow', sans-serif; }
 </style>
@@ -986,31 +1014,53 @@
 </div>
 
 <div class="overlay" id="ctlScreen" hidden role="dialog" aria-labelledby="ctlTitle">
-  <div class="card wide bal-card">
+  <div class="card wide bal-card ctlcard">
     <div class="shopbar"><div class="stat"><span class="eyebrow">Settings</span><h2 id="ctlTitle">Controls</h2></div><button class="cta" id="ctlClose" type="button">Close</button></div>
-    <p class="status">Click a key to change it, then press the new key (Esc cancels, Backspace clears). Each action can have two keys.</p>
-    <div class="binds" id="bindList"></div>
-    <div class="btnrow" style="justify-content:flex-start"><button class="ghost" id="bindReset" type="button">Reset to defaults</button></div>
-    <div class="row" style="align-items:flex-end;gap:14px"><div class="field"><label for="dashDir">Dash direction</label><select id="dashDir"><option value="move">The way you're moving</option><option value="aim">Where you're aiming</option></select></div><span class="status">Standing still, a dash always goes where you're aiming. Applies to keyboard and controller.</span></div>
-    <h3 style="margin-top:6px">Controller</h3>
-    <p class="status" id="padStatus">No controller found. Plug one in (Xbox or PlayStation style) and press any button.</p>
-    <div class="padmap">
-      <span><b>Left stick</b> move</span><span><b>Right stick</b> aim</span><span><b>Right trigger</b> draw and fire</span><span><b>A / Cross</b> or <b>left trigger</b> dash</span>
-      <span><b>LB / RB</b> abilities Q and E</span><span><b>Start</b> menu</span><span><b>X, Y, B</b> pick upgrade 1, 2, 3</span>
-      <span><b>Aim assist:</b> built in for controllers, one strength for everyone. Near an enemy your aim slows down and is drawn most of the way toward a spot just ahead of them, in the direction they're moving. You still finish the aim yourself, and it never locks on. The mouse is never assisted</span>
-      <span><b>Menus:</b> D-pad or left stick to move, <b>A</b> to select, <b>B</b> to go back. On a list, left and right change it</span>
+    <div class="ctlgrid">
+      <section class="ctlsec">
+        <h3>Keyboard and mouse</h3>
+        <p class="status">Click a key to change it, then press the new one. <kbd>Esc</kbd> cancels, <kbd>Backspace</kbd> clears. Each action can have two keys.</p>
+        <div class="binds" id="bindList"></div>
+        <div class="btnrow" style="justify-content:flex-start;margin-top:4px"><button class="ghost sm" id="bindReset" type="button">Reset to defaults</button></div>
+      </section>
+      <section class="ctlsec">
+        <h3>Controller <span class="status" id="padStatus">No controller found. Plug one in (Xbox or PlayStation style) and press any button.</span></h3>
+        <div class="padmap2">
+          <span><kbd>Left stick</kbd>move</span><span><kbd>Right stick</kbd>aim</span>
+          <span><kbd>RT</kbd>draw and fire</span><span><kbd>A</kbd> <kbd>LT</kbd>dash</span>
+          <span><kbd>LB</kbd> <kbd>RB</kbd>abilities Q and E</span><span><kbd>Start</kbd>menu</span>
+          <span><kbd>X</kbd> <kbd>Y</kbd> <kbd>B</kbd>upgrade 1, 2, 3</span><span><kbd>D-pad</kbd>menus (A select, B back)</span>
+        </div>
+        <div class="ctlopts">
+          <div class="field"><label for="padSens">Aim sensitivity</label><select id="padSens"><option value="1">1 (slowest)</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7" selected>7</option><option value="8">8</option><option value="9">9</option><option value="10">10 (instant)</option></select></div>
+          <div class="field"><label for="padAimR">Aim distance</label><select id="padAimR"><option value="0.8">Short</option><option value="1" selected>Normal</option><option value="1.3">Long</option></select></div>
+          <div class="field"><label for="padDead">Stick dead zone</label><select id="padDead"><option value="0.12">Small</option><option value="0.2" selected>Normal</option><option value="0.3">Large</option></select></div>
+        </div>
+        <p class="status"><b>Aim assist</b> is built in for controllers, one strength for everyone. Near an enemy your aim slows and is drawn most of the way toward a spot just ahead of them. It never locks on, and the mouse is never assisted.</p>
+      </section>
     </div>
-    <div class="row" style="align-items:flex-end;gap:14px">
-      <div class="field"><label for="padSens">Aim sensitivity</label><select id="padSens"><option value="1">1 (slowest)</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7" selected>7</option><option value="8">8</option><option value="9">9</option><option value="10">10 (instant)</option></select></div>
-      <div class="field"><label for="padAimR">Aim distance</label><select id="padAimR"><option value="0.8">Short</option><option value="1" selected>Normal</option><option value="1.3">Long</option></select></div>
-      <div class="field"><label for="padDead">Stick dead zone</label><select id="padDead"><option value="0.12">Small</option><option value="0.2" selected>Normal</option><option value="0.3">Large</option></select></div>
-    </div>
+    <section class="ctlsec ctlboth">
+      <h3>Both</h3>
+      <div class="ctlopts">
+        <div class="field"><label for="dashDir">Dash direction</label><select id="dashDir"><option value="move">The way you're moving</option><option value="aim">Where you're aiming</option></select></div>
+        <span class="status">Standing still, a dash always goes where you're aiming.</span>
+      </div>
+    </section>
   </div>
 </div>
 <div class="overlay" id="achScreen" hidden role="dialog" aria-labelledby="achTitle">
   <div class="card wide bal-card">
     <div class="shopbar"><div class="stat"><span class="eyebrow">Achievements</span><h2 id="achTitle">Challenges</h2></div><button class="cta" id="achClose" type="button">Close</button></div>
-    <div class="row" style="align-items:flex-end;gap:14px"><div class="field"><label for="titleSel">Your title</label><select id="titleSel"></select></div><div class="field"><label for="borderSel">Name banner border</label><select id="borderSel"></select></div><span class="status" id="achSum"></span></div>
+    <section class="bannered">
+      <div class="bnprev"><span class="lbl">Your banner, as others see it in a lobby</span><div class="slot" id="bnPrev"></div></div>
+      <div class="bnopts">
+        <div class="field"><label for="titleSel">Title</label><select id="titleSel"></select></div>
+        <div class="field"><label for="borderSel">Border</label><select id="borderSel"></select></div>
+        <div class="field"><label for="finSel">Finish</label><select id="finSel"></select></div>
+        <div class="field bnshow"><label>Medals to show (up to 3, click below to pick)</label><div id="bnShow" class="chips"></div></div>
+      </div>
+    </section>
+    <div class="shopbar"><h3 style="margin:0">Challenges</h3><span class="status" id="achSum"></span></div>
     <div class="help-grid" id="achGrid"></div>
     <p class="status">Each achievement has five tiers, from Bronze to Diamond, and shows how rare your tier is among players. They're earned in ranked games and in custom games without bots. Everyone in your games sees the title you pick next to your name.</p>
   </div>
@@ -1905,7 +1955,7 @@ function renderDraft(v) {
   setC('dfTeams', JSON.stringify([v.p.map(p => [p.id, p.n, p.tm, p.el, p.ro, p.b, p.c]), ready]), () => {
     $('dfTeams').innerHTML = TEAMS.map(t => `<div><h3 style="color:${TEAM_COL[t]}">${teamName(t)}</h3>` + v.p.filter(p => p.tm === t).map(p => {
       const lp = LP.list.find(l => l.pid === p.id), on = p.b || ready.includes(p.id);
-      return `<div class="dfp"><span class="dot" style="background:${p.c}"></span><span class="nm"><b>${esc(p.n)}</b>${ownHtml(p.ow)}${p.b ? '<span class="aitag">AI</span>' : ''}${p.id === myId ? ' <small>(you)</small>' : ''}${lp ? ` <span class="lptag" style="--pc:${lpColor(lp.n)}">P${lp.n}</span>` : ''}</span><span class="rdy${on ? ' on' : ''}">${on ? 'Ready' : 'Picking…'}</span><small class="status">${esc(archName(p))}</small></div>`;
+      return `<div class="dfp"><span class="dot" style="background:${p.c}"></span><span class="nm"><b>${esc(p.n)}</b>${ownHtml(p.ow)}${p.b ? '<span class="aitag">AI</span>' : ''}${p.id === myId ? ' <small>(you)</small>' : ''}${lp ? ` <span class="lptag" style="--pc:${lpColor(lp.n)}">P${lp.n}</span>` : ''}${medalsHtml(p.sc, 13)}</span><span class="rdy${on ? ' on' : ''}">${on ? 'Ready' : 'Picking…'}</span><small class="status">${esc(archName(p))}</small></div>`;
     }).join('') + '</div>').join('');
   });
   setC('dfArch', me ? me.el + me.ro : '', () => { if (me) { syncArch(me); $('dfArch').textContent = archName(me); } });
@@ -2681,13 +2731,15 @@ $('balClear').onclick = async () => {
 // Challenges with five tiers (Bronze to Diamond), earned in ranked games and in custom games without bots. The server
 // keeps them for accounts and guests alike and sends them here; each one you've reached is a title and a border.
 const Ach = {
-  d: { stats: {}, got: {}, tier: {}, title: null, border: null },
+  d: { stats: {}, got: {}, tier: {}, title: null, border: null, finish: null, show: null },
   rarity: null,
   load() {
     let pref = {}; try { pref = JSON.parse(localStorage.getItem('bowfall-ach-look') || '{}'); } catch (e) {}
-    return { stats: {}, got: {}, tier: {}, title: pref.title || null, border: pref.border || null };
+    return { stats: {}, got: {}, tier: {}, title: pref.title || null, border: pref.border || null, finish: pref.finish || null, show: Array.isArray(pref.show) ? pref.show : null };
   },
-  save() { if (this.account) return; try { localStorage.setItem('bowfall-ach-look', JSON.stringify({ title: this.d.title, border: this.d.border })); } catch (e) {} },
+  save() { if (this.account) return; try { localStorage.setItem('bowfall-ach-look', JSON.stringify({ title: this.d.title, border: this.d.border, finish: this.d.finish, show: this.d.show })); } catch (e) {} },
+  // what my banner shows: finish (if earned) and up to 3 medals (my choice, else my best)
+  banner() { return Sim.bannerOf({ tier: this.d.tier, finish: this.d.finish, show: this.d.show }); },
   unlocked(keys) {
     for (const k of keys) {
       const a = Sim.ACHIEVEMENTS[k], t = (this.d.tier || {})[k] || 1, T = Sim.ACH_TIERS[t - 1]; if (!a || !T) continue;
@@ -2696,7 +2748,7 @@ const Ach = {
     }
   },
   onEvents() {}, // progress is counted on the server now
-  useAccount(u) { this.account = u.name; const a = Sim.achMigrate(JSON.parse(JSON.stringify(u.ach || {}))); this.d = { stats: a.stats || {}, got: a.got || {}, tier: a.tier || {}, title: u.title || null, border: a.border || null }; hc.titleSent = hc.lookSent = null; },
+  useAccount(u) { this.account = u.name; const a = Sim.achMigrate(JSON.parse(JSON.stringify(u.ach || {}))); this.d = { stats: a.stats || {}, got: a.got || {}, tier: a.tier || {}, title: u.title || null, border: a.border || null, finish: a.finish || null, show: Array.isArray(a.show) ? a.show : null }; hc.titleSent = hc.lookSent = null; },
   fromServer(m) {
     const a = Sim.achMigrate(JSON.parse(JSON.stringify(m.ach || {})));
     this.d.stats = a.stats || {}; this.d.got = a.got || {}; this.d.tier = a.tier || {};
@@ -2720,20 +2772,41 @@ function renderAch() {
       <div class="bar"><i style="width:${Math.round(frac * 100)}%"></i></div>
       <small class="status">${next == null ? 'Maxed out' : `${a.kind === 'max' ? 'Best' : 'So far'}: ${Math.round(v)}${u} of ${next}${u} for ${Sim.ACH_TIERS[t].name}`}${t && R[k] && R[k][t - 1] != null ? ` · <b style="color:${T.col}">${rarityText(R[k][t - 1])}</b>` : ''}</small></div>`;
   }).join('');
-  const have = Sim.ACH_ORDER.filter(k => tier[k] > 0);
+  const have = Sim.ACH_ORDER.filter(k => tier[k] > 0), total = Sim.tierTotal(Ach.d);
+  // banner: finish (unlocked by total tiers), medals to show, and a live preview
+  $('finSel').innerHTML = Object.entries(Sim.BANNER_FINISH).map(([k, f]) => `<option value="${k}"${(Ach.d.finish || 'plain') === k ? ' selected' : ''}${f.tiers > total ? ' disabled' : ''}>${esc(f.name)}${f.tiers ? ` (${f.tiers} tiers${f.tiers > total ? ', ' + (f.tiers - total) + ' to go' : ''})` : ''}</option>`).join('');
+  const shown = Ach.banner().sc.map(x => x[0]);
+  $('bnShow').innerHTML = have.length ? have.map(k => `<button type="button" class="chip2${shown.includes(k) ? ' sel' : ''}" data-bnpick="${k}" style="--cc:${Sim.ACH_TIERS[tier[k] - 1].col}">${medalSvg(k, tier[k], 12)} ${esc(A[k].title)}</button>`).join('') : '<span class="status">Reach a tier in any challenge to earn a medal.</span>';
+  renderBannerPreview();
   $('titleSel').innerHTML = '<option value="">No title</option>' + have.map(k => `<option value="${k}"${Ach.d.title === k ? ' selected' : ''}>${esc(A[k].title)}</option>`).join('');
   $('achSum').textContent = `${have.length} of ${Sim.ACH_ORDER.length} started · ${have.reduce((s2, k) => s2 + tier[k], 0)} of ${Sim.ACH_ORDER.length * 5} tiers`;
   $('borderSel').innerHTML = '<option value="">Plain</option>' + have.filter(k => BORDERS[k]).map(k => `<option value="${k}"${Ach.d.border === k ? ' selected' : ''}>${esc(A[k].title)}</option>`).join('');
 }
+function renderBannerPreview() {
+  const b = Ach.banner(), me = { n: account ? account.name : ($('nameIn').value.trim() || 'Archer'), bd: Ach.d.border && Ach.d.got[Ach.d.border] ? Ach.d.border : null, na: Object.keys(Ach.d.got || {}).length || null, sc: b.sc, fin: b.fin, ti: Ach.d.title && Ach.d.got[Ach.d.title] ? Ach.d.title : null, lv: account && account.level && account.level.lv, cc: account && account.country, ow: account && account.admin };
+  $('bnPrev').innerHTML = `<i class="dot" style="background:${TEAM_INFO.red.shades[0]}"></i><span class="nm plate${plateClass(me)}"${plateStyle(me)}><span class="pl1">${idHtml(me)}<b>${esc(me.n)}</b>${ownHtml(me.ow)}${trophyHtml(me.na)}${medalsHtml(me.sc)}${me.ti ? ` <em class="ttl">${esc(titleName(me.ti))}</em>` : ''}</span><small>${esc(ELEMENTS[myLoadout().el].name + ' ' + ROLES[myLoadout().ro].name)}</small></span><span class="tag you">You</span>`;
+}
+function setMyBanner(patch) {
+  Object.assign(Ach.d, patch); Ach.save(); hc.lookSent = null;
+  if (Ach.account) fetch('/api/look', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch) });
+  renderAch();
+}
+$('finSel').onchange = () => setMyBanner({ finish: $('finSel').value === 'plain' ? null : $('finSel').value });
+$('bnShow').addEventListener('click', e => {
+  const b = e.target.closest('[data-bnpick]'); if (!b) return;
+  const k = b.dataset.bnpick; let show = Ach.banner().sc.map(x => x[0]);
+  if (show.includes(k)) show = show.filter(x => x !== k); else { if (show.length >= 3) show.shift(); show.push(k); }
+  setMyBanner({ show });
+});
 function openAch() { renderAch(); Ach.loadRarity().then(() => { if (!$('achScreen').hidden) renderAch(); }); helpFrom = document.activeElement; $('achScreen').hidden = false; $('achClose').focus(); }
 function closeAch() { $('achScreen').hidden = true; if (helpFrom && helpFrom.focus) helpFrom.focus(); }
 $('achBtn').onclick = openAch; $('gmAchBtn').onclick = openAch; $('achClose').onclick = closeAch;
 function setMyBorder(v) {
-  Ach.d.border = v; Ach.save(); hc.lookSent = null;
+  Ach.d.border = v; Ach.save(); hc.lookSent = null; renderBannerPreview();
   if (Ach.account) fetch('/api/look', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ border: v }) });
 }
 function setMyTitle(v) {
-  Ach.d.title = v; Ach.save(); hc.titleSent = null;
+  Ach.d.title = v; Ach.save(); hc.titleSent = null; renderBannerPreview();
   if (Ach.account) fetch('/api/title', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: v }) });
 }
 $('borderSel').onchange = () => setMyBorder($('borderSel').value || null);
@@ -2741,12 +2814,12 @@ $('titleSel').onchange = () => setMyTitle($('titleSel').value || null);
 // keep the title the game knows about in step with the one you picked
 function syncLook(me) {
   if (!me) return;
-  const bd = Ach.d.border && Ach.d.got[Ach.d.border] ? Ach.d.border : null, na = Object.keys(Ach.d.got || {}).length || null;
-  const key = bd + ':' + na + ':' + myId;
-  if ((me.bd || null) === bd && (me.na || null) === na) { hc.lookSent = key; return; }
+  const bd = Ach.d.border && Ach.d.got[Ach.d.border] ? Ach.d.border : null, na = Object.keys(Ach.d.got || {}).length || null, b = Ach.banner();
+  const key = bd + ':' + na + ':' + myId + ':' + (b.fin || '') + ':' + JSON.stringify(b.sc);
+  if ((me.bd || null) === bd && (me.na || null) === na && (me.fin || null) === b.fin && JSON.stringify(me.sc || []) === JSON.stringify(b.sc)) { hc.lookSent = key; return; }
   if (hc.lookSent === key) return;
   hc.lookSent = key;
-  act({ t: 'look', bd, na, top: Sim.achBest(Ach.d, 2) });
+  act({ t: 'look', bd, na, top: Sim.achBest(Ach.d, 2), fin: b.fin, show: b.sc.map(x => x[0]) });
 }
 function syncTitle(me) {
   syncLook(me);
@@ -2871,7 +2944,7 @@ function teamsHtml(v) {
   const host = isHost(), me = v.p.find(p => p.id === myId), hostId = mode === 'local' ? myId : roomInfo && roomInfo.host;
   return TEAMS.map(t => {
     const list = v.p.filter(p => p.tm === t).sort((a, b) => a.b - b.b);
-    const slots = list.map(p => `<div class="slot" data-card="p${p.id}"><i class="dot" style="background:${p.c}"></i><span class="nm plate${p.bd ? ' bordered' : ''}"${plateStyle(p)}><span class="pl1">${idHtml(p)}<b>${esc(p.n)}</b>${ownHtml(p.ow)}${trophyHtml(p.na)}${p.ti ? ` <em class="ttl">${esc(titleName(p.ti))}</em>` : ''}</span><small>${esc(archName(p))}</small></span>` +
+    const slots = list.map(p => `<div class="slot" data-card="p${p.id}"><i class="dot" style="background:${p.c}"></i><span class="nm plate${plateClass(p)}"${plateStyle(p)}><span class="pl1">${idHtml(p)}<b>${esc(p.n)}</b>${ownHtml(p.ow)}${trophyHtml(p.na)}${medalsHtml(p.sc)}${p.ti ? ` <em class="ttl">${esc(titleName(p.ti))}</em>` : ''}</span><small>${esc(archName(p))}</small></span>` +
       (p.id === myId ? '<span class="tag you">You</span>' : '') + (p.id === hostId && mode === 'online' ? '<span class="tag">Host</span>' : '') +
       (p.b ? (p.dv && host ? botSkillHtml(p) : `<span class="tag">${p.dv ? esc(BOT_SKILL[p.dv] || 'Bot') : 'Bot'}</span>`) : '') + hcapHtml(p, host) +
       (p.b && host ? `<button type="button" class="xbtn" data-rm="${p.id}" aria-label="Remove ${esc(p.n)}">×</button>` : '') + '</div>').join('');
@@ -2887,7 +2960,7 @@ function teamsHtml(v) {
 // people in the room who aren't on a team yet (or joined mid-game and are watching)
 function specHtml(v, me) {
   const spec = (roomInfo && roomInfo.spec) || [], lobby = v.m.ph === 'lobby' || v.m.ph === 'over';
-  const names = spec.map(c => `<div class="slot" data-card="c${c.cid}"><i class="dot" style="background:var(--muted)"></i><span class="nm plate${c.bd ? ' bordered' : ''}"${plateStyle(c)}><span class="pl1">${idHtml(c)}<b>${esc(c.n)}</b>${ownHtml(c.ow)}${trophyHtml(c.na)}</span></span>${c.you ? '<span class="tag you">You</span>' : ''}${c.h ? '<span class="tag">Host</span>' : ''}</div>`).join('');
+  const names = spec.map(c => `<div class="slot" data-card="c${c.cid}"><i class="dot" style="background:var(--muted)"></i><span class="nm plate${plateClass(c)}"${plateStyle(c)}><span class="pl1">${idHtml(c)}<b>${esc(c.n)}</b>${ownHtml(c.ow)}${trophyHtml(c.na)}${medalsHtml(c.sc)}</span></span>${c.you ? '<span class="tag you">You</span>' : ''}${c.h ? '<span class="tag">Host</span>' : ''}</div>`).join('');
   const foot = me && lobby ? '<button type="button" class="ghost sm" data-spec="1">Move to unassigned</button>' : '';
   return `<div class="tcol spec"><div class="thead"><b>${lobby ? 'Unassigned' : 'Spectating'}</b><span>${spec.length}</span></div>` +
     (names ? `<div class="specnames">${names}</div>` : `<span class="status">${lobby ? 'People who join the room wait here until they pick a team.' : 'Nobody is watching.'}</span>`) +
@@ -2930,7 +3003,7 @@ function cardHtml(key) {
   const who = p || sp; if (!who) return '';
   let c = roomInfo && roomInfo.cards ? roomInfo.cards[key] : null;
   if (!c && mode === 'local' && p && p.id === myId) c = { local: 1, top: Sim.achBest(Ach.d, 2) };
-  const head = `<div class="pc-h">${idHtml(who)}<b>${esc(who.n)}</b>${ownHtml(who.ow)}</div>` + (p ? `<small>${esc(archName(p))}</small>` : '');
+  const head = `<div class="pc-h">${idHtml(who)}<b>${esc(who.n)}</b>${ownHtml(who.ow)}${medalsHtml(who.sc, 16)}</div>` + (p ? `<small>${esc(archName(p))}</small>` : '');
   let body;
   if (p && p.b && !(c && c.ai)) body = `<div class="pc-row">Bot · ${DIFF_LBL[view.m.df] || 'Normal'} skill</div>`;
   else if (c && c.a) {
@@ -2994,7 +3067,7 @@ function renderLobby(v) {
     if (online && roomInfo) { $('lbCode').textContent = roomInfo.code; $('lbShare').textContent = `${roomInfo.name ? roomInfo.name + ' · ' : ''}${roomInfo.pub ? 'Public' : 'Private'}${roomInfo.locked ? ', password protected' : ''}. Friends can join with the code, or send them the invite link.`; }
   });
   syncTitle(v.p.find(p => p.id === myId));
-  setC('lb', JSON.stringify(v.p.map(p => [p.id, p.n, p.ow, p.tm, p.b, p.dv, p.c, p.el, p.ro, p.hc, p.ti, p.cc, p.lv, p.bd, p.na])) + host + myId + JSON.stringify(roomInfo && [roomInfo.host, roomInfo.spec]), () => { $('lbTeams').innerHTML = teamsHtml(v); });
+  setC('lb', JSON.stringify(v.p.map(p => [p.id, p.n, p.ow, p.fin, p.sc, p.tm, p.b, p.dv, p.c, p.el, p.ro, p.hc, p.ti, p.cc, p.lv, p.bd, p.na])) + host + myId + JSON.stringify(roomInfo && [roomInfo.host, roomInfo.spec]), () => { $('lbTeams').innerHTML = teamsHtml(v); });
   setC('lbChat', online, x => { $('lbChat').hidden = !x; });
   setC('lbLp', JSON.stringify(LP.list.map(l => [l.n, l.name, l.el, l.ro, l.pid, l.picker, (v.p.find(p => p.id === l.pid) || {}).tm])), () => { $('lbLocals').innerHTML = lpPanel('lobby'); });
   const meL = v.p.find(p => p.id === myId);
@@ -3191,9 +3264,9 @@ function drawProfChip() {
   $('profSub').textContent = account ? `1v1 ${Math.round((account.career || {}).elo || 800)} · Team ${Math.round((account.career || {}).eloT != null ? account.career.eloT : (account.career || {}).elo || 800)}` : 'Guest · edit profile';
 }
 function myPlateHtml() {
-  const bd = Ach.d.border && Ach.d.got[Ach.d.border] ? Ach.d.border : null, na = Object.keys(Ach.d.got || {}).length;
-  const me = { n: account ? account.name : ($('nameIn').value.trim() || 'Archer'), cc: account && account.country, lv: account && account.level && account.level.lv, bd, na, ti: Ach.d.title && Ach.d.got[Ach.d.title] ? Ach.d.title : null };
-  return `<span class="nm plate${bd ? ' bordered' : ''}"${plateStyle(me)}><span class="pl1">${idHtml(me)}<b>${esc(me.n)}</b>${trophyHtml(na)}${me.ti ? ` <em class="ttl">${esc(titleName(me.ti))}</em>` : ''}</span><small>${esc(ELEMENTS[myLoadout().el].name + ' ' + ROLES[myLoadout().ro].name)}</small></span>`;
+  const bd = Ach.d.border && Ach.d.got[Ach.d.border] ? Ach.d.border : null, na = Object.keys(Ach.d.got || {}).length, bn = Ach.banner();
+  const me = { n: account ? account.name : ($('nameIn').value.trim() || 'Archer'), cc: account && account.country, lv: account && account.level && account.level.lv, bd, na, sc: bn.sc, fin: bn.fin, ti: Ach.d.title && Ach.d.got[Ach.d.title] ? Ach.d.title : null };
+  return `<span class="nm plate${plateClass(me)}"${plateStyle(me)}><span class="pl1">${idHtml(me)}<b>${esc(me.n)}</b>${trophyHtml(na)}${medalsHtml(me.sc)}${me.ti ? ` <em class="ttl">${esc(titleName(me.ti))}</em>` : ''}</span><small>${esc(ELEMENTS[myLoadout().el].name + ' ' + ROLES[myLoadout().ro].name)}</small></span>`;
 }
 let COUNTRIES = null;
 function countryList() {
@@ -3292,6 +3365,11 @@ const BORDERS = { onfire: '#ff5a2e', unstoppable: '#ff8a3d', untouchable: '#ffff
   longshot: '#7dff8a', clutch: '#ff5a7a', lonewolf: '#9aa3b5', giantslayer: '#c58bff', champion: '#ffd23f', warlord: '#f2c14e', pinmaster: '#d8c7a0', empowered: '#b48cff', stormkeeper: '#fff27a', lifeline: '#5dffb0' };
 const trophyHtml = n => (n ? `<span class="troph" title="${n} achievement${n === 1 ? '' : 's'}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h8v2h2.5v1.5A3.5 3.5 0 0 1 11.3 9 4 4 0 0 1 9 10.8V12h2v2H5v-2h2v-1.2A4 4 0 0 1 4.7 9 3.5 3.5 0 0 1 1.5 5.5V4H4zm0 3.5H3a2 2 0 0 0 1.2 1.8zM12 5.5v1.8a2 2 0 0 0 1-1.8z" fill="currentColor"/></svg>${n}</span>` : '');
 const plateStyle = p => (p.bd && BORDERS[p.bd] ? ` style="--bd:${BORDERS[p.bd]}"` : '');
+const plateClass = p => (p.bd ? ' bordered' : '') + (p.fin && Sim.BANNER_FINISH[p.fin] ? ' fin-' + p.fin : '');
+// showcase medals: up to three achievements, each a small shield in its tier's colour with the tier numeral
+const medalSvg = (k, t, size) => { const T = Sim.ACH_TIERS[t - 1], a = Sim.ACHIEVEMENTS[k]; if (!T || !a) return '';
+  return `<span class="medal" style="--mc:${T.col};${size ? `width:${size}px;height:${size * 1.15}px;` : ''}" title="${esc(a.title)} ${T.n} · ${T.name}"><svg viewBox="0 0 20 23" aria-hidden="true"><path d="M10 1l8 3v7c0 5-3.5 8.6-8 11-4.5-2.4-8-6-8-11V4z" fill="var(--mc)" stroke="rgba(0,0,0,.45)" stroke-width="1.2"/><path d="M10 3.4l6 2.2v5.6c0 3.8-2.6 6.7-6 8.7-3.4-2-6-4.9-6-8.7V5.6z" fill="none" stroke="rgba(255,255,255,.45)" stroke-width=".8"/><text x="10" y="15" text-anchor="middle" font-size="9" font-weight="700" font-family="Rajdhani, Arial Narrow, sans-serif" fill="#111">${T.n}</text></svg></span>`; };
+const medalsHtml = (sc, size) => (Array.isArray(sc) && sc.length ? `<span class="medals">${sc.map(([k, t]) => medalSvg(k, t, size)).join('')}</span>` : '');
 const flagImgs = {};
 function flagImg(cc) {
   cc = String(cc || '').toLowerCase(); if (!FLAG_RE.test(cc) || window.BOWFALL_OFFLINE) return null;
@@ -3321,7 +3399,15 @@ function handleEvents(evs) {
         break;
       case 'reloaded': if (e.id === myId) sfx.xbLoad(); break;
       case 'drop': burst(e.x, e.y, '#b9a88a', 5, 60, 1.4); break;
-      case 'full': if (e.id === myId) { sfx.full(); const m = view && view.p.find(q => q.id === myId); if (m) fx.rings.push({ x: m.x, y: m.y, r: (m.rz || 16) + 4, life: 0, col: '255,201,74', max: 36 }); } break;
+      case 'full': {
+        const m = view && view.p.find(q => q.id === e.id), me = view && view.p.find(q => q.id === myId);
+        if (e.id === myId) { sfx.full(); if (m) fx.rings.push({ x: m.x, y: m.y, r: (m.rz || 16) + 4, life: 0, col: '255,201,74', max: 36 }); }
+        else if (m) { // someone else at full draw: a white flash, and a faint tick if it's an enemy near you
+          fx.rings.push({ x: m.x, y: m.y, r: (m.rz || 16) + 6, life: 0, col: '255,255,255', max: 44 });
+          if (me && m.tm !== me.tm && Math.hypot(m.x - me.x, m.y - me.y) < 520) tone(1320, 0.04, 'square', 0.012);
+        }
+        break;
+      }
       case 'hit': {
         const col = EL_COL[e.el] || (e.cr ? '#ffffff' : '#ffcf5a');
         burst(e.x, e.y, col, e.cr ? 14 : 8, 160);
@@ -4858,6 +4944,19 @@ function drawPlayer(p, isMe, bare) {
   if (p.ro === 'ninja') drawHandStar(R, p);
   else if (p.ro === 'crossbow') drawCrossbow(R, p);
   else drawBow(p.ch, !!p.dr, Math.max(20, R + 4), p.dz ? '#7b8594' : '#c89b5b');
+  // the draw, readable from across the arena: a ring that fills as the bow is drawn and flares white at full draw,
+  // so you can see when someone is about to loose a full-power shot (and time a Parry or a dodge)
+  if (p.dr && p.ch > 0 && p.ro !== 'ninja' && p.ro !== 'crossbow') {
+    const full = p.ch >= 1, rr = R + 5;
+    ctx.lineCap = 'butt';
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, rr, 0, TAU); ctx.stroke();
+    ctx.strokeStyle = full ? '#ffffff' : isMe ? '#ffcf5a' : '#ffb35a'; ctx.lineWidth = full ? 3.5 : 3;
+    ctx.beginPath(); ctx.arc(0, 0, rr, -Math.PI / 2, -Math.PI / 2 + TAU * Math.min(1, p.ch)); ctx.stroke();
+    if (full) {
+      const k = 0.5 + 0.5 * Math.sin(clock * 14);
+      ctx.strokeStyle = `rgba(255,255,255,${0.25 + 0.35 * k})`; ctx.lineWidth = 6 + 3 * k; ctx.beginPath(); ctx.arc(0, 0, rr + 5, 0, TAU); ctx.stroke();
+    }
+  }
   if (p.dz) { ctx.strokeStyle = 'rgba(191,232,255,0.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(18, -8); ctx.lineTo(30, 8); ctx.moveTo(30, -8); ctx.lineTo(18, 8); ctx.stroke(); }
   ctx.restore();
   if (p.ra && !p.f) { ctx.strokeStyle = 'rgba(125,255,138,0.35)'; ctx.lineWidth = 2; ctx.setLineDash([2, 5]); ctx.beginPath(); ctx.arc(0, 0, R + 9, clock, clock + TAU); ctx.stroke(); ctx.setLineDash([]); }
@@ -5293,7 +5392,7 @@ function drawAbilityFx(v) {
   for (const c of fx.cones) {
     const k = c.life / 0.3;
     ctx.fillStyle = `rgba(220,240,255,${0.3 * (1 - k)})`;
-    ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.arc(c.x, c.y, 60 + 170 * k, c.a - 0.62, c.a + 0.62); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.arc(c.x, c.y, 60 + 190 * k, c.a - 0.7, c.a + 0.7); ctx.closePath(); ctx.fill();
   }
   for (const r of fx.ropes) {
     const p = v.p.find(q => q.id === r.id), live = p && p.gr;

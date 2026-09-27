@@ -124,7 +124,7 @@ async function computeRanks() {
 }
 setInterval(() => computeRanks().catch(e => console.error('Ranks:', e.message)), 10 * 60 * 1000).unref();
 // the look of a signed-in player's name banner: the border they picked (if they've earned it) and how many achievements they have
-const lookOf = u => { const got = (u.ach && u.ach.got) || {}, bd = u.ach && u.ach.border; return { bd: bd && got[bd] ? bd : null, na: Object.keys(got).length || null, ow: u.admin ? 1 : null }; };
+const lookOf = u => { const got = (u.ach && u.ach.got) || {}, bd = u.ach && u.ach.border; return Object.assign({ bd: bd && got[bd] ? bd : null, na: Object.keys(got).length || null, ow: u.admin ? 1 : null }, Sim.bannerOf(u.ach)); };
 
 function careerAdd(u, rec, team) {
   const c = u.career || (u.career = {});
@@ -393,6 +393,13 @@ async function api(req, res, url) {
       me.ach.avatar = { el: a.el, ro: a.ro, c: String(a.c) }; markDirty(me);
       if (!('border' in body)) return json(res, 200, { ok: true, avatar: me.ach.avatar });
     }
+    if ('finish' in body || 'show' in body) { // banner finish and showcase medals, checked against what they've earned
+      if ('finish' in body) { const f = body.finish ? String(body.finish) : null; if (f && !(Sim.BANNER_FINISH[f] && Sim.BANNER_FINISH[f].tiers <= Sim.tierTotal(me.ach))) return json(res, 400, { error: "You haven't unlocked that finish." }); me.ach.finish = f; }
+      if ('show' in body) { const tier = me.ach.tier || {}; me.ach.show = (Array.isArray(body.show) ? body.show : []).map(String).filter(k => tier[k] > 0).slice(0, 3); }
+      markDirty(me);
+      for (const r of rooms.values()) for (const c of r.clients) if (c.user && c.user.id === me.id) { Object.assign(c, lookOf(me)); if (c.pid) Sim.setMeta(r.world, c.pid, lookOf(me)); sendRoom(r); }
+      if (!('border' in body)) return json(res, 200, { ok: true, finish: me.ach.finish || null, show: me.ach.show || [] });
+    }
     const bd = body.border ? String(body.border) : null;
     if (bd && !(me.ach.got && me.ach.got[bd])) return json(res, 400, { error: "You haven't unlocked that border." });
     me.ach.border = bd; markDirty(me);
@@ -621,7 +628,7 @@ function roomInfo(room, ws) {
     draft: room.ranked && room.ranked.draftUntil && !room.ranked.go ? Math.max(0, Math.ceil((room.ranked.draftUntil - Date.now()) / 1000)) : undefined,
     ready: room.ranked && room.ranked.ready ? [...room.clients].filter(c => room.ranked.ready.has(c.cid) && c.pid).map(c => c.pid) : undefined,
     cards: Object.fromEntries([...room.clients].map(c => [c.pid ? 'p' + c.pid : 'c' + c.cid, cardOf(c)]).concat([...(room.ai || new Map())].map(([pid, u]) => ['p' + pid, Object.assign(cardOf({ user: u }), { ai: 1 })]))),
-    spec: [...room.clients].filter(c => !c.pid).map(c => ({ cid: c.cid, n: c.name, h: c.cid === room.host ? 1 : 0, you: c === ws ? 1 : 0, cc: c.cc || undefined, lv: c.lv || undefined, bd: c.bd || undefined, na: c.na || undefined, ow: c.ow || undefined })),
+    spec: [...room.clients].filter(c => !c.pid).map(c => ({ cid: c.cid, n: c.name, h: c.cid === room.host ? 1 : 0, you: c === ws ? 1 : 0, cc: c.cc || undefined, lv: c.lv || undefined, bd: c.bd || undefined, na: c.na || undefined, ow: c.ow || undefined, fin: c.fin || undefined, sc: c.sc && c.sc.length ? c.sc : undefined })),
   };
 }
 // what the lobby's hover card shows about someone: accounts get their record, guests just what their browser says they've earned
@@ -830,7 +837,16 @@ async function handle(ws, m) {
     case 'ready': social.draftReady(room, ws); break;
     case 'look': {
       // accounts show what the server knows they've earned; guests show what their browser says
-      const look = ws.user ? lookOf(ws.user) : { bd: Sim.ACHIEVEMENTS[m.bd] ? String(m.bd) : null, na: Math.max(0, Math.min(Object.keys(Sim.ACHIEVEMENTS).length, m.na | 0)) || null };
+      let look;
+      if (ws.user) look = lookOf(ws.user);
+      else if (ws.guest) { // a guest's record is on the server too now: their choices are checked against it
+        const g = ws.guest; g.ach = g.ach || {};
+        const bd = Sim.ACHIEVEMENTS[m.bd] && (g.ach.got || {})[m.bd] ? String(m.bd) : null;
+        if (m.fin !== undefined) g.ach.finish = m.fin && Sim.BANNER_FINISH[m.fin] ? String(m.fin) : null;
+        if (Array.isArray(m.show)) g.ach.show = m.show.map(String).filter(k => (g.ach.tier || {})[k] > 0).slice(0, 3);
+        g.ach.border = bd; markDirty(g);
+        look = Object.assign({ bd, na: Object.keys(g.ach.got || {}).length || null }, Sim.bannerOf(g.ach));
+      } else look = { bd: Sim.ACHIEVEMENTS[m.bd] ? String(m.bd) : null, na: Math.max(0, Math.min(Object.keys(Sim.ACHIEVEMENTS).length, m.na | 0)) || null };
       if (!ws.user) ws.top = (Array.isArray(m.top) ? m.top : []).map(String).filter(k => Sim.ACHIEVEMENTS[k]).slice(0, 2);
       Object.assign(ws, look);
       if (ws.pid) Sim.setMeta(w, ws.pid, look);

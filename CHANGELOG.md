@@ -2,6 +2,38 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
 
+## 0.18.0
+
+**Balance pass** (from two rounds of bot testing: about 6,800 matches, 60,000 games; details in the balance review)
+- **Parry:** the riposte no longer makes every shot instant for 3 seconds (a human could fire 22 full-power arrows in 3 seconds). Now only the next shot is instant and 30% harder; for 3 seconds you still draw twice as fast, move 20% faster, and get half the cooldown back.
+- **Assassin:** 10 less health, Blink cooldown 6 → 8s. (Was the strongest role at 61%; now about 54%.)
+- **Ninja:** blink recharge 1.5 → 1.65s, shuriken gap slightly longer. (61% → about 52% in 1v1.)
+- **Ranger:** 8% → 5% faster. **Fleet Foot:** 15% → 10% faster (keeps its sharp turning).
+- **Warden:** was by far the weakest (27% in 1v1). Now: heals 3/s after 3s unhurt (was 2/s after 4s), no longer slower, 10 more health, about 17% less knockback taken. Rally and Bond now cover the Warden too. Guardian's Oath's self-penalty 10% → 5%. **Gust** is wider, shoves 35% harder, has an 8s cooldown and blows enemy arrows out of the air.
+- **Trapper:** abilities recharge 40% faster (was 30%); hits on rooted, stuck or frozen enemies deal 25% more damage (was 15%) and knock back 30% harder. Harpoon holds 0.9s (was 0.5) for 6 damage (was 4). Bramble Trap roots 2.5s.
+- **Blood:** the more health you've lost, the harder your arrows knock back (up to +25% near death). Blood Pact costs 10 health (was 15). Extra healing was tested and did nothing, because ring-outs decide games.
+- **Void:** rifts now open on any fully drawn hit, not only bullseyes. (Bots bullseye far more than people, so this should help humans most.)
+- **Railshot:** cooldown 11 → 10s, and bots now aim it correctly (they led it as a normal-speed arrow).
+- Bots' learned card values were re-learned under the new rules (11,000 games), Blood cards included, and bots no longer pick team-only cards when they have no teammate.
+
+**Bots**
+- Matchmaking's AI players now keep their own personality and playstyle through a match (a bug rerolled them at every match start).
+- The smart "Master" brain now fades in gradually with skill instead of switching on at once.
+- Bots take a moment to pick their upgrade cards, like a person reading them: 1 to 3 seconds for the best, up to 8 for the weakest.
+
+**Banners**
+- Your lobby banner can be customised on the Achievements screen, with a live preview:
+  - **Finish:** a background style unlocked by your total achievement tiers: Brushed steel (3), Chevrons (8), Ember (15), Stormfront (25), Royal (40), Diamond (60).
+  - **Medals:** up to three achievement medals in their tier colour, your choice (your best three by default).
+  - Border and title, as before.
+- Medals also show on hover cards and in the ranked draft.
+
+**Full draw is visible**
+- Every archer drawing a bow shows a ring that fills as they draw and flares white at full draw, with a flash and (for a nearby enemy) a faint tick when it's reached. You can see when an enemy is about to loose a full-power shot, and time a Parry or a dodge.
+
+**Controls screen**
+- Redesigned into two panels, keyboard and controller, with each one's settings beside it.
+
 ## 0.17.2
 
 **Parry forgives a late press**
