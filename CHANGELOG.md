@@ -2,6 +2,32 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
 
+## 0.19.0
+
+**New arena: The Pitch** (replaces Gale Cliffs)
+- A football pitch whose only hazards are the two goals, which are drops. A ball sits in the centre: shoot it or run into it to send it flying; it hurts and shoves anyone it hits (harder the faster it goes), bounces off walls, boulders and archers, and comes back to the centre after a goal. A saved Gale Cliffs preference falls back to Meadow.
+
+**Training**
+- A new main-screen entry with three graded drills (D to S, best kept in your browser): **Target practice** (three rounds: steady, quick, then several targets at once; scored on speed, accuracy and bullseyes), **Dodge drill** (three turrets, 45 seconds, dashes only) and **Peek and shoot** (dash out from cover, three hits knock a turret out, hits taken cost points). Two hidden training arenas; drills don't count for stats or achievements. Works with a controller, including the results buttons.
+
+**Combat**
+- **Quick-fire arrows** are no longer worth it: an arrow needs a quarter draw to leave the bow, the bow takes 0.3s to nock the next arrow (0.45s for a Sniper), and damage and knockback grow more steeply with the draw. Ninja shuriken and Crossbow bolts are unchanged.
+- **Full draw** is marked by a spark and a click instead of a ring around the archer.
+- **Homing arrows** option: Tiny is smaller (0.12) and the other steps moved down (small 0.25, medium 0.5, heavy 1, extreme 2.2).
+
+**Controller**
+- **Aim assist reworked:** it reaches further (about 110px either side of an enemy), pulls harder (70%) and leads more (halfway to the intercept); once an enemy is under your aim it tracks them, so a held or released stick stays on a runner. Only a firm push of the stick steers the aim, so easing it off to fire doesn't drag your aim away. Same for extra players on controllers.
+- **Menus in sections:** busy screens (lobby, custom games, find game, options, the in-game menu, the draft) are split into sections: move between sections, A steps in, B steps out. The in-game menu's buttons (Resume, Controls, End match) now highlight.
+- **Extra players:** pick upgrade cards with the D-pad or left stick and A as well as X/Y/B; their archetype picker works with the stick; results say which colour team won.
+
+**AI players**
+- Nine new players from Russia and Ukraine (69 in all).
+- Careers now follow ratings: the better a player's rating, the more games and the higher their level (a top player is level 20-odd with hundreds of games; a low-rated one is newer), with the achievements someone with that record would have. Existing accounts are updated on the server's next start, keeping the ratings they've earned here.
+
+**Visuals**
+- Arrow shadows have a sharp tip and a slight blur (not on the Fast graphics setting).
+- The football is bigger.
+
 ## 0.18.0
 
 **Balance pass** (from two rounds of bot testing: about 6,800 matches, 60,000 games; details in the balance review)

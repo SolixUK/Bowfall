@@ -1,6 +1,6 @@
 # Bowfall balance review, pass 2 (v0.17.2)
 
-This pass checked the first pass's changes, worked its open items with measured experiments, re-learned the bots' card values under the final rules, and re-measured everything. All numbers come from Master bots playing Master bots (random element and role, random maps and sides, bots picking their own cards) on a copy of the game in `/tmp/claude-0/balance/bowfall-pvp`. Nothing under `/home/claude/bowfall-pvp` was touched. The final change set is `/tmp/claude-0/balance/changes2.diff` (a diff of `public/sim.js` against the live file).
+This pass checked the first pass's changes, worked its open items with measured experiments, re-learned the bots' card values under the final rules, and re-measured everything. All numbers come from Master bots playing Master bots (random element and role, random maps and sides, bots picking their own cards) on a separate copy of the game. Nothing in the project was touched. The final change set is `changes2.diff` (a diff of `public/sim.js` against the live file).
 
 How to read the numbers: "win rate" is the share of games (battles) a player with that element or role won; 50% is even. Each experiment below is 500 matches (about 4,500 games) with one side's bot forced to the thing under test; uncertainty on those is about ±1 point, so differences under 2 points are noise. The final tables are 2,000 matches (1,500 1v1 + 500 2v2; 18,643 games); uncertainty about ±1.2 points per row in 1v1, ±1.5 in 2v2.
 
@@ -116,4 +116,4 @@ Run against the copy with pass 1's adjusted test file (`work2/uptest3.js`; pass 
 
 ## Work files
 
-`/tmp/claude-0/balance/work2/`: `mkvar.js` (builds rule variants), `exps*.sh` (experiment batches and logs), `run.js` / `fan.js` / `an.js` / `diag.js` (runner and analysis, from pass 1), `learn2.js` (card learning; output `cardval.json`, `cardn.json`, `learn.log`, raw games `learn*_?.json`), `setcv.js` (writes the values into sim.js), `final_*.jsonl` (final measurement), `uptest2.js` / `uptest3.js` and their `_out.txt` (unit tests against the copy), `exp_*.jsonl` (experiment logs).
+`the review workspace (`work2/`)`: `mkvar.js` (builds rule variants), `exps*.sh` (experiment batches and logs), `run.js` / `fan.js` / `an.js` / `diag.js` (runner and analysis, from pass 1), `learn2.js` (card learning; output `cardval.json`, `cardn.json`, `learn.log`, raw games `learn*_?.json`), `setcv.js` (writes the values into sim.js), `final_*.jsonl` (final measurement), `uptest2.js` / `uptest3.js` and their `_out.txt` (unit tests against the copy), `exp_*.jsonl` (experiment logs).

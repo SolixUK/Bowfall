@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.18.0';
+const VERSION = '0.19.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -106,18 +106,14 @@ const MAPS = {
     power: [{ x: 600, y: 400 }], amberY: [120, 330],
   }),
 };
-MAPS.cliffs = buildMap({
-    name: 'Gale Cliffs', theme: 'cliffs',
-    desc: 'A windswept clifftop. Every few seconds a gale blows the whole arena up or down, toward the drops. Watch the warning arrows.',
-    haz: [
-      { type: 'pit', shape: 'rect', x: 300, y: WALL, w: 250, h: 70 },
-      { type: 'pit', shape: 'rect', x: 340, y: 470, w: 90, h: 100 },
-      { type: 'pit', shape: 'circle', x: 200, y: 650, r: 52 },
-    ],
-    pillars: [{ x: 470, y: 330, r: 26 }],
-    spikes: [{ side: 'left', a: 560, b: 740 }],
-    wind: { period: 9, warn: 1.5, gust: 2.5, accel: 430 },
-    power: [{ x: 600, y: 400 }], amberY: [110, 330],
+MAPS.pitch = buildMap({
+    name: 'The Pitch', theme: 'pitch',
+    desc: 'A football pitch. The goals are drops: get knocked into one and you are out. A ball sits in the centre; shoot it or run into it to send it flying, and it hurts and shoves whoever it hits.',
+    haz: [{ type: 'pit', goal: true, shape: 'rect', x: WALL, y: 290, w: 64, h: 220 }],
+    pillars: [], spikes: [],
+    ball: { x: 600, y: 400, r: 30 },
+    spawns: [{ x: 230, y: 330 }, { x: 230, y: 470 }, { x: 300, y: 400 }, { x: 250, y: 200 }], // clear of the goal mouth
+    power: [{ x: 600, y: 170 }], amberY: [110, 330],
   });
 MAPS.mill = buildMap({
     name: 'Sawmill', theme: 'mill',
@@ -166,7 +162,7 @@ const OPTIONS = {
   hp:     { label: 'Health',       def: 'normal', values: { normal: 1, low: 0.7, high: 1.5 } },
   dash:   { label: 'Dashes',       def: 'on', values: { on: 1, off: 0 } },
   // aim assist: every shot bends toward the enemy it's heading for, this many radians a second
-  assist: { label: 'Aim assist',   def: 'none', values: { none: 0, tiny: 0.25, small: 0.5, medium: 1, heavy: 1.8, extreme: 3 } },
+  assist: { label: 'Aim assist',   def: 'none', values: { none: 0, tiny: 0.12, small: 0.25, medium: 0.5, heavy: 1, extreme: 2.2 } },
 };
 const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', none: 'None', tiny: 'Tiny', heavy: 'Heavy', extreme: 'Extreme' };
 const optDefaults = () => Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.def || Object.keys(o.values)[0]]));
@@ -184,12 +180,27 @@ function setHandicap(w, id, pct) {
   ev(w, { e: 'hcap', id: p.id, n: p.name, v: p.hcap });
   return true;
 }
-const MAP_KEYS = Object.keys(MAPS);
+// training grounds: open arenas without hazards, only used by the training drills (hidden from the map lists)
+MAPS.range = buildMap({
+    name: 'Target Range', theme: 'meadow', hidden: true,
+    desc: 'An open field for target practice.',
+    haz: [], pillars: [], spikes: [],
+    spawns: [{ x: 200, y: 400 }, { x: 200, y: 300 }, { x: 200, y: 500 }, { x: 140, y: 400 }],
+    power: [{ x: AW - 50, y: AH - 50 }], amberY: [WALL + 44, 330],
+  });
+MAPS.yard = buildMap({
+    name: 'Cover Yard', theme: 'meadow', hidden: true,
+    desc: 'Boulders to duck behind.',
+    haz: [], pillars: [{ x: 330, y: 300, r: 38 }, { x: 330, y: 500, r: 38 }, { x: 600, y: 400, r: 44, centre: true }], spikes: [],
+    spawns: [{ x: 250, y: 400 }, { x: 250, y: 300 }, { x: 250, y: 500 }, { x: 180, y: 400 }],
+    power: [{ x: AW - 50, y: AH - 50 }], amberY: [WALL + 44, 330],
+  });
+const MAP_KEYS = Object.keys(MAPS).filter(k => !MAPS[k].hidden);
 
 // The simulation reads the current arena from these; useMap() points them at a world's arena.
 // Every public entry point calls useMap first, so rooms on different arenas can share one server.
 let MAP = MAPS.meadow, HAZ = MAP.haz, PILLARS = MAP.pillars, SPIKES = MAP.spikes, HEAL = null, ICE = null, WARN = [];
-let SAWS = [], SAWPOS = [], BUMPERS = [], PORTALS = [], WIND = null;
+let SAWS = [], SAWPOS = [], BUMPERS = [], PORTALS = [], WIND = null, BALL = null;
 let SPAWNS = { red: RED_SPAWNS, blue: RED_SPAWNS.map(mirrorItem) };
 const GATES = [{ x: 70, y: 70 }, { x: AW - 70, y: 70 }, { x: 70, y: AH - 70 }, { x: AW - 70, y: AH - 70 }];
 const CENTER_X = AW / 2;
@@ -197,7 +208,8 @@ function useMap(w) {
   CFG = w.cfg; if (!CFG.opt) CFG.opt = optDefaults();
   MAP = MAPS[w.cfg.map] || MAPS.meadow;
   PILLARS = MAP.pillars; SPIKES = MAP.spikes; HEAL = MAP.heal || null; ICE = MAP.ice || null;
-  SAWS = MAP.saws || []; BUMPERS = MAP.bumpers || []; PORTALS = MAP.portals || []; WIND = MAP.wind || null;
+  SAWS = MAP.saws || []; BUMPERS = MAP.bumpers || []; PORTALS = MAP.portals || []; WIND = MAP.wind || null; BALL = MAP.ball || null;
+  SPAWNS = MAP.spawns ? { red: MAP.spawns, blue: MAP.spawns.map(mirrorItem) } : { red: RED_SPAWNS, blue: RED_SPAWNS.map(mirrorItem) };
   SAWPOS = SAWS.map(o => sawAt(o, gameTime(w)));
   // thin ice that has given way joins the arena's hazards; ice about to go is something bots steer clear of
   const cr = w.cracks || [];
@@ -216,7 +228,48 @@ function windAt(t) {
 const BUMP_MIN = 170, BUMP_MAX = 720;
 function airborne(q) { return q.dashT > 0 || !!q.grap || !!q.nblink; }
 // saws, mushrooms, gates and wind act on everyone
+// the Pitch's ball: shot or run into, it flies off, bounces off the walls, and hurts and shoves whoever it hits
+const BALL_DRAG = 1.3, BALL_HIT = 140, BALL_MAX = 1300, BALL_MASS = 0.8;
+function updateBall(w, dt) {
+  const b = w.ball; if (!b) return;
+  if (b.out > 0) { b.out -= dt; if (b.out <= 0) { b.x = BALL.x; b.y = BALL.y; b.vx = b.vy = 0; ev(w, { e: 'ballReset', x: r1(b.x), y: r1(b.y) }); } return; }
+  const e = Math.exp(-BALL_DRAG * dt); b.vx *= e; b.vy *= e;
+  const sp = Math.hypot(b.vx, b.vy);
+  if (sp > BALL_MAX) { b.vx *= BALL_MAX / sp; b.vy *= BALL_MAX / sp; }
+  b.x += b.vx * dt; b.y += b.vy * dt; b.spin += sp * dt / b.r;
+  // walls
+  if (b.x < WALL + b.r) { b.x = WALL + b.r; b.vx = Math.abs(b.vx) * 0.7; ev(w, { e: 'ballBounce', x: r1(b.x), y: r1(b.y) }); }
+  if (b.x > AW - WALL - b.r) { b.x = AW - WALL - b.r; b.vx = -Math.abs(b.vx) * 0.7; ev(w, { e: 'ballBounce', x: r1(b.x), y: r1(b.y) }); }
+  if (b.y < WALL + b.r) { b.y = WALL + b.r; b.vy = Math.abs(b.vy) * 0.7; ev(w, { e: 'ballBounce', x: r1(b.x), y: r1(b.y) }); }
+  if (b.y > AH - WALL - b.r) { b.y = AH - WALL - b.r; b.vy = -Math.abs(b.vy) * 0.7; ev(w, { e: 'ballBounce', x: r1(b.x), y: r1(b.y) }); }
+  for (const q of PILLARS) { const dx = b.x - q.x, dy = b.y - q.y, d = Math.hypot(dx, dy) || 1; if (d < q.r + b.r) { const nx = dx / d, ny = dy / d, vn = b.vx * nx + b.vy * ny; if (vn < 0) { b.vx -= 1.7 * vn * nx; b.vy -= 1.7 * vn * ny; } b.x = q.x + nx * (q.r + b.r); b.y = q.y + ny * (q.r + b.r); } }
+  // into a goal: it drops out, and comes back to the centre spot a moment later
+  for (const h of HAZ) if (h.type === 'pit' && inHaz(h, b.x, b.y, -b.r * 0.5)) { b.out = 1.2; ev(w, { e: 'ballGoal', x: r1(b.x), y: r1(b.y) }); return; }
+  // archers
+  for (const q of w.players) {
+    if (q.dead || q.falling > 0 || q.phaseT > 0) continue;
+    const dx = q.x - b.x, dy = q.y - b.y, d = Math.hypot(dx, dy) || 1;
+    if (d >= q.r + b.r) continue;
+    const nx = dx / d, ny = dy / d;
+    const rel = (b.vx - q.vx) * nx + (b.vy - q.vy) * ny; // how fast the ball is closing on them
+    q.x = b.x + nx * (q.r + b.r + 1); q.y = b.y + ny * (q.r + b.r + 1);
+    if (rel > BALL_HIT && (q.ballCd || 0) <= w.t) {
+      // a flying ball: damage and a shove that scale with its speed; the ball loses most of its pace
+      q.ballCd = w.t + 0.3;
+      const k = clamp((rel - BALL_HIT) / 900, 0, 1), dmg = 4 + 12 * k, push = 260 + 640 * k;
+      ev(w, { e: 'ballHit', id: q.id, x: r1(b.x), y: r1(b.y), s: r2(k) });
+      hurt(w, q, dmg, nx * push, ny * push, 'ball', b.lastBy && b.lastBy !== q.id ? b.lastBy : null);
+      b.vx = -b.vx * 0.35 + q.vx * 0.3; b.vy = -b.vy * 0.35 + q.vy * 0.3;
+    } else if (rel <= BALL_HIT) {
+      // running into a slow ball: a kick, harder out of a dash
+      const kick = (q.dashT > 0 ? 1.6 : 1.1) * Math.max(0, -(q.vx * -nx + q.vy * -ny)) + 120;
+      b.vx = -nx * kick + q.vx * 0.5; b.vy = -ny * kick + q.vy * 0.5; b.lastBy = q.id;
+      if (!(q.ballCd > w.t)) { q.ballCd = w.t + 0.2; ev(w, { e: 'ballKick', x: r1(b.x), y: r1(b.y), id: q.id }); }
+    }
+  }
+}
 function updateMapMech(w, dt) {
+  updateBall(w, dt);
   if (!SAWS.length && !BUMPERS.length && !PORTALS.length && !WIND) return;
   const t = gameTime(w), wind = windAt(t);
   SAWPOS = SAWS.map(o => sawAt(o, t));
@@ -451,7 +504,7 @@ function setTitle(w, id, key) {
 const isLocked = key => LOCK_PREMIUM && !!((ELEMENTS[key] || ROLES[key] || {}).premium);
 const ROLES = {
   sniper:     { name: 'Sniper',     cat: 'Power',   blurb: 'Harder, faster, longer shots.',
-    trait: { name: 'Marksman', desc: 'Arrows fly 10% faster and hit harder the further they fly, rising steadily to 25% more damage across the whole arena (corner to corner). 10 less health.' } },
+    trait: { name: 'Marksman', desc: 'Arrows fly 10% faster and hit harder the further they fly, rising steadily to 25% more damage across the whole arena (corner to corner). A slower, more deliberate draw (10% slower, and a longer pause between shots). 10 less health.' } },
   juggernaut: { name: 'Juggernaut', cat: 'Power',   blurb: 'Tough to move, dangerous up close.',
     trait: { name: 'Heavyweight', desc: '15 more health, a bigger body, 20% less knockback taken, and heals 2 health a second after 4 seconds without being hit. Dashing into enemies shoves them 50% harder. Arrows deal 20% less damage. 7% slower.' } },
   ranger:     { name: 'Ranger',     cat: 'Agility', blurb: 'Speed, extra dashes and a grapple.',
@@ -703,7 +756,7 @@ function applyStats(p) {
     : (has(p, 'dash') ? 0.66 : 1.1) * is(R === 'ranger', 0.8) * is(has(p, 'overload'), 1.3);
   p.dashMaxN = R === 'ninja' ? (has(p, 'thirdstep') ? 3 : 2) : has(p, 'double') ? 2 : 1;
   p.dashN = Math.min(p.dashN == null ? p.dashMaxN : p.dashN, p.dashMaxN);
-  p.drawMul = (has(p, 'steady') ? 1.25 : 1) * (1 + 0.08 * h('hone_draw')) * is(R === 'trickster', 1.12) * is(has(p, 'permafrost'), 0.95);
+  p.drawMul = (has(p, 'steady') ? 1.25 : 1) * (1 + 0.08 * h('hone_draw')) * is(R === 'trickster', 1.12) * is(R === 'sniper', 0.9) * is(has(p, 'permafrost'), 0.95);
   p.kbMul = (1 + 0.08 * h('hone_kb')) * is(R === 'trickster', 0.9) * is(has(p, 'pyre'), 0.8) * is(has(p, 'obsidian'), 1.3) * is(has(p, 'lingering'), 0.85);
   p.dmgMul = hc * is(has(p, 'glass'), 1.3) * is(has(p, 'potent'), 0.85) * is(R === 'juggernaut', 0.8) * is(has(p, 'unstable'), 0.92);
   p.abCdMul = is(R === 'trapper', 0.6);
@@ -1028,7 +1081,7 @@ function placeForRound(w, p) {
     knock: 0, inv: 0, dashT: 0, dashCd: 0, dashN: p.dashMaxN, charge: 0, drawing: false, thr: 0, tdx: 0, tdy: 0,
     lastHitBy: null, lastHitT: -99, lastCause: '', killedBy: null, pw: emptyPowers(), wantDash: false, lastHurtT: -99, pinT: 0, pinned: 0, dashK: 1,
     pinSafe: 0, volleyArmed: false, railArmed: false, recoilArmed: false, seekArmed: false, swapArmed: false, boomArmed: false, execArmed: false,
-    windT: 0, parryT: 0, focusT: 0, riposteT: 0, riposteUsed: false, parryRefunded: false, sawCd: 0, bumpCd: 0, portCd: 0, fortT: 0, phaseT: 0, shroudT: 0, blinkGap: 0, caltT: 0, rush: null, nblink: null, trickArmed: false, throwCd: 0, wasDraw: false, bolts: null, reloadT: 0, repeatT: 0, fanArmed: false, autoT: 0, parryAuto: false, wantThrow: false, throwQ: 0, strikeN: 0, strikeT: 0, markPos: null, staggerT: 0, markT: 0, stealthT: 0, ambushT: 0, markReady: 0, slowK: 0.5, fallCause: 'pit', coat: {},
+    windT: 0, parryT: 0, focusT: 0, riposteT: 0, riposteUsed: false, parryRefunded: false, sawCd: 0, bumpCd: 0, portCd: 0, fortT: 0, phaseT: 0, shroudT: 0, blinkGap: 0, caltT: 0, rush: null, nblink: null, trickArmed: false, throwCd: 0, wasDraw: false, bolts: null, reloadT: 0, repeatT: 0, fanArmed: false, autoT: 0, parryAuto: false, wantThrow: false, throwQ: 0, nockT: 0, strikeN: 0, strikeT: 0, markPos: null, staggerT: 0, markT: 0, stealthT: 0, ambushT: 0, markReady: 0, slowK: 0.5, fallCause: 'pit', coat: {},
     abCd: [0, 0], wantAb: [false, false], reviveUsed: false, revT: 0, revOf: null, revP: 0,
   });
   p.aim = Math.atan2(AH / 2 - s.y, AW / 2 - s.x);
@@ -1039,6 +1092,7 @@ function startPre(w) {
   M.ph = 'pre'; M.T = TIMES.pre; M.rw = null; M.clutch = {}; M.first = null;
   w.arrows = []; w.pickups = []; w.zones = []; w.later = [];
   w.cracks = MAP.cracks.map(() => 0); useMap(w);
+  w.ball = BALL ? { x: BALL.x, y: BALL.y, vx: 0, vy: 0, r: BALL.r, out: 0, spin: 0 } : null;
   for (const p of w.players) { placeForRound(w, p); p.g0 = { k: p.kills, dmg: p.stats.dmg, hits: p.stats.hits, shots: p.stats.shots, ring: p.stats.ring, taken: p.stats.taken, as: p.stats.as || 0, bull: p.stats.bull || 0 }; p.hitBy = {}; p.gEmp = p.emp; }
   ev(w, { e: 'phase', ph: 'pre', rd: M.rd, gm: M.gm });
 }
@@ -1323,8 +1377,8 @@ function fire(w, p, ang, c, burst, vol) {
   const speed = (380 + 920 * c) * (has(p, 'longbow') ? 1.2 : 1) * (p.role === 'sniper' ? 1.1 : 1) * (has(p, 'obsidian') ? 0.92 : 1) * (has(p, 'colossus') ? 0.85 : 1) * OPT('aspeed');
   if (p.stealthT > 0) breakStealth(w, p);
   const full = c >= 0.99; // a full draw: flies fastest and triggers "fully drawn" upgrades
-  let dmg = (2 + 10 * c) * (p.dmgMul || 1);
-  let kb = (180 + 620 * c) * (heavy ? 1.9 : 1) * (has(p, 'heavy') ? 1.25 : 1) * (p.kbMul || 1);
+  let dmg = (1 + 11 * c) * (p.dmgMul || 1);
+  let kb = (120 + 680 * Math.pow(c, 1.3)) * (heavy ? 1.9 : 1) * (has(p, 'heavy') ? 1.25 : 1) * (p.kbMul || 1);
   if (bolt) { dmg *= 1.5; kb *= 2; }
   if (xb) { dmg *= 0.85; kb *= 0.85 * (has(p, 'heavybolt') ? 1.2 : 1); }
   const auto = xb && p.autoT > 0; if (auto) { dmg *= 0.5; kb *= 0.5; }
@@ -1426,6 +1480,7 @@ const MOVE = {
 };
 
 // Blood Frenzy: the lower your health, the faster you draw (up to 60% near death)
+const MIN_DRAW = 0.25, NOCK = 0.3, NOCK_SNIPER = 0.45; // bows: the least draw that fires, and the pause before the next draw can start
 const frenzyDraw = p => (has(p, 'frenzy') ? 1 + 0.6 * clamp(1 - p.hp / p.maxHp, 0, 1) : 1);
 function accelerate(f, mx, my, sp, dt) {
   const moving = !!(mx || my);
@@ -1630,16 +1685,18 @@ function updatePlayer(w, p, dt) {
       fire(w, p, p.aim, 1);
     }
     p.wasDraw = !!inp.draw; p.drawing = false; p.charge = 0; p.over = 0;
-  } else if (inp.draw && p.falling <= 0 && p.disarm <= 0) {
+  } else if (inp.draw && p.falling <= 0 && p.disarm <= 0 && !(p.nockT > 0)) {
     const prev = p.charge;
     p.drawing = true;
     p.charge = p.riposteT > 0 && !p.riposteUsed ? 1 : Math.min(1, p.charge + dt * p.drawMul * frenzyDraw(p) * (p.pw.quick > 0 ? 2.2 : 1) * (p.quickT > 0 ? 3 : 1) * (p.ambushT > 0 ? 1.6 : 1) * (p.focusT > 0 ? 2 : 1));
     if (prev < 1 && p.charge >= 1) ev(w, { e: 'full', id: p.id });
     if (p.charge >= 1 && has(p, 'ballista')) { const was = p.over; p.over += dt; if (was < 1 && p.over >= 1) ev(w, { e: 'loaded', id: p.id }); }
   } else if (p.drawing) {
-    if (p.charge >= 0.12 && p.falling <= 0) fire(w, p, p.aim, p.charge);
+    // a bow needs a real draw: taps under a quarter draw don't fire, and every shot takes a moment to nock the next arrow
+    if (p.charge >= MIN_DRAW && p.falling <= 0) { fire(w, p, p.aim, p.charge); p.nockT = p.role === 'sniper' ? NOCK_SNIPER : NOCK; }
     p.drawing = false; p.charge = 0; p.over = 0;
   }
+  if (p.nockT > 0) p.nockT -= dt;
   stepBody(w, p, mx, my, dt);
   if (p.dead) return;
   if (p.emp) empowered(w, p, dt);
@@ -2521,6 +2578,14 @@ function updateArrows(w, dt) {
         if (z.team === a.team) continue;
         if (segDist(a.x, a.y, z.x, z.y, z.x2, z.y2) < 6) { ev(w, { e: 'blocked', x: r1(a.x), y: r1(a.y) }); stickArrow(w, a, 2); continue outer; }
       }
+      // the ball: an arrow shoves it along the arrow's line, harder the harder the shot, and is spent
+      if (w.ball && !(w.ball.out > 0) && !a.hitBall && Math.hypot(w.ball.x - a.x, w.ball.y - a.y) < w.ball.r + 4) {
+        const b = w.ball, v = Math.hypot(a.vx, a.vy) || 1, push = Math.min(BALL_MAX, a.kb * 0.9 / BALL_MASS);
+        b.vx += a.vx / v * push; b.vy += a.vy / v * push; b.lastBy = a.owner; a.hitBall = true;
+        ev(w, { e: 'ballShot', x: r1(b.x), y: r1(b.y), s: r2(Math.min(1, push / BALL_MAX)) });
+        if (a.own) a.own.stats.hits++;
+        if (!(a.pierce > 0) && !a.rail) { w.arrows.splice(i, 1); continue outer; }
+      }
       for (const f of w.players) {
         if (f.team === a.team || f.dead || f.falling > 0 || a.hit.includes(f.id) || f.phaseT > 0) continue;
         if (Math.hypot(f.x - a.x, f.y - a.y) < f.r + (a.big ? 10 : 4)) {
@@ -2727,7 +2792,7 @@ function botSteer(p, gx, gy) {
 const GENE = { pref: 1, safety: 1, push: 1, los: 1, pick: 1, jink: 0.5, kbScale: 1, dodgeT: 0.55, retreat: 0.3, cand: 130, heal: 1, fireTol: 0.9, far: 380, quick: 0.45, mid: 0.8, riskFull: 0.5, planDt: 0.12 };
 // how far a hit of charge c would shove an archer of this mass (knockback, then the slide after it)
 function kbTravel(c, mass, mul) {
-  const v = (180 + 620 * c) * (mul || 1) * OPT('kb') / (mass || 1), T = 0.25 + v / 1600, e = Math.exp(-1.5 * T);
+  const v = (120 + 680 * Math.pow(c, 1.3)) * (mul || 1) * OPT('kb') / (mass || 1), T = 0.25 + v / 1600, e = Math.exp(-1.5 * T);
   return v / 1.5 * (1 - e) + v * e / 9;
 }
 // how deadly being shoved `dist` along (ux, uy) from (x, y) would be: 0 safe, up to ~1.2 certain death
@@ -3240,6 +3305,7 @@ function snapshot(w) {
         pw, lc: p.lastCause, kb: p.killedBy,
       };
     }),
+    b: w.ball ? { x: r1(w.ball.x), y: r1(w.ball.y), r: w.ball.r, o: w.ball.out > 0 ? 1 : 0, s: r2(w.ball.spin % TAU) } : undefined,
     a: w.arrows.map(a => ({ id: a.id, o: a.owner, x: r1(a.x), y: r1(a.y), g: r3(a.ang), s: a.stuck > 0 ? r2(a.stuck) : 0, c: a.color, cr: a.full ? 1 : 0, ex: a.explosive ? 1 : 0, rl: a.rail ? 1 : 0, bg: a.big ? 1 : 0, sk: a.seek ? 1 : 0, bm: a.boom ? 1 : 0, sw: a.swap ? 1 : 0, xq: a.exec ? 1 : 0, sh: a.shur ? (a.dbl ? 2 : 1) : 0, xb: a.xb ? 1 : 0, hv: a.heavy ? 1 : 0, el: a.el, b: a.bolt ? 1 : 0, sn: a.snare ? 1 : 0 })),
     z: w.zones.filter(z => !(z.delay > 0)).map(z => ({ id: z.id, ty: z.ty, x: r1(z.x), y: r1(z.y), x2: z.x2 != null ? r1(z.x2) : undefined, y2: z.y2 != null ? r1(z.y2) : undefined, r: z.r, cr: z.core, t: r2(z.t), tm: z.team, o: z.owner })),
     u: w.pickups.map(u => ({ id: u.id, x: r1(u.x), y: r1(u.y), ty: u.type, ag: r1(u.age), li: u.life, cp: u.chan ? r2(u.cp) : undefined, ct: u.chan ? u.ct : undefined, cs: u.chan ? u.cs : undefined })),

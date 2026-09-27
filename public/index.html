@@ -43,6 +43,12 @@
   .hud-btn:hover { border-color: var(--gold); }
   button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
   .padsel { outline: 3px solid var(--gold) !important; outline-offset: 3px; box-shadow: 0 0 0 6px rgba(255,207,90,.22), 0 0 18px rgba(255,207,90,.35) !important; }
+  /* buttons with a clipped shape can't show an outline, so they get an inner glow instead */
+  .padsel.cta, .padsel.ghost, .padsel.mapcard, .padsel.mm { outline: none !important; box-shadow: inset 0 0 0 3px var(--gold), inset 0 0 14px rgba(255,207,90,.35) !important; filter: brightness(1.15); }
+  /* controller: a whole section is highlighted first; A steps into it */
+  .padsec { outline: 3px solid var(--gold) !important; outline-offset: -3px; box-shadow: inset 0 0 0 3px var(--gold), inset 0 0 22px rgba(255,207,90,.22) !important; position: relative; }
+  .padsec::after { content: 'A'; position: absolute; top: 6px; right: 8px; font: 700 12px 'Rajdhani', 'Arial Narrow', sans-serif; color: #111; background: var(--gold); padding: 1px 6px; border-radius: 3px; z-index: 2; }
+  .padin { box-shadow: inset 0 0 0 2px rgba(255,207,90,.45) !important; }
   .roomtag { font: 600 12px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--muted); letter-spacing: .08em; }
   .roomtag b { color: var(--gold); }
 
@@ -738,7 +744,8 @@
         <button class="mm" id="mCustom" type="button"><span class="mmk">02</span><b>Custom games</b><small>Browse public games, join with a code, host your own or practise against bots.</small></button>
         <button class="mm" id="mScores" type="button"><span class="mmk">03</span><b>Highscores</b><small>Top ratings, the best at each role, and single-game records.</small></button>
         <button class="mm" id="mTut" type="button"><span class="mmk">04</span><b>Tutorial</b><small>Learn the basics on a practice dummy, then beat an easy bot.</small></button>
-        <button class="mm" id="mOpts" type="button"><span class="mmk">05</span><b>Options</b><small>Controls, controller, sound and graphics.</small></button>
+        <button class="mm" id="mTrain" type="button"><span class="mmk">05</span><b>Training</b><small>Graded drills: target practice, dodging with dashes, and shooting from cover.</small></button>
+        <button class="mm" id="mOpts" type="button"><span class="mmk">06</span><b>Options</b><small>Controls, controller, sound and graphics.</small></button>
       </nav>
       <div class="homefoot">
         <div class="btnrow"><button class="ghost sm" id="helpBtn" type="button">How to play</button><button class="ghost sm" id="achBtn" type="button">Achievements</button><button class="ghost sm" id="balBtn" type="button">Balance data</button></div>
@@ -753,9 +760,9 @@
   <div class="overlay sub" id="findScr" hidden>
     <div class="card wide findcard">
       <div class="shopbar"><div class="stat"><span class="eyebrow">Play · ranked</span><h2>Find game</h2></div>
-        <div class="btnrow"><button class="ghost" type="button" data-back>Back</button></div></div>
+        <div class="btnrow" data-navsec><button class="ghost" type="button" data-back>Back</button></div></div>
       <div class="findgrid">
-        <div class="olpane">
+        <div class="olpane" data-navsec>
           <div class="mecard" id="fgMe"></div>
           <h3>Mode</h3>
           <div class="oltabs" id="fgModes"><button type="button" data-mode="1v1">1v1</button><button type="button" data-mode="2v2">2v2</button><button type="button" data-mode="3v3">3v3</button></div>
@@ -765,7 +772,7 @@
             <div class="btnrow"><a class="cta sm" href="/#/register?next=/play">Create account</a><a class="ghost sm" href="/#/login?next=/play">Sign in</a></div></div>
           <span class="status">You choose your element and role once a match is found and you can see the arena.</span>
         </div>
-        <div class="olpane">
+        <div class="olpane" data-navsec>
           <h3>Party</h3>
           <div class="roomlist" id="fgParty"></div>
           <div id="fgLocals"></div>
@@ -793,13 +800,13 @@
         <canvas id="dfThumb" width="320" height="200"></canvas>
         <div class="dfteams" id="dfTeams"></div>
       </div>
-      <div class="arch">
+      <div class="arch" data-navsec>
         <div class="archhead"><h3>Your archetype</h3><span class="archname" id="dfArch"></span></div>
         <div class="archrow"><span class="lbl">Element</span><div class="chips" id="dfEl"></div></div>
         <div class="archrow"><span class="lbl">Role</span><div class="chips" id="dfRo"></div></div>
       </div>
-      <div id="dfLocals"></div>
-      <div class="shopbar" style="justify-content:flex-end"><div class="btnrow" style="align-items:center"><span class="status" id="dfStatus">The match starts when everyone is ready, or when the timer runs out.</span><button class="ghost" id="dfLeave" type="button">Leave</button><button class="cta" id="dfReady" type="button">Ready</button></div></div>
+      <div id="dfLocals" data-navsec></div>
+      <div class="shopbar" style="justify-content:flex-end"><div class="btnrow" data-navsec style="align-items:center"><span class="status" id="dfStatus">The match starts when everyone is ready, or when the timer runs out.</span><button class="ghost" id="dfLeave" type="button">Leave</button><button class="cta" id="dfReady" type="button">Ready</button></div></div>
     </div>
   </div>
   <div class="lppickfloat" id="lpPick" hidden></div>
@@ -808,9 +815,9 @@
   <div class="overlay sub" id="customScr" hidden>
     <div class="card wide">
       <div class="shopbar"><div class="stat"><span class="eyebrow">Play</span><h2>Custom games</h2></div>
-        <div class="btnrow"><button class="cta" type="button" data-ol="host" id="hostBtn">Host custom game</button><button class="ghost" type="button" id="pracBtn" title="Play against bots right here in your browser, no server needed">Practice vs bots</button><button class="ghost" type="button" data-back>Back</button></div></div>
+        <div class="btnrow" data-navsec><button class="cta" type="button" data-ol="host" id="hostBtn">Host custom game</button><button class="ghost" type="button" id="pracBtn" title="Play against bots right here in your browser, no server needed">Practice vs bots</button><button class="ghost" type="button" data-back>Back</button></div></div>
       <div id="onlineOn" class="olpane">
-        <div id="olHost" class="olpane hostpanel" hidden>
+        <div id="olHost" class="olpane hostpanel" data-navsec hidden>
           <h3>Host custom game</h3>
           <div class="row">
             <div class="field"><label for="rmName">Game name</label><input id="rmName" maxlength="32" autocomplete="off" placeholder="Your game"></div>
@@ -824,8 +831,8 @@
           <span class="status">You pick the arena, bots, bot skill and rules in your lobby next.</span>
           <button class="cta" id="createBtn" type="button">Create game</button>
         </div>
-        <div id="olBrowse" class="olpane"><h3>Games being hosted</h3><div class="roomlist" id="roomList"><div class="status">Looking for games…</div></div></div>
-        <div id="olCode" class="olpane">
+        <div id="olBrowse" class="olpane" data-navsec><h3>Games being hosted</h3><div class="roomlist" id="roomList"><div class="status">Looking for games…</div></div></div>
+        <div id="olCode" class="olpane" data-navsec>
           <div class="row">
             <div class="field"><label for="codeIn">Join with a code</label><input class="code" id="codeIn" maxlength="4" autocomplete="off" placeholder="ABCD"></div>
             <div class="field" id="pwWrap" hidden><label for="pwIn">Password</label><input id="pwIn" type="password" maxlength="32" autocomplete="off"></div>
@@ -848,22 +855,31 @@
     </div>
   </div>
 
+  <!-- training drills -->
+  <div class="overlay sub" id="trainScr" hidden>
+    <div class="card wide">
+      <div class="shopbar"><div class="stat"><span class="eyebrow">Practice</span><h2>Training</h2></div><button class="ghost" type="button" data-back>Back</button></div>
+      <p class="status">Three drills, each graded D to S. Your best grade and score for each is kept on this device. You play as your usual archetype.</p>
+      <div class="modes" id="drillList"></div>
+    </div>
+  </div>
+
   <!-- options -->
   <div class="overlay sub" id="optScr" hidden>
     <div class="card wide">
       <div class="shopbar"><div class="stat"><span class="eyebrow">Settings</span><h2>Options</h2></div><button class="ghost" type="button" data-back>Back</button></div>
       <div class="optgrid">
-        <section class="mode"><h3>Controls</h3><p>Change any key, and set up an Xbox or PlayStation controller.</p><button class="cta" id="ctlBtn" type="button">Controls and controller</button></section>
-        <section class="mode"><h3>Sound</h3>
+        <section class="mode" data-navsec><h3>Controls</h3><p>Change any key, and set up an Xbox or PlayStation controller.</p><button class="cta" id="ctlBtn" type="button">Controls and controller</button></section>
+        <section class="mode" data-navsec><h3>Sound</h3>
           <div class="field"><label for="oVol">Volume <span id="oVolN"></span></label><input type="range" id="oVol" min="0" max="100" step="5"></div>
           <div class="field"><label for="oMute">Sound</label><select id="oMute"><option value="0">On</option><option value="1">Off</option></select></div>
         </section>
-        <section class="mode"><h3>Graphics</h3>
+        <section class="mode" data-navsec><h3>Graphics</h3>
           <div class="field"><label for="oRes">Resolution</label><select id="oRes"><option value="auto">Automatic (drops when the game slows)</option><option value="sharp">Always sharp</option><option value="fast">Fast (lower resolution)</option></select></div>
           <div class="field"><label for="oPart">Particles</label><select id="oPart"><option value="1">Full</option><option value="0.5">Reduced</option><option value="0.2">Minimal</option></select></div>
           <div class="field"><label for="oShake">Screen shake</label><select id="oShake"><option value="1">On</option><option value="0">Off</option></select></div>
         </section>
-        <section class="mode"><h3>Gameplay</h3>
+        <section class="mode" data-navsec><h3>Gameplay</h3>
           <div class="field"><label for="oDmg">Damage numbers</label><select id="oDmg"><option value="all">Everyone's</option><option value="mine">Only mine (and damage to me)</option><option value="off">Off</option></select></div>
           <div class="field"><label for="oGuide">Aim guide line</label><select id="oGuide"><option value="1">On</option><option value="0">Off</option></select></div>
         </section>
@@ -904,17 +920,17 @@
       <div class="lbgrid">
         <div class="lbcol">
           <div class="teams" id="lbTeams"></div>
-          <div id="lbLocals"></div>
-          <div class="chatbox" id="lbChat" hidden><div class="chatlog" id="lbChatLog"><div class="cline sys">Chat with everyone in the room here. In game, press Enter to chat.</div></div><input id="lbChatIn" maxlength="140" placeholder="Say something… (Enter to send)" autocomplete="off"></div>
+          <div id="lbLocals" data-navsec></div>
+          <div class="chatbox" id="lbChat" data-navsec hidden><div class="chatlog" id="lbChatLog"><div class="cline sys">Chat with everyone in the room here. In game, press Enter to chat.</div></div><input id="lbChatIn" maxlength="140" placeholder="Say something… (Enter to send)" autocomplete="off"></div>
         </div>
         <div class="lbcol">
-          <div class="arch">
+          <div class="arch" data-navsec>
             <div class="archhead"><div style="display:flex;align-items:center;gap:12px"><canvas id="archPrev" width="128" height="128" style="width:52px;height:52px;border-radius:10px;background:rgba(255,255,255,.05)"></canvas><div class="stat"><h3>Your archetype</h3><span class="archname" id="archName"></span></div></div></div>
             <div class="archrow"><span class="lbl">Element</span><div class="chips" id="elChips"></div></div>
             <div class="archrow"><span class="lbl">Role</span><div class="chips" id="roChips"></div></div>
             <span class="status" id="archBlurb"></span>
           </div>
-          <div class="lbset">
+          <div class="lbset" data-navsec>
             <h3>Arena</h3>
             <div class="maps" id="lbMaps"></div>
             <span class="status" id="lbMapDesc"></span>
@@ -937,7 +953,7 @@
           </div>
         </div>
       </div>
-      <div class="lbfoot">
+      <div class="lbfoot" data-navsec>
         <span class="status" id="lbStatus"></span>
         <button class="ghost" id="lbLeave" type="button">Leave</button>
         <button class="cta" id="lbStart" type="button">Start match</button>
@@ -957,9 +973,9 @@
       <div class="teams" id="gmTeams"></div>
       <p class="status">Changing team, or a bot joining mid-round, sits out until the next round. <span class="ver" id="verMenu"></span></p>
       <div class="shopbar">
-        <div class="field" id="gmDiffWrap"><label for="gmDiff">Bot skill (sets all bots)</label>
+        <div class="field" id="gmDiffWrap" data-navsec><label for="gmDiff">Bot skill (sets all bots)</label>
           <select id="gmDiff"><option value="easy">Easy</option><option value="normal">Normal</option><option value="hard">Hard</option><option value="extreme">Extreme</option><option value="master">Master</option></select></div>
-        <div class="btnrow">
+        <div class="btnrow" data-navsec>
           <button class="ghost" id="endBtn" type="button">End match</button>
           <button class="ghost" id="leaveBtn" type="button">Leave</button>
           <button class="ghost" id="gmHelpBtn" type="button">How to play</button>
@@ -1017,13 +1033,13 @@
   <div class="card wide bal-card ctlcard">
     <div class="shopbar"><div class="stat"><span class="eyebrow">Settings</span><h2 id="ctlTitle">Controls</h2></div><button class="cta" id="ctlClose" type="button">Close</button></div>
     <div class="ctlgrid">
-      <section class="ctlsec">
+      <section class="ctlsec" data-navsec>
         <h3>Keyboard and mouse</h3>
         <p class="status">Click a key to change it, then press the new one. <kbd>Esc</kbd> cancels, <kbd>Backspace</kbd> clears. Each action can have two keys.</p>
         <div class="binds" id="bindList"></div>
         <div class="btnrow" style="justify-content:flex-start;margin-top:4px"><button class="ghost sm" id="bindReset" type="button">Reset to defaults</button></div>
       </section>
-      <section class="ctlsec">
+      <section class="ctlsec" data-navsec>
         <h3>Controller <span class="status" id="padStatus">No controller found. Plug one in (Xbox or PlayStation style) and press any button.</span></h3>
         <div class="padmap2">
           <span><kbd>Left stick</kbd>move</span><span><kbd>Right stick</kbd>aim</span>
@@ -1036,10 +1052,10 @@
           <div class="field"><label for="padAimR">Aim distance</label><select id="padAimR"><option value="0.8">Short</option><option value="1" selected>Normal</option><option value="1.3">Long</option></select></div>
           <div class="field"><label for="padDead">Stick dead zone</label><select id="padDead"><option value="0.12">Small</option><option value="0.2" selected>Normal</option><option value="0.3">Large</option></select></div>
         </div>
-        <p class="status"><b>Aim assist</b> is built in for controllers, one strength for everyone. Near an enemy your aim slows and is drawn most of the way toward a spot just ahead of them. It never locks on, and the mouse is never assisted.</p>
+        <p class="status"><b>Aim assist</b> is built in for controllers, one strength for everyone. Near an enemy your aim slows and is drawn most of the way toward a spot just ahead of them, and once they're under your aim it follows them. Only a firm push of the stick steers, so easing off to fire keeps your aim. It never locks on, and the mouse is never assisted.</p>
       </section>
     </div>
-    <section class="ctlsec ctlboth">
+    <section class="ctlsec ctlboth" data-navsec>
       <h3>Both</h3>
       <div class="ctlopts">
         <div class="field"><label for="dashDir">Dash direction</label><select id="dashDir"><option value="move">The way you're moving</option><option value="aim">Where you're aiming</option></select></div>
@@ -1051,7 +1067,7 @@
 <div class="overlay" id="achScreen" hidden role="dialog" aria-labelledby="achTitle">
   <div class="card wide bal-card">
     <div class="shopbar"><div class="stat"><span class="eyebrow">Achievements</span><h2 id="achTitle">Challenges</h2></div><button class="cta" id="achClose" type="button">Close</button></div>
-    <section class="bannered">
+    <section class="bannered" data-navsec>
       <div class="bnprev"><span class="lbl">Your banner, as others see it in a lobby</span><div class="slot" id="bnPrev"></div></div>
       <div class="bnopts">
         <div class="field"><label for="titleSel">Title</label><select id="titleSel"></select></div>
@@ -1124,6 +1140,7 @@ const store = { get(k, d) { try { const v = localStorage.getItem(k); return v ==
 // {k} = killer, {v} = victim; both become "you" when it's you
 const HOW = {
   saw:      ['Sawn', '{k} knocked {v} into a saw blade', '{v} ran into a saw blade'],
+  ball:     ['Balled', '{k} hit {v} with the ball', '{v} was hit by the ball'],
   execute:  ['Executed', '{k} executed {v}', '{v} was executed'],
   flash:    ['Cut down', '{k} cut {v} down with a Flash Strike', '{v} got cut down'],
   hole:     ['Singularity', '{k} fed {v} to a black hole', '{v} fell into a black hole'],
@@ -1187,8 +1204,8 @@ function notice(html, big = false, color = '') {
   while (box.children.length > 3) box.firstChild.remove();
   setTimeout(() => d.remove(), 3000);
 }
-const CAUSE = { arrow: 'Shot', pit: 'Ring out', lava: 'Roasted', burn: 'Roasted', spikes: 'Spiked', wall: 'Splat', crush: 'Bowled', blast: 'Blasted', shove: 'Shoved', gust: 'Blown away', quake: 'Quaked', rain: 'Rained on', trap: 'Trapped', poison: 'Poisoned', saw: 'Sawn' };
-const SELF = { pit: 'fell into a pit', lava: 'burned in the lava', burn: 'burned in the lava', spikes: 'hit the spikes', wall: 'hit a wall', crush: 'got bowled over', poison: 'succumbed to poison', saw: 'ran into a saw blade' };
+const CAUSE = { arrow: 'Shot', pit: 'Ring out', lava: 'Roasted', burn: 'Roasted', spikes: 'Spiked', wall: 'Splat', crush: 'Bowled', blast: 'Blasted', shove: 'Shoved', gust: 'Blown away', quake: 'Quaked', rain: 'Rained on', trap: 'Trapped', poison: 'Poisoned', saw: 'Sawn', ball: 'Balled' };
+const SELF = { pit: 'fell into a pit', lava: 'burned in the lava', burn: 'burned in the lava', spikes: 'hit the spikes', wall: 'hit a wall', crush: 'got bowled over', poison: 'succumbed to poison', saw: 'ran into a saw blade', ball: 'was flattened by the ball' };
 
 // ================= state =================
 let mode = 'menu';     // menu | local | online
@@ -1429,10 +1446,11 @@ $('ctlBtn').onclick = openCtl; $('gmCtlBtn').onclick = openCtl; $('ctlClose').on
 const pad = { on: false, mx: 0, my: 0, draw: false, aim: null, mag: 0, prev: [], want: null, wantMag: 0, t: 0, nav: { dir: null, t: 0 } };
 // controller aim sensitivity 1-10: how many radians a second the aim can swing round (10 is instant). The mouse is never affected.
 // controller aim assist: one fixed strength for everyone on a controller, to make up for a stick's coarser aim against a mouse.
-// It's a pull, not a lock-on. Near an enemy the aim slows down and is drawn 60% of the way toward a point just ahead of them:
-// their middle, shifted a third of the way toward where a full draw would meet them if they keep moving. You still have
-// to finish the aim (and lead a fast runner more), but it's easy to stay on them.
-const PAD_ASSIST = { slow: 0.55, pull: 0.6, lead: 0.35 };
+// It's a pull, not a lock-on. Near an enemy the aim slows down and is drawn 70% of the way toward a point just ahead of them:
+// their middle, shifted halfway toward where a full draw would meet them if they keep moving. Once an enemy is under the
+// aim it also tracks them (track: how quickly, per second) so a held or released stick stays on a runner, and the
+// stick only steers the aim while it's pushed firmly, so letting go to fire doesn't drag the aim off.
+const PAD_ASSIST = { slow: 0.6, pull: 0.7, lead: 0.5, track: 7 };
 const wrapA = a => ((a + Math.PI) % TAU + TAU) % TAU - Math.PI;
 function padAssistTarget(aim, meP) {
   const me = meP || (view && view.p.find(q => q.id === myId));
@@ -1448,7 +1466,7 @@ function padAssistTarget(aim, meP) {
     const oc = wrapA(Math.atan2(dy, dx) - aim), ol = wrapA(Math.atan2(ly, lx) - aim), body = Math.atan2(q.rz || 16, d);
     // the point it pulls toward: their middle, shifted a third of the way toward where they're heading
     const s = oc + wrapA(ol - oc) * PAD_ASSIST.lead;
-    const margin = Math.min(0.4, Math.max(0.14, Math.atan2(70, d) + body));
+    const margin = Math.min(0.45, Math.max(0.18, Math.atan2(110, d) + body)); // the assist reaches about 110px either side of them
     if (Math.abs(s) > margin) continue;
     const k = 1 - Math.abs(s) / margin;
     if (!best || k > best.k) best = { s, k };
@@ -1478,7 +1496,8 @@ function pollPad() {
   const nav = padNav(gp, btn, press, mx, my, pdt);
   pad.mx = nav ? 0 : mx; pad.my = nav ? 0 : my;
   if (nav) { pad.prev = gp.buttons.map(b => !!(b && (b.pressed || b.value > 0.4))); return; }
-  if (am > 0.25) {
+  const aiming = am > (pad.aiming ? 0.3 : 0.45); pad.aiming = aiming; // hysteresis: a firm push steers, easing off doesn't
+  if (aiming) {
     let want = Math.atan2(ay, ax), rate = padTurn();
     // controller aim assist: near an enemy the aim slows down (so it's easy to stay on them) and is drawn onto them
     const as = PAD_ASSIST, t = padAssistTarget(want);
@@ -1493,6 +1512,11 @@ function pollPad() {
       pad.aim += Math.max(-step, Math.min(step, diff));
       pad.mag += (am - pad.mag) * Math.min(1, pdt * rate * 0.6);
     }
+  }
+  // sticky tracking: with an enemy under the aim, the aim follows them whether or not the stick moves
+  if (pad.aim != null && !menuOpen) {
+    const tr = padAssistTarget(pad.aim);
+    if (tr) pad.aim += tr.s * Math.min(1, PAD_ASSIST.track * pdt) * Math.min(1, 0.4 + tr.k);
   }
   if (btn(7) && !pad.prev[7]) { drawLatch = true; predictShot(); }
   pad.draw = btn(7);
@@ -1511,14 +1535,44 @@ function pollPad() {
   }
 }
 // ---- controller in the menus: move a highlight between buttons with the D-pad or left stick, A to press, B to go back
-const NAV_LAYERS = ['gate', 'lpScr', 'draftScr', 'ctlScreen', 'helpScreen', 'achScreen', 'balScreen', 'gameMenu', 'findScr', 'customScr', 'scoresScr', 'optScr', 'profScr', 'pickScreen', 'resultsScreen', 'lobby', 'home'];
+const NAV_LAYERS = ['gate', 'lpScr', 'draftScr', 'ctlScreen', 'helpScreen', 'achScreen', 'balScreen', 'gameMenu', 'findScr', 'customScr', 'scoresScr', 'trainScr', 'optScr', 'profScr', 'pickScreen', 'resultsScreen', 'lobby', 'home'];
 const NAV_SEL = 'button, select, input:not([type=hidden]), [data-map], .chip2, a[href]';
 const shown = el => !!(el && !el.hidden && el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden');
 function navLayer() {
+  if (TR.on && TR.done && !menuOpen && shown($('coach'))) return $('coach'); // a finished drill's buttons
   for (const id of NAV_LAYERS) { const el = $(id); if (el && shown(el)) return el; }
   return null;
 }
 function navItems(layer) { return [...layer.querySelectorAll(NAV_SEL)].filter(el => !el.disabled && shown(el) && el.offsetParent !== null); }
+// busy screens are split into sections ([data-navsec]): the controller moves between sections first, A steps into one,
+// B steps back out. Screens without sections work as before.
+const navSecs = layer => [...layer.querySelectorAll('[data-navsec]')].filter(el => shown(el) && navItems(el).length);
+const padSec = { layer: null, sec: null, el: null }; // el: the section currently highlighted (not entered)
+function setPadSec(el) {
+  if (padSec.el) padSec.el.classList.remove('padsec');
+  padSec.el = el; if (el) { el.classList.add('padsec'); el.scrollIntoView({ block: 'nearest' }); uiSfx.hover(); }
+}
+function enterSec(sec) {
+  if (padSec.sec) padSec.sec.classList.remove('padin');
+  padSec.sec = sec; if (sec) sec.classList.add('padin');
+  setPadSec(null);
+}
+function secMove(secs, dir) {
+  const cur = padSec.el && secs.includes(padSec.el) ? padSec.el : null;
+  if (!cur) { setPadSec(secs[0]); return; }
+  const a = cur.getBoundingClientRect(), ax = a.left + a.width / 2, ay = a.top + a.height / 2;
+  const [dx, dy] = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[dir];
+  let best = null, bestS = Infinity;
+  for (const el of secs) {
+    if (el === cur) continue;
+    const r = el.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+    const along = (x - ax) * dx + (y - ay) * dy, across = Math.abs((x - ax) * dy - (y - ay) * dx);
+    if (along <= 4) continue;
+    const sc = along + across * 1.2;
+    if (sc < bestS) { bestS = sc; best = el; }
+  }
+  if (best) setPadSec(best);
+}
 let padSel = null;
 const navMem = {}; // the last thing highlighted on each screen, to come back to
 const navFirst = items => items.find(el => el.classList.contains('mm')) || items.find(el => el.classList.contains('cta')) || items[0];
@@ -1554,8 +1608,30 @@ function navBack(layer) {
 }
 function padNav(gp, btn, press, mx, my, dt) {
   const layer = navLayer();
-  if (!layer || RP.on) { if (padSel) setPadSel(null); return false; }
-  const items = navItems(layer);
+  if (!layer || RP.on) { if (padSel) setPadSel(null); if (padSec.el) setPadSec(null); return false; }
+  if (padSec.layer !== layer) { enterSec(null); padSec.layer = layer; if (padSel) setPadSel(null); }
+  const secs = navSecs(layer);
+  // section level: move between sections; A steps in (or presses the section's only control); B backs out of the screen
+  if (secs.length >= 2 && !(padSec.sec && shown(padSec.sec) && navItems(padSec.sec).length)) {
+    if (padSec.sec) enterSec(null);
+    if (padSel) setPadSel(null);
+    if (!padSec.el || !secs.includes(padSec.el)) setPadSec(navMem['sec:' + layer.id] && secs.includes(navMem['sec:' + layer.id]) ? navMem['sec:' + layer.id] : secs[0]);
+    let dir = btn(12) ? 'up' : btn(13) ? 'down' : btn(14) ? 'left' : btn(15) ? 'right' : null;
+    if (!dir && Math.hypot(mx, my) > 0.6) dir = Math.abs(mx) > Math.abs(my) ? (mx > 0 ? 'right' : 'left') : (my > 0 ? 'down' : 'up');
+    const N = pad.nav;
+    if (dir && dir !== N.dir) { N.dir = dir; N.t = 0.38; secMove(secs, dir); }
+    else if (dir) { N.t -= dt; if (N.t <= 0) { N.t = 0.11; secMove(secs, dir); } }
+    else N.dir = null;
+    navMem['sec:' + layer.id] = padSec.el;
+    if (press(0) && padSec.el) {
+      const sec = padSec.el; enterSec(sec); setPadSel(navFirst(navItems(sec)));
+    }
+    if (press(1)) navBack(layer);
+    if (layer.id === 'pickScreen') { if (press(2)) choosePick(0); if (press(3)) choosePick(1); if (press(1)) choosePick(2); }
+    if (press(9) && mode !== 'menu') { menuOpen ? closeMenu() : openMenu(); }
+    return true;
+  }
+  const items = navItems(padSec.sec || layer);
   if (!items.length) return false;
   // a new screen: pick up where you were on it, or its first option, if you've been using the controller
   if (padSel && !items.includes(padSel)) { const m = navMem[layer.id]; setPadSel(m && items.includes(m) ? m : navFirst(items)); }
@@ -1572,7 +1648,7 @@ function padNav(gp, btn, press, mx, my, dt) {
     else if (padSel.tagName === 'INPUT') padSel.focus();
     else { uiSfx.click(); padSel.click(); }
   }
-  if (press(1)) navBack(layer);
+  if (press(1)) { if (padSec.sec) { const sec = padSec.sec; enterSec(null); setPadSel(null); setPadSec(sec); uiSfx.click(); } else navBack(layer); }
   // the pick screen keeps its X / Y / B shortcuts
   if (layer.id === 'pickScreen') { if (press(2)) choosePick(0); if (press(3)) choosePick(1); if (press(1)) choosePick(2); }
   if (press(9) && mode !== 'menu') { menuOpen ? closeMenu() : openMenu(); }
@@ -1663,7 +1739,7 @@ function setScreens() {
   socialSend({ t: 'status', s: mode === 'local' ? (TUT.on ? 'tutorial' : 'practice') : 'menu' }); // for friends' lists
   $('home').hidden = inGame;
   if (inGame) { for (const k of SUBS) $(k).hidden = true; $('gate').hidden = true; } else drawProfChip();
-  $('coach').hidden = !TUT.on || !inGame;
+  $('coach').hidden = !(TUT.on || TR.on) || !inGame;
   $('hud').hidden = $('side').hidden = $('powers').hidden = !inGame;
   if (!inGame) $('abil').hidden = true;
   $('roomTag').hidden = mode !== 'online';
@@ -1764,7 +1840,7 @@ function tutTick(dt) {
 }
 // on the dummy the coach sits big at the bottom middle; in the real game it shrinks into the bottom-left corner
 // and fades almost away whenever an archer is behind it, so it never hides the fight
-const coachMini = () => TUT.step >= 8;
+const coachMini = () => TUT.on ? TUT.step >= 8 : TR.on ? !TR.done : false;
 function placeCoach() {
   const c = $('coach'); if (!c) return;
   c.classList.toggle('mini', coachMini());
@@ -1813,6 +1889,218 @@ function startPractice() {
   world.events.length = 0;
   myId = me.id; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {};
   setScreens();
+}
+
+// ================= training drills =================
+// Three graded drills on the training grounds (hidden arenas without hazards). Targets and turrets are practice
+// dummies the drill steers: the target drill hides them behind target boards, the turret drills give them a firing
+// script. Nobody can be knocked out; the drill ends on its own clock and grades you D to S.
+let TR = { on: false };
+const DRILLS = {
+  target: { name: 'Target practice', map: 'range', rounds: 3, blurb: 'Targets pop up across the range and you hit them before they vanish. Round 1 is steady, round 2 quick, round 3 several at once. Graded on speed, accuracy and bullseyes.', max: 7500 },
+  dodge:  { name: 'Dodge drill', map: 'range', time: 45, blurb: 'Three turrets shoot at you for 45 seconds and your feet are tied: dodge with dashes alone. Graded on how many arrows you slip.', max: 100 },
+  peek:   { name: 'Peek and shoot', map: 'yard', time: 60, blurb: 'Turrets cover the yard. Dash out from behind the boulders, land shots on them (three knock one out), and get back before they draw a bead on you. 60 seconds.', max: 3600 },
+};
+const TR_ROUNDS = [{ name: 'Steady', n: 8, life: 5, at: 1 }, { name: 'Quick', n: 10, life: 2.5, at: 1 }, { name: 'Swarm', n: 12, life: 4, at: 3 }];
+const TR_PARK = { x: AW - 50, y: AH - 50 };
+const TR_GRADES = [['S', 0.8], ['A', 0.65], ['B', 0.5], ['C', 0.35], ['D', 0]];
+const gradeOf = (score, max) => TR_GRADES.find(g => score / max >= g[1])[0];
+const GRADE_COL = { S: '#ffcf5a', A: '#7dff8a', B: '#5ad1ff', C: '#c7b3ff', D: '#9aa79c' };
+const trBest = () => { try { return JSON.parse(store.get('bowfall-train', '{}')) || {}; } catch (e) { return {}; } };
+function renderDrills() {
+  const best = trBest();
+  $('drillList').innerHTML = Object.entries(DRILLS).map(([k, d]) => {
+    const b = best[k];
+    return `<div class="mode" data-navsec><h3>${esc(d.name)}</h3><p class="status">${esc(d.blurb)}</p>
+      <div class="status">${b ? `Best: <b style="color:${GRADE_COL[b.g]}">${b.g}</b> · ${b.s.toLocaleString()} points` : 'Not played yet'}</div>
+      <div class="btnrow"><button class="cta" type="button" data-drill="${k}">Start</button></div></div>`;
+  }).join('');
+  $('drillList').querySelectorAll('[data-drill]').forEach(b => b.onclick = () => { closeSubs(); startDrill(b.dataset.drill); });
+}
+function startDrill(kind) {
+  initAudio(); closeSubs();
+  const D = DRILLS[kind];
+  world = Sim.createWorld({ map: D.map, diff: 'normal' });
+  const me = Sim.join(world, { name: playerName(), team: 'red', element: myLoadout().el, role: myLoadout().ro });
+  const dums = [];
+  for (let i = 0; i < 3; i++) { const d = Sim.addBot(world, 'blue'); d.name = kind === 'target' ? 'Target' : 'Turret'; Sim.setLoadout(world, d.id, 'storm', 'ranger'); dums.push(d); }
+  Sim.startMatch(world);
+  for (const p of world.players) if (p.offer && !p.picked) Sim.choose(world, p.id, 0);
+  for (let i = 0; i < 60 * 8 && world.match.ph !== 'play'; i++) Sim.step(world, 1 / 60);
+  for (const d of dums) { d.bot = false; d.input = { mx: 0, my: 0, aim: Math.PI, draw: false, tx: 0, ty: 0 }; }
+  world.events.length = 0; world.records.length = 0;
+  TR = { on: true, kind, t: 0, done: false, dum: dums.map(d => d.id), tg: [], tur: dums.map((d, i) => ({ id: d.id, ph: 'wait', t: 1.5 + i * 0.7, x: 1000, y: 220 + i * 180, hits: 0, off: 0 })),
+    round: -1, spawned: 0, left: 0, gap: 2, shots: 0, hits: 0, bulls: 0, taken: 0, fired: 0, kos: 0, score: 0, uiT: 0, pop: [] };
+  myId = me.id; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {};
+  Object.assign(me, { x: kind === 'peek' ? 250 : 200, y: 400, vx: 0, vy: 0 });
+  if (kind === 'target') trNextRound(); else notice(D.name, true, '#ffcf5a');
+  setScreens(); renderTrainCoach();
+}
+const trHidden = p => TR.on && TR.dum.includes(p.id) && (TR.kind === 'target' || TR.tur.find(t => t.id === p.id).off > 0);
+function trNextRound() {
+  TR.round++;
+  if (TR.round >= TR_ROUNDS.length) return trFinish();
+  const R = TR_ROUNDS[TR.round];
+  TR.spawned = 0; TR.left = R.n; TR.gap = 2.2; TR.tg = [];
+  notice(`Round ${TR.round + 1}: ${R.name}`, true, '#ffcf5a'); tone(660, 0.12, 'triangle', 0.05); setTimeout(() => tone(880, 0.16, 'triangle', 0.05), 120);
+}
+function trSpawnTarget() {
+  const R = TR_ROUNDS[TR.round], free = TR.dum.filter(id => !TR.tg.some(t => t.id === id));
+  if (!free.length || TR.spawned >= R.n) return;
+  let x, y, ok = false;
+  for (let i = 0; i < 40 && !ok; i++) {
+    x = 480 + Math.random() * 620; y = 110 + Math.random() * 580;
+    ok = TR.tg.every(t => Math.hypot(t.x - x, t.y - y) > 170) && !(TR.last && Math.hypot(TR.last.x - x, TR.last.y - y) < 140);
+  }
+  TR.last = { x, y };
+  TR.tg.push({ id: free[0], x, y, t0: TR.t, life: R.life });
+  TR.spawned++;
+  tone(1320, 0.05, 'square', 0.025);
+}
+function trPop(t, hit, bull) {
+  TR.tg = TR.tg.filter(o => o !== t); TR.left--;
+  const dt = TR.t - t.t0;
+  if (hit) {
+    const pts = 100 + Math.round(100 * Math.max(0, 1 - dt / t.life)) + (bull ? 50 : 0);
+    TR.score += pts; TR.hits++; if (bull) TR.bulls++;
+    floater(t.x, t.y - 30, `+${pts}${bull ? ' bullseye' : ''}`, bull ? '#ffcf5a' : '#ffffff', bull ? 20 : 16, true);
+    burst(t.x, t.y, bull ? '#ffcf5a' : '#ffffff', 16, 200);
+    tone(bull ? 1568 : 1175, 0.09, 'triangle', 0.05);
+  } else { floater(t.x, t.y - 30, 'missed', '#ff5a5a', 15, true); tone(220, 0.14, 'sawtooth', 0.03); }
+  TR.pop.push({ x: t.x, y: t.y, t: 0, hit });
+}
+// a turret's script: wait, draw for a moment, release at the player (leading a little)
+function trTurret(dt, me, want) {
+  for (const t of TR.tur) {
+    const d = world.players.find(q => q.id === t.id); if (!d) continue;
+    if (t.off > 0) { t.off -= dt; if (t.off <= 0) { t.hits = 0; t.x = 850 + Math.random() * 250; t.y = 120 + Math.random() * 560; t.ph = 'wait'; t.t = 1; burst(t.x, t.y, '#4fa8ff', 14, 180); } Object.assign(d, { x: TR_PARK.x, y: TR_PARK.y, vx: 0, vy: 0 }); d.inv = 9; d.input.draw = false; continue; }
+    Object.assign(d, { x: t.x, y: t.y, vx: 0, vy: 0, knock: 0, hp: d.maxHp, falling: 0, dead: false, burn: 0 }); d.inv = 0;
+    if (!me) continue;
+    const dx = me.x - d.x, dy = me.y - d.y, dist = Math.hypot(dx, dy);
+    const lead = Math.min(0.6, dist / 900) * 0.8, ax = me.x + me.vx * lead, ay = me.y + me.vy * lead;
+    d.input.aim = Math.atan2(ay - d.y, ax - d.x); d.input.tx = ax; d.input.ty = ay;
+    t.t -= dt;
+    if (t.ph === 'wait') { d.input.draw = false; if (t.t <= 0 && want(d, me)) { t.ph = 'draw'; t.t = TR.kind === 'dodge' ? 0.45 + Math.random() * 0.7 : 0.55 + Math.random() * 0.5; } }
+    else { d.input.draw = true; if (t.t <= 0) { d.input.draw = false; t.ph = 'wait'; t.t = TR.kind === 'dodge' ? Math.max(0.5, 1.9 - TR.t / 30) + Math.random() * 0.8 : 0.9 + Math.random() * 1.1; } }
+  }
+}
+// can a turret see the player past the boulders?
+function trLos(d, me) {
+  for (const c of MAPS.yard.pillars) {
+    const ex = me.x - d.x, ey = me.y - d.y, L = ex * ex + ey * ey;
+    const u = Math.max(0, Math.min(1, ((c.x - d.x) * ex + (c.y - d.y) * ey) / L));
+    if (Math.hypot(d.x + ex * u - c.x, d.y + ey * u - c.y) < c.r + 10) return false;
+  }
+  return true;
+}
+function trainGuard() {
+  if (!TR.on || !world) return;
+  const dt = STEP, me = world.players.find(q => q.id === myId);
+  world.match.T = 120; world.pickups.length = 0;
+  if (me) { me.hp = me.maxHp; if (me.dead || me.falling > 0) Object.assign(me, { dead: false, falling: 0, vx: 0, vy: 0 }); }
+  if (TR.done) { for (const id of TR.dum) { const d = world.players.find(q => q.id === id); if (d) { d.input.draw = false; d.inv = 9; } } return; }
+  TR.t += dt;
+  if (TR.kind === 'target') {
+    const R = TR_ROUNDS[TR.round];
+    for (const id of TR.dum) {
+      const d = world.players.find(q => q.id === id), t = TR.tg.find(o => o.id === id); if (!d) continue;
+      if (t) { Object.assign(d, { x: t.x, y: t.y, vx: 0, vy: 0, knock: 0, hp: d.maxHp, falling: 0, dead: false, r: 22 }); d.inv = 0; }
+      else { Object.assign(d, { x: TR_PARK.x, y: TR_PARK.y, vx: 0, vy: 0, hp: d.maxHp, r: 16 }); d.inv = 9; }
+    }
+    for (const t of TR.tg.slice()) if (TR.t - t.t0 > t.life) trPop(t, false);
+    if (R) {
+      TR.gap -= dt;
+      if (TR.spawned < R.n && TR.tg.length < R.at && TR.gap <= 0) { trSpawnTarget(); TR.gap = R.at > 1 ? 0.35 + Math.random() * 0.5 : 0.6 + Math.random() * 0.5; }
+      if (TR.left <= 0 && TR.spawned >= R.n) { TR.round < TR_ROUNDS.length - 1 ? trNextRound() : trFinish(); if (TR.round < TR_ROUNDS.length) TR.gap = 2.2; }
+    }
+  } else {
+    if (TR.t >= DRILLS[TR.kind].time) return trFinish();
+    trTurret(dt, me, TR.kind === 'peek' ? trLos : () => true);
+  }
+}
+function trainInput(inp) {
+  if (!TR.on || TR.done) { if (TR.on) { inp.draw = false; inp.dash = false; } return inp; }
+  if (TR.kind === 'dodge') { inp.mx = 0; inp.my = 0; inp.draw = false; inp.q = inp.e = false; inp.dmv = 0; }
+  return inp;
+}
+function trainEvents(evs) {
+  if (!TR.on || TR.done) return;
+  for (const e of evs) {
+    if (e.e === 'fire' && e.id === myId) TR.shots++;
+    if (e.e === 'fire' && TR.dum.includes(e.id)) TR.fired++;
+    if (e.e === 'hit' && e.id === myId && TR.dum.includes(e.by)) { TR.taken++; if (TR.kind === 'dodge') floater(e.x, e.y - 24, 'hit', '#ff5a5a', 15, true); }
+    if (e.e === 'hit' && e.by === myId && TR.dum.includes(e.id)) {
+      if (TR.kind === 'target') { const t = TR.tg.find(o => o.id === e.id); if (t) trPop(t, true, !!e.cr); }
+      else if (TR.kind === 'peek') {
+        const t = TR.tur.find(o => o.id === e.id); if (!t || t.off > 0) continue;
+        t.hits++; TR.hits++; TR.score += 50; floater(e.x, e.y - 24, '+50', '#ffffff', 15, true);
+        if (t.hits >= 3) { TR.kos++; TR.score += 300; t.off = 1.6; floater(t.x, t.y - 40, 'Turret down +300', '#7dff8a', 18, true); burst(t.x, t.y, '#7dff8a', 22, 220); tone(1047, 0.12, 'triangle', 0.05); }
+      }
+    }
+  }
+}
+function trainTick(dt) {
+  if (!TR.on) return;
+  for (const p of TR.pop) p.t += dt; TR.pop = TR.pop.filter(p => p.t < 0.5);
+  TR.uiT -= dt; if (TR.uiT <= 0 && !TR.done) { TR.uiT = 0.2; renderTrainCoach(); }
+}
+function trFinish() {
+  if (TR.done) return;
+  TR.done = true; TR.tg = [];
+  const D = DRILLS[TR.kind];
+  if (TR.kind === 'dodge') TR.score = Math.max(0, Math.round(100 * (1 - TR.taken / Math.max(1, TR.fired))));
+  if (TR.kind === 'peek') TR.score = Math.max(0, TR.score - TR.taken * 60);
+  TR.grade = gradeOf(TR.score, D.max);
+  const best = trBest(), old = best[TR.kind];
+  TR.newBest = !old || TR.score > old.s;
+  if (TR.newBest) { best[TR.kind] = { g: TR.grade, s: TR.score }; store.set('bowfall-train', JSON.stringify(best)); }
+  notice(`Grade ${TR.grade}`, true, GRADE_COL[TR.grade]);
+  fanfare(TR.grade === 'S' || TR.grade === 'A' ? [523, 659, 784, 1047] : TR.grade === 'D' ? [330, 262] : [523, 659, 784], 'triangle', 0.06, 110);
+  renderTrainCoach();
+}
+function renderTrainCoach() {
+  const c = $('coach'); if (!c || !TR.on) return;
+  c.hidden = mode === 'menu'; placeCoach(); c.classList.toggle('done', TR.done);
+  const D = DRILLS[TR.kind], fmt = n => n.toLocaleString();
+  const line = TR.kind === 'target' ? `${TR.hits}/${TR.spawned - TR.tg.length} hit · ${TR.bulls} bullseye${TR.bulls === 1 ? '' : 's'} · ${TR.shots ? Math.round(TR.hits / TR.shots * 100) : 0}% accuracy`
+    : TR.kind === 'dodge' ? `${TR.fired - TR.taken} dodged · ${TR.taken} hit${TR.taken === 1 ? '' : 's'} taken` : `${TR.kos} turret${TR.kos === 1 ? '' : 's'} down · ${TR.hits} hits · ${TR.taken} taken`;
+  if (TR.done) {
+    $('coachStep').textContent = `${D.name} · complete`;
+    $('coachText').innerHTML = `Grade <span style="color:${GRADE_COL[TR.grade]}">${TR.grade}</span> · ${fmt(TR.score)} points${TR.newBest ? ' · new best' : ''}`;
+    $('coachHint').textContent = line + (TR.kind === 'peek' && TR.taken ? ` (−${TR.taken * 60} for hits taken)` : '') + '. S needs ' + fmt(Math.ceil(D.max * 0.8)) + ', A ' + fmt(Math.ceil(D.max * 0.65)) + ', B ' + fmt(Math.ceil(D.max * 0.5)) + '.';
+    $('coachBtns').innerHTML = '<button class="cta" type="button" id="coachAgain">Again</button><button class="ghost sm" type="button" id="coachDrills">Other drills</button><button class="ghost sm" type="button" id="coachQuit">Main menu</button>';
+    $('coachAgain').onclick = () => startDrill(TR.kind);
+    $('coachDrills').onclick = () => { toMenu(); openSub('trainScr'); };
+    $('coachQuit').onclick = () => toMenu();
+    $('coachBar').style.width = '100%';
+    return;
+  }
+  const R = TR_ROUNDS[TR.round], left = D.time ? Math.max(0, D.time - TR.t) : 0;
+  $('coachStep').textContent = TR.kind === 'target' ? `${D.name} · round ${TR.round + 1} of 3 · ${R ? R.name : ''}` : `${D.name} · ${Math.ceil(left)}s left`;
+  $('coachText').textContent = `${fmt(TR.score)} pts · ${line}`;
+  $('coachHint').textContent = '';
+  if (TR.btns !== 'run') { TR.btns = 'run'; $('coachBtns').innerHTML = '<button class="ghost sm" type="button" id="coachQuit">Leave drill</button>'; $('coachQuit').onclick = () => toMenu(); }
+  $('coachBar').style.width = Math.round((TR.kind === 'target' ? (TR.round + (R ? (TR.spawned - TR.tg.length) / R.n : 0)) / 3 : TR.t / D.time) * 100) + '%';
+}
+// target boards where the target dummies stand, popping in and out
+function drawTargets() {
+  if (TR.kind !== 'target') return;
+  const rings = ['#f4f1e6', '#1d1d1d', '#3d8bff', '#ff5a45', '#ffcf5a'];
+  for (const t of TR.tg) {
+    const age = TR.t - t.t0, sc = Math.min(1, age / 0.18), fade = Math.max(0, 1 - (age - t.life + 0.6) / 0.6) < 1 ? 0.55 + 0.45 * Math.abs(Math.sin(age * 14)) : 1;
+    ctx.save(); ctx.translate(t.x, t.y); ctx.scale(sc, sc); ctx.globalAlpha = fade;
+    ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(2, 6, 24, 20, 0, 0, TAU); ctx.fill();
+    for (let i = 0; i < rings.length; i++) { ctx.fillStyle = rings[i]; ctx.beginPath(); ctx.arc(0, 0, 22 - i * 4.4, 0, TAU); ctx.fill(); }
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, 22, 0, TAU); ctx.stroke();
+    const rem = Math.max(0, 1 - age / t.life); // the time left runs round the rim
+    ctx.strokeStyle = '#ffcf5a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, 27, -Math.PI / 2, -Math.PI / 2 + TAU * rem); ctx.stroke();
+    ctx.restore();
+  }
+  for (const p of TR.pop) {
+    const k = p.t / 0.5; ctx.globalAlpha = 1 - k; ctx.strokeStyle = p.hit ? '#ffcf5a' : '#ff5a5a'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 22 + k * 30, 0, TAU); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
 }
 
 // one place for every lobby/menu/shop action: applied directly in practice, sent to the server online
@@ -2178,21 +2466,30 @@ function pollLocals(dt) {
     const dz = 0.2, stick = (x, y) => { const m = Math.hypot(x, y); if (m < dz) return [0, 0, 0]; const k = Math.min(1, (m - dz) / (1 - dz)); return [x / m * k, y / m * k, k]; };
     const [mx, my] = stick(g.axes[0] || 0, g.axes[1] || 0), [ax, ay, am] = stick(g.axes[2] || 0, g.axes[3] || 0);
     const me = view && view.p.find(p => p.id === l.pid);
-    if (am > 0.25) {
+    const aiming = am > (l.aiming ? 0.3 : 0.45); l.aiming = aiming;
+    if (aiming) {
       let want = Math.atan2(ay, ax);
       const t = me ? padAssistTarget(want, me) : null; // the same controller aim assist as everyone else's
       if (t) want += t.s * PAD_ASSIST.pull * Math.min(1, t.k / 0.35);
       l.aim = want;
     }
+    if (me && l.aim != null) { const tr = padAssistTarget(l.aim, me); if (tr) l.aim += tr.s * Math.min(1, PAD_ASSIST.track * dt) * Math.min(1, 0.4 + tr.k); }
     const ranked = mode === 'online' && !!(roomInfo && roomInfo.ranked);
+    // in menus the left stick works like the D-pad (one step per push), for controllers whose D-pad reports as an axis
+    const sd = Math.hypot(mx, my) > 0.6 ? (Math.abs(mx) > Math.abs(my) ? (mx > 0 ? 15 : 14) : (my > 0 ? 13 : 12)) : 0;
+    const stickStep = sd && sd !== l.sdPrev; l.sdPrev = sd;
+    const hat = g.axes[9]; // some pads report the D-pad as one axis: -1 up, -0.43 right, 0.14 down, 0.71 left
+    const hatDir = hat == null ? 0 : Math.abs(hat + 1) < 0.15 ? 12 : Math.abs(hat + 0.43) < 0.15 ? 15 : Math.abs(hat - 0.14) < 0.15 ? 13 : Math.abs(hat - 0.71) < 0.15 ? 14 : 0;
+    const hatStep = hatDir && hatDir !== l.hatPrev; l.hatPrev = hatDir;
+    const dp = i => press(i) || (stickStep && sd === i) || (hatStep && hatDir === i);
     if (ph === 'lobby' || ph === 'over') {
       // in a lobby, on their own controller: A opens their element and role picker; in custom games X joins the
       // left team (Red), B the right team (Blue) and Y goes back to unassigned; in a ranked draft X is ready
       if (l.picker) {
         const E = Object.keys(ELEMENTS), Ro = Object.keys(ROLES), P = l.picker;
-        if (press(12) || press(13)) { P.row = P.row ? 0 : 1; hc.lbLp = hc.dfLp = null; }
-        if (press(14) || press(15)) {
-          const d = press(15) ? 1 : -1;
+        if (dp(12) || dp(13)) { P.row = P.row ? 0 : 1; hc.lbLp = hc.dfLp = null; }
+        if (dp(14) || dp(15)) {
+          const d = dp(15) ? 1 : -1;
           if (P.row === 0) { const i = (E.indexOf(l.el) + d + E.length) % E.length; lpAct(l, { t: 'loadout', el: E[i], ro: l.ro }); }
           else { const i = (Ro.indexOf(l.ro) + d + Ro.length) % Ro.length; lpAct(l, { t: 'loadout', el: l.el, ro: Ro[i] }); }
           uiSfx.hover();
@@ -2208,7 +2505,11 @@ function pollLocals(dt) {
         }
       }
     } else l.picker = null;
-    if (ph === 'pick') { if (press(2)) lpAct(l, { t: 'choose', i: 0 }); if (press(3)) lpAct(l, { t: 'choose', i: 1 }); if (press(1)) lpAct(l, { t: 'choose', i: 2 }); }
+    if (ph === 'pick') {
+      if (dp(14) || dp(15)) { l.pickI = ((l.pickI || 0) + (dp(15) ? 1 : -1) + 3) % 3; hc.lpPick = null; uiSfx.hover(); }
+      if (press(0)) lpAct(l, { t: 'choose', i: l.pickI || 0 });
+      if (press(2)) lpAct(l, { t: 'choose', i: 0 }); if (press(3)) lpAct(l, { t: 'choose', i: 1 }); if (press(1)) lpAct(l, { t: 'choose', i: 2 });
+    } else l.pickI = 0;
     const I = l.inp || {};
     const x = me ? me.x : 0, y = me ? me.y : 0;
     l.inp = { dmv: 1, mx, my, aim: l.aim, draw: btn(7), dash: I.dash || (ph === 'play' && (press(0) || press(6))), q: I.q || (ph === 'play' && press(4)), e: I.e || (ph === 'play' && press(5)), dp: I.dp || press(7), tx: Math.round(x + Math.cos(l.aim) * 220), ty: Math.round(y + Math.sin(l.aim) * 220) };
@@ -2276,10 +2577,10 @@ function lpPickHtml(v) {
     const p = v.p.find(q => q.id === l.pid); if (!p || !(p.of || p.pk)) return '';
     const offer = p.of || (l.lastPick ? [l.lastPick] : []);
     if (!offer.length) return '';
-    return `<div class="lppick" style="--pc:${lpColor(l.n)}"><div class="lphead"><span class="lptag">P${l.n}</span><b>${esc(l.name)}</b><small class="status">${p.pk ? 'Picked' : 'Press X, Y or B on their controller'}</small></div>
+    return `<div class="lppick" style="--pc:${lpColor(l.n)}"><div class="lphead"><span class="lptag">P${l.n}</span><b>${esc(l.name)}</b><small class="status">${p.pk ? 'Picked' : 'Left and right then A, or X, Y, B, on their controller'}</small></div>
       <div class="cards mini">${offer.map((id, i) => {
-        const n = cardInfo(id), t = cardTree(id), chosen = p.pk && id === l.lastPick;
-        return `<button type="button" class="pcard mini${chosen ? ' chosen' : ''}" data-lpcard="${l.n}:${i}" style="--cc:${t.col}"${p.pk ? ' disabled' : ''}>${p.pk ? '' : `<kbd class="pk-key">${['X', 'Y', 'B'][i]}</kbd>`}<span class="pk-tree">${t.label}</span><b>${n.name}</b><p>${n.desc}</p></button>`;
+        const n = cardInfo(id), t = cardTree(id), chosen = p.pk && id === l.lastPick, hl = !p.pk && (l.pickI || 0) === i;
+        return `<button type="button" class="pcard mini${chosen ? ' chosen' : ''}${hl ? ' padsel' : ''}" data-lpcard="${l.n}:${i}" style="--cc:${t.col}"${p.pk ? ' disabled' : ''}>${p.pk ? '' : `<kbd class="pk-key">${['X', 'Y', 'B'][i]}</kbd>`}<span class="pk-tree">${t.label}</span><b>${n.name}</b><p>${n.desc}</p></button>`;
       }).join('')}</div></div>`;
   }).join('');
 }
@@ -2479,7 +2780,7 @@ $('specBar').addEventListener('click', e => { const b = e.target.closest('button
 
 function toMenu() {
   const wasRanked = mode === 'online' && !!(roomInfo && roomInfo.ranked);
-  TUT.on = false;
+  TUT.on = false; TR.on = false;
   mode = 'menu'; myId = null; world = null; view = null; menuOpen = false; roomInfo = null; clearChat();
   if (ws) { const s = ws; ws = null; try { s.close(); } catch (e) {} }
   for (const l of LP.list) lpLeaveGame(l);
@@ -2864,7 +3165,7 @@ function helpHtml() {
         <li><b>Bogs and soft sand:</b> slow you to a crawl. Get knocked in fast and you're stuck for a moment.</li>
         <li><b>Brambles</b> on some walls hurt when you're thrown into them. Any wall hurts if you hit it hard enough.</li>
         <li><b>Bowling:</b> an archer sent flying into another hurts and knocks both.</li>
-        <li><b>Saw blades</b> (Sawmill) race along their tracks: touching one hurts and throws you hard. <b>Mushrooms</b> (Mushroom Grove) fling anyone who touches them, and arrows bounce off. <b>Gates</b> (Portal Ruins) send you, or your arrow, out of their twin across the arena. <b>Gales</b> (Gale Cliffs) blow the whole arena up or down after a warning.</li>
+        <li><b>Saw blades</b> (Sawmill) race along their tracks: touching one hurts and throws you hard. <b>Mushrooms</b> (Mushroom Grove) fling anyone who touches them, and arrows bounce off. <b>Gates</b> (Portal Ruins) send you, or your arrow, out of their twin across the arena. <b>The ball</b> (The Pitch) flies when shot or run into, hurting and shoving anyone it hits; the goals are drops.</li>
         <li>While you aim, the guide line turns <b>red</b> just before a wall or boulder that would stop your arrow.</li>
       </ul>`),
     sec('archetype', 'Your archetype', `<p>Every archer is one <b>element</b> plus one <b>role</b>, chosen in the lobby. Your element's base effect is on from the start. Each role has a built-in <b>trait</b>. Upgrades come from picks (see below).</p>
@@ -2953,7 +3254,7 @@ function teamsHtml(v) {
     const canJoin = me ? me.tm !== t && !full : mode === 'online' && ['lobby', 'over', 'post'].includes(v.m.ph) && (!full || list.some(p => p.b));
     const foot = (canJoin ? `<button type="button" class="ghost sm" data-join="${t}">Join ${teamName(t)}</button>` : '') +
       (host && !full ? `<button type="button" class="ghost sm" data-addbot="${t}">+ Add bot</button>` : '');
-    return `<div class="tcol" style="--tc:${TEAM_COL[t]}"><div class="thead"><b>${teamName(t)}</b><span>${list.length} / ${MAX_TEAM}</span></div>${slots}${open}` +
+    return `<div class="tcol" data-navsec style="--tc:${TEAM_COL[t]}"><div class="thead"><b>${teamName(t)}</b><span>${list.length} / ${MAX_TEAM}</span></div>${slots}${open}` +
       (foot ? `<div class="tfoot">${foot}</div>` : '') + '</div>';
   }).join('') + (mode === 'online' ? specHtml(v, me) : '');
 }
@@ -2962,7 +3263,7 @@ function specHtml(v, me) {
   const spec = (roomInfo && roomInfo.spec) || [], lobby = v.m.ph === 'lobby' || v.m.ph === 'over';
   const names = spec.map(c => `<div class="slot" data-card="c${c.cid}"><i class="dot" style="background:var(--muted)"></i><span class="nm plate${plateClass(c)}"${plateStyle(c)}><span class="pl1">${idHtml(c)}<b>${esc(c.n)}</b>${ownHtml(c.ow)}${trophyHtml(c.na)}${medalsHtml(c.sc)}</span></span>${c.you ? '<span class="tag you">You</span>' : ''}${c.h ? '<span class="tag">Host</span>' : ''}</div>`).join('');
   const foot = me && lobby ? '<button type="button" class="ghost sm" data-spec="1">Move to unassigned</button>' : '';
-  return `<div class="tcol spec"><div class="thead"><b>${lobby ? 'Unassigned' : 'Spectating'}</b><span>${spec.length}</span></div>` +
+  return `<div class="tcol spec" data-navsec><div class="thead"><b>${lobby ? 'Unassigned' : 'Spectating'}</b><span>${spec.length}</span></div>` +
     (names ? `<div class="specnames">${names}</div>` : `<span class="status">${lobby ? 'People who join the room wait here until they pick a team.' : 'Nobody is watching.'}</span>`) +
     (foot ? `<div class="tfoot">${foot}</div>` : '') + '</div>';
 }
@@ -3052,7 +3353,7 @@ $('lbOpts').addEventListener('change', e => { const sel = e.target.closest('[dat
 $('gmDiff').onchange = () => act({ t: 'cfg', diff: $('gmDiff').value });
 $('lbStart').onclick = () => act({ t: 'start' });
 $('lbLeave').onclick = () => toMenu();
-$('endBtn').onclick = () => { if (mode === 'local' && TUT.on) { closeMenu(); toMenu(); } else { act({ t: 'lobby' }); closeMenu(); } };
+$('endBtn').onclick = () => { if (mode === 'local' && (TUT.on || TR.on)) { closeMenu(); toMenu(); } else { act({ t: 'lobby' }); closeMenu(); } };
 $('resLobbyBtn').onclick = () => act({ t: 'lobby' });
 
 function renderLobby(v) {
@@ -3170,12 +3471,13 @@ function olTab(k) {
   else refreshRooms();
 }
 // the main menu's screens
-const SUBS = ['findScr', 'customScr', 'scoresScr', 'optScr', 'profScr'];
+const SUBS = ['findScr', 'customScr', 'scoresScr', 'trainScr', 'optScr', 'profScr'];
 function openSub(id) {
   for (const k of SUBS) $(k).hidden = k !== id;
   if (id === 'customScr') { $('olHost').hidden = true; refreshRooms(); }
   if (id === 'findScr') { socialConnect(); socialHello(); renderFind(); }
   if (id === 'scoresScr') renderScores();
+  if (id === 'trainScr') renderDrills();
   if (id === 'optScr') syncOptions();
   if (id === 'profScr') renderProfile();
   const f = $(id).querySelector('[data-back]'); if (f) setTimeout(() => f.focus(), 0);
@@ -3189,6 +3491,7 @@ $('mScores').onclick = () => openSub('scoresScr');
 $('mOpts').onclick = () => openSub('optScr');
 $('profChip').onclick = () => openSub('profScr');
 $('mTut').onclick = startTutorial;
+$('mTrain').onclick = () => openSub('trainScr');
 $('pracBtn').onclick = () => { closeSubs(); startPractice(); };
 if (OFFLINE) $('pracBtn').hidden = true; // offline, Host custom game already is practice
 $('hostBtn').onclick = () => { if (OFFLINE) { closeSubs(); startPractice(); return; } $('olHost').hidden = !$('olHost').hidden; if (!$('olHost').hidden) $('rmName').focus(); };
@@ -3387,7 +3690,7 @@ const nameTag = (n, c) => `<b style="color:${c}">${esc(n)}</b>`;
 function myTeam() { const me = view && view.p.find(p => p.id === myId); return me ? me.tm : null; }
 function scoreLine(r, b) { return `Red ${r} – ${b} Blue`; }
 function handleEvents(evs) {
-  replayNote(evs); if (!(TUT.on && TUT.step < 6)) Ach.onEvents(evs);
+  replayNote(evs); trainEvents(evs); if (!(TUT.on && TUT.step < 6) && !TR.on) Ach.onEvents(evs);
   tutEvents(evs);
   for (const e of evs) {
     switch (e.e) {
@@ -3401,9 +3704,9 @@ function handleEvents(evs) {
       case 'drop': burst(e.x, e.y, '#b9a88a', 5, 60, 1.4); break;
       case 'full': {
         const m = view && view.p.find(q => q.id === e.id), me = view && view.p.find(q => q.id === myId);
-        if (e.id === myId) { sfx.full(); if (m) fx.rings.push({ x: m.x, y: m.y, r: (m.rz || 16) + 4, life: 0, col: '255,201,74', max: 36 }); }
-        else if (m) { // someone else at full draw: a white flash, and a faint tick if it's an enemy near you
-          fx.rings.push({ x: m.x, y: m.y, r: (m.rz || 16) + 6, life: 0, col: '255,255,255', max: 44 });
+        if (e.id === myId) { sfx.full(); if (m) burst(m.x + Math.cos(m.a) * ((m.rz || 16) + 22), m.y + Math.sin(m.a) * ((m.rz || 16) + 22), '#ffe9a8', 6, 100, 1.4); }
+        else if (m) { // someone else at full draw: a small pop of sparks at the bow, and a faint tick if it's an enemy near you
+          burst(m.x + Math.cos(m.a) * ((m.rz || 16) + 22), m.y + Math.sin(m.a) * ((m.rz || 16) + 22), '#ffffff', 5, 90, 1.3);
           if (me && m.tm !== me.tm && Math.hypot(m.x - me.x, m.y - me.y) < 520) tone(1320, 0.04, 'square', 0.012);
         }
         break;
@@ -3473,7 +3776,7 @@ function handleEvents(evs) {
         else if (e.ph === 'pick') { sfx.pick(); }
         break;
       }
-      case 'gameEnd': if (TUT.on && TUT.step <= 5) break; if (replayQueue(e)) pendingSummary = e; else showGameSummary(e); if (!e.rwon) { if (e.rw === myTeam()) sfx.kill(); else if (e.rw !== 'draw') sfx.hurt(); } break;
+      case 'gameEnd': if ((TUT.on && TUT.step <= 5) || TR.on) break; if (replayQueue(e)) pendingSummary = e; else showGameSummary(e); if (!e.rwon) { if (e.rw === myTeam()) sfx.kill(); else if (e.rw !== 'draw') sfx.hurt(); } break;
       case 'roundEnd': if (e.rw === myTeam()) sfx.win(); else sfx.hurt(); break;
       case 'matchStart': $('gameSum').hidden = true; $('resultsScreen').hidden = true; resultsFor = null; hc = {}; break;
       case 'map': break;
@@ -3832,18 +4135,18 @@ THEMES.beach = {
   ambient: 'sand', leafCols: ['#f6ead0', '#e2cfa2', '#ffffff', '#d9c190'],
 };
 THEMES.rift.glowThorns = true;
-THEMES.cliffs = {
-  // a grassy headland; the pits are sheer drops to the sea
-  forest: '#1f3342', canopy: ['#2b4556', '#35536a', '#27404f', '#3d5d73'], canopyHi: 'rgba(255,255,255,0.10)',
-  ground: '#86a35e', patchA: 'rgba(170,190,110,0.26)', patchB: 'rgba(90,110,60,0.24)', patchBase: 'rgba(134,163,94,0)', sun: 'rgba(255,250,220,0.10)',
-  blades: ['#9ab86a', '#6f8f45', '#b5c98a', '#7e9c52'], ground2: 'grass', flowers: 10, fairy: false, drops: true,
-  dirt: '#7a766a', dirtDark: '#57544a', pitIn: '#0d2230', pitOut: '#2f5f78', roots: 'rgba(200,190,170,0.45)',
-  bogBank: '#4d4027', bogEdge: '#332e1b', bog: '#3a3a20', bogSheen: 'rgba(90,86,44,0.55)', lily: null, reeds: true,
+THEMES.pitch = {
+  // a football pitch: mown stripes, white lines, goals at each end
+  forest: '#1d3320', canopy: ['#2a4a2c', '#345a36', '#264428', '#3d6a40'], canopyHi: 'rgba(255,255,255,0.08)',
+  ground: '#4f9a3c', patchA: 'rgba(120,200,90,0.12)', patchB: 'rgba(40,90,30,0.14)', patchBase: 'rgba(79,154,60,0)', sun: 'rgba(255,255,220,0.08)',
+  blades: ['#63b04a', '#4a8f36', '#78c25c', '#58a042'], ground2: 'pitch', flowers: 0, fairy: false,
+  dirt: '#6a6a66', dirtDark: '#3f3f3c', pitIn: '#0a0f0a', pitOut: '#1f2d1f', roots: 'rgba(255,255,255,0.35)',
+  bogBank: '#4d4027', bogEdge: '#332e1b', bog: '#3a3a20', bogSheen: 'rgba(90,86,44,0.55)', lily: null, reeds: false,
   rock: '#6d6a5e', rockLight: '#8a877a', basalt: '#4a473f', scorch: 'rgba(0,0,0,0.2)',
   boulder: '#8d8a7e', boulderLight: '#aeab9f', moss: ['#7d8f4a', '#94a65c'],
-  border: 'rock', wall: '#5e5b50', wallMid: '#6f6c60', wallLight: '#9a978a',
+  border: 'rock', wall: '#3b3f44', wallMid: '#4a4f55', wallLight: '#6c7278',
   stem: ['#5b4a37', '#6d5a44'], thorn: '#e9e2d0', leaf: '#6f8f45', berry: '#d8c24a', burrow: null,
-  ambient: 'leaves', leafCols: ['#b5c98a', '#d8d2b0', '#9ab86a', '#e8e2c8'],
+  ambient: null, leafCols: ['#b5c98a'],
 };
 THEMES.mill = {
   // a timber yard: plank floor, sawdust, a deep mill pond
@@ -4025,6 +4328,23 @@ function paintFloor(s) {
       for (let b = 0; b < n; b++) { const a = -Math.PI / 2 + (b - (n - 1) / 2) * 0.45 + (R() - 0.5) * 0.2; g.moveTo(x, y); g.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len); }
       g.stroke();
     }
+  } else if (T.ground2 === 'pitch') {
+    // mown stripes, then the white lines: touchlines, halfway line, centre circle, boxes and the goal mouths
+    for (let i = 0; i < 12; i++) { g.fillStyle = i % 2 ? 'rgba(255,255,255,0.045)' : 'rgba(0,0,0,0.05)'; g.fillRect(WALL + i * (AW - 2 * WALL) / 12, WALL, (AW - 2 * WALL) / 12 + 1, AH - 2 * WALL); }
+    g.strokeStyle = 'rgba(255,255,255,0.75)'; g.lineWidth = 4; g.lineCap = 'round';
+    const L = WALL + 14, Rr = AW - WALL - 14, Tt = WALL + 14, B = AH - WALL - 14;
+    g.strokeRect(L, Tt, Rr - L, B - Tt);
+    g.beginPath(); g.moveTo(AW / 2, Tt); g.lineTo(AW / 2, B); g.stroke();
+    g.beginPath(); g.arc(AW / 2, AH / 2, 90, 0, TAU); g.stroke();
+    g.fillStyle = 'rgba(255,255,255,0.75)'; g.beginPath(); g.arc(AW / 2, AH / 2, 5, 0, TAU); g.fill();
+    for (const side of [-1, 1]) {
+      const gx = side < 0 ? L : Rr, dir = side < 0 ? 1 : -1;
+      g.strokeRect(Math.min(gx, gx + dir * 190), AH / 2 - 190, 190, 380); // penalty box
+      g.strokeRect(Math.min(gx, gx + dir * 70), AH / 2 - 130, 70, 260); // six-yard box
+      g.beginPath(); g.arc(gx + dir * 130, AH / 2, 5, 0, TAU); g.fill(); // penalty spot
+      g.beginPath(); g.arc(gx + dir * 130, AH / 2, 90, side < 0 ? -0.7 : Math.PI - 0.7, side < 0 ? 0.7 : Math.PI + 0.7); g.stroke(); // the D
+    }
+    for (const [cx, cy] of [[L, Tt], [Rr, Tt], [L, B], [Rr, B]]) { g.beginPath(); g.arc(cx, cy, 14, 0, TAU); g.stroke(); } // corner arcs
   } else if (T.ground2 === 'sand') {
     // wind ripples, footprints of the tide, shells
     for (let i = 0; i < 140; i++) {
@@ -4165,6 +4485,18 @@ function paintFloor(s) {
     const [cx, cy] = hazCentre(h);
     if (h.type === 'pit' && (T.water || h.water)) {
       paintWater(g, h, R);
+    } else if (h.type === 'pit' && h.goal) {
+      // a goal: the drop, with a net across it and white posts
+      hazP(g, h, 0); g.fillStyle = '#0b100b'; g.fill();
+      g.save(); hazP(g, h, 0); g.clip();
+      g.strokeStyle = 'rgba(255,255,255,0.28)'; g.lineWidth = 1;
+      for (let x = h.x; x <= h.x + h.w; x += 9) { g.beginPath(); g.moveTo(x, h.y); g.lineTo(x, h.y + h.h); g.stroke(); }
+      for (let y = h.y; y <= h.y + h.h; y += 9) { g.beginPath(); g.moveTo(h.x, y); g.lineTo(h.x + h.w, y); g.stroke(); }
+      g.restore();
+      const left = h.x < AW / 2, px = left ? h.x + h.w : h.x;
+      g.strokeStyle = '#f4f4f0'; g.lineWidth = 7; g.lineCap = 'round';
+      g.beginPath(); g.moveTo(px, h.y - 3); g.lineTo(px, h.y + h.h + 3); g.stroke(); // the goal line post
+      g.beginPath(); g.moveTo(px, h.y); g.lineTo(left ? h.x : h.x + h.w, h.y); g.moveTo(px, h.y + h.h); g.lineTo(left ? h.x : h.x + h.w, h.y + h.h); g.stroke(); // side posts
     } else if (h.type === 'pit') {
       hazP(g, h, 11); g.fillStyle = 'rgba(0,0,0,0.18)'; g.fill();
       hazP(g, h, 8); g.fillStyle = T.dirt; g.fill();
@@ -4637,6 +4969,12 @@ function mechFx(e) {
     case 'stun': burst(e.x, e.y, '#fff27a', 14, 150, 2); floater(e.x, e.y - 30, 'Stunned!', '#fff27a', 16); buzz(0.8, e.id === myId ? 1.2 : 0.7); if (e.id === myId) shake(4); return true;
     case 'ambushHit': floater(e.x, e.y - 50, 'Ambush!', '#c7b3ff', 18); tone(180, 0.2, 'sawtooth', 0.05, -80); nz(0.12, 0.08, 'highpass', 3000, 6000, 1); return true;
     case 'saw': burst(e.x, e.y, '#ffe9a8', 18, 280, 2); burst(e.x, e.y, '#ff4d5e', 8, 160, 3); nz(0.3, 0.1, 'bandpass', 3400, 1800, 4); os('sawtooth', 1500, 700, 0.22, 0.03); if (e.id === myId) shake(8); return true;
+    case 'ballShot': burst(e.x, e.y, '#ffffff', 6 + Math.round(8 * (e.s || 0)), 160, 1.6); os('sine', 240, 420, 0.08, 0.05 * (0.4 + (e.s || 0))); nz(0.05, 0.05, 'bandpass', 1400, 900, 2); return true;
+    case 'ballKick': burst(e.x, e.y, '#dfe8d0', 5, 120, 1.4); os('sine', 180, 300, 0.07, 0.035); return true;
+    case 'ballHit': burst(e.x, e.y, '#ffffff', 10 + Math.round(10 * (e.s || 0)), 240, 2); os('triangle', 150, 90, 0.16, 0.06); nz(0.08, 0.06, 'lowpass', 900, 500, 3); if (e.id === myId) shake(4 + 6 * (e.s || 0)); return true;
+    case 'ballBounce': os('sine', 260, 200, 0.06, 0.025); return true;
+    case 'ballGoal': burst(e.x, e.y, '#ffffff', 22, 300, 2.5); fanfare([392, 523, 659], 'triangle', 0.045, 70); notice('Goal! The ball drops back to the centre.', false); return true;
+    case 'ballReset': burst(e.x, e.y, '#ffffff', 10, 140, 1.6); return true;
     case 'bump': { const k = e.s == null ? 1 : 0.35 + 0.65 * e.s; bumpAt(e.x, e.y); os('sine', 170, 170 + 350 * k, 0.2, 0.07 * k); os('triangle', 90, 90 + 170 * k, 0.22, 0.04 * k); return true; }
     case 'portal': {
       const c1 = gateCol(e.x1, e.y1), c2 = gateCol(e.x2, e.y2);
@@ -4702,6 +5040,7 @@ function drawArena() {
   for (const cl of clouds) ctx.drawImage(cloudSprite(), cl.x - cl.r, cl.y - cl.r * 0.7, cl.r * 2, cl.r * 1.4);
   const embers = THEME.ambient === 'embers';
   for (const l of leaves) {
+    if (!THEME.ambient) break; // a pitch has nothing drifting over it
     const col = THEME.leafCols[l.c];
     if (THEME.ambient === 'sand') {
       ctx.globalAlpha = 0.6; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(l.x, l.y, 1 + (l.c % 2) * 0.6, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
@@ -4944,18 +5283,13 @@ function drawPlayer(p, isMe, bare) {
   if (p.ro === 'ninja') drawHandStar(R, p);
   else if (p.ro === 'crossbow') drawCrossbow(R, p);
   else drawBow(p.ch, !!p.dr, Math.max(20, R + 4), p.dz ? '#7b8594' : '#c89b5b');
-  // the draw, readable from across the arena: a ring that fills as the bow is drawn and flares white at full draw,
-  // so you can see when someone is about to loose a full-power shot (and time a Parry or a dodge)
-  if (p.dr && p.ch > 0 && p.ro !== 'ninja' && p.ro !== 'crossbow') {
-    const full = p.ch >= 1, rr = R + 5;
-    ctx.lineCap = 'butt';
-    ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, rr, 0, TAU); ctx.stroke();
-    ctx.strokeStyle = full ? '#ffffff' : isMe ? '#ffcf5a' : '#ffb35a'; ctx.lineWidth = full ? 3.5 : 3;
-    ctx.beginPath(); ctx.arc(0, 0, rr, -Math.PI / 2, -Math.PI / 2 + TAU * Math.min(1, p.ch)); ctx.stroke();
-    if (full) {
-      const k = 0.5 + 0.5 * Math.sin(clock * 14);
-      ctx.strokeStyle = `rgba(255,255,255,${0.25 + 0.35 * k})`; ctx.lineWidth = 6 + 3 * k; ctx.beginPath(); ctx.arc(0, 0, rr + 5, 0, TAU); ctx.stroke();
-    }
+  // full draw, readable from across the arena: a small bright spark at the arrowhead, so you can see when someone
+  // is about to loose a full-power shot (and time a Parry or a dodge)
+  if (p.dr && p.ch >= 1 && p.ro !== 'ninja' && p.ro !== 'crossbow') {
+    const k = 0.5 + 0.5 * Math.sin(clock * 22), sx = R + 22, sy = 0;
+    ctx.fillStyle = `rgba(255,255,255,${0.55 + 0.45 * k})`; ctx.beginPath(); ctx.arc(sx, sy, 2.2 + 1.3 * k, 0, TAU); ctx.fill();
+    ctx.strokeStyle = `rgba(255,240,180,${0.35 + 0.4 * k})`; ctx.lineWidth = 1.2;
+    ctx.beginPath(); for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + clock * 3, l = 5 + 3 * k; ctx.moveTo(sx + Math.cos(a) * 2.5, sy + Math.sin(a) * 2.5); ctx.lineTo(sx + Math.cos(a) * l, sy + Math.sin(a) * l); } ctx.stroke();
   }
   if (p.dz) { ctx.strokeStyle = 'rgba(191,232,255,0.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(18, -8); ctx.lineTo(30, 8); ctx.moveTo(30, -8); ctx.lineTo(18, 8); ctx.stroke(); }
   ctx.restore();
@@ -5064,9 +5398,15 @@ function drawArrow(a) {
   // a soft shadow on the ground under anything in flight, so arrows stand out on every arena
   if (!a.s) {
     ctx.save(); ctx.translate(a.x + 4, a.y + 7); ctx.rotate(a.g); ctx.lineCap = 'round';
-    const k = a.b ? 1.6 : a.bg ? 1.35 : 1;
-    if (a.sh || a.bm) { ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.arc(0, 0, a.sh === 2 ? 9 : 8, 0, TAU); ctx.fill(); }
-    else { ctx.strokeStyle = 'rgba(0,0,0,0.32)'; ctx.lineWidth = (a.xb ? 6 : 5) * k; ctx.beginPath(); ctx.moveTo(-24 * k, 0); ctx.lineTo(9 * k, 0); ctx.stroke(); }
+    const k = a.b ? 1.7 : a.bg ? 1.45 : 1.12;
+    if (OPTS.res !== 'fast') ctx.filter = 'blur(1.2px)';
+    ctx.fillStyle = 'rgba(0,0,0,0.34)';
+    if (a.sh || a.bm) { ctx.beginPath(); ctx.arc(0, 0, a.sh === 2 ? 9 : 8, 0, TAU); ctx.fill(); }
+    else { // the arrow's outline: shaft, then a sharp point
+      const w2 = (a.xb ? 2.6 : 2) * k;
+      ctx.beginPath(); ctx.moveTo(-24 * k, -w2); ctx.lineTo(2 * k, -w2); ctx.lineTo(2 * k, -4.2 * k); ctx.lineTo(11 * k, 0); ctx.lineTo(2 * k, 4.2 * k); ctx.lineTo(2 * k, w2); ctx.lineTo(-24 * k, w2); ctx.closePath(); ctx.fill();
+    }
+    ctx.filter = 'none';
     ctx.restore();
   }
   if (a.sh) { // shuriken: a spinning four-point star
@@ -5153,6 +5493,22 @@ function drawChannel(u) {
   ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillText(C.name.toUpperCase(), u.x + 1, u.y - R0 - 11);
   ctx.fillStyle = C.color; ctx.fillText(C.name.toUpperCase(), u.x, u.y - R0 - 12);
   if (u.cs) { ctx.fillStyle = `rgba(255,255,255,${0.5 + 0.5 * pulse})`; ctx.font = "600 11px 'Titillium Web', 'Segoe UI', sans-serif"; ctx.fillText('Contested', u.x, u.y + R0 + 20); }
+}
+// the Pitch's ball: a classic black-and-white ball with a soft shadow, rolling as it moves
+function drawBall(b) {
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(b.x + 4, b.y + 7, b.r * 1.05, b.r * 0.8, 0, 0, TAU); ctx.fill();
+  ctx.translate(b.x, b.y);
+  ctx.fillStyle = '#f2f2ee'; ctx.beginPath(); ctx.arc(0, 0, b.r, 0, TAU); ctx.fill();
+  ctx.save(); ctx.beginPath(); ctx.arc(0, 0, b.r, 0, TAU); ctx.clip(); ctx.rotate(b.s || 0);
+  ctx.fillStyle = '#1c1c1c';
+  for (let i = 0; i < 5; i++) { const a = i * TAU / 5, px = Math.cos(a) * b.r * 0.62, py = Math.sin(a) * b.r * 0.62; ctx.beginPath(); for (let k = 0; k < 5; k++) { const t = a + k * TAU / 5; ctx.lineTo(px + Math.cos(t) * b.r * 0.3, py + Math.sin(t) * b.r * 0.3); } ctx.closePath(); ctx.fill(); }
+  ctx.beginPath(); for (let k = 0; k < 5; k++) { const t = k * TAU / 5 + 0.3; ctx.lineTo(Math.cos(t) * b.r * 0.26, Math.sin(t) * b.r * 0.26); } ctx.closePath(); ctx.fill();
+  ctx.restore();
+  const g = ctx.createRadialGradient(-b.r * 0.35, -b.r * 0.35, 2, 0, 0, b.r); g.addColorStop(0, 'rgba(255,255,255,0.35)'); g.addColorStop(1, 'rgba(0,0,0,0.25)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, b.r, 0, TAU); ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, b.r, 0, TAU); ctx.stroke();
+  ctx.restore();
 }
 function drawPickup(u) {
   if (u.ty === 'amber') return drawAmber(u);
@@ -5530,9 +5886,11 @@ function render(replaying) {
   drawZones(view, me);
   drawMarkers(view, me);
   for (const u of view.u) drawPickup(u);
+  if (view.b && !view.b.o) drawBall(view.b);
   for (const a of view.a) if (a.s) drawArrow(a);
-  for (const p of view.p) if (p.f > 0) drawPlayer(p, p.id === myId);
-  for (const p of view.p) if (!p.f && p.id !== myId) drawPlayer(p, false);
+  for (const p of view.p) if (p.f > 0 && !trHidden(p)) drawPlayer(p, p.id === myId);
+  for (const p of view.p) if (!p.f && p.id !== myId && !trHidden(p)) drawPlayer(p, false);
+  if (TR.on) drawTargets();
   if (me && !me.f) drawPlayer(me, true);
   drawSmoke(view, me);
   if (!replaying) allyWarn(view, me);
@@ -5593,7 +5951,7 @@ function updateHud() {
     if (x) $('abil').hidden = true; else hc.abSet = null;
     if (x) { $('resultsScreen').hidden = true; resultsFor = null; closeMenu(); }
   });
-  if (m.ph === 'pick' && LP.list.length) setC('lpPick', JSON.stringify([real && !!real.of, LP.list.map(l => { const p = view.p.find(q => q.id === l.pid); return p ? [p.of, p.pk, l.lastPick] : 0; })]), () => {
+  if (m.ph === 'pick' && LP.list.length) setC('lpPick', JSON.stringify([real && !!real.of, LP.list.map(l => { const p = view.p.find(q => q.id === l.pid); return p ? [p.of, p.pk, l.lastPick, l.pickI || 0] : 0; })]), () => {
     const h = lpPickHtml(view), inside = !!real; // their cards sit under yours; if you're only watching they float on their own
     $('pkLocals').innerHTML = inside ? h : ''; $('lpPick').innerHTML = inside ? '' : h; $('lpPick').hidden = inside || !h;
   });
@@ -5681,7 +6039,8 @@ function updateHud() {
     if (!resultsFor) {
       resultsFor = true;
       const won = m.mw === me.tm;
-      $('resTitle').innerHTML = `${won ? 'Your team wins' : esc(teamName(m.mw)) + ' wins'} <span style="color:var(--muted)">${m.wr}–${m.wb} on points</span>`;
+      // the colour that won, always; "your team" only when there's one player on this screen
+      $('resTitle').innerHTML = `<span style="color:${TEAM_COL[m.mw]}">${esc(teamName(m.mw))}</span> wins${LP.list.length ? '' : won ? ' (your team)' : ''} <span style="color:var(--muted)">${m.wr}–${m.wb} on points</span>`;
       resultsView = view;
       renderAwards(view); renderRanking();
       $('rematchBtn').hidden = $('resLobbyBtn').hidden = !isHost();
@@ -5869,7 +6228,7 @@ const REPLAY_FX = { throw: 1, sstrike: 1, recall: 1, nblink: 1, flash: 1, swap: 
 function replayNote(evs) { for (const e of evs) { if (REPLAY_FX[e.e] || e.e === 'kill') RP.evs.push({ t: clock, e }); if (e.e === 'kill') RP.lastKill = { t: clock, k: e.k, v: e.v, how: e.how, kn: e.kn, vn: e.vn }; } }
 function replayQueue(ge) {
   const K = RP.lastKill;
-  if (TUT.on && TUT.step <= 5) return false; // no kill cam for the practice dummy
+  if ((TUT.on && TUT.step <= 5) || TR.on) return false; // no kill cam for the practice dummy or training targets
   if (!RP.enabled || reduceMotion || ge.rw === 'draw' || !K || clock - K.t > 1.2) return false;
   // find the arrow that did it: the killer's last hit on the victim, and the arrow of theirs nearest the victim just before it
   let hitT = null, aid = null, shotT = null;
@@ -5969,17 +6328,17 @@ function frame(now) {
       acc += dt;
       while (acc >= STEP) {
         prevPos = capturePos(world);
-        tutGuard();
+        tutGuard(); trainGuard();
         const meW = world.players.find(p => p.id === myId);
-        Sim.setInput(world, myId, buildInput(meW));
+        Sim.setInput(world, myId, trainInput(buildInput(meW)));
         dashLatch = qLatch = eLatch = drawLatch = false;
         for (const l of LP.list) if (l.pid && l.inp) { Sim.setInput(world, l.pid, l.inp); lpClear(l); }
         Sim.step(world, STEP);
         acc -= STEP;
       }
       handleEvents(world.events.splice(0));
-      if (world.records.length) { const recs = world.records.splice(0); if (!TUT.on) for (const r of recs) Balance.record(r); }
-      tutTick(dt);
+      if (world.records.length) { const recs = world.records.splice(0); if (!TUT.on && !TR.on) for (const r of recs) Balance.record(r); }
+      tutTick(dt); trainTick(dt);
     }
     view = blendView(Sim.snapshot(world), prevPos, paused ? 1 : acc / STEP);
   } else if (mode === 'online') {
@@ -5995,7 +6354,7 @@ function frame(now) {
     }
   } else view = null;
   updateMech(dt);
-  statusSounds(dt); bowSounds(dt); perfTick(dt); if (TUT.on) coachFade();
+  statusSounds(dt); bowSounds(dt); perfTick(dt); if (TUT.on || TR.on) coachFade();
   updateFx(dt);
   replayRecord();
   const rv = replayTick(dt);

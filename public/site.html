@@ -279,7 +279,7 @@ const pages = {
     const [rooms, forum, lb] = await Promise.all([api('/rooms').catch(() => ({ rooms: [], online: 0 })), api('/forum').catch(() => ({ recent: [] })), api('/leaderboard?by=elo').catch(() => ({ rows: [] }))]);
     const E = Object.entries(Sim.ELEMENTS), R = Object.entries(Sim.ROLES);
     const CATC = { Power: '#ff8a5b', Agility: '#5ad1ff', Utility: '#c7b3ff' };
-    const THEME = { meadow: '#5f9a3e', spring: '#6fae4a', rift: '#6b4a3a', beach: '#d9c28a', cliffs: '#8fbf6a', mill: '#a07a4e', ruins: '#8a8a94', grove: '#3f7a3a' };
+    const THEME = { meadow: '#5f9a3e', spring: '#6fae4a', rift: '#6b4a3a', beach: '#d9c28a', pitch: '#4f9a3c', mill: '#a07a4e', ruins: '#8a8a94', grove: '#3f7a3a' };
     app.innerHTML = `
       <section class="hero2">
         <div class="h2l">
@@ -486,8 +486,8 @@ function threadList(list, short) {
 // a little scene for the front page: an archer's arrow knocking another toward a pit
 // the home page's picture: a real match between bots, run with the game's own rules and drawn simply
 function heroArt(cv) {
-  const g = cv.getContext('2d'), S = Sim, maps = ['meadow', 'spring', 'rift', 'cliffs', 'grove', 'beach'];
-  const THEME = { meadow: ['#5f9a3e', '#1b120c'], spring: ['#6fae4a', '#1b120c'], rift: ['#5c4636', '#140c08'], beach: ['#d9c28a', '#1f6fa8'], cliffs: ['#8fbf6a', '#1b1f24'], grove: ['#3f7a3a', '#120c08'] };
+  const g = cv.getContext('2d'), S = Sim, maps = ['meadow', 'spring', 'rift', 'pitch', 'grove', 'beach'];
+  const THEME = { meadow: ['#5f9a3e', '#1b120c'], spring: ['#6fae4a', '#1b120c'], rift: ['#5c4636', '#140c08'], beach: ['#d9c28a', '#1f6fa8'], pitch: ['#4f9a3c', '#0b100b'], grove: ['#3f7a3a', '#120c08'] };
   let w, mapK, n = 0, pops = [], last = performance.now(), acc = 0, over = 0;
   const start = () => {
     mapK = maps[n++ % maps.length];

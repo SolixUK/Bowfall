@@ -45,9 +45,12 @@ const NAMES = ['Fletchling', 'QuiverQueen', 'xNocturnex', 'tired_archer', 'BowDo
   'PitStop', 'knockbackkid', 'Beansprout', 'Wraith_07', 'sadbowboy', 'TheRealFrost', 'Cptn_Crossbow', 'EmberLynx', 'nofunallowed', 'PebbleDasher',
   'zenith', 'fox_in_socks', 'Grumblebow', 'Stormy_Jo', 'lagspike', 'PixelArrow', 'ohnoitsjake', 'Marigold_', 'Ricochet_Rae', 'SaltyDog44',
   'Honeybadger', 'kappa_kev', 'LowKeyLethal', 'WaffleIron', 'bowtie', 'Nyx_', 'CrispyNoodle', 'archie', 'VoidWalker13', 'slippers',
-  'tootsie', 'BigYew', 'Yew_Know_It', 'dizzy_d', 'TeaAndArrows', 'Shazam_7', 'ellie_bellie', 'Grimsby', 'tryhard_tim', 'Mochi'];
+  'tootsie', 'BigYew', 'Yew_Know_It', 'dizzy_d', 'TeaAndArrows', 'Shazam_7', 'ellie_bellie', 'Grimsby', 'tryhard_tim', 'Mochi',
+  'Strelok_', 'Vanya_Volkov', 'medved88', 'Katyusha_', 'Zhenya_K', 'kotik_uwu', 'Ded_Moroz', 'Anya_Sokol', 'Oleg_TT'];
+// the last nine are Russian-speaking players; everyone else picks a country from the list below
+const RU = { Strelok_: 'ru', Vanya_Volkov: 'ru', medved88: 'ru', Katyusha_: 'ru', Zhenya_K: 'ru', kotik_uwu: 'ru', Ded_Moroz: 'ru', Anya_Sokol: 'ua', Oleg_TT: 'ru' };
 const ELS = Object.keys(Sim.ELEMENTS), ROS = Object.keys(Sim.ROLES), STY = Object.keys(Sim.STYLES);
-const CC = ['gb', 'us', 'us', 'de', 'fr', 'se', 'pl', 'br', 'ca', 'au', 'nl', 'es', 'it', 'jp', 'kr', 'no', 'ie', 'fi', 'dk', 'nz', 'mx', 'pt', 'be', 'at'];
+const CC = ['gb', 'us', 'us', 'de', 'fr', 'se', 'pl', 'br', 'ca', 'au', 'nl', 'es', 'it', 'jp', 'kr', 'no', 'ie', 'fi', 'dk', 'nz', 'mx', 'pt', 'be', 'at', 'ru', 'ru', 'tr', 'ua', 'cz'];
 // personalities: most chat now and then, a few never shut up, a few barely speak
 const players = NAMES.map((name, i) => {
   const skill = Math.min(1, Math.max(0.03, 0.52 + (rnd() + rnd() + rnd() + rnd() - 2) * 0.45));
@@ -60,7 +63,7 @@ const players = NAMES.map((name, i) => {
   loadouts[0][2] = Math.round(loadouts[0][2] * 100) / 100;
   const tone = rnd() < 0.15 ? 'quiet' : pick(TONES.filter(t => t !== 'quiet'));
   const chat = tone === 'quiet' ? 0.08 : Math.round(Math.min(1, 0.15 + rnd() * rnd() * 1.2) * 100) / 100;
-  return { i, name, country: pick(CC), ai: { skill: Math.round(skill * 100) / 100, loadouts, style: rnd() < 0.25 ? pick(STY) : null, aggr: Math.round((0.2 + rnd() * 0.8) * 100) / 100, tone, chat },
+  return { i, name, country: RU[name] || pick(CC), ai: { skill: Math.round(skill * 100) / 100, loadouts, style: rnd() < 0.25 ? pick(STY) : null, aggr: Math.round((0.2 + rnd() * 0.8) * 100) / 100, tone, chat },
     career: { elo: 1000 }, ach: {}, created: Date.now() - Math.floor(rnd() * 60) * 86400000 };
 });
 const loadoutOf = p => { const L = p.ai.loadouts, tot = L.reduce((s, l) => s + l[2], 0); let r = rnd() * tot; for (const l of L) { if ((r -= l[2]) <= 0) return l; } return L[0]; };
@@ -94,24 +97,10 @@ function runBatch(jobs) {
   }))).then(a => a.flat());
 }
 // The simulation gives everyone a thousand-odd games, far more than real players have. Keep the ratings it settled on,
-// but scale each career down to a believable size (40 to ~800 games), and redo the achievements from the scaled stats:
-// the one-off feats (clutches, streaks) survive in proportion. Then most wear their best achievement as title and border.
-function finish(list) {
-  for (const p of list) {
-    const f = 0.04 + rnd() * rnd() * 0.6, c = p.career, sc = v => Math.max(0, Math.round(v * f));
-    for (const k of ['games', 'wins', 'kills', 'deaths', 'ring', 'shots', 'hits', 'matches', 'matchWins']) if (c[k] != null) c[k] = sc(c[k]);
-    if (c.dmg != null) c.dmg = Math.round(c.dmg * f);
-    for (const o of [c.roles, c.roleW, c.els]) if (o) for (const k in o) o[k] = sc(o[k]);
-    c.wins = Math.min(c.wins, c.games); c.matchWins = Math.min(c.matchWins || 0, c.matches || 0);
-    const st = p.ach.stats || {}, keepFlag = Math.min(1, f * 3), ns = {};
-    for (const [k, v] of Object.entries(st)) ns[k] = ['clutch', 'clutch3', 'streak5', 'streak10', 'emp'].includes(k) ? (rnd() < keepFlag ? v : 0) : sc(v);
-    p.ach = { stats: ns, got: {}, tier: {}, v: 2 };
-    for (const [k, a] of Object.entries(Sim.ACHIEVEMENTS)) { const t = Sim.achTierOf(k, ns[a.stat] || 0); if (t) { p.ach.tier[k] = t; p.ach.got[k] = p.created + Math.floor(rnd() * (Date.now() - p.created)); } }
-    const got = Sim.achBest(p.ach, 20);
-    p.title = got.length && rnd() < 0.6 ? got[Math.floor(rnd() * Math.min(2, got.length))] : null;
-    if (got.length && rnd() < 0.7) p.ach.border = got[Math.floor(rnd() * Math.min(3, got.length))];
-  }
-}
+// but size each career to match its rating (lib/ai-scale.js: the better the rating, the more games and the higher the level),
+// filling in the achievements someone with that record would have. Then most wear their best achievement as title and border.
+const { scaleCareers } = require('../lib/ai-scale');
+function finish(list) { for (const p of list) { p.title = null; if (p.ach) p.ach.border = null; } scaleCareers(list, rnd); }
 if (process.argv[2] === '--finish') { // redo just the last step on the saved list
   const file = path.join(__dirname, '..', 'lib', 'ai-players.json'), list = JSON.parse(fs.readFileSync(file));
   finish(list); fs.writeFileSync(file, JSON.stringify(list)); console.log('done'); return;
