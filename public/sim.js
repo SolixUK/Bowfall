@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.19.0';
+const VERSION = '0.19.2';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -195,7 +195,33 @@ MAPS.yard = buildMap({
     spawns: [{ x: 250, y: 400 }, { x: 250, y: 300 }, { x: 250, y: 500 }, { x: 180, y: 400 }],
     power: [{ x: AW - 50, y: AH - 50 }], amberY: [WALL + 44, 330],
   });
+// the dodge drill: a wide straight rift you can't dash across keeps you away from the shooter on the far side;
+// the drill adds sinkholes and bogs on your side as it goes
+MAPS.chasm = buildMap({
+    name: 'Rift Range', theme: 'meadow', hidden: true,
+    desc: 'A shooting range split by a rift.',
+    haz: [{ type: 'pit', centre: true, shape: 'rect', x: 700, y: WALL - 20, w: 320, h: AH - 2 * WALL + 40 }], pillars: [], spikes: [],
+    spawns: [{ x: 100, y: 400 }, { x: 100, y: 300 }, { x: 100, y: 500 }, { x: 60, y: 400 }],
+    power: [{ x: AW - 50, y: AH - 50 }], amberY: [WALL + 44, 330],
+  });
+// the knockout drill: sinkholes to knock targets into
+MAPS.holes = buildMap({
+    name: 'Sinkhole Field', theme: 'meadow', hidden: true,
+    desc: 'Sinkholes everywhere.',
+    haz: [
+      { type: 'pit', shape: 'circle', x: 330, y: 190, r: 62 },
+      { type: 'pit', shape: 'rect', x: 250, y: 520, w: 130, h: 95 },
+      { type: 'pit', shape: 'circle', x: 505, y: 400, r: 46 },
+      { type: 'pit', shape: 'circle', x: 470, y: 690, r: 40 },
+    ], pillars: [], spikes: [],
+    spawns: [{ x: 110, y: 400 }, { x: 110, y: 300 }, { x: 110, y: 500 }, { x: 70, y: 400 }],
+    power: [{ x: AW - 50, y: AH - 50 }], amberY: [WALL + 44, 330],
+  });
 const MAP_KEYS = Object.keys(MAPS).filter(k => !MAPS[k].hidden);
+// training drills: the most points a run can score (grades and the server's checks use these)
+const TRAIN_MAX = { target: 7500, dodge: 1000, peek: 3600, knock: 3000 };
+const TRAIN_GRADES = [['S', 0.8], ['A', 0.65], ['B', 0.5], ['C', 0.35], ['D', 0]];
+const trainGrade = (kind, score) => { const m = TRAIN_MAX[kind] || 1; return TRAIN_GRADES.find(g => score / m >= g[1])[0]; };
 
 // The simulation reads the current arena from these; useMap() points them at a world's arena.
 // Every public entry point calls useMap first, so rooms on different arenas can share one server.
@@ -229,7 +255,7 @@ const BUMP_MIN = 170, BUMP_MAX = 720;
 function airborne(q) { return q.dashT > 0 || !!q.grap || !!q.nblink; }
 // saws, mushrooms, gates and wind act on everyone
 // the Pitch's ball: shot or run into, it flies off, bounces off the walls, and hurts and shoves whoever it hits
-const BALL_DRAG = 1.3, BALL_HIT = 140, BALL_MAX = 1300, BALL_MASS = 0.8;
+const BALL_DRAG = 1.3, BALL_HIT = 110, BALL_MAX = 1300, BALL_MASS = 0.8;
 function updateBall(w, dt) {
   const b = w.ball; if (!b) return;
   if (b.out > 0) { b.out -= dt; if (b.out <= 0) { b.x = BALL.x; b.y = BALL.y; b.vx = b.vy = 0; ev(w, { e: 'ballReset', x: r1(b.x), y: r1(b.y) }); } return; }
@@ -256,7 +282,7 @@ function updateBall(w, dt) {
     if (rel > BALL_HIT && (q.ballCd || 0) <= w.t) {
       // a flying ball: damage and a shove that scale with its speed; the ball loses most of its pace
       q.ballCd = w.t + 0.3;
-      const k = clamp((rel - BALL_HIT) / 900, 0, 1), dmg = 4 + 12 * k, push = 260 + 640 * k;
+      const k = clamp((rel - BALL_HIT) / 800, 0, 1), dmg = 4 + 12 * k, push = 420 + 900 * k; // a real shove, like a solid arrow hit
       ev(w, { e: 'ballHit', id: q.id, x: r1(b.x), y: r1(b.y), s: r2(k) });
       hurt(w, q, dmg, nx * push, ny * push, 'ball', b.lastBy && b.lastBy !== q.id ? b.lastBy : null);
       b.vx = -b.vx * 0.35 + q.vx * 0.3; b.vy = -b.vy * 0.35 + q.vy * 0.3;
@@ -1697,7 +1723,9 @@ function updatePlayer(w, p, dt) {
     p.drawing = false; p.charge = 0; p.over = 0;
   }
   if (p.nockT > 0) p.nockT -= dt;
-  stepBody(w, p, mx, my, dt);
+  // p.noWalk (the dodge drill): the stick still aims your dashes, but you can only walk to wade out of a bog
+  const walk = !p.noWalk || p.inTar;
+  stepBody(w, p, walk ? mx : 0, walk ? my : 0, dt);
   if (p.dead) return;
   if (p.emp) empowered(w, p, dt);
   p.healing = false;
@@ -3342,7 +3370,7 @@ function unpackSnap(s) {
 }
 
 return {
-  AW, AH, WALL, GATES, MAPS, MAP_KEYS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
+  AW, AH, WALL, GATES, MAPS, MAP_KEYS, TRAIN_MAX, TRAIN_GRADES, trainGrade, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,

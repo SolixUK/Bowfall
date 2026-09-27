@@ -123,6 +123,25 @@ async function computeRanks() {
   RANKS = { rarity, dist, players: real.length, at: Date.now() };
 }
 setInterval(() => computeRanks().catch(e => console.error('Ranks:', e.message)), 10 * 60 * 1000).unref();
+// training bests: every account's best in each drill, sorted, for "top X%"
+const TRAIN = { dist: null, at: 0 };
+async function trainDist() {
+  if (TRAIN.dist && Date.now() - TRAIN.at < 10 * 60 * 1000) return;
+  const all = (await store.leaderboard('games', 100000).catch(() => [])).map(u => live.get(u.id) || u);
+  const dist = {}; for (const k of Object.keys(Sim.TRAIN_MAX)) dist[k] = [];
+  for (const u of all) { const t = u.career && u.career.train; if (t) for (const k in dist) if (t[k]) dist[k].push(t[k].s); }
+  for (const k in dist) dist[k].sort((a, b) => a - b);
+  TRAIN.dist = dist; TRAIN.at = Date.now();
+}
+function trainInsert(k, v) { const d = TRAIN.dist[k]; let i = 0; while (i < d.length && d[i] < v) i++; d.splice(i, 0, v); }
+// "top X%": the share of players whose best is at least this good (counting you); in: your score is already in the list
+function trainTop(k, v, inList) {
+  const d = TRAIN.dist[k], n = d.length + (inList ? 0 : 1);
+  const better = d.filter(x => x > v).length;
+  return Math.max(0.1, Math.round((better + 1) / Math.max(1, n) * 1000) / 10);
+}
+const trainHits = new Map();
+function trainLimit(key) { const now = Date.now(), h = (trainHits.get(key) || []).filter(t => now - t < 60000); h.push(now); trainHits.set(key, h); return h.length <= 20; }
 // the look of a signed-in player's name banner: the border they picked (if they've earned it) and how many achievements they have
 const lookOf = u => { const got = (u.ach && u.ach.got) || {}, bd = u.ach && u.ach.border; return Object.assign({ bd: bd && got[bd] ? bd : null, na: Object.keys(got).length || null, ow: u.admin ? 1 : null }, Sim.bannerOf(u.ach)); };
 
@@ -347,7 +366,36 @@ async function api(req, res, url) {
     me.title = key; markDirty(me);
     return json(res, 200, { ok: true, title: me.title });
   }
+  if (route === '/perf' && method === 'GET') {
+    if (!me || !me.admin) return json(res, 403, { error: 'Only the game owner can see this.' });
+    return json(res, 200, { now: PERF.now, history: PERF.hist, reports: PERF.reports.slice(-100), node: process.version, uptime: Math.round(process.uptime()) });
+  }
   if (route === '/achrarity' && method === 'GET') return json(res, 200, { rarity: RANKS.rarity, players: RANKS.players });
+  // training drills: your best score in each (kept on your account), and where it ranks among everyone's bests
+  if (route === '/train' && method === 'GET') {
+    await trainDist();
+    const mine = (me && me.career && me.career.train) || {}, out = {};
+    for (const k of Object.keys(Sim.TRAIN_MAX)) { const b = mine[k]; out[k] = Object.assign({ n: TRAIN.dist[k].length }, b ? { s: b.s, g: b.g, top: trainTop(k, b.s, true) } : {}); }
+    return json(res, 200, { drills: out });
+  }
+  if (route === '/train' && method === 'POST') {
+    const k = String(body.kind || ''), sc = Math.round(+body.score);
+    if (!Sim.TRAIN_MAX[k] || !isFinite(sc) || sc < 0 || sc > Sim.TRAIN_MAX[k]) return json(res, 400, { error: 'Bad score.' });
+    if (!trainLimit(me ? 'u' + me.id : ip(req))) return json(res, 429, { error: 'Slow down.' });
+    await trainDist();
+    let best = sc, isNew = false;
+    if (me) {
+      const c = me.career || (me.career = {}), t = c.train || (c.train = {}), old = t[k];
+      if (!old || sc > old.s) {
+        isNew = true;
+        if (old) { const d = TRAIN.dist[k], i = d.indexOf(old.s); if (i >= 0) d.splice(i, 1); }
+        t[k] = { s: sc, g: Sim.trainGrade(k, sc), at: Date.now() }; markDirty(me);
+        trainInsert(k, sc);
+      }
+      best = t[k].s;
+    }
+    return json(res, 200, { kind: k, score: sc, best, isNew, g: Sim.trainGrade(k, best), top: trainTop(k, sc, !!me && best === sc), topBest: me ? trainTop(k, best, true) : null, n: TRAIN.dist[k].length + (me ? 0 : 1) });
+  }
   let m;
   if ((m = route.match(/^\/users\/([A-Za-z0-9_-]{1,16})$/)) && method === 'GET') {
     const u = await store.userByName(m[1]);
@@ -698,7 +746,7 @@ const CMD_HELP = {
   admin: ['/kick <name> – remove someone from this game', '/mute <name> [minutes] – stop someone chatting here (default 10)', '/unmute <name>',
     '/ban <name> – ban an account (or a guest, until the server restarts) and kick them from every game', '/unban <name>',
     '/announce <text> – message every game on the server', '/host <name> – hand this game to someone', '/start – start the match', '/end – end the match and go back to the lobby',
-    '/rooms – list the games running on the server', '/who <name> – ratings, games and where they are playing', '/setelo <name> <rating> [team] – set an account\'s 1v1 (or team) rating'],
+    '/perf – how hard the server is working right now, and the last lag reports from players', '/rooms – list the games running on the server', '/who <name> – ratings, games and where they are playing', '/setelo <name> <rating> [team] – set an account\'s 1v1 (or team) rating'],
 };
 function findIn(clients, q) {
   q = String(q || '').toLowerCase(); if (!q) return null;
@@ -735,6 +783,15 @@ async function chatCommand(room, ws, text) {
       if (u && u.social && u.social.ban) { delete u.social.ban; markDirty(u); flushUsers(); return tell(`${u.name} is no longer banned.`); }
       for (const [k, n] of guestBans) if (n.toLowerCase() === name.toLowerCase()) { guestBans.delete(k); return tell(`${n} (guest) is no longer banned.`); }
       return tell(`"${name}" isn't banned.`);
+    }
+    case 'perf': {
+      const h = PERF.hist.slice(-30), s = PERF.now || {};
+      const worst = k => h.reduce((m, x) => Math.max(m, x[k] || 0), 0);
+      tell(`Server now: CPU ${s.cpu}% of ${s.quota ? s.quota + ' core' : 'a core'}${s.thr != null ? ` (held back ${s.thr} ms/s)` : ''} · loop stall ${s.lag} ms · tick ${s.step} ms (max ${s.stepMax}) · ${s.rooms} game${s.rooms === 1 ? '' : 's'}, ${s.players} archers · ${s.mem} MB`);
+      tell(`Last 30 s worst: CPU ${worst('cpu')}% · loop stall ${worst('lag')} ms · lost time ${h.reduce((m, x) => m + (x.drop || 0), 0)} ms · tick max ${worst('stepMax')} ms`);
+      const reps = PERF.reports.slice(-4).reverse();
+      for (const r of reps) tell(`${r.name}: ${r.verdict || '?'} · ${r.fps} fps (worst frame ${r.fMax} ms) · ping ${r.ping} ±${r.jit} ms · late packets ${r.late}, longest gap ${r.gapMax} ms`);
+      return;
     }
     case 'announce': case 'a': { if (!rest) return tell('Usage: /announce <text>'); for (const r of rooms.values()) sysChat(r, `[Announcement] ${rest.slice(0, 140)}`); return; }
     case 'host': { const c = target(); if (!c) return; if (room.ranked) return tell('Matchmade games have no host.'); room.host = c.cid; sysChat(room, `${c.name} is now the host.`); sendRoom(room); return; }
@@ -825,6 +882,12 @@ async function handle(ws, m) {
   switch (m.t) {
     case 'in': if (ws.pid) Sim.setInput(w, ws.pid, m); break;
     case 'ping': send(ws, { t: 'pong', c: m.c }); break;
+    case 'perfRep': { // a player's own view of the last 10 seconds (frame rate, ping, late packets), for the owner's lag reports
+      const n = k => Math.max(0, Math.min(99999, Math.round(+m[k] || 0)));
+      PERF.reports.push({ t: Date.now(), name: ws.name || 'Guest', room: room.code, fps: n('fps'), fMax: n('fMax'), slow: n('slow'), ping: n('ping'), jit: n('jit'), gapMax: n('gapMax'), late: n('late'), starve: n('starve'), verdict: String(m.v || '').slice(0, 40) });
+      if (PERF.reports.length > 300) PERF.reports.shift();
+      break;
+    }
     case 'loadout': ws.el = String(m.el); ws.ro = String(m.ro); if (ws.pid) Sim.setLoadout(w, ws.pid, ws.el, ws.ro); if (room.ranked && !room.ranked.go) sendRoom(room); break;
     case 'title': {
       // accounts can only wear titles they've earned on this server; guests pick from their own browser's list
@@ -964,16 +1027,58 @@ function creditAchievements(room, evs) {
   }
 }
 
+// ---- performance: how hard the server is working, so lag can be traced to the player's computer, their connection,
+// or the server. Measured every second and sent to everyone in a game (a few dozen bytes); the owner also gets the last
+// two minutes and players' own reports from GET /api/perf and the /perf chat command.
+const { monitorEventLoopDelay } = require('perf_hooks');
+const eld = monitorEventLoopDelay({ resolution: 10 }); eld.enable();
+// the CPU the host gives us (Render's free plan is a tenth of one core) and how long it held us back, from the cgroup
+const CG = (() => {
+  const rd = f => { try { return fs.readFileSync(f, 'utf8').trim(); } catch (e) { return null; } };
+  let quota = null, stat = null;
+  const v2 = rd('/sys/fs/cgroup/cpu.max');
+  if (v2) { const [q, per] = v2.split(/\s+/); if (q !== 'max') quota = +q / +per; stat = '/sys/fs/cgroup/cpu.stat'; }
+  else { const q = +rd('/sys/fs/cgroup/cpu/cpu.cfs_quota_us'), per = +rd('/sys/fs/cgroup/cpu/cpu.cfs_period_us'); if (q > 0 && per > 0) quota = q / per; stat = '/sys/fs/cgroup/cpu/cpu.stat'; }
+  const throttled = () => { const t = rd(stat); if (!t) return null; const m = t.match(/throttled_usec (\d+)/) || t.match(/throttled_time (\d+)/); return m ? (/usec/.test(m[0]) ? +m[1] / 1000 : +m[1] / 1e6) : null; };
+  return { quota, throttled, last: throttled() };
+})();
+const PERF = { w: { gap: 0, drop: 0, catchup: 0, step: 0, steps: 0, stepMax: 0, send: 0 }, hist: [], reports: [], cpu: process.cpuUsage(), at: Date.now(), now: null };
+function perfSecond() {
+  const W = PERF.w, t = Date.now(), wall = (t - PERF.at) * 1000, cpu = process.cpuUsage(PERF.cpu);
+  PERF.cpu = process.cpuUsage(); PERF.at = t;
+  let players = 0; for (const r of rooms.values()) players += r.world.players.length;
+  const th = CG.throttled(), thMs = th != null && CG.last != null ? Math.round(th - CG.last) : null; CG.last = th;
+  const cores = CG.quota || 1;
+  const s = { t, cpu: Math.round((cpu.user + cpu.system) / Math.max(1, wall * cores) * 100), quota: CG.quota, thr: thMs, lag: Math.round(W.gap), el: Math.round(eld.percentile(99) / 1e6), elMax: Math.round(eld.max / 1e6),
+    drop: Math.round(W.drop * 1000), cu: W.catchup, step: W.steps ? Math.round(W.step / W.steps * 100) / 100 : 0, stepMax: Math.round(W.stepMax * 10) / 10, send: Math.round(W.send * 10) / 10,
+    rooms: rooms.size, players, mem: Math.round(process.memoryUsage().rss / 1048576) };
+  eld.reset();
+  PERF.w = { gap: 0, drop: 0, catchup: 0, step: 0, steps: 0, stepMax: 0, send: 0 };
+  PERF.now = s; PERF.hist.push(s); if (PERF.hist.length > 120) PERF.hist.shift();
+  for (const room of rooms.values()) {
+    const rp = room.perf || {}; room.perf = { ms: 0, n: 0, max: 0 };
+    const msg = JSON.stringify({ t: 'perf', s: { cpu: s.cpu, thr: s.thr, lag: s.lag, el: s.el, drop: s.drop, step: rp.n ? Math.round(rp.ms / rp.n * 100) / 100 : 0, stepMax: Math.round((rp.max || 0) * 10) / 10, rooms: s.rooms } });
+    for (const c of room.clients) if (c.readyState === 1) c.send(msg);
+  }
+}
+setInterval(perfSecond, 1000).unref();
+
 // fixed-step game loop
 let last = process.hrtime.bigint(), acc = 0;
 setInterval(() => {
-  const now = process.hrtime.bigint();
-  acc += Number(now - last) / 1e9; last = now;
-  if (acc > 0.25) acc = 0.25; // don't spiral after a stall
+  const now = process.hrtime.bigint(), gap = Number(now - last) / 1e6;
+  acc += gap / 1000; last = now;
+  if (gap > PERF.w.gap) PERF.w.gap = gap; // the loop should run every ~5 ms; a long gap means the server was stalled
+  if (acc > 0.25) { PERF.w.drop += acc - 0.25; acc = 0.25; } // don't spiral after a stall (that time is lost: the game jumps)
+  if (acc >= TICK * 3) PERF.w.catchup++;
   while (acc >= TICK) {
     acc -= TICK;
     for (const room of rooms.values()) {
+      const t0 = process.hrtime.bigint();
       Sim.step(room.world, TICK);
+      const ms = Number(process.hrtime.bigint() - t0) / 1e6, rp = room.perf || (room.perf = { ms: 0, n: 0, max: 0 });
+      rp.ms += ms; rp.n++; if (ms > rp.max) rp.max = ms;
+      PERF.w.step += ms; PERF.w.steps++; if (ms > PERF.w.stepMax) PERF.w.stepMax = ms;
       room.tick++;
       // 30 snapshots a second while archers are fighting; 10 in the lobby, upgrade picks and results, where little moves
       const ph = room.world.match.ph;
@@ -986,8 +1091,10 @@ setInterval(() => {
         if (evs.length) { creditAchievements(room, evs); social.aiEvents(room, evs); }
         let watchers = 0; for (const c of room.clients) if (c.readyState === 1 && !c.quiet) watchers++;
         if (watchers) { // built once and sent to everyone in the room, leaving out fields at their resting value
-          const msg = JSON.stringify({ t: 'snap', s: Sim.packSnap(Sim.snapshot(room.world)), ev: evs });
+          const t1 = process.hrtime.bigint();
+          const msg = JSON.stringify({ t: 'snap', k: room.tick, s: Sim.packSnap(Sim.snapshot(room.world)), ev: evs });
           for (const c of room.clients) if (c.readyState === 1 && !c.quiet) c.send(msg);
+          PERF.w.send += Number(process.hrtime.bigint() - t1) / 1e6;
         }
       }
       if (room.world.records.length) saveRecords(room);

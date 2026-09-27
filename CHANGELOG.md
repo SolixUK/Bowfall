@@ -2,6 +2,31 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
 
+## 0.19.2
+
+**Tracking down lag**
+- **Performance stats (F3,** or Options → Graphics): a small panel in online games that splits lag into its three sources over the last 10 seconds: **your PC** (frame rate, slowest frame, frames over 50 ms), **the network** (ping and its variation, and *late packets*: updates that reached you more than 60 ms after the server's own tick numbers say they were sent, not counting moments when your own computer froze), and **the server** (CPU as a share of what the host allows, time the host held it back, the longest game-loop stall, and the slowest tick). A graph shows every update gap and slow frame, and the top line names the likely cause.
+- The server measures itself every second (game-loop stalls, lost time, tick cost per game, CPU against the host's quota and cgroup throttling, event-loop delay, memory) and sends each game a tiny summary. Snapshots now carry the server's tick number.
+- Every 10 seconds each player's browser sends a one-line report. The owner can type **/perf** in chat for the server's state now and over the last 30 seconds plus the latest reports, or open **/api/perf** for the last two minutes. HOSTING.md explains how to read it.
+
+## 0.19.1
+
+**Training**
+- **Rankings:** each drill now shows your best score and where it ranks among everyone's bests ("top 4% of 312 players"), on the drill list and when a run ends. Signed in, your best is kept on your account (`career.train`; `GET/POST /api/train`); guests see where a run would rank. Scores are checked against each drill's maximum.
+- **Dodge drill reworked:** one archer walks up and down across a wide rift you can't dash over, and never shoots faster than your dash recharges. Three 20-second rounds: open ground (lighter shots), then sinkholes open on your side, then bogs (you can only wade out of a bog). Hazards flash for 2.5 seconds before they open. Your dashes now go the way you're pushing (your feet are tied, but the stick still steers), fixing dashes going where you aimed. Scored out of 1,000 on the share of shots dodged, minus 100 for each fall.
+- **New: Knockout drill.** Archers who don't shoot back appear one or two at a time on a field of sinkholes; knock ten in within 90 seconds. Each scores 100 plus up to 200 for speed; falling in yourself costs 100.
+
+**The Pitch**
+- The ball now shoves anyone it hits much harder (about twice as far), and a slower ball counts as a hit.
+- The ball looks like a real football: black pentagons and seams on a white ball, shaded, rolling the way it moves.
+
+**Controller and local players**
+- Pressing A on **Add bot** (or any lobby button that redraws the screen) keeps you on that button, so you can add several bots in a row.
+- With extra players on the same screen, the main player's archer shows their name instead of "You", and each extra player's archer has a glow in their own colour.
+
+**Visuals**
+- Arrows: the dark outline no longer rounds off the tip; the head keeps a sharp point.
+
 ## 0.19.0
 
 **New arena: The Pitch** (replaces Gale Cliffs)

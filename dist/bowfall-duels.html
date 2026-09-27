@@ -45,6 +45,13 @@
   .padin { box-shadow: inset 0 0 0 2px rgba(255,207,90,.45) !important; }
   .roomtag { font: 600 12px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--muted); letter-spacing: .08em; }
   .roomtag b { color: var(--gold); }
+  .netstats { position: absolute; left: 16px; top: 74px; z-index: 2; width: 350px; max-width: calc(100vw - 32px); padding: 8px 10px; background: rgba(8,14,10,.88); border: 1px solid var(--line); border-left: 3px solid var(--nc, var(--muted)); font: 500 12px/1.45 'Titillium Web', 'Segoe UI', sans-serif; pointer-events: none; }
+  .netstats b { font: 700 14px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--nc, var(--text)); }
+  .netstats .nrow { display: grid; grid-template-columns: 62px 1fr 14px; gap: 6px; }
+  .netstats .nrow span:first-child { color: var(--muted); }
+  .netstats .ok { color: #7dff8a; } .netstats .bad { color: #ff8a8a; } .netstats .meh { color: var(--gold); }
+  .netstats canvas { display: block; width: 100%; height: 34px; margin-top: 4px; }
+  .netstats small { color: var(--muted); display: block; }
 
   .side { position: absolute; right: 16px; top: 72px; width: 250px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
   .board { background: var(--panel); border: 1px solid var(--line); border-radius: 2px; padding: 8px 10px; display: grid; grid-template-columns: 10px 1fr 26px 26px; gap: 5px 8px; align-items: center; font-size: 13px; }
@@ -693,6 +700,7 @@
   <div class="hurtfx" id="hurtFx"></div>
   <div class="replay-badge" id="replayBadge" hidden><span class="rec"></span>Kill cam</div>
   <div class="notices" id="notices"></div>
+  <div class="netstats" id="netStats" hidden></div>
   <div class="coach" id="coach" hidden><span class="eyebrow" id="coachStep"></span><b id="coachText"></b><small id="coachHint"></small><div class="coachbar"><i id="coachBar"></i></div><div class="btnrow" id="coachBtns"></div><small class="coachesc">Press <kbd>Esc</kbd> (or Start on a controller) for the menu, where you can leave at any time.</small></div>
   <div class="gchat" id="gChat" hidden><div class="gchat-log" id="gChatLog"></div><input id="gChatIn" maxlength="140" placeholder="Say something… (Enter to send, Esc to cancel)" autocomplete="off" hidden><span class="gchat-hint" id="gChatHint">Enter to chat</span></div>
   <div class="specbar" id="specBar" hidden><b>Spectating</b><span id="specTxt"></span><button type="button" class="ghost sm" data-join="red">Join Red</button><button type="button" class="ghost sm" data-join="blue">Join Blue</button></div>
@@ -849,7 +857,7 @@
   <div class="overlay sub" id="trainScr" hidden>
     <div class="card wide">
       <div class="shopbar"><div class="stat"><span class="eyebrow">Practice</span><h2>Training</h2></div><button class="ghost" type="button" data-back>Back</button></div>
-      <p class="status">Three drills, each graded D to S. Your best grade and score for each is kept on this device. You play as your usual archetype.</p>
+      <p class="status">Four drills, each graded D to S. You play as your usual archetype. Your best is kept on this device, and on your account when you're signed in, where it's ranked against everyone's.</p>
       <div class="modes" id="drillList"></div>
     </div>
   </div>
@@ -868,6 +876,7 @@
           <div class="field"><label for="oRes">Resolution</label><select id="oRes"><option value="auto">Automatic (drops when the game slows)</option><option value="sharp">Always sharp</option><option value="fast">Fast (lower resolution)</option></select></div>
           <div class="field"><label for="oPart">Particles</label><select id="oPart"><option value="1">Full</option><option value="0.5">Reduced</option><option value="0.2">Minimal</option></select></div>
           <div class="field"><label for="oShake">Screen shake</label><select id="oShake"><option value="1">On</option><option value="0">Off</option></select></div>
+          <div class="field"><label for="oNet">Performance stats (F3)</label><select id="oNet"><option value="0">Hidden</option><option value="1">Shown in online games</option></select></div>
         </section>
         <section class="mode" data-navsec><h3>Gameplay</h3>
           <div class="field"><label for="oDmg">Damage numbers</label><select id="oDmg"><option value="all">Everyone's</option><option value="mine">Only mine (and damage to me)</option><option value="off">Off</option></select></div>
@@ -1113,7 +1122,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.19.0';
+const VERSION = '0.19.2';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1299,7 +1308,33 @@ MAPS.yard = buildMap({
     spawns: [{ x: 250, y: 400 }, { x: 250, y: 300 }, { x: 250, y: 500 }, { x: 180, y: 400 }],
     power: [{ x: AW - 50, y: AH - 50 }], amberY: [WALL + 44, 330],
   });
+// the dodge drill: a wide straight rift you can't dash across keeps you away from the shooter on the far side;
+// the drill adds sinkholes and bogs on your side as it goes
+MAPS.chasm = buildMap({
+    name: 'Rift Range', theme: 'meadow', hidden: true,
+    desc: 'A shooting range split by a rift.',
+    haz: [{ type: 'pit', centre: true, shape: 'rect', x: 700, y: WALL - 20, w: 320, h: AH - 2 * WALL + 40 }], pillars: [], spikes: [],
+    spawns: [{ x: 100, y: 400 }, { x: 100, y: 300 }, { x: 100, y: 500 }, { x: 60, y: 400 }],
+    power: [{ x: AW - 50, y: AH - 50 }], amberY: [WALL + 44, 330],
+  });
+// the knockout drill: sinkholes to knock targets into
+MAPS.holes = buildMap({
+    name: 'Sinkhole Field', theme: 'meadow', hidden: true,
+    desc: 'Sinkholes everywhere.',
+    haz: [
+      { type: 'pit', shape: 'circle', x: 330, y: 190, r: 62 },
+      { type: 'pit', shape: 'rect', x: 250, y: 520, w: 130, h: 95 },
+      { type: 'pit', shape: 'circle', x: 505, y: 400, r: 46 },
+      { type: 'pit', shape: 'circle', x: 470, y: 690, r: 40 },
+    ], pillars: [], spikes: [],
+    spawns: [{ x: 110, y: 400 }, { x: 110, y: 300 }, { x: 110, y: 500 }, { x: 70, y: 400 }],
+    power: [{ x: AW - 50, y: AH - 50 }], amberY: [WALL + 44, 330],
+  });
 const MAP_KEYS = Object.keys(MAPS).filter(k => !MAPS[k].hidden);
+// training drills: the most points a run can score (grades and the server's checks use these)
+const TRAIN_MAX = { target: 7500, dodge: 1000, peek: 3600, knock: 3000 };
+const TRAIN_GRADES = [['S', 0.8], ['A', 0.65], ['B', 0.5], ['C', 0.35], ['D', 0]];
+const trainGrade = (kind, score) => { const m = TRAIN_MAX[kind] || 1; return TRAIN_GRADES.find(g => score / m >= g[1])[0]; };
 
 // The simulation reads the current arena from these; useMap() points them at a world's arena.
 // Every public entry point calls useMap first, so rooms on different arenas can share one server.
@@ -1333,7 +1368,7 @@ const BUMP_MIN = 170, BUMP_MAX = 720;
 function airborne(q) { return q.dashT > 0 || !!q.grap || !!q.nblink; }
 // saws, mushrooms, gates and wind act on everyone
 // the Pitch's ball: shot or run into, it flies off, bounces off the walls, and hurts and shoves whoever it hits
-const BALL_DRAG = 1.3, BALL_HIT = 140, BALL_MAX = 1300, BALL_MASS = 0.8;
+const BALL_DRAG = 1.3, BALL_HIT = 110, BALL_MAX = 1300, BALL_MASS = 0.8;
 function updateBall(w, dt) {
   const b = w.ball; if (!b) return;
   if (b.out > 0) { b.out -= dt; if (b.out <= 0) { b.x = BALL.x; b.y = BALL.y; b.vx = b.vy = 0; ev(w, { e: 'ballReset', x: r1(b.x), y: r1(b.y) }); } return; }
@@ -1360,7 +1395,7 @@ function updateBall(w, dt) {
     if (rel > BALL_HIT && (q.ballCd || 0) <= w.t) {
       // a flying ball: damage and a shove that scale with its speed; the ball loses most of its pace
       q.ballCd = w.t + 0.3;
-      const k = clamp((rel - BALL_HIT) / 900, 0, 1), dmg = 4 + 12 * k, push = 260 + 640 * k;
+      const k = clamp((rel - BALL_HIT) / 800, 0, 1), dmg = 4 + 12 * k, push = 420 + 900 * k; // a real shove, like a solid arrow hit
       ev(w, { e: 'ballHit', id: q.id, x: r1(b.x), y: r1(b.y), s: r2(k) });
       hurt(w, q, dmg, nx * push, ny * push, 'ball', b.lastBy && b.lastBy !== q.id ? b.lastBy : null);
       b.vx = -b.vx * 0.35 + q.vx * 0.3; b.vy = -b.vy * 0.35 + q.vy * 0.3;
@@ -2801,7 +2836,9 @@ function updatePlayer(w, p, dt) {
     p.drawing = false; p.charge = 0; p.over = 0;
   }
   if (p.nockT > 0) p.nockT -= dt;
-  stepBody(w, p, mx, my, dt);
+  // p.noWalk (the dodge drill): the stick still aims your dashes, but you can only walk to wade out of a bog
+  const walk = !p.noWalk || p.inTar;
+  stepBody(w, p, walk ? mx : 0, walk ? my : 0, dt);
   if (p.dead) return;
   if (p.emp) empowered(w, p, dt);
   p.healing = false;
@@ -4446,7 +4483,7 @@ function unpackSnap(s) {
 }
 
 return {
-  AW, AH, WALL, GATES, MAPS, MAP_KEYS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
+  AW, AH, WALL, GATES, MAPS, MAP_KEYS, TRAIN_MAX, TRAIN_GRADES, trainGrade, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
@@ -4729,7 +4766,7 @@ const sfx = {
 };
 const syncMute = () => { $('muteBtn').textContent = muted ? 'Sound off' : 'Sound on'; const m = $('oMute'); if (m) m.value = muted ? '1' : '0'; };
 // options, kept in this browser
-const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') === '1' };
+const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') === '1', net: store.get('bowfall-net', '0') === '1' };
 const outNode = () => { if (!AC.master) { AC.master = AC.createGain(); AC.master.connect(AC.destination); } AC.master.gain.value = OPTS.vol / 100; return AC.master; };
 syncMute();
 $('muteBtn').onclick = () => { muted = !muted; syncMute(); initAudio(); store.set('bowfall-muted', muted ? '1' : '0'); };
@@ -4951,10 +4988,35 @@ function navBack(layer) {
   if (back) { uiSfx.click(); back.click(); return; }
   dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape', key: 'Escape' }));
 }
+// Screens like the lobby redraw their HTML when something changes (a bot joins, a setting moves). When the section or
+// control the controller was on is replaced, find its replacement, so pressing A on "Add bot" again and again just works.
+const allSecs = layer => [...layer.querySelectorAll('[data-navsec]')];
+function elSig(el, root) {
+  const attrs = [...el.attributes].filter(a => a.name.startsWith('data-') || a.name === 'name').map(a => `[${a.name}="${CSS.escape(a.value)}"]`).join('');
+  return { id: el.id, q: el.tagName.toLowerCase() + attrs, text: (el.textContent || '').trim().slice(0, 40), idx: navItems(root).indexOf(el) };
+}
+function elFind(sig, root) {
+  if (!sig) return null;
+  const items = navItems(root);
+  if (sig.id) { const e = root.querySelector('#' + CSS.escape(sig.id)); if (e && items.includes(e)) return e; }
+  const same = [...root.querySelectorAll(sig.q)].filter(e => items.includes(e));
+  return same.find(e => (e.textContent || '').trim().slice(0, 40) === sig.text) || same[0] || items[Math.min(sig.idx, items.length - 1)] || null;
+}
+function padRestore(layer) {
+  if (padSec.sec && !padSec.sec.isConnected && padSec.secIdx != null) {
+    const sec = allSecs(layer)[padSec.secIdx];
+    if (sec && shown(sec) && navItems(sec).length) { padSec.sec = sec; sec.classList.add('padin'); } else padSec.sec = null;
+  }
+  const root = padSec.sec || layer;
+  if (padSel && !padSel.isConnected && padSec.selSig) { const e = elFind(padSec.selSig, root); padSel = null; if (e) { padSel = e; e.classList.add('padsel'); e.focus({ preventScroll: true }); } }
+  if (padSec.sec) padSec.secIdx = allSecs(layer).indexOf(padSec.sec);
+  if (padSel && padSel.isConnected) padSec.selSig = elSig(padSel, root);
+}
 function padNav(gp, btn, press, mx, my, dt) {
   const layer = navLayer();
   if (!layer || RP.on) { if (padSel) setPadSel(null); if (padSec.el) setPadSec(null); return false; }
-  if (padSec.layer !== layer) { enterSec(null); padSec.layer = layer; if (padSel) setPadSel(null); }
+  if (padSec.layer !== layer) { enterSec(null); padSec.layer = layer; padSec.secIdx = null; padSec.selSig = null; if (padSel) setPadSel(null); }
+  padRestore(layer);
   const secs = navSecs(layer);
   // section level: move between sections; A steps in (or presses the section's only control); B backs out of the screen
   if (secs.length >= 2 && !(padSec.sec && shown(padSec.sec) && navItems(padSec.sec).length)) {
@@ -4991,7 +5053,7 @@ function padNav(gp, btn, press, mx, my, dt) {
     if (!padSel) setPadSel(navFirst(items));
     else if (padSel.tagName === 'SELECT') cycleSelect(padSel, 1);
     else if (padSel.tagName === 'INPUT') padSel.focus();
-    else { uiSfx.click(); padSel.click(); }
+    else { padSec.selSig = elSig(padSel, padSec.sec || layer); uiSfx.click(); padSel.click(); padRestore(layer); }
   }
   if (press(1)) { if (padSec.sec) { const sec = padSec.sec; enterSec(null); setPadSel(null); setPadSec(sec); uiSfx.click(); } else navBack(layer); }
   // the pick screen keeps its X / Y / B shortcuts
@@ -5021,6 +5083,7 @@ addEventListener('keydown', e => {
   if (!$('achScreen').hidden) { if (e.code === 'Escape') closeAch(); return; }
   if (!$('ctlScreen').hidden) { if (!captureBind(e) && e.code === 'Escape') closeCtl(); return; }
   if (mode === 'menu' && subOpen()) { if (e.code === 'Escape') closeSubs(); return; }
+  if (e.code === 'F3') { e.preventDefault(); OPTS.net = !OPTS.net; store.set('bowfall-net', OPTS.net ? '1' : '0'); NET.render(true); return; }
   if (RP.on && e.code === 'Space') { e.preventDefault(); return; } // the kill cam can't be skipped
   if (isKey('chat', e.code) && mode === 'online' && view && view.m.ph !== 'lobby') { e.preventDefault(); openGameChat(); return; }
   if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code) || (mode !== 'menu' && Object.values(BINDS).some(b => b.includes(e.code)))) e.preventDefault();
@@ -5237,57 +5300,98 @@ function startPractice() {
 }
 
 // ================= training drills =================
-// Three graded drills on the training grounds (hidden arenas without hazards). Targets and turrets are practice
-// dummies the drill steers: the target drill hides them behind target boards, the turret drills give them a firing
-// script. Nobody can be knocked out; the drill ends on its own clock and grades you D to S.
+// Four graded drills on the training grounds (hidden arenas). Targets, turrets and the shooter are practice dummies the
+// drill steers. You can't be knocked out: falling in costs points and puts you back. Each drill grades you D to S; your
+// best is kept in this browser and, when signed in, on your account, where it's ranked against everyone's ("top 4%").
 let TR = { on: false };
 const DRILLS = {
-  target: { name: 'Target practice', map: 'range', rounds: 3, blurb: 'Targets pop up across the range and you hit them before they vanish. Round 1 is steady, round 2 quick, round 3 several at once. Graded on speed, accuracy and bullseyes.', max: 7500 },
-  dodge:  { name: 'Dodge drill', map: 'range', time: 45, blurb: 'Three turrets shoot at you for 45 seconds and your feet are tied: dodge with dashes alone. Graded on how many arrows you slip.', max: 100 },
-  peek:   { name: 'Peek and shoot', map: 'yard', time: 60, blurb: 'Turrets cover the yard. Dash out from behind the boulders, land shots on them (three knock one out), and get back before they draw a bead on you. 60 seconds.', max: 3600 },
+  target: { name: 'Target practice', map: 'range', dums: 3, blurb: 'Targets pop up across the range and you hit them before they vanish. Round 1 is steady, round 2 quick, round 3 several at once. Graded on speed, accuracy and bullseyes.' },
+  dodge:  { name: 'Dodge drill', map: 'chasm', dums: 1, time: 60, blurb: 'An archer across a rift shoots at you and your feet are tied: dodge with dashes alone (never faster than your dash recharges). Sinkholes open in round 2 and bogs in round 3, so watch where you land.' },
+  peek:   { name: 'Peek and shoot', map: 'yard', dums: 3, time: 60, blurb: 'Turrets cover the yard. Dash out from behind the boulders, land shots on them (three knock one out), and get back before they draw a bead on you. 60 seconds.' },
+  knock:  { name: 'Knockout drill', map: 'holes', dums: 4, time: 90, n: 10, blurb: 'Archers who don\'t shoot back wander a field of sinkholes. Knock ten of them in as fast as you can: the quicker each goes in, the more it scores. Don\'t fall in yourself.' },
 };
 const TR_ROUNDS = [{ name: 'Steady', n: 8, life: 5, at: 1 }, { name: 'Quick', n: 10, life: 2.5, at: 1 }, { name: 'Swarm', n: 12, life: 4, at: 3 }];
+// the dodge drill's rounds: 20 seconds each; hazards open on your side (after a warning) at the start of rounds 2 and 3
+const DODGE_ROUNDS = [
+  { name: 'Open ground', draw: 0.7, pace: 1.3, add: [] },
+  { name: 'Sinkholes', draw: 1.05, pace: 1.12, add: [{ type: 'pit', shape: 'circle', x: 230, y: 210, r: 48 }, { type: 'pit', shape: 'circle', x: 480, y: 580, r: 52 }, { type: 'pit', shape: 'circle', x: 190, y: 610, r: 40 }, { type: 'pit', shape: 'circle', x: 540, y: 220, r: 42 }] },
+  { name: 'Bogs', draw: 1.05, pace: 1.0, add: [{ type: 'tar', shape: 'circle', x: 360, y: 400, r: 62 }, { type: 'tar', shape: 'circle', x: 110, y: 290, r: 46 }, { type: 'tar', shape: 'rect', x: 560, y: 380, w: 110, h: 80 }, { type: 'pit', shape: 'circle', x: 330, y: 120, r: 38 }] },
+];
+const DODGE_WARN = 2.5, DODGE_RT = 20;
 const TR_PARK = { x: AW - 50, y: AH - 50 };
-const TR_GRADES = [['S', 0.8], ['A', 0.65], ['B', 0.5], ['C', 0.35], ['D', 0]];
-const gradeOf = (score, max) => TR_GRADES.find(g => score / max >= g[1])[0];
 const GRADE_COL = { S: '#ffcf5a', A: '#7dff8a', B: '#5ad1ff', C: '#c7b3ff', D: '#9aa79c' };
 const trBest = () => { try { return JSON.parse(store.get('bowfall-train', '{}')) || {}; } catch (e) { return {}; } };
+let TRS = null; // the server's view: your account's bests and where they rank
+const topTxt = (top, n) => top != null ? `top ${top < 1 ? top : Math.round(top)}%${n ? ` of ${n.toLocaleString()} player${n === 1 ? '' : 's'}` : ''}` : '';
 function renderDrills() {
   const best = trBest();
   $('drillList').innerHTML = Object.entries(DRILLS).map(([k, d]) => {
-    const b = best[k];
+    const loc = best[k], srv = TRS && TRS[k] && TRS[k].s != null ? TRS[k] : null;
+    const b = srv && (!loc || srv.s >= loc.s) ? { s: srv.s, g: srv.g, top: srv.top, n: srv.n } : loc;
     return `<div class="mode" data-navsec><h3>${esc(d.name)}</h3><p class="status">${esc(d.blurb)}</p>
-      <div class="status">${b ? `Best: <b style="color:${GRADE_COL[b.g]}">${b.g}</b> · ${b.s.toLocaleString()} points` : 'Not played yet'}</div>
+      <div class="status">${b ? `Best: <b style="color:${GRADE_COL[b.g]}">${b.g}</b> · ${b.s.toLocaleString()} points${b.top != null ? ` · <b>${topTxt(b.top, b.n)}</b>` : ''}` : 'Not played yet'}</div>
       <div class="btnrow"><button class="cta" type="button" data-drill="${k}">Start</button></div></div>`;
   }).join('');
   $('drillList').querySelectorAll('[data-drill]').forEach(b => b.onclick = () => { closeSubs(); startDrill(b.dataset.drill); });
+  if (!OFFLINE && !renderDrills.busy) {
+    renderDrills.busy = true;
+    fetch('/api/train', { cache: 'no-store' }).then(r => r.json()).then(d => { const had = JSON.stringify(TRS); TRS = d.drills || null; if (JSON.stringify(TRS) !== had && !$('trainScr').hidden) renderDrills(); }).catch(() => {}).finally(() => { setTimeout(() => { renderDrills.busy = false; }, 3000); });
+  }
+}
+// how far a spot is from the nearest hazard (0 inside one); hazards about to open count too
+function hazGap(x, y, extra) {
+  let g = 999;
+  for (const h of HAZ.concat(extra || [])) {
+    const d = h.shape === 'circle' ? Math.hypot(x - h.x, y - h.y) - h.r : Math.hypot(Math.max(h.x - x, 0, x - h.x - h.w), Math.max(h.y - y, 0, y - h.y - h.h));
+    g = Math.min(g, Math.max(0, d));
+  }
+  return g;
+}
+function trSafeSpot(x0, x1, y0, y1, far) {
+  let best = null, bs = -1;
+  for (let i = 0; i < 60; i++) {
+    const x = x0 + Math.random() * (x1 - x0), y = y0 + Math.random() * (y1 - y0), g = Math.min(hazGap(x, y, TR.pend && TR.pend.map(p => p.h)), 160);
+    const sc = g + (far ? Math.min(200, Math.hypot(x - far.x, y - far.y)) * 0.3 : 0);
+    if (sc > bs) { bs = sc; best = { x, y }; }
+  }
+  return best;
 }
 function startDrill(kind) {
   initAudio(); closeSubs();
   const D = DRILLS[kind];
+  if (kind === 'dodge') { const M = MAPS.chasm; M.base = M.base || M.haz.slice(); M.haz.length = 0; M.haz.push(...M.base); floorKey = null; }
   world = Sim.createWorld({ map: D.map, diff: 'normal' });
+  setArena(D.map);
   const me = Sim.join(world, { name: playerName(), team: 'red', element: myLoadout().el, role: myLoadout().ro });
   const dums = [];
-  for (let i = 0; i < 3; i++) { const d = Sim.addBot(world, 'blue'); d.name = kind === 'target' ? 'Target' : 'Turret'; Sim.setLoadout(world, d.id, 'storm', 'ranger'); dums.push(d); }
+  for (let i = 0; i < D.dums; i++) { const d = Sim.addBot(world, 'blue'); d.name = kind === 'target' ? 'Target' : kind === 'dodge' ? 'Shooter' : kind === 'knock' ? 'Dummy' : 'Turret'; Sim.setLoadout(world, d.id, 'storm', 'ranger'); dums.push(d); }
   Sim.startMatch(world);
   for (const p of world.players) if (p.offer && !p.picked) Sim.choose(world, p.id, 0);
   for (let i = 0; i < 60 * 8 && world.match.ph !== 'play'; i++) Sim.step(world, 1 / 60);
   for (const d of dums) { d.bot = false; d.input = { mx: 0, my: 0, aim: Math.PI, draw: false, tx: 0, ty: 0 }; }
   world.events.length = 0; world.records.length = 0;
   TR = { on: true, kind, t: 0, done: false, dum: dums.map(d => d.id), tg: [], tur: dums.map((d, i) => ({ id: d.id, ph: 'wait', t: 1.5 + i * 0.7, x: 1000, y: 220 + i * 180, hits: 0, off: 0 })),
-    round: -1, spawned: 0, left: 0, gap: 2, shots: 0, hits: 0, bulls: 0, taken: 0, fired: 0, kos: 0, score: 0, uiT: 0, pop: [] };
+    round: -1, spawned: 0, left: 0, gap: 2, shots: 0, hits: 0, bulls: 0, taken: 0, fired: 0, kos: 0, falls: 0, score: 0, uiT: 0, pop: [], pend: [], act: [], srv: null };
   myId = me.id; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {};
-  Object.assign(me, { x: kind === 'peek' ? 250 : 200, y: 400, vx: 0, vy: 0 });
-  if (kind === 'target') trNextRound(); else notice(D.name, true, '#ffcf5a');
+  const start = { target: [200, 400], dodge: [320, 400], peek: [250, 400], knock: [110, 400] }[kind];
+  Object.assign(me, { x: start[0], y: start[1], vx: 0, vy: 0 });
+  TR.home = { x: start[0], y: start[1] };
+  me.noWalk = kind === 'dodge';
+  if (kind === 'target' || kind === 'dodge') trNextRound(); else notice(D.name, true, '#ffcf5a');
+  if (kind === 'dodge') { const s = TR.tur[0]; s.t = 1.6; }
+  if (kind === 'knock') TR.gap = 1;
   setScreens(); renderTrainCoach();
 }
-const trHidden = p => TR.on && TR.dum.includes(p.id) && (TR.kind === 'target' || TR.tur.find(t => t.id === p.id).off > 0);
+const trHidden = p => TR.on && TR.dum.includes(p.id) && (TR.kind === 'target' || (TR.kind === 'peek' && TR.tur.find(t => t.id === p.id).off > 0) || (TR.kind === 'knock' && !TR.act.some(a => a.id === p.id)));
 function trNextRound() {
   TR.round++;
-  if (TR.round >= TR_ROUNDS.length) return trFinish();
-  const R = TR_ROUNDS[TR.round];
-  TR.spawned = 0; TR.left = R.n; TR.gap = 2.2; TR.tg = [];
+  const list = TR.kind === 'dodge' ? DODGE_ROUNDS : TR_ROUNDS;
+  if (TR.round >= list.length) return trFinish();
+  const R = list[TR.round];
+  if (TR.kind === 'dodge') { TR.roundT = TR.t; for (const h of R.add) TR.pend.push({ h, at: TR.t + DODGE_WARN }); }
+  else { TR.spawned = 0; TR.left = R.n; TR.gap = 2.2; TR.tg = []; }
   notice(`Round ${TR.round + 1}: ${R.name}`, true, '#ffcf5a'); tone(660, 0.12, 'triangle', 0.05); setTimeout(() => tone(880, 0.16, 'triangle', 0.05), 120);
+  if (TR.kind === 'dodge' && R.add.length) setTimeout(() => notice(R.add.some(h => h.type === 'tar') ? 'Bogs are forming: you can only wade out of one' : 'Sinkholes are opening: don\'t dash into one', false), 700);
 }
 function trSpawnTarget() {
   const R = TR_ROUNDS[TR.round], free = TR.dum.filter(id => !TR.tg.some(t => t.id === id));
@@ -5321,13 +5425,78 @@ function trTurret(dt, me, want) {
     if (t.off > 0) { t.off -= dt; if (t.off <= 0) { t.hits = 0; t.x = 850 + Math.random() * 250; t.y = 120 + Math.random() * 560; t.ph = 'wait'; t.t = 1; burst(t.x, t.y, '#4fa8ff', 14, 180); } Object.assign(d, { x: TR_PARK.x, y: TR_PARK.y, vx: 0, vy: 0 }); d.inv = 9; d.input.draw = false; continue; }
     Object.assign(d, { x: t.x, y: t.y, vx: 0, vy: 0, knock: 0, hp: d.maxHp, falling: 0, dead: false, burn: 0 }); d.inv = 0;
     if (!me) continue;
-    const dx = me.x - d.x, dy = me.y - d.y, dist = Math.hypot(dx, dy);
-    const lead = Math.min(0.6, dist / 900) * 0.8, ax = me.x + me.vx * lead, ay = me.y + me.vy * lead;
-    d.input.aim = Math.atan2(ay - d.y, ax - d.x); d.input.tx = ax; d.input.ty = ay;
+    trAimAt(d, me);
     t.t -= dt;
-    if (t.ph === 'wait') { d.input.draw = false; if (t.t <= 0 && want(d, me)) { t.ph = 'draw'; t.t = TR.kind === 'dodge' ? 0.45 + Math.random() * 0.7 : 0.55 + Math.random() * 0.5; } }
-    else { d.input.draw = true; if (t.t <= 0) { d.input.draw = false; t.ph = 'wait'; t.t = TR.kind === 'dodge' ? Math.max(0.5, 1.9 - TR.t / 30) + Math.random() * 0.8 : 0.9 + Math.random() * 1.1; } }
+    if (t.ph === 'wait') { d.input.draw = false; if (t.t <= 0 && want(d, me)) { t.ph = 'draw'; t.t = 0.55 + Math.random() * 0.5; } }
+    else { d.input.draw = true; if (t.t <= 0) { d.input.draw = false; t.ph = 'wait'; t.t = 0.9 + Math.random() * 1.1; } }
   }
+}
+function trAimAt(d, me) {
+  const dist = Math.hypot(me.x - d.x, me.y - d.y), lead = Math.min(0.6, dist / 900) * 0.8, ax = me.x + me.vx * lead, ay = me.y + me.vy * lead;
+  d.input.aim = Math.atan2(ay - d.y, ax - d.x); d.input.tx = ax; d.input.ty = ay;
+}
+// the dodge drill's shooter: walks up and down behind the rift, and never shoots faster than you can dash
+function trDodge(dt, me) {
+  const t = TR.tur[0], d = world.players.find(q => q.id === t.id); if (!d || !me) return;
+  const T = TR.t, x = 1105 + 45 * Math.sin(T * 0.8), y = 400 + 285 * Math.sin(T * 0.42 + 0.6 * Math.sin(T * 0.9));
+  Object.assign(d, { vx: (x - d.x) / dt, vy: (y - d.y) / dt, x, y, knock: 0, hp: d.maxHp, falling: 0, dead: false, burn: 0 }); d.inv = 9;
+  trAimAt(d, me);
+  const R = DODGE_ROUNDS[TR.round] || DODGE_ROUNDS[2], roundLeft = DODGE_RT - (TR.t - TR.roundT);
+  t.t -= dt;
+  if (t.ph === 'wait') { d.input.draw = false; if (t.t <= 0 && roundLeft > 1.2) { t.ph = 'draw'; t.t = R.draw; } }
+  else {
+    d.input.draw = true;
+    if (t.t <= 0) {
+      d.input.draw = false; t.ph = 'wait';
+      // the gap to the next release is at least your dash recharge (per charge), plus a margin
+      const cd = Math.max(1.2, (me.dashCdMax || 1.1) * 1.15);
+      t.t = Math.max(0.15, cd * R.pace + Math.random() * 0.5 - R.draw);
+    }
+  }
+}
+// the knockout drill: dummies appear near a sinkhole and amble about; knock each in
+function trKnock(dt, me) {
+  const D = DRILLS.knock;
+  TR.gap -= dt;
+  const cap = TR.spawned < 4 ? 1 : 2;
+  if (TR.spawned < D.n && TR.act.length < cap && TR.gap <= 0) {
+    const free = TR.dum.find(id => !TR.act.some(a => a.id === id));
+    if (free) {
+      let best = null;
+      for (let i = 0; i < 80; i++) {
+        const x = 90 + Math.random() * (AW - 180), y = 80 + Math.random() * (AH - 160), g = hazGap(x, y);
+        if (g < 55 || g > 170 || (me && Math.hypot(x - me.x, y - me.y) < 200) || TR.act.some(a => Math.hypot(a.x - x, a.y - y) < 200)) continue;
+        best = { x, y }; break;
+      }
+      if (best) {
+        const d = world.players.find(q => q.id === free);
+        Object.assign(d, { x: best.x, y: best.y, vx: 0, vy: 0, knock: 0, falling: 0, dead: false, hp: d.maxHp }); d.inv = 0;
+        TR.act.push({ id: free, x: best.x, y: best.y, t0: TR.t, dir: Math.random() * TAU, turn: 1 });
+        TR.spawned++; TR.gap = 0.8; burst(best.x, best.y, '#4fa8ff', 16, 180); tone(1175, 0.06, 'square', 0.025);
+      }
+    }
+  }
+  for (const id of TR.dum) {
+    const d = world.players.find(q => q.id === id); if (!d) continue;
+    const a = TR.act.find(o => o.id === id);
+    if (!a) { Object.assign(d, { x: TR_PARK.x, y: TR_PARK.y, vx: 0, vy: 0, falling: 0, dead: false, hp: d.maxHp }); d.inv = 9; d.input.mx = d.input.my = 0; continue; }
+    d.hp = d.maxHp; d.input.draw = false; a.x = d.x; a.y = d.y;
+    if (d.falling > 0.45) { // in! score by how quickly it went in
+      const pts = 100 + Math.round(200 * Math.max(0, 1 - (TR.t - a.t0) / 10));
+      TR.score += pts; TR.kos++;
+      floater(d.x, d.y - 30, `+${pts}`, '#7dff8a', 18, true); tone(1047, 0.1, 'triangle', 0.05); setTimeout(() => tone(1397, 0.12, 'triangle', 0.05), 80);
+      TR.act = TR.act.filter(o => o !== a); TR.gap = Math.min(TR.gap, 0.9);
+      Object.assign(d, { x: TR_PARK.x, y: TR_PARK.y, vx: 0, vy: 0, falling: 0, dead: false }); d.inv = 9;
+      continue;
+    }
+    // amble: slow, turning now and then, and steering clear of the holes on its own
+    a.turn -= dt;
+    if (a.turn <= 0) { a.turn = 0.8 + Math.random() * 1.5; a.dir = Math.random() < 0.25 ? null : Math.random() * TAU; }
+    if (a.dir != null && hazGap(d.x + Math.cos(a.dir) * 50, d.y + Math.sin(a.dir) * 50) < 30) a.dir += Math.PI * (0.6 + Math.random() * 0.8);
+    const walk = d.knock <= 0 && d.falling <= 0 && a.dir != null;
+    d.input.mx = walk ? Math.cos(a.dir) * 0.3 : 0; d.input.my = walk ? Math.sin(a.dir) * 0.3 : 0;
+  }
+  if (TR.kos >= D.n) trFinish();
 }
 // can a turret see the player past the boulders?
 function trLos(d, me) {
@@ -5342,8 +5511,17 @@ function trainGuard() {
   if (!TR.on || !world) return;
   const dt = STEP, me = world.players.find(q => q.id === myId);
   world.match.T = 120; world.pickups.length = 0;
-  if (me) { me.hp = me.maxHp; if (me.dead || me.falling > 0) Object.assign(me, { dead: false, falling: 0, vx: 0, vy: 0 }); }
-  if (TR.done) { for (const id of TR.dum) { const d = world.players.find(q => q.id === id); if (d) { d.input.draw = false; d.inv = 9; } } return; }
+  if (me) {
+    me.hp = me.maxHp;
+    // fell in: it costs you, and you're put back somewhere safe
+    if ((me.falling > 0.45 || me.dead) && !TR.done) {
+      TR.falls++; const pen = TR.kind === 'knock' ? 100 : TR.kind === 'dodge' ? 100 : 0;
+      if (pen) { TR.score -= pen; floater(me.x, me.y - 30, `Fell in −${pen}`, '#ff5a5a', 17, true); }
+      const sp = TR.kind === 'dodge' ? trSafeSpot(90, 620, 90, 710) : TR.kind === 'knock' ? trSafeSpot(60, AW - 60, 60, AH - 60) : TR.home;
+      Object.assign(me, { dead: false, falling: 0, vx: 0, vy: 0, knock: 0, x: sp.x, y: sp.y }); me.inv = 1; burst(sp.x, sp.y, '#ffffff', 14, 150);
+    } else if (me.dead || me.falling > 0.45) Object.assign(me, { dead: false, falling: 0, vx: 0, vy: 0, x: TR.home.x, y: TR.home.y });
+  }
+  if (TR.done) { for (const id of TR.dum) { const d = world.players.find(q => q.id === id); if (d) { d.input.draw = false; d.input.mx = d.input.my = 0; d.inv = 9; d.hp = d.maxHp; if (d.falling > 0) Object.assign(d, { falling: 0, dead: false, x: TR_PARK.x, y: TR_PARK.y }); } } return; }
   TR.t += dt;
   if (TR.kind === 'target') {
     const R = TR_ROUNDS[TR.round];
@@ -5358,14 +5536,21 @@ function trainGuard() {
       if (TR.spawned < R.n && TR.tg.length < R.at && TR.gap <= 0) { trSpawnTarget(); TR.gap = R.at > 1 ? 0.35 + Math.random() * 0.5 : 0.6 + Math.random() * 0.5; }
       if (TR.left <= 0 && TR.spawned >= R.n) { TR.round < TR_ROUNDS.length - 1 ? trNextRound() : trFinish(); if (TR.round < TR_ROUNDS.length) TR.gap = 2.2; }
     }
-  } else {
-    if (TR.t >= DRILLS[TR.kind].time) return trFinish();
-    trTurret(dt, me, TR.kind === 'peek' ? trLos : () => true);
+    return;
   }
+  if (TR.t >= DRILLS[TR.kind].time) return trFinish();
+  if (TR.kind === 'dodge') {
+    // hazards open once their warning runs out
+    for (const p of TR.pend.slice()) if (TR.t >= p.at) { MAPS.chasm.haz.push(p.h); TR.pend = TR.pend.filter(o => o !== p); floorKey = null; const [cx, cy] = hazCentre(p.h); burst(cx, cy, p.h.type === 'tar' ? '#6b5a3a' : '#2a1c10', 26, 200, 3); shake(3); sfx.creak && sfx.creak(); }
+    if (TR.t - TR.roundT >= DODGE_RT && TR.round < DODGE_ROUNDS.length - 1) trNextRound();
+    trDodge(dt, me);
+  } else if (TR.kind === 'knock') trKnock(dt, me);
+  else trTurret(dt, me, trLos);
 }
 function trainInput(inp) {
   if (!TR.on || TR.done) { if (TR.on) { inp.draw = false; inp.dash = false; } return inp; }
-  if (TR.kind === 'dodge') { inp.mx = 0; inp.my = 0; inp.draw = false; inp.q = inp.e = false; inp.dmv = 0; }
+  // the dodge drill: the stick still steers your dashes (the sim stops you walking), but no shooting or abilities
+  if (TR.kind === 'dodge') { inp.draw = false; inp.dp = false; inp.q = inp.e = false; }
   return inp;
 }
 function trainEvents(evs) {
@@ -5380,7 +5565,7 @@ function trainEvents(evs) {
         const t = TR.tur.find(o => o.id === e.id); if (!t || t.off > 0) continue;
         t.hits++; TR.hits++; TR.score += 50; floater(e.x, e.y - 24, '+50', '#ffffff', 15, true);
         if (t.hits >= 3) { TR.kos++; TR.score += 300; t.off = 1.6; floater(t.x, t.y - 40, 'Turret down +300', '#7dff8a', 18, true); burst(t.x, t.y, '#7dff8a', 22, 220); tone(1047, 0.12, 'triangle', 0.05); }
-      }
+      } else if (TR.kind === 'knock') TR.hits++;
     }
   }
 }
@@ -5392,43 +5577,80 @@ function trainTick(dt) {
 function trFinish() {
   if (TR.done) return;
   TR.done = true; TR.tg = [];
-  const D = DRILLS[TR.kind];
-  if (TR.kind === 'dodge') TR.score = Math.max(0, Math.round(100 * (1 - TR.taken / Math.max(1, TR.fired))));
-  if (TR.kind === 'peek') TR.score = Math.max(0, TR.score - TR.taken * 60);
-  TR.grade = gradeOf(TR.score, D.max);
+  if (TR.kind === 'dodge') TR.score = Math.round(1000 * (TR.fired - TR.taken) / Math.max(1, TR.fired)) - 100 * TR.falls;
+  if (TR.kind === 'peek') TR.score -= TR.taken * 60;
+  TR.score = Math.max(0, Math.min(Sim.TRAIN_MAX[TR.kind], Math.round(TR.score)));
+  TR.grade = Sim.trainGrade(TR.kind, TR.score);
   const best = trBest(), old = best[TR.kind];
   TR.newBest = !old || TR.score > old.s;
   if (TR.newBest) { best[TR.kind] = { g: TR.grade, s: TR.score }; store.set('bowfall-train', JSON.stringify(best)); }
   notice(`Grade ${TR.grade}`, true, GRADE_COL[TR.grade]);
   fanfare(TR.grade === 'S' || TR.grade === 'A' ? [523, 659, 784, 1047] : TR.grade === 'D' ? [330, 262] : [523, 659, 784], 'triangle', 0.06, 110);
   renderTrainCoach();
+  // rank it against everyone's bests (and keep it on your account if you're signed in)
+  if (!OFFLINE) {
+    const run = TR;
+    fetch('/api/train', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: run.kind, score: run.score }) })
+      .then(r => r.ok ? r.json() : null).then(d => {
+        if (!d) return; run.srv = d; TRS = null;
+        const b = trBest(); if (b[run.kind] && b[run.kind].s === run.score) { b[run.kind].top = d.top; b[run.kind].n = d.n; store.set('bowfall-train', JSON.stringify(b)); }
+        if (TR === run) renderTrainCoach();
+      }).catch(() => {});
+  }
 }
 function renderTrainCoach() {
   const c = $('coach'); if (!c || !TR.on) return;
   c.hidden = mode === 'menu'; placeCoach(); c.classList.toggle('done', TR.done);
-  const D = DRILLS[TR.kind], fmt = n => n.toLocaleString();
-  const line = TR.kind === 'target' ? `${TR.hits}/${TR.spawned - TR.tg.length} hit · ${TR.bulls} bullseye${TR.bulls === 1 ? '' : 's'} · ${TR.shots ? Math.round(TR.hits / TR.shots * 100) : 0}% accuracy`
-    : TR.kind === 'dodge' ? `${TR.fired - TR.taken} dodged · ${TR.taken} hit${TR.taken === 1 ? '' : 's'} taken` : `${TR.kos} turret${TR.kos === 1 ? '' : 's'} down · ${TR.hits} hits · ${TR.taken} taken`;
+  const D = DRILLS[TR.kind], fmt = n => n.toLocaleString(), max = Sim.TRAIN_MAX[TR.kind];
+  const pl = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+  const line = TR.kind === 'target' ? `${TR.hits}/${TR.spawned - TR.tg.length} hit · ${pl(TR.bulls, 'bullseye')} · ${TR.shots ? Math.round(TR.hits / TR.shots * 100) : 0}% accuracy`
+    : TR.kind === 'dodge' ? `${TR.fired - TR.taken} of ${TR.fired} dodged${TR.falls ? ` · fell in ${TR.falls}×` : ''}`
+    : TR.kind === 'knock' ? `${TR.kos} of ${D.n} knocked in${TR.falls ? ` · fell in ${TR.falls}×` : ''}`
+    : `${pl(TR.kos, 'turret')} down · ${TR.hits} hits · ${TR.taken} taken`;
   if (TR.done) {
+    const s = TR.srv;
     $('coachStep').textContent = `${D.name} · complete`;
     $('coachText').innerHTML = `Grade <span style="color:${GRADE_COL[TR.grade]}">${TR.grade}</span> · ${fmt(TR.score)} points${TR.newBest ? ' · new best' : ''}`;
-    $('coachHint').textContent = line + (TR.kind === 'peek' && TR.taken ? ` (−${TR.taken * 60} for hits taken)` : '') + '. S needs ' + fmt(Math.ceil(D.max * 0.8)) + ', A ' + fmt(Math.ceil(D.max * 0.65)) + ', B ' + fmt(Math.ceil(D.max * 0.5)) + '.';
-    $('coachBtns').innerHTML = '<button class="cta" type="button" id="coachAgain">Again</button><button class="ghost sm" type="button" id="coachDrills">Other drills</button><button class="ghost sm" type="button" id="coachQuit">Main menu</button>';
-    $('coachAgain').onclick = () => startDrill(TR.kind);
-    $('coachDrills').onclick = () => { toMenu(); openSub('trainScr'); };
-    $('coachQuit').onclick = () => toMenu();
+    const rank = s ? ` This run: ${topTxt(s.top, s.n)}.${s.topBest != null && s.best !== TR.score ? ` Your best (${fmt(s.best)}): ${topTxt(s.topBest)}.` : ''}` : '';
+    $('coachHint').textContent = line + (TR.kind === 'peek' && TR.taken ? ` (−${TR.taken * 60} for hits taken)` : '') + '.' + rank + ' S needs ' + fmt(Math.ceil(max * 0.8)) + ', A ' + fmt(Math.ceil(max * 0.65)) + ', B ' + fmt(Math.ceil(max * 0.5)) + '.';
+    if (TR.btns !== 'done') {
+      TR.btns = 'done';
+      $('coachBtns').innerHTML = '<button class="cta" type="button" id="coachAgain">Again</button><button class="ghost sm" type="button" id="coachDrills">Other drills</button><button class="ghost sm" type="button" id="coachQuit">Main menu</button>';
+      $('coachAgain').onclick = () => startDrill(TR.kind);
+      $('coachDrills').onclick = () => { toMenu(); openSub('trainScr'); };
+      $('coachQuit').onclick = () => toMenu();
+    }
     $('coachBar').style.width = '100%';
     return;
   }
-  const R = TR_ROUNDS[TR.round], left = D.time ? Math.max(0, D.time - TR.t) : 0;
-  $('coachStep').textContent = TR.kind === 'target' ? `${D.name} · round ${TR.round + 1} of 3 · ${R ? R.name : ''}` : `${D.name} · ${Math.ceil(left)}s left`;
-  $('coachText').textContent = `${fmt(TR.score)} pts · ${line}`;
+  const left = D.time ? Math.max(0, D.time - TR.t) : 0;
+  $('coachStep').textContent = TR.kind === 'target' ? `${D.name} · round ${TR.round + 1} of 3 · ${TR_ROUNDS[TR.round] ? TR_ROUNDS[TR.round].name : ''}`
+    : TR.kind === 'dodge' ? `${D.name} · round ${TR.round + 1} of 3 · ${DODGE_ROUNDS[TR.round].name} · ${Math.ceil(left)}s left` : `${D.name} · ${Math.ceil(left)}s left`;
+  $('coachText').textContent = TR.kind === 'dodge' ? line : `${fmt(Math.max(0, TR.score))} pts · ${line}`;
   $('coachHint').textContent = '';
   if (TR.btns !== 'run') { TR.btns = 'run'; $('coachBtns').innerHTML = '<button class="ghost sm" type="button" id="coachQuit">Leave drill</button>'; $('coachQuit').onclick = () => toMenu(); }
-  $('coachBar').style.width = Math.round((TR.kind === 'target' ? (TR.round + (R ? (TR.spawned - TR.tg.length) / R.n : 0)) / 3 : TR.t / D.time) * 100) + '%';
+  $('coachBar').style.width = Math.round((TR.kind === 'target' ? (TR.round + (TR_ROUNDS[TR.round] ? (TR.spawned - TR.tg.length) / TR_ROUNDS[TR.round].n : 0)) / 3 : TR.kind === 'knock' ? Math.max(TR.kos / D.n, TR.t / D.time) : TR.t / D.time) * 100) + '%';
 }
-// target boards where the target dummies stand, popping in and out
+// target boards, hazards about to open, and a marker over each knockout dummy
 function drawTargets() {
+  if (TR.kind === 'dodge') {
+    for (const p of TR.pend) {
+      const k = clamp(1 - (p.at - TR.t) / DODGE_WARN, 0, 1), tar = p.h.type === 'tar';
+      ctx.save(); hazP(ctx, p.h, 0);
+      ctx.fillStyle = tar ? `rgba(90,70,40,${0.15 + 0.35 * k})` : `rgba(20,12,6,${0.12 + 0.4 * k})`; ctx.fill();
+      ctx.setLineDash([7, 6]); ctx.lineDashOffset = -clock * 30; ctx.lineWidth = 3;
+      ctx.strokeStyle = `rgba(255,${tar ? 190 : 90},${tar ? 90 : 70},${0.5 + 0.45 * Math.sin(clock * (8 + 10 * k))})`; ctx.stroke();
+      ctx.restore();
+    }
+    return;
+  }
+  if (TR.kind === 'knock') {
+    for (const a of TR.act) {
+      const bob = Math.sin(clock * 5 + a.t0) * 3, y = a.y - 44 + bob;
+      ctx.fillStyle = '#ffcf5a'; ctx.beginPath(); ctx.moveTo(a.x - 7, y - 8); ctx.lineTo(a.x + 7, y - 8); ctx.lineTo(a.x, y); ctx.closePath(); ctx.fill();
+    }
+    return;
+  }
   if (TR.kind !== 'target') return;
   const rings = ['#f4f1e6', '#1d1d1d', '#3d8bff', '#ff5a45', '#ffcf5a'];
   for (const t of TR.tg) {
@@ -5521,7 +5743,7 @@ function connect(joinMsg) {
     if (m.t === 'welcome') {
       // the server has been updated since this page loaded: reload to get the matching game
       if (m.v && m.v !== Sim.VERSION && !OFFLINE) { notice('Bowfall has been updated. Loading the new version…', true); ws = null; try { sock.close(); } catch (e) {} if (!joinMsg.ticket) history.replaceState(null, '', (location.pathname.endsWith('.html') ? '' : '/play') + '?room=' + m.code); setTimeout(() => location.reload(), 1200); return; }
-      myId = m.id; mode = 'online'; snaps = []; feed = []; resultsFor = null; menuOpen = false; clearChat();
+      myId = m.id; mode = 'online'; snaps = []; NET.reset(); feed = []; resultsFor = null; menuOpen = false; clearChat();
       history.replaceState(null, '', (location.pathname.endsWith('.html') ? '' : '/play') + '?room=' + m.code);
       $('pwWrap').hidden = true; $('pwIn').value = '';
       hc = {}; setScreens();
@@ -5533,6 +5755,7 @@ function connect(joinMsg) {
       $('roomTag').innerHTML = 'Room <b>' + esc(m.code) + '</b>';
       hc.lb = hc.gm = hc.lbHead = hc.gmHead = null;
     } else if (m.t === 'snap') {
+      NET.snap(m.k, performance.now());
       snaps.push({ time: performance.now(), s: Sim.unpackSnap(m.s) });
       if (snaps.length > 40) snaps.shift();
       handleEvents(m.ev || []);
@@ -5555,8 +5778,10 @@ function connect(joinMsg) {
       Ach.fromServer(m);
     } else if (m.t === 'err') {
       status.classList.add('err'); status.textContent = m.msg; $('fgStatus').textContent = m.msg;
+    } else if (m.t === 'perf') {
+      NET.server(m.s);
     } else if (m.t === 'pong') {
-      pingMs = Math.round(performance.now() - m.c);
+      pingMs = Math.round(performance.now() - m.c); NET.ping(performance.now() - m.c);
     }
   };
   sock.onclose = () => {
@@ -5631,6 +5856,7 @@ function renderResRated() {
 // (signed in with their own account, or as a guest in custom games), so they're full players, rated on their own accounts in ranked games.
 const LP = { list: [], capture: null, joinPw: '', link: null };
 const lpTaken = () => new Set(LP.list.map(l => l.pad));
+const hexRgb = h => { const n = parseInt(h.slice(1), 16); return `${n >> 16 & 255},${n >> 8 & 255},${n & 255}`; };
 const lpColor = n => ['#ffcf5a', '#7dff8a', '#5ad1ff', '#ff8ad8'][(n - 2) % 4];
 function lpNextSlot() { for (let n = 2; n <= 4; n++) if (!LP.list.some(l => l.n === n)) return n; return 0; }
 // ---- adding a player: press a button on the new controller, then name / sign in / pick a friend
@@ -6778,8 +7004,9 @@ $('scBody').addEventListener('click', e => { const b = e.target.closest('[data-s
 function syncOptions() {
   $('oVol').value = OPTS.vol; $('oVolN').textContent = OPTS.vol + '%'; $('oMute').value = muted ? '1' : '0';
   $('oRes').value = OPTS.res; $('oPart').value = String(OPTS.part); $('oShake').value = OPTS.shake ? '1' : '0';
-  $('oDmg').value = OPTS.dmg; $('oGuide').value = OPTS.guide ? '1' : '0';
+  $('oDmg').value = OPTS.dmg; $('oGuide').value = OPTS.guide ? '1' : '0'; $('oNet').value = OPTS.net ? '1' : '0';
 }
+$('oNet').onchange = () => { OPTS.net = $('oNet').value === '1'; store.set('bowfall-net', OPTS.net ? '1' : '0'); };
 $('oVol').oninput = () => { OPTS.vol = +$('oVol').value; store.set('bowfall-vol', OPTS.vol); $('oVolN').textContent = OPTS.vol + '%'; initAudio(); if (AC) outNode(); };
 $('oVol').onchange = () => { initAudio(); tone(660, 0.12, 'triangle', 0.05); };
 $('oMute').onchange = () => { muted = $('oMute').value === '1'; store.set('bowfall-muted', muted ? '1' : '0'); syncMute(); };
@@ -7388,10 +7615,89 @@ function updateFx(dt) {
 
 // ================= online interpolation =================
 const DELAY = 100;
+// ---- performance stats (F3): where lag comes from. Three places can cause it, each measured separately:
+// your computer (frames that take too long to draw), the connection (packets arriving late or bunched up, measured
+// against the server's own tick numbers), and the server (a stalled game loop, CPU held back by the host). The server
+// sends its numbers once a second; every 10 seconds a summary goes back, so the owner can read lag reports with /perf.
+const NET = {
+  f: [], g: [], p: [], sv: [], lastK: null, lastT: null, starve: 0, starveT: 0, t: 0, repT: 0, shown: false,
+  frame(ms) {
+    const t = performance.now();
+    if (mode !== 'online') { if (this.shown) this.render(true); return; }
+    this.f.push([t, ms]); while (this.f.length && this.f[0][0] < t - 10000) this.f.shift();
+    this.t += ms; if (this.t > 250) { this.t = 0; this.render(); }
+    this.repT += ms; if (this.repT > 10000) { this.repT = 0; this.report(); }
+  },
+  snap(k, t) {
+    if (k != null && this.lastK != null && k > this.lastK) this.g.push([t, t - this.lastT, (k - this.lastK) * 1000 / 60]);
+    this.lastK = k; this.lastT = t;
+    while (this.g.length && this.g[0][0] < t - 10000) this.g.shift();
+  },
+  ping(ms) { this.p.push(ms); if (this.p.length > 10) this.p.shift(); },
+  server(s) { s.at = performance.now(); this.sv.push(s); if (this.sv.length > 10) this.sv.shift(); },
+  buffer(over) { const t = performance.now(); if (over > 0) { if (!this.starveOn) { this.starveOn = true; this.starve++; } } else this.starveOn = false; },
+  reset() { this.f = []; this.g = []; this.p = []; this.sv = []; this.lastK = this.lastT = null; this.starve = 0; },
+  stats() {
+    const f = this.f, g = this.g, secs = f.length ? Math.max(1, (f[f.length - 1][0] - f[0][0]) / 1000) : 1;
+    const fps = Math.round(f.length / secs), fMax = Math.round(f.reduce((m, x) => Math.max(m, x[1]), 0)), slow = f.filter(x => x[1] > 50).length;
+    const pp = this.p.slice().sort((a, b) => a - b), ping = pp.length ? Math.round(pp[pp.length >> 1]) : null;
+    const jit = pp.length > 1 ? Math.round(pp.reduce((m, x) => m + Math.abs(x - ping), 0) / pp.length) : 0;
+    // a packet is late when it turns up more than 60 ms after the server's own clock says it should have
+    // ...unless your own computer was frozen at the time (the packets were waiting for the page, not the network)
+    const frozen = (t, gap) => f.some(([ft, ms]) => ms > 50 && ft >= t - gap && ft <= t + 150);
+    const lateG = g.filter(x => x[1] - x[2] > 60), late = lateG.filter(x => !frozen(x[0], x[1])).length;
+    const gapMax = Math.round(g.reduce((m, x) => Math.max(m, x[1]), 0));
+    const sv = this.sv.filter(x => x.at > performance.now() - 10000);
+    const S = { cpu: Math.max(0, ...sv.map(x => x.cpu || 0)), thr: Math.max(0, ...sv.map(x => x.thr || 0)), lag: Math.max(0, ...sv.map(x => x.lag || 0)), drop: sv.reduce((m, x) => m + (x.drop || 0), 0), step: Math.max(0, ...sv.map(x => x.stepMax || 0)), n: sv.length };
+    return { fps, fMax, slow, ping, jit, late, gapMax, starve: this.starve, S };
+  },
+  verdict(x) {
+    const pc = x.slow >= 3 || x.fps < 45;
+    const server = x.S.lag > 60 || x.S.drop > 0 || x.S.thr > 50 || x.S.cpu >= 90;
+    const net = (x.late >= 2 && !server) || x.jit > 25;
+    const far = x.ping != null && x.ping > 150;
+    const list = [];
+    if (server) list.push(['Server', 'The server is struggling to keep up' + (x.S.thr > 50 ? ' (its host is holding back its CPU)' : '')]);
+    if (net) list.push(['Connection', 'Packets are arriving late or in bursts between you and the server']);
+    if (pc) list.push(['Your PC', 'Your computer is dropping frames']);
+    if (far) list.push(['Distance', `You're far from the server (ping ${x.ping} ms)`]);
+    return list;
+  },
+  report() {
+    if (!ws || ws.readyState !== 1) return;
+    const x = this.stats(), v = this.verdict(x);
+    ws.send(JSON.stringify({ t: 'perfRep', fps: x.fps, fMax: x.fMax, slow: x.slow, ping: x.ping || 0, jit: x.jit, late: x.late, gapMax: x.gapMax, starve: x.starve, v: v.length ? v.map(a => a[0]).join(', ') : 'Smooth' }));
+    this.starve = 0;
+  },
+  render(force) {
+    const el = $('netStats'), want = OPTS.net && mode === 'online';
+    if (el.hidden !== !want) el.hidden = !want;
+    this.shown = want;
+    if (!want) return;
+    const x = this.stats(), v = this.verdict(x), c = (bad, meh) => bad ? 'bad' : meh ? 'meh' : 'ok', mark = (bad, meh) => `<span class="${c(bad, meh)}">${bad ? '✗' : meh ? '!' : '✓'}</span>`;
+    const pcBad = x.slow >= 3 || x.fps < 45, netBad = (x.late >= 2 && !(x.S.lag > 60 || x.S.drop > 0)) || x.jit > 25, svBad = x.S.lag > 60 || x.S.drop > 0 || x.S.thr > 50 || x.S.cpu >= 90;
+    el.style.setProperty('--nc', v.length ? '#ff8a8a' : '#7dff8a');
+    el.innerHTML = `<b>${v.length ? 'Lag: ' + v.map(a => a[0]).join(' + ') : 'Smooth'}</b>
+      <div class="nrow"><span>Your PC</span><span>${x.fps} fps · worst frame ${x.fMax} ms · ${x.slow} slow</span>${mark(pcBad, x.fMax > 34)}</div>
+      <div class="nrow"><span>Network</span><span>ping ${x.ping ?? '–'} ±${x.jit} ms · ${x.late} late · longest gap ${x.gapMax} ms</span>${mark(netBad, x.late > 0 || x.ping > 120)}</div>
+      <div class="nrow"><span>Server</span><span>${x.S.n ? `CPU ${x.S.cpu}%${x.S.thr ? ` · held back ${x.S.thr} ms/s` : ''} · stall ${x.S.lag} ms · tick ${x.S.step} ms` : 'waiting…'}</span>${mark(svBad, x.S.lag > 30 || x.S.cpu > 70)}</div>
+      <canvas id="netGraph" width="620" height="68"></canvas>
+      <small>${v.length ? esc(v.map(a => a[1]).join('. ')) + '.' : 'Last 10 seconds. Bars: gaps between game updates (green on time, red late); blue ticks: slow frames on your PC.'}</small>`;
+    const cv2 = $('netGraph'), g = cv2.getContext('2d'), W2 = cv2.width, H2 = cv2.height, now = performance.now();
+    g.clearRect(0, 0, W2, H2);
+    g.strokeStyle = 'rgba(255,255,255,0.15)'; g.beginPath(); g.moveTo(0, H2 - 33 / 200 * H2); g.lineTo(W2, H2 - 33 / 200 * H2); g.stroke();
+    for (const [t, gap, exp] of this.g) {
+      const X = W2 - (now - t) / 10000 * W2, h = Math.min(1, gap / 200) * H2;
+      g.fillStyle = gap - exp > 60 ? '#ff5a5a' : gap - exp > 25 ? '#ffcf5a' : '#7dff8a'; g.fillRect(X, H2 - h, 2, h);
+    }
+    for (const [t, ms] of this.f) if (ms > 34) { const X = W2 - (now - t) / 10000 * W2; g.fillStyle = 'rgba(90,209,255,0.9)'; g.fillRect(X, 0, 2, Math.min(1, ms / 200) * H2 * 0.5); }
+  },
+};
 function interpView(now) {
   if (!snaps.length) return null;
   const latest = snaps[snaps.length - 1];
   const rt = now - DELAY;
+  NET.buffer(rt - latest.time); // past the newest snapshot: nothing new has arrived in time, so everyone freezes
   let A = null, B = null;
   for (let i = snaps.length - 1; i > 0; i--) if (snaps[i - 1].time <= rt) { A = snaps[i - 1]; B = snaps[i]; break; }
   let v;
@@ -8569,6 +8875,13 @@ function drawPlayer(p, isMe, bare) {
     ctx.strokeStyle = TEAM_COL[p.tm]; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(0, 5, R + 5, (R + 5) * 0.6, 0, 0, TAU); ctx.stroke();
   }
 
+  const lpl = !p.f && !bare && LP.list.length ? LP.list.find(l => l.pid === p.id) : null;
+  if (lpl) {
+    // an extra player on this screen: a spotlight in their own colour, so everyone can find themselves
+    const rgb = hexRgb(lpColor(lpl.n)), sp = ctx.createRadialGradient(0, 0, R * 0.6, 0, 0, R * 3.8);
+    sp.addColorStop(0, `rgba(${rgb},0.4)`); sp.addColorStop(0.5, `rgba(${rgb},0.14)`); sp.addColorStop(1, `rgba(${rgb},0)`);
+    ctx.fillStyle = sp; ctx.beginPath(); ctx.arc(0, 0, R * 3.8, 0, TAU); ctx.fill();
+  }
   if (isMe && !p.f) {
     // a soft spotlight and bright ring so you can find yourself out of the corner of your eye
     const sp = ctx.createRadialGradient(0, 0, R * 0.6, 0, 0, R * 4.2);
@@ -8726,9 +9039,11 @@ function drawPlayer(p, isMe, bare) {
     ctx.fillStyle = TEAM_COL[p.tm] || p.c; ctx.fillRect(p.x - w / 2, y, w * clamp(p.hp / (p.mh || 100), 0, 1), 4);
     if (p.hp < 30) { ctx.fillStyle = `rgba(255,255,255,${0.35 + 0.3 * Math.sin(clock * 10)})`; ctx.fillRect(p.x - w / 2, y, w * clamp(p.hp / (p.mh || 100), 0, 1), 4); }
     ctx.font = "600 12px 'Titillium Web', 'Segoe UI', sans-serif"; ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillText(isMe ? 'You' : p.n, p.x + 1, y - 4);
-    ctx.fillStyle = isMe ? '#ffffff' : TEAM_COL[p.tm] || p.c; ctx.fillText(isMe ? 'You' : p.n, p.x, y - 5);
-    if (p.ow) drawCrown(p.x + ctx.measureText(isMe ? 'You' : p.n).width / 2 + 3, y - 15, 13);
+    // with other players on this screen, everyone is named ("You" would be ambiguous)
+    const label = isMe && !LP.list.some(l => l.pid) ? 'You' : p.n;
+    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillText(label, p.x + 1, y - 4);
+    ctx.fillStyle = isMe ? '#ffffff' : TEAM_COL[p.tm] || p.c; ctx.fillText(label, p.x, y - 5);
+    if (p.ow) drawCrown(p.x + ctx.measureText(label).width / 2 + 3, y - 15, 13);
     if (!isMe && (p.cc || p.lv)) {
       let lx = p.x - ctx.measureText(p.n).width / 2 - 5;
       const fi = flagImg(p.cc);
@@ -8795,10 +9110,10 @@ function drawArrow(a) {
       ctx.strokeStyle = g2; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(-190, 0); ctx.lineTo(-10, 0); ctx.stroke();
     }
   }
-  ctx.strokeStyle = 'rgba(20,14,8,0.75)'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-21, 0); ctx.lineTo(8, 0); ctx.stroke(); // dark edge for contrast
+  ctx.strokeStyle = 'rgba(20,14,8,0.75)'; ctx.lineWidth = 4; ctx.lineCap = 'butt'; ctx.beginPath(); ctx.moveTo(-21, 0); ctx.lineTo(2, 0); ctx.stroke(); // dark edge for contrast (stops at the head, so the tip stays sharp)
   ctx.strokeStyle = '#d8c7a0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(4, 0); ctx.stroke();
   ctx.fillStyle = a.el === 'blood' ? '#e0344a' : a.el === 'shadow' ? '#8e95c9' : a.el === 'poison' ? '#7fcf4a' : a.sn ? '#9be564' : a.el === 'storm' ? '#fff27a' : a.el === 'frost' ? '#bfe8ff' : a.el === 'flame' ? '#ff7a2b' : a.el === 'stone' ? '#b8966a' : a.el === 'void' ? '#b48cff' : a.ex ? '#ff5a7a' : a.hv ? '#ff8a3d' : '#c9d1dc';
-  ctx.beginPath(); ctx.moveTo(8, 0); ctx.lineTo(1, -3.5); ctx.lineTo(1, 3.5); ctx.closePath(); ctx.fill(); ctx.strokeStyle = 'rgba(20,14,8,0.6)'; ctx.lineWidth = 1; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(8, 0); ctx.lineTo(1, -3.5); ctx.lineTo(1, 3.5); ctx.closePath(); ctx.strokeStyle = 'rgba(20,14,8,0.7)'; ctx.lineWidth = 1.4; ctx.lineJoin = 'miter'; ctx.miterLimit = 10; ctx.stroke(); ctx.fill();
   ctx.fillStyle = a.c; ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(-25, -4); ctx.lineTo(-17, 0); ctx.lineTo(-25, 4); ctx.fill();
   ctx.restore();
 }
@@ -8840,19 +9155,69 @@ function drawChannel(u) {
   if (u.cs) { ctx.fillStyle = `rgba(255,255,255,${0.5 + 0.5 * pulse})`; ctx.font = "600 11px 'Titillium Web', 'Segoe UI', sans-serif"; ctx.fillText('Contested', u.x, u.y + R0 + 20); }
 }
 // the Pitch's ball: a classic black-and-white ball with a soft shadow, rolling as it moves
+// the football: a proper black-and-white panel ball (a truncated icosahedron) that rolls the way it's moving
+const BALL3D = (() => {
+  const f = (1 + Math.sqrt(5)) / 2, V = [];
+  for (const [a, b] of [[1, f], [1, -f], [-1, f], [-1, -f]]) V.push([0, a, b], [a, b, 0], [b, 0, a]);
+  const n = V.map(v => { const l = Math.hypot(...v); return v.map(x => x / l); });
+  const E = []; for (let i = 0; i < 12; i++) for (let j = i + 1; j < 12; j++) if (Math.abs(Math.hypot(V[i][0] - V[j][0], V[i][1] - V[j][1], V[i][2] - V[j][2]) - 2) < 1e-6) E.push([i, j]);
+  const nb = n.map((_, i) => E.filter(e => e.includes(i)).map(e => e[0] === i ? e[1] : e[0]));
+  return { V: n, E, nb };
+})();
+const ballRot = { m: [1, 0, 0, 0, 1, 0, 0, 0, 1], x: null, y: null };
+function rollBall(b) {
+  if (ballRot.x == null || Math.hypot(b.x - ballRot.x, b.y - ballRot.y) > 200) { ballRot.x = b.x; ballRot.y = b.y; return; }
+  const dx = b.x - ballRot.x, dy = b.y - ballRot.y, d = Math.hypot(dx, dy); ballRot.x = b.x; ballRot.y = b.y;
+  if (d < 0.01) return;
+  // rolling along (dx,dy) turns the ball about the axis (-dy, dx, 0) by d / r
+  const ax = -dy / d, ay = dx / d, t = d / b.r, c = Math.cos(t), s = Math.sin(t), C = 1 - c;
+  const R = [c + ax * ax * C, ax * ay * C, ay * s, ay * ax * C, c + ay * ay * C, -ax * s, -ay * s, ax * s, c];
+  const m = ballRot.m, o = [];
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) o[i * 3 + j] = R[i * 3] * m[j] + R[i * 3 + 1] * m[3 + j] + R[i * 3 + 2] * m[6 + j];
+  ballRot.m = o;
+}
 function drawBall(b) {
+  rollBall(b);
+  const r = b.r, m = ballRot.m;
+  const rot = v => [m[0] * v[0] + m[1] * v[1] + m[2] * v[2], m[3] * v[0] + m[4] * v[1] + m[5] * v[2], m[6] * v[0] + m[7] * v[1] + m[8] * v[2]];
+  const nrm = v => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
+  const mix = (a, c, t) => nrm([a[0] + (c[0] - a[0]) * t, a[1] + (c[1] - a[1]) * t, a[2] + (c[2] - a[2]) * t]);
+  // z > 0 faces the camera (it's top-down, so "up" out of the ground); hidden points are pushed to the rim
+  const P = v => v[2] >= 0 ? [v[0] * r, v[1] * r] : (() => { const l = Math.hypot(v[0], v[1]) || 1; return [v[0] / l * r, v[1] / l * r]; })();
+  const W = BALL3D.V.map(rot);
   ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(b.x + 4, b.y + 7, b.r * 1.05, b.r * 0.8, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(b.x + 5, b.y + 8, r * 1.05, r * 0.82, 0, 0, TAU); ctx.fill();
   ctx.translate(b.x, b.y);
-  ctx.fillStyle = '#f2f2ee'; ctx.beginPath(); ctx.arc(0, 0, b.r, 0, TAU); ctx.fill();
-  ctx.save(); ctx.beginPath(); ctx.arc(0, 0, b.r, 0, TAU); ctx.clip(); ctx.rotate(b.s || 0);
-  ctx.fillStyle = '#1c1c1c';
-  for (let i = 0; i < 5; i++) { const a = i * TAU / 5, px = Math.cos(a) * b.r * 0.62, py = Math.sin(a) * b.r * 0.62; ctx.beginPath(); for (let k = 0; k < 5; k++) { const t = a + k * TAU / 5; ctx.lineTo(px + Math.cos(t) * b.r * 0.3, py + Math.sin(t) * b.r * 0.3); } ctx.closePath(); ctx.fill(); }
-  ctx.beginPath(); for (let k = 0; k < 5; k++) { const t = k * TAU / 5 + 0.3; ctx.lineTo(Math.cos(t) * b.r * 0.26, Math.sin(t) * b.r * 0.26); } ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#f7f7f2'; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();
+  ctx.save(); ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.clip();
+  // seams between the white hexagons: each icosahedron edge's middle third
+  ctx.strokeStyle = 'rgba(60,60,60,0.55)'; ctx.lineWidth = Math.max(0.8, r * 0.045); ctx.lineCap = 'round';
+  for (const [i, j] of BALL3D.E) {
+    const a = mix(W[i], W[j], 1 / 3), c = mix(W[i], W[j], 2 / 3);
+    if (a[2] < 0 && c[2] < 0) continue;
+    ctx.beginPath();
+    for (let k = 0; k <= 4; k++) { const q = mix(a, c, k / 4); if (q[2] < 0) continue; const [x, y] = P(q); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+    ctx.stroke();
+  }
+  // black pentagons round each vertex, curved over the sphere
+  ctx.fillStyle = '#16171a';
+  BALL3D.V.forEach((_, i) => {
+    if (W[i][2] < -0.35) return;
+    const ctr = W[i], cs = BALL3D.nb[i].map(j => mix(W[i], W[j], 1 / 3));
+    // order the corners round the centre
+    const ref = cs[0], ux = nrm([ref[0] - ctr[0], ref[1] - ctr[1], ref[2] - ctr[2]]), uy = nrm([ctr[1] * ux[2] - ctr[2] * ux[1], ctr[2] * ux[0] - ctr[0] * ux[2], ctr[0] * ux[1] - ctr[1] * ux[0]]);
+    cs.sort((p, q) => Math.atan2((p[0] - ctr[0]) * uy[0] + (p[1] - ctr[1]) * uy[1] + (p[2] - ctr[2]) * uy[2], (p[0] - ctr[0]) * ux[0] + (p[1] - ctr[1]) * ux[1] + (p[2] - ctr[2]) * ux[2])
+      - Math.atan2((q[0] - ctr[0]) * uy[0] + (q[1] - ctr[1]) * uy[1] + (q[2] - ctr[2]) * uy[2], (q[0] - ctr[0]) * ux[0] + (q[1] - ctr[1]) * ux[1] + (q[2] - ctr[2]) * ux[2]));
+    ctx.beginPath();
+    cs.forEach((c0, k) => { const c1 = cs[(k + 1) % 5]; for (let t = 0; t < 3; t++) { const [x, y] = P(mix(c0, c1, t / 3)); (k || t) ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } });
+    ctx.closePath(); ctx.fill();
+  });
   ctx.restore();
-  const g = ctx.createRadialGradient(-b.r * 0.35, -b.r * 0.35, 2, 0, 0, b.r); g.addColorStop(0, 'rgba(255,255,255,0.35)'); g.addColorStop(1, 'rgba(0,0,0,0.25)');
-  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, b.r, 0, TAU); ctx.fill();
-  ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, b.r, 0, TAU); ctx.stroke();
+  // lit from the top left, darker round the far side
+  const g = ctx.createRadialGradient(-r * 0.38, -r * 0.42, r * 0.05, 0, 0, r);
+  g.addColorStop(0, 'rgba(255,255,255,0.55)'); g.addColorStop(0.35, 'rgba(255,255,255,0.08)'); g.addColorStop(0.8, 'rgba(0,0,0,0.12)'); g.addColorStop(1, 'rgba(0,0,0,0.38)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.55)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.stroke();
   ctx.restore();
 }
 function drawPickup(u) {
@@ -9665,6 +10030,7 @@ function showPendingSummary() { if (pendingSummary && view && view.m.ph === 'pos
 function endReplay() { if (!RP.on) return; RP.on = null; RP.cam = null; $('replayBadge').hidden = true; document.body.classList.remove('replaying'); showPendingSummary(); }
 function frame(now) {
   pollPad();
+  NET.frame(now - last);
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now; clock += dt;
   pollLocals(dt);
@@ -9695,7 +10061,7 @@ function frame(now) {
     sendT -= dt; pingT -= dt;
     if (ws && ws.readyState === 1) {
       if (sendT <= 0 && me) { ws.send(JSON.stringify(Object.assign({ t: 'in' }, buildInput(me)))); dashLatch = qLatch = eLatch = drawLatch = false; sendT = 1 / 30; }
-      if (pingT <= 0) { ws.send(JSON.stringify({ t: 'ping', c: performance.now() })); pingT = 2; }
+      if (pingT <= 0) { ws.send(JSON.stringify({ t: 'ping', c: performance.now() })); pingT = 1; }
     }
   } else view = null;
   updateMech(dt);

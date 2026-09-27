@@ -86,3 +86,17 @@ Railway (https://railway.app) and Fly.io (https://fly.io) work the same way: the
 ## Option 3: same Wi-Fi only
 
 Run `npm start`, find your computer's local IP address (`ipconfig` on Windows, System Settings > Network on a Mac), and have friends open `http://<that IP>:3000`. You may need to let Node through your firewall.
+
+## Tracking down lag
+
+Press **F3** in an online game (or turn on **Options → Graphics → Performance stats**) for a small panel that splits lag into its three possible sources, over the last 10 seconds:
+
+- **Your PC:** frame rate, the slowest frame, and how many frames took over 50 ms. Slow frames here mean the computer (or browser) is the problem; try the Fast resolution setting or fewer particles.
+- **Network:** ping and how much it varies (±), and **late packets**: game updates that reached you more than 60 ms after the server's own clock says they were sent. Late packets while your PC and the server look fine mean the connection between you and the server (Wi-Fi, your ISP, or the route to the server's region) is delaying or bunching packets. A steady high ping (over 150 ms) just means you're far from the server.
+- **Server:** its CPU use as a share of what the host allows, how long the host held it back (throttling) each second, the longest stall in its game loop, and the slowest simulation tick. A stall over 60 ms, any throttling, or CPU near 100% mean the server is the problem.
+
+The graph shows the gap between each game update (green on time, yellow a little late, red late) and blue ticks for slow frames on your PC. The top line names the likely cause.
+
+Every 10 seconds each player's browser sends a one-line summary to the server. The owner can type **/perf** in any game's chat to see the server's numbers now and over the last 30 seconds, plus the last few players' reports, or open **/api/perf** while signed in for the last two minutes in full.
+
+**Render's free plan** gives the server a tenth of one CPU core, enforced in 100 ms slices: the server may use 10 ms of CPU in each 100 ms, and anything over that waits for the next slice. A 3v3 with five AI players averages about a third of a millisecond of CPU per tick, which fits, but bots, garbage collection and compressing updates cause occasional ticks of 5 to 15 ms, and one of those can use up a whole slice and freeze the game for up to 100 ms. If the Server row shows throttling ("held back") during laggy moments, a paid instance (Starter: half a core) is the fix.
