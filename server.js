@@ -802,15 +802,19 @@ function applyRoomCfg(room, o, hostName) {
   if ('pw' in o) { const pw = String(o.pw || '').slice(0, 32); room.pwHash = pw ? pwHash(pw) : null; }
 }
 
-// the host's changes to the match, told to everyone in the room's chat ("Aim assist set to Heavy.")
+// the host's changes to the match, told to everyone in the room's chat ("Arrow homing set to Heavy.")
 const DIFF_NAMES = { easy: 'Easy', normal: 'Normal', hard: 'Hard', extreme: 'Extreme', master: 'Master' };
-const cfgState = w => ({ diff: w.cfg.diff, map: w.cfg.map, ptw: w.cfg.pointsToWin, opt: Object.assign({}, w.cfg.opt) });
+const cfgState = w => ({ diff: w.cfg.diff, map: w.cfg.map, ptw: w.cfg.pointsToWin, opt: Object.assign({}, w.cfg.opt), ban: (w.cfg.ban || []).slice() });
 function announceCfg(room, a, b) {
   const lines = [];
   if (a.map !== b.map) lines.push(`Arena set to ${Sim.MAPS[b.map].name}.`);
   if (a.diff !== b.diff) lines.push(`Bot skill set to ${DIFF_NAMES[b.diff] || b.diff}.`);
   if (a.ptw !== b.ptw) lines.push(`Match length set to first to ${b.ptw} points.`);
   for (const k of Object.keys(Sim.OPTIONS)) if (a.opt[k] !== b.opt[k]) lines.push(`${Sim.OPTIONS[k].label} set to ${Sim.OPT_NAMES[b.opt[k]] || b.opt[k]}.`);
+  const nm = k => (Sim.ELEMENTS[k] || Sim.ROLES[k] || {}).name || k;
+  const off = b.ban.filter(k => !a.ban.includes(k)), on = a.ban.filter(k => !b.ban.includes(k));
+  if (off.length) lines.push(`Taken out of this game: ${off.map(nm).join(', ')}.`);
+  if (on.length) lines.push(`Allowed again: ${on.map(nm).join(', ')}.`);
   for (const l of lines) sysChat(room, l);
 }
 const roomState = r => ({ name: r.name, pub: r.pub, max: r.max, pw: !!r.pwHash, pwh: r.pwHash });
@@ -1174,6 +1178,7 @@ async function handle(ws, m) {
       }
       if (m.ptw) Sim.setPointsToWin(w, m.ptw | 0);
       if (m.opt && typeof m.opt === 'object') for (const [k, v] of Object.entries(m.opt)) Sim.setOption(w, String(k), String(v));
+      if (Array.isArray(m.ban) && !room.ranked) Sim.setBans(w, m.ban.slice(0, 40));
       announceCfg(room, before, cfgState(w));
       break;
     }

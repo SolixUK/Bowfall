@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.23.1';
+const VERSION = '0.26.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -21,7 +21,10 @@ const r3 = v => Math.round(v * 1000) / 1000;
 // ---------------- arenas ----------------
 // Each arena lists one half; mirror() adds the point-reflected copy, so Red (left) and Blue (right)
 // always get identical halves. Items marked `centre` sit on the middle and aren't copied.
-const AW = 1200, AH = 800, WALL = 26;
+// the arena's size: 1200 by 800 for every normal arena; a big map (Strongholds) sets its own (MAP.w, MAP.h) in useMap
+const BASE_W = 1200, BASE_H = 800;
+let AW = BASE_W, AH = BASE_H;
+const WALL = 26;
 function mirrorItem(o) {
   if (o.w !== undefined) return Object.assign({}, o, { x: AW - o.x - o.w, y: AH - o.y - o.h });
   return Object.assign({}, o, { x: AW - o.x, y: AH - o.y });
@@ -32,6 +35,11 @@ function mirrorSpike(s) {
   return { side: FLIP_SIDE[s.side], a: span - s.b, b: span - s.a };
 }
 function buildMap(def) {
+  // an arena can be bigger than the usual 1200 by 800 (def.w, def.h): mirror it round its own middle
+  const keepW = AW, keepH = AH; AW = def.w || BASE_W; AH = def.h || BASE_H;
+  try { return buildMapNow(def); } finally { AW = keepW; AH = keepH; }
+}
+function buildMapNow(def) {
   const both = (list, fn) => list.flatMap(o => (o.centre ? [o] : [o, fn(o)]));
   return Object.assign({}, def, {
     haz: both(def.haz, mirrorItem),
@@ -140,7 +148,7 @@ MAPS.ruins = buildMap({
     power: [{ x: 600, y: 400 }], amberY: [150, 330],
   });
 MAPS.grove = buildMap({
-    name: 'Mushroom Grove', theme: 'grove',
+    name: 'Mushroom Grove', theme: 'grove', hidden: true, retired: true, // out of the rotation for now
     desc: 'Giant bouncy mushrooms fling anyone who touches them, and arrows ricochet off their caps. Use them to bank shots, or to launch enemies into the pits.',
     haz: [
       { type: 'pit', shape: 'rect', x: 360, y: 90, w: 110, h: 110 },
@@ -152,6 +160,24 @@ MAPS.grove = buildMap({
     bumpers: [{ x: 330, y: 330, r: 30 }, { x: 600, y: 400, r: 34, centre: true }],
     power: [{ x: 600, y: 250 }, { x: 600, y: 550 }], amberY: [110, 190],
   });
+// Highland Reach: bigger than the rest (1500 by 960) and built for long shots: a canyon splits the middle, so the only
+// way across is the crossing in the centre, and archers trade shots across the gap from the rims; drops along the top and
+// bottom edges punish being pushed wide, and a pool in front of each side's crossing splits the approach in two
+MAPS.reach = buildMap({
+    name: 'Highland Reach', theme: 'highland', w: 1500, h: 960,
+    desc: 'A big, open highland split by a canyon. Trade long shots across the gap, or fight for the crossing in the middle. Bigger than the other arenas.',
+    haz: [
+      { type: 'pit', centre: true, shape: 'rect', x: 700, y: WALL - 20, w: 100, h: 300 },
+      { type: 'pit', centre: true, shape: 'rect', x: 700, y: 654, w: 100, h: 330 },
+      { type: 'pit', shape: 'rect', x: 330, y: WALL - 20, w: 230, h: 96 },
+      { type: 'pit', shape: 'rect', x: 330, y: 960 - WALL - 76, w: 230, h: 96 },
+      { type: 'pit', water: true, shape: 'circle', x: 565, y: 480, r: 52 },
+    ],
+    pillars: [{ x: 250, y: 330, r: 28 }, { x: 250, y: 630, r: 28 }, { x: 420, y: 480, r: 24 }, { x: 610, y: 250, r: 22 }, { x: 610, y: 710, r: 22 }],
+    spikes: [],
+    spawns: [{ x: 110, y: 420 }, { x: 110, y: 540 }, { x: 180, y: 480 }, { x: 100, y: 320 }],
+    power: [{ x: 750, y: 480 }], amberY: [340, 420],
+  });
 const CRACK_WARN = 4;
 // custom game options; def is the standard rule
 const OPTIONS = {
@@ -161,10 +187,14 @@ const OPTIONS = {
   kb:     { label: 'Knockback',    def: 'normal', values: { normal: 1, low: 0.75, high: 1.3, chaos: 1.8 } },
   hp:     { label: 'Health',       def: 'normal', values: { normal: 1, low: 0.7, high: 1.5 } },
   dash:   { label: 'Dashes',       def: 'on', values: { on: 1, off: 0 } },
-  // aim assist: every shot bends toward the enemy it's heading for, this many radians a second
-  assist: { label: 'Aim assist',   def: 'none', values: { none: 0, tiny: 0.12, small: 0.25, medium: 0.5, heavy: 1, extreme: 2.2 } },
+  // arrow homing: every shot bends toward the enemy it's heading for, this many radians a second
+  assist: { label: 'Arrow homing',   def: 'none', values: { none: 0, tiny: 0.12, small: 0.25, medium: 0.5, heavy: 1, extreme: 2.2 } },
+  // how moving feels (MOVE_FEEL below): the standard air-hockey glide, or snappier, driftier or fully direct
+  move:   { label: 'Movement feel', def: 'puck', values: { puck: 1, snappy: 2, drift: 3, direct: 4 } },
+  // upgrades off: no picks between rounds (and no chests in Strongholds), everyone plays their plain element and role
+  upg:    { label: 'Upgrades',     def: 'on', values: { on: 1, off: 2 } },
 };
-const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', none: 'None', tiny: 'Tiny', heavy: 'Heavy', extreme: 'Extreme' };
+const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', puck: 'Glide (air hockey)', snappy: 'Snappy', drift: 'Drifty', direct: 'Direct (no glide)', none: 'None', tiny: 'Tiny', heavy: 'Heavy', extreme: 'Extreme' };
 const optDefaults = () => Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.def || Object.keys(o.values)[0]]));
 let CFG = { opt: optDefaults() };
 const OPT = k => OPTIONS[k].values[(CFG.opt || {})[k]] || 1;
@@ -212,7 +242,7 @@ MAPS.holes = buildMap({
     spawns: [{ x: 110, y: 400 }, { x: 110, y: 300 }, { x: 110, y: 500 }, { x: 70, y: 400 }],
     power: [{ x: AW - 50, y: AH - 50 }], amberY: [WALL + 44, 330],
   });
-const MAP_KEYS = Object.keys(MAPS).filter(k => !MAPS[k].hidden);
+const MAP_KEYS = Object.keys(MAPS).filter(k => !MAPS[k].hidden); // the rotation (ranked) and the lobby's arenas
 
 // ---- player-made arenas (the Arena builder). A definition lists one half, like the built-in arenas, and is checked
 // and tidied by cleanArena before it can be played: sizes and counts are capped, the spawns must be clear, and the
@@ -289,6 +319,7 @@ const trainGrade = (kind, score) => { const m = TRAIN_MAX[kind] || 1; return TRA
 
 // The simulation reads the current arena from these; useMap() points them at a world's arena.
 // Every public entry point calls useMap first, so rooms on different arenas can share one server.
+let BLOCKS = [], TREES = []; // castle walls and trees (Strongholds): walls nobody walks or shoots through; trees you can hide under
 let MAP = MAPS.meadow, HAZ = MAP.haz, PILLARS = MAP.pillars, SPIKES = MAP.spikes, HEAL = null, ICE = null, WARN = [];
 let SAWS = [], SAWPOS = [], BUMPERS = [], PORTALS = [], WIND = null, BALL = null;
 let SPAWNS = { red: RED_SPAWNS, blue: RED_SPAWNS.map(mirrorItem) };
@@ -297,7 +328,9 @@ const CENTER_X = AW / 2;
 function useMap(w) {
   CFG = w.cfg; if (!CFG.opt) CFG.opt = optDefaults();
   MAP = MAPS[w.cfg.map] || MAPS.meadow;
-  PILLARS = MAP.pillars; SPIKES = MAP.spikes; HEAL = MAP.heal || null; ICE = MAP.ice || null;
+  AW = MAP.w || BASE_W; AH = MAP.h || BASE_H;
+  MOVE = MOVE_PROFILES[OPT('move')] || MOVE_PROFILES[1];
+  PILLARS = MAP.pillars; SPIKES = MAP.spikes; HEAL = MAP.heal || null; ICE = MAP.ice || null; BLOCKS = MAP.blocks || []; TREES = MAP.trees || [];
   SAWS = MAP.saws || []; BUMPERS = MAP.bumpers || []; PORTALS = MAP.portals || []; WIND = MAP.wind || null; BALL = MAP.ball || null;
   SPAWNS = MAP.spawnsBoth || (MAP.spawnsBoth = MAP.spawns ? { red: MAP.spawns, blue: MAP.spawns.map(mirrorItem) } : { red: RED_SPAWNS, blue: RED_SPAWNS.map(mirrorItem) });
   SAWPOS = SAWS.map(o => sawAt(o, gameTime(w)));
@@ -608,7 +641,7 @@ const ROLES = {
   juggernaut: { name: 'Juggernaut', cat: 'Power',   blurb: 'Tough to move, dangerous up close.',
     trait: { name: 'Heavyweight', desc: '15 more health, a bigger body, 20% less knockback taken, and heals 2 health a second after 4 seconds without being hit. Dashing into enemies shoves them 50% harder. Arrows deal 20% less damage. 7% slower.' } },
   ranger:     { name: 'Ranger',     cat: 'Agility', blurb: 'Speed, extra dashes and a grapple.',
-    trait: { name: 'Light-footed', desc: '5% faster, and your dash recharges 20% quicker. 10 less health.' } },
+    trait: { name: 'Light-footed', desc: '5% faster, your dash recharges 20% quicker, you draw 12% faster, and you keep much more of your speed while drawing (70% instead of 55%). 10 less health.' } },
   trickster:  { name: 'Trickster',  cat: 'Agility', blurb: 'Bouncing, splitting and bending arrows.',
     trait: { name: 'Nimble Fingers', desc: 'Draw your bow 12% faster, but your arrows knock back 10% less.' } },
   warden:     { name: 'Warden',     cat: 'Utility', blurb: 'Protect and revive your team.',
@@ -857,7 +890,7 @@ function applyStats(p) {
     : (has(p, 'dash') ? 0.66 : 1.1) * is(R === 'ranger', 0.8) * is(has(p, 'overload'), 1.3);
   p.dashMaxN = R === 'ninja' ? (has(p, 'thirdstep') ? 3 : 2) : has(p, 'double') ? 2 : 1;
   p.dashN = Math.min(p.dashN == null ? p.dashMaxN : p.dashN, p.dashMaxN);
-  p.drawMul = (has(p, 'steady') ? 1.25 : 1) * (1 + 0.08 * h('hone_draw')) * is(R === 'trickster', 1.12) * is(R === 'sniper', 0.9) * is(has(p, 'permafrost'), 0.95);
+  p.drawMul = (has(p, 'steady') ? 1.25 : 1) * (1 + 0.08 * h('hone_draw')) * is(R === 'trickster', 1.12) * is(R === 'ranger', 1.12) * is(R === 'sniper', 0.9) * is(has(p, 'permafrost'), 0.95);
   p.kbMul = (1 + 0.08 * h('hone_kb')) * is(R === 'trickster', 0.9) * is(has(p, 'pyre'), 0.8) * is(has(p, 'obsidian'), 1.3) * is(has(p, 'lingering'), 0.85);
   p.dmgMul = hc * is(has(p, 'glass'), 1.3) * is(has(p, 'potent'), 0.85) * is(R === 'juggernaut', 0.8) * is(has(p, 'unstable'), 0.92);
   p.abCdMul = is(R === 'trapper', 0.6);
@@ -923,6 +956,7 @@ function join(w, opts = {}) {
     team = bot.team; removeObj(w, bot);
   }
   const p = makePlayer(w, { name: opts.name, team, id: opts.id, element: opts.element, role: opts.role });
+  fixBanned(w, p);
   catchUp(w, p);
   enterWorld(w, p);
   ev(w, { e: 'join', id: p.id, n: p.name, tm: team });
@@ -945,8 +979,8 @@ function addBot(w, team, extra) { // extra: past the usual four a side (training
   if (!TEAMS.includes(team) || (teamCount(w, team) >= MAX_TEAM && !extra)) return null;
   // bots take a role nobody on their team has yet, when there is one
   const taken = new Set(members(w, team).map(q => q.role));
-  const roles = Object.keys(ROLES).filter(r => !taken.has(r));
-  const b = makePlayer(w, { name: botName(w), bot: true, team, diff: w.cfg.diff, role: roles.length ? pick(roles) : undefined });
+  const roles = allowedRoles(w).filter(r => !taken.has(r));
+  const b = makePlayer(w, { name: botName(w), bot: true, team, diff: w.cfg.diff, role: roles.length ? pick(roles) : pick(allowedRoles(w)), element: pick(allowedEls(w)) });
   pickStyle(b);
   catchUp(w, b);
   enterWorld(w, b);
@@ -990,7 +1024,7 @@ function setOption(w, key, val) {
   return true;
 }
 function setPointsToWin(w, n) { if (w.match.ph !== 'lobby' || ![3, 5].includes(+n)) return false; w.cfg.pointsToWin = +n; return true; }
-function canStart(w) { return teamCount(w, 'red') > 0 && teamCount(w, 'blue') > 0; }
+function canStart(w) { useMap(w); return MAP.mode === 'conquest' ? w.players.some(p => !p.npc && TEAMS.includes(p.team)) : teamCount(w, 'red') > 0 && teamCount(w, 'blue') > 0; }
 function startMatch(w) {
   useMap(w);
   if (w.match.ph !== 'lobby' || !canStart(w)) return false;
@@ -1002,6 +1036,7 @@ function toLobby(w) {
   const M = w.match;
   M.ph = 'lobby'; M.T = 0; M.rd = 1; M.gm = 1; M.wins = { red: 0, blue: 0 }; M.gw = { red: 0, blue: 0 }; M.picks = 0; M.opening = false; M.rw = null; M.mw = null;
   w.arrows = []; w.pickups = []; w.zones = []; w.cracks = []; useMap(w);
+  w.players = w.players.filter(p => !p.npc); w.cq = null;
   for (const p of w.players) { p.kills = 0; p.deaths = 0; p.amber = 0; p.earned = 0; p.up = []; p.hones = {}; p.offer = null; p.ready = false; p.streak = 0; p.emp = false; p.empPts = 0; placeForRound(w, p); }
   ev(w, { e: 'phase', ph: 'lobby' });
 }
@@ -1013,7 +1048,7 @@ function setInput(w, id, inp) {
   const l = Math.hypot(mx, my); if (l > 1) { mx /= l; my /= l; }
   p.input.mx = mx; p.input.my = my;
   if (Number.isFinite(+inp.aim)) p.input.aim = +inp.aim;
-  if (Number.isFinite(+inp.tx) && Number.isFinite(+inp.ty)) { p.input.tx = clamp(+inp.tx, 0, AW); p.input.ty = clamp(+inp.ty, 0, AH); }
+  if (Number.isFinite(+inp.tx) && Number.isFinite(+inp.ty)) { p.input.tx = clamp(+inp.tx, 0, 6000); p.input.ty = clamp(+inp.ty, 0, 6000); } // (not the arena's size: inputs arrive between steps, for any room)
   p.input.draw = !!inp.draw;
   // a click, even one too quick to show up in draw; clicks outside play (picking a card, the countdown) don't count
   if (inp.dp && w.match.ph === 'play') p.wantThrow = true;
@@ -1041,7 +1076,7 @@ function canTake(p, id) {
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 // three cards: at least one from each of your trees when possible, filled with stackable boosts
 function rollOffer(p, avoid = [], opening = false, noAbil = false) {
-  let all = Object.keys(TREE).filter(id => canTake(p, id));
+  let all = Object.keys(TREE).filter(id => canTake(p, id) && !(p.solo && TEAM_ONLY.includes(id)));
   // the pick right after the opening one has no abilities, so the second slot has to be earned later
   if (noAbil) all = all.filter(id => !TREE[id].active);
   // the opening pick is always a choice between abilities from your role
@@ -1074,7 +1109,7 @@ function takeCard(w, p, id) {
 }
 function choose(w, id, index) {
   const p = w.players.find(q => q.id === id);
-  if (!p || w.match.ph !== 'pick' || !p.offer || p.picked) return false;
+  if (!p || (w.match.ph !== 'pick' && !w.cq) || !p.offer || p.picked) return false;
   const card = p.offer[index | 0];
   if (!card) return false;
   takeCard(w, p, card);
@@ -1113,7 +1148,8 @@ function restyle(p) {
 const CARD_VALUE = { aftershock: -0.024, ambush: -0.022, ballista: -0.049, barbs: -0.026, blinding: -0.039, blink: 0.097, bloodpact: -0.023, bladeguard: 0, blossom: 0.002, bond: 0.009, boomerang: -0.017, boulder: 0.009, bramble: -0.035, burst: -0.04, cloak: -0.045, clone: 0.008, collapse: -0.005, colossus: 0.019, contagion: 0.003, creeping: -0.024, curve: -0.031, dance: -0.015, dash: 0.045, deadeye: 0.063, deathmark: 0.009, deepfreeze: -0.013, deeproots: -0.021, deflect: -0.017, double: -0.035, echo: -0.005, execute: -0.043, execution: -0.012, fanbolt: -0.013, feather: -0.051, fleet: 0.049, flurry: -0.005, forked: 0.016, fortify: -0.022, frenzy: 0.033, frostbite: -0.014, glass: 0.006, grapple: 0, gust: 0.015, hairtrig: 0.014, harpoon: 0.005, heavy: 0, heavybolt: -0.013, hemorrhage: -0.01, horizon: -0.011, inferno: 0.025, lingering: 0.009, longbow: -0.003, longstep: -0.115, longstock: 0.034, nullfield: 0.112, oath: -0.036, obsidian: -0.004, overload: -0.098, parry: 0.019, permafrost: -0.011, petrify: 0.096, phase: 0.022, pierce: 0.015, pin: -0.002, pointblank: -0.004, potent: -0.031, pyre: -0.045, quake: -0.005, quickfeet: -0.008, quickshot: 0.075, railshot: -0.028, rain: 0.003, rally: -0.027, ram: -0.031, recall: 0.007, recoil: -0.063, repeater: 0.128, revive: -0.019, ricochet: 0.017, riot: -0.003, rush: 0.051, scatter: 0.058, seeker: -0.016, shadowdash: -0.077, sharpstar: -0.004, shatter: -0.027, smoke: -0.001, snare: -0.033, split: 0.057, spot: -0.026, sstrike: -0.028, stance: 0.017, static: 0.081, steady: 0.079, stealth: -0.027, surefoot: 0.003, swiftstep: 0.062, terror: -0.008, thirdstep: 0.009, totem: -0.032, toxic: 0.027, transfusion: -0.012, trap: 0.022, trick: 0.026, twinload: 0.108, unstable: -0.035, virulent: 0.015, vital: -0.038, volley: 0.052, wall: 0.007, wildfire: -0.007, windlass: 0.076 };
 // bots: capstones first, then abilities, cards that suit their playstyle, anything that builds toward one; boosts last.
 // Smart bots (Master, and AI players near it) mostly go by what the learning showed actually wins.
-const TEAM_ONLY = ['oath', 'revive', 'transfusion', 'contagion']; // cards that do nothing without teammates (yours or theirs)
+// cards that do nothing without teammates (yours or theirs): never offered in a 1v1, and bots on their own skip them
+const TEAM_ONLY = ['oath', 'revive', 'transfusion', 'contagion', 'aftershock', 'forked'];
 function botPickIndex(p, w) {
   if (p.gene && p.gene.randPick) return Math.floor(Math.random() * p.offer.length); // exploring, for learning what works
   const st = STYLES[p.ai && p.ai.style], iq = p.gene && p.gene.noLearn ? 0 : botD(p).iq || 0;
@@ -1126,8 +1162,14 @@ function botPickIndex(p, w) {
 }
 function startPick(w) {
   const M = w.match;
+  if (OPT('upg') === 2) { // upgrades off: straight on to the next round
+    for (const p of w.players) { p.offer = null; p.picked = true; }
+    return finishPick(w);
+  }
   M.ph = 'pick'; M.T = TIMES.pick;
+  const solo = teamCount(w, 'red') <= 1 && teamCount(w, 'blue') <= 1; // a 1v1: no cards that need teammates
   for (const p of w.players) {
+    p.solo = solo;
     p.picked = false; p.offer = rollOffer(p, [], M.opening, !M.opening && M.picks === 1);
     // bots take a moment to "read" the cards, like a person would: quicker the better they are
     if (p.bot) { const iq = botD(p).iq || 0; p.botPickAt = w.t + rand(1, 3) + rand(0, 5) * (1 - iq); }
@@ -1147,10 +1189,31 @@ function finishPick(w) {
   M.gm = 1; M.gw = { red: 0, blue: 0 };
   startPre(w);
 }
+// Custom games: the host can take elements and roles out of the game (w.cfg.ban). At least one of each stays allowed.
+const isBanned = (w, key) => !!(w.cfg.ban && w.cfg.ban.includes(key));
+const allowedEls = w => Object.keys(ELEMENTS).filter(k => !isBanned(w, k));
+const allowedRoles = w => Object.keys(ROLES).filter(k => !isBanned(w, k));
+function fixBanned(w, p) {
+  let changed = false;
+  if (isBanned(w, p.element)) { p.element = pick(allowedEls(w)); changed = true; }
+  if (isBanned(w, p.role)) { p.role = pick(allowedRoles(w)); changed = true; }
+  if (changed) { if (w.match.ph === 'lobby') p.up = []; applyStats(p); ev(w, { e: 'loadout', id: p.id, el: p.element, ro: p.role }); }
+}
+function setBans(w, list) {
+  if (w.match.ph !== 'lobby') return false;
+  let ban = [...new Set((Array.isArray(list) ? list : []).map(String).filter(k => ELEMENTS[k] || ROLES[k]))];
+  if (Object.keys(ELEMENTS).every(k => ban.includes(k))) ban = ban.filter(k => !ELEMENTS[k]);
+  if (Object.keys(ROLES).every(k => ban.includes(k))) ban = ban.filter(k => !ROLES[k]);
+  w.cfg.ban = ban;
+  for (const p of w.players) if (!p.npc) fixBanned(w, p);
+  ev(w, { e: 'bans', ban: ban.slice() });
+  return true;
+}
 function setLoadout(w, id, element, role) {
   const p = w.players.find(q => q.id === id);
   if (!p || (w.match.ph !== 'lobby' && p.up.length)) return false;
   if (isLocked(element) || isLocked(role)) return false;
+  if (isBanned(w, element) || isBanned(w, role)) return false;
   if (ELEMENTS[element]) p.element = element;
   if (ROLES[role]) p.role = role;
   p.up = w.match.ph === 'lobby' ? [] : [p.element];
@@ -1176,8 +1239,12 @@ function placeForRound(w, p) {
   const team = members(w, p.team).sort((a, b) => (a.bot - b.bot) || (a.id < b.id ? -1 : 1));
   const s = SPAWNS[p.team][Math.max(0, team.indexOf(p)) % 4];
   applyStats(p);
+  freshBody(p, s.x, s.y);
+}
+// a clean start at (x, y): full health, no effects, nothing armed
+function freshBody(p, x, y) {
   Object.assign(p, {
-    x: s.x, y: s.y, vx: 0, vy: 0, hp: p.maxHp, dead: false, falling: 0, stuck: 0, burn: 0, slow: 0,
+    x, y, vx: 0, vy: 0, hp: p.maxHp, dead: false, falling: 0, stuck: 0, burn: 0, slow: 0,
     frozen: 0, frostN: 0, frostT: 0, dashLock: 0, snare: false, grap: null, over: 0, poisonN: 0, poisonT: 0, bleedT: 0, bleedBy: null, burnDps: 5, quickT: 0, disarm: 0, poisonBy: null, contT: 0,
     knock: 0, inv: 0, dashT: 0, dashCd: 0, dashN: p.dashMaxN, charge: 0, drawing: false, thr: 0, tdx: 0, tdy: 0,
     lastHitBy: null, lastHitT: -99, lastCause: '', killedBy: null, pw: emptyPowers(), wantDash: false, lastHurtT: -99, pinT: 0, pinned: 0, dashK: 1,
@@ -1185,7 +1252,7 @@ function placeForRound(w, p) {
     windT: 0, parryT: 0, focusT: 0, riposteT: 0, riposteUsed: false, parryRefunded: false, sawCd: 0, bumpCd: 0, portCd: 0, fortT: 0, phaseT: 0, shroudT: 0, blinkGap: 0, caltT: 0, rush: null, nblink: null, trickArmed: false, throwCd: 0, wasDraw: false, bolts: null, reloadT: 0, repeatT: 0, fanArmed: false, autoT: 0, parryAuto: false, wantThrow: false, throwQ: 0, nockT: 0, strikeN: 0, strikeT: 0, markPos: null, staggerT: 0, markT: 0, stealthT: 0, ambushT: 0, markReady: 0, slowK: 0.5, fallCause: 'pit', coat: {},
     abCd: [0, 0], wantAb: [false, false], reviveUsed: false, revT: 0, revOf: null, revP: 0,
   });
-  p.aim = Math.atan2(AH / 2 - s.y, AW / 2 - s.x);
+  p.aim = Math.atan2(AH / 2 - y, AW / 2 - x);
   p.input.draw = false;
 }
 function startPre(w) {
@@ -1279,6 +1346,8 @@ function resetMatch(w) {
   for (const p of w.players) if (p.bot && !p.aiUser) pickStyle(p); // a fresh mood each match (matchmaking's AI players keep their own personality)
   for (const p of w.players) { p.kills = 0; p.deaths = 0; p.amber = 0; p.earned = 0; p.up = [p.element]; p.hones = {}; p.offer = null; p.picked = false; p.ready = false; p.streak = 0; p.emp = false; p.empPts = 0; p.stats = { shots: 0, hits: 0, dmg: 0, taken: 0, ring: 0, longest: 0 }; applyStats(p); }
   ev(w, { e: 'matchStart' });
+  if (MAP.mode === 'conquest') return cqStart(w); // Strongholds: straight to the countdown, NPCs at their posts
+  w.cq = null;
   // everyone makes one opening pick before round 1
   for (const p of w.players) placeForRound(w, p);
   M.opening = true;
@@ -1296,6 +1365,7 @@ function afterPost(w) {
 }
 function alive(w, team) { return members(w, team).filter(p => !p.dead).length; }
 function checkRoundEnd(w) {
+  if (w.cq) return; // Strongholds has no rounds: the knocked out come back
   const r = alive(w, 'red'), b = alive(w, 'blue');
   if (r && b) return;
   endRound(w, r ? 'red' : b ? 'blue' : null);
@@ -1406,8 +1476,16 @@ function howKilled(f, cause) {
 }
 function kill(w, f, cause) {
   if (f.dead) return;
+  if (f.npc) { // an NPC: out until its stronghold sends it back; whoever did it gets the credit
+    f.dead = true; f.hp = 0; f.falling = 0; f.drawing = false; f.charge = 0; f.npc.wind = null; f.npc.charge = null; f.npc.deadT = 0;
+    const k = f.lastHitBy && w.t - f.lastHitT < 5 ? w.players.find(q => q.id === f.lastHitBy && !q.npc) : null;
+    if (k) { k.stats.npc = (k.stats.npc || 0) + 1; if (LETHAL[cause]) k.stats.ring++; }
+    ev(w, { e: 'kill', k: k ? k.id : null, kn: k ? k.name : null, kc: k ? k.color : null, v: f.id, vn: f.name, vc: f.color, vt: f.team, c: cause, how: howKilled(f, cause), x: r1(f.x), y: r1(f.y), npc: 1 });
+    return;
+  }
   const left = Math.max(0, f.hp); // health lost to a pit or other instant knockout still counts as damage
   f.dead = true; f.hp = 0; f.deaths++;
+  if (w.cq) f.respAt = w.t + CQ.RESPAWN;
   f.stats.taken += left;
   f.drawing = false; f.charge = 0; f.over = 0; f.falling = 0; f.lastCause = cause; f.grap = null; f.revP = 0; f.nblink = null;
   let killer = null;
@@ -1466,6 +1544,7 @@ function kill(w, f, cause) {
 }
 
 function fire(w, p, ang, c, burst, vol) {
+  p.shotAt = w.t;
   // Volley: the armed shot becomes the first of three; landing all three on one enemy refreshes it
   if (!burst && p.volleyArmed) {
     p.volleyArmed = false; burst = 1; vol = { hits: {} };
@@ -1551,7 +1630,22 @@ function collideWorld(w, f) {
   if (f.y < minY) { const s = -f.vy; f.y = minY; f.vy = Math.abs(f.vy) * 0.35; impact(w, f, s, 'top', f.x); tryPin(w, f, s); }
   if (f.y > maxY) { const s = f.vy; f.y = maxY; f.vy = -Math.abs(f.vy) * 0.35; impact(w, f, s, 'bottom', f.x); tryPin(w, f, s); }
   if (f.dead) return;
+  for (const b of BLOCKS) {
+    // the nearest point of the wall; inside it, push out the shortest way
+    const cx = clamp(f.x, b.x, b.x + b.w), cy = clamp(f.y, b.y, b.y + b.h), dx = f.x - cx, dy = f.y - cy, d = Math.hypot(dx, dy);
+    if (d >= f.r) continue;
+    let nx, ny, pen;
+    if (d > 0.001) { nx = dx / d; ny = dy / d; pen = f.r - d; }
+    else { // centre inside the wall
+      const l = f.x - b.x, r = b.x + b.w - f.x, t = f.y - b.y, bt = b.y + b.h - f.y, m = Math.min(l, r, t, bt);
+      [nx, ny] = m === l ? [-1, 0] : m === r ? [1, 0] : m === t ? [0, -1] : [0, 1]; pen = m + f.r;
+    }
+    f.x += nx * pen; f.y += ny * pen;
+    const vn = f.vx * nx + f.vy * ny;
+    if (vn < 0) { f.vx -= 1.35 * vn * nx; f.vy -= 1.35 * vn * ny; impact(w, f, -vn, null, 0); tryPin(w, f, -vn); }
+  }
   for (const p of PILLARS) {
+    if (p.tower && f.elev) continue; // an archer on a tower stands on it
     const dx = f.x - p.x, dy = f.y - p.y, d = Math.hypot(dx, dy), m = p.r + f.r;
     if (d < m) {
       const nx = dx / (d || 1), ny = dy / (d || 1);
@@ -1565,7 +1659,7 @@ function collideWorld(w, f) {
 // Movement feel: air-hockey style thrust and drag.
 // Holding a direction builds "throttle" gradually, throttle pushes you along, drag caps your speed.
 // Letting go cuts the push but keeps most of the momentum, so you glide to a stop.
-const MOVE = {
+const MOVE_BASE = {
   rampUp: 1.1,     // seconds for throttle to build from 0 to full while a key is held (the slow first steps)
   rampDown: 0.2,   // seconds for throttle to fade after letting go
   drag: 2.2,       // drag at full throttle; with rampUp this sets ~2s from still to top speed
@@ -1579,6 +1673,16 @@ const MOVE = {
   dashDrag: 5,     // how fast the dash burst fades
   dashTime: 0.34,  // seconds of dash (you clear pits during this)
 };
+// the Movement feel rule: changes to the above. Top speed is the same in all of them (it's push ÷ drag); what changes
+// is how quickly you get going, turn and stop.
+const MOVE_FEEL = {
+  1: {},                                                                                            // glide: the standard
+  2: { rampUp: 0.45, rampDown: 0.12, drag: 3.2, glide: 3.2, brake: 12, turnRate: 18 },              // snappy
+  3: { rampUp: 1.5, rampDown: 0.3, drag: 1.8, glide: 0.8, brake: 3.5, turnRate: 6 },                // drifty
+  4: { rampUp: 0.08, rampDown: 0.06, drag: 9, glide: 14, brake: 30, turnRate: 40 },                  // direct: no glide at all
+};
+const MOVE_PROFILES = Object.fromEntries(Object.entries(MOVE_FEEL).map(([k, v]) => [k, Object.assign({}, MOVE_BASE, v)]));
+let MOVE = MOVE_PROFILES[1];
 
 // Blood Frenzy: the lower your health, the faster you draw (up to 60% near death)
 const MIN_DRAW = 0.25, NOCK = 0.3, NOCK_SNIPER = 0.45; // bows: the least draw that fires, and the pause before the next draw can start
@@ -1630,7 +1734,7 @@ function stepBody(w, f, mx, my, dt) {
     return; // in the air: no hazards, no bumping into things
   }
   let sp = f.speed;
-  if (f.drawing) sp *= 0.55;
+  if (f.drawing) sp *= f.role === 'ranger' ? 0.7 : 0.55; // the Ranger keeps more of its speed while drawing
   if (f.slow > 0) sp *= f.sure ? 0.85 : (f.slowK || 0.5); // frost
   if (f.riftSlow > 0) { f.riftSlow -= dt; sp *= f.sure ? 0.9 : 0.7; }
   if (f.caltT > 0) { f.caltT -= dt; sp *= f.sure ? 0.85 : 0.6; } // Caltrops
@@ -1812,9 +1916,9 @@ function updatePlayer(w, p, dt) {
     p.hp = Math.min(p.maxHp, p.hp + HEAL.rate * dt * (p.poisonT > 0 ? 0.5 : 1)); p.healing = true;
   }
   // Revive: stand over a knocked-out teammate
-  if (has(p, 'revive') && !p.reviveUsed && w.match.ph === 'play') {
+  if (((has(p, 'revive') && !p.reviveUsed) || (w.cq && !p.npc)) && w.match.ph === 'play') {
     // progress builds while you're close and drains (rather than resetting) if you drift off
-    const t = w.players.find(q => q.team === p.team && q.dead && q.lastCause !== 'join' && q.lastCause !== 'switch' && Math.hypot(q.x - p.x, q.y - p.y) < 56);
+    const t = w.players.find(q => q.team === p.team && !q.npc && q.dead && q.lastCause !== 'join' && q.lastCause !== 'switch' && Math.hypot(q.x - p.x, q.y - p.y) < 56);
     if (t && p.revOf !== t.id) { p.revOf = t.id; p.revT = 0; }
     if (t) p.revT += dt; else p.revT = Math.max(0, p.revT - dt * 2);
     const tgt = w.players.find(q => q.id === p.revOf);
@@ -1822,7 +1926,7 @@ function updatePlayer(w, p, dt) {
     if (t && p.revT >= 3) {
       Object.assign(t, { dead: false, hp: t.maxHp * 0.5, inv: 1, vx: 0, vy: 0, falling: 0, stuck: 0, burn: 0, slow: 0, knock: 0,
         frozen: 0, grap: null, lastHitBy: null, lastCause: '', killedBy: null, revP: 0, thr: 0 });
-      p.reviveUsed = true; p.revT = 0; p.revOf = null;
+      if (!w.cq) p.reviveUsed = true; p.revT = 0; p.revOf = null; t.respAt = null; p.stats.rev = (p.stats.rev || 0) + 1;
       ev(w, { e: 'revive', id: t.id, n: t.name, by: p.id, bn: p.name, x: r1(t.x), y: r1(t.y) });
     }
   }
@@ -1859,6 +1963,7 @@ function ninjaBlink(w, p) {
 const THROW_CD = 0.36;
 // one shuriken (or a spread with the Multishot powerup); weaker than an arrow, no charging
 function throwStar(w, p, ang, auto) {
+  p.shotAt = w.t;
   if (p.stealthT > 0) breakStealth(w, p);
   const dbl = p.strikeN > 0; if (dbl) p.strikeN--;
   const dmg = 6 * (p.dmgMul || 1) * (has(p, 'sharpstar') ? 1.25 : 1) * (dbl ? 1.75 : 1) * (auto ? 0.5 : 1);
@@ -2449,7 +2554,7 @@ function onArrowEffects(w, a, f, primary) {
 const BULLSEYE = 0.4, CRIT_MUL = 1.5;
 // a pin needs a full-draw hit, then a slam into a wall or boulder within PIN_WINDOW seconds at PIN_SPEED or faster
 const NB_WIND = 0.05, NB_MOVE = 0.09; // Ninja blink: wind-up, then travel time
-const ASSIST_LANE = 220, ASSIST_RAMP = 600; // aim assist: how far either side of your line of fire it looks for a target (at any range), and the distance over which its turning ramps up
+const ASSIST_LANE = 220, ASSIST_RAMP = 600; // arrow homing: how far either side of your line of fire it looks for a target (at any range), and the distance over which its turning ramps up
 const XBOW_RANGE = 480, XBOW_RELOAD = 1.15, XBOW_GAP = 0.16, AUTO_TIME = 2, AUTO_GAP = 0.12;
 // how far a player's shots reach before dropping, for roles with a short range (null: the whole arena)
 // (shuriken: 1050px/s slowed by drag 2.4 over their 0.45s life, about 0.275s worth of full speed)
@@ -2587,7 +2692,7 @@ function updateArrows(w, dt) {
         a.vx = Math.cos(h + turn) * sp; a.vy = Math.sin(h + turn) * sp;
       }
     }
-    // Aim assist (custom rule): the moment the shot leaves the bow it picks the enemy nearest its straight line of fire
+    // Arrow homing (custom rule): the moment the shot leaves the bow it picks the enemy nearest its straight line of fire
     // (ahead of it, at any distance, no more than ASSIST_LANE px to the side), then bends only toward them for the rest of
     // its flight. It never switches to someone else it passes.
     const assist = OPTIONS.assist.values[(CFG.opt || {}).assist] || 0;
@@ -2650,7 +2755,15 @@ function updateArrows(w, dt) {
         if (a.bounces > 0) { a.bounces--; a.vy *= -1; ev(w, { e: 'ping', x: r1(a.x), y: r1(a.y), tk: a.trick ? 1 : 0 }); if (a.trick) { a.dmg *= 1.25; a.kb *= 1.1; } }
         else { stickArrow(w, a, 4); continue outer; }
       }
+      const blk = BLOCKS.length ? BLOCKS.find(b => a.x > b.x && a.x < b.x + b.w && a.y > b.y && a.y < b.y + b.h) : null;
+      if (blk) { // a castle wall: bounce off it (ricochet) or stick in it
+        const px = a.x - a.vx * sdt, py = a.y - a.vy * sdt, side = px <= blk.x || px >= blk.x + blk.w;
+        a.x = px; a.y = py;
+        if (a.bounces > 0) { a.bounces--; if (side) a.vx *= -1; else a.vy *= -1; ev(w, { e: 'ping', x: r1(a.x), y: r1(a.y), tk: a.trick ? 1 : 0 }); }
+        else { stickArrow(w, a, 3); continue outer; }
+      }
       for (const p of PILLARS) {
+        if (p.tower) continue; // arrows fly over a tower (and can hit the archer on it)
         const dx = a.x - p.x, dy = a.y - p.y, d = Math.hypot(dx, dy);
         if (d < p.r) {
           const nx = dx / (d || 1), ny = dy / (d || 1);
@@ -2746,7 +2859,7 @@ function updateArrows(w, dt) {
     const drag = Math.exp(-a.drag * dt);
     a.vx *= drag; a.vy *= drag;
     a.life -= dt;
-    if (a.maxDist && a.dist >= a.maxDist && !(a.stuck > 0)) { a.life = 0; ev(w, { e: 'drop', x: r1(a.x), y: r1(a.y) }); }
+    if (((a.maxDist && a.dist >= a.maxDist) || (w.cq && a.dist >= CQ.RANGE)) && !(a.stuck > 0)) { a.life = 0; ev(w, { e: 'drop', x: r1(a.x), y: r1(a.y) }); }
     if (a.life <= 0 || Math.hypot(a.vx, a.vy) < 170) {
       a.stuck = 1.2; a.vx = a.vy = 0;
       if (a.own && a.own.emp && a.own.element === 'flame' && !a.own.dead) blazePatch(w, a.own, a.x, a.y, 32, 2.2);
@@ -2769,7 +2882,7 @@ function spawnAmberPair(w) {
   const [y0, y1] = MAP.amberY;
   for (let t = 0; t < 30; t++) {
     const y = rand(y0, y1);
-    const spots = [{ x: CENTER_X, y }, { x: CENTER_X, y: AH - y }];
+    const spots = [{ x: AW / 2, y }, { x: AW / 2, y: AH - y }];
     if (!spots.every(s => amberSpotFree(s.x, s.y))) continue;
     if (spots.some(s => w.pickups.some(u => Math.hypot(u.x - s.x, u.y - s.y) < 60))) continue;
     for (const s of spots) {
@@ -2830,7 +2943,7 @@ function updatePickups(w, dt) {
   w.amberT -= dt; w.puT -= dt;
   w.chT = (w.chT == null ? 20 : w.chT) - dt;
   if (w.chT <= 0) { w.chT = rand(30, 40); spawnChannel(w); }
-  if (w.amberT <= 0) { w.amberT = rand(3.5, 5); if (w.pickups.filter(u => u.type === 'amber').length < 6) spawnAmberPair(w); }
+  if (w.amberT <= 0 && !w.cq) { w.amberT = rand(3.5, 5); if (w.pickups.filter(u => u.type === 'amber').length < 6) spawnAmberPair(w); }
   if (w.puT <= 0) { w.puT = rand(12, 16); spawnCenterPower(w); }
   for (let i = w.pickups.length - 1; i >= 0; i--) {
     const u = w.pickups[i];
@@ -2872,9 +2985,22 @@ function lethalDist(x, y) {
   }
   return m;
 }
+// does the segment cross a castle wall? (slab test)
+function segHitsBlock(x1, y1, x2, y2, pad) {
+  for (const b of BLOCKS) {
+    let t0 = 0, t1 = 1; const dx = x2 - x1, dy = y2 - y1, ok = [[-dx, x1 - (b.x - pad)], [dx, b.x + b.w + pad - x1], [-dy, y1 - (b.y - pad)], [dy, b.y + b.h + pad - y1]].every(([p, q]) => {
+      if (Math.abs(p) < 1e-9) return q >= 0;
+      const r = q / p; if (p < 0) { if (r > t1) return false; if (r > t0) t0 = r; } else { if (r < t0) return false; if (r < t1) t1 = r; } return true;
+    });
+    if (ok) return true;
+  }
+  return false;
+}
 function clearShot(x1, y1, x2, y2) {
+  if (BLOCKS.length && segHitsBlock(x1, y1, x2, y2, 4)) return false;
   const dx = x2 - x1, dy = y2 - y1, L2 = dx * dx + dy * dy || 1;
   for (const p of PILLARS) {
+    if (p.tower) continue;
     const t = clamp(((p.x - x1) * dx + (p.y - y1) * dy) / L2, 0, 1);
     if (Math.hypot(x1 + dx * t - p.x, y1 + dy * t - p.y) < p.r + 5) return false;
   }
@@ -3383,6 +3509,430 @@ function botAbilities(w, p, T, dT, foes, dt) {
 }
 
 // ---------------- step ----------------
+// ================= Strongholds: a big map of four castles held by NPCs =================
+// Each team starts in its camp on its own side of a wide river; the river is crossed by three bridges. On each side are
+// two strongholds, each a walled keep in its own biome with a village around it, all held by NPCs: guards at the doors,
+// patrols in the village, archers on the towers and a captain in the throne room. Clear the throne room and stand in it,
+// alone, to capture a stronghold: its NPCs then fight for you, a chest of upgrades opens for your team, and it earns a
+// point a second. First to CQ.TARGET points, or holding all four at once, wins. Knocked-out archers can be revived by any
+// teammate, or come back after CQ.RESPAWN seconds at their nearest held stronghold or camp. Under a tree you can't be
+// seen from further than CQ.PEEK, and shots only fly CQ.RANGE, about as far as you can see, so nobody is hit from off
+// screen. Everything walks at normal speed here: the map is big, and the pace is meant to be slower.
+const CQ = { W: 4800, H: 3200, TARGET: 600, RESPAWN: 8, CAP_T: 10, RANGE: 1000, ZONE_R: 80, NEUTRAL_BACK: 30, REINFORCE: 15, PEEK: 70, HIDE_AFTER: 1.5, REVIVE_T: 3, CHEST_R: 46 };
+const BIOMES = {
+  castle: { name: 'Castle Greyhold', faction: 'Greyhold Guard', water: true, npc: { guard: 'Man-at-arms', sentry: 'Gate warden', archer: 'Longbowman', turret: 'Tower archer', patrol: 'Watchman', captain: 'Sir Aldric' } },
+  jungle: { name: 'Vine Temple', faction: 'Temple Wardens', water: true, npc: { guard: 'Temple warden', sentry: 'Root guard', archer: 'Vine archer', turret: 'Lookout', patrol: 'Hunter', captain: 'High Warden' } },
+  beach:  { name: 'Coral Fort', faction: 'Tide Corsairs', water: true, npc: { guard: 'Corsair', sentry: 'Deckhand', archer: 'Marksman', turret: 'Crow\'s nest', patrol: 'Beachcomber', captain: 'Captain Morrow' } },
+  desert: { name: 'Sun Citadel', faction: 'Dune Guard', water: false, npc: { guard: 'Dune guard', sentry: 'Gatekeeper', archer: 'Sun archer', turret: 'Minaret archer', patrol: 'Caravan guard', captain: 'The Vizier' } },
+};
+const NPC_KINDS = {
+  guard:   { hp: 90, speed: 0.72, r: 17, mass: 1.15, role: 'juggernaut', aggro: 300, leash: 420 },
+  sentry:  { hp: 80, speed: 0.72, r: 17, mass: 1.1, role: 'juggernaut', aggro: 280, leash: 320 },
+  patrol:  { hp: 80, speed: 0.62, r: 17, mass: 1.1, role: 'juggernaut', aggro: 320, leash: 700 },
+  archer:  { hp: 60, speed: 0.6, r: 16, mass: 1, role: 'ranger', aggro: 720, leash: 60 },
+  turret:  { hp: 70, speed: 0.6, r: 16, mass: 1.6, role: 'ranger', aggro: 820, leash: 10, elev: true },
+  captain: { hp: 260, speed: 0.8, r: 22, mass: 1.9, role: 'juggernaut', aggro: 380, leash: 330 },
+};
+// walls round a rectangle, T thick, with doorways: gaps are { side: 'n'|'s'|'e'|'w', at, w } (at: x for n/s, y for e/w)
+function wallRect(out, x0, y0, x1, y1, T, gaps, tag) {
+  const cut = (side, a, b, fixed, horiz) => {
+    const gs = (gaps || []).filter(g => g.side === side).sort((p, q) => p.at - q.at);
+    let s = a;
+    for (const g of gs) { const g0 = g.at - g.w / 2, g1 = g.at + g.w / 2; if (g0 > s) out.push(horiz ? { x: s, y: fixed, w: g0 - s, h: T } : { x: fixed, y: s, w: T, h: g0 - s }); s = g1; }
+    if (b > s) out.push(horiz ? { x: s, y: fixed, w: b - s, h: T } : { x: fixed, y: s, w: T, h: b - s });
+  };
+  const n0 = out.length;
+  cut('n', x0, x1, y0, true); cut('s', x0, x1, y1 - T, true);
+  cut('w', y0 + T, y1 - T, x0, false); cut('e', y0 + T, y1 - T, x1 - T, false);
+  for (let i = n0; i < out.length; i++) Object.assign(out[i], tag);
+}
+function buildStrongholds() {
+  const haz = [], pillars = [], blocks = [], holds = [], trees = [], torches = [], build = [];
+  const W = CQ.W, H = CQ.H;
+  // ---- the river, winding north to south through the middle, with three bridges (gaps in it)
+  const wavy = y => 2400 + 300 * Math.sin((y + 200) / 520) + 110 * Math.sin(y / 170 + 1);
+  const BRIDGES = [640, 1600, 2560], RR = 125;
+  // the river runs straight for a stretch either side of each bridge, so the bridge meets it square on
+  const riverX = y => { let x = wavy(y); for (const b of BRIDGES) { const k = clamp(1 - (Math.abs(y - b) - 220) / 320, 0, 1), e = k * k * (3 - 2 * k); x += (wavy(b) - x) * e; } return x; };
+  for (let y = -60; y <= H + 60; y += 26) {
+    if (BRIDGES.some(b => Math.abs(y - b) < 220 + RR)) continue;
+    haz.push({ type: 'pit', shape: 'circle', x: riverX(y), y, r: RR, water: true, river: true });
+  }
+  // straight banks either side of each bridge, and a square gap for it
+  for (const b of BRIDGES) { const x = riverX(b) - RR; haz.push({ type: 'pit', shape: 'rect', x, y: b - 220 - RR, w: 2 * RR, h: 220 + RR - 60, water: true, river: true }); haz.push({ type: 'pit', shape: 'rect', x, y: b + 60, w: 2 * RR, h: 220 + RR - 60, water: true, river: true }); }
+  const bridges = BRIDGES.map(y => ({ x: riverX(y), y, w: 120, len: 2 * RR + 30, v: false }));
+  // ---- the sea, along the south-west, and a bay up the west edge below red's camp
+  const sea = [{ shape: 'rect', x: -100, y: 2760, w: 1750, h: 600 }, { shape: 'rect', x: -100, y: 2200, w: 380, h: 700 }];
+  for (const [x, y, r] of [[1640, 2900, 160], [1600, 3100, 220], [300, 2200, 150], [420, 2450, 120], [560, 2800, 170], [1500, 2760, 110]]) sea.push({ shape: 'circle', x, y, r });
+  for (const s of sea) haz.push(Object.assign({ type: 'pit', water: true, river: true, sea: true }, s));
+  // ---- helpers for each stronghold, in its own frame (fx, fy flip x and y so the front faces the river)
+  function place(cx, cy, fx, fy) {
+    const P = (x, y) => ({ x: cx + fx * x, y: cy + fy * y });
+    const R = (x0, y0, x1, y1) => { const a = P(x0, y0), b = P(x1, y1); return { x: Math.min(a.x, b.x), y: Math.min(a.y, b.y), w: Math.abs(a.x - b.x), h: Math.abs(a.y - b.y) }; };
+    const side = s => { if (fx < 0 && (s === 'e' || s === 'w')) return s === 'e' ? 'w' : 'e'; if (fy < 0 && (s === 'n' || s === 's')) return s === 'n' ? 's' : 'n'; return s; };
+    return { P, R, side };
+  }
+  function hold(i, bio, cx, cy, fx, fy, def) {
+    const F = place(cx, cy, fx, fy), B = BIOMES[bio], tag = { bio, sh: i };
+    const rooms = [];
+    // walls: each room is [x0, y0, x1, y1, T, gaps]
+    for (const [x0, y0, x1, y1, T, gaps] of def.rooms) {
+      const r = F.R(x0, y0, x1, y1);
+      const gs = (gaps || []).map(g => ({ side: F.side(g.side), at: g.side === 'n' || g.side === 's' ? F.P(g.at, 0).x : F.P(0, g.at).y, w: g.w }));
+      wallRect(blocks, r.x, r.y, r.x + r.w, r.y + r.h, T, gs, tag);
+      rooms.push(r);
+    }
+    for (const [x, y, w, h] of def.walls || []) blocks.push(Object.assign(F.R(x, y, x + w, y + h), tag));
+    for (const [x, y, r] of def.towers) { const q = F.P(x, y); pillars.push({ x: q.x, y: q.y, r, tower: true, bio }); }
+    for (const [x, y, w, h, kind] of def.buildings || []) { const r = F.R(x, y, x + w, y + h); blocks.push(Object.assign(r, tag, { bld: kind })); build.push(Object.assign({ kind, bio }, r)); }
+    for (const [x, y, r, kind] of def.pillars || []) { const q = F.P(x, y); pillars.push({ x: q.x, y: q.y, r, bio, kind }); }
+    for (const h of def.haz || []) { const q = F.P(h.x, h.y); haz.push(Object.assign({}, h, { x: h.shape === 'rect' ? Math.min(q.x, F.P(h.x + h.w, 0).x) : q.x, y: h.shape === 'rect' ? Math.min(q.y, F.P(0, h.y + h.h).y) : q.y, bio })); }
+    for (const [x, y, r] of def.trees || []) { const q = F.P(x, y); trees.push({ x: q.x, y: q.y, r, bio }); }
+    for (const [x, y] of def.torches || []) { const q = F.P(x, y); torches.push({ x: q.x, y: q.y, bio }); }
+    for (const [x, y, v] of def.bridges || []) { const q = F.P(x, y); bridges.push({ x: q.x, y: q.y, w: 100, len: 110, v }); }
+    const posts = def.posts.map(p => { const q = F.P(p.x, p.y); return Object.assign({}, p, { x: q.x, y: q.y, path: p.path ? p.path.map(([px, py]) => F.P(px, py)) : undefined }); });
+    const throne = F.P(def.throne[0], def.throne[1]), chest = F.P(def.chest[0], def.chest[1]), spawn = F.P(def.spawn[0], def.spawn[1]);
+    const bb = rooms[0];
+    holds.push({ i, bio, name: B.name, x: throne.x, y: throne.y, cx, cy, x0: bb.x, y0: bb.y, x1: bb.x + bb.w, y1: bb.y + bb.h, posts, chest, spawn, label: F.P(def.label[0], def.label[1]) });
+  }
+  const T = 24;
+  // ---- Castle Greyhold (north-west): a curtain wall with a moat, a keep, a great hall and stables inside, a village south
+  hold(0, 'castle', 1150, 850, 1, 1, {
+    rooms: [
+      [-400, -300, 400, 300, T, [{ side: 'e', at: 0, w: 110 }, { side: 's', at: -150, w: 100 }]],  // the bailey
+      [-270, -250, 70, -30, 20, [{ side: 's', at: -100, w: 70 }]],                                  // the keep (throne room)
+      [110, -250, 380, -60, 20, [{ side: 'w', at: -150, w: 70 }]],                                  // the great hall
+      [-390, 60, -200, 280, 20, [{ side: 'n', at: -295, w: 70 }]],                                  // the stables
+    ],
+    towers: [[-400, -300, 38], [400, -300, 38], [-400, 300, 38], [400, 300, 38], [400, -95, 30], [400, 95, 30], [350, 560, 26]],
+    haz: [
+      { type: 'pit', shape: 'rect', x: -500, y: -400, w: 1000, h: 60, water: true, moat: true }, { type: 'pit', shape: 'rect', x: -500, y: 340, w: 290, h: 60, water: true, moat: true }, { type: 'pit', shape: 'rect', x: -90, y: 340, w: 590, h: 60, water: true, moat: true },
+      { type: 'pit', shape: 'rect', x: -500, y: -340, w: 60, h: 680, water: true, moat: true }, { type: 'pit', shape: 'rect', x: 440, y: -340, w: 60, h: 280, water: true, moat: true }, { type: 'pit', shape: 'rect', x: 440, y: 60, w: 60, h: 280, water: true, moat: true },
+      { type: 'pit', shape: 'circle', x: 250, y: 180, r: 34 }, { type: 'tar', shape: 'circle', x: -20, y: 170, r: 40 },
+    ],
+    buildings: [[-330, 470, 90, 70, 'house'], [-160, 500, 90, 70, 'house'], [40, 460, 100, 70, 'house'], [220, 520, 90, 70, 'house'], [-60, 640, 130, 90, 'chapel'], [-440, 620, 80, 60, 'house']],
+    pillars: [[-20, 560, 14, 'well'], [130, 620, 20], [-230, 440, 18]],
+    bridges: [[470, 0, false], [-150, 370, true]],
+    trees: [[-560, 480, 55], [-600, 700, 60], [520, 420, 50], [560, 640, 58], [-300, 760, 52], [260, 740, 55], [480, 760, 48]],
+    torches: [[400, -60], [400, 60], [-120, 300], [-180, 300], [-100, -30], [-40, -30], [-160, -30], [110, -150]],
+    posts: [
+      { k: 'captain', x: -100, y: -140 }, { k: 'guard', x: -100, y: 0 }, { k: 'guard', x: 330, y: 0 }, { k: 'guard', x: -150, y: 240 }, { k: 'guard', x: 245, y: -150 },
+      { k: 'archer', x: 250, y: -200 }, { k: 'archer', x: -320, y: -10 },
+      { k: 'turret', x: -400, y: -300 }, { k: 'turret', x: 400, y: -300 }, { k: 'turret', x: -400, y: 300 }, { k: 'turret', x: 400, y: 300 }, { k: 'turret', x: 400, y: -95 }, { k: 'turret', x: 400, y: 95 }, { k: 'turret', x: 350, y: 560 },
+      { k: 'sentry', x: 540, y: 0 }, { k: 'sentry', x: -150, y: 440 },
+      { k: 'patrol', x: -280, y: 580, path: [[-280, 580], [-100, 600], [120, 560], [300, 620], [100, 700], [-200, 700]] },
+      { k: 'patrol', x: 180, y: 450, path: [[180, 450], [340, 470], [420, 640], [200, 720]] },
+      { k: 'patrol', x: -450, y: 480, path: [[-450, 480], [-500, 700], [-350, 720], [-400, 540]] },
+    ],
+    throne: [-100, -140], chest: [-180, -80], spawn: [-100, 120], label: [0, -420],
+  });
+  // ---- Vine Temple (north-east): three stepped terraces, each entered from a different side, stilt huts round a pond
+  hold(1, 'jungle', 3650, 850, -1, 1, {
+    rooms: [
+      [-380, -300, 380, 300, 22, [{ side: 'e', at: 60, w: 110 }, { side: 's', at: 200, w: 100 }]],
+      [-260, -200, 260, 200, 20, [{ side: 'n', at: -150, w: 90 }, { side: 'e', at: 100, w: 80 }]],
+      [-140, -110, 140, 110, 18, [{ side: 's', at: 0, w: 80 }]],
+    ],
+    towers: [[-380, -300, 30], [380, -300, 30], [-380, 300, 30], [380, 300, 30], [-450, 300, 26]],
+    haz: [
+      { type: 'pit', shape: 'circle', x: -200, y: 250, r: 30, water: true }, { type: 'pit', shape: 'circle', x: 300, y: -250, r: 30, water: true }, { type: 'tar', shape: 'circle', x: 200, y: -150, r: 40 },
+      { type: 'pit', shape: 'circle', x: -620, y: 100, r: 95, water: true }, { type: 'pit', shape: 'circle', x: -560, y: -300, r: 40, water: true }, { type: 'tar', shape: 'circle', x: -300, y: 520, r: 50 },
+    ],
+    buildings: [[-560, -160, 80, 70, 'hut'], [-740, -90, 80, 70, 'hut'], [-800, 200, 80, 70, 'hut'], [-600, 260, 80, 70, 'hut'], [-720, 400, 90, 80, 'hut']],
+    pillars: [[-620, -200, 14, 'totem'], [-500, 440, 20], [560, 120, 22]],
+    trees: [[-520, -380, 60], [-380, -420, 65], [-760, -320, 58], [-880, 40, 62], [-900, 320, 60], [-560, 560, 66], [-340, 620, 55], [520, -420, 60], [560, 420, 62], [700, 60, 58], [-100, -460, 60], [200, -440, 55], [-200, 520, 58], [120, 480, 60]],
+    torches: [[-380, 10], [-380, 110], [150, 300], [250, 300], [-40, 110], [40, 110], [-150, -200], [260, 100]],
+    posts: [
+      { k: 'captain', x: 0, y: 0 }, { k: 'guard', x: 0, y: 140 }, { k: 'guard', x: -150, y: -220 }, { k: 'guard', x: 235, y: 100 }, { k: 'guard', x: -320, y: 60 },
+      { k: 'archer', x: -200, y: -250 }, { k: 'archer', x: 200, y: 240 },
+      { k: 'turret', x: -380, y: -300 }, { k: 'turret', x: 380, y: -300 }, { k: 'turret', x: -380, y: 300 }, { k: 'turret', x: 380, y: 300 }, { k: 'turret', x: -450, y: 300 },
+      { k: 'sentry', x: -460, y: 60 }, { k: 'sentry', x: 200, y: 380 },
+      { k: 'patrol', x: -560, y: -60, path: [[-560, -60], [-700, 20], [-720, 320], [-500, 360], [-480, 120]] },
+      { k: 'patrol', x: -800, y: -180, path: [[-800, -180], [-860, 140], [-780, 480], [-620, 520]] },
+      { k: 'patrol', x: 300, y: 420, path: [[300, 420], [-100, 440], [-150, 380], [240, 360]] },
+    ],
+    throne: [0, 0], chest: [80, -50], spawn: [0, -160], label: [0, -420],
+  });
+  // ---- Coral Fort (south-west): a palisade on the shore, a barracks and the captain's cabin, fishing huts up the beach
+  hold(2, 'beach', 1150, 2350, 1, 1, {
+    rooms: [
+      [-330, -280, 330, 180, 22, [{ side: 'e', at: -50, w: 110 }, { side: 'n', at: -100, w: 100 }]],
+      [-310, -260, -160, -100, 18, [{ side: 'e', at: -180, w: 60 }]],
+      [-140, -40, 140, 175, 18, [{ side: 'n', at: 0, w: 80 }]],
+    ],
+    towers: [[330, -280, 30], [-330, -280, 30], [330, 180, 30], [450, -420, 26]],
+    pillars: [[230, -200, 26, 'wreck'], [255, -150, 20, 'wreck'], [-200, 60, 18], [40, -180, 16, 'well']],
+    haz: [{ type: 'pit', shape: 'circle', x: -400, y: -360, r: 30, water: true }, { type: 'pit', shape: 'circle', x: 460, y: 100, r: 28, water: true }, { type: 'tar', shape: 'circle', x: 120, y: 60, r: 36 }, { type: 'pit', shape: 'circle', x: -60, y: 80, r: 26, water: true }],
+    buildings: [[-250, -450, 80, 60, 'shack'], [-60, -480, 80, 60, 'shack'], [140, -450, 80, 60, 'shack'], [330, -470, 80, 60, 'shack'], [400, -380, 70, 26, 'boat'], [470, -330, 70, 26, 'boat'], [-380, -520, 90, 60, 'shack']],
+    trees: [[-500, -420, 48], [-560, -240, 52], [520, -520, 50], [560, 40, 52], [-460, 120, 48], [40, -600, 50], [260, -600, 46], [-150, -620, 48]],
+    torches: [[330, -110], [330, 10], [-150, -280], [-50, -280], [-40, -40], [40, -40], [-80, -180]],
+    posts: [
+      { k: 'captain', x: 0, y: 62 }, { k: 'guard', x: 0, y: -80 }, { k: 'guard', x: 280, y: -50 }, { k: 'guard', x: -100, y: -240 }, { k: 'guard', x: -190, y: -180 },
+      { k: 'archer', x: 150, y: -230 }, { k: 'archer', x: -250, y: 120 },
+      { k: 'turret', x: 330, y: -280 }, { k: 'turret', x: -330, y: -280 }, { k: 'turret', x: 330, y: 180 }, { k: 'turret', x: 450, y: -420 },
+      { k: 'sentry', x: 420, y: -50 }, { k: 'sentry', x: -100, y: -340 },
+      { k: 'patrol', x: -200, y: -350, path: [[-200, -350], [0, -350], [200, -350], [380, -350], [200, -560], [-100, -560]] },
+      { k: 'patrol', x: -420, y: -300, path: [[-420, -300], [-460, -460], [-300, -560], [-340, -330]] },
+      { k: 'patrol', x: 460, y: -240, path: [[460, -240], [540, -120], [500, 40], [420, -140]] },
+    ],
+    throne: [0, 62], chest: [80, 118], spawn: [80, -200], label: [0, -320],
+  });
+  // ---- Sun Citadel (south-east): a great square with a barbican, an oasis courtyard, bazaar rooms and a throne hall
+  hold(3, 'desert', 3650, 2350, 1, 1, {
+    rooms: [
+      [-400, -320, 400, 320, 26, [{ side: 'w', at: 0, w: 120 }, { side: 'n', at: 0, w: 100 }]],
+      [140, -300, 380, 100, 22, [{ side: 'w', at: -100, w: 80 }]],
+      [-380, -300, -140, -140, 20, [{ side: 's', at: -260, w: 60 }]],
+      [-380, 140, -160, 300, 18, [{ side: 'n', at: -270, w: 60 }]], [-120, 140, 120, 300, 18, [{ side: 'n', at: 0, w: 60 }]], [160, 140, 380, 300, 18, [{ side: 'n', at: 270, w: 60 }]],
+    ],
+    walls: [[-520, -140, 22, 220], [-520, -140, 100, 22]],
+    towers: [[-400, -320, 34], [400, -320, 34], [-400, 320, 34], [400, 320, 34], [700, -20, 26]],
+    haz: [{ type: 'pit', shape: 'circle', x: 0, y: 40, r: 64, water: true, oasis: true }, { type: 'tar', shape: 'circle', x: -260, y: 20, r: 40 }, { type: 'pit', shape: 'circle', x: -650, y: 200, r: 34 }],
+    buildings: [[500, -250, 90, 70, 'adobe'], [610, -130, 90, 70, 'adobe'], [520, 80, 90, 70, 'adobe'], [620, 220, 90, 70, 'adobe'], [-150, -460, 50, 30, 'stall'], [-50, -470, 50, 30, 'stall'], [50, -460, 50, 30, 'stall'], [150, -470, 50, 30, 'stall']],
+    pillars: [[0, -540, 14, 'well'], [560, 340, 22], [-600, -420, 20]],
+    trees: [[-60, 90, 44], [70, 20, 40], [-560, 300, 46], [-640, 60, 44], [560, -380, 46], [760, 120, 44], [-300, -560, 46], [300, -560, 44], [700, 400, 42], [-500, -560, 44]],
+    torches: [[-400, -80], [-400, 80], [100, -300], [200, -300], [140, -140], [140, -60], [-520, 80]],
+    posts: [
+      { k: 'captain', x: 260, y: -100 }, { k: 'guard', x: 110, y: -100 }, { k: 'guard', x: -340, y: 0 }, { k: 'guard', x: 0, y: -270 }, { k: 'guard', x: -260, y: -120 },
+      { k: 'archer', x: 300, y: 220 }, { k: 'archer', x: -300, y: 220 },
+      { k: 'turret', x: -400, y: -320 }, { k: 'turret', x: 400, y: -320 }, { k: 'turret', x: -400, y: 320 }, { k: 'turret', x: 400, y: 320 }, { k: 'turret', x: 700, y: -20 },
+      { k: 'sentry', x: -470, y: 130 }, { k: 'sentry', x: 0, y: -400 },
+      { k: 'patrol', x: 470, y: -100, path: [[470, -100], [660, -40], [560, 190], [640, 320], [480, 0]] },
+      { k: 'patrol', x: -100, y: -400, path: [[-100, -400], [120, -400], [200, -520], [-200, -520]] },
+      { k: 'patrol', x: -580, y: -300, path: [[-580, -300], [-620, -100], [-560, 120], [-660, -200]] },
+    ],
+    throne: [260, -100], chest: [320, 0], spawn: [-100, -60], label: [0, -440],
+  });
+  // ---- the country between: forests along the river and the map's edges, rocks, a ruin at the middle bridge
+  const R = (() => { let s = 20260929; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; })();
+  const near = (x, y, r) => haz.some(h => (h.shape === 'circle' ? Math.hypot(h.x - x, h.y - y) < h.r + r + 20 : x + r > h.x - 20 && x - r < h.x + h.w + 20 && y + r > h.y - 20 && y - r < h.y + h.h + 20))
+    || blocks.some(b => x + r > b.x - 30 && x - r < b.x + b.w + 30 && y + r > b.y - 30 && y - r < b.y + b.h + 30)
+    || trees.some(t => Math.hypot(t.x - x, t.y - y) < t.r + r - 10) || holds.some(h => Math.hypot(h.cx - x, h.cy - y) < 620)
+    || Math.hypot(x - 330, y - 1600) < 260 || Math.hypot(x - 4470, y - 1600) < 260 || bridges.some(b => Math.abs(b.y - y) < 140 && Math.abs(b.x - x) < 360);
+  const bioAt = (x, y) => (x < 2400 ? (y < 2000 ? 'castle' : 'beach') : (y < 2000 ? 'jungle' : 'desert'));
+  const forest = (cx, cy, n, spread, rmin, rmax) => { for (let i = 0; i < n * 3 && n > 0; i++) { const a = R() * TAU, d = Math.sqrt(R()) * spread, x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d, r = rmin + R() * (rmax - rmin); if (x < 90 || x > W - 90 || y < 90 || y > H - 90 || near(x, y, r)) continue; trees.push({ x, y, r, bio: bioAt(x, y) }); n--; } };
+  for (let y = 200; y < H - 100; y += 260) { forest(riverX(y) - 330 - R() * 120, y + R() * 100, 3, 150, 44, 64); forest(riverX(y) + 330 + R() * 120, y + R() * 100, 3, 150, 44, 64); }
+  forest(700, 1250, 7, 220, 46, 62); forest(700, 1950, 6, 200, 46, 60); forest(4100, 1250, 7, 220, 48, 66); forest(4100, 1950, 6, 200, 44, 60);
+  forest(1900, 300, 6, 220, 48, 64); forest(2900, 300, 6, 220, 50, 68); forest(1900, 2900, 5, 200, 44, 58); forest(2900, 2900, 5, 200, 44, 58);
+  forest(2400, 1100, 4, 160, 46, 60); forest(2400, 2100, 4, 160, 46, 60);
+  for (let i = 0; i < 26; i++) { const x = 120 + R() * (W - 240), y = 120 + R() * (H - 240), r = 18 + R() * 16; if (near(x, y, r)) continue; pillars.push({ x, y, r }); }
+  // the ruin by the middle bridge: broken walls for cover on both banks
+  for (const [x, y, w, h] of [[2040, 1500, 90, 22], [2040, 1500, 22, 80], [2110, 1690, 80, 22], [2700, 1490, 22, 90], [2700, 1490, 90, 22], [2640, 1690, 90, 22]]) blocks.push({ x, y, w, h, ruin: true });
+  return {
+    name: 'Strongholds', theme: 'meadow', hidden: true, big: true, mode: 'conquest', w: W, h: H,
+    desc: 'Four castles held by NPCs across a river. Capture them to score.',
+    haz, pillars, blocks, holds, trees, torches, build, bridges, spikes: [], cracks: [], saws: [], bumpers: [], portals: [], wind: null,
+    riverX,
+    spawns: [{ x: 300, y: 1560 }, { x: 300, y: 1640 }, { x: 380, y: 1600 }, { x: 240, y: 1600 }],
+    camps: { red: { x: 330, y: 1600 }, blue: { x: W - 330, y: 1600 } },
+    power: [{ x: riverX(1600) - 200, y: 1600 }, { x: riverX(1600) + 200, y: 1600 }, { x: riverX(640) - 190, y: 640 }, { x: riverX(640) + 190, y: 640 }, { x: riverX(2560) - 190, y: 2560 }, { x: riverX(2560) + 190, y: 2560 }], amberY: [WALL + 44, 330],
+    tiles: [['meadow', 'meadow', 'jungle', 'jungle'], ['meadow', 'spring', 'spring', 'jungle'], ['beach', 'spring', 'spring', 'desert'], ['beach', 'beach', 'desert', 'desert']],
+  };
+}
+MAPS.strongholds = buildStrongholds();
+const isConquest = w => !!w.cq;
+
+function cqStart(w) {
+  const M = w.match;
+  w.cq = { pts: { red: 0, blue: 0 }, acc: 0, s: MAP.holds.map(h => ({ i: h.i, own: null, ct: null, cp: 0, reinf: 0, chest: null })) };
+  w.players = w.players.filter(p => !p.npc);
+  for (const h of MAP.holds) for (const post of h.posts) spawnNpc(w, h, post, null);
+  M.ph = 'pre'; M.T = TIMES.pre; M.opening = false; M.rw = null; M.clutch = {}; M.first = null;
+  w.arrows = []; w.pickups = []; w.zones = []; w.later = []; w.cracks = []; w.ball = null;
+  for (const p of w.players) if (!p.npc) { placeForRound(w, p); p.respAt = null; p.offer = null; p.picked = false; }
+  ev(w, { e: 'phase', ph: 'pre', rd: 1, gm: 1 });
+}
+function spawnNpc(w, h, post, team) {
+  const K = NPC_KINDS[post.k], B = BIOMES[h.bio];
+  const p = makePlayer(w, { name: (B.npc && B.npc[post.k]) || post.k, team: team || 'npc', role: K.role, element: 'stone' });
+  p.npc = { k: post.k, s: h.i, bio: h.bio, px: post.x, py: post.y, path: post.path || null, wp: 0, wait: 0, cd: rand(0.5, 1.5), wind: null, windT: 0, charge: null, back: 0 };
+  p.elev = !!K.elev;
+  p.up = []; applyStats(p);
+  p.maxHp = K.hp; p.baseSpeed *= K.speed; p.speed = p.baseSpeed; p.r = K.r; p.mass = K.mass; p.color = '#c9c2b0';
+  freshBody(p, post.x, post.y); p.hp = p.maxHp; p.dashN = 0; p.dashMaxN = 0;
+  w.players.push(p);
+  return p;
+}
+function respawnNpc(w, n, team) {
+  const h = MAP.holds[n.npc.s], K = NPC_KINDS[n.npc.k];
+  n.team = team; freshBody(n, n.npc.px, n.npc.py); n.hp = n.maxHp = K.hp; n.r = K.r; n.dashN = 0; n.dashMaxN = 0; n.inv = 0.8;
+  Object.assign(n.npc, { wind: null, windT: 0, charge: null, cd: 1, deadT: 0, back: 0, wp: 0 });
+  ev(w, { e: 'npcBack', x: r1(n.x), y: r1(n.y), s: h.i });
+}
+// hostile players (never NPCs: neutral and owned NPCs leave each other alone); someone hidden under a tree only up close
+const npcFoe = (n, q) => !q.npc && !q.dead && q.falling <= 0 && q.team !== n.team && !(q.stealthT > 0) && !(q.hid && Math.hypot(q.x - n.x, q.y - n.y) > CQ.PEEK);
+function npcTarget(w, n, K) {
+  let best = null, bd = Infinity;
+  for (const q of w.players) {
+    if (!npcFoe(n, q)) continue;
+    const d = Math.hypot(q.x - n.x, q.y - n.y), fromPost = Math.hypot(q.x - n.npc.px, q.y - n.npc.py);
+    if (d > K.aggro || fromPost > K.leash + K.aggro * 0.5) continue;
+    if ((n.npc.k === 'archer' || n.npc.k === 'turret') && !n.elev && !clearShot(n.x, n.y, q.x, q.y)) continue;
+    if (n.elev && segHitsBlock(n.x, n.y, q.x, q.y, 0) && Math.hypot(q.x - n.x, q.y - n.y) > 120) { /* archers on towers shoot over the walls */ }
+    if (d < bd) { bd = d; best = q; }
+  }
+  return best;
+}
+function npcWalk(n, tx, ty, slow) {
+  const dx = tx - n.x, dy = ty - n.y, d = Math.hypot(dx, dy);
+  if (d < 8) { n.input.mx = n.input.my = 0; return true; }
+  const [mx, my] = botSteer(n, dx / d, dy / d);
+  const k = (slow || 1) * Math.min(1, d / 40);
+  const l = Math.hypot(mx, my) || 1; n.input.mx = mx / l * k; n.input.my = my / l * k;
+  return false;
+}
+// melee: everyone hostile in front of the NPC, within reach, is hit and shoved
+function npcSwing(w, n, reach, arc, dmg, kb, all) {
+  let hit = 0;
+  for (const q of w.players) {
+    if (!npcFoe(n, q)) continue;
+    const dx = q.x - n.x, dy = q.y - n.y, d = Math.hypot(dx, dy) || 1;
+    if (d > reach + q.r) continue;
+    if (!all && angOff(Math.atan2(dy, dx), n.aim) > arc) continue;
+    hurt(w, q, dmg, dx / d * kb, dy / d * kb, 'npc', n.id); hit++;
+  }
+  ev(w, { e: 'npcSwing', id: n.id, x: r1(n.x), y: r1(n.y), a: r2(n.aim), k: all ? 'slam' : 'swing', h: hit });
+  return hit;
+}
+function npcThink(w, n, dt) {
+  const N = n.npc, K = NPC_KINDS[N.k], inp = n.input;
+  inp.draw = false; inp.mx = inp.my = 0;
+  if (n.dead || n.falling > 0) return;
+  N.cd -= dt;
+  if (n.elev) { n.vx = n.vy = 0; if (Math.hypot(n.x - N.px, n.y - N.py) > 2) { n.x = N.px; n.y = N.py; } } // archers on towers stay put
+  // mid-attack: the wind-up (a clear tell), then the blow
+  if (N.charge) {
+    N.charge.t -= dt;
+    n.vx = N.charge.dx * 680; n.vy = N.charge.dy * 680; n.aim = Math.atan2(N.charge.dy, N.charge.dx);
+    const hit = w.players.find(q => npcFoe(n, q) && Math.hypot(q.x - n.x, q.y - n.y) < q.r + n.r + 8);
+    if (hit) { const d = Math.hypot(hit.x - n.x, hit.y - n.y) || 1; hurt(w, hit, 16, (hit.x - n.x) / d * 760, (hit.y - n.y) / d * 760, 'npc', n.id); ev(w, { e: 'npcSwing', id: n.id, x: r1(n.x), y: r1(n.y), a: r2(n.aim), k: 'charge', h: 1 }); N.charge = null; N.cd = 2.2; }
+    else if (N.charge.t <= 0 || lethalDist(n.x + N.charge.dx * 40, n.y + N.charge.dy * 40) < 20 || segHitsBlock(n.x, n.y, n.x + N.charge.dx * 30, n.y + N.charge.dy * 30, 0)) { N.charge = null; N.cd = 1.6; n.vx *= 0.3; n.vy *= 0.3; }
+    return;
+  }
+  if (N.wind) {
+    N.windT -= dt;
+    if (N.tgt) { const q = w.players.find(x => x.id === N.tgt); if (q && N.wind !== 'charge') n.aim = Math.atan2(q.y - n.y, q.x - n.x); }
+    if (N.windT > 0) return;
+    const kind = N.wind; N.wind = null;
+    if (kind === 'swing') { npcSwing(w, n, N.k === 'captain' ? 64 : 58, 0.9, N.k === 'captain' ? 14 : 10, N.k === 'captain' ? 640 : 520, false); N.cd = rand(0.9, 1.3); }
+    else if (kind === 'slam') { npcSwing(w, n, 105, Math.PI, 12, 620, true); N.cd = 2.4; }
+    else if (kind === 'charge') { N.charge = { t: 0.42, dx: Math.cos(n.aim), dy: Math.sin(n.aim) }; }
+    return;
+  }
+  const T = npcTarget(w, n, K);
+  N.tgt = T ? T.id : null;
+  const home = Math.hypot(n.x - N.px, n.y - N.py);
+  if (N.k === 'archer' || N.k === 'turret') {
+    if (!n.elev && home > 30) { npcWalk(n, N.px, N.py); if (!T) return; }
+    if (!T) { N.draw = 0; return; }
+    // lead the target a little, and not perfectly
+    const d = Math.hypot(T.x - n.x, T.y - n.y), lead = d / 1400;
+    N.err = N.err == null || Math.random() < dt * 1.5 ? rand(-0.07, 0.07) : N.err;
+    const want = Math.atan2(T.y + T.vy * lead - n.y, T.x + T.vx * lead - n.x) + N.err;
+    const diff = ((want - n.aim + Math.PI) % TAU + TAU) % TAU - Math.PI; n.aim += clamp(diff, -4 * dt, 4 * dt); inp.aim = n.aim;
+    if (N.cd > 0) return;
+    inp.draw = true; N.draw = (N.draw || 0) + dt;
+    if (N.draw > 0.85 && Math.abs(diff) < 0.12) { inp.draw = false; N.draw = 0; N.cd = rand(1.2, 2); }
+    return;
+  }
+  // guards, sentries, patrols and the captain: go at the nearest intruder, strike when close; otherwise their rounds
+  if (!T) {
+    N.back = 0;
+    if (N.path) { // a patrol walks its route, pausing at each stop
+      if (N.wait > 0) { N.wait -= dt; return; }
+      const wp = N.path[N.wp % N.path.length];
+      if (npcWalk(n, wp.x, wp.y, 0.55)) { N.wp++; N.wait = rand(0.8, 2.2); }
+    } else if (home > 12) npcWalk(n, N.px, N.py, 0.7);
+    return;
+  }
+  const d = Math.hypot(T.x - n.x, T.y - n.y);
+  n.aim = Math.atan2(T.y - n.y, T.x - n.x); inp.aim = n.aim;
+  if (N.k === 'captain' && N.cd <= 0) {
+    const near = w.players.filter(q => npcFoe(n, q) && Math.hypot(q.x - n.x, q.y - n.y) < 95).length;
+    if (near >= 2 || (near >= 1 && Math.random() < 0.4)) { N.wind = 'slam'; N.windT = 0.5; return; }
+    if (d > 130 && d < 330 && clearShot(n.x, n.y, T.x, T.y) && lethalDist(n.x, n.y) > 90) { N.wind = 'charge'; N.windT = 0.6; return; }
+  }
+  if (d < T.r + n.r + 26 && N.cd <= 0) { N.wind = 'swing'; N.windT = N.k === 'captain' ? 0.45 : 0.38; return; }
+  npcWalk(n, T.x, T.y);
+}
+function cqCapture(w, S, team) {
+  const h = MAP.holds[S.i], was = S.own;
+  S.own = team; S.cp = 0; S.ct = null; S.reinf = 0; S.chest = { team, opened: [] };
+  for (const n of w.players) if (n.npc && n.npc.s === S.i && !n.dead) { n.team = team; n.npc.wind = null; n.npc.charge = null; }
+  ev(w, { e: 'capture', s: S.i, tm: team, was, n: h.name, x: h.x, y: h.y });
+}
+function cqRespawnSpot(w, p) {
+  let best = null, bd = Infinity;
+  for (const S of w.cq.s) {
+    if (S.own !== p.team) continue;
+    const h = MAP.holds[S.i], d = Math.hypot(h.x - p.x, h.y - p.y);
+    if (d < bd) { bd = d; best = { x: h.spawn.x + (Math.random() - 0.5) * 40, y: h.spawn.y + (Math.random() - 0.5) * 40 }; }
+  }
+  if (best) return best;
+  const c = MAP.camps[p.team] || MAP.camps.red;
+  return { x: c.x + (Math.random() - 0.5) * 80, y: c.y + (Math.random() - 0.5) * 120 };
+}
+function updateConquest(w, dt) {
+  const C = w.cq, M = w.match;
+  // under a tree you're hidden, unless you've just shot
+  for (const p of w.players) {
+    if (p.npc || p.dead) { p.hid = false; continue; }
+    p.hid = TREES.some(t => Math.hypot(t.x - p.x, t.y - p.y) < t.r) && w.t - (p.shotAt || -9) > CQ.HIDE_AFTER;
+  }
+  // capturing: your team alone in the throne room (NPCs defending it count as company)
+  for (const S of C.s) {
+    const h = MAP.holds[S.i];
+    const inZone = w.players.filter(p => !p.dead && p.falling <= 0 && Math.hypot(p.x - h.x, p.y - h.y) < CQ.ZONE_R + p.r * 0.5);
+    const teams = new Set(inZone.map(p => p.team));
+    const cand = TEAMS.filter(t => t !== S.own && inZone.some(p => p.team === t && !p.npc));
+    if (cand.length === 1 && teams.size === 1) {
+      const t = cand[0];
+      if (S.ct !== t) { S.ct = t; S.cp = 0; }
+      const n = inZone.length;
+      S.cp += dt / CQ.CAP_T * (1 + 0.5 * (n - 1));
+      if (S.cp >= 1) cqCapture(w, S, t);
+    } else if (!(S.ct && inZone.some(p => p.team === S.ct))) {
+      S.cp = Math.max(0, S.cp - dt / CQ.CAP_T * 0.5); if (S.cp === 0) S.ct = null;
+    }
+    // the chest: each of the owning team opens it once per capture for a pick of three upgrades
+    if (S.chest && S.own && OPT('upg') !== 2) for (const p of w.players) {
+      if (p.npc || p.dead || p.team !== S.own || S.chest.opened.includes(p.id) || p.offer) continue;
+      if (Math.hypot(p.x - h.chest.x, p.y - h.chest.y) > CQ.CHEST_R + p.r) continue;
+      S.chest.opened.push(p.id); p.offer = rollOffer(p, [], false, false); p.picked = false;
+      ev(w, { e: 'chest', id: p.id, s: S.i, x: r1(h.chest.x), y: r1(h.chest.y) });
+    }
+    // knocked-out NPCs come back: neutral ones all together a while later, a captured stronghold's one at a time
+    const dead = w.players.filter(n => n.npc && n.npc.s === S.i && n.dead);
+    for (const n of dead) n.npc.deadT = (n.npc.deadT || 0) + dt;
+    if (!S.own) { for (const n of dead) if (n.npc.deadT >= CQ.NEUTRAL_BACK && !inZone.some(p => !p.npc)) respawnNpc(w, n, 'npc'); }
+    else if (dead.length) { S.reinf += dt; if (S.reinf >= CQ.REINFORCE) { S.reinf = 0; respawnNpc(w, dead.sort((a, b) => b.npc.deadT - a.npc.deadT)[0], S.own); } }
+  }
+  // points: one a second for each stronghold held
+  C.acc += dt;
+  while (C.acc >= 1) { C.acc -= 1; for (const S of C.s) if (S.own) C.pts[S.own]++; }
+  // knocked-out archers come back (unless a teammate revives them first)
+  for (const p of w.players) {
+    if (p.npc || !p.dead) continue;
+    if (p.respAt == null) p.respAt = w.t + CQ.RESPAWN;
+    if (w.t >= p.respAt) {
+      const sp = cqRespawnSpot(w, p); applyStats(p); freshBody(p, sp.x, sp.y); p.inv = 1.5; p.respAt = null;
+      ev(w, { e: 'respawn', id: p.id, x: r1(sp.x), y: r1(sp.y) });
+    }
+  }
+  // the win: the points target, or every stronghold at once
+  const all = TEAMS.find(t => C.s.every(S => S.own === t)), top = TEAMS.find(t => C.pts[t] >= CQ.TARGET);
+  const win = all || top;
+  if (win) {
+    M.ph = 'over'; M.T = 0; M.mw = win;
+    ev(w, { e: 'matchEnd', mw: win, cq: all ? 'all' : 'points', wins: [C.pts.red, C.pts.blue] });
+  }
+}
+function cqSnap(w) {
+  const C = w.cq; if (!C) return undefined;
+  return { p: [C.pts.red, C.pts.blue], tg: CQ.TARGET, el: Math.max(0, Math.floor(w.t - (w.match.gStart || w.t))),
+    s: C.s.map(S => [S.own ? (S.own === 'red' ? 1 : 2) : 0, S.ct ? (S.ct === 'red' ? 1 : 2) : 0, r2(S.cp), S.chest ? 1 : 0]) };
+}
+
 function step(w, dt) {
   useMap(w);
   w.t += dt;
@@ -3391,7 +3941,7 @@ function step(w, dt) {
   M.T -= dt;
   if (M.ph === 'pre') {
     for (const p of w.players) { if (p.bot) p.aim = Math.atan2(AH / 2 - p.y, AW / 2 - p.x); else p.aim = p.input.aim; p.wantDash = false; }
-    if (M.T <= 0) { M.ph = 'play'; M.T = TIMES.game; M.gStart = w.t; w.amberT = 0.4; w.puT = 6; w.chT = rand(18, 26); ev(w, { e: 'phase', ph: 'play', rd: M.rd, gm: M.gm }); }
+    if (M.T <= 0) { M.ph = 'play'; M.T = w.cq ? 1e6 : TIMES.game; M.gStart = w.t; w.amberT = 0.4; w.puT = 6; w.chT = rand(18, 26); ev(w, { e: 'phase', ph: 'play', rd: M.rd, gm: M.gm }); }
     return;
   }
   if (M.ph === 'post') { if (M.T <= 0) afterPost(w); return; }
@@ -3423,6 +3973,7 @@ function step(w, dt) {
     if (p.thinkPar == null) p.thinkPar = (w.nbot = (w.nbot || 0) + 1) % 2;
     if ((w.tk + p.thinkPar) % 2 === 0 || p.thinkAcc > dt * 2.5) { botThink(w, p, p.thinkAcc); p.thinkAcc = 0; }
   }
+  if (w.cq) for (const p of w.players) if (p.npc) npcThink(w, p, dt);
   updateCracks(w);
   updateMapMech(w, dt);
   // things that happen a moment later (Echo Strike)
@@ -3456,6 +4007,7 @@ function step(w, dt) {
   updateZones(w, dt);
   updateContagion(w, dt);
   updatePickups(w, dt);
+  if (w.cq) { if (M.ph === 'play') updateConquest(w, dt); return; }
   if (M.ph === 'play') checkRoundEnd(w);
   if (M.ph === 'play' && M.T <= 0) timeoutRound(w);
 }
@@ -3468,12 +4020,12 @@ function snapshot(w) {
     t: r3(w.t),
     m: { ph: M.ph, rd: M.rd, gm: M.gm, T: Math.max(0, Math.ceil(M.T)), wr: M.wins.red, wb: M.wins.blue, gr: M.gw.red, gb: M.gw.blue, rw: M.rw, mw: M.mw,
       op: M.opening ? 1 : 0, opt: Object.assign({}, w.cfg.opt), ptw: w.cfg.pointsToWin, gtw: w.cfg.gamesToWin, df: w.cfg.diff, map: w.cfg.map, cs: canStart(w) ? 1 : 0,
-      cr: w.cracks && w.cracks.length ? w.cracks.join('') : '', gt: r2(gameTime(w)), pw: powerWarn(w) },
+      cr: w.cracks && w.cracks.length ? w.cracks.join('') : '', gt: r2(gameTime(w)), pw: powerWarn(w), cq: cqSnap(w), ban: w.cfg.ban && w.cfg.ban.length ? w.cfg.ban.slice() : undefined },
     p: w.players.map(p => {
       const pw = {};
       for (const k in p.pw) if (p.pw[k] > 0) pw[k] = r1(p.pw[k]);
       return {
-        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, sp: p.sp || undefined, fd: p.fd || undefined, pt: p.pt || undefined, fin: p.fin || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
+        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, nk: p.npc ? p.npc.k : undefined, hd: p.hid ? 1 : 0, tw: p.elev ? 1 : 0, rs: w.cq && p.dead && !p.npc && p.respAt != null ? Math.max(0, Math.ceil(p.respAt - w.t)) : undefined, bi: p.npc ? p.npc.bio : undefined, nw: p.npc && (p.npc.wind || p.npc.charge) ? (p.npc.charge ? 'dash' : p.npc.wind) : undefined, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, sp: p.sp || undefined, fd: p.fd || undefined, pt: p.pt || undefined, fin: p.fin || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
         x: r1(p.x), y: r1(p.y), vx: Math.round(p.vx), vy: Math.round(p.vy), a: r3(p.aim),
         hp: Math.max(0, Math.ceil(p.hp)), mh: p.maxHp, ch: r2(p.charge), dr: p.drawing ? 1 : 0,
         f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, bu: p.burn > 0 ? 1 : 0, bl: p.bleedT > 0 ? 1 : 0, sl: p.slow > 0 ? 1 : 0, iv: p.inv > 0 ? 1 : 0,
@@ -3611,7 +4163,7 @@ function unpackSnap(s) {
 }
 
 return {
-  AW, AH, WALL, GATES, MAPS, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
+  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,

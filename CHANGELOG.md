@@ -2,6 +2,43 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
 
+## 0.26.0
+
+- **Ranger buff (a better all-rounder):** draws 12% faster, and keeps 70% of its speed while drawing (everyone else keeps 55%).
+- **Custom game rules:**
+  - **Allowed in this game:** the host can take any elements and roles out of a custom game. Players on them are moved to something allowed, the pickers grey them out, and bots avoid them.
+  - **Upgrades: off:** no picks between rounds; everyone plays their plain element and role.
+  - **Movement feel:** Glide (the standard air-hockey feel), Snappy, Drifty, or Direct (no glide at all). Top speed is the same in all four; only how quickly you get going, turn and stop changes (to full speed / to a stop: Glide 1.7s / 2.0s, Snappy 1.1s / 0.8s, Drifty 2.2s / 3.2s, Direct 0.45s / 0.2s).
+  - "Aim assist" is now called **Arrow homing**, so it isn't confused with the controller's aim assist.
+- **1v1s don't offer upgrades that need teammates or extra enemies:** Guardian's Oath, Revive, Transfusion, Contagion, Aftershock and Forked Lightning.
+- **Controllers:** hints follow what you last touched. The ability bar shows LB / RB (or L1 / R1 on a PlayStation controller) instead of Q / E, the upgrade cards show X / Y / B (which now pick them for the main player too), and the tutorial's lines are said the controller's way.
+- **Players on one screen:** each extra player's abilities now show in a panel of their own colour above yours, with their controller's buttons and cooldowns.
+- **New arena, Highland Reach:** bigger than the rest (1500 × 960) and built for long shots; a canyon splits the middle, crossed only in the centre. Mushroom Grove is out of the rotation for now.
+- **Strongholds is on hold:** only the owner account (and the offline copy) can open it.
+
+## 0.25.0
+
+**Strongholds rebuilt** (still a practice-only preview under Custom games; `docs/strongholds.md` has the full picture).
+- The map is 4800 × 3200 with a wide river down the middle and only three bridges across it, so the two sides can't just walk into each other; the middle bridge has ruins on both banks.
+- Four unique strongholds, each with rooms and its own way in, and a village round it: Castle Greyhold (moat, drawbridges, keep, great hall, stables, timber houses and a chapel), Vine Temple (three stepped terraces entered from different sides, watchtowers, stilt huts round a pond), Coral Fort (a palisade on the shore, barracks, a wreck, the captain's cabin, fishing huts and boats), Sun Citadel (a barbican, bazaar rooms, a throne hall, an oasis, minarets, adobe houses and a market).
+- More NPCs, spread further out: patrols walk routes through the villages, archers stand on the towers and shoot over the walls (and can be shot back), sentries watch the gates, and the captain holds the throne room. Each faction has its own names and look.
+- Forests: under a tree you're hidden from enemies more than 70 units away (until you shoot); the canopy goes see-through for you and your teammates.
+- Everyone can revive: stand over a knocked-out teammate for 3 seconds. Respawns take 8 seconds otherwise.
+- Capturing a stronghold opens a chest in its throne room: each member of the owning team gets a pick of three upgrades.
+- Normal walking speed in this mode, and a slower pace overall: capturing takes 10 seconds, first to 600 points.
+- The look: darker and moodier, each quarter of the map in its own light, torches that flicker, mist over the river, fireflies in the jungle, dust in the desert, and a vignette.
+
+## 0.24.0
+
+**Strongholds (preview)**: a new casual mode on a big map, playable in practice for now (Custom games → Strongholds (preview)), alone or with players on controllers. Details in `docs/strongholds.md`.
+- A 3600 × 2400 map with four walled strongholds, one per biome (castle, jungle temple, coral fort, desert citadel), each held by NPCs: two gate guards, two sentries at the bridges, two archers and a captain. Capture one by standing in its throne room with nobody else in it; its NPCs then fight for you. A point a second for each one held: first to 500, or all four at once, wins. Knocked-out archers come back after 5 seconds at their nearest stronghold or their camp.
+- NPCs show a clear tell before every attack (a red wedge, circle or lane). The captain is heavy and has a slam and a charge.
+- A camera that follows you and looks ahead toward your aim, with zoom (mouse wheel or + / −) up to the same limit for everyone; a shared camera for players on one screen that zooms out as they spread, then gently holds them together; a minimap; arrows pointing to teammates off screen. Shots fly at most about a screen's width in this mode.
+- Engine: the arena size is now per map, and castle walls block movement, shots and line of sight. Normal arenas are unchanged.
+
+**Fixes**
+- The Pitch's ball now moves smoothly: it was only redrawn when the game updated (every other frame, or 30 times a second online), unlike archers and arrows, which glide between updates.
+
 ## 0.23.1
 
 - **The Pitch's ball is a plain white disc** with a dark rim and a shadow, instead of the rolling 3D panel ball: it suits the 2D look and costs almost nothing to draw.
