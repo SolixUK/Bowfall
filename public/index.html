@@ -3259,7 +3259,7 @@ function drawLocalMarks(v) {
     const R = p.rz || 16, col = lpColor(l.n), fighting = v.m.ph === 'play' || v.m.ph === 'pre';
     // no cursor on a controller: their aim guide while drawing, and a small arrow showing where they point
     const ch = p.ro === 'ninja' || p.ro === 'crossbow' ? 0 : (p.ch || 0);
-    if (fighting && ch > 0 && OPTS.guide) drawAimGuide(p, l.aim, ch);
+    if (fighting && (ch > 0 || p.rg) && OPTS.guide) drawAimGuide(p, l.aim, ch > 0 ? ch : 0.5);
     ctx.save(); ctx.fillStyle = col; ctx.font = "700 12px 'Rajdhani', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center';
     ctx.fillText('P' + l.n, p.x, p.y - R - 30);
     ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.globalAlpha = 0.8; ctx.beginPath(); ctx.arc(p.x, p.y, R + 7, 0, TAU); ctx.stroke(); ctx.globalAlpha = 1;
@@ -6504,6 +6504,22 @@ function drawBall(b) {
   ctx.strokeStyle = 'rgba(0,0,0,0.55)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.stroke();
   ctx.restore();
 }
+// the next power-up's spot, for its last 3 seconds: a ring closing in on it and a countdown
+function drawPowerWarn(pw) {
+  if (!pw) return;
+  const [x, y, t, chan] = pw, k = Math.max(0, Math.min(1, t / 3)), rgb = chan ? '190,150,255' : '255,207,90';
+  const pulse = 0.5 + 0.5 * Math.sin(clock * 10);
+  ctx.save();
+  ctx.fillStyle = `rgba(${rgb},${0.1 + 0.1 * (1 - k)})`; ctx.beginPath(); ctx.arc(x, y, 24, 0, TAU); ctx.fill();
+  ctx.strokeStyle = `rgba(${rgb},${0.45 + 0.35 * pulse})`; ctx.lineWidth = 2; ctx.setLineDash([6, 6]); ctx.lineDashOffset = -clock * 20;
+  ctx.beginPath(); ctx.arc(x, y, 24, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle = `rgba(${rgb},${0.25 + 0.5 * (1 - k)})`; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(x, y, 24 + 70 * k, 0, TAU); ctx.stroke(); // closes in as the moment nears
+  ctx.font = "700 20px 'Rajdhani', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,0.55)'; ctx.strokeText(String(Math.ceil(t)), x, y + 1);
+  ctx.fillStyle = `rgb(${rgb})`; ctx.fillText(String(Math.ceil(t)), x, y + 1);
+  ctx.restore();
+}
 function drawPickup(u) {
   if (u.ty === 'amber') return drawAmber(u);
   if (Sim.CHANNEL[u.ty]) return drawChannel(u);
@@ -6780,9 +6796,17 @@ function drawAllyAim(v, me, charge) {
     ctx.strokeStyle = 'rgba(125,255,138,0.8)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(q.x, q.y, (q.rz || 16) + 10, 0, TAU); ctx.stroke();
   }
 }
+// how far a shot from this archer flies at this draw: shuriken and bolts have a set reach (rg); a bow's arrow slows
+// with drag (dg) from its launch speed until it's too slow to count (170px/s) or its 2.4 seconds are up
+function shotReach(p, charge) {
+  if (p.rg) return p.rg;
+  if (!p.sm) return 60 + charge * 220;
+  const v0 = (380 + 920 * charge) * p.sm, k = p.dg || 0, T = k > 0 ? Math.min(2.4, Math.log(Math.max(1, v0 / 170)) / k) : 2.4;
+  return k > 0 ? v0 / k * (1 - Math.exp(-k * T)) : v0 * T;
+}
 function drawAimGuide(me, ang, charge) {
   {
-    const len = 60 + charge * 220, ax = Math.cos(ang), ay = Math.sin(ang);
+    const len = Math.max(40, shotReach(me, charge) - 30), ax = Math.cos(ang), ay = Math.sin(ang);
     // walk along the shot to find the first wall or boulder within reach
     let hit = null;
     for (let t = 30; t <= 30 + len + 60; t += 6) {
@@ -6827,7 +6851,8 @@ function drawCrosshair(me, charge) {
     const dx = x - me.x, dy = y - me.y, d = Math.hypot(dx, dy), k = d > Sim.TRAP_RANGE ? Sim.TRAP_RANGE / d : 1;
     ctx.strokeStyle = 'rgba(217,160,102,0.45)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 5]); ctx.beginPath(); ctx.arc(me.x + dx * k, me.y + dy * k, 22, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
   } }
-  if (me && !me.d && charge > 0 && OPTS.guide) drawAimGuide(me, me.a, charge);
+  // bows show it while drawing; shuriken and bolts fly at once, so theirs is always there
+  if (me && !me.d && OPTS.guide && (charge > 0 || me.rg)) drawAimGuide(me, me.a, charge > 0 ? charge : 0.5);
   if (me && !me.d && me.rg) {
     // short-range roles: a faint ring showing how far your shots reach fades in when you aim past it
     const d = Math.hypot(x - me.x, y - me.y), want = d > me.rg ? 1 : 0, now = performance.now();
@@ -6879,6 +6904,7 @@ function render(replaying) {
 
   drawZones(view, me);
   drawMarkers(view, me);
+  drawPowerWarn(view.m.pw);
   for (const u of view.u) drawPickup(u);
   if (view.b && !view.b.o) drawBall(view.b);
   for (const a of view.a) if (a.s) drawArrow(a);

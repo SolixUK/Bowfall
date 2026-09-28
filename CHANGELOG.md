@@ -2,6 +2,12 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
 
+## 0.23.0
+
+- **Everything flies 10% faster**, on every Arrow speed setting (arrows, bolts and shuriken): Normal 1.32, Fast 1.65, Very fast 1.98, Blazing 2.42. Shuriken reach 10% further with it; bolts keep their set reach.
+- **The aim guide reaches as far as your shot really goes**: for a bow, worked out from your draw, your upgrades (Longbow, Railshot and so on) and the arrow speed setting, and stopped at the first wall or boulder. Ninjas and Crossbowmen, whose shots fly at once, now see it all the time, out to their range.
+- **Power-ups are announced 3 seconds early:** their spot shows a ring closing in and a countdown (gold for a power-up, violet for a channel).
+
 ## 0.22.0
 
 - **Knockout drill rebuilt as four set scenes** (Warm-up, Angles, Weave, Long shots). Every archer is already standing in front of its own sinkhole; work your way through the arena knocking each one in, and the next scene starts once they're all in. A dummy you hit that misses its hole goes back to its spot a second after it stops. Scoring: 50 per dummy, plus up to 600 per scene for clearing it quickly (full marks at half its par time, nothing at twice it); falling in costs 100 and puts you back at the scene's start. It's a new drill, so it has a fresh leaderboard (the old drill's bests are kept but no longer shown).

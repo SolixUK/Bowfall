@@ -1218,7 +1218,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.22.0';
+const VERSION = '0.23.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1365,7 +1365,7 @@ const CRACK_WARN = 4;
 // custom game options; def is the standard rule
 const OPTIONS = {
   size:   { label: 'Archer size',  def: 'large', values: { small: 1, medium: 1.25, large: 1.5 } },
-  aspeed: { label: 'Arrow speed',  def: 'vfast', values: { normal: 1.2, fast: 1.5, vfast: 1.8, blazing: 2.2 } },
+  aspeed: { label: 'Arrow speed',  def: 'vfast', values: { normal: 1.32, fast: 1.65, vfast: 1.98, blazing: 2.42 } }, // 10% up in 0.23.0 (arrows, bolts and shuriken)
   mspeed: { label: 'Move speed',   def: 'fast', values: { normal: 1, slow: 0.85, fast: 1.2, vfast: 1.4, blazing: 1.7 } },
   kb:     { label: 'Knockback',    def: 'normal', values: { normal: 1, low: 0.75, high: 1.3, chaos: 1.8 } },
   hp:     { label: 'Health',       def: 'normal', values: { normal: 1, low: 0.7, high: 1.5 } },
@@ -4025,6 +4025,15 @@ function updateChannel(w, u, dt) {
   } else if (!teams.length) u.cp = Math.max(0, u.cp - dt / CHANNEL_TIME * 0.5);
   return false;
 }
+// where the next power-up (or channel) appears, for its last 3 seconds: [x, y, seconds left, 1 for a channel]
+const PU_WARN = 3;
+function powerWarn(w) {
+  if (w.match.ph !== 'play' || !MAP.power || !MAP.power.length || w.pickups.some(u => u.type !== 'amber')) return undefined;
+  const chan = w.chT != null && w.chT < w.puT, T = chan ? w.chT : w.puT;
+  if (!(T > 0 && T <= PU_WARN)) return undefined;
+  const s = MAP.power[w.powerIdx % MAP.power.length];
+  return [s.x, s.y, Math.ceil(T * 10) / 10, chan ? 1 : 0];
+}
 function updatePickups(w, dt) {
   w.amberT -= dt; w.puT -= dt;
   w.chT = (w.chT == null ? 20 : w.chT) - dt;
@@ -4612,12 +4621,13 @@ function step(w, dt) {
 
 // (every array and object in a snapshot is its own copy, so an older snapshot never changes under you: deltas rely on it)
 function snapshot(w) {
+  useMap(w); // this world's options and arena (the server runs many)
   const M = w.match;
   return {
     t: r3(w.t),
     m: { ph: M.ph, rd: M.rd, gm: M.gm, T: Math.max(0, Math.ceil(M.T)), wr: M.wins.red, wb: M.wins.blue, gr: M.gw.red, gb: M.gw.blue, rw: M.rw, mw: M.mw,
       op: M.opening ? 1 : 0, opt: Object.assign({}, w.cfg.opt), ptw: w.cfg.pointsToWin, gtw: w.cfg.gamesToWin, df: w.cfg.diff, map: w.cfg.map, cs: canStart(w) ? 1 : 0,
-      cr: w.cracks && w.cracks.length ? w.cracks.join('') : '', gt: r2(gameTime(w)) },
+      cr: w.cracks && w.cracks.length ? w.cracks.join('') : '', gt: r2(gameTime(w)), pw: powerWarn(w) },
     p: w.players.map(p => {
       const pw = {};
       for (const k in p.pw) if (p.pw[k] > 0) pw[k] = r1(p.pw[k]);
@@ -4632,7 +4642,7 @@ function snapshot(w) {
         arm: p.recoilArmed ? 'recoil' : p.seekArmed ? 'seeker' : p.trickArmed ? 'trick' : p.boomArmed ? 'boomerang' : p.execArmed ? 'execute' : undefined,
         sr: p.shroudT > 0 ? p.shroudR : undefined, rsh: p.rush ? 1 : 0, sk: p.strikeN || 0, nb: p.nblink ? 1 : 0, ft: p.fortT > 0 ? 1 : 0, wd: p.windT > 0 ? 1 : 0, ph: p.phaseT > 0 ? 1 : 0, gr: p.grap ? [r1(p.grap.x), r1(p.grap.y)] : 0, rp: r2(p.revP || 0), rv: p.reviveUsed ? 1 : 0, fl: p.flash > 0 ? 1 : 0, dc: r2(p.dashCd), dm: p.dashCdMax, d: p.dead ? 1 : 0,
         k: p.kills, de: p.deaths, am: p.amber, er: p.earned, up: p.up.slice(), hn: p.hones ? Object.assign({}, p.hones) : p.hones, el: p.element, ro: p.role,
-        of: p.offer ? JSON.parse(JSON.stringify(p.offer)) : p.offer, pk: p.picked ? 1 : 0, po: p.poisonN, dz: p.disarm > 0 ? 1 : 0, hc: p.hcap || 0, dfl: p.deflectT > 0 ? 1 : 0, pr: p.parryT > 0 ? (p.parryAuto ? 2 : 1) : 0, su: p.stunT > 0 ? 1 : 0, rg: rangeOf(w, p) || undefined, xr: p.role === 'crossbow' ? (p.bolts >= p.xbowMax ? 1 : r2(p.reloadT)) : undefined, xn: p.role === 'crossbow' ? p.bolts : undefined, xm: p.role === 'crossbow' ? p.xbowMax : undefined, xf: p.fanArmed ? 1 : 0, rpt: p.repeatT > 0 ? 1 : 0, au: p.autoT > 0 ? r2(p.autoT) : 0, fo: p.focusT > 0 ? 1 : 0, ts: p.trapSet ? [r1(p.trapSet.x), r1(p.trapSet.y), r2(1 - p.trapSet.t / TRAP_SET)] : undefined, ti: p.title || undefined, pn: p.pinned > 0 && p.stuck > 0 ? 1 : 0, pa: p.pinned > 0 ? r2(p.pinAng || 0) : undefined, sg: p.staggerT > 0 ? 1 : 0, mk: p.markT > 0 ? 1 : 0, sth: p.stealthT > 0 ? 1 : 0, amb: p.ambushT > 0 ? 1 : 0, bs: p.bot && p.ai.style ? p.ai.style : undefined, dv: p.bot && !p.dparams ? p.diff : undefined, em: p.emp ? 1 : 0, sk: p.streak, lh: p.lastHow, ep: Math.min(p.empPts, EMPOWER_AT), rz: r1(p.r),
+        of: p.offer ? JSON.parse(JSON.stringify(p.offer)) : p.offer, pk: p.picked ? 1 : 0, po: p.poisonN, dz: p.disarm > 0 ? 1 : 0, hc: p.hcap || 0, dfl: p.deflectT > 0 ? 1 : 0, pr: p.parryT > 0 ? (p.parryAuto ? 2 : 1) : 0, su: p.stunT > 0 ? 1 : 0, rg: rangeOf(w, p) || undefined, sm: p.role === 'ninja' || p.role === 'crossbow' ? undefined : r2(shotSpeed(p, 1) / 1300), dg: p.role === 'ninja' || p.role === 'crossbow' ? undefined : (p.railArmed ? 0 : has(p, 'longbow') ? 0.2 : 0.45), xr: p.role === 'crossbow' ? (p.bolts >= p.xbowMax ? 1 : r2(p.reloadT)) : undefined, xn: p.role === 'crossbow' ? p.bolts : undefined, xm: p.role === 'crossbow' ? p.xbowMax : undefined, xf: p.fanArmed ? 1 : 0, rpt: p.repeatT > 0 ? 1 : 0, au: p.autoT > 0 ? r2(p.autoT) : 0, fo: p.focusT > 0 ? 1 : 0, ts: p.trapSet ? [r1(p.trapSet.x), r1(p.trapSet.y), r2(1 - p.trapSet.t / TRAP_SET)] : undefined, ti: p.title || undefined, pn: p.pinned > 0 && p.stuck > 0 ? 1 : 0, pa: p.pinned > 0 ? r2(p.pinAng || 0) : undefined, sg: p.staggerT > 0 ? 1 : 0, mk: p.markT > 0 ? 1 : 0, sth: p.stealthT > 0 ? 1 : 0, amb: p.ambushT > 0 ? 1 : 0, bs: p.bot && p.ai.style ? p.ai.style : undefined, dv: p.bot && !p.dparams ? p.diff : undefined, em: p.emp ? 1 : 0, sk: p.streak, lh: p.lastHow, ep: Math.min(p.empPts, EMPOWER_AT), rz: r1(p.r),
         ss: [p.stats.shots, p.stats.hits, Math.round(p.stats.dmg), Math.round(p.stats.taken), p.stats.ring, Math.round(p.stats.longest)],
         pw, lc: p.lastCause, kb: p.killedBy,
       };
@@ -6813,7 +6823,7 @@ function drawLocalMarks(v) {
     const R = p.rz || 16, col = lpColor(l.n), fighting = v.m.ph === 'play' || v.m.ph === 'pre';
     // no cursor on a controller: their aim guide while drawing, and a small arrow showing where they point
     const ch = p.ro === 'ninja' || p.ro === 'crossbow' ? 0 : (p.ch || 0);
-    if (fighting && ch > 0 && OPTS.guide) drawAimGuide(p, l.aim, ch);
+    if (fighting && (ch > 0 || p.rg) && OPTS.guide) drawAimGuide(p, l.aim, ch > 0 ? ch : 0.5);
     ctx.save(); ctx.fillStyle = col; ctx.font = "700 12px 'Rajdhani', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center';
     ctx.fillText('P' + l.n, p.x, p.y - R - 30);
     ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.globalAlpha = 0.8; ctx.beginPath(); ctx.arc(p.x, p.y, R + 7, 0, TAU); ctx.stroke(); ctx.globalAlpha = 1;
@@ -10058,6 +10068,22 @@ function drawBall(b) {
   ctx.strokeStyle = 'rgba(0,0,0,0.55)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.stroke();
   ctx.restore();
 }
+// the next power-up's spot, for its last 3 seconds: a ring closing in on it and a countdown
+function drawPowerWarn(pw) {
+  if (!pw) return;
+  const [x, y, t, chan] = pw, k = Math.max(0, Math.min(1, t / 3)), rgb = chan ? '190,150,255' : '255,207,90';
+  const pulse = 0.5 + 0.5 * Math.sin(clock * 10);
+  ctx.save();
+  ctx.fillStyle = `rgba(${rgb},${0.1 + 0.1 * (1 - k)})`; ctx.beginPath(); ctx.arc(x, y, 24, 0, TAU); ctx.fill();
+  ctx.strokeStyle = `rgba(${rgb},${0.45 + 0.35 * pulse})`; ctx.lineWidth = 2; ctx.setLineDash([6, 6]); ctx.lineDashOffset = -clock * 20;
+  ctx.beginPath(); ctx.arc(x, y, 24, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle = `rgba(${rgb},${0.25 + 0.5 * (1 - k)})`; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(x, y, 24 + 70 * k, 0, TAU); ctx.stroke(); // closes in as the moment nears
+  ctx.font = "700 20px 'Rajdhani', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,0.55)'; ctx.strokeText(String(Math.ceil(t)), x, y + 1);
+  ctx.fillStyle = `rgb(${rgb})`; ctx.fillText(String(Math.ceil(t)), x, y + 1);
+  ctx.restore();
+}
 function drawPickup(u) {
   if (u.ty === 'amber') return drawAmber(u);
   if (Sim.CHANNEL[u.ty]) return drawChannel(u);
@@ -10334,9 +10360,17 @@ function drawAllyAim(v, me, charge) {
     ctx.strokeStyle = 'rgba(125,255,138,0.8)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(q.x, q.y, (q.rz || 16) + 10, 0, TAU); ctx.stroke();
   }
 }
+// how far a shot from this archer flies at this draw: shuriken and bolts have a set reach (rg); a bow's arrow slows
+// with drag (dg) from its launch speed until it's too slow to count (170px/s) or its 2.4 seconds are up
+function shotReach(p, charge) {
+  if (p.rg) return p.rg;
+  if (!p.sm) return 60 + charge * 220;
+  const v0 = (380 + 920 * charge) * p.sm, k = p.dg || 0, T = k > 0 ? Math.min(2.4, Math.log(Math.max(1, v0 / 170)) / k) : 2.4;
+  return k > 0 ? v0 / k * (1 - Math.exp(-k * T)) : v0 * T;
+}
 function drawAimGuide(me, ang, charge) {
   {
-    const len = 60 + charge * 220, ax = Math.cos(ang), ay = Math.sin(ang);
+    const len = Math.max(40, shotReach(me, charge) - 30), ax = Math.cos(ang), ay = Math.sin(ang);
     // walk along the shot to find the first wall or boulder within reach
     let hit = null;
     for (let t = 30; t <= 30 + len + 60; t += 6) {
@@ -10381,7 +10415,8 @@ function drawCrosshair(me, charge) {
     const dx = x - me.x, dy = y - me.y, d = Math.hypot(dx, dy), k = d > Sim.TRAP_RANGE ? Sim.TRAP_RANGE / d : 1;
     ctx.strokeStyle = 'rgba(217,160,102,0.45)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 5]); ctx.beginPath(); ctx.arc(me.x + dx * k, me.y + dy * k, 22, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
   } }
-  if (me && !me.d && charge > 0 && OPTS.guide) drawAimGuide(me, me.a, charge);
+  // bows show it while drawing; shuriken and bolts fly at once, so theirs is always there
+  if (me && !me.d && OPTS.guide && (charge > 0 || me.rg)) drawAimGuide(me, me.a, charge > 0 ? charge : 0.5);
   if (me && !me.d && me.rg) {
     // short-range roles: a faint ring showing how far your shots reach fades in when you aim past it
     const d = Math.hypot(x - me.x, y - me.y), want = d > me.rg ? 1 : 0, now = performance.now();
@@ -10433,6 +10468,7 @@ function render(replaying) {
 
   drawZones(view, me);
   drawMarkers(view, me);
+  drawPowerWarn(view.m.pw);
   for (const u of view.u) drawPickup(u);
   if (view.b && !view.b.o) drawBall(view.b);
   for (const a of view.a) if (a.s) drawArrow(a);
