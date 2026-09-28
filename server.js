@@ -517,9 +517,17 @@ async function api(req, res, url) {
     await store.arenaUpdate(a.id, { voters: [...voters], votes: voters.size });
     return json(res, 200, { votes: voters.size, voted: voters.has(me.id) });
   }
+  if (route === '/clienterr' && method === 'POST') { // errors from players' browsers (see clientError in index.html)
+    if (!trainLimit('err:' + ip(req))) return json(res, 429, {});
+    const t = k => String(body[k] || '').slice(0, k === 's' ? 1200 : 200);
+    PERF.errors.unshift({ t: Date.now(), name: me ? me.name : 'guest', where: t('where'), m: t('m'), s: t('s'), v: t('v'), mode: t('mode'), ph: t('ph'), map: t('map'), ua: t('ua') });
+    PERF.errors.length = Math.min(PERF.errors.length, 60);
+    console.error('Client error:', t('where'), t('m'), '|', (t('s').split('\n')[1] || '').trim());
+    return json(res, 200, { ok: true });
+  }
   if (route === '/perf' && method === 'GET') {
     if (!me || !me.admin) return json(res, 403, { error: 'Only the game owner can see this.' });
-    return json(res, 200, { now: PERF.now, history: PERF.hist, reports: PERF.reports.slice(-100), node: process.version, uptime: Math.round(process.uptime()) });
+    return json(res, 200, { now: PERF.now, errors: PERF.errors, history: PERF.hist, reports: PERF.reports.slice(-100), node: process.version, uptime: Math.round(process.uptime()) });
   }
   if (route === '/achrarity' && method === 'GET') return json(res, 200, { rarity: RANKS.rarity, players: RANKS.players });
   // training drills: your best score in each (kept on your account), and where it ranks among everyone's bests
@@ -990,6 +998,7 @@ async function chatCommand(room, ws, text) {
       const worst = k => h.reduce((m, x) => Math.max(m, x[k] || 0), 0);
       tell(`Server now: CPU ${s.cpu}% of ${s.quota ? s.quota + ' core' : 'a core'}${s.thr != null ? ` (held back ${s.thr} ms/s)` : ''} · loop stall ${s.lag} ms · tick ${s.step} ms (max ${s.stepMax}) · ${s.rooms} game${s.rooms === 1 ? '' : 's'}, ${s.players} archers · ${s.mem} MB`);
       tell(`Last 30 s worst: CPU ${worst('cpu')}% · loop stall ${worst('lag')} ms · lost time ${h.reduce((m, x) => m + (x.drop || 0), 0)} ms · tick max ${worst('stepMax')} ms`);
+      for (const e of PERF.errors.slice(0, 3)) tell(`Browser error (${e.name}, ${e.where}, ${e.ph || e.mode}): ${e.m} ${(e.s.split('\n')[1] || '').trim().slice(0, 120)}`);
       const reps = PERF.reports.slice(-4).reverse();
       for (const r of reps) tell(`${r.name}: ${r.verdict || '?'} · ${r.fps} fps (worst frame ${r.fMax} ms) · ping ${r.ping} ±${r.jit} ms · late packets ${r.late}, longest gap ${r.gapMax} ms`);
       return;
@@ -1256,7 +1265,7 @@ const CG = (() => {
   const throttled = () => { const t = rd(stat); if (!t) return null; const m = t.match(/throttled_usec (\d+)/) || t.match(/throttled_time (\d+)/); return m ? (/usec/.test(m[0]) ? +m[1] / 1000 : +m[1] / 1e6) : null; };
   return { quota, throttled, last: throttled() };
 })();
-const PERF = { w: { gap: 0, drop: 0, catchup: 0, step: 0, steps: 0, stepMax: 0, send: 0 }, hist: [], reports: [], cpu: process.cpuUsage(), at: Date.now(), now: null };
+const PERF = { errors: [], w: { gap: 0, drop: 0, catchup: 0, step: 0, steps: 0, stepMax: 0, send: 0 }, hist: [], reports: [], cpu: process.cpuUsage(), at: Date.now(), now: null };
 function perfSecond() {
   const W = PERF.w, t = Date.now(), wall = (t - PERF.at) * 1000, cpu = process.cpuUsage(PERF.cpu);
   PERF.cpu = process.cpuUsage(); PERF.at = t;

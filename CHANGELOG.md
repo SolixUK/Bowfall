@@ -2,6 +2,15 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
 
+## 0.21.2
+
+- **A drawing error can no longer freeze the game.** If something goes wrong while drawing a frame (or the HUD, or handling a message from the server), the game reports it and carries on with the next frame instead of stopping with a blank arena.
+- **Browser errors are reported to the server:** each distinct error goes to `POST /api/clienterr` once (with the version, screen, arena and browser). The owner sees the latest in `/perf` (in any game's chat) and in full at `/api/perf`, and the server log prints them.
+
+## 0.21.1
+
+- **Fix:** the ranked draft screen came up blank (no arena name, no element and role choices, no teams), so ranked matches couldn't be set up. A variable in the new lock markers was used before it was defined, which stopped the draft screen drawing. The draft also redraws once a player-made arena's layout arrives.
+
 ## 0.21.0
 
 **Crests and unlocks**

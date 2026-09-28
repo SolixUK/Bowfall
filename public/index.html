@@ -2856,7 +2856,7 @@ function connect(joinMsg) {
   try { sock = new WebSocket(url); } catch (e) { status.classList.add('err'); status.textContent = 'Could not reach the server.'; return; }
   ws = sock; LP.joinPw = joinMsg.pw || '';
   sock.binaryType = 'arraybuffer';
-  const rx = zReceiver(sock, x => onMsg(x));
+  const rx = zReceiver(sock, x => { try { onMsg(x); } catch (e) { clientError(e, 'message'); } });
   let zBase = null; // the last full snapshot from the stream; deltas build on it
   sock.onopen = () => sock.send(JSON.stringify(Object.assign({ t: 'join', name: playerName(), el: myLoadout().el, ro: myLoadout().ro, gt: GUEST_TOKEN, z: rx.ok ? 1 : 0 }, joinMsg)));
   sock.onmessage = rx.push;
@@ -2929,13 +2929,13 @@ function connect(joinMsg) {
 // The map is already drawn; everyone picks an element and role before the timer runs out, then the match starts.
 function renderDraft(v) {
   const me = v.p.find(p => p.id === myId), R = roomInfo || {};
-  setC('df', v.m.map + ':' + R.ranked, () => {
+  setC('df', v.m.map + ':' + R.ranked + ':' + !!MAPS[v.m.map], () => {
     $('dfMode').textContent = `Ranked ${R.ranked || ''} · match found`;
     $('dfMap').textContent = MAPS[v.m.map] ? MAPS[v.m.map].name : 'Arena';
     const c = $('dfThumb'), t = thumbs[v.m.map];
     if (t) { c.width = t.width; c.height = t.height; c.getContext('2d').drawImage(t, 0, 0); }
     // with locks on: what you don't own is locked (this week's free picks are marked)
-    const R = (WALLET && WALLET.rotation) || {}, tg = k => !mayPick(k) ? ' disabled title="Locked: unlock it in the Store"' : '', tag = k => !mayPick(k) ? '<em class="lock">Locked</em>' : WALLET && WALLET.locks && (R.el === k || R.ro === k) ? '<em class="new">Free this week</em>' : '';
+    const RT = (WALLET && WALLET.rotation) || {}, tg = k => !mayPick(k) ? ' disabled title="Locked: unlock it in the Store"' : '', tag = k => !mayPick(k) ? '<em class="lock">Locked</em>' : WALLET && WALLET.locks && (RT.el === k || RT.ro === k) ? '<em class="new">Free this week</em>' : '';
     $('dfEl').innerHTML = Object.entries(ELEMENTS).map(([k, e]) => `<button type="button" class="chip2" data-el="${k}" style="--cc:${e.color}"${tg(k)}><i></i>${e.name}${tag(k)}</button>`).join('');
     $('dfRo').innerHTML = Object.entries(ROLES).map(([k, r]) => `<button type="button" class="chip2" data-ro="${k}" style="--cc:${CAT_COL[r.cat]}"${tg(k)}>${r.name}<em>${r.cat}</em>${tag(k)}</button>`).join('');
     hc.dfArch = null;
@@ -4780,6 +4780,18 @@ function updateFx(dt) {
 
 // ================= online interpolation =================
 const DELAY = 100;
+// ---- errors in the page are sent to the server (once each), so the owner can see what went wrong with /perf
+const CLIENT_ERRS = new Set();
+function clientError(e, where) {
+  const msg = String((e && e.message) || e).slice(0, 200), key = where + msg;
+  if (CLIENT_ERRS.has(key)) return; CLIENT_ERRS.add(key);
+  console.error('Bowfall', where, e);
+  if (CLIENT_ERRS.size === 1) notice('Something went wrong in the game. It\'s been reported.', false);
+  if (OFFLINE || CLIENT_ERRS.size > 8) return;
+  try { fetch('/api/clienterr', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ where, m: msg, s: String((e && e.stack) || '').slice(0, 1200), v: Sim.VERSION, mode, ph: view && view.m && view.m.ph, map: view && view.m && view.m.map, ua: navigator.userAgent.slice(0, 160) }) }).catch(() => {}); } catch (e2) {}
+}
+addEventListener('error', ev => clientError(ev.error || ev.message, 'page'));
+addEventListener('unhandledrejection', ev => clientError(ev.reason, 'promise'));
 // ---- compressed game updates. The server compresses each game's snapshots once, in one running stream per game, and
 // sends the same bytes to everyone in it (binary frames: a first byte of 1 starts a fresh stream, 0 continues it; each
 // update is one line of JSON). Other messages stay plain text. Everything is handled in the order it arrived, even though
@@ -7301,8 +7313,10 @@ function frame(now) {
   updateFx(dt);
   replayRecord();
   const rv = replayTick(dt);
-  if (rv) { const live = view; view = rv; render(true); view = live; } else render();
-  updateHud();
+  // a drawing error must never freeze the game: report it and carry on with the next frame
+  try { if (rv) { const live = view; view = rv; try { render(true); } finally { view = live; } } else render(); }
+  catch (e) { clientError(e, 'render'); if (rv) endReplay(); try { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none'; } catch (e2) {} }
+  try { updateHud(); } catch (e) { clientError(e, 'hud'); }
   requestAnimationFrame(frame);
 }
 
