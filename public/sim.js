@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.26.0';
+const VERSION = '0.27.1';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -48,6 +48,7 @@ function buildMapNow(def) {
     cracks: (def.cracks || []).flatMap(c => [c, mirrorItem(c)]),
     saws: (def.saws || []).flatMap(o => [o, Object.assign({}, o, { x0: AW - o.x0, x1: AW - o.x1, y: AH - o.y })]),
     bumpers: both(def.bumpers || [], mirrorItem),
+    lights: both(def.lights || [], mirrorItem), // lamps that only light the ground (drawn by the page)
     // each gate leads to its mirror image across the arena
     portals: (def.portals || []).flatMap((o, i) => [{ x: o.x, y: o.y, tx: AW - o.x, ty: AH - o.y, k: i }, { x: AW - o.x, y: AH - o.y, tx: o.x, ty: o.y, k: i }]),
     wind: def.wind || null,
@@ -160,12 +161,12 @@ MAPS.grove = buildMap({
     bumpers: [{ x: 330, y: 330, r: 30 }, { x: 600, y: 400, r: 34, centre: true }],
     power: [{ x: 600, y: 250 }, { x: 600, y: 550 }], amberY: [110, 190],
   });
-// Highland Reach: bigger than the rest (1500 by 960) and built for long shots: a canyon splits the middle, so the only
+// Highland Reach (at dusk): bigger than the rest (1500 by 960) and built for long shots: a canyon splits the middle, so the only
 // way across is the crossing in the centre, and archers trade shots across the gap from the rims; drops along the top and
 // bottom edges punish being pushed wide, and a pool in front of each side's crossing splits the approach in two
 MAPS.reach = buildMap({
-    name: 'Highland Reach', theme: 'highland', w: 1500, h: 960,
-    desc: 'A big, open highland split by a canyon. Trade long shots across the gap, or fight for the crossing in the middle. Bigger than the other arenas.',
+    name: 'Highland Reach', theme: 'dusk', w: 1500, h: 960,
+    desc: 'A big highland at dusk, split by a canyon and lit by braziers. Trade long shots across the gap, or fight for the crossing in the middle. Bigger than the other arenas.',
     haz: [
       { type: 'pit', centre: true, shape: 'rect', x: 700, y: WALL - 20, w: 100, h: 300 },
       { type: 'pit', centre: true, shape: 'rect', x: 700, y: 654, w: 100, h: 330 },
@@ -173,7 +174,9 @@ MAPS.reach = buildMap({
       { type: 'pit', shape: 'rect', x: 330, y: 960 - WALL - 76, w: 230, h: 96 },
       { type: 'pit', water: true, shape: 'circle', x: 565, y: 480, r: 52 },
     ],
-    pillars: [{ x: 250, y: 330, r: 28 }, { x: 250, y: 630, r: 28 }, { x: 420, y: 480, r: 24 }, { x: 610, y: 250, r: 22 }, { x: 610, y: 710, r: 22 }],
+    pillars: [{ x: 250, y: 330, r: 28 }, { x: 250, y: 630, r: 28 }, { x: 420, y: 480, r: 24 }, { x: 610, y: 250, r: 22 }, { x: 610, y: 710, r: 22 },
+      { x: 676, y: 332, r: 13, kind: 'brazier' }, { x: 676, y: 628, r: 13, kind: 'brazier' }],
+    lights: [{ x: 60, y: 200 }, { x: 60, y: 760 }, { x: 420, y: 150 }, { x: 420, y: 810 }],
     spikes: [],
     spawns: [{ x: 110, y: 420 }, { x: 110, y: 540 }, { x: 180, y: 480 }, { x: 100, y: 320 }],
     power: [{ x: 750, y: 480 }], amberY: [340, 420],

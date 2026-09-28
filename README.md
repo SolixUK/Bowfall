@@ -48,7 +48,7 @@ Every arena is point-symmetric: each map defines one half, and the other half is
 | The Pitch | A football pitch. The only hazards are the two goals, which are drops: get knocked into one and you are out. A ball sits in the centre: shoot it or run into it to send it flying, and it deals damage and a big shove to anyone it hits (harder the faster it goes), bouncing off walls, boulders and archers. A ball that goes in a goal comes back to the centre after a moment. |
 | Sawmill | A plank yard with two saw blades racing along their tracks. Touching one deals 10 damage and throws you hard (they count as a hazard for kill credit). A deep mill pond and a mud patch. |
 | Portal Ruins | Old flagstones and four gates: each leads to its mirror image across the arena, keeping your speed. Arrows go through too, so you can shoot round corners. |
-| Highland Reach | Bigger than the others (1500 × 960) and built for long shots: a canyon splits the middle, crossed only in the centre, with drops along the top and bottom edges and a pool in front of each side's crossing. |
+| Highland Reach | At dusk, lit by braziers and lanterns. Bigger than the others (1500 × 960) and built for long shots: a canyon splits the middle, crossed only in the centre, with drops along the top and bottom edges and a pool in front of each side's crossing. |
 
 Mushroom Grove is out of the rotation for now (`retired` in `public/sim.js`).
 

@@ -1,6 +1,15 @@
 # Changelog
 
-Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
+Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
+
+## 0.27.1
+
+- **Taking elements and roles out of a custom game, right on the pickers:** the host Alt+clicks an element or role in the lobby (or presses Y on it with a controller) to take it out of the game, and again to put it back. Taken-out ones are greyed, struck through and marked with a red ✕ for everyone; a line under the pickers tells the host how. (The same list is still under Custom rules → Allowed in this game.)
+
+## 0.27.0
+
+- **Highland Reach at dusk:** a new, darker theme. Dark heath under a cold, moonlit sky, braziers at the corners of the centre crossing (small bits of cover too) and lanterns by each side's spawn, each throwing a flickering pool of warm light, fireflies drifting over it, and a vignette. The canyon and ledges have a lighter earth bank and a pale moonlit rim so the drops stay easy to read. Light effects mode keeps the fires but drops the glows.
+- **Fix: the page and the game files can't run out of step any more.** The Highland Reach report (a bot standing outside the arena, which was cut short at the old width) came from a browser running an older copy of the page with the new game files. The page now checks that it and the game files are the same version; if not, it reloads once, fetching both fresh (and keeping any room link), and if that still doesn't fix it, a banner says to press Ctrl+F5. The game files are also requested by version, so an update always fetches them fresh.
 
 ## 0.26.0
 

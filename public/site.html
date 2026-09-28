@@ -287,7 +287,7 @@ const pages = {
     const [rooms, forum, lb] = await Promise.all([api('/rooms').catch(() => ({ rooms: [], online: 0 })), api('/forum').catch(() => ({ recent: [] })), api('/leaderboard?by=elo').catch(() => ({ rows: [] }))]);
     const E = Object.entries(Sim.ELEMENTS), R = Object.entries(Sim.ROLES);
     const CATC = { Power: '#ff8a5b', Agility: '#5ad1ff', Utility: '#c7b3ff' };
-    const THEME = { meadow: '#5f9a3e', spring: '#6fae4a', rift: '#6b4a3a', beach: '#d9c28a', pitch: '#4f9a3c', mill: '#a07a4e', ruins: '#8a8a94', grove: '#3f7a3a', highland: '#8a8a48' };
+    const THEME = { meadow: '#5f9a3e', spring: '#6fae4a', rift: '#6b4a3a', beach: '#d9c28a', pitch: '#4f9a3c', mill: '#a07a4e', ruins: '#8a8a94', grove: '#3f7a3a', highland: '#8a8a48', dusk: '#2c3a31' };
     app.innerHTML = `
       <section class="hero2">
         <div class="h2l">

@@ -56,7 +56,10 @@
   .side { position: absolute; right: 16px; top: 72px; width: 250px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
   .lbbans { margin-top: 10px; display: grid; gap: 6px; }
   .lbbans .lbl { font-size: 12px; color: var(--muted); }
-  .chip2.ban.off, .chip2.banned { opacity: .38; text-decoration: line-through; }
+  .chip2.ban.off, .chip2.banned { opacity: .42; text-decoration: line-through; position: relative; }
+  .chip2.banned { cursor: not-allowed; }
+  .chip2.banned::after { content: '✕'; position: absolute; right: -6px; top: -7px; width: 16px; height: 16px; line-height: 16px; border-radius: 50%; background: #c0392b; color: #fff; font: 700 10px sans-serif; text-align: center; text-decoration: none; opacity: 1; }
+  .banhint { font-size: 12px; margin: 2px 0 0; }
   .board { background: var(--panel); border: 1px solid var(--line); border-radius: 2px; padding: 8px 10px; display: grid; grid-template-columns: 10px 1fr 26px 26px; gap: 5px 8px; align-items: center; font-size: 13px; }
   .board .h { font-size: 12px; letter-spacing: .01em; color: var(--muted); }
   .board .n { font-variant-numeric: tabular-nums; text-align: right; font-family: 'Rajdhani', 'Arial Narrow', sans-serif; font-weight: 600; }
@@ -1034,6 +1037,7 @@
             <div class="archhead"><div style="display:flex;align-items:center;gap:12px"><canvas id="archPrev" width="128" height="128" style="width:52px;height:52px;border-radius:10px;background:rgba(255,255,255,.05)"></canvas><div class="stat"><h3>Your archetype</h3><span class="archname" id="archName"></span></div></div></div>
             <div class="archrow"><span class="lbl">Element</span><div class="chips" id="elChips"></div></div>
             <div class="archrow"><span class="lbl">Role</span><div class="chips" id="roChips"></div></div>
+            <p class="status banhint" id="banHint" hidden></p>
             <span class="status" id="archBlurb"></span>
           </div>
           <div class="lbset" data-navsec>
@@ -1231,7 +1235,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.26.0';
+const VERSION = '0.27.1';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1270,6 +1274,7 @@ function buildMapNow(def) {
     cracks: (def.cracks || []).flatMap(c => [c, mirrorItem(c)]),
     saws: (def.saws || []).flatMap(o => [o, Object.assign({}, o, { x0: AW - o.x0, x1: AW - o.x1, y: AH - o.y })]),
     bumpers: both(def.bumpers || [], mirrorItem),
+    lights: both(def.lights || [], mirrorItem), // lamps that only light the ground (drawn by the page)
     // each gate leads to its mirror image across the arena
     portals: (def.portals || []).flatMap((o, i) => [{ x: o.x, y: o.y, tx: AW - o.x, ty: AH - o.y, k: i }, { x: AW - o.x, y: AH - o.y, tx: o.x, ty: o.y, k: i }]),
     wind: def.wind || null,
@@ -1382,12 +1387,12 @@ MAPS.grove = buildMap({
     bumpers: [{ x: 330, y: 330, r: 30 }, { x: 600, y: 400, r: 34, centre: true }],
     power: [{ x: 600, y: 250 }, { x: 600, y: 550 }], amberY: [110, 190],
   });
-// Highland Reach: bigger than the rest (1500 by 960) and built for long shots: a canyon splits the middle, so the only
+// Highland Reach (at dusk): bigger than the rest (1500 by 960) and built for long shots: a canyon splits the middle, so the only
 // way across is the crossing in the centre, and archers trade shots across the gap from the rims; drops along the top and
 // bottom edges punish being pushed wide, and a pool in front of each side's crossing splits the approach in two
 MAPS.reach = buildMap({
-    name: 'Highland Reach', theme: 'highland', w: 1500, h: 960,
-    desc: 'A big, open highland split by a canyon. Trade long shots across the gap, or fight for the crossing in the middle. Bigger than the other arenas.',
+    name: 'Highland Reach', theme: 'dusk', w: 1500, h: 960,
+    desc: 'A big highland at dusk, split by a canyon and lit by braziers. Trade long shots across the gap, or fight for the crossing in the middle. Bigger than the other arenas.',
     haz: [
       { type: 'pit', centre: true, shape: 'rect', x: 700, y: WALL - 20, w: 100, h: 300 },
       { type: 'pit', centre: true, shape: 'rect', x: 700, y: 654, w: 100, h: 330 },
@@ -1395,7 +1400,9 @@ MAPS.reach = buildMap({
       { type: 'pit', shape: 'rect', x: 330, y: 960 - WALL - 76, w: 230, h: 96 },
       { type: 'pit', water: true, shape: 'circle', x: 565, y: 480, r: 52 },
     ],
-    pillars: [{ x: 250, y: 330, r: 28 }, { x: 250, y: 630, r: 28 }, { x: 420, y: 480, r: 24 }, { x: 610, y: 250, r: 22 }, { x: 610, y: 710, r: 22 }],
+    pillars: [{ x: 250, y: 330, r: 28 }, { x: 250, y: 630, r: 28 }, { x: 420, y: 480, r: 24 }, { x: 610, y: 250, r: 22 }, { x: 610, y: 710, r: 22 },
+      { x: 676, y: 332, r: 13, kind: 'brazier' }, { x: 676, y: 628, r: 13, kind: 'brazier' }],
+    lights: [{ x: 60, y: 200 }, { x: 60, y: 760 }, { x: 420, y: 150 }, { x: 420, y: 810 }],
     spikes: [],
     spawns: [{ x: 110, y: 420 }, { x: 110, y: 540 }, { x: 180, y: 480 }, { x: 100, y: 320 }],
     power: [{ x: 750, y: 480 }], amberY: [340, 420],
@@ -5399,6 +5406,15 @@ return {
 (() => {
 'use strict';
 const Sim = window.BowSim;
+// This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
+// draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
+// doesn't fix it, say so.
+const PAGE_VERSION = '0.27.1';
+if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
+  let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
+  if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
+  addEventListener('DOMContentLoaded', () => { const d = document.createElement('div'); d.textContent = `This page is version ${PAGE_VERSION} but the game files are ${Sim.VERSION}. Press Ctrl+F5 (or Cmd+Shift+R) to load the latest version.`; d.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:99;padding:8px 12px;background:#b3262f;color:#fff;font:600 14px sans-serif;text-align:center'; document.body.appendChild(d); });
+}
 // the arena's size: every normal arena is Sim.AW by Sim.AH; a big map sets its own (setArena)
 let AW = Sim.AW, AH = Sim.AH;
 const { WALL, GATES, PU, TREE, HONES, ELEMENTS, ROLES, TEAMS, TEAM_INFO, MAPS, MAP_KEYS, MAX_TEAM, cardInfo } = Sim;
@@ -5984,6 +6000,8 @@ function padNav(gp, btn, press, mx, my, dt) {
     else { padSec.selSig = elSig(padSel, padSec.sec || layer); uiSfx.click(); padSel.click(); padRestore(layer); }
   }
   if (press(1)) { if (padSec.sec) { const sec = padSec.sec; enterSec(null); setPadSel(null); setPadSec(sec); uiSfx.click(); } else navBack(layer); }
+  // in the lobby the host presses Y on an element or role to take it out of the game
+  if (press(3) && padSel && layer.id === 'lobby' && (padSel.dataset.el || padSel.dataset.ro)) toggleBan(padSel.dataset.el || padSel.dataset.ro);
   // the pick screen keeps its X / Y / B shortcuts
   if (layer.id === 'pickScreen') { if (press(2)) choosePick(0); if (press(3)) choosePick(1); if (press(1)) choosePick(2); }
   if (press(9) && mode !== 'menu') { menuOpen ? closeMenu() : openMenu(); }
@@ -7071,6 +7089,9 @@ function syncArch(me) {
 }
 function pickArch(e) {
   const b = e.target.closest('.chip2'); if (!b) return;
+  // the host: Alt+click takes an element or role out of the game (or puts it back)
+  if (e.altKey && canBan()) { e.preventDefault(); toggleBan(b.dataset.el || b.dataset.ro); return; }
+  if (b.classList.contains('banned')) { notice('The host has taken that out of this game.', false); return; }
   const cur = myLoadout(), el = b.dataset.el || cur.el, ro = b.dataset.ro || cur.ro;
   store.set('bowfall-el', el); store.set('bowfall-ro', ro);
   act({ t: 'loadout', el, ro });
@@ -8297,10 +8318,17 @@ $('lbOpts').addEventListener('change', e => { const sel = e.target.closest('[dat
 // the host takes elements and roles out of the game (or puts them back)
 $('lbBanEl').innerHTML = Object.entries(ELEMENTS).map(([k, e]) => `<button type="button" class="chip2 ban" data-ban="${k}" style="--cc:${e.color}"><i></i>${e.name}</button>`).join('');
 $('lbBanRo').innerHTML = Object.entries(ROLES).map(([k, r]) => `<button type="button" class="chip2 ban" data-ban="${k}" style="--cc:${CAT_COL[r.cat]}">${r.name}</button>`).join('');
-function banClick(e) {
-  const b = e.target.closest('[data-ban]'); if (!b || b.disabled || !view) return;
-  const cur = view.m.ban || [], k = b.dataset.ban;
+// can this screen's player take elements and roles out? the host of a custom game, in the lobby
+const canBan = () => !!(view && view.m.ph === 'lobby' && isHost() && !(roomInfo && roomInfo.ranked));
+function toggleBan(k) {
+  if (!canBan()) return false;
+  const cur = view.m.ban || [];
   act({ t: 'cfg', ban: cur.includes(k) ? cur.filter(x => x !== k) : cur.concat(k) });
+  uiSfx.click(); return true;
+}
+function banClick(e) {
+  const b = e.target.closest('[data-ban]'); if (!b || b.disabled) return;
+  toggleBan(b.dataset.ban);
 }
 $('lbBanEl').addEventListener('click', banClick); $('lbBanRo').addEventListener('click', banClick);
 $('gmDiff').onchange = () => act({ t: 'cfg', diff: $('gmDiff').value });
@@ -8339,10 +8367,12 @@ function renderLobby(v) {
     $('lbOptNote').textContent = custom ? `${custom} custom ${custom === 1 ? 'rule' : 'rules'} on. Balance data records the rules with every game.` : 'Standard rules.';
   });
   // taken-out elements and roles: struck through in the host's list, and greyed out in everyone's own picker
-  setC('lbBan', JSON.stringify(v.m.ban || []) + host, () => {
+  setC('lbBan', JSON.stringify(v.m.ban || []) + host + usingPad() + !!(roomInfo && roomInfo.ranked), () => {
     const ban = v.m.ban || [];
     document.querySelectorAll('[data-ban]').forEach(b => { const off = ban.includes(b.dataset.ban); b.classList.toggle('off', off); b.disabled = !host; b.title = off ? 'Taken out of this game' : host ? 'Click to take it out of this game' : ''; });
-    document.querySelectorAll('#elChips [data-el], #roChips [data-ro]').forEach(b => { const k = b.dataset.el || b.dataset.ro, off = ban.includes(k); b.classList.toggle('banned', off); if (off) b.disabled = true; else if (!(ELEMENTS[k] || ROLES[k]).premium || !Sim.LOCK_PREMIUM) b.disabled = false; });
+    document.querySelectorAll('#elChips [data-el], #roChips [data-ro]').forEach(b => { const k = b.dataset.el || b.dataset.ro, off = ban.includes(k); b.classList.toggle('banned', off); b.title = off ? (canBan() ? 'Taken out of this game. Alt+click to put it back.' : 'The host has taken this out of this game.') : ''; });
+    $('banHint').hidden = !canBan();
+    $('banHint').textContent = usingPad() ? `Host: press ${padBtn('y')} on an element or role to take it out of this game (again to put it back).` : 'Host: Alt+click an element or role to take it out of this game (again to put it back).';
     $('lbBanNote').textContent = ban.length ? `· ${ban.length} taken out${host ? ' (click to put back)' : ''}` : host ? '· click one to take it out of this game' : '';
   });
   setC('lbStart', String(v.m.cs) + host + !!meL, () => {
@@ -9366,6 +9396,18 @@ THEMES.highland = Object.assign({}, THEMES.meadow, {
   boulder: '#8a8a84', boulderLight: '#a6a69e', moss: ['#6a7a3a', '#7d8c46'],
   leafCols: ['#e8d98a', '#c9b36a', '#b58fd0', '#f4ecd2'],
 });
+// Highland Reach at dusk: dark heath under a cold sky, lit by braziers at the crossing and lanterns by the camps;
+// fireflies drift over it. The floor is painted dark with a cool moonlit wash, and the fires light it live.
+THEMES.dusk = Object.assign({}, THEMES.meadow, {
+  forest: '#070b0e', canopy: ['#0e171b', '#121e22', '#16252a', '#0b1316'], canopyHi: 'rgba(120,150,190,0.07)',
+  ground: '#2c3a31', patchA: 'rgba(70,95,80,0.30)', patchB: 'rgba(15,22,22,0.35)', patchBase: 'rgba(44,58,49,0)', sun: 'rgba(140,170,220,0.05)',
+  blades: ['#3d5246', '#4a6152', '#2f4238', '#5a6f76'], flowers: 10, fairy: false,
+  dirt: '#6a5a46', dirtDark: '#2e2620', pitIn: '#000000', pitOut: '#07090d', roots: 'rgba(120,130,140,0.5)',
+  boulder: '#4a5058', boulderLight: '#5d646d', moss: ['#34463c', '#3f5446'],
+  border: 'hedge', wall: '#0d1a17', wallMid: '#13241f', wallLight: '#1c332c',
+  stem: ['#2e2a26', '#3a3530'], thorn: '#b8c2c8', leaf: '#23372e', berry: '#9fb8ff', burrow: '#141210',
+  ambient: 'fireflies', leafCols: ['#e8ff9a', '#fff1a8', '#c8ffb0', '#fff7d0'], night: true,
+});
 THEMES.spring = Object.assign({}, THEMES.meadow, {
   ground: '#57903f', patchA: 'rgba(130,190,95,0.24)', flowers: 40, fairy: false,
   leafCols: ['#f3d6e2', '#8fb44a', '#f4ecd2', '#b8c45a'],
@@ -9459,6 +9501,42 @@ function paintIceHole(g, h, R) {
     g.fillStyle = 'rgba(230,245,252,0.85)'; g.beginPath();
     for (let k = 0; k < 5; k++) { const a = k / 5 * TAU + R() * 0.4, rr = 4 + R() * 5; k ? g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr) : g.moveTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
     g.closePath(); g.fill();
+  }
+}
+// night: a cold wash over the ground (moonlight from the top left), lantern posts, and a little mist in the pits
+function paintNight(g, R) {
+  g.save();
+  const gr = g.createLinearGradient(0, 0, AW, AH); gr.addColorStop(0, 'rgba(120,150,210,0.10)'); gr.addColorStop(1, 'rgba(10,15,35,0.28)');
+  g.fillStyle = gr; g.fillRect(-MARGIN, -MARGIN, AW + MARGIN * 2, AH + MARGIN * 2);
+  // a pale moonlit rim round every drop, so they read clearly in the dark
+  for (const h of HAZ) if (h.type === 'pit' && !h.water) { g.save(); hazP(g, h, 1.5); g.strokeStyle = 'rgba(190,210,240,0.45)'; g.lineWidth = 2; g.stroke(); g.restore(); }
+  for (const h of HAZ) if (h.type === 'pit' && !h.water) { g.save(); hazP(g, h, 0); g.clip(); const [cx, cy] = hazCentre(h); const m = g.createRadialGradient(cx, cy, 5, cx, cy, Math.max(h.w || h.r, h.h || h.r)); m.addColorStop(0, 'rgba(120,150,200,0.10)'); m.addColorStop(1, 'rgba(120,150,200,0)'); g.fillStyle = m; g.fillRect(cx - 400, cy - 400, 800, 800); g.restore(); }
+  for (const l of (MAPS[MAPKEY] && MAPS[MAPKEY].lights) || []) {
+    g.fillStyle = 'rgba(0,0,0,0.4)'; g.beginPath(); g.ellipse(l.x + 3, l.y + 5, 7, 5, 0, 0, TAU); g.fill();
+    g.fillStyle = '#2a2622'; g.beginPath(); g.arc(l.x, l.y, 6, 0, TAU); g.fill();
+    g.strokeStyle = '#141210'; g.lineWidth = 1.5; g.stroke();
+  }
+  g.restore();
+}
+// night: the fires, lit live: a warm pool of light round each brazier and lantern, and the flame itself
+function drawNightLights(c) {
+  const M = MAPS[MAPKEY]; if (!M) return;
+  const fires = PILLARS.filter(p => p.kind === 'brazier').map(p => ({ x: p.x, y: p.y, big: 1 })).concat((M.lights || []).map(l => ({ x: l.x, y: l.y, big: 0 })));
+  if (!lightFx()) {
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    for (const f of fires) {
+      const fl = 0.85 + 0.15 * Math.sin(c * 11 + f.x) * Math.sin(c * 7.3 + f.y), R0 = (f.big ? 190 : 120) * fl;
+      const g = ctx.createRadialGradient(f.x, f.y, 4, f.x, f.y, R0);
+      g.addColorStop(0, `rgba(255,150,60,${f.big ? 0.34 : 0.26})`); g.addColorStop(0.4, `rgba(200,90,30,${f.big ? 0.12 : 0.09})`); g.addColorStop(1, 'rgba(120,40,10,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(f.x, f.y, R0, 0, TAU); ctx.fill();
+    }
+    ctx.restore();
+  }
+  for (const f of fires) {
+    const s = f.big ? 1 : 0.6, fl = Math.sin(c * 17 + f.x) * 0.5 + 0.5;
+    ctx.fillStyle = '#ff7a22'; ctx.beginPath(); ctx.moveTo(f.x - 8 * s, f.y + 2); ctx.quadraticCurveTo(f.x - 9 * s, f.y - 10 * s, f.x + (fl - 0.5) * 4, f.y - (18 + fl * 6) * s); ctx.quadraticCurveTo(f.x + 9 * s, f.y - 10 * s, f.x + 8 * s, f.y + 2); ctx.fill();
+    ctx.fillStyle = '#ffd27a'; ctx.beginPath(); ctx.moveTo(f.x - 4 * s, f.y + 1); ctx.quadraticCurveTo(f.x - 4 * s, f.y - 6 * s, f.x, f.y - (11 + fl * 4) * s); ctx.quadraticCurveTo(f.x + 4 * s, f.y - 6 * s, f.x + 4 * s, f.y + 1); ctx.fill();
+    if (!reduceMotion && Math.random() < (f.big ? 0.25 : 0.1)) fx.parts.push({ x: f.x + rand(-5, 5), y: f.y - 10, vx: rand(-12, 12), vy: rand(-70, -35), life: 0, max: rand(0.5, 1), color: Math.random() < 0.5 ? '#ffb347' : '#ff7a22', r: rand(0.8, 1.6) });
   }
 }
 const MARGIN = 90;
@@ -9767,6 +9845,14 @@ function paintFloor(s) {
   paintMechBase(g, R);
   // boulders
   for (const p of PILLARS) {
+    if (p.kind === 'brazier') { // an iron fire-bowl on a stone plinth (the fire is drawn live)
+      g.fillStyle = 'rgba(0,0,0,0.4)'; g.beginPath(); g.ellipse(p.x + 5, p.y + 7, p.r + 4, p.r + 1, 0, 0, TAU); g.fill();
+      g.fillStyle = '#4a4e55'; g.beginPath(); g.arc(p.x, p.y, p.r + 3, 0, TAU); g.fill();
+      g.fillStyle = '#23262b'; g.beginPath(); g.arc(p.x, p.y, p.r - 1, 0, TAU); g.fill();
+      g.fillStyle = '#3a1a0c'; g.beginPath(); g.arc(p.x, p.y, p.r - 4, 0, TAU); g.fill();
+      g.strokeStyle = 'rgba(0,0,0,0.8)'; g.lineWidth = 2; g.beginPath(); g.arc(p.x, p.y, p.r + 3, 0, TAU); g.stroke();
+      continue;
+    }
     g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(p.x + 7, p.y + 9, p.r + 2, p.r * 0.92, 0, 0, TAU); g.fill();
     g.fillStyle = T.boulder; g.beginPath(); g.arc(p.x, p.y, p.r, 0, TAU); g.fill();
     g.save(); g.beginPath(); g.arc(p.x, p.y, p.r, 0, TAU); g.clip();
@@ -9791,6 +9877,7 @@ function paintFloor(s) {
     g.strokeStyle = 'rgba(255,255,255,0.35)'; g.lineWidth = 1.5; g.beginPath(); g.arc(p.x, p.y, p.r + 3, 0, TAU); g.stroke();
   }
 
+  if (T.night) paintNight(g, R);
   if (PAINT_TILE) return cvs; // a big map's tile: its frame is painted once for the whole map
   // border: hedge or jagged rock
   g.fillStyle = 'rgba(0,0,0,0.22)';
@@ -9885,6 +9972,7 @@ function updateAmbient(dt) {
   for (const l of leaves) {
     l.w += dt * 0.8; l.r += l.s * dt;
     if (embers) { l.x += Math.sin(l.w) * 12 * dt; l.y -= (18 + l.v * 0.6) * dt; if (l.y < -20) { l.y = AH + 20; l.x = Math.random() * AW; } }
+    else if (THEME.ambient === 'fireflies') { l.x += Math.sin(l.w * 1.3 + l.r) * 16 * dt; l.y += Math.cos(l.w * 0.9 + l.c) * 12 * dt; if (l.x < 0 || l.x > AW || l.y < 0 || l.y > AH) { l.x = Math.random() * AW; l.y = Math.random() * AH; } }
     else if (THEME.ambient === 'snow') { l.x += (6 + Math.sin(l.w) * 14) * dt; l.y += (22 + l.v * 0.8) * dt; if (l.y > AH + 20) { l.y = -20; l.x = Math.random() * AW; } if (l.x > AW + 20) l.x = -20; }
     else {
       l.x += (l.v + Math.sin(l.w) * 10) * dt; l.y += (6 + Math.cos(l.w * 1.3) * 8) * dt;
@@ -10228,14 +10316,21 @@ function drawArena() {
   if (THEME.water) drawCracks(c);
   if (HEAL) drawSpring(c);
   drawMapMech(ctx, mechDrawT, false);
+  if (THEME.night) drawNightLights(c);
   ctx.save(); ctx.beginPath(); ctx.rect(WALL, WALL, AW - WALL * 2, AH - WALL * 2); ctx.clip();
-  for (const cl of clouds) ctx.drawImage(cloudSprite(), cl.x - cl.r, cl.y - cl.r * 0.7, cl.r * 2, cl.r * 1.4);
+  if (!THEME.night) for (const cl of clouds) ctx.drawImage(cloudSprite(), cl.x - cl.r, cl.y - cl.r * 0.7, cl.r * 2, cl.r * 1.4);
   const embers = THEME.ambient === 'embers';
   for (const l of leaves) {
     if (!THEME.ambient) break; // a pitch has nothing drifting over it
     const col = THEME.leafCols[l.c];
     if (THEME.ambient === 'sand') {
       ctx.globalAlpha = 0.6; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(l.x, l.y, 1 + (l.c % 2) * 0.6, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
+      continue;
+    }
+    if (THEME.ambient === 'fireflies') {
+      const a = Math.max(0, Math.sin(l.w * 2.2 + l.c * 1.7)); if (a < 0.05) continue;
+      if (!lightFx()) { const g = ctx.createRadialGradient(l.x, l.y, 0, l.x, l.y, 10); g.addColorStop(0, `rgba(220,255,140,${0.35 * a})`); g.addColorStop(1, 'rgba(220,255,140,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(l.x, l.y, 10, 0, TAU); ctx.fill(); }
+      ctx.globalAlpha = a; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(l.x, l.y, 1.8, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
       continue;
     }
     if (THEME.ambient === 'snow') {
@@ -11152,6 +11247,7 @@ function render(replaying) {
   ctx.globalAlpha = 1;
   if (!replaying && LP.list.length && view.m.ph !== 'lobby') drawLocalMarks(view);
   if (replaying) { drawReplayFrame(); return; }
+  if (!bigMap() && THEME.night && !lightFx() && !replaying) { drawVignette(); ctx.setTransform(DPR * VS, 0, 0, DPR * VS, DPR * OX, DPR * OY); }
   if (bigMap()) {
     drawCanopies(view, me); drawTorches(); drawMist(frameDt); drawMotes(frameDt, me);
     if (!lightFx()) drawVignette();
