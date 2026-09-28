@@ -260,6 +260,14 @@
   .fr.mem { grid-template-columns: auto 1fr auto; }
   @media (max-width: 820px) { .findgrid { grid-template-columns: 1fr; } }
   .fggo { font-size: 20px; padding: 14px; }
+  .fgmaps { display: flex; flex-wrap: wrap; gap: 5px; }
+  .fgmaps button { font: 600 13px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--muted); background: rgba(0,0,0,.25); border: 1px solid transparent; border-radius: 2px; padding: 5px 9px; cursor: pointer; }
+  .fgmaps button:hover { color: var(--text); }
+  .fgmaps button.fav { color: #7dff8a; border-color: #7dff8a; background: rgba(125,255,138,.1); }
+  .fgmaps button.fav::before { content: '\2605  '; }
+  .fgmaps button.hate { color: #ff7a6a; border-color: #ff7a6a; background: rgba(255,90,70,.08); text-decoration: line-through; }
+  .fgmaps button:disabled { opacity: .55; cursor: default; }
+  .fgmaphint { font-size: 12.5px; }
   #fgGo.searching { background: var(--panel); color: var(--gold); border: 1px solid var(--gold); }
   .fr { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: center; padding: 7px 10px; background: rgba(255,255,255,.04); border: 1px solid var(--line); }
   .fr .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
@@ -830,6 +838,9 @@
           <div class="mecard" id="fgMe"></div>
           <h3>Mode</h3>
           <div class="oltabs" id="fgModes"><button type="button" data-mode="1v1">1v1</button><button type="button" data-mode="2v2">2v2</button><button type="button" data-mode="3v3">3v3</button></div>
+          <h3>Arenas</h3>
+          <div class="fgmaps" id="fgMaps"></div>
+          <span class="status fgmaphint">Click your favourite arena, right-click one you'd rather avoid (on a controller, press again to switch it to avoid). Matches lean towards favourites and away from arenas anyone avoids.</span>
           <button class="cta fggo" id="fgGo" type="button">Find match</button>
           <span class="status" id="fgStatus">Matched by rating with players near your level. If nobody close is searching, AI players fill in after a short wait.</span>
           <div class="fgguest" id="fgGuest" hidden><b>Playing as a guest.</b> Your rating and stats are saved in this browser. Create an account to keep them everywhere, climb the leaderboards and add friends. Everything you've earned comes with you.
@@ -1235,7 +1246,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.27.1';
+const VERSION = '0.28.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1392,7 +1403,7 @@ MAPS.grove = buildMap({
 // bottom edges punish being pushed wide, and a pool in front of each side's crossing splits the approach in two
 MAPS.reach = buildMap({
     name: 'Highland Reach', theme: 'dusk', w: 1500, h: 960,
-    desc: 'A big highland at dusk, split by a canyon and lit by braziers. Trade long shots across the gap, or fight for the crossing in the middle. Bigger than the other arenas.',
+    desc: 'A big highland at dusk, split by a canyon and lit by campfires. Cover sits out by the walls and the middle is wide open: trade long shots across the gap, or fight for the crossing. Bigger than the other arenas.',
     haz: [
       { type: 'pit', centre: true, shape: 'rect', x: 700, y: WALL - 20, w: 100, h: 300 },
       { type: 'pit', centre: true, shape: 'rect', x: 700, y: 654, w: 100, h: 330 },
@@ -1400,9 +1411,10 @@ MAPS.reach = buildMap({
       { type: 'pit', shape: 'rect', x: 330, y: 960 - WALL - 76, w: 230, h: 96 },
       { type: 'pit', water: true, shape: 'circle', x: 565, y: 480, r: 52 },
     ],
-    pillars: [{ x: 250, y: 330, r: 28 }, { x: 250, y: 630, r: 28 }, { x: 420, y: 480, r: 24 }, { x: 610, y: 250, r: 22 }, { x: 610, y: 710, r: 22 },
-      { x: 676, y: 332, r: 13, kind: 'brazier' }, { x: 676, y: 628, r: 13, kind: 'brazier' }],
-    lights: [{ x: 60, y: 200 }, { x: 60, y: 760 }, { x: 420, y: 150 }, { x: 420, y: 810 }],
+    // cover hugs the outer walls and the middle is left open for long shots
+    pillars: [{ x: 240, y: 112, r: 26 }, { x: 240, y: 848, r: 26 }, { x: 632, y: 128, r: 22 }, { x: 632, y: 832, r: 22 }, { x: 132, y: 186, r: 20 }, { x: 132, y: 774, r: 20 }],
+    // campfires at the crossing (open ground, nothing to hide behind) and lanterns by the camps
+    lights: [{ x: 676, y: 332, big: true }, { x: 676, y: 628, big: true }, { x: 60, y: 200 }, { x: 60, y: 760 }, { x: 420, y: 150 }, { x: 420, y: 810 }],
     spikes: [],
     spawns: [{ x: 110, y: 420 }, { x: 110, y: 540 }, { x: 180, y: 480 }, { x: 100, y: 320 }],
     power: [{ x: 750, y: 480 }], amberY: [340, 420],
@@ -1544,7 +1556,9 @@ const knockSpot = h => { const u = h.a * Math.PI / 180, d = h.r + h.gap; return 
 const KNOCK_KO = 50, KNOCK_BONUS = 600; // points for each dummy in, and for clearing a scene quickly
 const TRAIN_MAX = { target: 7500, dodge: 1000, peek: 3600, sink: TRAIN_KNOCK.reduce((n, R) => n + R.holes.length * KNOCK_KO + KNOCK_BONUS, 0) };
 const TRAIN_GRADES = [['S', 0.8], ['A', 0.65], ['B', 0.5], ['C', 0.35], ['D', 0]];
-const trainGrade = (kind, score) => { const m = TRAIN_MAX[kind] || 1; return TRAIN_GRADES.find(g => score / m >= g[1])[0]; };
+// a run that isn't clean (a missed shot, or a dummy put back on its spot in the knockout drill) can't get an S
+const trainGrade = (kind, score, clean = true) => { const m = TRAIN_MAX[kind] || 1, g = TRAIN_GRADES.find(g => score / m >= g[1])[0]; return g === 'S' && !clean ? 'A' : g; };
+const gradeBest = (a, b) => { const i = x => { const n = TRAIN_GRADES.findIndex(g => g[0] === x); return n < 0 ? 99 : n; }; return i(a) <= i(b) ? a : b; };
 
 // The simulation reads the current arena from these; useMap() points them at a world's arena.
 // Every public entry point calls useMap first, so rooms on different arenas can share one server.
@@ -5392,7 +5406,7 @@ function unpackSnap(s) {
 }
 
 return {
-  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
+  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
@@ -5409,7 +5423,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.27.1';
+const PAGE_VERSION = '0.28.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -6658,7 +6672,7 @@ const DRILLS = {
   target: { name: 'Target practice', map: 'range', dums: 3, blurb: 'Targets pop up across the range and you hit them before they vanish. Round 1 is steady, round 2 quick, round 3 several at once. Graded on speed, accuracy and bullseyes.' },
   dodge:  { name: 'Dodge drill', map: 'chasm', dums: 1, time: 60, blurb: 'An archer across a rift shoots at you and your feet are tied: dodge with dashes alone (never faster than your dash recharges). Sinkholes open in round 2 and bogs in round 3, so watch where you land.' },
   peek:   { name: 'Peek and shoot', map: 'yard', dums: 3, time: 60, blurb: 'Turrets cover the yard. Dash out from behind the boulders, land shots on them (three knock one out), and get back before they draw a bead on you. 60 seconds.' },
-  sink:   { name: 'Knockout drill', map: 'holes', dums: 6, time: 150, blurb: 'Four scenes of archers standing in front of sinkholes. Work your way through each one, knocking every archer in as fast as you can; one that misses the hole is back on its spot a second later. Line up behind them, and dash to get there quicker. Don\'t fall in yourself.' },
+  sink:   { name: 'Knockout drill', map: 'holes', dums: 6, time: 150, blurb: 'Four scenes of archers standing in front of sinkholes. Work your way through each one, knocking every archer in as fast as you can; one that misses the hole is back on its spot a second later. Line up behind them, and dash to get there quicker. Don\'t fall in yourself. An S needs a clean run: every shot hits and no archer is put back on its spot.' },
 };
 const SINK_N = Sim.TRAIN_KNOCK.reduce((n, R) => n + R.holes.length, 0);
 const TR_ROUNDS = [{ name: 'Steady', n: 8, life: 5, at: 1 }, { name: 'Quick', n: 10, life: 2.5, at: 1 }, { name: 'Swarm', n: 12, life: 4, at: 3 }];
@@ -6723,7 +6737,7 @@ function startDrill(kind) {
   for (const d of dums) { d.bot = false; d.input = { mx: 0, my: 0, aim: Math.PI, draw: false, tx: 0, ty: 0 }; }
   world.events.length = 0; world.records.length = 0;
   TR = { on: true, kind, t: 0, done: false, dum: dums.map(d => d.id), tg: [], tur: dums.map((d, i) => ({ id: d.id, ph: 'wait', t: 1.5 + i * 0.7, x: 1000, y: 220 + i * 180, hits: 0, off: 0 })),
-    round: -1, spawned: 0, left: 0, gap: 2, shots: 0, hits: 0, bulls: 0, taken: 0, fired: 0, kos: 0, falls: 0, score: 0, uiT: 0, pop: [], pend: [], act: [], srv: null };
+    round: -1, spawned: 0, left: 0, gap: 2, shots: 0, hits: 0, bulls: 0, taken: 0, fired: 0, kos: 0, falls: 0, score: 0, uiT: 0, pop: [], pend: [], act: [], srv: null, miss: 0, resets: 0, shotQ: [] };
   myId = me.id; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {};
   const start = { target: [200, 400], dodge: [320, 400], peek: [250, 400], sink: Sim.TRAIN_KNOCK[0].start }[kind];
   Object.assign(me, { x: start[0], y: start[1], vx: 0, vy: 0 });
@@ -6826,6 +6840,8 @@ function trSinkScene(R) {
 }
 function trSink(dt, me) {
   const R = Sim.TRAIN_KNOCK[TR.round]; if (!R) return;
+  // a shot that hasn't touched a dummy by the time it's done flying is a miss
+  while (TR.shotQ.length && (TR.shotQ[0].hit || TR.t - TR.shotQ[0].t > 2.6)) { if (!TR.shotQ.shift().hit) { TR.miss++; tone(220, 0.08, 'square', 0.02); } }
   if (TR.next) { if (TR.t >= TR.next) trNextRound(); }
   for (const id of TR.dum) {
     const d = world.players.find(q => q.id === id); if (!d) continue;
@@ -6848,7 +6864,7 @@ function trSink(dt, me) {
     if (Math.hypot(d.vx, d.vy) < 60 && !(d.knock > 0)) a.back += dt; else a.back = 0;
     if (a.back >= 1) {
       burst(d.x, d.y, '#4fa8ff', 10, 120);
-      Object.assign(d, { x: a.hx, y: a.hy, vx: 0, vy: 0, knock: 0 }); a.back = 0;
+      Object.assign(d, { x: a.hx, y: a.hy, vx: 0, vy: 0, knock: 0 }); a.back = 0; TR.resets++;
       burst(a.hx, a.hy, '#4fa8ff', 12, 160); tone(880, 0.05, 'square', 0.02);
     }
   }
@@ -6920,7 +6936,7 @@ function trainInput(inp) {
 function trainEvents(evs) {
   if (!TR.on || TR.done) return;
   for (const e of evs) {
-    if (e.e === 'fire' && e.id === myId) TR.shots++;
+    if ((e.e === 'fire' || e.e === 'throw') && e.id === myId && !e.clone) { if (e.e === 'fire' || TR.kind === 'sink') TR.shots++; if (TR.kind === 'sink') TR.shotQ.push({ t: TR.t, hit: false }); }
     if (e.e === 'fire' && TR.dum.includes(e.id)) TR.fired++;
     if (e.e === 'hit' && e.id === myId && TR.dum.includes(e.by)) { TR.taken++; if (TR.kind === 'dodge') floater(e.x, e.y - 24, 'hit', '#ff5a5a', 15, true); }
     if (e.e === 'hit' && e.by === myId && TR.dum.includes(e.id)) {
@@ -6929,7 +6945,7 @@ function trainEvents(evs) {
         const t = TR.tur.find(o => o.id === e.id); if (!t || t.off > 0) continue;
         t.hits++; TR.hits++; TR.score += 50; floater(e.x, e.y - 24, '+50', '#ffffff', 15, true);
         if (t.hits >= 3) { TR.kos++; TR.score += 300; t.off = 1.6; floater(t.x, t.y - 40, 'Turret down +300', '#7dff8a', 18, true); burst(t.x, t.y, '#7dff8a', 22, 220); tone(1047, 0.12, 'triangle', 0.05); }
-      } else if (TR.kind === 'sink') TR.hits++;
+      } else if (TR.kind === 'sink') { TR.hits++; const q = TR.shotQ.find(o => !o.hit); if (q) q.hit = true; }
     }
   }
 }
@@ -6944,17 +6960,18 @@ function trFinish() {
   if (TR.kind === 'dodge') TR.score = Math.round(1000 * (TR.fired - TR.taken) / Math.max(1, TR.fired)) - 100 * TR.falls;
   if (TR.kind === 'peek') TR.score -= TR.taken * 60;
   TR.score = Math.max(0, Math.min(Sim.TRAIN_MAX[TR.kind], Math.round(TR.score)));
-  TR.grade = Sim.trainGrade(TR.kind, TR.score);
+  TR.clean = TR.kind !== 'sink' || (!TR.miss && !TR.resets);
+  TR.grade = Sim.trainGrade(TR.kind, TR.score, TR.clean);
   const best = trBest(), old = best[TR.kind];
   TR.newBest = !old || TR.score > old.s;
-  if (TR.newBest) { best[TR.kind] = { g: TR.grade, s: TR.score }; store.set('bowfall-train', JSON.stringify(best)); }
+  if (TR.newBest || Sim.gradeBest(TR.grade, old.g) !== old.g) { best[TR.kind] = Object.assign({}, old || {}, { g: old ? Sim.gradeBest(TR.grade, old.g) : TR.grade, s: old ? Math.max(old.s, TR.score) : TR.score }); store.set('bowfall-train', JSON.stringify(best)); }
   notice(`Grade ${TR.grade}`, true, GRADE_COL[TR.grade]);
   fanfare(TR.grade === 'S' || TR.grade === 'A' ? [523, 659, 784, 1047] : TR.grade === 'D' ? [330, 262] : [523, 659, 784], 'triangle', 0.06, 110);
   renderTrainCoach();
   // rank it against everyone's bests (and keep it on your account if you're signed in)
   if (!OFFLINE) {
     const run = TR;
-    fetch('/api/train', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: run.kind, score: run.score }) })
+    fetch('/api/train', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: run.kind, score: run.score, clean: run.clean }) })
       .then(r => r.ok ? r.json() : null).then(d => {
         if (!d) return; run.srv = d; TRS = null;
         const b = trBest(); if (b[run.kind] && b[run.kind].s === run.score) { b[run.kind].top = d.top; b[run.kind].n = d.n; store.set('bowfall-train', JSON.stringify(b)); }
@@ -6969,14 +6986,14 @@ function renderTrainCoach() {
   const pl = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
   const line = TR.kind === 'target' ? `${TR.hits}/${TR.spawned - TR.tg.length} hit · ${pl(TR.bulls, 'bullseye')} · ${TR.shots ? Math.round(TR.hits / TR.shots * 100) : 0}% accuracy`
     : TR.kind === 'dodge' ? `${TR.fired - TR.taken} of ${TR.fired} dodged${TR.falls ? ` · fell in ${TR.falls}×` : ''}`
-    : TR.kind === 'sink' ? `${TR.kos} of ${SINK_N} knocked in${TR.times && TR.times.length ? ` · ${TR.times.map(t => t.toFixed(1) + 's').join(', ')}` : ''}${TR.falls ? ` · fell in ${TR.falls}×` : ''}`
+    : TR.kind === 'sink' ? `${TR.kos} of ${SINK_N} knocked in${TR.times && TR.times.length ? ` · ${TR.times.map(t => t.toFixed(1) + 's').join(', ')}` : ''}${TR.miss ? ` · ${TR.miss} missed` : ''}${TR.resets ? ` · ${pl(TR.resets, 'reset')}` : ''}${TR.falls ? ` · fell in ${TR.falls}×` : ''}`
     : `${pl(TR.kos, 'turret')} down · ${TR.hits} hits · ${TR.taken} taken`;
   if (TR.done) {
     const s = TR.srv;
     $('coachStep').textContent = `${D.name} · complete`;
     $('coachText').innerHTML = `Grade <span style="color:${GRADE_COL[TR.grade]}">${TR.grade}</span> · ${fmt(TR.score)} points${TR.newBest ? ' · new best' : ''}`;
     const rank = s ? ` This run: ${topTxt(s.top, s.n)}.${s.topBest != null && s.best !== TR.score ? ` Your best (${fmt(s.best)}): ${topTxt(s.topBest)}.` : ''}` : '';
-    $('coachHint').textContent = line + (TR.kind === 'peek' && TR.taken ? ` (−${TR.taken * 60} for hits taken)` : '') + '.' + rank + ' S needs ' + fmt(Math.ceil(max * 0.8)) + ', A ' + fmt(Math.ceil(max * 0.65)) + ', B ' + fmt(Math.ceil(max * 0.5)) + '.';
+    $('coachHint').textContent = line + (TR.kind === 'peek' && TR.taken ? ` (−${TR.taken * 60} for hits taken)` : '') + '.' + rank + ' S needs ' + fmt(Math.ceil(max * 0.8)) + (TR.kind === 'sink' ? ' and a clean run (no missed shots, no dummies reset)' + (TR.clean ? '' : ', so this run tops out at A') : '') + ', A ' + fmt(Math.ceil(max * 0.65)) + ', B ' + fmt(Math.ceil(max * 0.5)) + '.';
     if (TR.btns !== 'done') {
       TR.btns = 'done';
       $('coachBtns').innerHTML = '<button class="cta" type="button" id="coachAgain">Again</button><button class="ghost sm" type="button" id="coachDrills">Other drills</button><button class="ghost sm" type="button" id="coachQuit">Main menu</button>';
@@ -7575,7 +7592,7 @@ function socialConnect() {
   };
   sock.onclose = () => { if (SOC.ws === sock) { SOC.ws = null; SOC.st = null; renderFind(); setTimeout(socialConnect, Math.min(15000, 1000 * 2 ** SOC.retry++)); } };
 }
-function socialHello() { socialSend({ t: 'hello', name: playerName(), gt: GUEST_TOKEN, el: myLoadout().el, ro: myLoadout().ro }); }
+function socialHello() { socialSend({ t: 'hello', name: playerName(), gt: GUEST_TOKEN, el: myLoadout().el, ro: myLoadout().ro, mp: mapPref() }); }
 function socialSend(m) { if (SOC.ws && SOC.ws.readyState === 1) SOC.ws.send(JSON.stringify(m)); }
 // ---- friends on the main menu: who's online and what they're doing, with a quick join or invite
 const ACT_TEXT = f => ({ menu: 'Main menu', practice: 'Practising against bots', tutorial: 'Playing the tutorial', searching: `Finding a ${f.mode || ''} match`,
@@ -7642,6 +7659,10 @@ function renderFind() {
   }
   // mode and search
   $('fgModes').querySelectorAll('button').forEach(b => { b.classList.toggle('on', b.dataset.mode === mode); b.disabled = !lead || queued; });
+  const mp = mapPref(), maps = (st && st.maps) || [];
+  setC('fgMaps', JSON.stringify([maps, mp, !!queued]), () => {
+    $('fgMaps').innerHTML = maps.map(m => `<button type="button" data-mp="${esc(m.k)}" class="${mp.fav === m.k ? 'fav' : mp.hate === m.k ? 'hate' : ''}"${queued ? ' disabled' : ''} title="${mp.fav === m.k ? 'Favourite' : mp.hate === m.k ? 'Avoiding' : ''}">${esc(m.n)}</button>`).join('');
+  });
   const go = $('fgGo');
   // players on controllers: signed-in ones join your party; guests have to sign in first
   for (const l of LP.list) if (l.token) lpSocial(l);
@@ -7684,7 +7705,19 @@ function renderFind() {
 }
 const fmtWait = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 $('fgModes').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (!b) return; SOC.mode = b.dataset.mode; store.set('bowfall-mm-mode', SOC.mode); socialSend({ t: 'party', op: 'mode', mode: SOC.mode }); renderFind(); });
-$('fgGo').onclick = () => { const q = SOC.st && SOC.st.party && SOC.st.party.queued != null; initAudio(); socialSend({ t: 'queue', op: q ? 'cancel' : 'start', mode: SOC.mode }); };
+$('fgGo').onclick = () => { const q = SOC.st && SOC.st.party && SOC.st.party.queued != null; initAudio(); socialSend({ t: 'queue', op: q ? 'cancel' : 'start', mode: SOC.mode, mp: mapPref() }); };
+// favourite and least favourite ranked arena: click to favourite (click again to avoid it instead), right-click to avoid
+function mapPref() { try { const v = JSON.parse(store.get('bowfall-mappref', '{}')) || {}; return { fav: v.fav || null, hate: v.hate || null }; } catch (e) { return { fav: null, hate: null }; } }
+function setMapPref(k, how) {
+  const mp = mapPref();
+  if (how === 'hate') { mp.hate = mp.hate === k ? null : k; if (mp.fav === k) mp.fav = null; }
+  else if (mp.fav === k) { mp.fav = null; mp.hate = k; }
+  else if (mp.hate === k) mp.hate = null;
+  else mp.fav = k;
+  store.set('bowfall-mappref', JSON.stringify(mp)); socialSend(Object.assign({ t: 'mappref' }, mp)); tone(mp.fav === k ? 880 : 520, 0.05, 'triangle', 0.03); renderFind();
+}
+$('fgMaps').addEventListener('click', e => { const b = e.target.closest('[data-mp]'); if (b && !b.disabled) setMapPref(b.dataset.mp, 'fav'); });
+$('fgMaps').addEventListener('contextmenu', e => { const b = e.target.closest('[data-mp]'); if (!b) return; e.preventDefault(); if (!b.disabled) setMapPref(b.dataset.mp, 'hate'); });
 $('fgAddBtn').onclick = () => { const n = $('fgAdd').value.trim(); if (n) { socialSend({ t: 'friend', op: 'add', name: n }); $('fgAdd').value = ''; } };
 $('fgAdd').addEventListener('keydown', e => { if (e.key === 'Enter') $('fgAddBtn').click(); });
 $('findScr').addEventListener('click', e => {
@@ -9396,7 +9429,7 @@ THEMES.highland = Object.assign({}, THEMES.meadow, {
   boulder: '#8a8a84', boulderLight: '#a6a69e', moss: ['#6a7a3a', '#7d8c46'],
   leafCols: ['#e8d98a', '#c9b36a', '#b58fd0', '#f4ecd2'],
 });
-// Highland Reach at dusk: dark heath under a cold sky, lit by braziers at the crossing and lanterns by the camps;
+// Highland Reach at dusk: dark heath under a cold sky, lit by campfires at the crossing and lanterns by the camps;
 // fireflies drift over it. The floor is painted dark with a cool moonlit wash, and the fires light it live.
 THEMES.dusk = Object.assign({}, THEMES.meadow, {
   forest: '#070b0e', canopy: ['#0e171b', '#121e22', '#16252a', '#0b1316'], canopyHi: 'rgba(120,150,190,0.07)',
@@ -9512,22 +9545,31 @@ function paintNight(g, R) {
   for (const h of HAZ) if (h.type === 'pit' && !h.water) { g.save(); hazP(g, h, 1.5); g.strokeStyle = 'rgba(190,210,240,0.45)'; g.lineWidth = 2; g.stroke(); g.restore(); }
   for (const h of HAZ) if (h.type === 'pit' && !h.water) { g.save(); hazP(g, h, 0); g.clip(); const [cx, cy] = hazCentre(h); const m = g.createRadialGradient(cx, cy, 5, cx, cy, Math.max(h.w || h.r, h.h || h.r)); m.addColorStop(0, 'rgba(120,150,200,0.10)'); m.addColorStop(1, 'rgba(120,150,200,0)'); g.fillStyle = m; g.fillRect(cx - 400, cy - 400, 800, 800); g.restore(); }
   for (const l of (MAPS[MAPKEY] && MAPS[MAPKEY].lights) || []) {
+    if (l.big) { // a campfire on open ground: scorched earth and a couple of logs (the flame is drawn live)
+      const sc = g.createRadialGradient(l.x, l.y, 2, l.x, l.y, 22); sc.addColorStop(0, 'rgba(20,10,5,0.75)'); sc.addColorStop(1, 'rgba(20,10,5,0)');
+      g.fillStyle = sc; g.beginPath(); g.arc(l.x, l.y, 22, 0, TAU); g.fill();
+      g.lineCap = 'round'; g.strokeStyle = '#3b2616'; g.lineWidth = 5;
+      g.beginPath(); g.moveTo(l.x - 11, l.y + 6); g.lineTo(l.x + 9, l.y - 2); g.moveTo(l.x - 9, l.y - 3); g.lineTo(l.x + 11, l.y + 5); g.stroke();
+      g.fillStyle = '#6b2a0e'; g.beginPath(); g.arc(l.x, l.y + 1, 4, 0, TAU); g.fill();
+      continue;
+    }
     g.fillStyle = 'rgba(0,0,0,0.4)'; g.beginPath(); g.ellipse(l.x + 3, l.y + 5, 7, 5, 0, 0, TAU); g.fill();
     g.fillStyle = '#2a2622'; g.beginPath(); g.arc(l.x, l.y, 6, 0, TAU); g.fill();
     g.strokeStyle = '#141210'; g.lineWidth = 1.5; g.stroke();
   }
   g.restore();
 }
-// night: the fires, lit live: a warm pool of light round each brazier and lantern, and the flame itself
+// night: the fires, lit live: a warm pool of light round each campfire and lantern, and the flame itself
 function drawNightLights(c) {
   const M = MAPS[MAPKEY]; if (!M) return;
-  const fires = PILLARS.filter(p => p.kind === 'brazier').map(p => ({ x: p.x, y: p.y, big: 1 })).concat((M.lights || []).map(l => ({ x: l.x, y: l.y, big: 0 })));
+  const fires = PILLARS.filter(p => p.kind === 'brazier').map(p => ({ x: p.x, y: p.y, big: 1 })).concat((M.lights || []).map(l => ({ x: l.x, y: l.y, big: l.big ? 1 : 0 })));
   if (!lightFx()) {
-    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    // a warm, deep tint rather than a bright wash, so the ground (and anyone on it) stays easy to read
+    ctx.save();
     for (const f of fires) {
-      const fl = 0.85 + 0.15 * Math.sin(c * 11 + f.x) * Math.sin(c * 7.3 + f.y), R0 = (f.big ? 190 : 120) * fl;
-      const g = ctx.createRadialGradient(f.x, f.y, 4, f.x, f.y, R0);
-      g.addColorStop(0, `rgba(255,150,60,${f.big ? 0.34 : 0.26})`); g.addColorStop(0.4, `rgba(200,90,30,${f.big ? 0.12 : 0.09})`); g.addColorStop(1, 'rgba(120,40,10,0)');
+      const fl = 0.9 + 0.1 * Math.sin(c * 11 + f.x) * Math.sin(c * 7.3 + f.y), R0 = (f.big ? 150 : 95) * fl;
+      const g = ctx.createRadialGradient(f.x, f.y, 3, f.x, f.y, R0);
+      g.addColorStop(0, `rgba(255,120,40,${f.big ? 0.2 : 0.15})`); g.addColorStop(0.45, `rgba(215,75,20,${f.big ? 0.07 : 0.05})`); g.addColorStop(1, 'rgba(150,40,10,0)');
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(f.x, f.y, R0, 0, TAU); ctx.fill();
     }
     ctx.restore();
