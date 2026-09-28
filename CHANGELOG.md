@@ -2,6 +2,12 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
 
+## 0.23.1
+
+- **The Pitch's ball is a plain white disc** with a dark rim and a shadow, instead of the rolling 3D panel ball: it suits the 2D look and costs almost nothing to draw.
+- **Bots handle the ball:** once they notice it coming at them (quicker on higher difficulties) they step or dash out of its path, and when it's still far enough off they shoot it back. The opening trick of shooting the ball straight into them now rarely works on Hard and above; on Normal and Easy they still get caught more often.
+- **Fix:** running into a still or slow ball counted as the ball hitting you (damage and a shove) whenever you were moving at a normal pace. Now only the ball's own speed counts: run into it and you kick it, as intended.
+
 ## 0.23.0
 
 - **Everything flies 10% faster**, on every Arrow speed setting (arrows, bolts and shuriken): Normal 1.32, Fast 1.65, Very fast 1.98, Blazing 2.42. Shuriken reach 10% further with it; bolts keep their set reach.

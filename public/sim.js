@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.23.0';
+const VERSION = '0.23.1';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -341,7 +341,8 @@ function updateBall(w, dt) {
     const dx = q.x - b.x, dy = q.y - b.y, d = Math.hypot(dx, dy) || 1;
     if (d >= q.r + b.r) continue;
     const nx = dx / d, ny = dy / d;
-    const rel = (b.vx - q.vx) * nx + (b.vy - q.vy) * ny; // how fast the ball is closing on them
+    // how fast the ball itself is coming at them: running into a still ball is a kick, not a hit
+    const rel = Math.max(0, b.vx * nx + b.vy * ny) - Math.max(0, q.vx * nx + q.vy * ny) * 0.3;
     q.x = b.x + nx * (q.r + b.r + 1); q.y = b.y + ny * (q.r + b.r + 1);
     if (rel > BALL_HIT && (q.ballCd || 0) <= w.t) {
       // a flying ball: damage and a shove that scale with its speed; the ball loses most of its pace
@@ -3012,6 +3013,18 @@ function incoming(w, p, horizon) {
   }
   return hit;
 }
+// is the ball about to hit p? It slows with drag, so work out whether (and when) it gets that far
+function ballThreat(w, p, horizon) {
+  const b = w.ball; if (!b || b.out > 0) return null;
+  const sp = Math.hypot(b.vx, b.vy); if (sp < 220) return null;
+  const rx = p.x - b.x, ry = p.y - b.y, along = (rx * b.vx + ry * b.vy) / sp; // distance to the closest point on its path
+  if (along <= 0) return null;
+  const k = BALL_DRAG; if (along * k >= sp) return null; // it stops first
+  const t = -Math.log(1 - along * k / sp) / k; if (t > horizon) return null;
+  const cx = rx - b.vx / sp * along, cy = ry - b.vy / sp * along, cd = Math.hypot(cx, cy);
+  if (cd > p.r + b.r + 14) return null;
+  return { t, cx, cy, cd, b, along, sp };
+}
 function botThink(w, p, dt) {
   const ai = p.ai, inp = p.input, D = botD(p), G = p.gene ? (p.geneSrc === p.gene ? p.geneAll : (p.geneSrc = p.gene, p.geneAll = Object.assign({}, GENE, p.gene))) : GENE, iq = D.iq || 0;
   if (p.dead || p.falling > 0) { inp.draw = false; inp.mx = inp.my = 0; return; }
@@ -3150,8 +3163,28 @@ function botThink(w, p, dt) {
       break;
     }
   }
+  // --- the ball (the Pitch): get out of its way once they've noticed it coming, dashing if walking won't do
+  const bt = w.ball ? ballThreat(w, p, 1.1) : null;
+  if (bt) ai.ballSeen = (ai.ballSeen || 0) + dt; else ai.ballSeen = 0;
+  const ballOn = bt && ai.ballSeen >= D.react * 0.6;
+  if (ballOn) {
+    const b = bt.b; let px = -b.vy / bt.sp, py = b.vx / bt.sp;
+    const sa = lethalDist(p.x + px * 90, p.y + py * 90), sb = lethalDist(p.x - px * 90, p.y - py * 90);
+    if (sb > sa + 20 || (Math.abs(sb - sa) <= 20 && px * bt.cx + py * bt.cy < 0)) { px = -px; py = -py; }
+    gx = px * 2.5 + gx * 0.15; gy = py * 2.5 + gy * 0.15;
+    const need = p.r + b.r + 16 - bt.cd, canStep = p.baseSpeed * bt.t * 0.7;
+    if (need > canStep && bt.t < 0.4 && ai.dodgeCd <= 0 && p.dashN > 0 && Math.random() < Math.min(1, D.dodge * 1.5 + 0.1) && lethalDist(p.x + px * 140, p.y + py * 140) > 50) {
+      ai.dodgeCd = 0.5; p.wantDash = true; ai.dashAim = Math.atan2(py, px);
+    }
+  }
   const [mx, my] = botSteer(p, gx, gy);
   inp.mx = mx; inp.my = my;
+
+  // --- the ball, part two: shoot it back while it's still far enough off for that to help
+  if (ballOn && bt.along > 110 && !p.wantDash && clearShot(p.x, p.y, bt.b.x, bt.b.y) && botShootBall(w, p, bt, D, dt)) {
+    botAbilities(w, p, T, T ? Math.hypot(T.x - p.x, T.y - p.y) : Infinity, foes, dt);
+    ai.dashAim = null; return;
+  }
 
   // --- aim & shoot
   ai.reload -= dt;
@@ -3215,6 +3248,23 @@ function botThink(w, p, dt) {
 }
 
 
+// aim at the incoming ball (where it will be when the shot gets there) and loose a quick shot into it. Returns false
+// when this archer can't shoot right now, so the bot carries on as normal.
+function botShootBall(w, p, bt, D, dt) {
+  const ai = p.ai, inp = p.input, b = bt.b;
+  if (p.disarm > 0 || (p.role === 'crossbow' && !(p.bolts > 0) && !(p.autoT > 0))) return false;
+  const d = Math.hypot(b.x - p.x, b.y - p.y), tt = d / Math.max(600, shotSpeed(p, 0.45));
+  const want = Math.atan2(b.y + b.vy * tt - p.y, b.x + b.vx * tt - p.x) + (ai.err || 0) * 0.5;
+  if (ai.aimA == null) ai.aimA = p.aim;
+  const diff = ((want - ai.aimA + Math.PI) % TAU + TAU) % TAU - Math.PI, step = (D.turn || 5.5) * 1.3 * dt;
+  ai.aimA += clamp(diff, -step, step); inp.aim = ai.aimA;
+  const lined = Math.abs(diff) < Math.max(0.05, Math.atan2(b.r * 0.8, d));
+  if (p.role === 'ninja' || p.role === 'crossbow') { inp.draw = lined && !inp.draw; return true; }
+  if (!p.drawing) { inp.draw = true; ai.want = 0.45; return true; }
+  inp.draw = !(lined && p.charge >= 0.35);
+  if (!inp.draw) ai.reload = rand(0.05, 0.2);
+  return true;
+}
 // bots fire their abilities when the situation clearly calls for it
 function ambushPoint(p, T) {
   let best = null;
