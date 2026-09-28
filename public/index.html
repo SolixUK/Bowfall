@@ -799,13 +799,12 @@
       <div class="hometitle"><span class="eyebrow">Knockback archery · Team rounds</span><h1>Bow<span>fall</span></h1></div>
       <nav class="mainmenu" aria-label="Main menu">
         <button class="mm" id="mFind" type="button"><span class="mmk">01</span><b>Find game</b><small>Ranked matchmaking by rating: 1v1, 2v2 or 3v3, on your own or with friends.</small><em class="mmlock" id="mFindBadge" hidden></em></button>
-        <button class="mm" id="mCustom" type="button"><span class="mmk">02</span><b>Custom games</b><small>Browse public games, join with a code, host your own or practise against bots.</small></button>
-        <button class="mm" id="mTrain" type="button"><span class="mmk">03</span><b>Training</b><small>Graded drills: target practice, dodging with dashes, and shooting from cover.</small></button>
-        <button class="mm" id="mArena" type="button"><span class="mmk">04</span><b>Arena builder</b><small>Build your own arena, test it against bots, share it with a code, or play the community's.</small></button>
-        <button class="mm" id="mStore" type="button"><span class="mmk">05</span><b>Store</b><small>Unlock elements and roles with Crests, become a supporter, or grab the Founder pack.</small><em class="mmlock" id="mStoreBadge" hidden></em></button>
-        <button class="mm" id="mScores" type="button"><span class="mmk">06</span><b>Highscores</b><small>Top ratings, the best at each role, and single-game records.</small></button>
-        <button class="mm" id="mTut" type="button"><span class="mmk">07</span><b>Tutorial</b><small>Learn the basics on a practice dummy, then beat an easy bot.</small></button>
-        <button class="mm" id="mOpts" type="button"><span class="mmk">08</span><b>Options</b><small>Controls, controller, sound and graphics.</small></button>
+        <button class="mm" id="mCustom" type="button"><span class="mmk">02</span><b>Custom games</b><small>Browse public games, join with a code, host your own, practise against bots, or build your own arena.</small></button>
+        <button class="mm" id="mTrain" type="button"><span class="mmk">03</span><b>Training</b><small>Graded drills: target practice, dodging with dashes, shooting from cover, and knocking archers into sinkholes.</small></button>
+        <button class="mm" id="mStore" type="button"><span class="mmk">04</span><b>Store</b><small>Unlock elements and roles with Crests, become a supporter, or grab the Founder pack.</small><em class="mmlock" id="mStoreBadge" hidden></em></button>
+        <button class="mm" id="mScores" type="button"><span class="mmk">05</span><b>Highscores</b><small>Top ratings, the best at each role, and single-game records.</small></button>
+        <button class="mm" id="mTut" type="button"><span class="mmk">06</span><b>Tutorial</b><small>Learn the basics on a practice dummy, then beat an easy bot.</small></button>
+        <button class="mm" id="mOpts" type="button"><span class="mmk">07</span><b>Options</b><small>Controls, controller, sound and graphics.</small></button>
       </nav>
       <div class="homefoot">
         <div class="btnrow"><button class="ghost sm" id="helpBtn" type="button">How to play</button><button class="ghost sm" id="achBtn" type="button">Achievements</button><button class="ghost sm" id="balBtn" type="button">Balance data</button></div>
@@ -875,7 +874,7 @@
   <div class="overlay sub" id="customScr" hidden>
     <div class="card wide">
       <div class="shopbar"><div class="stat"><span class="eyebrow">Play</span><h2>Custom games</h2></div>
-        <div class="btnrow" data-navsec><button class="cta" type="button" data-ol="host" id="hostBtn">Host custom game</button><button class="ghost" type="button" id="pracBtn" title="Play against bots right here in your browser, no server needed">Practice vs bots</button><button class="ghost" type="button" data-back>Back</button></div></div>
+        <div class="btnrow" data-navsec><button class="cta" type="button" data-ol="host" id="hostBtn">Host custom game</button><button class="ghost" type="button" id="pracBtn" title="Play against bots right here in your browser, no server needed">Practice vs bots</button><button class="ghost" type="button" id="arenaBtn" title="Build your own arena, test it against bots, share it with a code, or play the community's">Arena builder</button><button class="ghost" type="button" data-back>Back</button></div></div>
       <div id="onlineOn" class="olpane">
         <div id="olHost" class="olpane hostpanel" data-navsec hidden>
           <h3>Host custom game</h3>
@@ -978,6 +977,8 @@
         </section>
         <section class="mode" data-navsec><h3>Graphics</h3>
           <div class="field"><label for="oRes">Resolution</label><select id="oRes"><option value="auto">Automatic (drops when the game slows)</option><option value="sharp">Always sharp</option><option value="fast">Fast (lower resolution)</option></select></div>
+          <div class="field"><label for="oFx">Effects</label><select id="oFx"><option value="auto">Automatic (lighter when the game slows)</option><option value="full">Full</option><option value="light">Light (no glows or trails, for older laptops)</option></select></div>
+          <div class="field"><label for="oShadow">Shots' shadows</label><select id="oShadow"><option value="soft">Soft</option><option value="simple">Simple (a dot)</option><option value="off">Off</option></select></div>
           <div class="field"><label for="oPart">Particles</label><select id="oPart"><option value="1">Full</option><option value="0.5">Reduced</option><option value="0.2">Minimal</option></select></div>
           <div class="field"><label for="oShake">Screen shake</label><select id="oShake"><option value="1">On</option><option value="0">Off</option></select></div>
           <div class="field"><label for="oNet">Performance stats (F3)</label><select id="oNet"><option value="0">Hidden</option><option value="1">Shown in online games</option></select></div>
@@ -1488,7 +1489,7 @@ const sfx = {
 };
 const syncMute = () => { $('muteBtn').textContent = muted ? 'Sound off' : 'Sound on'; const m = $('oMute'); if (m) m.value = muted ? '1' : '0'; };
 // options, kept in this browser
-const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') === '1', net: store.get('bowfall-net', '0') === '1' };
+const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') === '1', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto') };
 const outNode = () => { if (!AC.master) { AC.master = AC.createGain(); AC.master.connect(AC.destination); } AC.master.gain.value = OPTS.vol / 100; return AC.master; };
 syncMute();
 $('muteBtn').onclick = () => { muted = !muted; syncMute(); initAudio(); store.set('bowfall-muted', muted ? '1' : '0'); };
@@ -1804,7 +1805,7 @@ addEventListener('keydown', e => {
   if (!$('balScreen').hidden) { if (e.code === 'Escape') closeBalance(); return; }
   if (!$('achScreen').hidden) { if (e.code === 'Escape') closeAch(); return; }
   if (!$('ctlScreen').hidden) { if (!captureBind(e) && e.code === 'Escape') closeCtl(); return; }
-  if (mode === 'menu' && subOpen()) { if (e.code === 'Escape') closeSubs(); return; }
+  if (mode === 'menu' && subOpen()) { if (e.code === 'Escape') { if (!$('arenaScr').hidden) openSub('customScr'); else closeSubs(); } return; }
   if (e.code === 'F3') { e.preventDefault(); OPTS.net = !OPTS.net; store.set('bowfall-net', OPTS.net ? '1' : '0'); NET.render(true); return; }
   if (RP.on && e.code === 'Space') { e.preventDefault(); return; } // the kill cam can't be skipped
   if (isKey('chat', e.code) && mode === 'online' && view && view.m.ph !== 'lobby') { e.preventDefault(); openGameChat(); return; }
@@ -1838,9 +1839,16 @@ function buildInput(me) {
 
 // ================= view sizing =================
 let W = 1, H = 1, DPR = 1, VS = 1, OX = 0, OY = 0, RSCALE = 1;
-const perf = { ema: 1 / 60, t: 0 };
+const perf = { ema: 1 / 60, t: 0, low: false, lowT: 0 };
+// light effects: chosen in Options, or switched on by Automatic while the game can't keep up even at its lowest resolution
+const lightFx = () => OPTS.fx === 'light' || (OPTS.fx === 'auto' && perf.low);
 function perfTick(dt) {
   perf.ema += (dt - perf.ema) * 0.05; perf.t += dt;
+  if (mode !== 'menu' && OPTS.fx === 'auto') {
+    const floor = OPTS.res !== 'auto' || Math.min(2, devicePixelRatio || 1) * RSCALE <= 1.01;
+    if (!perf.low) { perf.lowT = perf.ema > 1 / 50 && floor ? perf.lowT + dt : 0; if (perf.lowT > 3) { perf.low = true; perf.lowT = 0; } }
+    else { perf.lowT = perf.ema < 1 / 59 ? perf.lowT + dt : 0; if (perf.lowT > 20) { perf.low = false; perf.lowT = 0; } }
+  }
   if (perf.t < 3 || mode === 'menu') return;
   const full = Math.min(2, devicePixelRatio || 1);
   if (OPTS.res !== 'auto') return;
@@ -2425,8 +2433,9 @@ const DRILLS = {
   target: { name: 'Target practice', map: 'range', dums: 3, blurb: 'Targets pop up across the range and you hit them before they vanish. Round 1 is steady, round 2 quick, round 3 several at once. Graded on speed, accuracy and bullseyes.' },
   dodge:  { name: 'Dodge drill', map: 'chasm', dums: 1, time: 60, blurb: 'An archer across a rift shoots at you and your feet are tied: dodge with dashes alone (never faster than your dash recharges). Sinkholes open in round 2 and bogs in round 3, so watch where you land.' },
   peek:   { name: 'Peek and shoot', map: 'yard', dums: 3, time: 60, blurb: 'Turrets cover the yard. Dash out from behind the boulders, land shots on them (three knock one out), and get back before they draw a bead on you. 60 seconds.' },
-  knock:  { name: 'Knockout drill', map: 'holes', dums: 4, time: 90, n: 10, blurb: 'Archers who don\'t shoot back wander a field of sinkholes. Knock ten of them in as fast as you can: the quicker each goes in, the more it scores. Don\'t fall in yourself.' },
+  sink:   { name: 'Knockout drill', map: 'holes', dums: 6, time: 150, blurb: 'Four scenes of archers standing in front of sinkholes. Work your way through each one, knocking every archer in as fast as you can; one that misses the hole is back on its spot a second later. Line up behind them, and dash to get there quicker. Don\'t fall in yourself.' },
 };
+const SINK_N = Sim.TRAIN_KNOCK.reduce((n, R) => n + R.holes.length, 0);
 const TR_ROUNDS = [{ name: 'Steady', n: 8, life: 5, at: 1 }, { name: 'Quick', n: 10, life: 2.5, at: 1 }, { name: 'Swarm', n: 12, life: 4, at: 3 }];
 // the dodge drill's rounds: 20 seconds each; hazards open on your side (after a warning) at the start of rounds 2 and 3
 const DODGE_ROUNDS = [
@@ -2477,11 +2486,12 @@ function startDrill(kind) {
   initAudio(); closeSubs();
   const D = DRILLS[kind];
   if (kind === 'dodge') { const M = MAPS.chasm; M.base = M.base || M.haz.slice(); M.haz.length = 0; M.haz.push(...M.base); floorKey = null; }
+  if (kind === 'sink') { MAPS.holes.haz.length = 0; floorKey = null; }
   world = Sim.createWorld({ map: D.map, diff: 'normal' });
   setArena(D.map);
   const me = Sim.join(world, { name: playerName(), team: 'red', element: myLoadout().el, role: myLoadout().ro });
   const dums = [];
-  for (let i = 0; i < D.dums; i++) { const d = Sim.addBot(world, 'blue'); d.name = kind === 'target' ? 'Target' : kind === 'dodge' ? 'Shooter' : kind === 'knock' ? 'Dummy' : 'Turret'; Sim.setLoadout(world, d.id, 'storm', 'ranger'); dums.push(d); }
+  for (let i = 0; i < D.dums; i++) { const d = Sim.addBot(world, 'blue', D.dums > 4); d.name = kind === 'target' ? 'Target' : kind === 'dodge' ? 'Shooter' : kind === 'sink' ? 'Dummy' : 'Turret'; Sim.setLoadout(world, d.id, 'storm', 'ranger'); dums.push(d); }
   Sim.startMatch(world);
   for (const p of world.players) if (p.offer && !p.picked) Sim.choose(world, p.id, 0);
   for (let i = 0; i < 60 * 8 && world.match.ph !== 'play'; i++) Sim.step(world, 1 / 60);
@@ -2490,24 +2500,24 @@ function startDrill(kind) {
   TR = { on: true, kind, t: 0, done: false, dum: dums.map(d => d.id), tg: [], tur: dums.map((d, i) => ({ id: d.id, ph: 'wait', t: 1.5 + i * 0.7, x: 1000, y: 220 + i * 180, hits: 0, off: 0 })),
     round: -1, spawned: 0, left: 0, gap: 2, shots: 0, hits: 0, bulls: 0, taken: 0, fired: 0, kos: 0, falls: 0, score: 0, uiT: 0, pop: [], pend: [], act: [], srv: null };
   myId = me.id; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {};
-  const start = { target: [200, 400], dodge: [320, 400], peek: [250, 400], knock: [110, 400] }[kind];
+  const start = { target: [200, 400], dodge: [320, 400], peek: [250, 400], sink: Sim.TRAIN_KNOCK[0].start }[kind];
   Object.assign(me, { x: start[0], y: start[1], vx: 0, vy: 0 });
   TR.home = { x: start[0], y: start[1] };
   me.noWalk = kind === 'dodge';
-  if (kind === 'target' || kind === 'dodge') trNextRound(); else notice(D.name, true, '#ffcf5a');
+  if (kind === 'target' || kind === 'dodge' || kind === 'sink') trNextRound(); else notice(D.name, true, '#ffcf5a');
   if (kind === 'dodge') { const s = TR.tur[0]; s.t = 1.6; }
-  if (kind === 'knock') TR.gap = 1;
   setScreens(); renderTrainCoach();
 }
-const trHidden = p => TR.on && TR.dum.includes(p.id) && (TR.kind === 'target' || (TR.kind === 'peek' && TR.tur.find(t => t.id === p.id).off > 0) || (TR.kind === 'knock' && !TR.act.some(a => a.id === p.id)));
+const trHidden = p => TR.on && TR.dum.includes(p.id) && (TR.kind === 'target' || (TR.kind === 'peek' && TR.tur.find(t => t.id === p.id).off > 0) || (TR.kind === 'sink' && !TR.act.some(a => a.id === p.id)));
 function trNextRound() {
   TR.round++;
-  const list = TR.kind === 'dodge' ? DODGE_ROUNDS : TR_ROUNDS;
+  const list = TR.kind === 'dodge' ? DODGE_ROUNDS : TR.kind === 'sink' ? Sim.TRAIN_KNOCK : TR_ROUNDS;
   if (TR.round >= list.length) return trFinish();
   const R = list[TR.round];
-  if (TR.kind === 'dodge') { TR.roundT = TR.t; for (const h of R.add) TR.pend.push({ h, at: TR.t + DODGE_WARN }); }
+  if (TR.kind === 'sink') trSinkScene(R);
+  else if (TR.kind === 'dodge') { TR.roundT = TR.t; for (const h of R.add) TR.pend.push({ h, at: TR.t + DODGE_WARN }); }
   else { TR.spawned = 0; TR.left = R.n; TR.gap = 2.2; TR.tg = []; }
-  notice(`Round ${TR.round + 1}: ${R.name}`, true, '#ffcf5a'); tone(660, 0.12, 'triangle', 0.05); setTimeout(() => tone(880, 0.16, 'triangle', 0.05), 120);
+  notice(`${TR.kind === 'sink' ? 'Scene' : 'Round'} ${TR.round + 1}: ${R.name}`, true, '#ffcf5a'); tone(660, 0.12, 'triangle', 0.05); setTimeout(() => tone(880, 0.16, 'triangle', 0.05), 120);
   if (TR.kind === 'dodge' && R.add.length) setTimeout(() => notice(R.add.some(h => h.type === 'tar') ? 'Bogs are forming: you can only wade out of one' : 'Sinkholes are opening: don\'t dash into one', false), 700);
 }
 function trSpawnTarget() {
@@ -2571,49 +2581,61 @@ function trDodge(dt, me) {
     }
   }
 }
-// the knockout drill: dummies appear near a sinkhole and amble about; knock each in
-function trKnock(dt, me) {
-  const D = DRILLS.knock;
-  TR.gap -= dt;
-  const cap = TR.spawned < 4 ? 1 : 2;
-  if (TR.spawned < D.n && TR.act.length < cap && TR.gap <= 0) {
-    const free = TR.dum.find(id => !TR.act.some(a => a.id === id));
-    if (free) {
-      let best = null;
-      for (let i = 0; i < 80; i++) {
-        const x = 90 + Math.random() * (AW - 180), y = 80 + Math.random() * (AH - 160), g = hazGap(x, y);
-        if (g < 55 || g > 170 || (me && Math.hypot(x - me.x, y - me.y) < 200) || TR.act.some(a => Math.hypot(a.x - x, a.y - y) < 200)) continue;
-        best = { x, y }; break;
-      }
-      if (best) {
-        const d = world.players.find(q => q.id === free);
-        Object.assign(d, { x: best.x, y: best.y, vx: 0, vy: 0, knock: 0, falling: 0, dead: false, hp: d.maxHp }); d.inv = 0;
-        TR.act.push({ id: free, x: best.x, y: best.y, t0: TR.t, dir: Math.random() * TAU, turn: 1 });
-        TR.spawned++; TR.gap = 0.8; burst(best.x, best.y, '#4fa8ff', 16, 180); tone(1175, 0.06, 'square', 0.025);
-      }
-    }
-  }
+// the knockout drill: each scene lays out its sinkholes and stands an archer in front of each. Knock them all in and the
+// next scene starts. One that's knocked but doesn't go in is put back on its spot a second after it comes to rest.
+function trSinkScene(R) {
+  const M = MAPS.holes; M.haz.length = 0;
+  for (const h of R.holes) M.haz.push({ type: 'pit', shape: 'circle', x: h.x, y: h.y, r: h.r });
+  floorKey = null;
+  TR.act = []; TR.roundT = TR.t; TR.next = 0; TR.inRound = 0;
+  R.holes.forEach((h, i) => {
+    const id = TR.dum[i], d = world.players.find(q => q.id === id); if (!d) return;
+    const sp = Sim.knockSpot(h);
+    Object.assign(d, { x: sp.x, y: sp.y, vx: 0, vy: 0, knock: 0, falling: 0, dead: false, hp: d.maxHp }); d.inv = 0;
+    TR.act.push({ id, x: sp.x, y: sp.y, hx: sp.x, hy: sp.y, n: i + 1, t0: TR.t, back: 0 });
+    burst(sp.x, sp.y, '#4fa8ff', 12, 160);
+  });
+  const me = world.players.find(q => q.id === myId);
+  TR.home = { x: R.start[0], y: R.start[1] };
+  if (me) { Object.assign(me, { x: R.start[0], y: R.start[1], vx: 0, vy: 0, knock: 0, falling: 0 }); me.inv = 0.5; }
+}
+function trSink(dt, me) {
+  const R = Sim.TRAIN_KNOCK[TR.round]; if (!R) return;
+  if (TR.next) { if (TR.t >= TR.next) trNextRound(); }
   for (const id of TR.dum) {
     const d = world.players.find(q => q.id === id); if (!d) continue;
     const a = TR.act.find(o => o.id === id);
-    if (!a) { Object.assign(d, { x: TR_PARK.x, y: TR_PARK.y, vx: 0, vy: 0, falling: 0, dead: false, hp: d.maxHp }); d.inv = 9; d.input.mx = d.input.my = 0; continue; }
-    d.hp = d.maxHp; d.input.draw = false; a.x = d.x; a.y = d.y;
-    if (d.falling > 0.45) { // in! score by how quickly it went in
-      const pts = 100 + Math.round(200 * Math.max(0, 1 - (TR.t - a.t0) / 10));
-      TR.score += pts; TR.kos++;
-      floater(d.x, d.y - 30, `+${pts}`, '#7dff8a', 18, true); tone(1047, 0.1, 'triangle', 0.05); setTimeout(() => tone(1397, 0.12, 'triangle', 0.05), 80);
-      TR.act = TR.act.filter(o => o !== a); TR.gap = Math.min(TR.gap, 0.9);
+    if (!a) { Object.assign(d, { x: TR_PARK.x, y: TR_PARK.y, vx: 0, vy: 0, falling: 0, dead: false, hp: d.maxHp }); d.inv = 9; d.input.mx = d.input.my = 0; d.input.draw = false; continue; }
+    d.hp = d.maxHp; d.input.draw = false; d.input.mx = d.input.my = 0; a.x = d.x; a.y = d.y;
+    if (me) { d.input.aim = Math.atan2(me.y - d.y, me.x - d.x); d.input.tx = me.x; d.input.ty = me.y; }
+    if (d.falling > 0.45) { // in!
+      TR.score += Sim.KNOCK_KO; TR.kos++; TR.inRound++;
+      floater(a.hx, a.hy - 30, `+${Sim.KNOCK_KO}`, '#7dff8a', 17, true); tone(1047, 0.1, 'triangle', 0.05); setTimeout(() => tone(1397, 0.12, 'triangle', 0.05), 80);
+      TR.act = TR.act.filter(o => o !== a);
       Object.assign(d, { x: TR_PARK.x, y: TR_PARK.y, vx: 0, vy: 0, falling: 0, dead: false }); d.inv = 9;
+      if (!TR.act.length) trSinkClear(R);
       continue;
     }
-    // amble: slow, turning now and then, and steering clear of the holes on its own
-    a.turn -= dt;
-    if (a.turn <= 0) { a.turn = 0.8 + Math.random() * 1.5; a.dir = Math.random() < 0.25 ? null : Math.random() * TAU; }
-    if (a.dir != null && hazGap(d.x + Math.cos(a.dir) * 50, d.y + Math.sin(a.dir) * 50) < 30) a.dir += Math.PI * (0.6 + Math.random() * 0.8);
-    const walk = d.knock <= 0 && d.falling <= 0 && a.dir != null;
-    d.input.mx = walk ? Math.cos(a.dir) * 0.3 : 0; d.input.my = walk ? Math.sin(a.dir) * 0.3 : 0;
+    if (d.falling > 0) continue;
+    const moved = Math.hypot(d.x - a.hx, d.y - a.hy) > 4; // it stands its ground (never walks) until something shoves it
+    if (!moved) { a.back = 0; continue; }
+    // shoved but not in: once it has come to rest, it's back on its spot a second later
+    if (Math.hypot(d.vx, d.vy) < 60 && !(d.knock > 0)) a.back += dt; else a.back = 0;
+    if (a.back >= 1) {
+      burst(d.x, d.y, '#4fa8ff', 10, 120);
+      Object.assign(d, { x: a.hx, y: a.hy, vx: 0, vy: 0, knock: 0 }); a.back = 0;
+      burst(a.hx, a.hy, '#4fa8ff', 12, 160); tone(880, 0.05, 'square', 0.02);
+    }
   }
-  if (TR.kos >= D.n) trFinish();
+}
+function trSinkClear(R) {
+  const t = TR.t - TR.roundT, k = Math.max(0, Math.min(1, 1 - (t - R.par * 0.5) / (R.par * 1.5)));
+  const bonus = Math.round(Sim.KNOCK_BONUS * k); TR.score += bonus;
+  (TR.times = TR.times || []).push(t);
+  notice(`${R.name} clear in ${t.toFixed(1)}s · +${bonus}`, true, '#7dff8a');
+  fanfare([659, 784, 1047], 'triangle', 0.05, 90);
+  if (TR.round >= Sim.TRAIN_KNOCK.length - 1) setTimeout(() => { if (TR.on && TR.kind === 'sink') trFinish(); }, 600);
+  else TR.next = TR.t + 1.2;
 }
 // can a turret see the player past the boulders?
 function trLos(d, me) {
@@ -2632,9 +2654,9 @@ function trainGuard() {
     me.hp = me.maxHp;
     // fell in: it costs you, and you're put back somewhere safe
     if ((me.falling > 0.45 || me.dead) && !TR.done) {
-      TR.falls++; const pen = TR.kind === 'knock' ? 100 : TR.kind === 'dodge' ? 100 : 0;
+      TR.falls++; const pen = TR.kind === 'sink' ? 100 : TR.kind === 'dodge' ? 100 : 0;
       if (pen) { TR.score -= pen; floater(me.x, me.y - 30, `Fell in −${pen}`, '#ff5a5a', 17, true); }
-      const sp = TR.kind === 'dodge' ? trSafeSpot(90, 620, 90, 710) : TR.kind === 'knock' ? trSafeSpot(60, AW - 60, 60, AH - 60) : TR.home;
+      const sp = TR.kind === 'dodge' ? trSafeSpot(90, 620, 90, 710) : TR.home;
       Object.assign(me, { dead: false, falling: 0, vx: 0, vy: 0, knock: 0, x: sp.x, y: sp.y }); me.inv = 1; burst(sp.x, sp.y, '#ffffff', 14, 150);
     } else if (me.dead || me.falling > 0.45) Object.assign(me, { dead: false, falling: 0, vx: 0, vy: 0, x: TR.home.x, y: TR.home.y });
   }
@@ -2661,7 +2683,7 @@ function trainGuard() {
     for (const p of TR.pend.slice()) if (TR.t >= p.at) { MAPS.chasm.haz.push(p.h); TR.pend = TR.pend.filter(o => o !== p); floorKey = null; const [cx, cy] = hazCentre(p.h); burst(cx, cy, p.h.type === 'tar' ? '#6b5a3a' : '#2a1c10', 26, 200, 3); shake(3); sfx.creak && sfx.creak(); }
     if (TR.t - TR.roundT >= DODGE_RT && TR.round < DODGE_ROUNDS.length - 1) trNextRound();
     trDodge(dt, me);
-  } else if (TR.kind === 'knock') trKnock(dt, me);
+  } else if (TR.kind === 'sink') trSink(dt, me);
   else trTurret(dt, me, trLos);
 }
 function trainInput(inp) {
@@ -2682,7 +2704,7 @@ function trainEvents(evs) {
         const t = TR.tur.find(o => o.id === e.id); if (!t || t.off > 0) continue;
         t.hits++; TR.hits++; TR.score += 50; floater(e.x, e.y - 24, '+50', '#ffffff', 15, true);
         if (t.hits >= 3) { TR.kos++; TR.score += 300; t.off = 1.6; floater(t.x, t.y - 40, 'Turret down +300', '#7dff8a', 18, true); burst(t.x, t.y, '#7dff8a', 22, 220); tone(1047, 0.12, 'triangle', 0.05); }
-      } else if (TR.kind === 'knock') TR.hits++;
+      } else if (TR.kind === 'sink') TR.hits++;
     }
   }
 }
@@ -2722,7 +2744,7 @@ function renderTrainCoach() {
   const pl = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
   const line = TR.kind === 'target' ? `${TR.hits}/${TR.spawned - TR.tg.length} hit · ${pl(TR.bulls, 'bullseye')} · ${TR.shots ? Math.round(TR.hits / TR.shots * 100) : 0}% accuracy`
     : TR.kind === 'dodge' ? `${TR.fired - TR.taken} of ${TR.fired} dodged${TR.falls ? ` · fell in ${TR.falls}×` : ''}`
-    : TR.kind === 'knock' ? `${TR.kos} of ${D.n} knocked in${TR.falls ? ` · fell in ${TR.falls}×` : ''}`
+    : TR.kind === 'sink' ? `${TR.kos} of ${SINK_N} knocked in${TR.times && TR.times.length ? ` · ${TR.times.map(t => t.toFixed(1) + 's').join(', ')}` : ''}${TR.falls ? ` · fell in ${TR.falls}×` : ''}`
     : `${pl(TR.kos, 'turret')} down · ${TR.hits} hits · ${TR.taken} taken`;
   if (TR.done) {
     const s = TR.srv;
@@ -2742,11 +2764,12 @@ function renderTrainCoach() {
   }
   const left = D.time ? Math.max(0, D.time - TR.t) : 0;
   $('coachStep').textContent = TR.kind === 'target' ? `${D.name} · round ${TR.round + 1} of 3 · ${TR_ROUNDS[TR.round] ? TR_ROUNDS[TR.round].name : ''}`
-    : TR.kind === 'dodge' ? `${D.name} · round ${TR.round + 1} of 3 · ${DODGE_ROUNDS[TR.round].name} · ${Math.ceil(left)}s left` : `${D.name} · ${Math.ceil(left)}s left`;
+    : TR.kind === 'dodge' ? `${D.name} · round ${TR.round + 1} of 3 · ${DODGE_ROUNDS[TR.round].name} · ${Math.ceil(left)}s left`
+    : TR.kind === 'sink' ? `${D.name} · scene ${Math.min(TR.round + 1, 4)} of 4 · ${(Sim.TRAIN_KNOCK[TR.round] || {}).name || ''} · ${(TR.next ? 0 : TR.t - TR.roundT).toFixed(1)}s` : `${D.name} · ${Math.ceil(left)}s left`;
   $('coachText').textContent = TR.kind === 'dodge' ? line : `${fmt(Math.max(0, TR.score))} pts · ${line}`;
   $('coachHint').textContent = '';
   if (TR.btns !== 'run') { TR.btns = 'run'; $('coachBtns').innerHTML = '<button class="ghost sm" type="button" id="coachQuit">Leave drill</button>'; $('coachQuit').onclick = () => toMenu(); }
-  $('coachBar').style.width = Math.round((TR.kind === 'target' ? (TR.round + (TR_ROUNDS[TR.round] ? (TR.spawned - TR.tg.length) / TR_ROUNDS[TR.round].n : 0)) / 3 : TR.kind === 'knock' ? Math.max(TR.kos / D.n, TR.t / D.time) : TR.t / D.time) * 100) + '%';
+  $('coachBar').style.width = Math.round((TR.kind === 'target' ? (TR.round + (TR_ROUNDS[TR.round] ? (TR.spawned - TR.tg.length) / TR_ROUNDS[TR.round].n : 0)) / 3 : TR.kind === 'sink' ? TR.kos / SINK_N : TR.t / D.time) * 100) + '%';
 }
 // target boards, hazards about to open, and a marker over each knockout dummy
 function drawTargets() {
@@ -2761,10 +2784,13 @@ function drawTargets() {
     }
     return;
   }
-  if (TR.kind === 'knock') {
+  if (TR.kind === 'sink') {
     for (const a of TR.act) {
-      const bob = Math.sin(clock * 5 + a.t0) * 3, y = a.y - 44 + bob;
+      // its spot on the ground, and a marker overhead
+      ctx.strokeStyle = 'rgba(79,168,255,0.45)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(a.hx, a.hy, 20, 0, TAU); ctx.stroke();
+      const bob = Math.sin(clock * 5 + a.n) * 3, y = a.y - 44 + bob;
       ctx.fillStyle = '#ffcf5a'; ctx.beginPath(); ctx.moveTo(a.x - 7, y - 8); ctx.lineTo(a.x + 7, y - 8); ctx.lineTo(a.x, y); ctx.closePath(); ctx.fill();
+      if (a.back > 0) { ctx.strokeStyle = '#4fa8ff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(a.x, a.y, 24, -Math.PI / 2, -Math.PI / 2 + TAU * Math.min(1, a.back)); ctx.stroke(); }
     }
     return;
   }
@@ -4141,7 +4167,7 @@ $('scTabs').addEventListener('click', e => { const b = e.target.closest('[data-s
 $('scBody').addEventListener('click', e => { const b = e.target.closest('[data-scr]'); if (b) { SC.role = b.dataset.scr; renderScores(); } });
 function syncOptions() {
   $('oVol').value = OPTS.vol; $('oVolN').textContent = OPTS.vol + '%'; $('oMute').value = muted ? '1' : '0';
-  $('oRes').value = OPTS.res; $('oPart').value = String(OPTS.part); $('oShake').value = OPTS.shake ? '1' : '0';
+  $('oRes').value = OPTS.res; $('oFx').value = OPTS.fx; $('oShadow').value = OPTS.shadow; $('oPart').value = String(OPTS.part); $('oShake').value = OPTS.shake ? '1' : '0';
   $('oDmg').value = OPTS.dmg; $('oGuide').value = OPTS.guide ? '1' : '0'; $('oNet').value = OPTS.net ? '1' : '0';
 }
 $('oNet').onchange = () => { OPTS.net = $('oNet').value === '1'; store.set('bowfall-net', OPTS.net ? '1' : '0'); };
@@ -4149,6 +4175,8 @@ $('oVol').oninput = () => { OPTS.vol = +$('oVol').value; store.set('bowfall-vol'
 $('oVol').onchange = () => { initAudio(); tone(660, 0.12, 'triangle', 0.05); };
 $('oMute').onchange = () => { muted = $('oMute').value === '1'; store.set('bowfall-muted', muted ? '1' : '0'); syncMute(); };
 $('oRes').onchange = () => { OPTS.res = $('oRes').value; store.set('bowfall-res', OPTS.res); RSCALE = 1; resize(); floorCv = null; };
+$('oFx').onchange = () => { OPTS.fx = $('oFx').value; store.set('bowfall-fx', OPTS.fx); perf.low = false; };
+$('oShadow').onchange = () => { OPTS.shadow = $('oShadow').value; store.set('bowfall-shadow', OPTS.shadow); };
 $('oPart').onchange = () => { OPTS.part = +$('oPart').value; store.set('bowfall-part', OPTS.part); };
 $('oShake').onchange = () => { OPTS.shake = $('oShake').value === '1'; store.set('bowfall-shake', OPTS.shake ? '1' : '0'); };
 $('oDmg').onchange = () => { OPTS.dmg = $('oDmg').value; store.set('bowfall-dmgnum', OPTS.dmg); };
@@ -4205,7 +4233,9 @@ $('profChip').onclick = () => openSub('profScr');
 $('mTut').onclick = startTutorial;
 $('mTrain').onclick = () => openSub('trainScr');
 $('mStore').onclick = () => openSub('storeScr');
-$('mArena').onclick = () => openSub('arenaScr');
+$('arenaBtn').onclick = () => openSub('arenaScr');
+// the builder lives inside Custom games, so its Back button goes back there
+{ const b = $('arenaScr').querySelector('[data-back]'); if (b) b.onclick = () => openSub('customScr'); }
 $('pracBtn').onclick = () => { closeSubs(); startPractice(); };
 if (OFFLINE) $('pracBtn').hidden = true; // offline, Host custom game already is practice
 $('hostBtn').onclick = () => { if (OFFLINE) { closeSubs(); startPractice(); return; } $('olHost').hidden = !$('olHost').hidden; if (!$('olHost').hidden) $('rmName').focus(); };
@@ -5594,9 +5624,11 @@ function updateAmbient(dt) {
 function drawLava(h, c) {
   const [cx, cy] = hazCentre(h);
   if (h.shape === 'circle') {
-    const glow = ctx.createRadialGradient(h.x, h.y, h.r * 0.6, h.x, h.y, h.r + 36);
-    glow.addColorStop(0, `rgba(255,120,40,${0.28 + 0.06 * Math.sin(c * 2)})`); glow.addColorStop(1, 'rgba(255,120,40,0)');
-    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(h.x, h.y, h.r + 36, 0, TAU); ctx.fill();
+    if (!lightFx()) {
+      const glow = ctx.createRadialGradient(h.x, h.y, h.r * 0.6, h.x, h.y, h.r + 36);
+      glow.addColorStop(0, `rgba(255,120,40,${0.28 + 0.06 * Math.sin(c * 2)})`); glow.addColorStop(1, 'rgba(255,120,40,0)');
+      ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(h.x, h.y, h.r + 36, 0, TAU); ctx.fill();
+    }
     const g = ctx.createRadialGradient(h.x, h.y, 5, h.x, h.y, h.r);
     g.addColorStop(0, '#ffe07a'); g.addColorStop(0.45, '#ff8a2b'); g.addColorStop(1, '#c42d18');
     ctx.fillStyle = g; hazP(ctx, h, 0); ctx.fill();
@@ -6104,14 +6136,14 @@ function drawPlayer(p, isMe, bare) {
   if (!p.f) { ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(3, 5, R, R * 0.8, 0, 0, TAU); ctx.fill(); }
   if (!p.f && !bare) {
     // a glow in the team's colour, so you can tell sides apart at a glance
-    const tg = ctx.createRadialGradient(0, 0, R * 0.7, 0, 0, R * 2.3);
+    if (!lightFx()) { const tg = ctx.createRadialGradient(0, 0, R * 0.7, 0, 0, R * 2.3);
     tg.addColorStop(0, `rgba(${TEAM_RGB[p.tm]},0.42)`); tg.addColorStop(1, `rgba(${TEAM_RGB[p.tm]},0)`);
-    ctx.fillStyle = tg; ctx.beginPath(); ctx.arc(0, 0, R * 2.3, 0, TAU); ctx.fill();
+    ctx.fillStyle = tg; ctx.beginPath(); ctx.arc(0, 0, R * 2.3, 0, TAU); ctx.fill(); }
     ctx.strokeStyle = TEAM_COL[p.tm]; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(0, 5, R + 5, (R + 5) * 0.6, 0, 0, TAU); ctx.stroke();
   }
 
   const lpl = !p.f && !bare && LP.list.length ? LP.list.find(l => l.pid === p.id) : null;
-  if (lpl) {
+  if (lpl && !lightFx()) {
     // an extra player on this screen: a spotlight in their own colour, so everyone can find themselves
     const rgb = hexRgb(lpColor(lpl.n)), sp = ctx.createRadialGradient(0, 0, R * 0.6, 0, 0, R * 3.8);
     sp.addColorStop(0, `rgba(${rgb},0.4)`); sp.addColorStop(0.5, `rgba(${rgb},0.14)`); sp.addColorStop(1, `rgba(${rgb},0)`);
@@ -6119,9 +6151,11 @@ function drawPlayer(p, isMe, bare) {
   }
   if (isMe && !p.f) {
     // a soft spotlight and bright ring so you can find yourself out of the corner of your eye
-    const sp = ctx.createRadialGradient(0, 0, R * 0.6, 0, 0, R * 4.2);
-    sp.addColorStop(0, 'rgba(255,255,255,0.34)'); sp.addColorStop(0.5, 'rgba(255,255,255,0.12)'); sp.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = sp; ctx.beginPath(); ctx.arc(0, 0, R * 4.2, 0, TAU); ctx.fill();
+    if (!lightFx()) {
+      const sp = ctx.createRadialGradient(0, 0, R * 0.6, 0, 0, R * 4.2);
+      sp.addColorStop(0, 'rgba(255,255,255,0.34)'); sp.addColorStop(0.5, 'rgba(255,255,255,0.12)'); sp.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = sp; ctx.beginPath(); ctx.arc(0, 0, R * 4.2, 0, TAU); ctx.fill();
+    }
     ctx.strokeStyle = `rgba(255,255,255,${0.8 + 0.2 * Math.sin(clock * 4)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, R + 9, 0, TAU); ctx.stroke();
   }
   if (p.em && !p.f) drawEmpower(p, R);
@@ -6291,19 +6325,35 @@ function drawPlayer(p, isMe, bare) {
   }
 }
 
+// Ground shadows for arrows and shuriken, blurred once and kept as small images. Blurring each shadow live every frame
+// was one of the slowest things the game drew, and bursts of shuriken (Shadow Mark, Death Blossom) made it drop frames.
+const SHADOW_SPR = {};
+function arrowShadow(key) {
+  const hit = SHADOW_SPR[key + OPTS.res]; if (hit) return hit;
+  const S = 3, pad = 5, round = key[0] === 'c';
+  const k = round ? 1 : +key.slice(1), w2 = (key[0] === 'x' ? 2.6 : 2) * k, rad = round ? +key.slice(1) : 0;
+  const x0 = round ? -rad - pad : -24 * k - pad, x1 = round ? rad + pad : 11 * k + pad, y1 = round ? rad + pad : 4.2 * k + pad;
+  const c = document.createElement('canvas'); c.width = Math.ceil((x1 - x0) * S); c.height = Math.ceil(y1 * 2 * S);
+  const g = c.getContext('2d'); g.scale(S, S); g.translate(-x0, y1);
+  if (OPTS.res !== 'fast') g.filter = 'blur(' + (1.2 * S) + 'px)';
+  g.fillStyle = 'rgba(0,0,0,0.34)'; g.beginPath();
+  if (round) g.arc(0, 0, rad, 0, TAU);
+  else { g.moveTo(-24 * k, -w2); g.lineTo(2 * k, -w2); g.lineTo(2 * k, -4.2 * k); g.lineTo(11 * k, 0); g.lineTo(2 * k, 4.2 * k); g.lineTo(2 * k, w2); g.lineTo(-24 * k, w2); g.closePath(); }
+  g.fill();
+  return (SHADOW_SPR[key + OPTS.res] = { c, x: x0, y: -y1, w: x1 - x0, h: y1 * 2 });
+}
+// an arrow's streak: a fading gradient, or with light effects a plain faint line
+function trailStyle(x0, x1, col, a) {
+  if (lightFx()) return `rgba(${col},${a * 0.45})`;
+  const g = ctx.createLinearGradient(x0, 0, x1, 0); g.addColorStop(0, `rgba(${col},0)`); g.addColorStop(1, `rgba(${col},${a})`); return g;
+}
 function drawArrow(a) {
   // a soft shadow on the ground under anything in flight, so arrows stand out on every arena
-  if (!a.s) {
-    ctx.save(); ctx.translate(a.x + 4, a.y + 7); ctx.rotate(a.g); ctx.lineCap = 'round';
-    const k = a.b ? 1.7 : a.bg ? 1.45 : 1.12;
-    if (OPTS.res !== 'fast') ctx.filter = 'blur(1.2px)';
-    ctx.fillStyle = 'rgba(0,0,0,0.34)';
-    if (a.sh || a.bm) { ctx.beginPath(); ctx.arc(0, 0, a.sh === 2 ? 9 : 8, 0, TAU); ctx.fill(); }
-    else { // the arrow's outline: shaft, then a sharp point
-      const w2 = (a.xb ? 2.6 : 2) * k;
-      ctx.beginPath(); ctx.moveTo(-24 * k, -w2); ctx.lineTo(2 * k, -w2); ctx.lineTo(2 * k, -4.2 * k); ctx.lineTo(11 * k, 0); ctx.lineTo(2 * k, 4.2 * k); ctx.lineTo(2 * k, w2); ctx.lineTo(-24 * k, w2); ctx.closePath(); ctx.fill();
-    }
-    ctx.filter = 'none';
+  if (!a.s && OPTS.shadow !== 'off') {
+    const k = a.b ? 1.7 : a.bg ? 1.45 : 1.12, round = a.sh || a.bm || OPTS.shadow === 'simple' || lightFx();
+    const spr = arrowShadow(round ? (a.sh === 2 || a.b ? 'c9' : 'c8') : (a.xb ? 'x' : 'a') + k);
+    ctx.save(); ctx.translate(a.x + 4, a.y + 7); if (!round) ctx.rotate(a.g);
+    ctx.drawImage(spr.c, spr.x, spr.y, spr.w, spr.h);
     ctx.restore();
   }
   if (a.sh) { // shuriken: a spinning four-point star
@@ -6323,9 +6373,8 @@ function drawArrow(a) {
   if (a.xb) { // a crossbow bolt: short, thick, with stiff square vanes
     ctx.save(); ctx.globalAlpha = alpha; ctx.translate(a.x, a.y); ctx.rotate(a.g);
     if (!a.s) {
-      const col = a.sn ? '155,229,100' : EL_RGB[a.el] || '230,230,240', g = ctx.createLinearGradient(-60, 0, -12, 0);
-      g.addColorStop(0, `rgba(${col},0)`); g.addColorStop(1, `rgba(${col},0.5)`);
-      ctx.strokeStyle = g; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-60, 0); ctx.lineTo(-12, 0); ctx.stroke();
+      const col = a.sn ? '155,229,100' : EL_RGB[a.el] || '230,230,240';
+      ctx.strokeStyle = trailStyle(-60, -12, col, 0.5); ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-60, 0); ctx.lineTo(-12, 0); ctx.stroke();
     }
     ctx.strokeStyle = '#6b4a2e'; ctx.lineWidth = 3; ctx.lineCap = 'butt'; ctx.beginPath(); ctx.moveTo(-13, 0); ctx.lineTo(5, 0); ctx.stroke();
     ctx.fillStyle = EL_COL[a.el] || (a.sn ? '#9be564' : '#c9d1dc'); ctx.beginPath(); ctx.moveTo(11, 0); ctx.lineTo(3, -4.5); ctx.lineTo(3, 4.5); ctx.fill();
@@ -6338,9 +6387,7 @@ function drawArrow(a) {
   if (!a.s) {
     const col = a.rl ? '140,255,255' : a.xq ? '255,70,90' : a.sw ? '255,120,230' : a.sk ? '255,150,90' : a.el === 'blood' ? '224,52,74' : a.el === 'shadow' ? '142,149,201' : a.el === 'poison' ? '130,210,80' : a.sn ? '155,229,100' : a.el === 'storm' ? '255,242,122' : a.b ? '255,207,90' : a.el === 'frost' ? '159,220,255' : a.el === 'flame' ? '255,140,60' : a.el === 'stone' ? '201,168,120' : a.el === 'void' ? '180,140,255' : a.ex ? '255,90,122' : a.cr ? '255,255,255' : '255,207,90';
     if (a.el === 'flame' && Math.random() < 0.4) fx.parts.push({ x: a.x, y: a.y, vx: rand(-20, 20), vy: rand(-20, 20), life: 0, max: 0.35, color: Math.random() < 0.5 ? '#ff6a2b' : '#ffcf5a', r: rand(1, 2.2) });
-    const g = ctx.createLinearGradient(-70, 0, -20, 0);
-    g.addColorStop(0, `rgba(${col},0)`); g.addColorStop(1, `rgba(${col},0.55)`);
-    ctx.strokeStyle = g; ctx.lineWidth = a.cr ? 4 : 2.5; ctx.beginPath(); ctx.moveTo(-70, 0); ctx.lineTo(-20, 0); ctx.stroke();
+    ctx.strokeStyle = trailStyle(-70, -20, col, 0.55); ctx.lineWidth = a.cr ? 4 : 2.5; ctx.beginPath(); ctx.moveTo(-70, 0); ctx.lineTo(-20, 0); ctx.stroke();
     if (a.rl) {
       // railshot: a long, hot streak
       const g2 = ctx.createLinearGradient(-190, 0, -10, 0); g2.addColorStop(0, 'rgba(140,255,255,0)'); g2.addColorStop(1, 'rgba(220,255,255,0.9)');
@@ -6859,7 +6906,7 @@ function render(replaying) {
   if (!replaying && LP.list.length && view.m.ph !== 'lobby') drawLocalMarks(view);
   if (replaying) { drawReplayFrame(); return; }
   if (!menuOpen && view.m.ph !== 'lobby' && view.m.ph !== 'pick') me && drawCrosshair(me, me.ro === 'ninja' || me.ro === 'crossbow' ? 0 : mode === 'local' ? me.ch : localCharge);
-  if (me && !me.d && me.hp < 30) {
+  if (me && !me.d && me.hp < 30 && !lightFx()) {
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     const a = (1 - me.hp / 30) * (0.25 + 0.1 * Math.sin(clock * 7));
     const v = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.75);

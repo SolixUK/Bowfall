@@ -2,6 +2,20 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content.
 
+## 0.22.0
+
+- **Knockout drill rebuilt as four set scenes** (Warm-up, Angles, Weave, Long shots). Every archer is already standing in front of its own sinkhole; work your way through the arena knocking each one in, and the next scene starts once they're all in. A dummy you hit that misses its hole goes back to its spot a second after it stops. Scoring: 50 per dummy, plus up to 600 per scene for clearing it quickly (full marks at half its par time, nothing at twice it); falling in costs 100 and puts you back at the scene's start. It's a new drill, so it has a fresh leaderboard (the old drill's bests are kept but no longer shown).
+- **New graphics options** (Options → Graphics):
+  - **Effects: Automatic / Full / Light.** Light drops the soft glows (team glow, your spotlight, lava's outer glow, the low-health vignette) and draws arrow trails as plain lines. Automatic (the default) switches to Light by itself when the game can't hold its frame rate even at its lowest resolution, and back again once it's comfortable.
+  - **Shots' shadows: Soft / Simple / Off.** Simple is a blurred dot under every arrow, bolt and shuriken; Light effects use it too.
+- **The Arena builder moved into Custom games** (a button next to Practice vs bots), since arenas are only played in custom games. Its Back button (and Esc) returns to Custom games.
+
+## 0.21.3
+
+- **New Ninja ability, Blade Guard** (10s cooldown): raise a guard for 1 second that stops shots from any side. Block one and you go full auto for 2 seconds: hold to throw a shuriken every 0.12 seconds (three times the normal rate), each dealing 50% of the damage and knockback. It works like the Crossbowman's Hair Trigger.
+- **Smoother frames with lots of shots in the air:** the soft ground shadow under every arrow, bolt and shuriken was blurred live each frame, which is very slow for the browser. Bursts like Shadow Mark's return (10 shuriken) and Death Blossom (12) dropped frames. The shadows are now blurred once and reused, and look the same.
+- Bots with a parry (Parry, Hair Trigger, Blade Guard) now also raise it against a shot that's about to hit them, not only against a bow being drawn at them, so they can use it against Ninjas and Crossbowmen too.
+
 ## 0.21.2
 
 - **A drawing error can no longer freeze the game.** If something goes wrong while drawing a frame (or the HUD, or handling a message from the server), the game reports it and carries on with the next frame instead of stopping with a blank arena.

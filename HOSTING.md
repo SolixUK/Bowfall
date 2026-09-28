@@ -91,7 +91,7 @@ Run `npm start`, find your computer's local IP address (`ipconfig` on Windows, S
 
 Press **F3** in an online game (or turn on **Options → Graphics → Performance stats**) for a small panel that splits lag into its three possible sources, over the last 10 seconds:
 
-- **Your PC:** frame rate, the slowest frame, and how many frames took over 50 ms. Slow frames here mean the computer (or browser) is the problem; try the Fast resolution setting or fewer particles.
+- **Your PC:** frame rate, the slowest frame, and how many frames took over 50 ms. Slow frames here mean the computer (or browser) is the problem; try the Fast resolution setting, Light effects, simple shadows or fewer particles (all in Options → Graphics).
 - **Network:** ping and how much it varies (±), and **late packets**: game updates that reached you more than 60 ms after the server's own clock says they were sent. Late packets while your PC and the server look fine mean the connection between you and the server (Wi-Fi, your ISP, or the route to the server's region) is delaying or bunching packets. A steady high ping (over 150 ms) just means you're far from the server.
 - **Server:** its CPU use as a share of what the host allows, how long the host held it back (throttling) each second, the longest stall in its game loop, and the slowest simulation tick. A stall over 60 ms, any throttling, or CPU near 100% mean the server is the problem.
 

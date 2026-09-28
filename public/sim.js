@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.21.2';
+const VERSION = '0.22.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -204,16 +204,11 @@ MAPS.chasm = buildMap({
     spawns: [{ x: 100, y: 400 }, { x: 100, y: 300 }, { x: 100, y: 500 }, { x: 60, y: 400 }],
     power: [{ x: AW - 50, y: AH - 50 }], amberY: [WALL + 44, 330],
   });
-// the knockout drill: sinkholes to knock targets into
+// the knockout drill: sinkholes to knock dummies into, a different set each scene
 MAPS.holes = buildMap({
     name: 'Sinkhole Field', theme: 'meadow', hidden: true,
     desc: 'Sinkholes everywhere.',
-    haz: [
-      { type: 'pit', shape: 'circle', x: 330, y: 190, r: 62 },
-      { type: 'pit', shape: 'rect', x: 250, y: 520, w: 130, h: 95 },
-      { type: 'pit', shape: 'circle', x: 505, y: 400, r: 46 },
-      { type: 'pit', shape: 'circle', x: 470, y: 690, r: 40 },
-    ], pillars: [], spikes: [],
+    haz: [], pillars: [], spikes: [], // the drill lays out each scene's sinkholes (TRAIN_KNOCK)
     spawns: [{ x: 110, y: 400 }, { x: 110, y: 300 }, { x: 110, y: 500 }, { x: 70, y: 400 }],
     power: [{ x: AW - 50, y: AH - 50 }], amberY: [WALL + 44, 330],
   });
@@ -274,7 +269,21 @@ function registerArena(key, def, meta, force) { // force: register even with pro
 const arenaCode = id => 'A' + Number(id).toString(36).toUpperCase();
 const arenaId = code => { const m = /^A([0-9A-Z]{1,8})$/i.exec(String(code || '').trim()); return m ? parseInt(m[1], 36) : null; };
 // training drills: the most points a run can score (grades and the server's checks use these)
-const TRAIN_MAX = { target: 7500, dodge: 1000, peek: 3600, knock: 3000 };
+// the knockout drill ('sink'): four set scenes. Each dummy stands in front of a sinkhole; `a` is the direction (degrees)
+// a shot has to push it to send it in, and `gap` how far it stands from the hole's edge. Par is the time for the scene.
+const TRAIN_KNOCK = [
+  { name: 'Warm-up', start: [110, 400], par: 9, holes: [
+    { x: 350, y: 230, r: 62, a: 0, gap: 70 }, { x: 440, y: 610, r: 62, a: 90, gap: 70 }, { x: 790, y: 250, r: 62, a: 0, gap: 70 }, { x: 960, y: 560, r: 60, a: 0, gap: 70 }] },
+  { name: 'Angles', start: [110, 400], par: 12, holes: [
+    { x: 330, y: 650, r: 52, a: 45, gap: 80 }, { x: 520, y: 170, r: 50, a: -60, gap: 80 }, { x: 640, y: 560, r: 50, a: 180, gap: 80 }, { x: 900, y: 170, r: 50, a: -90, gap: 80 }, { x: 1060, y: 620, r: 50, a: 30, gap: 80 }] },
+  { name: 'Weave', start: [110, 400], par: 14, holes: [
+    { x: 260, y: 180, r: 45, a: -135, gap: 90 }, { x: 250, y: 620, r: 45, a: 135, gap: 90 }, { x: 600, y: 400, r: 55, a: 0, gap: 90 }, { x: 790, y: 140, r: 45, a: -90, gap: 90 }, { x: 790, y: 660, r: 45, a: 90, gap: 90 }, { x: 1080, y: 400, r: 45, a: 0, gap: 90 }] },
+  { name: 'Long shots', start: [110, 400], par: 15, holes: [
+    { x: 430, y: 150, r: 40, a: 0, gap: 160 }, { x: 200, y: 690, r: 40, a: 180, gap: 160 }, { x: 600, y: 250, r: 40, a: 180, gap: 150 }, { x: 650, y: 650, r: 40, a: 45, gap: 150 }, { x: 990, y: 170, r: 40, a: -45, gap: 150 }, { x: 1050, y: 620, r: 40, a: 0, gap: 160 }] },
+];
+const knockSpot = h => { const u = h.a * Math.PI / 180, d = h.r + h.gap; return { x: h.x - Math.cos(u) * d, y: h.y - Math.sin(u) * d }; };
+const KNOCK_KO = 50, KNOCK_BONUS = 600; // points for each dummy in, and for clearing a scene quickly
+const TRAIN_MAX = { target: 7500, dodge: 1000, peek: 3600, sink: TRAIN_KNOCK.reduce((n, R) => n + R.holes.length * KNOCK_KO + KNOCK_BONUS, 0) };
 const TRAIN_GRADES = [['S', 0.8], ['A', 0.65], ['B', 0.5], ['C', 0.35], ['D', 0]];
 const trainGrade = (kind, score) => { const m = TRAIN_MAX[kind] || 1; return TRAIN_GRADES.find(g => score / m >= g[1])[0]; };
 
@@ -668,6 +677,7 @@ const TREE = {
   clone:     { tree: 'ninja', active: { cd: 14 }, name: 'Shadow Clone', desc: 'Vanish for 1.5 seconds and leave a clone behind that throws shuriken at the nearest enemy for 4 seconds.' },
   blossom:   { tree: 'ninja', active: { cd: 9 }, name: 'Death Blossom', desc: 'Throw a ring of 12 shuriken in every direction at once.' },
   recall:    { tree: 'ninja', active: { cd: 12 }, name: 'Shadow Mark', desc: 'Leave a mark where you stand. Use it again within 5 seconds to snap straight back to it (if you fall or are knocked away, this is your way home), throwing a ring of 10 shuriken as you land.' },
+  bladeguard:{ tree: 'ninja', active: { cd: 10 }, name: 'Blade Guard', desc: 'Raise a guard for 1 second that stops arrows from any side. Block one and you go full auto for 2 seconds: hold to throw a shuriken every 0.12 seconds, each dealing 50% of the damage and knockback.' },
   sharpstar: { tree: 'ninja', name: 'Honed Stars', desc: 'Your shuriken deal 25% more damage.' },
   flurry:    { tree: 'ninja', name: 'Flurry', desc: 'You throw 30% faster.' },
   execution: { tree: 'ninja', name: 'Execution', desc: 'Any damage you deal to an enemy that leaves them below 15% health knocks them out on the spot.' },
@@ -929,9 +939,9 @@ function botName(w) {
   const n = BOT_NAMES.find(n => !used.has('Bot ' + n));
   return n ? 'Bot ' + n : 'Bot ' + w.nid;
 }
-function addBot(w, team) {
+function addBot(w, team, extra) { // extra: past the usual four a side (training drills' dummies)
   useMap(w);
-  if (!TEAMS.includes(team) || teamCount(w, team) >= MAX_TEAM) return null;
+  if (!TEAMS.includes(team) || (teamCount(w, team) >= MAX_TEAM && !extra)) return null;
   // bots take a role nobody on their team has yet, when there is one
   const taken = new Set(members(w, team).map(q => q.role));
   const roles = Object.keys(ROLES).filter(r => !taken.has(r));
@@ -1077,7 +1087,7 @@ const STYLES = {
   marksman:   { name: 'Marksman',   near: 420, far: 660, charge: [0.92, 1],   bash: 0.05, cards: ['railshot', 'recoil', 'spot', 'steady', 'longbow', 'deadeye', 'pierce', 'ballista', 'glass', 'heavy', 'pin'] },
   guardian:   { name: 'Guardian',   near: 240, far: 420, charge: null,        bash: 0.15, mates: true, cards: ['totem', 'harpoon', 'rally', 'bond', 'wall', 'oath', 'revive', 'snare', 'trap', 'deeproots', 'gust'] },
 };
-STYLES.stalker = { name: 'Stalker', near: 140, far: 320, charge: [0.75, 1], bash: 0.35, cards: ['sstrike', 'clone', 'blossom', 'recall', 'sharpstar', 'flurry', 'execution', 'swiftstep', 'thirdstep', 'phase', 'dance', 'execute', 'blink', 'smoke', 'stealth', 'ambush', 'shadowdash', 'deathmark', 'cloak', 'quickfeet', 'double', 'dash', 'fleet'] };
+STYLES.stalker = { name: 'Stalker', near: 140, far: 320, charge: [0.75, 1], bash: 0.35, cards: ['sstrike', 'clone', 'blossom', 'recall', 'bladeguard', 'sharpstar', 'flurry', 'execution', 'swiftstep', 'thirdstep', 'phase', 'dance', 'execute', 'blink', 'smoke', 'stealth', 'ambush', 'shadowdash', 'deathmark', 'cloak', 'quickfeet', 'double', 'dash', 'fleet'] };
 const ROLE_STYLE = { crossbow: 'skirmisher', ninja: 'stalker', assassin: 'stalker', juggernaut: 'brawler', sniper: 'marksman', warden: 'guardian', trapper: 'guardian', ranger: 'skirmisher', trickster: 'skirmisher' };
 function pickStyle(p) {
   const ai = p.ai;
@@ -1099,7 +1109,7 @@ function restyle(p) {
 }
 // Learned upgrade values: how much each card changed a Master bot's chance of winning a game, compared with others
 // of the same role and element, over about 11,108 games where bots picked at random. Smart bots pick by these.
-const CARD_VALUE = { aftershock: -0.024, ambush: -0.022, ballista: -0.049, barbs: -0.026, blinding: -0.039, blink: 0.097, bloodpact: -0.023, blossom: 0.002, bond: 0.009, boomerang: -0.017, boulder: 0.009, bramble: -0.035, burst: -0.04, cloak: -0.045, clone: 0.008, collapse: -0.005, colossus: 0.019, contagion: 0.003, creeping: -0.024, curve: -0.031, dance: -0.015, dash: 0.045, deadeye: 0.063, deathmark: 0.009, deepfreeze: -0.013, deeproots: -0.021, deflect: -0.017, double: -0.035, echo: -0.005, execute: -0.043, execution: -0.012, fanbolt: -0.013, feather: -0.051, fleet: 0.049, flurry: -0.005, forked: 0.016, fortify: -0.022, frenzy: 0.033, frostbite: -0.014, glass: 0.006, grapple: 0, gust: 0.015, hairtrig: 0.014, harpoon: 0.005, heavy: 0, heavybolt: -0.013, hemorrhage: -0.01, horizon: -0.011, inferno: 0.025, lingering: 0.009, longbow: -0.003, longstep: -0.115, longstock: 0.034, nullfield: 0.112, oath: -0.036, obsidian: -0.004, overload: -0.098, parry: 0.019, permafrost: -0.011, petrify: 0.096, phase: 0.022, pierce: 0.015, pin: -0.002, pointblank: -0.004, potent: -0.031, pyre: -0.045, quake: -0.005, quickfeet: -0.008, quickshot: 0.075, railshot: -0.028, rain: 0.003, rally: -0.027, ram: -0.031, recall: 0.007, recoil: -0.063, repeater: 0.128, revive: -0.019, ricochet: 0.017, riot: -0.003, rush: 0.051, scatter: 0.058, seeker: -0.016, shadowdash: -0.077, sharpstar: -0.004, shatter: -0.027, smoke: -0.001, snare: -0.033, split: 0.057, spot: -0.026, sstrike: -0.028, stance: 0.017, static: 0.081, steady: 0.079, stealth: -0.027, surefoot: 0.003, swiftstep: 0.062, terror: -0.008, thirdstep: 0.009, totem: -0.032, toxic: 0.027, transfusion: -0.012, trap: 0.022, trick: 0.026, twinload: 0.108, unstable: -0.035, virulent: 0.015, vital: -0.038, volley: 0.052, wall: 0.007, wildfire: -0.007, windlass: 0.076 };
+const CARD_VALUE = { aftershock: -0.024, ambush: -0.022, ballista: -0.049, barbs: -0.026, blinding: -0.039, blink: 0.097, bloodpact: -0.023, bladeguard: 0, blossom: 0.002, bond: 0.009, boomerang: -0.017, boulder: 0.009, bramble: -0.035, burst: -0.04, cloak: -0.045, clone: 0.008, collapse: -0.005, colossus: 0.019, contagion: 0.003, creeping: -0.024, curve: -0.031, dance: -0.015, dash: 0.045, deadeye: 0.063, deathmark: 0.009, deepfreeze: -0.013, deeproots: -0.021, deflect: -0.017, double: -0.035, echo: -0.005, execute: -0.043, execution: -0.012, fanbolt: -0.013, feather: -0.051, fleet: 0.049, flurry: -0.005, forked: 0.016, fortify: -0.022, frenzy: 0.033, frostbite: -0.014, glass: 0.006, grapple: 0, gust: 0.015, hairtrig: 0.014, harpoon: 0.005, heavy: 0, heavybolt: -0.013, hemorrhage: -0.01, horizon: -0.011, inferno: 0.025, lingering: 0.009, longbow: -0.003, longstep: -0.115, longstock: 0.034, nullfield: 0.112, oath: -0.036, obsidian: -0.004, overload: -0.098, parry: 0.019, permafrost: -0.011, petrify: 0.096, phase: 0.022, pierce: 0.015, pin: -0.002, pointblank: -0.004, potent: -0.031, pyre: -0.045, quake: -0.005, quickfeet: -0.008, quickshot: 0.075, railshot: -0.028, rain: 0.003, rally: -0.027, ram: -0.031, recall: 0.007, recoil: -0.063, repeater: 0.128, revive: -0.019, ricochet: 0.017, riot: -0.003, rush: 0.051, scatter: 0.058, seeker: -0.016, shadowdash: -0.077, sharpstar: -0.004, shatter: -0.027, smoke: -0.001, snare: -0.033, split: 0.057, spot: -0.026, sstrike: -0.028, stance: 0.017, static: 0.081, steady: 0.079, stealth: -0.027, surefoot: 0.003, swiftstep: 0.062, terror: -0.008, thirdstep: 0.009, totem: -0.032, toxic: 0.027, transfusion: -0.012, trap: 0.022, trick: 0.026, twinload: 0.108, unstable: -0.035, virulent: 0.015, vital: -0.038, volley: 0.052, wall: 0.007, wildfire: -0.007, windlass: 0.076 };
 // bots: capstones first, then abilities, cards that suit their playstyle, anything that builds toward one; boosts last.
 // Smart bots (Master, and AI players near it) mostly go by what the learning showed actually wins.
 const TEAM_ONLY = ['oath', 'revive', 'transfusion', 'contagion']; // cards that do nothing without teammates (yours or theirs)
@@ -1749,7 +1759,11 @@ function updatePlayer(w, p, dt) {
     // one shuriken per click (a click just before the throw is ready is kept for a moment)
     const press = p.wantThrow || (inp.draw && !p.wasDraw); p.wantThrow = false;
     p.throwQ = press ? 0.15 : Math.max(0, (p.throwQ || 0) - dt);
-    if (p.throwQ > 0 && p.throwCd <= 0 && p.falling <= 0 && p.disarm <= 0) {
+    p.autoT = Math.max(0, (p.autoT || 0) - dt);
+    if (p.autoT > 0) {
+      // Blade Guard: full auto while held
+      if ((inp.draw || p.throwQ > 0) && p.throwCd <= 0 && p.falling <= 0 && p.disarm <= 0) { p.throwQ = 0; p.throwCd = AUTO_GAP; throwStar(w, p, p.aim, true); }
+    } else if (p.throwQ > 0 && p.throwCd <= 0 && p.falling <= 0 && p.disarm <= 0) {
       p.throwQ = 0;
       throwStar(w, p, p.aim);
       p.throwCd = THROW_CD / ((has(p, 'flurry') ? 1.3 : 1) * (1 + 0.08 * ((p.hones && p.hones.hone_draw) || 0)) * (p.pw.quick > 0 ? 1.8 : 1));
@@ -1843,11 +1857,11 @@ function ninjaBlink(w, p) {
 }
 const THROW_CD = 0.36;
 // one shuriken (or a spread with the Multishot powerup); weaker than an arrow, no charging
-function throwStar(w, p, ang) {
+function throwStar(w, p, ang, auto) {
   if (p.stealthT > 0) breakStealth(w, p);
   const dbl = p.strikeN > 0; if (dbl) p.strikeN--;
-  const dmg = 6 * (p.dmgMul || 1) * (has(p, 'sharpstar') ? 1.25 : 1) * (dbl ? 1.75 : 1);
-  const kb = 400 * (p.kbMul || 1) * (p.pw.heavy > 0 ? 1.9 : 1) * (p.emp && p.element === 'stone' ? 1.35 : 1);
+  const dmg = 6 * (p.dmgMul || 1) * (has(p, 'sharpstar') ? 1.25 : 1) * (dbl ? 1.75 : 1) * (auto ? 0.5 : 1);
+  const kb = 400 * (p.kbMul || 1) * (p.pw.heavy > 0 ? 1.9 : 1) * (p.emp && p.element === 'stone' ? 1.35 : 1) * (auto ? 0.5 : 1);
   const el = Object.keys(ELEMENTS).find(e => has(p, e)) || null;
   const spread = p.pw.multi > 0 ? [-0.14, 0, 0.14] : [0];
   for (const off of spread) makeStar(w, p, p.x, p.y, ang + off, { dmg, kb, el, dbl, life: 0.45 });
@@ -1962,7 +1976,7 @@ function useAbility(w, p, id) {
       ev(w, { e: 'rush', id: p.id, x: r1(p.x), y: r1(p.y) });
       return true;
     case 'fortify': p.fortT = 3; ev(w, { e: 'fortify', id: p.id, x: r1(p.x), y: r1(p.y) }); return true;
-    case 'hairtrig': p.parryT = 1; p.parryAuto = true; ev(w, { e: 'parry', id: p.id, x: r1(p.x), y: r1(p.y), k: 'auto' }); return true;
+    case 'hairtrig': case 'bladeguard': p.parryT = 1; p.parryAuto = true; ev(w, { e: 'parry', id: p.id, x: r1(p.x), y: r1(p.y), k: 'auto' }); return true;
     case 'parry': {
       p.parryT = 1; p.parryAuto = false; p.parryRefunded = false; ev(w, { e: 'parry', id: p.id, x: r1(p.x), y: r1(p.y) });
       // a shot that landed in the last 0.15s is parried after all: online, what you see is a moment behind the server
@@ -2918,6 +2932,12 @@ function shotSpeed(p, c) {
 // (an armed Railshot flies 80% faster and never slows: bots lead it accordingly)
 const shotDrag = p => p.railArmed ? 0.001 : p.role === 'ninja' ? 2.4 : p.role === 'crossbow' ? 0.12 : has(p, 'longbow') ? 0.2 : 0.45;
 // the furthest a bot's shots are worth taking
+// is this shot about to hit p? (within about a quarter of a second, passing close enough)
+function shotAt(a, p) {
+  const dx = p.x - a.x, dy = p.y - a.y, v2 = a.vx * a.vx + a.vy * a.vy; if (!v2) return false;
+  const t = (dx * a.vx + dy * a.vy) / v2; if (t <= 0 || t > 0.28) return false;
+  return Math.hypot(a.x + a.vx * t - p.x, a.y + a.vy * t - p.y) < p.r + 8;
+}
 function botReach(p) { return p.role === 'ninja' ? 1050 * OPT('aspeed') * 0.27 : p.role === 'crossbow' ? (p.xbowRange || XBOW_RANGE) - 30 : 900; }
 // Planned positioning: score spots around the bot and head for the best one. A good spot is one where
 // no enemy's shot can knock us into anything deadly, our shot at the target would knock them into something,
@@ -3160,7 +3180,7 @@ function botThink(w, p, dt) {
   if (p.role === 'ninja') {
     // shuriken: keep throwing while lined up and in range
     const want = los && onTarget && dT < (iq >= 0.5 ? botReach(p) : 520) && T.inv <= 0 && !(p.stealthT > 0.6 && dT > 170 && !(ai.ambush && Math.hypot(ai.ambush.x - p.x, ai.ambush.y - p.y) < 70));
-    inp.draw = want && !inp.draw; // bots click too
+    inp.draw = p.autoT > 0 ? want : want && !inp.draw; // bots click too (and just hold on full auto)
   } else if (p.role === 'crossbow') {
     // bolts: shoot when lined up and close enough for the bolt to arrive
     const want = los && onTarget && dT < (p.xbowRange || XBOW_RANGE) - 30 && T.inv <= 0 && (p.autoT > 0 || (p.bolts > 0 && ai.reload <= 0));
@@ -3249,7 +3269,9 @@ function botAbilities(w, p, T, dT, foes, dt) {
       }
       case 'fortify': use = p.hp < p.maxHp * 0.5 && foes.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 380); break;
       case 'hairtrig':
-      case 'parry': use = foes.some(q => q.drawing && q.charge > 0.55 && Math.hypot(q.x - p.x, q.y - p.y) < 650 && angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.18) && Math.random() < dt * 6; break;
+      case 'bladeguard':
+      case 'parry': use = (foes.some(q => q.drawing && q.charge > 0.55 && Math.hypot(q.x - p.x, q.y - p.y) < 650 && angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.18)
+        || w.arrows.some(a => a.team !== p.team && !a.stuck && shotAt(a, p))) && Math.random() < dt * 6; break; // a bow being drawn at them, or a shot (shuriken, bolt) already on its way
       case 'seeker': use = chg > 0.5 && !!T && dT > 220; break;
       case 'trick': use = chg > 0.55 && !!T && dT > 200 && !p.trickArmed; break;
       case 'boomerang': use = chg > 0.6 && !!T && dT < 440; break;
@@ -3529,7 +3551,7 @@ function unpackSnap(s) {
 }
 
 return {
-  AW, AH, WALL, GATES, MAPS, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
+  AW, AH, WALL, GATES, MAPS, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
