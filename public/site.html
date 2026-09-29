@@ -430,19 +430,49 @@ const pages = {
       ${qs().get('err') ? `<p class="err">${esc(qs().get('err'))}</p>` : ''}
       ${provs.length ? `<div class="prov">${provs.map(p => `<a href="/auth/${p.key}${next ? '?next=' + encodeURIComponent(next) : ''}">${ICONS[p.key] || ''}Continue with ${esc(p.name)}</a>`).join('')}</div><div class="or">or with a name and password</div>` : ''}
       <form class="stack" id="authF"><label>Name<input name="name" maxlength="16" autocomplete="username" required></label>
+      ${reg ? '<label>Email<input name="email" type="email" maxlength="254" autocomplete="email" required></label>' : ''}
       <label>Password<input name="password" type="password" maxlength="100" autocomplete="${reg ? 'new-password' : 'current-password'}" required></label>
-      ${reg ? '<p class="muted" style="margin:0;font-size:14px">3 to 16 letters, numbers, _ or -. Password at least 6 characters.</p>' : ''}
+      ${reg ? '<p class="muted" style="margin:0;font-size:14px">Name: 3 to 16 letters, numbers, _ or -. Password at least 6 characters. Your email is private and only used to reset your password.</p>' : '<p style="margin:0;font-size:14px"><a href="#/forgot">Forgot your password?</a></p>'}
       <p class="err" id="aErr"></p><button class="btn" type="submit">${reg ? 'Create account' : 'Sign in'}</button></form>
       <p class="muted" style="margin:14px 0 0">${reg ? 'Already have one? <a href="#/login">Sign in</a>' : 'New here? <a href="#/register">Create an account</a>'}</p></div>`;
     const f = $('authF'); f.name.focus();
     f.onsubmit = async e => {
       e.preventDefault();
-      try { const r = await api(reg ? '/register' : '/login', { name: f.name.value.trim(), password: f.password.value, guest: guestToken() }); me = r.user; drawWho(); guestMoved(r);
+      try { const r = await api(reg ? '/register' : '/login', { name: f.name.value.trim(), email: reg ? f.email.value.trim() : undefined, password: f.password.value, guest: guestToken() }); me = r.user; await loadMe(); drawWho(); guestMoved(r);
         const next = new URLSearchParams(location.hash.split('?')[1] || '').get('next');
         if (next && next.startsWith('/')) location.href = next; else go('#/u/' + me.name);
       } catch (err) { $('aErr').textContent = err.message; }
     };
   },
+};
+pages.forgot = async () => {
+  app.innerHTML = `<div class="card narrow"><h1 style="font-size:32px;margin-bottom:6px">Forgot your password?</h1>
+    <p class="muted" style="margin:0 0 14px">Enter your player name or email and we'll send a link to pick a new one.</p>
+    <form class="stack" id="fgF"><label>Player name or email<input name="who" maxlength="254" autocomplete="username" required></label>
+    <p class="err" id="fgErr"></p><button class="btn" type="submit">Send reset link</button></form>
+    <p class="muted" style="margin:14px 0 0"><a href="#/login">Back to sign in</a></p></div>`;
+  const f = $('fgF'); f.who.focus();
+  f.onsubmit = async e => {
+    e.preventDefault();
+    try { await api('/forgot', { who: f.who.value.trim() });
+      app.innerHTML = `<div class="card narrow"><h1 style="font-size:32px;margin-bottom:6px">Check your email</h1><p class="muted">If that account has an email on it, a reset link is on its way. It works for one hour. Check your spam folder if it doesn't show up in a few minutes.</p><p><a href="#/login">Back to sign in</a></p></div>`;
+    } catch (err) { $('fgErr').textContent = err.message; }
+  };
+};
+pages.reset = async () => {
+  const t = qs().get('t') || '';
+  app.innerHTML = `<div class="card narrow"><h1 style="font-size:32px;margin-bottom:6px">Pick a new password</h1>
+    <form class="stack" id="rsF"><label>New password<input name="password" type="password" minlength="6" maxlength="100" autocomplete="new-password" required></label>
+    <label>Type it again<input name="again" type="password" minlength="6" maxlength="100" autocomplete="new-password" required></label>
+    <p class="err" id="rsErr"></p><button class="btn" type="submit">Save and sign in</button></form>
+    <p class="muted" style="margin:14px 0 0">Link not working? <a href="#/forgot">Get a new one</a></p></div>`;
+  const f = $('rsF'); f.password.focus();
+  f.onsubmit = async e => {
+    e.preventDefault();
+    if (f.password.value !== f.again.value) { $('rsErr').textContent = "Those passwords don't match."; return; }
+    try { const r = await api('/reset', { token: t, password: f.password.value }); me = r.user; await loadMe(); drawWho(); go('#/u/' + me.name); }
+    catch (err) { $('rsErr').textContent = err.message; }
+  };
 };
 pages.finish = async () => {
   const d = await api('/oauth/pending');
@@ -469,10 +499,17 @@ async function methodsCard(u) {
     <form class="stack" id="pwF" style="max-width:420px"><b>${me.hasPassword ? 'Change password' : 'Add a password'}</b>
     ${me.hasPassword ? '<label>Current password<input name="current" type="password" autocomplete="current-password" required></label>' : '<p class="muted" style="margin:0;font-size:14px">Lets you sign in with your player name too.</p>'}
     <label>New password<input name="password" type="password" autocomplete="new-password" minlength="6" required></label>
-    <p class="err" id="pwErr"></p><div><button class="btn" type="submit">Save password</button></div></form></div>`;
+    <p class="err" id="pwErr"></p><div><button class="btn" type="submit">Save password</button></div></form>
+    <form class="stack" id="emF" style="max-width:420px;margin-top:18px"><b>Email</b>
+    <p class="muted" style="margin:0;font-size:14px">${me.email ? 'Private. Used only to reset your password.' : 'Add an email so you can reset your password if you forget it.'}</p>
+    <label>Email<input name="email" type="email" maxlength="254" autocomplete="email" value="${esc(me.email || '')}" required></label>
+    ${me.hasPassword ? '<label>Current password<input name="current" type="password" autocomplete="current-password" required></label>' : ''}
+    <p class="err" id="emErr"></p><div><button class="btn" type="submit">${me.email ? 'Change email' : 'Add email'}</button></div></form></div>`;
 }
 function wireMethods(name) {
   app.querySelectorAll('[data-unlink]').forEach(b => b.onclick = async () => { try { await api('/unlink', { provider: b.dataset.unlink }); await loadMe(); pages.user(name); } catch (e) { alert(e.message); } });
+  const g = $('emF');
+  if (g) g.onsubmit = async e => { e.preventDefault(); try { await api('/email', { email: g.email.value.trim(), current: g.current ? g.current.value : '' }); await loadMe(); $('emErr').style.color = 'var(--ok)'; $('emErr').textContent = 'Saved.'; if (g.current) g.current.value = ''; } catch (err) { $('emErr').style.color = ''; $('emErr').textContent = err.message; } };
   const f = $('pwF');
   if (f) f.onsubmit = async e => { e.preventDefault(); try { await api('/password', { current: f.current ? f.current.value : '', password: f.password.value }); await loadMe(); $('pwErr').style.color = 'var(--ok)'; $('pwErr').textContent = 'Saved.'; f.reset(); } catch (err) { $('pwErr').style.color = ''; $('pwErr').textContent = err.message; } };
 }
@@ -563,8 +600,10 @@ async function route() {
     else if (parts[0] === 'forum') await pages.forum();
     else if (parts[0] === 'login' || parts[0] === 'register') await pages.auth(parts[0]);
     else if (parts[0] === 'finish') await pages.finish();
+    else if (parts[0] === 'forgot') await pages.forgot();
+    else if (parts[0] === 'reset') await pages.reset();
     else app.innerHTML = '<div class="card empty">Page not found. <a href="#/">Home</a></div>';
-    document.title = 'Bowfall' + (parts[0] ? ' · ' + ({ servers: 'Games', leaderboard: 'Leaderboard', forum: 'Forum', u: parts[1], login: 'Sign in', register: 'Create account' }[parts[0]] || '') : '');
+    document.title = 'Bowfall' + (parts[0] ? ' · ' + ({ servers: 'Games', leaderboard: 'Leaderboard', forum: 'Forum', u: parts[1], login: 'Sign in', register: 'Create account', forgot: 'Forgot password', reset: 'New password' }[parts[0]] || '') : '');
   } catch (e) { app.innerHTML = `<div class="card empty">${esc(e.message)}</div>`; }
   window.scrollTo(0, 0);
 }

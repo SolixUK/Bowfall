@@ -193,6 +193,11 @@
   .mm:hover:not(:disabled), .mm:focus-visible { transform: translateX(6px); border-left-color: var(--gold); background: linear-gradient(90deg, rgba(255,207,90,.12), rgba(16,28,19,.7)); outline: none; }
   .mm:hover:not(:disabled) .mmk { color: var(--gold); }
   .mm.locked { opacity: .5; cursor: not-allowed; }
+  .mmlock.tutnew { color: #111; background: var(--gold); border-color: var(--gold); animation: tutGlow 1.6s ease-in-out infinite; }
+  @keyframes tutGlow { 50% { box-shadow: 0 0 14px rgba(255,207,90,.7); } }
+  .qhelp { position: absolute; left: 50%; top: 72px; transform: translateX(-50%); z-index: 2; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: center; max-width: min(820px, calc(100vw - 32px)); padding: 8px 14px; background: rgba(9,18,11,.86); border: 1px solid var(--gold); font: 600 14px 'Titillium Web', 'Segoe UI', sans-serif; pointer-events: auto; }
+  .qhelp span { white-space: nowrap; } .qhelp kbd { margin-right: 4px; }
+  .qhelp b { color: var(--gold); }
   .mmlock { position: absolute; right: 30px; top: 12px; font: 700 12px 'Rajdhani', 'Arial Narrow', sans-serif; font-style: normal; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); padding: 3px 8px; }
   .homefoot { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; }
   .homefoot .ver { margin-left: auto; }
@@ -266,6 +271,14 @@
   .fr.mem { grid-template-columns: auto 1fr auto; }
   @media (max-width: 820px) { .findgrid { grid-template-columns: 1fr; } }
   .fggo { font-size: 20px; padding: 14px; }
+  .fgmaps { display: flex; flex-wrap: wrap; gap: 5px; }
+  .fgmaps button { font: 600 13px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--muted); background: rgba(0,0,0,.25); border: 1px solid transparent; border-radius: 2px; padding: 5px 9px; cursor: pointer; }
+  .fgmaps button:hover { color: var(--text); }
+  .fgmaps button.fav { color: #7dff8a; border-color: #7dff8a; background: rgba(125,255,138,.1); }
+  .fgmaps button.fav::before { content: '\2605  '; }
+  .fgmaps button.hate { color: #ff7a6a; border-color: #ff7a6a; background: rgba(255,90,70,.08); text-decoration: line-through; }
+  .fgmaps button:disabled { opacity: .55; cursor: default; }
+  .fgmaphint { font-size: 12.5px; }
   #fgGo.searching { background: var(--panel); color: var(--gold); border: 1px solid var(--gold); }
   .fr { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: center; padding: 7px 10px; background: rgba(255,255,255,.04); border: 1px solid var(--line); }
   .fr .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
@@ -280,6 +293,19 @@
   .ratedbox em, .resrated em { font: 700 18px 'Rajdhani', 'Arial Narrow', sans-serif; font-style: normal; }
   .ratedbox .up, .resrated .up { color: #7dff8a; } .ratedbox .down, .resrated .down { color: #ff8a8a; }
   .ratedbox a { font-size: 12px; color: var(--muted); }
+  .chip2 .mst { font: 700 11px 'Rajdhani', 'Arial Narrow', sans-serif; margin-left: 6px; color: #d9a066; } .chip2 .mst.m5 { color: #dfe7f0; } .chip2 .mst.m10 { color: var(--gold); text-shadow: 0 0 6px rgba(255,207,90,.6); }
+  .chip2 .mst:empty { display: none; }
+  .resprog { display: grid; gap: 8px; padding: 10px 12px; border: 1px solid rgba(255,207,90,.25); background: rgba(255,207,90,.04); }
+  .resprog[hidden] { display: none; }
+  .resprog .status b { font: inherit; color: var(--gold); }
+  .resprog .pr { display: grid; grid-template-columns: 200px 1fr auto; gap: 10px; align-items: center; font-size: 14px; }
+  .resprog .pr b { font: 700 16px 'Rajdhani', 'Arial Narrow', sans-serif; }
+  .resprog .bar { height: 8px; background: rgba(255,255,255,.08); position: relative; overflow: hidden; }
+  .resprog .bar i { position: absolute; inset: 0 auto 0 0; background: var(--gold); transition: width 1.1s cubic-bezier(.2,.8,.2,1); }
+  .resprog .bar s { position: absolute; inset: 0 auto 0 0; background: rgba(255,207,90,.35); text-decoration: none; }
+  .resprog em { font-style: normal; color: #7dff8a; font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; }
+  .resprog .lvup { color: var(--gold); animation: lvpop .6s ease-out; } @keyframes lvpop { 0% { transform: scale(1.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .fwin { font-size: 13px; color: var(--muted); margin: 2px 0 4px; } .fwin b { color: var(--gold); }
   .resrated { font-size: 16px; } .resrated b { font: 700 24px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--gold); margin: 0 6px; }
   .invite { position: fixed; z-index: 15; right: 16px; bottom: 16px; max-width: 320px; padding: 12px 14px; background: rgba(9,18,11,.96); border: 1px solid var(--gold); display: flex; flex-direction: column; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
   .invite[hidden] { display: none; }
@@ -771,6 +797,7 @@
   <div class="lpabil" id="lpAbil" hidden></div>
   <div class="death" id="death" hidden><span class="big" id="deathBig">Knocked out</span><span class="small" id="deathSmall"></span></div>
   <div class="countdown" id="countdown" hidden></div>
+  <div class="qhelp" id="qHelp" hidden></div>
   <div class="banner" id="banner"></div>
   <div class="hurtfx" id="hurtFx"></div>
   <div class="replay-badge" id="replayBadge" hidden><span class="rec"></span>Kill cam</div>
@@ -792,6 +819,7 @@
           <p>Pick a name and jump in. Your rating and stats are saved in this browser, and move to an account if you make one later.</p>
           <div class="field"><label for="gateName">Your name</label><input id="gateName" maxlength="16" autocomplete="off" placeholder="Archer"></div>
           <button class="cta" id="gatePlay" type="button">Play</button>
+          <button class="ghost" id="gateTut" type="button" hidden>New here? Play the 2-minute tutorial</button>
         </div>
         <div class="mode">
           <h3>Your account</h3>
@@ -818,7 +846,7 @@
         <button class="mm" id="mTrain" type="button"><span class="mmk">03</span><b>Training</b><small>Graded drills: target practice, dodging with dashes, shooting from cover, and knocking archers into sinkholes.</small></button>
         <button class="mm" id="mStore" type="button"><span class="mmk">04</span><b>Store</b><small>Unlock elements and roles with Crests, become a supporter, or grab the Founder pack.</small><em class="mmlock" id="mStoreBadge" hidden></em></button>
         <button class="mm" id="mScores" type="button"><span class="mmk">05</span><b>Highscores</b><small>Top ratings, the best at each role, and single-game records.</small></button>
-        <button class="mm" id="mTut" type="button"><span class="mmk">06</span><b>Tutorial</b><small>Learn the basics on a practice dummy, then beat an easy bot.</small></button>
+        <button class="mm" id="mTut" type="button"><span class="mmk">06</span><b>Tutorial</b><small>Two minutes: learn the basics on a practice dummy, then beat an easy bot.</small><em class="mmlock tutnew" id="mTutBadge" hidden>New? Start here</em></button>
         <button class="mm" id="mOpts" type="button"><span class="mmk">07</span><b>Options</b><small>Controls, controller, sound and graphics.</small></button>
       </nav>
       <div class="homefoot">
@@ -840,6 +868,9 @@
           <div class="mecard" id="fgMe"></div>
           <h3>Mode</h3>
           <div class="oltabs" id="fgModes"><button type="button" data-mode="1v1">1v1</button><button type="button" data-mode="2v2">2v2</button><button type="button" data-mode="3v3">3v3</button></div>
+          <h3>Arenas</h3>
+          <div class="fgmaps" id="fgMaps"></div>
+          <span class="status fgmaphint">Click your favourite arena, right-click one you'd rather avoid (on a controller, press again to switch it to avoid). Matches lean towards favourites and away from arenas anyone avoids.</span>
           <button class="cta fggo" id="fgGo" type="button">Find match</button>
           <span class="status" id="fgStatus">Matched by rating with players near your level. If nobody close is searching, AI players fill in after a short wait.</span>
           <div class="fgguest" id="fgGuest" hidden><b>Playing as a guest.</b> Your rating and stats are saved in this browser. Create an account to keep them everywhere, climb the leaderboards and add friends. Everything you've earned comes with you.
@@ -1139,6 +1170,7 @@
         <div class="tablewrap"><table class="rank" id="resTable"></table></div>
       </div>
       <div class="resrated" id="resRated" hidden></div>
+      <div class="resprog" id="resProg" hidden></div>
       <span class="status" id="resNext"></span>
       <div class="btnrow">
         <button class="cta" id="rematchBtn" type="button">Rematch now</button>
@@ -1232,7 +1264,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.27.1"></script>
+<script src="sim.js?v=0.29.0"></script>
 <script>
 (() => {
 'use strict';
@@ -1240,7 +1272,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.27.1';
+const PAGE_VERSION = '0.29.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -1354,7 +1386,8 @@ function predictShot() {
   if (!me || me.d || me.f || me.ro !== 'crossbow' || me.dz || me.su || !((me.xn || 0) > 0 || me.au)) return;
   sfx.xbShot(1, !!me.au); xbPredict = performance.now();
 }
-const fx = { parts: [], floaters: [], rings: [], bolts: [], cones: [], ropes: [], ghosts: [], shake: 0 };
+const fx = { parts: [], floaters: [], rings: [], bolts: [], cones: [], ropes: [], ghosts: [], shake: 0, stop: 0, slow: 0, flash: null };
+const TRAIL = new Map(); // player id -> recent positions while flying fast (knockback streaks)
 let feed = [];
 let resultsFor = null;
 
@@ -1365,7 +1398,36 @@ $('nameIn').addEventListener('change', () => store.set('bowfall-name', $('nameIn
 if (OFFLINE) { $('onlineOn').hidden = true; $('onlineOff').hidden = false; }
 const params = new URLSearchParams(location.search);
 if (params.get('room')) $('codeIn').value = params.get('room').toUpperCase().slice(0, 4);
-setTimeout(() => { if (OFFLINE) return; if (params.get('room')) olTab('code'); else if (location.hash === '#create') olTab('host'); loadAccount(); }, 0);
+// a friend's invite link (?room=CODE): no welcome screen, no menus, straight into their game with a name picked for you
+const LINK_JOIN = !OFFLINE && /^[A-Za-z]{4}$/.test(params.get('room') || '') && !params.get('ticket');
+if (LINK_JOIN) { try { sessionStorage.setItem('bowfall-gate', '1'); } catch (e) {} }
+setTimeout(() => {
+  if (OFFLINE) return;
+  if (location.hash === '#create') olTab('host');
+  loadAccount().then(() => {
+    if (!LINK_JOIN || mode !== 'menu') { if (params.get('room')) olTab('code'); return; }
+    if (!account && (!store.get('bowfall-name', '') || store.get('bowfall-name', '') === 'Archer')) { $('nameIn').value = funName(); store.set('bowfall-name', $('nameIn').value); drawProfChip(); }
+    connect({ code: params.get('room').toUpperCase() });
+  });
+}, 0);
+// someone who arrived by an invite link goes straight onto a team (the one with fewer people), no clicks needed
+let linkTeam = LINK_JOIN;
+function linkAutoJoin() {
+  if (!linkTeam || mode !== 'online' || !view || !view.m) return;
+  const me = view.p.find(p => p.id === myId); // not listed yet = unassigned
+  linkTeam = false;
+  if ((me && me.tm) || !['lobby', 'over', 'post'].includes(view.m.ph)) return;
+  const n = t => view.p.filter(p => p.tm === t && !p.b).length, all = t => view.p.filter(p => p.tm === t).length;
+  const open = TEAMS.filter(t => all(t) < MAX_TEAM || view.p.some(p => p.tm === t && p.b));
+  if (open.length) act({ t: 'team', team: open.sort((a, b) => n(a) - n(b))[0] });
+}
+// a friendly random name for someone who hasn't picked one (they can change it any time in their profile)
+function funName() {
+  const A = ['Swift', 'Quiet', 'Bold', 'Lucky', 'Sly', 'Brave', 'Keen', 'Wild', 'Merry', 'Nimble', 'Steady', 'Grim'];
+  const N = ['Heron', 'Fox', 'Otter', 'Hawk', 'Badger', 'Wren', 'Stag', 'Lynx', 'Raven', 'Hare', 'Moth', 'Pike'];
+  const r = a => a[Math.floor(Math.random() * a.length)];
+  return (r(A) + ' ' + r(N)).slice(0, 16);
+}
 
 // ================= audio =================
 let AC = null, noiseBuf = null, muted = store.get('bowfall-muted', '0') === '1';
@@ -1941,33 +2003,45 @@ function setScreens() {
 function playerName() { const n = $('nameIn').value.trim().slice(0, 16) || 'Archer'; store.set('bowfall-name', n); return n; }
 
 // ================= tutorial =================
-// A practice dummy first (it never fights back, and nobody can fall out), then a real game against one easy bot.
+// About two minutes: a practice dummy (it can't knock you out, and you can't fall out for good), one step for each thing
+// you'll use in every game, then a real game against an easy bot. Each step is short and moves on as soon as you've done
+// it; any step can be skipped, and "Skip to the match" jumps straight to the bot.
 let TUT = { on: false };
+const TUT_LOADOUT = { el: 'frost', ro: 'ranger' }; // the all-rounder, and the easiest element to see working
 const TUT_STEPS = [
-  { title: 'Move', text: 'Move with W A S D, or the left stick.', hint: 'You speed up over a moment and glide when you let go, like an air-hockey puck.' },
-  { title: 'Shoot', text: 'Aim with the mouse. Hold the left button to draw, then let go to shoot the dummy.', hint: 'The longer you hold, the faster and harder the arrow flies.' },
-  { title: 'Full draw', text: 'Hold until the ring round your cursor turns white, then hit the dummy with a full draw.', hint: 'Full draws hit hardest and trigger many upgrades. A shot through the middle of a target is a bullseye.' },
-  { title: 'Dash', text: 'Press Space to dash the way you\'re moving (standing still, it goes toward your cursor).', hint: 'Dashing jumps pits, lava and water, and shoves enemies you run into.' },
-  { title: 'Ability', text: 'Press Q to use your ability, {ab}, then shoot the dummy.', hint: 'You pick abilities before round 1 and upgrades after each round.' },
-  { title: 'Knockback', text: 'Knockback is your real weapon. Shoot the dummy into the pit.', hint: 'Anyone knocked into a pit or water is out on the spot, however much health they had. Lava doesn\'t knock you out at once: it burns hard every moment you stand in it and keeps you burning after.' },
-  { title: 'Elements and roles', info: true, text: 'Every archer is an element plus a role. You\'re playing a Frost Sniper.', hint: 'Your element adds an effect to every arrow: Frost slows, Flame burns, Storm arcs lightning to nearby enemies, Poison stacks damage over time, Stone staggers, Void opens rifts that drag enemies in, Shadow blinds, and Blood heals you from the damage you deal. Your role sets your health, speed, a built-in trait and the abilities you can pick: Sniper, Juggernaut, Ranger, Trickster, Warden, Trapper, Assassin or Ninja. You choose both in the lobby before a match. Upgrades from both trees come after each round.' },
-  { title: 'Your first pick', text: 'Now a real game against an easy bot. Choose your opening ability: press 1, 2 or 3.', hint: 'Each role has its own abilities. You get another pick after every round.' },
-  { title: 'Fight', text: 'Knock the bot out to win the game.', hint: 'Keep moving so it can\'t line up shots, and watch its draw: a full draw hits hard.' },
+  { k: 'move', title: 'Move', text: 'Move with W A S D, or the left stick.', hint: 'You speed up over a moment and glide when you let go, like an air-hockey puck. Momentum matters: plan your stops.' },
+  { k: 'shoot', title: 'Shoot', text: 'Aim with the mouse. Hold the left button to draw, then let go to shoot the dummy.', hint: 'The longer you hold, the faster and harder the arrow flies. You move slower while drawing.' },
+  { k: 'full', title: 'Full draw', text: 'Hold until the ring round your cursor turns white, then hit the dummy with a full draw.', hint: 'Full draws hit hardest and knock back furthest. An arrow through the middle of a target is a bullseye: 1.5× damage.' },
+  { k: 'dash', title: 'Dash', text: 'Press Space to dash the way you\'re moving.', hint: 'Dashing jumps pits, lava and water, and shoves anyone you run into. It recharges in about a second.' },
+  { k: 'dodge', title: 'Dodge', text: 'The dummy shoots back now. Watch its bow: a white spark means a full-power shot. Press Space to dash out of the way. Dodge 2 shots.', hint: 'Dash sideways just as it lets go. Reading the spark is how good players never get caught.' },
+  { k: 'ability', title: 'Ability', text: 'Press Q to use your ability, {ab}, then shoot the dummy.', hint: 'Abilities come from your role. You pick your first before round 1, and can earn a second one later.' },
+  { k: 'knock', title: 'Knockback', text: 'Knockback is your real weapon. Shoot the dummy into the pit.', hint: 'Anything that falls in a pit or water is out at once, whatever its health. Walls hurt when you\'re thrown into them, and lava burns.' },
+  { k: 'build', title: 'Your archer', info: true, text: 'Every archer is an element plus a role. You\'re a {arch}.', hint: '{els} Roles set your health, speed, a built-in trait and your abilities: {ros}. Mix any two in a lobby.' },
+  { k: 'pick', title: 'Your first pick', text: 'Now a real game against an easy bot. Choose your opening ability: press 1, 2 or 3.', hint: 'After every round you pick one of three upgrades, and they build on each other. That\'s where your archer becomes yours.' },
+  { k: 'fight', title: 'Fight', text: 'Win a game: knock the bot out.', hint: 'Keep moving so it can\'t line up a shot, and back it towards a pit or a wall before you let a full draw go.' },
 ];
+const EL_VERB = { frost: 'slows', flame: 'burns', storm: 'chains lightning', poison: 'stacks poison', stone: 'staggers', void: 'pulls enemies together', shadow: 'blinds', blood: 'heals you' };
+const tutIdx = k => TUT_STEPS.findIndex(s => s.k === k);
+const tutStep = () => TUT_STEPS[TUT.step] ? TUT_STEPS[TUT.step].k : 'done';
+// still on the practice dummy (no kill cam, no summaries, no achievements)
+const tutOnDummy = () => TUT.on && TUT.step < tutIdx('pick');
 function tutSpot() {
-  return TUT.step === 5 ? { me: { x: 560, y: 200 }, dummy: { x: 372, y: 200 } } : { dummy: { x: 700, y: 250 } };
+  const k = tutStep();
+  if (k === 'knock') return { me: { x: 560, y: 200 }, dummy: { x: 372, y: 200 } };
+  if (k === 'dodge') return { me: { x: 600, y: 330 }, dummy: { x: 880, y: 300 } };
+  return { dummy: { x: 700, y: 250 } };
 }
 function startTutorial() {
   initAudio(); closeSubs();
   world = Sim.createWorld({ map: 'meadow', diff: 'easy' });
-  const me = Sim.join(world, { name: playerName(), team: 'red', element: 'frost', role: 'sniper' });
-  const dummy = Sim.addBot(world, 'blue'); dummy.name = 'Dummy'; Sim.setLoadout(world, dummy.id, 'flame', 'ranger');
+  const me = Sim.join(world, { name: playerName(), team: 'red', element: TUT_LOADOUT.el, role: TUT_LOADOUT.ro });
+  const dummy = Sim.addBot(world, 'blue'); dummy.name = 'Dummy'; Sim.setLoadout(world, dummy.id, 'stone', 'sniper');
   Sim.startMatch(world);
   for (const p of world.players) if (p.offer && !p.picked) Sim.choose(world, p.id, 0);
   for (let i = 0; i < 60 * 8 && world.match.ph !== 'play'; i++) Sim.step(world, 1 / 60);
   dummy.bot = false; dummy.input = { mx: 0, my: 0, aim: Math.PI, draw: false, tx: 0, ty: 0 };
   world.events.length = 0; world.records.length = 0;
-  TUT = { on: true, step: 0, dummy: dummy.id, start: { x: me.x, y: me.y }, full: false, abUsed: false, t: 0, doneT: null };
+  TUT = { on: true, step: 0, dummy: dummy.id, start: { x: me.x, y: me.y }, full: false, abUsed: false, t: 0, doneT: null, shots: [], dodged: 0 };
   myId = me.id; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {};
   placeTutDummy(true);
   setScreens(); renderCoach();
@@ -1980,60 +2054,81 @@ function placeTutDummy(force) {
 }
 // runs before each simulation step while on the dummy
 function tutGuard() {
-  if (!TUT.on || TUT.step > 5 || !world) return;
-  const me = world.players.find(q => q.id === myId), d = world.players.find(q => q.id === TUT.dummy);
-  world.match.T = 120;
-  if (me) { me.hp = me.maxHp; if (me.falling > 0.3 || me.dead) { Object.assign(me, { dead: false, falling: 0, x: 160, y: 400, vx: 0, vy: 0, burn: 0 }); notice('Careful: falling in knocks you out. Try again.'); } }
-  if (d) {
-    d.input.mx = d.input.my = 0; d.input.draw = false;
-    if (TUT.step < 5) { d.hp = d.maxHp; if (d.falling > 0) Object.assign(d, { falling: 0 }); placeTutDummy(false); }
-    else { d.hp = Math.max(d.hp, 50); if (!d.dead && d.falling <= 0) placeTutDummy(false); }
+  if (!tutOnDummy() || !world) return;
+  const me = world.players.find(q => q.id === myId), d = world.players.find(q => q.id === TUT.dummy), k = tutStep();
+  world.match.T = 120; world.pickups.length = 0;
+  if (me) { me.hp = me.maxHp; me.burn = 0; me.slow = 0; if (me.falling > 0.3 || me.dead) { const sp = tutSpot().me || { x: 160, y: 400 }; Object.assign(me, { dead: false, falling: 0, x: sp.x, y: sp.y, vx: 0, vy: 0, burn: 0 }); me.inv = 0.6; notice('Careful: falling in knocks you out. Try again.'); } }
+  if (!d) return;
+  d.input.mx = d.input.my = 0; d.input.draw = false;
+  if (k === 'knock') { d.hp = Math.max(d.hp, 50); if (!d.dead && d.falling <= 0) placeTutDummy(false); return; }
+  d.hp = d.maxHp; if (d.falling > 0) Object.assign(d, { falling: 0 }); placeTutDummy(false);
+  if (k === 'dodge' && me) {
+    // a slow, readable rhythm: a pause, a full draw aimed straight at you (no leading), the release
+    d.input.aim = Math.atan2(me.y - d.y, me.x - d.x); d.input.tx = me.x; d.input.ty = me.y;
+    const D = TUT.dg || (TUT.dg = { t: 1.4, draw: false });
+    D.t -= STEP;
+    if (!D.draw) { if (D.t <= 0) { D.draw = true; D.t = 1.35; } }
+    else { d.input.draw = D.t > 0; if (D.t <= 0) { D.draw = false; D.t = 1.6; } }
   }
 }
 function tutNext() {
-  TUT.step++; TUT.full = false; TUT.abUsed = false;
+  TUT.step++; TUT.full = false; TUT.abUsed = false; TUT.shots = []; TUT.dodged = 0; TUT.dg = null;
   tone(880, 0.1, 'triangle', 0.05); setTimeout(() => tone(1175, 0.14, 'triangle', 0.05), 90);
-  if (TUT.step === 5) placeTutDummy(true);
-  if (TUT.step === 7) startTutFight();
+  const k = tutStep();
+  if (k === 'knock' || k === 'dodge') placeTutDummy(true);
+  if (k === 'pick') startTutFight();
   renderCoach();
 }
+function tutSkipToMatch() { TUT.step = tutIdx('pick') - 1; tutNext(); }
 function startTutFight() {
   world = Sim.createWorld({ map: 'meadow', diff: 'easy' });
-  const me = Sim.join(world, { name: playerName(), team: 'red', element: 'frost', role: 'sniper' });
-  const bot = Sim.addBot(world, 'blue'); Sim.setLoadout(world, bot.id, 'flame', 'ranger');
+  const me = Sim.join(world, { name: playerName(), team: 'red', element: TUT_LOADOUT.el, role: TUT_LOADOUT.ro });
+  const bot = Sim.addBot(world, 'blue'); Sim.setLoadout(world, bot.id, 'flame', 'juggernaut');
   Sim.startMatch(world);
   world.events.length = 0; world.records.length = 0;
   myId = me.id; prevPos = null; hc = {}; acc = 0; RP.buf = []; RP.evs = []; RP.on = null; pendingSummary = null;
   $('gameSum').hidden = true; $('replayBadge').hidden = true; document.body.classList.remove('replaying');
 }
+function tutDone() {
+  TUT.step = TUT_STEPS.length; store.set('bowfall-tut', 'done'); drawTutBadge();
+  renderCoach(); fanfare([523, 659, 784, 1047], 'triangle', 0.06, 110);
+}
 function tutEvents(evs) {
   if (!TUT.on) return;
-  const st = TUT.step;
+  const k = tutStep();
   for (const e of evs) {
-    if (st === 1 && e.e === 'hit' && e.by === myId) return tutNext();
-    if (st === 2 && e.e === 'fire' && e.id === myId) TUT.full = e.c >= 0.99;
-    if (st === 2 && e.e === 'hit' && e.by === myId && TUT.full) return tutNext();
-    if (st === 3 && e.e === 'dash' && e.id === myId) return tutNext();
-    if (st === 4 && e.e === 'fire' && e.id === myId && TUT.abUsed) return tutNext();
-    if (st === 5 && e.e === 'kill' && e.v === TUT.dummy && !TUT.fightAt) { TUT.fightAt = clock + 1.6; notice('Ring out!', true, '#7dff8a'); }
-    if (st === 7 && e.e === 'phase' && e.ph === 'play') return tutNext();
-    if (st === 8 && e.e === 'gameEnd') {
-      if (e.rw === 'red') { TUT.step = TUT_STEPS.length; renderCoach(); fanfare([523, 659, 784, 1047], 'triangle', 0.06, 110); }
-      else { $('coachHint').textContent = 'The bot took that one. The next game starts in a moment: first to 2 games (best of three) wins the round.'; }
+    if (k === 'shoot' && e.e === 'hit' && e.by === myId) return tutNext();
+    if (k === 'full' && e.e === 'fire' && e.id === myId) TUT.full = e.c >= 0.99;
+    if (k === 'full' && e.e === 'hit' && e.by === myId && TUT.full) return tutNext();
+    if (k === 'full' && e.e === 'hit' && e.by === myId && !TUT.full) notice('Nearly: hold until the ring turns white.', false);
+    if (k === 'dash' && e.e === 'dash' && e.id === myId) return tutNext();
+    if (k === 'dodge' && e.e === 'fire' && e.id === TUT.dummy) TUT.shots.push({ t: clock, hit: false });
+    if (k === 'dodge' && e.e === 'hit' && e.id === myId) { const s = TUT.shots[TUT.shots.length - 1]; if (s && !s.hit) { s.hit = true; notice('Hit! Dash sideways just as it lets go.', false); } }
+    if (k === 'ability' && e.e === 'fire' && e.id === myId && TUT.abUsed) return tutNext();
+    if (k === 'knock' && e.e === 'kill' && e.v === TUT.dummy && !TUT.fightAt) { TUT.fightAt = clock + 1.6; notice('Ring out!', true, '#7dff8a'); }
+    if (k === 'pick' && e.e === 'phase' && e.ph === 'play') return tutNext();
+    if (k === 'fight' && e.e === 'gameEnd') {
+      if (e.rw === 'red') tutDone();
+      else $('coachHint').textContent = 'The bot took that one. The next game starts in a moment: try backing it towards a pit before your full draw.';
     }
   }
 }
 function tutTick(dt) {
   if (!TUT.on || !world) return;
-  const me = world.players.find(q => q.id === myId);
-  if (TUT.step === 0 && me && Math.hypot(me.x - TUT.start.x, me.y - TUT.start.y) > 160) tutNext();
-  if (TUT.step === 5 && TUT.fightAt && clock > TUT.fightAt) { TUT.fightAt = null; tutNext(); }
-  if (TUT.step === 4 && me && me.abCd[0] > 0) TUT.abUsed = true;
+  const me = world.players.find(q => q.id === myId), k = tutStep();
+  if (k === 'move' && me && Math.hypot(me.x - TUT.start.x, me.y - TUT.start.y) > 160) tutNext();
+  if (k === 'knock' && TUT.fightAt && clock > TUT.fightAt) { TUT.fightAt = null; tutNext(); }
+  if (k === 'ability' && me && me.abCd[0] > 0) TUT.abUsed = true;
+  if (k === 'dodge') {
+    // a shot that's been flying a second without hitting you was dodged
+    for (const s of TUT.shots) if (!s.hit && !s.done && clock - s.t > 1) { s.done = true; TUT.dodged++; floater(me ? me.x : 0, me ? me.y - 40 : 0, `Dodged ${TUT.dodged}/2`, '#7dff8a', 17, true); tone(988, 0.08, 'triangle', 0.05); }
+    if (TUT.dodged >= 2) return tutNext();
+  }
   const b = $('coachBar'); if (b) b.style.width = Math.round(Math.min(TUT.step, TUT_STEPS.length) / TUT_STEPS.length * 100) + '%';
 }
 // on the dummy the coach sits big at the bottom middle; in the real game it shrinks into the bottom-left corner
 // and fades almost away whenever an archer is behind it, so it never hides the fight
-const coachMini = () => TUT.on ? TUT.step >= 8 : TR.on ? !TR.done : false;
+const coachMini = () => TUT.on ? TUT.step >= tutIdx('fight') && TUT.step < TUT_STEPS.length : TR.on ? !TR.done : false;
 function placeCoach() {
   const c = $('coach'); if (!c) return;
   c.classList.toggle('mini', coachMini());
@@ -2057,20 +2152,28 @@ function renderCoach() {
   if (TUT.step >= TUT_STEPS.length) {
     $('coachStep').textContent = 'Tutorial complete';
     $('coachText').textContent = 'You won! That\'s everything you need.';
-    $('coachHint').textContent = 'Keep playing this match, or try a custom game: pick an element and a role in the lobby to make your own archetype.';
-    $('coachBtns').innerHTML = '<button class="ghost sm" type="button" id="coachStay">Keep playing</button><button class="cta" type="button" id="coachCustom">Custom games</button>';
+    $('coachHint').textContent = 'Play the rest of this match, or jump into a real one. In any lobby you can pick your own element and role.';
+    $('coachBtns').innerHTML = `<button class="ghost sm" type="button" id="coachStay">Keep playing</button>${OFFLINE ? '' : '<button class="cta" type="button" id="coachFind">Find a match</button>'}<button class="${OFFLINE ? 'cta' : 'ghost sm'}" type="button" id="coachCustom">Custom games</button>`;
     $('coachStay').onclick = () => { c.hidden = true; TUT.on = false; };
+    if ($('coachFind')) $('coachFind').onclick = () => { toMenu(); openSub('findScr'); };
     $('coachCustom').onclick = () => { toMenu(); openSub('customScr'); };
     return;
   }
   const S = TUT_STEPS[TUT.step], me = world && world.players.find(q => q.id === myId);
   const ab = me && me.slots && me.slots[0] ? Sim.TREE[me.slots[0]].name : 'your ability';
+  const list = a => a.slice(0, -1).join(', ') + ' or ' + a[a.length - 1];
+  const fill = t => t.replace('{ab}', ab).replace('{arch}', ELEMENTS[TUT_LOADOUT.el].name + ' ' + ROLES[TUT_LOADOUT.ro].name)
+    .replace('{els}', 'Your element adds an effect to every arrow: ' + list(Object.keys(ELEMENTS).map(k => ELEMENTS[k].name + ' ' + (EL_VERB[k] || 'hits'))) + '.')
+    .replace('{ros}', list(Object.values(ROLES).map(r => r.name)));
   $('coachStep').textContent = `Tutorial · step ${TUT.step + 1} of ${TUT_STEPS.length} · ${S.title}`;
-  $('coachText').textContent = padify(S.text).replace('{ab}', ab);
-  $('coachHint').textContent = S.hint;
+  $('coachText').textContent = fill(padify(S.text));
+  $('coachHint').textContent = fill(S.hint);
   TUT.pad = usingPad();
-  $('coachBtns').innerHTML = (S.info ? '<button class="cta" type="button" id="coachSkip">Next</button>' : TUT.step < 6 ? '<button class="ghost sm" type="button" id="coachSkip">Skip this step</button>' : '') + '<button class="ghost sm" type="button" id="coachQuit">Leave tutorial</button>';
+  const dummy = TUT.step < tutIdx('pick');
+  $('coachBtns').innerHTML = (S.info ? '<button class="cta" type="button" id="coachSkip">Next</button>' : dummy ? '<button class="ghost sm" type="button" id="coachSkip">Skip this step</button>' : '') +
+    (dummy ? '<button class="ghost sm" type="button" id="coachMatch">Skip to the match</button>' : '') + '<button class="ghost sm" type="button" id="coachQuit">Leave tutorial</button>';
   if ($('coachSkip')) $('coachSkip').onclick = e => { e.currentTarget.blur(); tutNext(); };
+  if ($('coachMatch')) $('coachMatch').onclick = e => { e.currentTarget.blur(); tutSkipToMatch(); };
   $('coachQuit').onclick = () => toMenu();
   const b = $('coachBar'); if (b) b.style.width = Math.round(TUT.step / TUT_STEPS.length * 100) + '%';
 }
@@ -2489,7 +2592,7 @@ const DRILLS = {
   target: { name: 'Target practice', map: 'range', dums: 3, blurb: 'Targets pop up across the range and you hit them before they vanish. Round 1 is steady, round 2 quick, round 3 several at once. Graded on speed, accuracy and bullseyes.' },
   dodge:  { name: 'Dodge drill', map: 'chasm', dums: 1, time: 60, blurb: 'An archer across a rift shoots at you and your feet are tied: dodge with dashes alone (never faster than your dash recharges). Sinkholes open in round 2 and bogs in round 3, so watch where you land.' },
   peek:   { name: 'Peek and shoot', map: 'yard', dums: 3, time: 60, blurb: 'Turrets cover the yard. Dash out from behind the boulders, land shots on them (three knock one out), and get back before they draw a bead on you. 60 seconds.' },
-  sink:   { name: 'Knockout drill', map: 'holes', dums: 6, time: 150, blurb: 'Four scenes of archers standing in front of sinkholes. Work your way through each one, knocking every archer in as fast as you can; one that misses the hole is back on its spot a second later. Line up behind them, and dash to get there quicker. Don\'t fall in yourself.' },
+  sink:   { name: 'Knockout drill', map: 'holes', dums: 6, time: 150, blurb: 'Four scenes of archers standing in front of sinkholes. Work your way through each one, knocking every archer in as fast as you can; one that misses the hole is back on its spot a second later. Line up behind them, and dash to get there quicker. Don\'t fall in yourself. An S needs a clean run: every shot hits and no archer is put back on its spot.' },
 };
 const SINK_N = Sim.TRAIN_KNOCK.reduce((n, R) => n + R.holes.length, 0);
 const TR_ROUNDS = [{ name: 'Steady', n: 8, life: 5, at: 1 }, { name: 'Quick', n: 10, life: 2.5, at: 1 }, { name: 'Swarm', n: 12, life: 4, at: 3 }];
@@ -2554,7 +2657,7 @@ function startDrill(kind) {
   for (const d of dums) { d.bot = false; d.input = { mx: 0, my: 0, aim: Math.PI, draw: false, tx: 0, ty: 0 }; }
   world.events.length = 0; world.records.length = 0;
   TR = { on: true, kind, t: 0, done: false, dum: dums.map(d => d.id), tg: [], tur: dums.map((d, i) => ({ id: d.id, ph: 'wait', t: 1.5 + i * 0.7, x: 1000, y: 220 + i * 180, hits: 0, off: 0 })),
-    round: -1, spawned: 0, left: 0, gap: 2, shots: 0, hits: 0, bulls: 0, taken: 0, fired: 0, kos: 0, falls: 0, score: 0, uiT: 0, pop: [], pend: [], act: [], srv: null };
+    round: -1, spawned: 0, left: 0, gap: 2, shots: 0, hits: 0, bulls: 0, taken: 0, fired: 0, kos: 0, falls: 0, score: 0, uiT: 0, pop: [], pend: [], act: [], srv: null, miss: 0, resets: 0, shotQ: [] };
   myId = me.id; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {};
   const start = { target: [200, 400], dodge: [320, 400], peek: [250, 400], sink: Sim.TRAIN_KNOCK[0].start }[kind];
   Object.assign(me, { x: start[0], y: start[1], vx: 0, vy: 0 });
@@ -2657,6 +2760,8 @@ function trSinkScene(R) {
 }
 function trSink(dt, me) {
   const R = Sim.TRAIN_KNOCK[TR.round]; if (!R) return;
+  // a shot that hasn't touched a dummy by the time it's done flying is a miss
+  while (TR.shotQ.length && (TR.shotQ[0].hit || TR.t - TR.shotQ[0].t > 2.6)) { if (!TR.shotQ.shift().hit) { TR.miss++; tone(220, 0.08, 'square', 0.02); } }
   if (TR.next) { if (TR.t >= TR.next) trNextRound(); }
   for (const id of TR.dum) {
     const d = world.players.find(q => q.id === id); if (!d) continue;
@@ -2679,7 +2784,7 @@ function trSink(dt, me) {
     if (Math.hypot(d.vx, d.vy) < 60 && !(d.knock > 0)) a.back += dt; else a.back = 0;
     if (a.back >= 1) {
       burst(d.x, d.y, '#4fa8ff', 10, 120);
-      Object.assign(d, { x: a.hx, y: a.hy, vx: 0, vy: 0, knock: 0 }); a.back = 0;
+      Object.assign(d, { x: a.hx, y: a.hy, vx: 0, vy: 0, knock: 0 }); a.back = 0; TR.resets++;
       burst(a.hx, a.hy, '#4fa8ff', 12, 160); tone(880, 0.05, 'square', 0.02);
     }
   }
@@ -2751,7 +2856,7 @@ function trainInput(inp) {
 function trainEvents(evs) {
   if (!TR.on || TR.done) return;
   for (const e of evs) {
-    if (e.e === 'fire' && e.id === myId) TR.shots++;
+    if ((e.e === 'fire' || e.e === 'throw') && e.id === myId && !e.clone) { if (e.e === 'fire' || TR.kind === 'sink') TR.shots++; if (TR.kind === 'sink') TR.shotQ.push({ t: TR.t, hit: false }); }
     if (e.e === 'fire' && TR.dum.includes(e.id)) TR.fired++;
     if (e.e === 'hit' && e.id === myId && TR.dum.includes(e.by)) { TR.taken++; if (TR.kind === 'dodge') floater(e.x, e.y - 24, 'hit', '#ff5a5a', 15, true); }
     if (e.e === 'hit' && e.by === myId && TR.dum.includes(e.id)) {
@@ -2760,7 +2865,7 @@ function trainEvents(evs) {
         const t = TR.tur.find(o => o.id === e.id); if (!t || t.off > 0) continue;
         t.hits++; TR.hits++; TR.score += 50; floater(e.x, e.y - 24, '+50', '#ffffff', 15, true);
         if (t.hits >= 3) { TR.kos++; TR.score += 300; t.off = 1.6; floater(t.x, t.y - 40, 'Turret down +300', '#7dff8a', 18, true); burst(t.x, t.y, '#7dff8a', 22, 220); tone(1047, 0.12, 'triangle', 0.05); }
-      } else if (TR.kind === 'sink') TR.hits++;
+      } else if (TR.kind === 'sink') { TR.hits++; const q = TR.shotQ.find(o => !o.hit); if (q) q.hit = true; }
     }
   }
 }
@@ -2775,17 +2880,18 @@ function trFinish() {
   if (TR.kind === 'dodge') TR.score = Math.round(1000 * (TR.fired - TR.taken) / Math.max(1, TR.fired)) - 100 * TR.falls;
   if (TR.kind === 'peek') TR.score -= TR.taken * 60;
   TR.score = Math.max(0, Math.min(Sim.TRAIN_MAX[TR.kind], Math.round(TR.score)));
-  TR.grade = Sim.trainGrade(TR.kind, TR.score);
+  TR.clean = TR.kind !== 'sink' || (!TR.miss && !TR.resets);
+  TR.grade = Sim.trainGrade(TR.kind, TR.score, TR.clean);
   const best = trBest(), old = best[TR.kind];
   TR.newBest = !old || TR.score > old.s;
-  if (TR.newBest) { best[TR.kind] = { g: TR.grade, s: TR.score }; store.set('bowfall-train', JSON.stringify(best)); }
+  if (TR.newBest || Sim.gradeBest(TR.grade, old.g) !== old.g) { best[TR.kind] = Object.assign({}, old || {}, { g: old ? Sim.gradeBest(TR.grade, old.g) : TR.grade, s: old ? Math.max(old.s, TR.score) : TR.score }); store.set('bowfall-train', JSON.stringify(best)); }
   notice(`Grade ${TR.grade}`, true, GRADE_COL[TR.grade]);
   fanfare(TR.grade === 'S' || TR.grade === 'A' ? [523, 659, 784, 1047] : TR.grade === 'D' ? [330, 262] : [523, 659, 784], 'triangle', 0.06, 110);
   renderTrainCoach();
   // rank it against everyone's bests (and keep it on your account if you're signed in)
   if (!OFFLINE) {
     const run = TR;
-    fetch('/api/train', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: run.kind, score: run.score }) })
+    fetch('/api/train', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: run.kind, score: run.score, clean: run.clean }) })
       .then(r => r.ok ? r.json() : null).then(d => {
         if (!d) return; run.srv = d; TRS = null;
         const b = trBest(); if (b[run.kind] && b[run.kind].s === run.score) { b[run.kind].top = d.top; b[run.kind].n = d.n; store.set('bowfall-train', JSON.stringify(b)); }
@@ -2800,14 +2906,14 @@ function renderTrainCoach() {
   const pl = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
   const line = TR.kind === 'target' ? `${TR.hits}/${TR.spawned - TR.tg.length} hit · ${pl(TR.bulls, 'bullseye')} · ${TR.shots ? Math.round(TR.hits / TR.shots * 100) : 0}% accuracy`
     : TR.kind === 'dodge' ? `${TR.fired - TR.taken} of ${TR.fired} dodged${TR.falls ? ` · fell in ${TR.falls}×` : ''}`
-    : TR.kind === 'sink' ? `${TR.kos} of ${SINK_N} knocked in${TR.times && TR.times.length ? ` · ${TR.times.map(t => t.toFixed(1) + 's').join(', ')}` : ''}${TR.falls ? ` · fell in ${TR.falls}×` : ''}`
+    : TR.kind === 'sink' ? `${TR.kos} of ${SINK_N} knocked in${TR.times && TR.times.length ? ` · ${TR.times.map(t => t.toFixed(1) + 's').join(', ')}` : ''}${TR.miss ? ` · ${TR.miss} missed` : ''}${TR.resets ? ` · ${pl(TR.resets, 'reset')}` : ''}${TR.falls ? ` · fell in ${TR.falls}×` : ''}`
     : `${pl(TR.kos, 'turret')} down · ${TR.hits} hits · ${TR.taken} taken`;
   if (TR.done) {
     const s = TR.srv;
     $('coachStep').textContent = `${D.name} · complete`;
     $('coachText').innerHTML = `Grade <span style="color:${GRADE_COL[TR.grade]}">${TR.grade}</span> · ${fmt(TR.score)} points${TR.newBest ? ' · new best' : ''}`;
     const rank = s ? ` This run: ${topTxt(s.top, s.n)}.${s.topBest != null && s.best !== TR.score ? ` Your best (${fmt(s.best)}): ${topTxt(s.topBest)}.` : ''}` : '';
-    $('coachHint').textContent = line + (TR.kind === 'peek' && TR.taken ? ` (−${TR.taken * 60} for hits taken)` : '') + '.' + rank + ' S needs ' + fmt(Math.ceil(max * 0.8)) + ', A ' + fmt(Math.ceil(max * 0.65)) + ', B ' + fmt(Math.ceil(max * 0.5)) + '.';
+    $('coachHint').textContent = line + (TR.kind === 'peek' && TR.taken ? ` (−${TR.taken * 60} for hits taken)` : '') + '.' + rank + ' S needs ' + fmt(Math.ceil(max * 0.8)) + (TR.kind === 'sink' ? ' and a clean run (no missed shots, no dummies reset)' + (TR.clean ? '' : ', so this run tops out at A') : '') + ', A ' + fmt(Math.ceil(max * 0.65)) + ', B ' + fmt(Math.ceil(max * 0.5)) + '.';
     if (TR.btns !== 'done') {
       TR.btns = 'done';
       $('coachBtns').innerHTML = '<button class="cta" type="button" id="coachAgain">Again</button><button class="ghost sm" type="button" id="coachDrills">Other drills</button><button class="ghost sm" type="button" id="coachQuit">Main menu</button>';
@@ -2899,15 +3005,62 @@ function act(m) {
 // a guest's browser keeps a random id, so their rating and stats carry on between visits (and move to an account later)
 const GUEST_TOKEN = (() => { let t = store.get('bowfall-guest', ''); if (!/^[A-Za-z0-9]{16,48}$/.test(t)) { t = Array.from(crypto.getRandomValues(new Uint8Array(18)), b => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[b % 62]).join(''); store.set('bowfall-guest', t); } return t; })();
 function myLoadout() {
-  const el = store.get('bowfall-el', 'frost'), ro = store.get('bowfall-ro', 'sniper');
-  return { el: ELEMENTS[el] ? el : 'frost', ro: ROLES[ro] ? ro : 'sniper' };
+  const el = store.get('bowfall-el', 'frost'), ro = store.get('bowfall-ro', 'ranger'); // new players start as a Frost Ranger, the all-rounder
+  return { el: ELEMENTS[el] ? el : 'frost', ro: ROLES[ro] ? ro : 'ranger' };
 }
 function buildArchChips() {
   // premium content gets a "New" tag now; with LOCK_PREMIUM on it would show as locked
   const tag = x => (x.premium ? (Sim.LOCK_PREMIUM ? '<em class="lock">Locked</em>' : '<em class="new">New</em>') : '');
   const dis = x => (x.premium && Sim.LOCK_PREMIUM ? ' disabled' : '');
-  $('elChips').innerHTML = Object.entries(ELEMENTS).map(([k, e]) => `<button type="button" class="chip2" data-el="${k}" style="--cc:${e.color}"${dis(e)}><i></i>${e.name}${tag(e)}</button>`).join('');
-  $('roChips').innerHTML = Object.entries(ROLES).map(([k, r]) => `<button type="button" class="chip2" data-ro="${k}" style="--cc:${CAT_COL[r.cat]}"${dis(r)}>${r.name}<em>${r.cat}</em>${tag(r)}</button>`).join('');
+  $('elChips').innerHTML = Object.entries(ELEMENTS).map(([k, e]) => `<button type="button" class="chip2" data-el="${k}" style="--cc:${e.color}"${dis(e)}><i></i>${e.name}${tag(e)}<b class="mst"></b></button>`).join('');
+  $('roChips').innerHTML = Object.entries(ROLES).map(([k, r]) => `<button type="button" class="chip2" data-ro="${k}" style="--cc:${CAT_COL[r.cat]}"${dis(r)}>${r.name}<em>${r.cat}</em>${tag(r)}<b class="mst"></b></button>`).join('');
+  drawMastChips();
+}
+// ---- progression: mastery of each element and role, the daily first win, and the after-match progress panel
+function mastOf(kind, k, c) {
+  c = c || (account && account.career) || {};
+  return kind === 'el' ? Sim.masteryOf((c.els || {})[k], (c.elW || {})[k]) : Sim.masteryOf((c.roles || {})[k], (c.roleW || {})[k]);
+}
+function drawMastChips() {
+  document.querySelectorAll('#elChips [data-el] .mst, #roChips [data-ro] .mst').forEach(b => {
+    const btn = b.parentNode, kind = btn.dataset.el ? 'el' : 'ro', m = account ? mastOf(kind, btn.dataset.el || btn.dataset.ro) : { lv: 0 };
+    b.textContent = m.lv ? '★' + m.lv : ''; b.className = 'mst' + (m.lv >= 10 ? ' m10' : m.lv >= 5 ? ' m5' : '');
+    b.title = m.lv ? `Mastery ${m.lv}${m.next ? ` · ${m.pts}/${m.next} to the next (games, wins count twice)` : ' · mastered'}` : '';
+  });
+}
+const utcDay = () => new Date().toISOString().slice(0, 10);
+const firstWinReady = () => !!(account && !(account.career || {}).ai && (account.career || {}).firstWinDay !== utcDay());
+const XP_PER = { games: 10, wins: 15, kills: 4, matchWins: 40, ring: 2 }; // the same as lib/level.js
+const xpOfC = c => Math.round(Object.keys(XP_PER).reduce((s, k) => s + ((c || {})[k] || 0) * XP_PER[k], 0));
+const lvAt = xp => Math.floor(Math.sqrt(Math.max(0, xp) / 40)) + 1, xpAt = lv => 40 * (lv - 1) * (lv - 1);
+const PROG = { before: null, el: null, ro: null, shown: null };
+function progSnap() { // at the start of an online match: what the account looked like, to compare with afterwards
+  PROG.before = null;
+  if (account && mode === 'online') fetch('/api/me', { cache: 'no-store' }).then(r => r.json()).then(d => { if (d.user) PROG.before = d.user.career || {}; }).catch(() => {});
+  const me = view && view.p.find(p => p.id === myId); PROG.el = me ? me.el : myLoadout().el; PROG.ro = me ? me.ro : myLoadout().ro;
+}
+async function progShow() {
+  const el = $('resProg'), B = PROG.before, key = roomInfo && roomInfo.code; el.hidden = true;
+  if (!B || !account || PROG.shown === key) return;
+  PROG.shown = key;
+  await new Promise(r => setTimeout(r, 1200)); // the server files the match first
+  await loadAccount(); if ($('resultsScreen').hidden) return;
+  const A = (account && account.career) || {};
+  if ((A.games || 0) <= (B.games || 0)) return; // this game didn't count (e.g. a custom game with bots)
+  const x0 = xpOfC(B), x1 = xpOfC(A), l0 = lvAt(x0), l1 = lvAt(x1);
+  const bar = (a, b, lo, hi) => { const w = v => hi ? Math.max(0, Math.min(100, (v - lo) / (hi - lo) * 100)) : 100; return `<span class="bar"><s style="width:${w(a)}%"></s><i style="width:${w(a)}%" data-to="${w(b)}"></i></span>`; };
+  const rows = [];
+  rows.push(`<div class="pr"><span>${l1 > l0 ? '<b class="lvup">Level up!</b> ' : ''}Level <b>${l1}</b></span>${bar(l1 > l0 ? xpAt(l1) : x0, x1, xpAt(l1), xpAt(l1 + 1))}<em>+${x1 - x0} XP</em></div>`);
+  for (const [kind, k, name] of [['el', PROG.el, ELEMENTS[PROG.el] && ELEMENTS[PROG.el].name], ['ro', PROG.ro, ROLES[PROG.ro] && ROLES[PROG.ro].name]]) {
+    if (!name) continue;
+    const m0 = mastOf(kind, k, B), m1 = mastOf(kind, k, A);
+    rows.push(`<div class="pr"><span>${m1.lv > m0.lv ? '<b class="lvup">Mastery up!</b> ' : ''}${esc(name)} <b>★${m1.lv}</b></span>${bar(m1.lv > m0.lv ? m1.cur : m0.pts, m1.pts, m1.cur, m1.next)}<em>${m1.next ? `${m1.pts}/${m1.next}` : 'Mastered'}</em></div>`);
+  }
+  const cr = (A.crests || 0) - (B.crests || 0), fw = A.firstWinDay && A.firstWinDay !== B.firstWinDay;
+  if (cr > 0) rows.push(`<div class="pr"><span>Crests</span><span class="status">${fw ? 'Includes your <b>first win of the day</b> bonus' : firstWinReady() ? 'Win a match today for a first-win bonus' : ''}</span><em>+${cr.toLocaleString()}</em></div>`);
+  el.innerHTML = rows.join(''); el.hidden = false;
+  requestAnimationFrame(() => requestAnimationFrame(() => el.querySelectorAll('.bar i').forEach(i => { i.style.width = i.dataset.to + '%'; })));
+  drawMastChips();
 }
 function syncArch(me) {
   const el = me ? me.el : myLoadout().el, ro = me ? me.ro : myLoadout().ro;
@@ -3406,7 +3559,17 @@ function socialConnect() {
   };
   sock.onclose = () => { if (SOC.ws === sock) { SOC.ws = null; SOC.st = null; renderFind(); setTimeout(socialConnect, Math.min(15000, 1000 * 2 ** SOC.retry++)); } };
 }
-function socialHello() { socialSend({ t: 'hello', name: playerName(), gt: GUEST_TOKEN, el: myLoadout().el, ro: myLoadout().ro }); }
+function socialHello() { socialSend({ t: 'hello', name: playerName(), gt: GUEST_TOKEN, el: myLoadout().el, ro: myLoadout().ro, mp: mapPref(), hint: { bot: +store.get('bowfall-bestbot', '0') || 0, tut: tutDoneYet() ? 1 : 0 } }); }
+// Best practice win against bots — a rough skill hint used to seed a new account's first rating.
+const BOT_LV = { easy: 1, normal: 2, hard: 3, extreme: 4, master: 5 };
+function noteBotWin() {
+  if (mode !== 'local' || !world || TUT.on || TR.on) return;
+  const me = world.players.find(p => p.id === myId); if (!me) return;
+  const foes = world.players.filter(p => p.team !== me.team);
+  if (!foes.length || foes.some(p => !p.bot || p.dparams)) return;
+  const lv = Math.min(...foes.map(p => BOT_LV[p.diff] || 0));
+  if (lv > (+store.get('bowfall-bestbot', '0') || 0)) store.set('bowfall-bestbot', String(lv));
+}
 function socialSend(m) { if (SOC.ws && SOC.ws.readyState === 1) SOC.ws.send(JSON.stringify(m)); }
 // ---- friends on the main menu: who's online and what they're doing, with a quick join or invite
 const ACT_TEXT = f => ({ menu: 'Main menu', practice: 'Practising against bots', tutorial: 'Playing the tutorial', searching: `Finding a ${f.mode || ''} match`,
@@ -3459,12 +3622,14 @@ function renderFind() {
   if (!P) $('fgMe').innerHTML = '<div class="status">Connecting…</div>';
   else {
     const rate = P.games ? Math.round(P.wins / P.games * 100) + '%' : '–';
-    const team = mode !== '1v1', key = [P.name, P.elo, P.eloT, team, P.games, P.lv, P.cc, P.top.join(), lo.el, lo.ro].join('|');
+    const team = mode !== '1v1', key = [P.name, P.elo, P.eloT, team, P.games, P.lv, P.cc, P.top.join(), lo.el, lo.ro, P.place, firstWinReady()].join('|');
     if (hc.fgMe !== key) {
       hc.fgMe = key;
       $('fgMe').innerHTML = `<canvas id="fgAv" width="184" height="184"></canvas>
         <div class="nm">${rankHtml(P.lv)}${flagHtml(P.cc)}${esc(P.name)}${ownHtml(P.own)}${statusHtml(P)}${P.guest ? '<span class="tag">Guest</span>' : ''}</div>
         <div class="rt"><span class="elo"><b>${team ? P.eloT : P.elo}</b>${team ? 'Team rating' : '1v1 rating'}</span><span><b>${team ? P.elo : P.eloT}</b>${team ? '1v1' : 'Team'}</span><span><b>${P.games}</b>Games</span><span><b>${rate}</b>Win rate</span><span><b>${P.kills}</b>Knockouts</span></div>
+        ${account && !P.guest ? `<div class="fwin">${firstWinReady() ? `Daily first win: <b>+100 Crests</b> waiting for your first match win today` : 'Daily first win claimed. It comes back at midnight (UTC).'}</div>` : ''}
+        ${P.place && !P.guest ? `<div class="status" style="margin:4px 0">Placement: ${P.place} ranked match${P.place > 1 ? 'es' : ''} left — your rating moves faster until then.</div>` : ''}
         <div class="achs">${P.top.length ? P.top.map(k => `<span style="--bd:${BORDERS[k] || '#c9d1dc'}">${esc(Sim.ACHIEVEMENTS[k].title)}${(P.tiers || {})[k] ? ' ' + Sim.ACH_TIERS[P.tiers[k] - 1].n : ''}</span>`).join('') + (P.nAch > P.top.length ? `<small class="status">+${P.nAch - P.top.length} more</small>` : '') : '<small class="status">No achievements yet</small>'}</div>`;
       const av = (account && account.avatar) || null;
       try { drawPreview($('fgAv'), av ? av.el : lo.el, av ? av.ro : lo.ro, av ? av.c : TEAM_INFO.red.shades[0]); } catch (e) {}
@@ -3473,6 +3638,10 @@ function renderFind() {
   }
   // mode and search
   $('fgModes').querySelectorAll('button').forEach(b => { b.classList.toggle('on', b.dataset.mode === mode); b.disabled = !lead || queued; });
+  const mp = mapPref(), maps = (st && st.maps) || [];
+  setC('fgMaps', JSON.stringify([maps, mp, !!queued]), () => {
+    $('fgMaps').innerHTML = maps.map(m => `<button type="button" data-mp="${esc(m.k)}" class="${mp.fav === m.k ? 'fav' : mp.hate === m.k ? 'hate' : ''}"${queued ? ' disabled' : ''} title="${mp.fav === m.k ? 'Favourite' : mp.hate === m.k ? 'Avoiding' : ''}">${esc(m.n)}</button>`).join('');
+  });
   const go = $('fgGo');
   // players on controllers: signed-in ones join your party; guests have to sign in first
   for (const l of LP.list) if (l.token) lpSocial(l);
@@ -3515,7 +3684,19 @@ function renderFind() {
 }
 const fmtWait = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 $('fgModes').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (!b) return; SOC.mode = b.dataset.mode; store.set('bowfall-mm-mode', SOC.mode); socialSend({ t: 'party', op: 'mode', mode: SOC.mode }); renderFind(); });
-$('fgGo').onclick = () => { const q = SOC.st && SOC.st.party && SOC.st.party.queued != null; initAudio(); socialSend({ t: 'queue', op: q ? 'cancel' : 'start', mode: SOC.mode }); };
+$('fgGo').onclick = () => { const q = SOC.st && SOC.st.party && SOC.st.party.queued != null; initAudio(); socialSend({ t: 'queue', op: q ? 'cancel' : 'start', mode: SOC.mode, mp: mapPref() }); };
+// favourite and least favourite ranked arena: click to favourite (click again to avoid it instead), right-click to avoid
+function mapPref() { try { const v = JSON.parse(store.get('bowfall-mappref', '{}')) || {}; return { fav: v.fav || null, hate: v.hate || null }; } catch (e) { return { fav: null, hate: null }; } }
+function setMapPref(k, how) {
+  const mp = mapPref();
+  if (how === 'hate') { mp.hate = mp.hate === k ? null : k; if (mp.fav === k) mp.fav = null; }
+  else if (mp.fav === k) { mp.fav = null; mp.hate = k; }
+  else if (mp.hate === k) mp.hate = null;
+  else mp.fav = k;
+  store.set('bowfall-mappref', JSON.stringify(mp)); socialSend(Object.assign({ t: 'mappref' }, mp)); tone(mp.fav === k ? 880 : 520, 0.05, 'triangle', 0.03); renderFind();
+}
+$('fgMaps').addEventListener('click', e => { const b = e.target.closest('[data-mp]'); if (b && !b.disabled) setMapPref(b.dataset.mp, 'fav'); });
+$('fgMaps').addEventListener('contextmenu', e => { const b = e.target.closest('[data-mp]'); if (!b) return; e.preventDefault(); if (!b.disabled) setMapPref(b.dataset.mp, 'hate'); });
 $('fgAddBtn').onclick = () => { const n = $('fgAdd').value.trim(); if (n) { socialSend({ t: 'friend', op: 'add', name: n }); $('fgAdd').value = ''; } };
 $('fgAdd').addEventListener('keydown', e => { if (e.key === 'Enter') $('fgAddBtn').click(); });
 $('findScr').addEventListener('click', e => {
@@ -4354,7 +4535,7 @@ async function loadAccount() {
   if (OFFLINE) return;
   $('siteLinks').hidden = false;
   try { account = (await (await fetch('/api/me', { cache: 'no-store' })).json()).user; } catch (e) { account = null; }
-  adminBits(); loadWallet();
+  adminBits(); loadWallet(); drawTutBadge(); drawMastChips();
   const back = encodeURIComponent('/play' + location.search);
   try { const mv = JSON.parse(sessionStorage.getItem('bowfall-moved') || 'null'); if (mv && account) { sessionStorage.removeItem('bowfall-moved'); setTimeout(() => notice(`Your guest rating (<b>${mv.elo}</b>) and ${mv.games} games moved to your account.`, false), 800); } } catch (e) {}
   if (account) {
@@ -4443,6 +4624,24 @@ function passGate() {
   $('gate').hidden = true; drawProfChip();
 }
 $('gatePlay').onclick = passGate;
+$('gateTut').onclick = () => { passGate(); startTutorial(); };
+// new players: the tutorial is marked on the main menu (and offered on the welcome screen) until it's been finished
+const tutDoneYet = () => store.get('bowfall-tut', '') === 'done' || !!(account && (account.career || {}).games > 5);
+function drawTutBadge() { $('mTutBadge').hidden = tutDoneYet(); $('gateTut').hidden = tutDoneYet(); }
+drawTutBadge();
+// first few games for a newcomer: the controls in one line along the top, until they've played a couple of games
+function qHelp() {
+  const el = $('qHelp'); if (!el) return;
+  const ph = view && view.m && view.m.ph, n = +store.get('bowfall-qh', '0') || 0;
+  const want = mode !== 'menu' && !TUT.on && !TR.on && n < 3 && !tutDoneYet() && !!ph && (ph === 'pre' || (ph === 'play' && view.m.T > (Sim.TIMES.game - 25))) && !menuOpen;
+  if (want && ph === 'play' && hc.qhGame !== (view.m.rd + ':' + view.m.gm)) { hc.qhGame = view.m.rd + ':' + view.m.gm; store.set('bowfall-qh', String(n + 1)); }
+  const key = want ? (usingPad() ? 'pad' : 'kb') : '';
+  if (hc.qh === key) return; hc.qh = key;
+  el.hidden = !want; if (!want) return;
+  const P = usingPad();
+  el.innerHTML = `<b>How to play</b><span><kbd>${P ? 'Left stick' : 'W A S D'}</kbd>move</span><span><kbd>${P ? padBtn('draw') : 'Hold click'}</kbd>draw, let go to shoot</span><span><kbd>${P ? padBtn('dash') : 'Space'}</kbd>dash</span><span><kbd>${P ? padBtn('q') + ' ' + padBtn('e') : 'Q E'}</kbd>abilities</span><span>Knock them into pits and walls!</span><button class="ghost sm" type="button" id="qHelpX">Got it</button>`;
+  $('qHelpX').onclick = () => { store.set('bowfall-qh', '9'); hc.qh = null; el.hidden = true; };
+}
 $('gateName').addEventListener('keydown', e => { if (e.key === 'Enter') passGate(); e.stopPropagation(); });
 $('codeIn').addEventListener('keydown', e => { if (e.key === 'Enter') $('joinBtn').click(); });
 $('menuBtn').onclick = () => (menuOpen ? closeMenu() : openMenu());
@@ -4479,6 +4678,9 @@ function floater(x, y, text, color, size = 16, mine = false) {
   fx.floaters.push({ x, y, text, color, size, life: 0, mine });
 }
 function shake(v) { if (!reduceMotion && OPTS.shake) fx.shake = Math.max(fx.shake, v); }
+// impact feel: a split-second freeze on big hits (hit-stop), a short slow-down on your knockouts in practice, and an edge flash
+function impact(stop, slow) { if (!OPTS.shake || RP.on) return; fx.stop = Math.max(fx.stop, stop); if (slow && mode === 'local' && !reduceMotion) fx.slow = Math.max(fx.slow, slow); }
+function edgeFlash(col, a) { if (!reduceMotion) fx.flash = { col, a, t: 0 }; }
 function feedAdd(html, mine) { feed.push({ html, mine, t: clock }); if (feed.length > 6) feed.shift(); renderFeed(); }
 function renderFeed() { $('feed').innerHTML = feed.map(f => `<div class="${f.mine ? 'mine' : ''}">${f.html}</div>`).join(''); }
 // country flags (from the player's location, or what they chose) and a rank badge from their account level
@@ -4545,7 +4747,7 @@ const nameTag = (n, c) => `<b style="color:${c}">${esc(n)}</b>`;
 function myTeam() { const me = view && view.p.find(p => p.id === myId); return me ? me.tm : null; }
 function scoreLine(r, b) { return `Red ${r} – ${b} Blue`; }
 function handleEvents(evs) {
-  replayNote(evs); trainEvents(evs); if (!(TUT.on && TUT.step < 6) && !TR.on) Ach.onEvents(evs);
+  replayNote(evs); trainEvents(evs); if (!tutOnDummy() && !TR.on) Ach.onEvents(evs);
   tutEvents(evs);
   for (const e of evs) {
     switch (e.e) {
@@ -4574,6 +4776,7 @@ function handleEvents(evs) {
         if (e.ls) floater(e.x, e.y - 50, 'Long shot!', '#ffcf5a', 15);
         if (e.cr) { floater(e.x, e.y - 34, 'Bullseye!', '#ffffff', 14); if (e.by === myId) tone(1560, 0.07, 'sine', 0.035); }
         if (e.id === myId) shake(6); else if (e.cr && e.by === myId) shake(4);
+        if ((e.fd || e.cr) && (e.id === myId || e.by === myId)) impact(e.fd && e.cr ? 0.075 : 0.05);
         break;
       }
       case 'burst':
@@ -4649,11 +4852,11 @@ function handleEvents(evs) {
         else if (e.ph === 'pick') { sfx.pick(); }
         break;
       }
-      case 'gameEnd': if ((TUT.on && TUT.step <= 5) || TR.on) break; if (replayQueue(e)) pendingSummary = e; else showGameSummary(e); if (!e.rwon) { if (e.rw === myTeam()) sfx.kill(); else if (e.rw !== 'draw') sfx.hurt(); } break;
+      case 'gameEnd': if (tutOnDummy() || TR.on) break; if (replayQueue(e)) pendingSummary = e; else showGameSummary(e); if (!e.rwon) { if (e.rw === myTeam()) sfx.kill(); else if (e.rw !== 'draw') sfx.hurt(); } break;
       case 'roundEnd': if (e.rw === myTeam()) sfx.win(); else sfx.hurt(); break;
-      case 'matchStart': $('gameSum').hidden = true; $('resultsScreen').hidden = true; resultsFor = null; hc = {}; break;
+      case 'matchStart': $('gameSum').hidden = true; $('resultsScreen').hidden = true; resultsFor = null; hc = {}; progSnap(); break;
       case 'map': break;
-      case 'matchEnd': if (e.mw === myTeam()) sfx.win(); else sfx.hurt(); break;
+      case 'matchEnd': if (e.mw === myTeam()) { sfx.win(); noteBotWin(); } else sfx.hurt(); break;
       case 'picked': if (e.id === myId) { lastPick = e.card; sfx.kill(); } break;
       case 'loaded': if (e.id === myId) { tone(300, 0.25, 'sawtooth', 0.05, 200); const m = view && view.p.find(p => p.id === myId); if (m) floater(m.x, m.y - 40, 'Bolt loaded', '#ffcf5a', 14); } break;
       case 'throw':
@@ -4807,7 +5010,8 @@ function onKill(e) {
     if (e.am) floater(e.x, e.y - 52, `+${e.am} amber`, AMBER_COL, 15);
     notice(howSentence(how, { name: 'you', you: true }, { name: e.vn, html: nameTag(e.vn, e.vc) }, e.m));
   }
-  if (e.v === myId) { sfx.hurt(); shake(10); myDeath = e; }
+  if (e.v === myId) { sfx.hurt(); shake(10); myDeath = e; impact(0.08); edgeFlash('255,70,80', 0.45); }
+  else if (e.k === myId) { impact(0.09, 0.3); edgeFlash('255,207,90', 0.35); }
 }
 // one line per highlight the sim picked out for the game that just ended
 function hlText(h) {
@@ -4906,6 +5110,15 @@ function onCallout(e) {
 }
 function updateFx(dt) {
   updateAmbient(dt);
+  if (fx.flash && (fx.flash.t += dt) > 0.4) fx.flash = null;
+  if (view && !lightFx() && !RP.on) {
+    for (const p of view.p) {
+      const sp = Math.hypot(p.vx || 0, p.vy || 0);
+      let t = TRAIL.get(p.id);
+      if (sp > 430 && !p.d && !p.f && !p.da) { if (!t) TRAIL.set(p.id, t = []); const L = t[t.length - 1]; if (!L || Math.hypot(L.x - p.x, L.y - p.y) > 4) t.push({ x: p.x, y: p.y, at: clock }); }
+      if (t) { while (t.length && clock - t[0].at > 0.18) t.shift(); if (!t.length) TRAIL.delete(p.id); }
+    }
+  } else TRAIL.clear();
   for (let i = fx.parts.length - 1; i >= 0; i--) { const p = fx.parts[i]; p.life += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.94; p.vy *= 0.94; if (p.life > p.max) fx.parts.splice(i, 1); }
   for (let i = fx.floaters.length - 1; i >= 0; i--) { const f = fx.floaters[i]; f.life += dt; f.y -= 40 * dt; if (f.life > 0.9) fx.floaters.splice(i, 1); }
   for (let i = fx.rings.length - 1; i >= 0; i--) { const r = fx.rings[i]; r.life += dt; r.r = 10 + ((r.max || 120) - 10) * Math.min(1, r.life / 0.25); if (r.life > 0.4) fx.rings.splice(i, 1); }
@@ -5227,7 +5440,7 @@ THEMES.highland = Object.assign({}, THEMES.meadow, {
   boulder: '#8a8a84', boulderLight: '#a6a69e', moss: ['#6a7a3a', '#7d8c46'],
   leafCols: ['#e8d98a', '#c9b36a', '#b58fd0', '#f4ecd2'],
 });
-// Highland Reach at dusk: dark heath under a cold sky, lit by braziers at the crossing and lanterns by the camps;
+// Highland Reach at dusk: dark heath under a cold sky, lit by campfires at the crossing and lanterns by the camps;
 // fireflies drift over it. The floor is painted dark with a cool moonlit wash, and the fires light it live.
 THEMES.dusk = Object.assign({}, THEMES.meadow, {
   forest: '#070b0e', canopy: ['#0e171b', '#121e22', '#16252a', '#0b1316'], canopyHi: 'rgba(120,150,190,0.07)',
@@ -5343,22 +5556,31 @@ function paintNight(g, R) {
   for (const h of HAZ) if (h.type === 'pit' && !h.water) { g.save(); hazP(g, h, 1.5); g.strokeStyle = 'rgba(190,210,240,0.45)'; g.lineWidth = 2; g.stroke(); g.restore(); }
   for (const h of HAZ) if (h.type === 'pit' && !h.water) { g.save(); hazP(g, h, 0); g.clip(); const [cx, cy] = hazCentre(h); const m = g.createRadialGradient(cx, cy, 5, cx, cy, Math.max(h.w || h.r, h.h || h.r)); m.addColorStop(0, 'rgba(120,150,200,0.10)'); m.addColorStop(1, 'rgba(120,150,200,0)'); g.fillStyle = m; g.fillRect(cx - 400, cy - 400, 800, 800); g.restore(); }
   for (const l of (MAPS[MAPKEY] && MAPS[MAPKEY].lights) || []) {
+    if (l.big) { // a campfire on open ground: scorched earth and a couple of logs (the flame is drawn live)
+      const sc = g.createRadialGradient(l.x, l.y, 2, l.x, l.y, 22); sc.addColorStop(0, 'rgba(20,10,5,0.75)'); sc.addColorStop(1, 'rgba(20,10,5,0)');
+      g.fillStyle = sc; g.beginPath(); g.arc(l.x, l.y, 22, 0, TAU); g.fill();
+      g.lineCap = 'round'; g.strokeStyle = '#3b2616'; g.lineWidth = 5;
+      g.beginPath(); g.moveTo(l.x - 11, l.y + 6); g.lineTo(l.x + 9, l.y - 2); g.moveTo(l.x - 9, l.y - 3); g.lineTo(l.x + 11, l.y + 5); g.stroke();
+      g.fillStyle = '#6b2a0e'; g.beginPath(); g.arc(l.x, l.y + 1, 4, 0, TAU); g.fill();
+      continue;
+    }
     g.fillStyle = 'rgba(0,0,0,0.4)'; g.beginPath(); g.ellipse(l.x + 3, l.y + 5, 7, 5, 0, 0, TAU); g.fill();
     g.fillStyle = '#2a2622'; g.beginPath(); g.arc(l.x, l.y, 6, 0, TAU); g.fill();
     g.strokeStyle = '#141210'; g.lineWidth = 1.5; g.stroke();
   }
   g.restore();
 }
-// night: the fires, lit live: a warm pool of light round each brazier and lantern, and the flame itself
+// night: the fires, lit live: a warm pool of light round each campfire and lantern, and the flame itself
 function drawNightLights(c) {
   const M = MAPS[MAPKEY]; if (!M) return;
-  const fires = PILLARS.filter(p => p.kind === 'brazier').map(p => ({ x: p.x, y: p.y, big: 1 })).concat((M.lights || []).map(l => ({ x: l.x, y: l.y, big: 0 })));
+  const fires = PILLARS.filter(p => p.kind === 'brazier').map(p => ({ x: p.x, y: p.y, big: 1 })).concat((M.lights || []).map(l => ({ x: l.x, y: l.y, big: l.big ? 1 : 0 })));
   if (!lightFx()) {
-    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    // a warm, deep tint rather than a bright wash, so the ground (and anyone on it) stays easy to read
+    ctx.save();
     for (const f of fires) {
-      const fl = 0.85 + 0.15 * Math.sin(c * 11 + f.x) * Math.sin(c * 7.3 + f.y), R0 = (f.big ? 190 : 120) * fl;
-      const g = ctx.createRadialGradient(f.x, f.y, 4, f.x, f.y, R0);
-      g.addColorStop(0, `rgba(255,150,60,${f.big ? 0.34 : 0.26})`); g.addColorStop(0.4, `rgba(200,90,30,${f.big ? 0.12 : 0.09})`); g.addColorStop(1, 'rgba(120,40,10,0)');
+      const fl = 0.9 + 0.1 * Math.sin(c * 11 + f.x) * Math.sin(c * 7.3 + f.y), R0 = (f.big ? 150 : 95) * fl;
+      const g = ctx.createRadialGradient(f.x, f.y, 3, f.x, f.y, R0);
+      g.addColorStop(0, `rgba(255,120,40,${f.big ? 0.2 : 0.15})`); g.addColorStop(0.45, `rgba(215,75,20,${f.big ? 0.07 : 0.05})`); g.addColorStop(1, 'rgba(150,40,10,0)');
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(f.x, f.y, R0, 0, TAU); ctx.fill();
     }
     ctx.restore();
@@ -7030,6 +7252,29 @@ function drawCrosshair(me, charge) {
   }
 }
 
+// knockback streaks: a tapering ribbon in the player's colour behind anyone flung faster than they can run
+function drawTrails(v) {
+  ctx.save(); ctx.lineCap = 'round';
+  for (const [id, t] of TRAIL) {
+    const p = v.p.find(q => q.id === id); if (!p || t.length < 2 || trHidden(p) || p.hd || p.sth || p.nk || p.ph) continue;
+    const meP = v.p.find(q => q.id === myId); if (meP && p.tm !== meP.tm && smokeHides(p, meP)) continue;
+    const pts = t.concat([{ x: p.x, y: p.y, at: clock }]), R = p.rz || 16;
+    for (let i = 1; i < pts.length; i++) {
+      const k = i / (pts.length - 1), age = clamp(1 - (clock - pts[i].at) / 0.18, 0, 1);
+      ctx.strokeStyle = p.c; ctx.globalAlpha = 0.36 * k * age; ctx.lineWidth = R * 1.5 * k;
+      ctx.beginPath(); ctx.moveTo(pts[i - 1].x, pts[i - 1].y); ctx.lineTo(pts[i].x, pts[i].y); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+// a quick coloured glow around the screen's edge (gold for your knockout, red when you're knocked out)
+function drawEdgeFlash() {
+  const f = fx.flash, a = f.a * (1 - f.t / 0.4);
+  ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.hypot(W, H) * 0.6);
+  g.addColorStop(0, `rgba(${f.col},0)`); g.addColorStop(1, `rgba(${f.col},${a.toFixed(3)})`);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore();
+}
 function render(replaying) {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.fillStyle = THEME.forest; ctx.fillRect(0, 0, W, H);
@@ -7055,6 +7300,7 @@ function render(replaying) {
   for (const u of view.u) drawPickup(u);
   if (view.b && !view.b.o) drawBall(view.b);
   for (const a of view.a) if (a.s) drawArrow(a);
+  if (TRAIL.size && !replaying) drawTrails(view);
   for (const p of view.p) if (p.f > 0 && !trHidden(p) && onScreen(p.x, p.y, 120)) drawPlayer(p, p.id === myId);
   for (const p of view.p) if (!p.f && p.id !== myId && !trHidden(p) && onScreen(p.x, p.y, 120)) drawPlayer(p, false);
   if (TR.on) drawTargets();
@@ -7076,6 +7322,7 @@ function render(replaying) {
     ctx.fillStyle = f.color; ctx.fillText(f.text, f.x, f.y);
   }
   ctx.globalAlpha = 1;
+  if (fx.flash && !replaying) drawEdgeFlash();
   if (!replaying && LP.list.length && view.m.ph !== 'lobby') drawLocalMarks(view);
   if (replaying) { drawReplayFrame(); return; }
   if (!bigMap() && THEME.night && !lightFx() && !replaying) { drawVignette(); ctx.setTransform(DPR * VS, 0, 0, DPR * VS, DPR * OX, DPR * OY); }
@@ -7827,7 +8074,7 @@ function updateHud() {
       resultsView = Object.assign({}, view, { p: view.p.filter(p => !p.nk) });
       renderAwards(resultsView); renderRanking();
       $('rematchBtn').hidden = $('resLobbyBtn').hidden = !isHost();
-      $('resultsScreen').hidden = false;
+      $('resultsScreen').hidden = false; progShow();
       $('gameMenu').hidden = true; menuOpen = false; paused = false;
     }
     setC('next', isHost() + ':' + !!(roomInfo && roomInfo.ranked), h => { renderResRated(); $('resFindBtn').hidden = !(mode === 'online' && roomInfo && roomInfo.ranked); $('resLeaveBtn').hidden = !$('resFindBtn').hidden; if (roomInfo && roomInfo.ranked) { $('resNext').textContent = 'Ranked match over.'; $('rematchBtn').hidden = $('resLobbyBtn').hidden = true; return; } h = isHost(); $('resNext').textContent = h ? 'Start a rematch or head back to the lobby when everyone is ready.' : 'Waiting for the host to start a rematch or return to the lobby.'; $('rematchBtn').hidden = $('resLobbyBtn').hidden = !h; });
@@ -8013,7 +8260,7 @@ const REPLAY_FX = { throw: 1, sstrike: 1, recall: 1, nblink: 1, flash: 1, swap: 
 function replayNote(evs) { for (const e of evs) { if (REPLAY_FX[e.e] || e.e === 'kill') RP.evs.push({ t: clock, e }); if (e.e === 'kill') RP.lastKill = { t: clock, k: e.k, v: e.v, how: e.how, kn: e.kn, vn: e.vn }; } }
 function replayQueue(ge) {
   const K = RP.lastKill;
-  if ((TUT.on && TUT.step <= 5) || TR.on) return false; // no kill cam for the practice dummy or training targets
+  if (tutOnDummy() || TR.on) return false; // no kill cam for the practice dummy or training targets
   if (!RP.enabled || reduceMotion || ge.rw === 'draw' || !K || clock - K.t > 1.2) return false;
   // find the arrow that did it: the killer's last hit on the victim, and the arrow of theirs nearest the victim just before it
   let hitT = null, aid = null, shotT = null;
@@ -8112,7 +8359,8 @@ function frame(now) {
   pollLocals(dt);
   if (mode === 'local' && world) {
     if (!paused && !(TUT.on && TUT_STEPS[TUT.step] && TUT_STEPS[TUT.step].info)) {
-      acc += dt;
+      if (fx.stop > 0) fx.stop -= dt; // hit-stop: the world holds for a few frames
+      else { acc += fx.slow > 0 ? dt * 0.35 : dt; fx.slow = Math.max(0, fx.slow - dt); }
       while (acc >= STEP) {
         prevPos = capturePos(world);
         tutGuard(); trainGuard();
@@ -8130,8 +8378,8 @@ function frame(now) {
     }
     view = blendView(Sim.snapshot(world), prevPos, paused ? 1 : acc / STEP);
   } else if (mode === 'online') {
-    view = interpView(now);
-    smoothMe(view, dt);
+    if (fx.stop > 0 && view) fx.stop -= dt; // hit-stop: hold the picture for a few frames
+    else { view = interpView(now); smoothMe(view, dt); }
     const me = view && view.p.find(p => p.id === myId);
     if (me && !me.d && !me.f && (mouse.down || held('draw') || (pad.on && pad.draw)) && !menuOpen) localCharge = Math.min(1, localCharge + dt * (me.pw && me.pw.quick ? 2.2 : 1) * (me.up && me.up.includes('steady') ? 1.25 : 1));
     else localCharge = 0;
@@ -8157,7 +8405,7 @@ function frame(now) {
   try { camUpdate(dt); } catch (e) { clientError(e, 'camera'); }
   try { if (rv) { const live = view; view = rv; try { render(true); } finally { view = live; } } else render(); }
   catch (e) { clientError(e, 'render'); if (rv) endReplay(); try { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none'; } catch (e2) {} }
-  try { updateHud(); } catch (e) { clientError(e, 'hud'); }
+  try { updateHud(); qHelp(); linkAutoJoin(); } catch (e) { clientError(e, 'hud'); }
   requestAnimationFrame(frame);
 }
 

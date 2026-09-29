@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.27.1';
+const VERSION = '0.29.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -166,7 +166,7 @@ MAPS.grove = buildMap({
 // bottom edges punish being pushed wide, and a pool in front of each side's crossing splits the approach in two
 MAPS.reach = buildMap({
     name: 'Highland Reach', theme: 'dusk', w: 1500, h: 960,
-    desc: 'A big highland at dusk, split by a canyon and lit by braziers. Trade long shots across the gap, or fight for the crossing in the middle. Bigger than the other arenas.',
+    desc: 'A big highland at dusk, split by a canyon and lit by campfires. Cover sits out by the walls and the middle is wide open: trade long shots across the gap, or fight for the crossing. Bigger than the other arenas.',
     haz: [
       { type: 'pit', centre: true, shape: 'rect', x: 700, y: WALL - 20, w: 100, h: 300 },
       { type: 'pit', centre: true, shape: 'rect', x: 700, y: 654, w: 100, h: 330 },
@@ -174,9 +174,10 @@ MAPS.reach = buildMap({
       { type: 'pit', shape: 'rect', x: 330, y: 960 - WALL - 76, w: 230, h: 96 },
       { type: 'pit', water: true, shape: 'circle', x: 565, y: 480, r: 52 },
     ],
-    pillars: [{ x: 250, y: 330, r: 28 }, { x: 250, y: 630, r: 28 }, { x: 420, y: 480, r: 24 }, { x: 610, y: 250, r: 22 }, { x: 610, y: 710, r: 22 },
-      { x: 676, y: 332, r: 13, kind: 'brazier' }, { x: 676, y: 628, r: 13, kind: 'brazier' }],
-    lights: [{ x: 60, y: 200 }, { x: 60, y: 760 }, { x: 420, y: 150 }, { x: 420, y: 810 }],
+    // cover hugs the outer walls and the middle is left open for long shots
+    pillars: [{ x: 240, y: 112, r: 26 }, { x: 240, y: 848, r: 26 }, { x: 632, y: 128, r: 22 }, { x: 632, y: 832, r: 22 }, { x: 132, y: 186, r: 20 }, { x: 132, y: 774, r: 20 }],
+    // campfires at the crossing (open ground, nothing to hide behind) and lanterns by the camps
+    lights: [{ x: 676, y: 332, big: true }, { x: 676, y: 628, big: true }, { x: 60, y: 200 }, { x: 60, y: 760 }, { x: 420, y: 150 }, { x: 420, y: 810 }],
     spikes: [],
     spawns: [{ x: 110, y: 420 }, { x: 110, y: 540 }, { x: 180, y: 480 }, { x: 100, y: 320 }],
     power: [{ x: 750, y: 480 }], amberY: [340, 420],
@@ -318,7 +319,9 @@ const knockSpot = h => { const u = h.a * Math.PI / 180, d = h.r + h.gap; return 
 const KNOCK_KO = 50, KNOCK_BONUS = 600; // points for each dummy in, and for clearing a scene quickly
 const TRAIN_MAX = { target: 7500, dodge: 1000, peek: 3600, sink: TRAIN_KNOCK.reduce((n, R) => n + R.holes.length * KNOCK_KO + KNOCK_BONUS, 0) };
 const TRAIN_GRADES = [['S', 0.8], ['A', 0.65], ['B', 0.5], ['C', 0.35], ['D', 0]];
-const trainGrade = (kind, score) => { const m = TRAIN_MAX[kind] || 1; return TRAIN_GRADES.find(g => score / m >= g[1])[0]; };
+// a run that isn't clean (a missed shot, or a dummy put back on its spot in the knockout drill) can't get an S
+const trainGrade = (kind, score, clean = true) => { const m = TRAIN_MAX[kind] || 1, g = TRAIN_GRADES.find(g => score / m >= g[1])[0]; return g === 'S' && !clean ? 'A' : g; };
+const gradeBest = (a, b) => { const i = x => { const n = TRAIN_GRADES.findIndex(g => g[0] === x); return n < 0 ? 99 : n; }; return i(a) <= i(b) ? a : b; };
 
 // The simulation reads the current arena from these; useMap() points them at a world's arena.
 // Every public entry point calls useMap first, so rooms on different arenas can share one server.
@@ -2646,7 +2649,7 @@ function arrowHit(w, a, f) {
   if (!landed) return;
   if (f.stealthT > 0) breakStealth(w, f); // only an arrow hit breaks stealth; burns, poison and blasts don't
   if (a.own && !a.counted) { a.counted = true; a.own.stats.hits++; a.own.stats.longest = Math.max(a.own.stats.longest, a.dist); }
-  ev(w, { e: 'hit', x: r1(a.x), y: r1(a.y), cr: a.crit ? 1 : 0, id: f.id, by: a.owner, el: a.el, b: a.bolt ? 1 : 0, ls: range > 0.3 ? 1 : 0 });
+  ev(w, { e: 'hit', x: r1(a.x), y: r1(a.y), cr: a.crit ? 1 : 0, fd: a.full ? 1 : 0, id: f.id, by: a.owner, el: a.el, b: a.bolt ? 1 : 0, ls: range > 0.3 ? 1 : 0 });
   if (a.crit && a.own) a.own.stats.bull = (a.own.stats.bull || 0) + 1;
   if (a.sneak && !f.dead) { a.sneak = false; stun(w, f, 1); ev(w, { e: 'ambushHit', id: f.id, by: a.owner, x: r1(f.x), y: r1(f.y) }); }
   if (a.vol && a.own && !a.vol.done) {
@@ -4165,8 +4168,16 @@ function unpackSnap(s) {
   return s;
 }
 
+// Mastery: how well you know an element or role, from games played with it (a win counts twice). Levels 0–10.
+const MASTERY = [0, 5, 15, 30, 50, 80, 120, 170, 230, 300, 400];
+function masteryOf(games, wins) {
+  const pts = (games || 0) + (wins || 0); let lv = 0;
+  while (lv < 10 && pts >= MASTERY[lv + 1]) lv++;
+  return { lv, pts, cur: MASTERY[lv], next: lv < 10 ? MASTERY[lv + 1] : null };
+}
 return {
-  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
+  MASTERY, masteryOf,
+  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,

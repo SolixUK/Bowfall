@@ -10,12 +10,13 @@ const Sim = require('./public/sim.js');
 const { createStore, BOARD_KEYS } = require('./lib/db');
 const ROLE_MIN = 10; // games in a role before you appear on that role's board
 const A = require('./lib/auth');
+const MAIL = require('./lib/mail');
 const O = require('./lib/oauth');
 const E = require('./lib/economy')(require('./public/sim.js'));
 const PAY = require('./lib/pay');
 const { levelOf } = require('./lib/level');
 const { countryOf } = require('./lib/geo');
-const { rateGame, keyFor, ratingOf, START: ELO_START } = require('./lib/rating');
+const { rateGame, keyFor, ratingOf, seedRating, START: ELO_START } = require('./lib/rating');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC = path.join(__dirname, 'public');
@@ -241,6 +242,7 @@ function careerAdd(u, rec, team) {
     c.best = c.best || {};
     for (const [k, v] of [['k', p.k], ['dmg', Math.round(p.dmg || 0)], ['ring', p.ring]]) if ((v || 0) > (c.best[k] || 0)) c.best[k] = v;
     c.els = c.els || {}; c.els[p.el] = (c.els[p.el] || 0) + 1;
+    c.elW = c.elW || {}; if (p.w === 1) c.elW[p.el] = (c.elW[p.el] || 0) + 1; // element wins, for mastery
   } else if (rec.type === 'match') {
     add('matches', 1); if (rec.win === team) add('matchWins', 1);
   }
@@ -291,7 +293,7 @@ function saveRecords(room) {
         for (const [k, v] of rateGame(rec, users)) rated.set(k, v); // worked out for everyone first, from the ratings before this match
         for (const [pid, u] of users) {
           const x = rated.get(u.id); if (!x) continue;
-          const c = u.career; c[key] = x.elo;
+          const c = u.career; c[key] = x.elo; c.rated = (c.rated != null ? c.rated : Math.max(0, (c.matches || 0) - 1)) + 1;
           const pk = key === 'elo' ? 'eloPeak' : 'eloTPeak'; c[pk] = Math.max(c[pk] || ELO_START, x.elo);
           c.relo = c.relo || {}; c.relo[x.role] = x.roleElo;
           const ws = [...room.clients].find(q => q.user === u || q.guest === u);
@@ -338,7 +340,7 @@ function readBody(req, limit = 16 * 1024) {
   });
 }
 const ip = req => String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
-const authLimit = A.limiter(12, 60 * 1000), postLimit = A.limiter(6, 60 * 1000), threadLimit = A.limiter(3, 5 * 60 * 1000);
+const forgotLimit = A.limiter(5, 15 * 60 * 1000), authLimit = A.limiter(12, 60 * 1000), postLimit = A.limiter(6, 60 * 1000), threadLimit = A.limiter(3, 5 * 60 * 1000);
 const cleanText = (s, max) => String(s || '').replace(/\r\n/g, '\n').replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '').trim().slice(0, max);
 
 async function api(req, res, url) {
@@ -367,9 +369,60 @@ async function api(req, res, url) {
     const name = String(body.name || '').trim();
     if (!A.validName(name)) return json(res, 400, { error: 'Names are 3 to 16 letters, numbers, _ or -.' });
     if (!A.validPassword(body.password)) return json(res, 400, { error: 'Passwords need at least 6 characters.' });
+    const email = String(body.email || '').trim();
+    if (!MAIL.validEmail(email)) return json(res, 400, { error: 'Enter your email address. It is only used to reset your password.' });
+    if (await userWithEmail(email)) return json(res, 409, { error: 'That email already has an account. Sign in, or reset your password.' });
     const u = await store.createUser(name, A.hashPassword(body.password), name.toLowerCase() === OWNER);
     if (!u) return json(res, 409, { error: 'That name is taken.' });
+    u.social = Object.assign(u.social || {}, { email });
+    await store.saveUser(u);
     return login(req, res, u, [], await adoptGuest(u, body.guest));
+  }
+  // forgotten password: email a one-use link that lasts an hour (the reply is the same whether or not the account exists)
+  if (route === '/forgot' && method === 'POST') {
+    if (!forgotLimit(ip(req))) return json(res, 429, { error: 'Too many requests. Wait a few minutes and try again.' });
+    if (!MAIL.configured()) return json(res, 503, { error: "Password emails aren't set up on this server yet. Ask an admin for help." });
+    const who = String(body.who || '').trim();
+    const u = who.includes('@') ? await userWithEmail(who) : await store.userByName(who).then(x => x && (live.get(x.id) || x));
+    const email = u && u.social && u.social.email;
+    if (u && email && !(u.career && u.career.ai)) {
+      const tok = A.newToken();
+      u.social.reset = { h: A.hashToken(tok), exp: Date.now() + 3600 * 1000 };
+      await store.saveUser(u);
+      const link = siteBase(req) + '/#/reset?t=' + tok;
+      MAIL.send(email, 'Reset your Bowfall password',
+        `Hi ${u.name},\n\nSomeone asked to reset the password for your Bowfall account. To pick a new one, open this link within the next hour:\n\n${link}\n\nIf that wasn't you, you can ignore this email and nothing will change.`,
+        `<p>Hi ${u.name},</p><p>Someone asked to reset the password for your Bowfall account. To pick a new one, open this link within the next hour:</p><p><a href="${link}">Reset my password</a></p><p>If that wasn't you, you can ignore this email and nothing will change.</p>`
+      ).catch(e => console.error('Mail failed:', e.message));
+    }
+    return json(res, 200, { ok: true });
+  }
+  if (route === '/reset' && method === 'POST') {
+    if (!authLimit(ip(req))) return json(res, 429, { error: 'Too many attempts. Wait a minute and try again.' });
+    const h = A.hashToken(String(body.token || ''));
+    let u = null;
+    for (const x of live.values()) if (x.social && x.social.reset && x.social.reset.h === h) { u = x; break; }
+    if (!u) { const x = await store.userByReset(h); u = x && (live.get(x.id) || x); if (u && !(u.social && u.social.reset && u.social.reset.h === h)) u = null; }
+    if (!u || u.social.reset.exp < Date.now()) return json(res, 400, { error: 'That reset link has expired or was already used. Ask for a new one.' });
+    if (!A.validPassword(body.password)) return json(res, 400, { error: 'Passwords need at least 6 characters.' });
+    u.passHash = A.hashPassword(body.password);
+    delete u.social.reset;
+    await store.setPassword(u.id, u.passHash);
+    await store.saveUser(u);
+    await store.deleteSessionsOf(u.id);   // sign out everywhere else
+    return login(req, res, u);
+  }
+  // add or change the account's email (needs your password if you have one)
+  if (route === '/email' && method === 'POST') {
+    if (!me) return json(res, 401, { error: 'Sign in first.' });
+    if (me.passHash && !A.checkPassword(body.current, me.passHash)) return json(res, 401, { error: 'Your current password is wrong.' });
+    const email = String(body.email || '').trim();
+    if (!MAIL.validEmail(email)) return json(res, 400, { error: "That doesn't look like an email address." });
+    const other = await userWithEmail(email);
+    if (other && other.id !== me.id) return json(res, 409, { error: 'That email is already on another account.' });
+    me.social = Object.assign(me.social || {}, { email });
+    await store.saveUser(me);
+    return json(res, 200, { ok: true, email });
   }
   if (route === '/device-login' && method === 'POST') {
     if (!authLimit(ip(req))) return json(res, 429, { error: 'Too many attempts. Wait a minute and try again.' });
@@ -394,7 +447,7 @@ async function api(req, res, url) {
   }
   if (route === '/me' && method === 'GET') {
     if (!me) return json(res, 200, { user: null });
-    return json(res, 200, { user: Object.assign(publicUser(me), { id: me.id, ach: me.ach || {}, logins: await store.loginsOf(me.id), hasPassword: !!me.passHash, countryRaw: me.country || null }) });
+    return json(res, 200, { user: Object.assign(publicUser(me), { id: me.id, ach: me.ach || {}, logins: await store.loginsOf(me.id), hasPassword: !!me.passHash, email: (me.social && me.social.email) || null, mailOn: MAIL.configured(), countryRaw: me.country || null }) });
   }
   if (route === '/version' && method === 'GET') return json(res, 200, { version: Sim.VERSION });
   // the flag next to your name: a two-letter country code, '-' to hide it, or '' to go back to your location
@@ -545,16 +598,16 @@ async function api(req, res, url) {
     let best = sc, isNew = false;
     if (me) {
       const c = me.career || (me.career = {}), t = c.train || (c.train = {}), old = t[k];
-      if (!old || sc > old.s) {
-        isNew = true;
-        if (old) { const d = TRAIN.dist[k], i = d.indexOf(old.s); if (i >= 0) d.splice(i, 1); }
-        t[k] = { s: sc, g: Sim.trainGrade(k, sc), at: Date.now() }; markDirty(me);
+      const g = Sim.trainGrade(k, sc, body.clean !== false), up = !old || sc > old.s;
+      if (up || Sim.gradeBest(g, old.g) !== old.g) {
+        isNew = up;
+        if (up) { if (old) { const d = TRAIN.dist[k], i = d.indexOf(old.s); if (i >= 0) d.splice(i, 1); } trainInsert(k, sc); }
+        t[k] = { s: up ? sc : old.s, g: old ? Sim.gradeBest(g, old.g) : g, at: Date.now() }; markDirty(me);
         const got = E.earnTraining(me, k, t[k].g); if (got) walletNote(me, got, 'train');
-        trainInsert(k, sc);
       }
       best = t[k].s;
     }
-    return json(res, 200, { kind: k, score: sc, best, isNew, g: Sim.trainGrade(k, best), top: trainTop(k, sc, !!me && best === sc), topBest: me ? trainTop(k, best, true) : null, n: TRAIN.dist[k].length + (me ? 0 : 1) });
+    return json(res, 200, { kind: k, score: sc, best, isNew, g: me ? me.career.train[k].g : Sim.trainGrade(k, sc, body.clean !== false), top: trainTop(k, sc, !!me && best === sc), topBest: me ? trainTop(k, best, true) : null, n: TRAIN.dist[k].length + (me ? 0 : 1) });
   }
   // (m is declared at the top of api)
   if ((m = route.match(/^\/users\/([A-Za-z0-9_-]{1,16})$/)) && method === 'GET') {
@@ -679,6 +732,15 @@ async function sessionFor(req, u) {
   await store.createSession(A.hashToken(tok), u.id, Date.now() + A.SESSION_DAYS * 86400 * 1000);
   return A.sessionCookie(tok, req);
 }
+// accounts by email: players online are checked first, since their newest details may not be written back yet
+async function userWithEmail(e) {
+  e = String(e || '').toLowerCase();
+  const has = u => u && u.social && String(u.social.email || '').toLowerCase() === e;
+  for (const u of live.values()) if (has(u)) return u;
+  const x = await store.userByEmail(e), u = x && (live.get(x.id) || x);
+  return has(u) ? u : null;
+}
+const siteBase = req => process.env.PUBLIC_URL ? process.env.PUBLIC_URL.replace(/\/$/, '') : (req.headers['x-forwarded-proto'] || 'http') + '://' + req.headers.host;
 async function login(req, res, u, extraCookies = [], moved = null) {
   const ck = await sessionFor(req, u), t = track(u);
   return json(res, 200, { user: Object.assign(publicUser(t), { ach: t.ach || {} }), guestMoved: moved }, { 'Set-Cookie': [ck].concat(extraCookies) });
@@ -777,7 +839,7 @@ const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 4096,
   perMessageDeflate: { threshold: 200, zlibDeflateOptions: { level: 1, memLevel: 7 }, serverMaxWindowBits: 12, clientNoContextTakeover: true, concurrencyLimit: 16 } });
 const rooms = new Map();
 // friends, parties and matchmaking (lib/social.js)
-const social = require('./lib/social')({ rankedMaps: () => rankedMaps(), statusOf: u => E.statusOf(u), store, track, markDirty, send, Sim, levelOf, flagOf, ELO_START, ratingOf, keyFor, rooms, createRoom, sendRoom, sysChat, broadcast, live, loadGuest });
+const social = require('./lib/social')({ seedRating: (u, h) => { if (seedRating(u, h)) markDirty(u); }, rankedMaps: () => rankedMaps(), statusOf: u => E.statusOf(u), store, track, markDirty, send, Sim, levelOf, flagOf, ELO_START, ratingOf, keyFor, rooms, createRoom, sendRoom, sysChat, broadcast, live, loadGuest });
 
 function makeCode() {
   const L = 'ABCDEFGHJKMNPQRSTUVWXYZ';

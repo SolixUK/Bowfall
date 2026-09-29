@@ -2,6 +2,31 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.29.0
+
+- **Tutorial reworked** for everything added since it was first written. It now runs: move → shoot → full draw → dash → **dodge** (new: a stone sniper takes aim with a visible draw, and you dash out of two shots) → abilities → knockouts → a short "build your archer" card that lists every element and role in a few words → pick an upgrade → a real fight against a Flame Juggernaut bot. You play it as a Frost Ranger (the easiest all-rounder). A **Skip to the match** button jumps straight to the fight, and finishing offers Find a match or Custom games. New players default to Ranger.
+- **Playing within seconds:**
+  - The main menu marks the tutorial **New? Start here** until you've done it (or played a few games), and the name screen has a Tutorial button.
+  - **Invite links drop you straight in:** opening a friend's `?room=CODE` link skips the name screen, gives you a friendly random name if you haven't picked one (change it any time), joins the room and puts you on the team with fewer people. No clicks.
+  - For your first three games (if you haven't done the tutorial), a small **How to play** strip shows the controls at the start of each game (keyboard or controller, whichever you're using). "Got it" hides it for good.
+- **Starting ratings for new players:** a new account's first rating is now seeded from what the game already knows about them: the hardest bot difficulty they've beaten in practice (Easy ≈ 780, Normal 850, Hard 950, Extreme 1050, Master 1150), plus a little for good training grades, minus a little for someone brand new who hasn't done the tutorial (range 650–1200). **Placement:** the first five ranked matches move your rating faster (K 64, shrinking by 4 a match down to the usual 24). Find game shows how many placement matches are left. Accounts that already have a rated match are unchanged.
+- **Game feel:**
+  - **Hit-stop:** full-draw hits and bullseyes that involve you freeze the picture for a few frames (a little longer for a full-draw bullseye), so big hits land.
+  - **Knockouts:** knocking someone out gives a gold flash round the screen edge (and, in practice, a moment of slow motion); being knocked out gives a red one.
+  - **Knockback streaks:** anyone flung faster than they can run leaves a short ribbon in their colour, so you can read who got launched and where. Hidden, stealthed and smoke-covered archers don't show one. Light effects mode turns them off; Screen shake: Off also turns off the hit-stop and slow motion.
+- **Progression:**
+  - **Mastery** for every element and role: games with it count 1, wins 2, over ten levels (5, 15, 30, 50, 80, 120, 170, 230, 300, 400). Your level shows as ★ on the pickers (bronze, silver from 5, gold at 10). Role mastery counts your whole history; element wins are counted from this version on.
+  - **After-match progress:** signed-in players see what the match gave them under the results: XP and level bar (with Level up!), mastery bars for the element and role they played (with Mastery up!), and Crests earned.
+  - **Daily first win** is now visible: Find game shows whether today's +100 Crests first-win bonus is still waiting, and the progress panel says when a match earned it.
+- **Design notes:** `docs/design-notes.md` covers what makes the game fun, the first-minute funnel, the options for locking elements and roles (still undecided), and the play loops.
+
+## 0.28.0
+
+- **Emails and forgotten passwords:** creating an account now asks for an email (kept private, only used for password resets). "Forgot your password?" on the sign-in page emails a link that lasts an hour and works once; using it signs you out everywhere else. Players with older accounts can add or change their email on their profile under **Signing in**. Emails are sent through Resend: set `RESEND_API_KEY` and `MAIL_FROM` on Render (see HOSTING.md).
+- **Knockout drill: an S needs a clean run.** Any missed shot, or any archer put back on its spot after a knock that didn't sink it, caps the run at A. The coach line counts misses and resets as you go.
+- **Ranked arena preferences:** on Find game, click an arena to make it your favourite and right-click one to avoid (on a controller, pressing a favourite again switches it to avoid). After a match is made, each player puts in their favourite, or "any" if they have none or someone else avoids it, and one is drawn: both pick the same arena and that's the one; different favourites are 50/50; a favourite the other player avoids gives a random other arena; a favourite against no preference is 50% that arena, 50% random. Random arenas skip anything anyone avoids.
+- **Highland Reach reworked for long range:** the centre fires are open campfires (no bowls to hide behind), the boulders in the middle are gone, and the cover now sits out by the outer walls, so the middle is clear for sniping. The fire glow is softer and a deeper orange, so it no longer washes the ground out.
+
 ## 0.27.1
 
 - **Taking elements and roles out of a custom game, right on the pickers:** the host Alt+clicks an element or role in the lobby (or presses Y on it with a controller) to take it out of the game, and again to put it back. Taken-out ones are greyed, struck through and marked with a red ✕ for everyone; a line under the pickers tells the host how. (The same list is still under Custom rules → Allowed in this game.)

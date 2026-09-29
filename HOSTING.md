@@ -116,4 +116,14 @@ The Store's paid items (Supporter membership, Founder pack, donations and single
 
 Prices are in `lib/economy.js` (`PRICES`, in pence). Stripe charges its own fees per payment. Selling digital content in the UK usually means charging VAT once you pass the registration threshold, and buyers have refund rights: Stripe Tax can handle VAT, and it's worth checking the rules (or asking an accountant) before taking real money.
 
+## Password reset emails
+
+New accounts give an email address, and players can reset a forgotten password from the sign-in page ("Forgot your password?"). The server sends those emails through [Resend](https://resend.com) (free for 3,000 emails a month):
+
+1. Make a Resend account, then under **Domains** add your domain (e.g. `bowfall.com`) and add the DNS records it shows you at your domain registrar. Wait until it says **Verified**.
+2. Under **API Keys**, create a key with "Sending access".
+3. On Render: **Environment**, add `RESEND_API_KEY` (the key) and `MAIL_FROM` (e.g. `Bowfall <noreply@bowfall.com>`, using the verified domain). Never put these in GitHub. Make sure `PUBLIC_URL` is set too, so the reset links point at your address.
+
+Until both are set, accounts still take emails but the "Forgot your password?" page says emails aren't set up yet (and the server log prints any email it would have sent). Emails are kept private in the account record and are never shown to other players. Players who made accounts before emails were asked for can add one on their profile under **Signing in**.
+
 **Owner commands** (type in any game's chat): `/locks on|off` switches ranked unlocks on or off (off: everything free); `/rotation stone ninja` pins the free picks, `/rotation clear` goes back to the weekly rotation; `/grant <name> supporter <months>|founder|patron|crests <n>|unlock <key>|revoke <what>` for testing and for sorting out support requests; `/feature <arena code> [ranked|off]` for player arenas.
