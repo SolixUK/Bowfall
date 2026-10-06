@@ -2,6 +2,12 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.30.1
+
+- **Aim guide:** fades to 30% of its brightness at distance (was 12%). The red X now shows only when a boulder is in the way, or when the arena wall is within 240px of you; a shot across the arena ends without one.
+- **Ranked arena choice:** each AI player filling a place now counts as a player with no favourite. Before, a match against AI was drawn only from the human players' favourites, so playing alone always gave you yours. In a 1v1 against AI your favourite now comes up about half the time.
+- **Banners:** a banner border now shows on top of a finish (the finish's own edge glow was replacing it).
+
 ## 0.30.0
 
 - **Seeker Arrow reworked to use the homing system.** It used to chase whoever was nearest with a slow, fixed turn, which missed more often than it hit. Now, like the Arrow homing rule, it locks on at release to the enemy nearest your line of fire (within 340px either side, at any range), never switches target, bends harder as it closes in and scales with arrow speed, and boulders still block it. It also leads its target. In a test of 63 shots aimed up to 17° off at still and strafing targets, hits went from 33 to 61; a shot aimed more than about 25° off still misses.
