@@ -156,6 +156,16 @@
   .overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; padding: 16px; background: rgba(9,18,11,.72); overflow-y: auto; }
   .card { margin-block: auto; flex-shrink: 0; width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 18px; padding: 28px; background: var(--panel); border: 1px solid var(--line); border-radius: 2px; box-sizing: border-box; }
   .card.wide { max-width: 760px; }
+  /* screens slide in as they open (CSS animations restart whenever an element stops being hidden, so this covers every screen change) */
+  .overlay:not(#home) { animation: ovIn .2s ease-out both; }
+  .overlay > .card { animation: cardIn .3s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes ovIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: none; } }
+  /* a dark wipe that lifts as a match starts */
+  #wipe { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(9,18,11,.92), #050a06); opacity: 0; z-index: 0; }
+  #wipe.go { animation: wipeOut .9s cubic-bezier(.4,0,.2,1) both; }
+  @keyframes wipeOut { 0% { opacity: 1; } 100% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .overlay, .overlay > .card, #wipe.go { animation: none; } }
   .eyebrow { font: 600 14px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: 0; color: var(--gold); }
   h1, h2, h3 { margin: 0; font-family: 'Rajdhani', 'Arial Narrow', sans-serif; font-weight: 700; line-height: 1; text-wrap: balance; }
   h1 { font-size: clamp(42px, 9vw, 68px); }
@@ -261,6 +271,8 @@
   .fgchips .chip2 { padding: 5px 9px; font-size: 13px; }
   .fr canvas { width: 38px; height: 38px; grid-row: 1 / span 2; border-radius: 50%; background: rgba(0,0,0,.25); }
   .fr.mem { grid-template-columns: auto 1fr auto; }
+  .fr.mem b.slot.bn { display: flex; min-height: 0; padding: 0; background: none; font: inherit; }
+  .fr.mem b.slot.bn .plate { margin: 0; }
   @media (max-width: 820px) { .findgrid { grid-template-columns: 1fr; } }
   .fggo { font-size: 20px; padding: 14px; }
   .fgmaps { display: flex; flex-wrap: wrap; gap: 5px; }
@@ -371,6 +383,9 @@
   .dfp .status { grid-column: 2; font-size: 12px; }
   .dfp .rdy { grid-row: 1 / span 2; grid-column: 3; font-size: 12px; color: var(--muted); }
   .dfp .rdy.on { color: #7dff8a; }
+  .dfp .slot.bn { display: flex; align-items: center; gap: 6px; min-height: 0; padding: 0; background: none; font-size: 14px; }
+  .dfp .slot.bn .plate { margin: 0; flex: 0 1 auto; }
+  .dfp .status .hid { font-style: italic; opacity: .75; }
   #dfTimer.low { color: #ff8a8a; }
   .fgwait { color: var(--gold); }
   select.botskill { padding: 2px 6px; font-size: 12px; height: auto; min-height: 0; width: auto; margin-left: 4px; }
@@ -513,6 +528,21 @@
   @media (max-width: 760px) { .tree { grid-template-columns: 1fr; } .score .tscore { font-size: 22px; } }
   .lobby-ov { background: rgba(9,18,11,.5); }
   .card.results-card { max-width: 1000px; }
+  /* the match-over headline: big, in the winner's colour (or gold / grey for a ranked victory / defeat), sliding in; then the winners' archers */
+  .reshead { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; padding: 6px 0 4px; }
+  .restitle { margin: 0; font: 700 clamp(44px, 8vw, 84px)/1 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--wc, var(--gold)); text-shadow: 0 0 28px color-mix(in srgb, var(--wc, var(--gold)) 45%, transparent), 0 4px 18px rgba(0,0,0,.6); animation: restitle .7s cubic-bezier(.2,.9,.2,1) both; }
+  .restitle.defeat { color: #c9d1dc; text-shadow: 0 4px 18px rgba(0,0,0,.6); }
+  @keyframes restitle { 0% { transform: translateY(18px) scale(1.25); opacity: 0; letter-spacing: .3em; } 60% { opacity: 1; } 100% { transform: none; letter-spacing: .06em; } }
+  .ressub { font: 600 15px 'Titillium Web', 'Segoe UI', sans-serif; color: var(--muted); animation: resfade .5s .35s ease-out both; }
+  .ressub b { color: var(--text); }
+  @keyframes resfade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .winners { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; margin-top: 8px; }
+  .winners .wn { display: flex; flex-direction: column; align-items: center; gap: 2px; font: 600 14px 'Titillium Web', 'Segoe UI', sans-serif; animation: winpop .55s cubic-bezier(.2,1.2,.3,1) both; animation-delay: calc(.45s + var(--i) * .12s); }
+  .winners .wn canvas { width: 84px; height: 84px; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--wc, var(--gold)) 22%, transparent), transparent 70%); }
+  .winners .wn small { color: var(--muted); font-size: 12px; }
+  @keyframes winpop { 0% { transform: translateY(14px) scale(.6); opacity: 0; } 100% { transform: none; opacity: 1; } }
+  .resrated b.ticking { color: var(--gold); }
+  @media (prefers-reduced-motion: reduce) { .restitle, .ressub, .winners .wn { animation: none; } }
   .awards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
   .award { display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border-radius: 2px; background: rgba(255,255,255,.04); border: 1px solid var(--line); border-top: 3px solid var(--gold); }
   .award .lbl { color: var(--gold); }
@@ -549,9 +579,17 @@
   .slot .plate { padding: 3px 10px 3px 8px; margin: 3px 0; background: linear-gradient(90deg, rgba(255,255,255,.07), rgba(255,255,255,.02)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
     clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%); }
   .slot .plate.bordered { box-shadow: inset 0 0 0 2px var(--bd), 0 0 12px -4px var(--bd); background: linear-gradient(90deg, color-mix(in srgb, var(--bd) 22%, transparent), rgba(255,255,255,.02)); }
-  .slot .plate .pl1 { display: flex; align-items: center; gap: 0; }
+  .slot .plate .pl1 { display: flex; align-items: center; gap: 0; min-width: 0; }
+  /* when the plate is short of room the title gives way first, then the name; badges keep their size */
+  .slot .plate .pl1 b { flex: 0 0 auto; white-space: nowrap; }
+  .slot .plate .pl1 .ttl { flex: 0 3 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .slot .plate .pl1 .troph, .slot .plate .pl1 .rkb, .slot .plate .pl1 .flag, .slot .plate .pl1 .emb { flex: 0 0 auto; }
+  .slot .plate .pl1 .medals { flex: 0 2 auto; min-width: 0; overflow: hidden; } /* after the title, the medals give way; the name never does */
+  .slot .plate { padding-right: 16px; }
   .slot .plate b { font-weight: 600; }
   .slot .plate .ttl { margin-left: 7px; }
+  .gmbuild { display: flex; flex-direction: column; gap: 6px; } .gmbuild .build { max-width: none; }
+  .gmbuild .build span.hone { color: var(--gold); }
   .bannered { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 16px; padding: 14px; background: rgba(255,255,255,.03); border: 1px solid var(--line); align-items: start; }
   @media (max-width: 760px) { .bannered { grid-template-columns: 1fr; } }
   .bnprev { display: flex; flex-direction: column; gap: 8px; } .bnprev .slot { min-height: 44px; }
@@ -622,11 +660,16 @@
   @media (prefers-reduced-motion: reduce) { .plate.fin-aurora { animation: none; } }
   .troph { display: inline-flex; align-items: center; gap: 2px; margin-left: 7px; color: #f2c14e; font: 700 11px 'Rajdhani', 'Arial Narrow', sans-serif; }
   .troph svg { width: 12px; height: 12px; }
+  .slot .nm small .hid { font-style: italic; opacity: .7; }
   .slot .nm small, .board .nm small { display: block; font-size: 11px; color: var(--muted); font-weight: 500; }
   .board .nm small { overflow: hidden; text-overflow: ellipsis; }
   .board .nm small em { font-style: normal; color: #9fb3a4; }
   .pick-ov { background: rgba(9,18,11,.55); }
   #gameMenu { z-index: 4; } /* the pause menu sits over the upgrade picks and everything else in a game */
+  #gameMenu .card.wide { max-width: 900px; }
+  #gmTeams .slot { flex-wrap: wrap; row-gap: 2px; padding: 3px 8px; } #gmTeams .slot .nm { flex: 1 1 150px; } /* bot controls drop to a second line rather than squeezing the name */
+  .tcol { container-type: inline-size; }
+  @container (max-width: 340px) { .slot .plate .ttl { display: none; } }
   .card.pick { max-width: 900px; }
   .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
   .pcard { position: relative; display: flex; flex-direction: column; gap: 8px; min-height: 190px; text-align: left; padding: 18px 16px 16px; border-radius: 2px; border: 1px solid var(--line); border-top: 4px solid var(--cc); background: rgba(255,255,255,.035); color: var(--text); font: 500 14px 'Titillium Web', 'Segoe UI', sans-serif; cursor: pointer; transition: transform .12s, background .12s; }
@@ -673,7 +716,8 @@
   .lobby .archrow { grid-template-columns: 58px 1fr; }
   .lobby .archrow .chip2 { padding: 4px 8px; font-size: 12.5px; }
   .lobby .tcol.spec .status { font-size: 12.5px; }
-  .teams { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .teams { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+  .tcol { min-width: 0; }
   .tcol.spec { grid-column: 1 / -1; border-top-color: var(--muted); }
   .tcol.spec .specnames { display: flex; flex-wrap: wrap; gap: 8px; }
   .tcol.spec .slot { flex: 0 0 auto; }
@@ -760,6 +804,7 @@
 <div id="plcard" class="plcard" hidden role="tooltip"></div>
 <div class="stage">
   <canvas id="cv" aria-label="Bowfall arena"></canvas>
+  <div id="wipe" aria-hidden="true"></div>
 
   <div class="hud" id="hud" hidden>
     <div class="hud-l">
@@ -1014,6 +1059,8 @@
         <section class="mode" data-navsec><h3>Graphics</h3>
           <div class="field"><label for="oRes">Resolution</label><select id="oRes"><option value="auto">Automatic (drops when the game slows)</option><option value="sharp">Always sharp</option><option value="fast">Fast (lower resolution)</option></select></div>
           <div class="field"><label for="oFx">Effects</label><select id="oFx"><option value="auto">Automatic (lighter when the game slows)</option><option value="full">Full</option><option value="light">Light (no glows or trails, for older laptops)</option></select></div>
+          <div class="field"><label for="oGlow">Team glow round archers</label><select id="oGlow"><option value="live">Living (breathes, leans into movement, flares on a draw)</option><option value="soft">Soft (still)</option><option value="ring">Ring only</option></select></div>
+          <div class="field"><label for="oDetail">Arena detail</label><select id="oDetail"><option value="full">Full (ambient light, drifting leaves, lava glow)</option><option value="low">Low (plain arenas; fastest)</option></select></div>
           <div class="field"><label for="oShadow">Shots' shadows</label><select id="oShadow"><option value="soft">Soft</option><option value="simple">Simple (a dot)</option><option value="off">Off</option></select></div>
           <div class="field"><label for="oPart">Particles</label><select id="oPart"><option value="1">Full</option><option value="0.5">Reduced</option><option value="0.2">Minimal</option></select></div>
           <div class="field"><label for="oShake">Screen shake</label><select id="oShake"><option value="1">On</option><option value="0">Off</option></select></div>
@@ -1113,7 +1160,8 @@
         <button class="ghost sm" type="button" data-invite>Copy invite link</button>
       </div>
       <div class="teams" id="gmTeams"></div>
-      <p class="status">Changing team, or a bot joining mid-round, sits out until the next round. <span class="ver" id="verMenu"></span></p>
+      <div class="gmbuild" id="gmBuild" hidden><span class="lbl">Your upgrades</span><div class="build" id="gmBuildList"></div></div>
+      <p class="status" id="gmNote">Changing team, or a bot joining mid-round, sits out until the next round. <span class="ver" id="verMenu"></span></p>
       <div class="shopbar">
         <div class="field" id="gmDiffWrap" data-navsec><label for="gmDiff">Bot skill (sets all bots)</label>
           <select id="gmDiff"><option value="easy">Easy</option><option value="normal">Normal</option><option value="hard">Hard</option><option value="extreme">Extreme</option><option value="master">Master</option></select></div>
@@ -1151,8 +1199,12 @@
   <!-- results -->
   <div class="overlay" id="resultsScreen" hidden>
     <div class="card wide results-card">
-      <span class="eyebrow">Match over</span>
-      <h2 id="resTitle">Winner</h2>
+      <div class="reshead" id="resHead">
+        <span class="eyebrow">Match over</span>
+        <h2 id="resTitle" class="restitle">Winner</h2>
+        <span class="ressub" id="resSub"></span>
+        <div class="winners" id="resWinners"></div>
+      </div>
       <div class="awards" id="resAwards"></div>
       <div class="stat" style="gap:8px">
         <div class="shopbar"><h3>Rankings</h3><span class="status">Click a column to rank by it.</span></div>
@@ -1266,7 +1318,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.30.1';
+const VERSION = '0.31.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1989,6 +2041,7 @@ const TREE = {
   rush:      { tree: 'juggernaut', active: { cd: 10 }, name: 'Bull Rush', desc: 'Charge along your aim for half a second, barely moved by hits, bulldozing every enemy in the way for 9 damage and a big shove.' },
   fortify:   { tree: 'juggernaut', active: { cd: 11 }, name: 'Fortify', desc: 'For 3 seconds take 90% less knockback and 30% less damage, but move 40% slower.' },
   parry:     { tree: 'ranger', active: { cd: 9 }, name: 'Parry', desc: 'Raise a guard for 1 second that stops arrows from any side. Block one and you riposte: your next shot is drawn instantly and hits 30% harder, and for 3 seconds you draw twice as fast and move 20% faster. Parry\'s cooldown is halved.' },
+  rocket:    { tree: 'juggernaut', also: ['trickster', 'crossbow'], active: { cd: 14 }, name: 'Rocket Arrow', desc: 'Your next shot is a big, slow rocket that homes hard on the enemy nearest your line of fire and explodes where it lands, throwing everyone nearby. Slow enough to dodge; boulders stop it.' },
   seeker:    { tree: 'ranger', active: { cd: 12 }, name: 'Seeker Arrow', desc: 'Your next shot locks on to the enemy nearest your line of fire and curves hard toward where they are heading. Boulders still block it.' },
   trick:     { tree: 'trickster', active: { cd: 8 }, name: 'Trick Shot', desc: 'Your next shot bounces off walls and boulders up to 3 times, hitting 25% harder and knocking back 10% harder after every bounce.' },
   boomerang: { tree: 'trickster', active: { cd: 6 }, name: 'Boomerang', desc: 'Your next shot flies out, passes through enemies and comes back to you, able to hit each of them again on the way. It deals 25% more damage.' },
@@ -2096,6 +2149,17 @@ const TIMES = { pre: 3, post: 10, roundPost: 11.5, pick: 20, game: 120 };
 function inHaz(h, x, y, pad = 0) {
   if (h.shape === 'circle') return Math.hypot(x - h.x, y - h.y) < h.r + pad;
   return x > h.x - pad && x < h.x + h.w + pad && y > h.y - pad && y < h.y + h.h + pad;
+}
+// keep a body inside a pit it's falling into: past the inside wall it's put back on the wall and its speed reflected (and halved)
+function bounceInHaz(h, f, pad) {
+  if (h.shape === 'circle') {
+    const dx = f.x - h.x, dy = f.y - h.y, d = Math.hypot(dx, dy) || 1, lim = Math.max(2, h.r - pad);
+    if (d > lim) { const nx = dx / d, ny = dy / d; f.x = h.x + nx * lim; f.y = h.y + ny * lim; const vn = f.vx * nx + f.vy * ny; if (vn > 0) { f.vx -= 2 * vn * nx; f.vy -= 2 * vn * ny; f.vx *= 0.5; f.vy *= 0.5; } }
+    return;
+  }
+  const x0 = h.x + pad, x1 = h.x + h.w - pad, y0 = h.y + pad, y1 = h.y + h.h - pad;
+  if (x1 > x0) { if (f.x < x0) { f.x = x0; if (f.vx < 0) f.vx *= -0.5; } else if (f.x > x1) { f.x = x1; if (f.vx > 0) f.vx *= -0.5; } }
+  if (y1 > y0) { if (f.y < y0) { f.y = y0; if (f.vy < 0) f.vy *= -0.5; } else if (f.y > y1) { f.y = y1; if (f.vy > 0) f.vy *= -0.5; } }
 }
 function hazAway(h, x, y) {
   if (h.shape === 'circle') {
@@ -2381,8 +2445,8 @@ function choose(w, id, index) {
 // Bot playstyles: each bot picks one at the start of a match from its role and a random aggression,
 // and leans further into it as its upgrades line up (e.g. Battering Ram makes it a brawler).
 const STYLES = {
-  brawler:    { name: 'Brawler',    near: 110, far: 250, charge: [0.45, 0.8], bash: 1,    cards: ['hairtrig', 'fanbolt', 'pointblank', 'heavybolt', 'rush', 'fortify', 'pin', 'ram', 'stance', 'vital', 'quake', 'colossus', 'riot', 'deflect', 'feather', 'fleet', 'double', 'dash', 'bramble', 'barbs', 'gust', 'scatter'] },
-  skirmisher: { name: 'Skirmisher', near: 230, far: 430, charge: null,        bash: 0.25, cards: ['repeater', 'windlass', 'longstock', 'twinload', 'volley', 'parry', 'seeker', 'trick', 'boomerang', 'ricochet', 'split', 'curve', 'quickshot', 'double', 'fleet', 'dash', 'grapple', 'rain', 'surefoot'] },
+  brawler:    { name: 'Brawler',    near: 110, far: 250, charge: [0.45, 0.8], bash: 1,    cards: ['hairtrig', 'fanbolt', 'pointblank', 'heavybolt', 'rush', 'fortify', 'rocket', 'pin', 'ram', 'stance', 'vital', 'quake', 'colossus', 'riot', 'deflect', 'feather', 'fleet', 'double', 'dash', 'bramble', 'barbs', 'gust', 'scatter'] },
+  skirmisher: { name: 'Skirmisher', near: 230, far: 430, charge: null,        bash: 0.25, cards: ['repeater', 'windlass', 'longstock', 'twinload', 'volley', 'parry', 'seeker', 'rocket', 'trick', 'boomerang', 'ricochet', 'split', 'curve', 'quickshot', 'double', 'fleet', 'dash', 'grapple', 'rain', 'surefoot'] },
   marksman:   { name: 'Marksman',   near: 420, far: 660, charge: [0.92, 1],   bash: 0.05, cards: ['railshot', 'recoil', 'spot', 'steady', 'longbow', 'deadeye', 'pierce', 'ballista', 'glass', 'heavy', 'pin'] },
   guardian:   { name: 'Guardian',   near: 240, far: 420, charge: null,        bash: 0.15, mates: true, cards: ['totem', 'harpoon', 'rally', 'bond', 'wall', 'oath', 'revive', 'snare', 'trap', 'deeproots', 'gust'] },
 };
@@ -2408,7 +2472,7 @@ function restyle(p) {
 }
 // Learned upgrade values: how much each card changed a Master bot's chance of winning a game, compared with others
 // of the same role and element, over about 11,108 games where bots picked at random. Smart bots pick by these.
-const CARD_VALUE = { aftershock: -0.024, ambush: -0.022, ballista: -0.049, barbs: -0.026, blinding: -0.039, blink: 0.097, bloodpact: -0.023, bladeguard: 0, blossom: 0.002, bond: 0.009, boomerang: -0.017, boulder: 0.009, bramble: -0.035, burst: -0.04, cloak: -0.045, clone: 0.008, collapse: -0.005, colossus: 0.019, contagion: 0.003, creeping: -0.024, curve: -0.031, dance: -0.015, dash: 0.045, deadeye: 0.063, deathmark: 0.009, deepfreeze: -0.013, deeproots: -0.021, deflect: -0.017, double: -0.035, echo: -0.005, execute: -0.043, execution: -0.012, fanbolt: -0.013, feather: -0.051, fleet: 0.049, flurry: -0.005, forked: 0.016, fortify: -0.022, frenzy: 0.033, frostbite: -0.014, glass: 0.006, grapple: 0, gust: 0.015, hairtrig: 0.014, harpoon: 0.005, heavy: 0, heavybolt: -0.013, hemorrhage: -0.01, horizon: -0.011, inferno: 0.025, lingering: 0.009, longbow: -0.003, longstep: -0.115, longstock: 0.034, nullfield: 0.112, oath: -0.036, obsidian: -0.004, overload: -0.098, parry: 0.019, permafrost: -0.011, petrify: 0.096, phase: 0.022, pierce: 0.015, pin: -0.002, pointblank: -0.004, potent: -0.031, pyre: -0.045, quake: -0.005, quickfeet: -0.008, quickshot: 0.075, railshot: -0.028, rain: 0.003, rally: -0.027, ram: -0.031, recall: 0.007, recoil: -0.063, repeater: 0.128, revive: -0.019, ricochet: 0.017, riot: -0.003, rush: 0.051, scatter: 0.058, seeker: -0.016, shadowdash: -0.077, sharpstar: -0.004, shatter: -0.027, smoke: -0.001, snare: -0.033, split: 0.057, spot: -0.026, sstrike: -0.028, stance: 0.017, static: 0.081, steady: 0.079, stealth: -0.027, surefoot: 0.003, swiftstep: 0.062, terror: -0.008, thirdstep: 0.009, totem: -0.032, toxic: 0.027, transfusion: -0.012, trap: 0.022, trick: 0.026, twinload: 0.108, unstable: -0.035, virulent: 0.015, vital: -0.038, volley: 0.052, wall: 0.007, wildfire: -0.007, windlass: 0.076 };
+const CARD_VALUE = { rocket: 0, aftershock: -0.024, ambush: -0.022, ballista: -0.049, barbs: -0.026, blinding: -0.039, blink: 0.097, bloodpact: -0.023, bladeguard: 0, blossom: 0.002, bond: 0.009, boomerang: -0.017, boulder: 0.009, bramble: -0.035, burst: -0.04, cloak: -0.045, clone: 0.008, collapse: -0.005, colossus: 0.019, contagion: 0.003, creeping: -0.024, curve: -0.031, dance: -0.015, dash: 0.045, deadeye: 0.063, deathmark: 0.009, deepfreeze: -0.013, deeproots: -0.021, deflect: -0.017, double: -0.035, echo: -0.005, execute: -0.043, execution: -0.012, fanbolt: -0.013, feather: -0.051, fleet: 0.049, flurry: -0.005, forked: 0.016, fortify: -0.022, frenzy: 0.033, frostbite: -0.014, glass: 0.006, grapple: 0, gust: 0.015, hairtrig: 0.014, harpoon: 0.005, heavy: 0, heavybolt: -0.013, hemorrhage: -0.01, horizon: -0.011, inferno: 0.025, lingering: 0.009, longbow: -0.003, longstep: -0.115, longstock: 0.034, nullfield: 0.112, oath: -0.036, obsidian: -0.004, overload: -0.098, parry: 0.019, permafrost: -0.011, petrify: 0.096, phase: 0.022, pierce: 0.015, pin: -0.002, pointblank: -0.004, potent: -0.031, pyre: -0.045, quake: -0.005, quickfeet: -0.008, quickshot: 0.075, railshot: -0.028, rain: 0.003, rally: -0.027, ram: -0.031, recall: 0.007, recoil: -0.063, repeater: 0.128, revive: -0.019, ricochet: 0.017, riot: -0.003, rush: 0.051, scatter: 0.058, seeker: -0.016, shadowdash: -0.077, sharpstar: -0.004, shatter: -0.027, smoke: -0.001, snare: -0.033, split: 0.057, spot: -0.026, sstrike: -0.028, stance: 0.017, static: 0.081, steady: 0.079, stealth: -0.027, surefoot: 0.003, swiftstep: 0.062, terror: -0.008, thirdstep: 0.009, totem: -0.032, toxic: 0.027, transfusion: -0.012, trap: 0.022, trick: 0.026, twinload: 0.108, unstable: -0.035, virulent: 0.015, vital: -0.038, volley: 0.052, wall: 0.007, wildfire: -0.007, windlass: 0.076 };
 // bots: capstones first, then abilities, cards that suit their playstyle, anything that builds toward one; boosts last.
 // Smart bots (Master, and AI players near it) mostly go by what the learning showed actually wins.
 // cards that do nothing without teammates (yours or theirs): never offered in a 1v1, and bots on their own skip them
@@ -2511,7 +2575,7 @@ function freshBody(p, x, y) {
     frozen: 0, frostN: 0, frostT: 0, dashLock: 0, snare: false, grap: null, over: 0, poisonN: 0, poisonT: 0, bleedT: 0, bleedBy: null, burnDps: 5, quickT: 0, disarm: 0, poisonBy: null, contT: 0,
     knock: 0, inv: 0, dashT: 0, dashCd: 0, dashN: p.dashMaxN, charge: 0, drawing: false, thr: 0, tdx: 0, tdy: 0,
     lastHitBy: null, lastHitT: -99, lastCause: '', killedBy: null, pw: emptyPowers(), wantDash: false, lastHurtT: -99, pinT: 0, pinned: 0, dashK: 1,
-    pinSafe: 0, volleyArmed: false, railArmed: false, recoilArmed: false, seekArmed: false, swapArmed: false, boomArmed: false, execArmed: false,
+    pinSafe: 0, volleyArmed: false, railArmed: false, recoilArmed: false, seekArmed: false, rocketArmed: false, swapArmed: false, boomArmed: false, execArmed: false,
     windT: 0, parryT: 0, focusT: 0, riposteT: 0, riposteUsed: false, parryRefunded: false, sawCd: 0, bumpCd: 0, portCd: 0, fortT: 0, phaseT: 0, shroudT: 0, blinkGap: 0, caltT: 0, rush: null, nblink: null, trickArmed: false, throwCd: 0, wasDraw: false, bolts: null, reloadT: 0, repeatT: 0, fanArmed: false, autoT: 0, parryAuto: false, wantThrow: false, throwQ: 0, nockT: 0, strikeN: 0, strikeT: 0, markPos: null, staggerT: 0, markT: 0, stealthT: 0, ambushT: 0, markReady: 0, slowK: 0.5, fallCause: 'pit', coat: {},
     abCd: [0, 0], wantAb: [false, false], reviveUsed: false, revT: 0, revOf: null, revP: 0,
   });
@@ -2817,7 +2881,7 @@ function fire(w, p, ang, c, burst, vol) {
   const heavy = p.pw.heavy > 0;
   const bolt = has(p, 'ballista') && p.over >= 1;
   const xb = p.role === 'crossbow';
-  const speed = (380 + 920 * c) * (has(p, 'longbow') ? 1.2 : 1) * (p.role === 'sniper' ? 1.1 : 1) * (has(p, 'obsidian') ? 0.92 : 1) * (has(p, 'colossus') ? 0.85 : 1) * OPT('aspeed');
+  let speed = (380 + 920 * c) * (has(p, 'longbow') ? 1.2 : 1) * (p.role === 'sniper' ? 1.1 : 1) * (has(p, 'obsidian') ? 0.92 : 1) * (has(p, 'colossus') ? 0.85 : 1) * OPT('aspeed');
   if (p.stealthT > 0) breakStealth(w, p);
   const full = c >= 0.99; // a full draw: flies fastest and triggers "fully drawn" upgrades
   let dmg = (1 + 11 * c) * (p.dmgMul || 1);
@@ -2829,8 +2893,9 @@ function fire(w, p, ang, c, burst, vol) {
   const rail = !burst && p.railArmed; if (rail) { p.railArmed = false; dmg *= 1.35; kb *= 1.3; }
   if (!burst && p.riposteT > 0 && !p.riposteUsed) { p.riposteUsed = true; dmg *= 1.3; kb *= 1.3; } // Parry's riposte
   const take = k => { const v = !burst && p[k]; if (v) p[k] = false; return v; };
-  const recoil = take('recoilArmed'), seek = take('seekArmed'), swap = false, trick = take('trickArmed'), boom = take('boomArmed'), exec = take('execArmed');
+  const recoil = take('recoilArmed'), rocket = take('rocketArmed'), seek = take('seekArmed') || rocket, swap = false, trick = take('trickArmed'), boom = take('boomArmed'), exec = take('execArmed');
   if (boom) dmg *= 1.25;
+  if (rocket) { dmg *= 0.7; kb *= 0.6; speed *= ROCKET.speed; } // the blast does most of the work
   if (recoil) kb *= 1.6;
   if (full && has(p, 'boulder')) kb *= 1.3;
   if (p.emp && p.element === 'stone') kb *= 1.35; // Landslide
@@ -2846,10 +2911,10 @@ function fire(w, p, ang, c, burst, vol) {
       id: w.nid++, owner: p.id, team: p.team, color: p.color, own: p,
       x: p.x + Math.cos(a) * (p.r + 8), y: p.y + Math.sin(a) * (p.r + 8),
       vx: Math.cos(a) * speed * (rail ? 1.8 : 1), vy: Math.sin(a) * speed * (rail ? 1.8 : 1), v0: speed * (rail ? 1.8 : 1), ang: a, dist: 0, age: 0,
-      dmg, kb, full, crit: false, heavy, el, bolt, snare, rail, big: has(p, 'colossus'), seek, swap, boom, exec, drag: rail ? 0 : has(p, 'longbow') ? 0.2 : 0.45,
+      dmg, kb, full, crit: false, heavy, el, bolt, snare, rail, big: has(p, 'colossus') || rocket, seek, rocket, swap, boom, exec, drag: rail || rocket ? 0 : has(p, 'longbow') ? 0.2 : 0.45,
       burst: full && el && has(p, 'burst'), pierce: rail || boom ? 99 : full && has(p, 'pierce') ? 1 : 0, hit: [],
       split: full && has(p, 'split'), curve: has(p, 'curve'),
-      bounces: (p.pw.ricochet > 0 ? 2 : 0) + (has(p, 'ricochet') ? 1 : 0) + (trick ? 3 : 0), trick, explosive: p.pw.explosive > 0, life: p.role === 'ninja' && !boom ? 0.5 : 2.4, stuck: 0,
+      bounces: (p.pw.ricochet > 0 ? 2 : 0) + (has(p, 'ricochet') ? 1 : 0) + (trick ? 3 : 0), trick, explosive: p.pw.explosive > 0 || rocket, life: rocket ? ROCKET.life : p.role === 'ninja' && !boom ? 0.5 : 2.4, stuck: 0,
       vol: vol || null, sneak, xb, maxDist: xb && !rail ? p.xbowRange : 0,
     });
     if (xb) { const A = w.arrows[w.arrows.length - 1]; A.drag = 0.12; }
@@ -2861,16 +2926,16 @@ function fire(w, p, ang, c, burst, vol) {
 
 
 
-function explode(w, x, y, owner, team) {
-  ev(w, { e: 'boom', x: r1(x), y: r1(y) });
+function explode(w, x, y, owner, team, k = 1) { // k: size of the blast (a Rocket Arrow's is bigger)
+  ev(w, { e: 'boom', x: r1(x), y: r1(y), k: k !== 1 ? k : undefined });
   for (const p of w.players) {
     if (p.dead || p.falling > 0) continue;
     const dx = p.x - x, dy = p.y - y, d = Math.hypot(dx, dy);
-    if (d > 125 + p.r) continue;
-    const n = d || 1, force = 250 + 650 * Math.max(0, 1 - d / 130);
+    if (d > 125 * k + p.r) continue;
+    const n = d || 1, force = (250 + 650 * Math.max(0, 1 - d / (130 * k))) * (k > 1 ? 1.25 : 1);
     if (p.id === owner) { // rocket jump: knockback, no damage
       p.vx += dx / n * force * 0.8; p.vy += dy / n * force * 0.8; p.knock = Math.max(p.knock, 0.35);
-    } else if (p.team !== team) hurt(w, p, 8, dx / n * force, dy / n * force, 'blast', owner);
+    } else if (p.team !== team) hurt(w, p, 8 * k, dx / n * force, dy / n * force, 'blast', owner);
   }
 }
 
@@ -2986,6 +3051,8 @@ function stepBody(w, f, mx, my, dt) {
   if (f.falling > 0) {
     f.falling += dt;
     f.x += f.vx * dt * 0.3; f.y += f.vy * dt * 0.3;
+    // a hard knock used to carry a falling archer right past the hole; now they bounce off its inside walls
+    if (f.fallHaz) bounceInHaz(f.fallHaz, f, f.r * 0.45);
     if (f.falling > 0.6) kill(w, f, f.fallCause || 'pit');
     return;
   }
@@ -3031,7 +3098,7 @@ function stepBody(w, f, mx, my, dt) {
   for (const h of HAZ) {
     if (h.type === 'tar' && inHaz(h, f.x, f.y)) inTar = true;
     else if (h.type === 'lava' && inHaz(h, f.x, f.y, -4)) inLava = true;
-    else if (h.type === 'pit' && inHaz(h, f.x, f.y, -f.r * 0.35)) { inPit = true; f.fallCause = h.water ? 'water' : 'pit'; }
+    else if (h.type === 'pit' && inHaz(h, f.x, f.y, -f.r * 0.35)) { inPit = true; f.fallCause = h.water ? 'water' : 'pit'; f.fallHaz = h; }
   }
   if (airborne) { inLava = false; inPit = false; }
   if (inTar && !f.inTar && !f.sure && f.knock > 0 && Math.hypot(f.vx, f.vy) > 140) {
@@ -3331,6 +3398,7 @@ function useAbility(w, p, id) {
     case 'fanbolt': p.fanArmed = true; ev(w, { e: 'armed', id: p.id, k: 'fanbolt' }); return true;
     case 'recoil': p.recoilArmed = true; ev(w, { e: 'armed', id: p.id, k: 'recoil' }); return true;
     case 'seeker': p.seekArmed = true; ev(w, { e: 'armed', id: p.id, k: 'seeker' }); return true;
+    case 'rocket': p.rocketArmed = true; ev(w, { e: 'armed', id: p.id, k: 'rocket' }); return true;
     case 'trick': p.trickArmed = true; ev(w, { e: 'armed', id: p.id, k: 'trick' }); return true;
     case 'boomerang': p.boomArmed = true; ev(w, { e: 'armed', id: p.id, k: 'boomerang' }); return true;
     case 'execute': p.execArmed = true; ev(w, { e: 'armed', id: p.id, k: 'execute' }); return true;
@@ -3716,7 +3784,7 @@ function separate(w) {
 function stickArrow(w, a, t) {
   a.stuck = t; a.vx = a.vy = 0;
   if (a.own && a.own.emp && a.own.element === 'flame' && !a.own.dead) blazePatch(w, a.own, clamp(a.x, WALL + 22, AW - WALL - 22), clamp(a.y, WALL + 22, AH - WALL - 22), 32, 2.2);
-  if (a.explosive) { explode(w, a.x, a.y, a.owner, a.team); a.stuck = 0.01; }
+  if (a.explosive) { explode(w, a.x, a.y, a.owner, a.team, a.rocket ? ROCKET.blast : 1); a.stuck = 0.01; }
   else ev(w, { e: 'thunk', x: r1(a.x), y: r1(a.y) });
 }
 
@@ -3831,6 +3899,8 @@ function onArrowEffects(w, a, f, primary) {
 const BULLSEYE = 0.4, CRIT_MUL = 1.5;
 // a pin needs a full-draw hit, then a slam into a wall or boulder within PIN_WINDOW seconds at PIN_SPEED or faster
 const NB_WIND = 0.05, NB_MOVE = 0.09; // Ninja blink: wind-up, then travel time
+// Rocket Arrow: slow, big, homes hard for its whole flight, and its blast is half as big again
+const ROCKET = { speed: 0.3, power: 2.6, life: 3.2, blast: 1.5 };
 const ASSIST_LANE = 220, ASSIST_RAMP = 600, SEEK = { power: 1.4, lane: 340, base: 0.6 }; // Seeker Arrow: between the Heavy and Extreme rules, with a wider lane, and it turns firmly from the start; // arrow homing: how far either side of your line of fire it looks for a target (at any range), and the distance over which its turning ramps up
 const XBOW_RANGE = 480, XBOW_RELOAD = 1.15, XBOW_GAP = 0.16, AUTO_TIME = 2, AUTO_GAP = 0.12;
 // how far a player's shots reach before dropping, for roles with a short range (null: the whole arena)
@@ -3959,8 +4029,8 @@ function updateArrows(w, dt) {
     // picks the enemy nearest its straight line of fire (ahead of it, at any distance, within its lane either side),
     // then bends only toward them for the rest of its flight; it never switches to someone else it passes.
     // A Seeker Arrow has a wider lane, turns much harder, and aims at where its target is heading.
-    const assist = a.seek ? SEEK.power : OPTIONS.assist.values[(CFG.opt || {}).assist] || 0;
-    if (assist > 0 && !a.back && !a.rail && a.age < (a.seek ? 2.2 : 1.5)) {
+    const assist = a.rocket ? ROCKET.power : a.seek ? SEEK.power : OPTIONS.assist.values[(CFG.opt || {}).assist] || 0;
+    if (assist > 0 && !a.back && !a.rail && a.age < (a.rocket ? ROCKET.life : a.seek ? 2.2 : 1.5)) {
       const h = Math.atan2(a.vy, a.vx), ux = Math.cos(h), uy = Math.sin(h);
       if (a.assistT === undefined) {
         a.assistT = null; let bs = a.seek ? SEEK.lane : ASSIST_LANE;
@@ -4104,7 +4174,7 @@ function updateArrows(w, dt) {
             ev(w, { e: 'swap', x1: r1(o.x), y1: r1(o.y), x2: r1(f.x), y2: r1(f.y) });
             o.x = f.x; o.y = f.y; f.x = ox; f.y = oy; o.vx = o.vy = 0; f.vx = -f.vx; f.vy = -f.vy; f.stuck = Math.max(f.stuck, 0.6); a.swap = false; // they keep flying away from you
           }
-          if (a.explosive) explode(w, a.x, a.y, a.owner, a.team);
+          if (a.explosive) explode(w, a.x, a.y, a.owner, a.team, a.rocket ? ROCKET.blast : 1);
           if (a.pierce > 0 && !a.explosive) { a.pierce--; a.hit.push(f.id); if (!a.rail && !a.boom) { a.vx *= 0.8; a.vy *= 0.8; } continue; }
           w.arrows.splice(i, 1);
           continue outer;
@@ -4130,7 +4200,7 @@ function updateArrows(w, dt) {
     if (a.life <= 0 || Math.hypot(a.vx, a.vy) < 170) {
       a.stuck = 1.2; a.vx = a.vy = 0;
       if (a.own && a.own.emp && a.own.element === 'flame' && !a.own.dead) blazePatch(w, a.own, a.x, a.y, 32, 2.2);
-      if (a.explosive) { explode(w, a.x, a.y, a.owner, a.team); a.stuck = 0.01; }
+      if (a.explosive) { explode(w, a.x, a.y, a.owner, a.team, a.rocket ? ROCKET.blast : 1); a.stuck = 0.01; }
     }
   }
   for (const b of born) w.arrows.push(b);
@@ -4725,6 +4795,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
       case 'parry': use = (foes.some(q => q.drawing && q.charge > 0.55 && Math.hypot(q.x - p.x, q.y - p.y) < 650 && angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.18)
         || w.arrows.some(a => a.team !== p.team && !a.stuck && shotAt(a, p))) && Math.random() < dt * 6; break; // a bow being drawn at them, or a shot (shuriken, bolt) already on its way
       case 'seeker': use = chg > 0.5 && !!T && dT > 220; break;
+      case 'rocket': use = chg > 0.6 && !!T && dT > 260 && !p.rocketArmed; break;
       case 'trick': use = chg > 0.55 && !!T && dT > 200 && !p.trickArmed; break;
       case 'boomerang': use = chg > 0.6 && !!T && dT < 440; break;
       case 'execute': use = !!T && T.hp < T.maxHp * 0.45 && chg > 0.3; break;
@@ -5303,7 +5374,7 @@ function snapshot(w) {
         da: p.dashT > 0 ? 1 : 0, hl: p.healing ? 1 : 0, dn: p.dashN, dk: p.dashMaxN, ra: p.rallied ? 1 : 0,
         ab: p.slots.slice(), ac: p.abCd.map(r1), fz: p.frozen > 0 ? 1 : 0, sx: p.dashLock > 0 ? 1 : 0, ov: p.over >= 1 ? 1 : 0,
         sn: p.snare ? 1 : 0, vl: p.volleyArmed ? 1 : 0, rl: p.railArmed ? 1 : 0,
-        arm: p.recoilArmed ? 'recoil' : p.seekArmed ? 'seeker' : p.trickArmed ? 'trick' : p.boomArmed ? 'boomerang' : p.execArmed ? 'execute' : undefined,
+        arm: p.recoilArmed ? 'recoil' : p.rocketArmed ? 'rocket' : p.seekArmed ? 'seeker' : p.trickArmed ? 'trick' : p.boomArmed ? 'boomerang' : p.execArmed ? 'execute' : undefined,
         sr: p.shroudT > 0 ? p.shroudR : undefined, rsh: p.rush ? 1 : 0, sk: p.strikeN || 0, nb: p.nblink ? 1 : 0, ft: p.fortT > 0 ? 1 : 0, wd: p.windT > 0 ? 1 : 0, ph: p.phaseT > 0 ? 1 : 0, gr: p.grap ? [r1(p.grap.x), r1(p.grap.y)] : 0, rp: r2(p.revP || 0), rv: p.reviveUsed ? 1 : 0, fl: p.flash > 0 ? 1 : 0, dc: r2(p.dashCd), dm: p.dashCdMax, d: p.dead ? 1 : 0,
         k: p.kills, de: p.deaths, am: p.amber, er: p.earned, up: p.up.slice(), hn: p.hones ? Object.assign({}, p.hones) : p.hones, el: p.element, ro: p.role,
         of: p.offer ? JSON.parse(JSON.stringify(p.offer)) : p.offer, pk: p.picked ? 1 : 0, po: p.poisonN, dz: p.disarm > 0 ? 1 : 0, hc: p.hcap || 0, dfl: p.deflectT > 0 ? 1 : 0, pr: p.parryT > 0 ? (p.parryAuto ? 2 : 1) : 0, su: p.stunT > 0 ? 1 : 0, rg: rangeOf(w, p) || undefined, sm: p.role === 'ninja' || p.role === 'crossbow' ? undefined : r2(shotSpeed(p, 1) / 1300), dg: p.role === 'ninja' || p.role === 'crossbow' ? undefined : (p.railArmed ? 0 : has(p, 'longbow') ? 0.2 : 0.45), xr: p.role === 'crossbow' ? (p.bolts >= p.xbowMax ? 1 : r2(p.reloadT)) : undefined, xn: p.role === 'crossbow' ? p.bolts : undefined, xm: p.role === 'crossbow' ? p.xbowMax : undefined, xf: p.fanArmed ? 1 : 0, rpt: p.repeatT > 0 ? 1 : 0, au: p.autoT > 0 ? r2(p.autoT) : 0, fo: p.focusT > 0 ? 1 : 0, ts: p.trapSet ? [r1(p.trapSet.x), r1(p.trapSet.y), r2(1 - p.trapSet.t / TRAP_SET)] : undefined, ti: p.title || undefined, pn: p.pinned > 0 && p.stuck > 0 ? 1 : 0, pa: p.pinned > 0 ? r2(p.pinAng || 0) : undefined, sg: p.staggerT > 0 ? 1 : 0, mk: p.markT > 0 ? 1 : 0, sth: p.stealthT > 0 ? 1 : 0, amb: p.ambushT > 0 ? 1 : 0, bs: p.bot && p.ai.style ? p.ai.style : undefined, dv: p.bot && !p.dparams ? p.diff : undefined, em: p.emp ? 1 : 0, sk: p.streak, lh: p.lastHow, ep: Math.min(p.empPts, EMPOWER_AT), rz: r1(p.r),
@@ -5312,7 +5383,7 @@ function snapshot(w) {
       };
     }),
     b: w.ball ? { x: r1(w.ball.x), y: r1(w.ball.y), r: w.ball.r, o: w.ball.out > 0 ? 1 : 0, s: r2(w.ball.spin % TAU) } : undefined,
-    a: w.arrows.map(a => ({ id: a.id, o: a.owner, x: r1(a.x), y: r1(a.y), g: r3(a.ang), s: a.stuck > 0 ? r2(a.stuck) : 0, c: a.color, cr: a.full ? 1 : 0, ex: a.explosive ? 1 : 0, rl: a.rail ? 1 : 0, bg: a.big ? 1 : 0, sk: a.seek ? 1 : 0, bm: a.boom ? 1 : 0, sw: a.swap ? 1 : 0, xq: a.exec ? 1 : 0, sh: a.shur ? (a.dbl ? 2 : 1) : 0, xb: a.xb ? 1 : 0, hv: a.heavy ? 1 : 0, el: a.el, b: a.bolt ? 1 : 0, sn: a.snare ? 1 : 0 })),
+    a: w.arrows.map(a => ({ id: a.id, o: a.owner, x: r1(a.x), y: r1(a.y), g: r3(a.ang), s: a.stuck > 0 ? r2(a.stuck) : 0, c: a.color, cr: a.full ? 1 : 0, ex: a.explosive ? 1 : 0, rl: a.rail ? 1 : 0, bg: a.big ? 1 : 0, sk: a.seek ? 1 : 0, rk: a.rocket ? 1 : 0, bm: a.boom ? 1 : 0, sw: a.swap ? 1 : 0, xq: a.exec ? 1 : 0, sh: a.shur ? (a.dbl ? 2 : 1) : 0, xb: a.xb ? 1 : 0, hv: a.heavy ? 1 : 0, el: a.el, b: a.bolt ? 1 : 0, sn: a.snare ? 1 : 0 })),
     z: w.zones.filter(z => !(z.delay > 0)).map(z => ({ id: z.id, ty: z.ty, x: r1(z.x), y: r1(z.y), x2: z.x2 != null ? r1(z.x2) : undefined, y2: z.y2 != null ? r1(z.y2) : undefined, r: z.r, cr: z.core, t: r2(z.t), tm: z.team, o: z.owner })),
     u: w.pickups.map(u => ({ id: u.id, x: r1(u.x), y: r1(u.y), ty: u.type, ag: r1(u.age), li: u.life, cp: u.chan ? r2(u.cp) : undefined, ct: u.chan ? u.ct : undefined, cs: u.chan ? u.cs : undefined })),
   };
@@ -5459,7 +5530,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.30.1';
+const PAGE_VERSION = '0.31.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -5766,7 +5837,7 @@ const sfx = {
 };
 const syncMute = () => { $('muteBtn').textContent = muted ? 'Sound off' : 'Sound on'; const m = $('oMute'); if (m) m.value = muted ? '1' : '0'; };
 // options, kept in this browser
-const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') === '1', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto') };
+const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') === '1', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), detail: store.get('bowfall-detail', 'full') };
 const outNode = () => { if (!AC.master) { AC.master = AC.createGain(); AC.master.connect(AC.destination); } AC.master.gain.value = OPTS.vol / 100; return AC.master; };
 syncMute();
 $('muteBtn').onclick = () => { muted = !muted; syncMute(); initAudio(); store.set('bowfall-muted', muted ? '1' : '0'); };
@@ -6145,6 +6216,7 @@ let W = 1, H = 1, DPR = 1, VS = 1, OX = 0, OY = 0, RSCALE = 1;
 const perf = { ema: 1 / 60, t: 0, low: false, lowT: 0 };
 // light effects: chosen in Options, or switched on by Automatic while the game can't keep up even at its lowest resolution
 const lightFx = () => OPTS.fx === 'light' || (OPTS.fx === 'auto' && perf.low);
+const fullDetail = () => OPTS.detail !== 'low' && !lightFx(); // arena dressing: ambient drift, cloud shadows, lava glow and embers, night tints
 function perfTick(dt) {
   perf.ema += (dt - perf.ema) * 0.05; perf.t += dt;
   if (mode !== 'menu' && OPTS.fx === 'auto') {
@@ -6166,7 +6238,8 @@ function resize() {
   const top = mode === 'menu' ? 12 : 64;
   const right = mode !== 'menu' && W > 1000 ? 236 : 12;
   VS = Math.min((W - 12 - right) / AW, (H - top - 12) / AH);
-  OX = 12 + (W - 12 - right - AW * VS) / 2;
+  // centred in the window when the arena fits beside the scoreboard; otherwise as close to centred as the scoreboard allows
+  OX = Math.max(12, Math.min((W - AW * VS) / 2, W - right - AW * VS));
   OY = top + (H - top - 12 - AH * VS) / 2;
   if (bigMap() && mode !== 'menu') camApply();
   // end-of-game cards sit in the middle of the arena, not the middle of the window
@@ -7246,7 +7319,8 @@ async function progShow() {
   const cr = (A.crests || 0) - (B.crests || 0), fw = A.firstWinDay && A.firstWinDay !== B.firstWinDay;
   if (cr > 0) rows.push(`<div class="pr"><span>Crests</span><span class="status">${fw ? 'Includes your <b>first win of the day</b> bonus' : firstWinReady() ? 'Win a match today for a first-win bonus' : ''}</span><em>+${cr.toLocaleString()}</em></div>`);
   el.innerHTML = rows.join(''); el.hidden = false;
-  requestAnimationFrame(() => requestAnimationFrame(() => el.querySelectorAll('.bar i').forEach(i => { i.style.width = i.dataset.to + '%'; })));
+  const ups = (l1 > l0 ? 1 : 0) + el.querySelectorAll('.lvup').length;
+  requestAnimationFrame(() => requestAnimationFrame(() => { el.querySelectorAll('.bar i').forEach((i, n) => { i.style.width = i.dataset.to + '%'; setTimeout(() => { if (!muted) os('sine', 700 + n * 120, 1100 + n * 120, 0.12, 0.03); }, 150 + n * 180); }); if (ups) setTimeout(() => fanfare([659, 880, 1109, 1319], 'triangle', 0.05, 95), 900); else if (cr > 0) setTimeout(() => fanfare([988, 1319], 'sine', 0.035, 110), 900); }));
   drawMastChips();
 }
 function syncArch(me) {
@@ -7370,10 +7444,12 @@ function renderDraft(v) {
   setC('dfOpen', R.draft != null, x => { if (x) sfx.draft(); });
   setC('dfT', left, x => { $('dfTimer').textContent = x == null ? '–' : x; $('dfTimer').classList.toggle('low', x != null && x <= 5); if (x != null && x <= 5 && x > 0) sfx.count(x); });
   const ready = R.ready || [];
-  setC('dfTeams', JSON.stringify([v.p.map(p => [p.id, p.n, p.tm, p.el, p.ro, p.b, p.c]), ready]), () => {
+  // everyone's banner, as a lobby shows it; the other team's picks stay hidden until the match starts
+  const myTeam = me && me.tm;
+  setC('dfTeams', JSON.stringify([v.p.map(p => [p.id, p.n, p.tm, p.el, p.ro, p.b, p.c, p.bd, p.fin, p.sc, p.ti, p.na, p.lv]), ready, myTeam]), () => {
     $('dfTeams').innerHTML = TEAMS.map(t => `<div><h3 style="color:${TEAM_COL[t]}">${teamName(t)}</h3>` + v.p.filter(p => p.tm === t).map(p => {
-      const lp = LP.list.find(l => l.pid === p.id), on = p.b || ready.includes(p.id);
-      return `<div class="dfp"><span class="dot" style="background:${p.c}"></span><span class="nm"><b>${esc(p.n)}</b>${ownHtml(p.ow)}${statusHtml(p)}${p.b ? '<span class="aitag">AI</span>' : ''}${p.id === myId ? ' <small>(you)</small>' : ''}${lp ? ` <span class="lptag" style="--pc:${lpColor(lp.n)}">P${lp.n}</span>` : ''}${medalsHtml(p.sc, 13)}</span><span class="rdy${on ? ' on' : ''}">${on ? 'Ready' : 'Picking…'}</span><small class="status">${esc(archName(p))}</small></div>`;
+      const lp = LP.list.find(l => l.pid === p.id), on = p.b || ready.includes(p.id), hide = t !== myTeam;
+      return `<div class="dfp"><span class="dot" style="background:${p.c}"></span><span class="nm slot bn"><span class="nm plate${plateClass(p)}"${plateStyle(p)}><span class="pl1">${idHtml(p)}<b>${esc(p.n)}</b>${ownHtml(p.ow)}${statusHtml(p)}${trophyHtml(p.na)}${medalsHtml(p.sc)}${p.ti ? ` <em class="ttl">${esc(titleName(p.ti))}</em>` : ''}</span></span>${p.b ? '<span class="aitag">AI</span>' : ''}${p.id === myId ? ' <small>(you)</small>' : ''}${lp ? ` <span class="lptag" style="--pc:${lpColor(lp.n)}">P${lp.n}</span>` : ''}</span><span class="rdy${on ? ' on' : ''}">${on ? 'Ready' : 'Picking…'}</span><small class="status">${hide ? '<span class="hid">Archetype hidden until the match starts</span>' : esc(archName(p))}</small></div>`;
     }).join('') + '</div>').join('');
   });
   setC('dfArch', me ? me.el + me.ro : '', () => { if (me) { syncArch(me); $('dfArch').textContent = archName(me); } });
@@ -7407,7 +7483,19 @@ function renderResRated() {
   const el = $('resRated'); if (!el) return;
   if (RATED.now == null || RATED.match !== (roomInfo && roomInfo.code)) { el.hidden = true; return; }
   const d = Math.round(RATED.now - RATED.start);
-  el.hidden = false; el.innerHTML = `Your ${(RATED.kind || 'rating').toLowerCase()} <b>${RATED.now}</b> <em class="${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '+' : '−'}${Math.abs(d)} this match</em>`;
+  el.hidden = false; el.innerHTML = `Your ${(RATED.kind || 'rating').toLowerCase()} <b class="ticking">${RATED.start}</b> <em class="${d >= 0 ? 'up' : 'down'}" style="opacity:0">${d >= 0 ? '+' : '−'}${Math.abs(d)} this match</em>`;
+  if (RATED.ticked === RATED.match) { el.querySelector('b').textContent = RATED.now; el.querySelector('em').style.opacity = 1; return; }
+  RATED.ticked = RATED.match;
+  // the number counts from the old rating to the new one, a tick a step, then the change fades in
+  const b = el.querySelector('b'), em = el.querySelector('em'), steps = Math.min(40, Math.abs(d)), t0 = performance.now() + 900, dur = 400 + Math.min(1400, Math.abs(d) * 30);
+  let shown = 0;
+  const run = now => {
+    if (!el.isConnected || el.hidden) return;
+    const k = Math.max(0, Math.min(1, (now - t0) / dur)), e = 1 - Math.pow(1 - k, 2), n = Math.round(e * steps);
+    if (n > shown) { shown = n; b.textContent = Math.round(RATED.start + d * e); if (!muted) tone(d >= 0 ? 880 + 14 * n : 620 - 8 * n, 0.045, 'triangle', 0.03); }
+    if (k < 1) requestAnimationFrame(run); else { b.textContent = RATED.now; em.style.transition = 'opacity .4s'; em.style.opacity = 1; if (!muted) fanfare(d >= 0 ? [1047, 1319] : [440, 370], 'triangle', 0.04, 90); }
+  };
+  requestAnimationFrame(run);
 }
 
 // ================= extra players on controllers (the same screen) =================
@@ -7848,8 +7936,9 @@ function renderFind() {
   const pkey = JSON.stringify(members) + (party && party.leader) + lead;
   if (hc.fgParty !== pkey) {
     hc.fgParty = pkey;
+    const plateOf = p => { const L = Object.assign({ n: p.name, lv: p.lv, cc: p.cc, ow: p.own, sp: p.sp, fd: p.fd, pt: p.pt }, p.look || {}); return `<span class="nm plate${plateClass(L)}"${plateStyle(L)}><span class="pl1">${idHtml(L)}<b>${esc(p.name)}</b>${ownHtml(p.own)}${statusHtml(p)}${trophyHtml(L.na)}${medalsHtml(L.sc)}${L.ti ? ` <em class="ttl">${esc(titleName(L.ti))}</em>` : ''}</span></span>`; };
     $('fgParty').innerHTML = !st ? '<div class="status">Connecting…</div>' : members.map((p, i) => `<div class="fr mem"><canvas data-av="${i}" width="76" height="76"></canvas>` +
-      `<b>${rankHtml(p.lv)}${flagHtml(p.cc)}${esc(p.name)}${ownHtml(p.own)}${statusHtml(p)}${p.key === me ? ' <small class="status">(you)</small>' : ''}${party && p.key === party.leader && party.members.length > 1 ? '<span class="lead">Leader</span>' : ''}</b>` +
+      `<b class="slot bn">${plateOf(p)}${p.key === me ? ' <small class="status">(you)</small>' : ''}${party && p.key === party.leader && party.members.length > 1 ? '<span class="lead">Leader</span>' : ''}</b>` +
       `<small>${p.inGame ? '<span class="fgwait">In a game</span> · ' : ''}Rating ${mode === '1v1' ? p.elo : p.eloT}${p.games ? ` · ${p.games} games` : ''}${p.local ? ' · on this screen' : ''}</small><div class="btnrow">${party && lead && p.key !== me ? `<button class="ghost sm" type="button" data-kick="${esc(p.key)}">Remove</button>` : ''}</div></div>`).join('') +
       (party && party.members.length > 1 ? `<button class="ghost sm" type="button" id="fgLeave">Leave party</button>` : '') +
       (st && st.account && members.length < 3 ? '<span class="status">Invite friends from the list below to play together (up to 3).</span>' : '');
@@ -8407,15 +8496,18 @@ function drawCrown(x, y, w) {
 }
 function teamsHtml(v) {
   const host = isHost(), me = v.p.find(p => p.id === myId), hostId = mode === 'local' ? myId : roomInfo && roomInfo.host;
+  const ranked = mode === 'online' && !!(roomInfo && roomInfo.ranked), myTeam = me && me.tm;
   return TEAMS.map(t => {
     const list = v.p.filter(p => p.tm === t).sort((a, b) => a.b - b.b);
-    const slots = list.map(p => `<div class="slot" data-card="p${p.id}"><i class="dot" style="background:${p.c}"></i><span class="nm plate${plateClass(p)}"${plateStyle(p)}><span class="pl1">${idHtml(p)}<b>${esc(p.n)}</b>${ownHtml(p.ow)}${statusHtml(p)}${trophyHtml(p.na)}${medalsHtml(p.sc)}${p.ti ? ` <em class="ttl">${esc(titleName(p.ti))}</em>` : ''}</span><small>${esc(archName(p))}</small></span>` +
+    // in a ranked lobby the other team's picks stay hidden until the match starts
+    const hideArch = ranked && v.m.ph === 'lobby' && t !== myTeam;
+    const slots = list.map(p => `<div class="slot" data-card="p${p.id}"><i class="dot" style="background:${p.c}"></i><span class="nm plate${plateClass(p)}"${plateStyle(p)}><span class="pl1">${idHtml(p)}<b>${esc(p.n)}</b>${ownHtml(p.ow)}${statusHtml(p)}${trophyHtml(p.na)}${medalsHtml(p.sc)}${p.ti ? ` <em class="ttl">${esc(titleName(p.ti))}</em>` : ''}</span><small>${hideArch ? '<span class="hid">Archetype hidden</span>' : esc(archName(p))}</small></span>` +
       (p.id === myId ? '<span class="tag you">You</span>' : '') + (p.id === hostId && mode === 'online' ? '<span class="tag">Host</span>' : '') +
-      (p.b ? (p.dv && host ? botSkillHtml(p) : `<span class="tag">${p.dv ? esc(BOT_SKILL[p.dv] || 'Bot') : 'Bot'}</span>`) : '') + hcapHtml(p, host) +
+      (p.b && !ranked ? (p.dv && host ? botSkillHtml(p) : `<span class="tag">${p.dv ? esc(BOT_SKILL[p.dv] || 'Bot') : 'Bot'}</span>`) : '') + (p.b && ranked ? '<span class="aitag" title="AI player">AI</span>' : '') + (ranked ? '' : hcapHtml(p, host)) +
       (p.b && host ? `<button type="button" class="xbtn" data-rm="${p.id}" aria-label="Remove ${esc(p.n)}">×</button>` : '') + '</div>').join('');
     const open = Array.from({ length: MAX_TEAM - list.length }, () => '<div class="slot empty">Open slot</div>').join('');
     const full = list.length >= MAX_TEAM;
-    const canJoin = me ? me.tm !== t && !full : mode === 'online' && ['lobby', 'over', 'post'].includes(v.m.ph) && (!full || list.some(p => p.b));
+    const canJoin = ranked ? false : me ? me.tm !== t && !full : mode === 'online' && ['lobby', 'over', 'post'].includes(v.m.ph) && (!full || list.some(p => p.b));
     const foot = (canJoin ? `<button type="button" class="ghost sm" data-join="${t}">Join ${teamName(t)}</button>` : '') +
       (host && !full ? `<button type="button" class="ghost sm" data-addbot="${t}">+ Add bot</button>` : '');
     return `<div class="tcol" data-navsec style="--tc:${TEAM_COL[t]}"><div class="thead"><b>${teamName(t)}</b><span>${list.length} / ${MAX_TEAM}</span></div>${slots}${open}` +
@@ -8572,15 +8664,25 @@ function renderLobby(v) {
   });
 }
 function renderMenu(v) {
-  const online = mode === 'online', host = isHost();
-  setC('gmHead', mode + host, () => {
-    $('gmEyebrow').textContent = online ? 'Menu · the match keeps running' : 'Paused';
-    $('gmRoom').hidden = !online;
+  const online = mode === 'online', host = isHost(), ranked = online && !!(roomInfo && roomInfo.ranked), drill = TR.on || TUT.on;
+  // a ranked match has no room code (nobody can join by code) and no bot settings; a drill or the tutorial has no teams to show
+  setC('gmHead', mode + host + ranked + drill, () => {
+    $('gmEyebrow').textContent = drill ? (TUT.on ? 'Tutorial · paused' : 'Drill · paused') : ranked ? 'Menu · the match keeps running' : online ? 'Menu · the match keeps running' : 'Paused';
+    $('gmRoom').hidden = !online || ranked;
     if (online && roomInfo) { $('gmCode').textContent = roomInfo.code; $('gmShare').textContent = 'Friends join with this code or the invite link.'; }
-    $('endBtn').hidden = !host;
+    $('endBtn').hidden = !host || ranked;
     $('gmDiff').disabled = !host;
+    $('gmDiffWrap').hidden = ranked || drill;
+    $('gmTeams').hidden = drill;
+    $('gmNote').childNodes[0].textContent = drill ? 'Leave the drill from its panel, or carry on. ' : ranked ? 'The match keeps running while this menu is open. ' : 'Changing team, or a bot joining mid-round, sits out until the next round. ';
   });
-  setC('gm', JSON.stringify(v.p.map(p => [p.id, p.n, p.tm, p.b, p.dv, p.c])) + host + myId + v.m.ph + JSON.stringify(roomInfo && roomInfo.spec), () => { $('gmTeams').innerHTML = teamsHtml(v); });
+  if (!drill) setC('gm', JSON.stringify(v.p.map(p => [p.id, p.n, p.tm, p.b, p.dv, p.c, p.hc])) + host + myId + v.m.ph + ranked + JSON.stringify(roomInfo && roomInfo.spec), () => { $('gmTeams').innerHTML = teamsHtml(v); });
+  const me = v.p.find(p => p.id === myId), hn = (me && me.hn) || {}, ups = (me && me.up) || [];
+  setC('gmBuild', ups.join() + JSON.stringify(hn) + v.m.ph, () => {
+    const show = !!me && ['pick', 'pre', 'play', 'post'].includes(v.m.ph) && !drill;
+    $('gmBuild').hidden = !show;
+    if (show) $('gmBuildList').innerHTML = (ups.map(id => `<span>${esc(TREE[id].name)}</span>`).join('') + Object.keys(hn).map(h => `<span class="hone">${esc(HONES[h].name)} ×${hn[h]}</span>`).join('')) || '<span class="status">None yet. You pick one after each round.</span>';
+  });
   setC('gmDiffV', v.m.df, x => { $('gmDiff').value = x; });
 }
 
@@ -8613,7 +8715,7 @@ $('scTabs').addEventListener('click', e => { const b = e.target.closest('[data-s
 $('scBody').addEventListener('click', e => { const b = e.target.closest('[data-scr]'); if (b) { SC.role = b.dataset.scr; renderScores(); } });
 function syncOptions() {
   $('oVol').value = OPTS.vol; $('oVolN').textContent = OPTS.vol + '%'; $('oMute').value = muted ? '1' : '0';
-  $('oRes').value = OPTS.res; $('oFx').value = OPTS.fx; $('oShadow').value = OPTS.shadow; $('oPart').value = String(OPTS.part); $('oShake').value = OPTS.shake ? '1' : '0';
+  $('oRes').value = OPTS.res; $('oFx').value = OPTS.fx; $('oShadow').value = OPTS.shadow; $('oGlow').value = OPTS.glow; $('oDetail').value = OPTS.detail; $('oPart').value = String(OPTS.part); $('oShake').value = OPTS.shake ? '1' : '0';
   $('oDmg').value = OPTS.dmg; $('oGuide').value = OPTS.guide ? '1' : '0'; $('oNet').value = OPTS.net ? '1' : '0';
 }
 $('oNet').onchange = () => { OPTS.net = $('oNet').value === '1'; store.set('bowfall-net', OPTS.net ? '1' : '0'); };
@@ -8623,6 +8725,8 @@ $('oMute').onchange = () => { muted = $('oMute').value === '1'; store.set('bowfa
 $('oRes').onchange = () => { OPTS.res = $('oRes').value; store.set('bowfall-res', OPTS.res); RSCALE = 1; resize(); floorCv = null; };
 $('oFx').onchange = () => { OPTS.fx = $('oFx').value; store.set('bowfall-fx', OPTS.fx); perf.low = false; };
 $('oShadow').onchange = () => { OPTS.shadow = $('oShadow').value; store.set('bowfall-shadow', OPTS.shadow); };
+$('oGlow').onchange = () => { OPTS.glow = $('oGlow').value; store.set('bowfall-glow', OPTS.glow); };
+$('oDetail').onchange = () => { OPTS.detail = $('oDetail').value; store.set('bowfall-detail', OPTS.detail); floorCv = null; };
 $('oPart').onchange = () => { OPTS.part = +$('oPart').value; store.set('bowfall-part', OPTS.part); };
 $('oShake').onchange = () => { OPTS.shake = $('oShake').value === '1'; store.set('bowfall-shake', OPTS.shake ? '1' : '0'); };
 $('oDmg').onchange = () => { OPTS.dmg = $('oDmg').value; store.set('bowfall-dmgnum', OPTS.dmg); };
@@ -8969,19 +9073,24 @@ function handleEvents(evs) {
         else floater(e.x + rand(-6, 6), e.y, String(e.v), 'rgba(235,238,242,0.8)', 13);
         break;
       case 'block': floater(e.x, e.y, 'Blocked', '#c7b3ff', 13); break;
-      case 'boom':
-        fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0 });
-        burst(e.x, e.y, '#ff8a3d', 28, 320, 4); burst(e.x, e.y, '#ffe066', 14, 200, 3);
-        sfx.boom(); shake(8); break;
+      case 'boom': {
+        const k = e.k || 1; // a Rocket Arrow's blast is bigger
+        fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, max: 120 * k }); if (k > 1) fx.rings.push({ x: e.x, y: e.y, r: 10, life: -0.08, max: 220 });
+        burst(e.x, e.y, '#ff8a3d', Math.round(28 * k), 320 * k, 4); burst(e.x, e.y, '#ffe066', Math.round(14 * k), 200 * k, 3);
+        if (k > 1) { burst(e.x, e.y, '#4a4a4a', 18, 140, 6); impact(0.05); }
+        sfx.boom(); shake(8 * k); break; }
       case 'pick': {
         const d = puInfo(e.ty); burst(e.x, e.y, d.color, e.ty === 'amber' ? 10 : 18, 170);
         if (e.id === myId) { sfx.pick(); floater(e.x, e.y - 20, d.name, d.color, 15); }
         break;
       }
       case 'puSpawn': burst(e.x, e.y, puInfo(e.ty).color, 8, 80); break;
-      case 'fall': sfx.fall(); break;
+      case 'fall': { sfx.fall(); const water = THEME.water || HAZ.some(h => h.type === 'pit' && h.water && Math.hypot(h.x + (h.w || 0) / 2 - e.x, h.y + (h.h || 0) / 2 - e.y) < (h.r || Math.max(h.w, h.h)) + 20);
+        if (water) { fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '200,235,255', max: 70 }); burst(e.x, e.y, '#bfe8ff', 12, 150, 2.2); if (fullDetail()) burst(e.x, e.y, '#ffffff', 6, 90, 1.5); }
+        else { fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '60,40,25', max: 56 }); burst(e.x, e.y, '#4a3a2a', 10, 110, 3); }
+        break; }
       case 'spike': burst(e.x, e.y, '#c9d1dc', 10, 140); sfx.splat(); if (e.id === myId) shake(6); break;
-      case 'thud': burst(e.x, e.y, '#8d97a5', 8, 120); sfx.thunk(); if (e.id === myId) shake(4); break;
+      case 'thud': burst(e.x, e.y, '#8d97a5', 8, 120); if (fullDetail()) burst(e.x, e.y, 'rgba(200,185,150,0.7)', 8, 70, 4); sfx.thunk(); if (e.id === myId) shake(4); break; // and a puff of wall dust
       case 'thunk': sfx.thunk(0.4); break;
       case 'ping': tone(e.tk ? 1300 : 900, 0.05, 'square', 0.02); if (e.tk) { burst(e.x, e.y, '#ff78e6', 8, 120, 2); floater(e.x, e.y - 14, '+25%', '#ff78e6', 12); } break;
       case 'stuck': floater(e.x, e.y, 'Stuck!', '#b99be0', 14); noise(0.15, 0.07, 300); break;
@@ -9022,6 +9131,7 @@ function handleEvents(evs) {
         if (e.ph !== 'post') { $('gameSum').hidden = true; praiseTimers.forEach(clearTimeout); praiseTimers = []; if (RP.on) endReplay(); pendingSummary = null; }
         if (e.ph === 'pre') {
           myDeath = null; crackT = {};
+          if (e.gm === 1 && e.rd === 1) { const wp = $('wipe'); wp.classList.remove('go'); void wp.offsetWidth; wp.classList.add('go'); } // the arena is revealed as the first countdown starts
           if (e.gm === 1) banner('Round ' + e.rd, m ? `First to ${m.gtw} games · Points ${m.wr}–${m.wb}` : '');
           else banner('Game ' + e.gm, m ? `Round ${e.rd} · Games ${m.gr}–${m.gb}` : '');
           tone(330, 0.2, 'triangle', 0.05);
@@ -9299,7 +9409,7 @@ function updateFx(dt) {
   } else TRAIL.clear();
   for (let i = fx.parts.length - 1; i >= 0; i--) { const p = fx.parts[i]; p.life += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.94; p.vy *= 0.94; if (p.life > p.max) fx.parts.splice(i, 1); }
   for (let i = fx.floaters.length - 1; i >= 0; i--) { const f = fx.floaters[i]; f.life += dt; f.y -= 40 * dt; if (f.life > 0.9) fx.floaters.splice(i, 1); }
-  for (let i = fx.rings.length - 1; i >= 0; i--) { const r = fx.rings[i]; r.life += dt; r.r = 10 + ((r.max || 120) - 10) * Math.min(1, r.life / 0.25); if (r.life > 0.4) fx.rings.splice(i, 1); }
+  for (let i = fx.rings.length - 1; i >= 0; i--) { const r = fx.rings[i]; r.life += dt; r.r = 10 + ((r.max || 120) - 10) * Math.max(0, Math.min(1, r.life / 0.25)); if (r.life > 0.4) fx.rings.splice(i, 1); }
   for (let i = fx.ghosts.length - 1; i >= 0; i--) { fx.ghosts[i].life += dt; if (fx.ghosts[i].life > fx.ghosts[i].max) fx.ghosts.splice(i, 1); }
   for (const k of ['bolts', 'cones', 'ropes']) for (let i = fx[k].length - 1; i >= 0; i--) { fx[k][i].life += dt; if (fx[k][i].life > (fx[k][i].max || (k === 'ropes' ? 0.8 : 0.3))) fx[k].splice(i, 1); }
   if (fx.parts.length > 360) fx.parts.splice(0, fx.parts.length - 360);
@@ -9752,7 +9862,7 @@ function paintNight(g, R) {
 function drawNightLights(c) {
   const M = MAPS[MAPKEY]; if (!M) return;
   const fires = PILLARS.filter(p => p.kind === 'brazier').map(p => ({ x: p.x, y: p.y, big: 1 })).concat((M.lights || []).map(l => ({ x: l.x, y: l.y, big: l.big ? 1 : 0 })));
-  if (!lightFx()) {
+  if (fullDetail()) {
     // a warm, deep tint rather than a bright wash, so the ground (and anyone on it) stays easy to read
     ctx.save();
     for (const f of fires) {
@@ -10216,8 +10326,12 @@ function updateAmbient(dt) {
 
 function drawLava(h, c) {
   const [cx, cy] = hazCentre(h);
+  if (fullDetail() && !reduceMotion && Math.random() < 0.06 * OPTS.part) { // an ember lifts off the lava
+    const px = h.shape === 'circle' ? h.x + rand(-h.r, h.r) * 0.8 : h.x + rand(0, h.w), py = h.shape === 'circle' ? h.y + rand(-h.r, h.r) * 0.8 : h.y + rand(0, h.h);
+    fx.parts.push({ x: px, y: py, vx: rand(-10, 10), vy: rand(-45, -25), life: 0, max: rand(0.6, 1.1), color: Math.random() < 0.5 ? '#ffb347' : '#ff7a22', r: rand(1, 2) });
+  }
   if (h.shape === 'circle') {
-    if (!lightFx()) {
+    if (fullDetail()) {
       const glow = ctx.createRadialGradient(h.x, h.y, h.r * 0.6, h.x, h.y, h.r + 36);
       glow.addColorStop(0, `rgba(255,120,40,${0.28 + 0.06 * Math.sin(c * 2)})`); glow.addColorStop(1, 'rgba(255,120,40,0)');
       ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(h.x, h.y, h.r + 36, 0, TAU); ctx.fill();
@@ -10549,10 +10663,11 @@ function drawArena() {
   drawMapMech(ctx, mechDrawT, false);
   if (THEME.night) drawNightLights(c);
   ctx.save(); ctx.beginPath(); ctx.rect(WALL, WALL, AW - WALL * 2, AH - WALL * 2); ctx.clip();
-  if (!THEME.night) for (const cl of clouds) ctx.drawImage(cloudSprite(), cl.x - cl.r, cl.y - cl.r * 0.7, cl.r * 2, cl.r * 1.4);
+  const dress = fullDetail();
+  if (!THEME.night && dress) for (const cl of clouds) ctx.drawImage(cloudSprite(), cl.x - cl.r, cl.y - cl.r * 0.7, cl.r * 2, cl.r * 1.4);
   const embers = THEME.ambient === 'embers';
   for (const l of leaves) {
-    if (!THEME.ambient) break; // a pitch has nothing drifting over it
+    if (!THEME.ambient || !dress) break; // a pitch has nothing drifting over it; low detail has nothing drifting anywhere
     const col = THEME.leafCols[l.c];
     if (THEME.ambient === 'sand') {
       ctx.globalAlpha = 0.6; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(l.x, l.y, 1 + (l.c % 2) * 0.6, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
@@ -10740,10 +10855,19 @@ function drawPlayer(p, isMe, bare) {
   ctx.scale(sc, sc);
   if (!p.f) { ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(3, 5, R, R * 0.8, 0, 0, TAU); ctx.fill(); }
   if (!p.f && !bare) {
-    // a glow in the team's colour, so you can tell sides apart at a glance
-    if (!lightFx()) { const tg = ctx.createRadialGradient(0, 0, R * 0.7, 0, 0, R * 2.3);
-    tg.addColorStop(0, `rgba(${TEAM_RGB[p.tm]},0.42)`); tg.addColorStop(1, `rgba(${TEAM_RGB[p.tm]},0)`);
-    ctx.fillStyle = tg; ctx.beginPath(); ctx.arc(0, 0, R * 2.3, 0, TAU); ctx.fill(); }
+    // a glow in the team's colour, so you can tell sides apart at a glance. "Living": it breathes slowly, leans the way
+    // the archer is moving (like light trailing behind them), tightens and brightens as a bow is drawn and flares on a hit
+    if (!lightFx() && OPTS.glow !== 'ring') {
+      const live = OPTS.glow === 'live', sp = live ? Math.hypot(p.vx || 0, p.vy || 0) : 0, mv = Math.min(1, sp / 420);
+      const breathe = live ? 0.9 + 0.1 * Math.sin(clock * 2.1 + (+p.id || 0) * 1.7) : 1, draw = live ? (p.dr ? p.ch || 0 : 0) : 0, flash = live && p.fl ? Math.min(1, p.fl) : 0;
+      const reach = R * (2.3 - 0.5 * draw + 0.4 * flash) * breathe, al = 0.42 * breathe + 0.22 * draw + 0.3 * flash;
+      ctx.save();
+      if (live && mv > 0.02) { const ang = Math.atan2(p.vy, p.vx); ctx.rotate(ang); ctx.translate(-R * 0.45 * mv, 0); ctx.scale(1 + 0.35 * mv, 1 - 0.12 * mv); }
+      const tg = ctx.createRadialGradient(0, 0, R * 0.7, 0, 0, reach);
+      tg.addColorStop(0, `rgba(${TEAM_RGB[p.tm]},${al.toFixed(3)})`); tg.addColorStop(0.55, `rgba(${TEAM_RGB[p.tm]},${(al * 0.35).toFixed(3)})`); tg.addColorStop(1, `rgba(${TEAM_RGB[p.tm]},0)`);
+      ctx.fillStyle = tg; ctx.beginPath(); ctx.arc(0, 0, reach, 0, TAU); ctx.fill();
+      ctx.restore();
+    }
     ctx.strokeStyle = TEAM_COL[p.tm]; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(0, 5, R + 5, (R + 5) * 0.6, 0, 0, TAU); ctx.stroke();
   }
 
@@ -10865,7 +10989,7 @@ function drawPlayer(p, isMe, bare) {
     for (let k = 0; k < 4; k++) { const a0 = k * Math.PI / 2; ctx.beginPath(); ctx.moveTo(Math.cos(a0) * (R + 6), Math.sin(a0) * (R + 6)); ctx.lineTo(Math.cos(a0) * (R + 16), Math.sin(a0) * (R + 16)); ctx.stroke(); }
   }
   if (p.arm && !p.f) { // an armed special shot waiting on the string
-    const ac = { recoil: '#ffcf5a', seeker: '#ff9a5a', trick: '#ff78e6', boomerang: '#d9a066', execute: '#ff4d5e' }[p.arm] || '#ffffff';
+    const ac = { recoil: '#ffcf5a', seeker: '#ff9a5a', rocket: '#ff6a2b', trick: '#ff78e6', boomerang: '#d9a066', execute: '#ff4d5e' }[p.arm] || '#ffffff';
     ctx.fillStyle = ac; ctx.beginPath(); ctx.arc(0, R + 9, 3.2, 0, TAU); ctx.fill();
     ctx.strokeStyle = ac; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(0, R + 9, 5.5 + Math.sin(clock * 8), 0, TAU); ctx.stroke();
   }
@@ -10988,6 +11112,7 @@ function drawArrow(a) {
   }
   ctx.save(); ctx.globalAlpha = alpha;
   ctx.translate(a.x, a.y); ctx.rotate(a.g);
+  if (a.rk && !a.s) { drawRocket(a); ctx.restore(); return; }
   if (a.b) ctx.scale(1.7, 1.7); else if (a.bg) ctx.scale(1.45, 1.45); else ctx.scale(1.12, 1.12); // a touch bigger than life, to be easy to see
   if (!a.s) {
     const col = a.rl ? '140,255,255' : a.xq ? '255,70,90' : a.sw ? '255,120,230' : a.sk ? '255,150,90' : a.el === 'blood' ? '224,52,74' : a.el === 'shadow' ? '142,149,201' : a.el === 'poison' ? '130,210,80' : a.sn ? '155,229,100' : a.el === 'storm' ? '255,242,122' : a.b ? '255,207,90' : a.el === 'frost' ? '159,220,255' : a.el === 'flame' ? '255,140,60' : a.el === 'stone' ? '201,168,120' : a.el === 'void' ? '180,140,255' : a.ex ? '255,90,122' : a.cr ? '255,255,255' : '255,207,90';
@@ -11007,6 +11132,27 @@ function drawArrow(a) {
   ctx.restore();
 }
 
+// Rocket Arrow: drawn in the arrow's frame (already translated and rotated), about twice an arrow's size
+function drawRocket(a) {
+  ctx.scale(1.6, 1.6);
+  const t = clock * 40 + a.id, flick = 0.75 + 0.25 * Math.sin(t * 1.7), light = lightFx();
+  if (!light) {
+    if (Math.random() < 0.7) fx.parts.push({ x: a.x - Math.cos(a.g) * 26 + rand(-3, 3), y: a.y - Math.sin(a.g) * 26 + rand(-3, 3), vx: rand(-25, 25), vy: rand(-25, 25), life: 0, max: rand(0.35, 0.6), color: Math.random() < 0.5 ? 'rgba(120,120,120,0.5)' : 'rgba(80,80,80,0.45)', r: rand(2.5, 4.5) });
+    if (Math.random() < 0.6) fx.parts.push({ x: a.x - Math.cos(a.g) * 22, y: a.y - Math.sin(a.g) * 22, vx: rand(-40, 40), vy: rand(-40, 40), life: 0, max: 0.22, color: Math.random() < 0.5 ? '#ff6a2b' : '#ffcf5a', r: rand(1.2, 2.4) });
+  }
+  // exhaust flame
+  const fl = (14 + 8 * flick);
+  ctx.fillStyle = `rgba(255,120,40,${0.55 * flick})`; ctx.beginPath(); ctx.moveTo(-16, -4); ctx.lineTo(-16 - fl, 0); ctx.lineTo(-16, 4); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = `rgba(255,230,120,${0.8 * flick})`; ctx.beginPath(); ctx.moveTo(-16, -2); ctx.lineTo(-16 - fl * 0.55, 0); ctx.lineTo(-16, 2); ctx.closePath(); ctx.fill();
+  // body, fins and nose
+  ctx.fillStyle = a.c; ctx.beginPath(); ctx.moveTo(-18, -4); ctx.lineTo(-24, -9); ctx.lineTo(-13, -4); ctx.lineTo(-13, 4); ctx.lineTo(-24, 9); ctx.lineTo(-18, 4); ctx.fill();
+  ctx.fillStyle = '#5b6470'; ctx.strokeStyle = 'rgba(20,14,8,0.8)'; ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.moveTo(-17, -4.5); ctx.lineTo(8, -4.5); ctx.lineTo(8, 4.5); ctx.lineTo(-17, 4.5); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.fillRect(-16, -4, 23, 2);
+  ctx.fillStyle = EL_COL[a.el] || '#ff5a7a'; ctx.beginPath(); ctx.moveTo(8, -4.5); ctx.lineTo(17, 0); ctx.lineTo(8, 4.5); ctx.closePath(); ctx.fill(); ctx.stroke();
+  // a blinking light near the nose
+  if (Math.floor(clock * 6) % 2 === 0) { ctx.fillStyle = '#ff5a5a'; ctx.beginPath(); ctx.arc(4, 0, 1.6, 0, TAU); ctx.fill(); }
+}
 function hexPath(r) { ctx.beginPath(); for (let i = 0; i < 6; i++) { const a = i / 6 * TAU + Math.PI / 6; i ? ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r) : ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); }
 function drawAmber(u) {
   if (u.li - u.ag < 3 && Math.floor(clock * 8) % 2 === 0) return;
@@ -12256,7 +12402,17 @@ function updateHud() {
       const won = m.mw === me.tm;
       // the colour that won, always; "your team" only when there's one player on this screen
       const pts = m.cq ? m.cq.p : [m.wr, m.wb], allFour = m.cq && m.cq.s.every(x => x[0] === (m.mw === 'red' ? 1 : 2));
-      $('resTitle').innerHTML = `<span style="color:${TEAM_COL[m.mw]}">${esc(teamName(m.mw))}</span> wins${LP.list.length ? '' : won ? ' (your team)' : ''} <span style="color:var(--muted)">${allFour ? 'holding all four strongholds' : `${pts[0]}–${pts[1]} on points`}</span>`;
+      const ranked = mode === 'online' && !!(roomInfo && roomInfo.ranked), mine = !!me && !LP.list.length;
+      // ranked: Victory or Defeat (yours); everywhere else the colour that won
+      const head = $('resHead'); head.style.setProperty('--wc', ranked && mine ? (won ? 'var(--gold)' : '#c9d1dc') : TEAM_COL[m.mw]);
+      $('resTitle').textContent = ranked && mine ? (won ? 'Victory' : 'Defeat') : `${teamName(m.mw)} wins`;
+      $('resTitle').classList.toggle('defeat', ranked && mine && !won);
+      $('resTitle').style.animation = 'none'; void $('resTitle').offsetWidth; $('resTitle').style.animation = '';
+      $('resSub').innerHTML = (ranked && mine ? `<b>${esc(teamName(m.mw))}</b> ` : mine ? (won ? '<b>Your team</b> · ' : '') : '') + (allFour ? 'holding all four strongholds' : `<b>${pts[0]}–${pts[1]}</b> on points`);
+      const winners = view.p.filter(p => p.tm === m.mw && !p.nk);
+      $('resWinners').innerHTML = winners.map((p, i) => `<div class="wn" style="--i:${i}"><canvas data-wn="${p.id}" width="168" height="168"></canvas><span>${esc(p.n)}${p.id === myId ? ' (you)' : ''}</span><small>${esc(archName(p))}</small></div>`).join('');
+      $('resWinners').querySelectorAll('canvas[data-wn]').forEach(c => { const p = winners.find(q => String(q.id) === c.dataset.wn); if (p) try { drawPreview(c, p.el, p.ro, p.c); } catch (e) {} });
+      if (mine) setTimeout(() => { if (won) fanfare([523, 659, 784, 1047], 'triangle', 0.05, 110); else fanfare([392, 349, 311], 'sine', 0.035, 160); }, 250);
       resultsView = Object.assign({}, view, { p: view.p.filter(p => !p.nk) });
       renderAwards(resultsView); renderRanking();
       $('rematchBtn').hidden = $('resLobbyBtn').hidden = !isHost();
@@ -12276,8 +12432,6 @@ const STAT_COLS = [
   { k: 'acc', label: 'Accuracy', award: 'Sharpest aim', val: accuracy, fmt: (v, p) => (v < 0 ? '–' : Math.round(v * 100) + '%'), sub: p => (p.ss[0] ? `${p.ss[1]} of ${p.ss[0]}` : ''), minFor: p => p.ss[0] >= 5 },
   { k: 'ring', label: 'Ring-outs', award: 'Most ring-outs', val: p => p.ss[4] },
   { k: 'long', label: 'Longest hit', award: 'Longest hit', val: p => p.ss[5], fmt: v => (v ? Math.round(v / 50) + ' m' : '–') },
-  { k: 'amb', label: 'Amber', val: p => p.er },
-  { k: 'taken', label: 'Dmg taken', val: p => p.ss[3], low: true },
   { k: 'outs', label: 'Times out', val: p => p.de, low: true },
 ];
 let resultsView = null, resultsSort = 'ko';
@@ -12567,7 +12721,7 @@ function frame(now) {
     if (fx.stop > 0 && view) fx.stop -= dt; // hit-stop: hold the picture for a few frames
     else { view = interpView(now); smoothMe(view, dt); }
     const me = view && view.p.find(p => p.id === myId);
-    if (me && !me.d && !me.f && (mouse.down || held('draw') || (pad.on && pad.draw)) && !menuOpen) localCharge = Math.min(1, localCharge + dt * (me.pw && me.pw.quick ? 2.2 : 1) * (me.up && me.up.includes('steady') ? 1.25 : 1));
+    if (me && !me.d && !me.f && view.m.ph === 'play' && (mouse.down || held('draw') || (pad.on && pad.draw)) && !menuOpen) localCharge = Math.min(1, localCharge + dt * (me.pw && me.pw.quick ? 2.2 : 1) * (me.up && me.up.includes('steady') ? 1.25 : 1));
     else localCharge = 0;
     sendT -= dt; pingT -= dt;
     if (ws && ws.readyState === 1) {

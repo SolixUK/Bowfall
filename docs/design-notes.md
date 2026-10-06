@@ -75,3 +75,28 @@ Ideas for later (none built):
 - **Impact:** now in: hit-stop, streaks and edge flashes. Next: a short squash-and-stretch on the hit archer, dust puffs when someone slides along a wall, and a splash ring when someone falls into a pit.
 - **Life in the arenas:** small ambient motion (grass sway, drifting leaves, water shimmer) that stays away from the play space so it never hides an arrow.
 - **Performance:** everything new respects Light effects mode, and Screen shake: Off also turns off hit-stop and slow motion.
+
+## Clans (not built): how it could work
+
+The aim is a reason to come back that isn't your own rating: a group you belong to, and something the group is working towards. Keep it small and social, not a second ranked ladder.
+
+- **Shape:** a clan has a name, a 3–5 letter tag shown in brackets before the name on banners (`[BOW] Tom`), a one-line motto, a colour and an emblem picked from a set (the achievement medal shapes and element glyphs are already drawn). Up to 30 members, one leader, a few officers who can invite and kick. Creating one costs Crests, so people take it a little seriously; joining is free.
+- **Joining:** by invite link (the same friend-link funnel that already drops people into a room), or by applying from a clan's page. Open / invite-only is the leader's call.
+- **Clan page (on the website and in the game):** members with their ratings and mastery stars, the clan's total wins this week, its best ring-out and longest shot, and a feed of notable moments ("Tom hit Rank 20", "Sam got Flawless II").
+- **Weekly clan goal:** one shared target that only needs normal play, so it never warps matches: "1,000 knockouts as a clan", "200 match wins", "every member plays 5 games". Hitting it pays a small Crest bonus to everyone who contributed and a cosmetic for the clan (a banner finish for the week, a tag colour). This is the hook: it rewards playing with and for your group, not grinding.
+- **Clan rating:** the average of members' ratings (top 10 only, so recruiting beginners never hurts), on a clan leaderboard. Purely for bragging; no matchmaking by clan, so nobody is locked out of ranked for lacking one.
+- **Clan games:** custom rooms can be flagged as a clan room, which shows up on the clan page for members to join. Later: scheduled clan-vs-clan matches (best of five, 3v3) with a result posted to both pages; a bracket event once a season.
+- **Server side:** a `clans` table (id, name, tag, leader, settings, created), a `clan_members` table (clan, user, role, joined), and a weekly `clan_progress` row per clan per goal. Membership and tag are added to the public user card so banners can show them. Moderation: tags and names go through the same filter as player names, and the admin can rename or dissolve a clan.
+- **What to avoid:** clan-only unlocks that make solo players feel punished; anything that needs a clan to be online at once (the game is drop-in); making the tag loud enough to hide the name on a plate.
+
+## Graphics: the next polish steps (not built)
+
+0.31 added the living team glow, lava embers, splash and dust, and the detail option. The remaining list, in the order I'd do them:
+
+- **Pit depth:** a soft inner shadow around the rim and a faint, darker centre, so holes read as deep at a glance on every theme.
+- **Wall sliding:** a scrape mark and a few dust puffs while an archer slides along a wall (the slam puff exists; the slide doesn't).
+- **Ground response:** a short, faint dust kick at an archer's feet when a dash starts, and a flattened grass smear where someone was knocked across the meadow (fades in a second).
+- **Light that moves:** on day arenas, a very slow, large soft highlight drifting across the ground (the sun through the canopy); on night arenas, torches that flicker the ground tint. Both at Full detail only.
+- **Water:** a reflection highlight that moves with the clouds, and ripples when an arrow drops in.
+- **Theme passes:** the beach's foam line animating very slowly at the water's edge; the frosty arena's breath puffs from archers; the rift's floating motes drifting up near the void pits.
+- **Performance guard:** everything above lives behind Arena detail and Light effects. Add a frame-time readout to the lag panel so the effect of each option is visible.

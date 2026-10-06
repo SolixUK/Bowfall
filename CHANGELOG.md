@@ -2,6 +2,20 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.31.0
+
+- **Match-over screen reworked.** A big headline in the winner's colour ("Red wins"), or **Victory** / **Defeat** in ranked, with the points line small beneath it; the winning archers are shown; the headline and winners animate in with a short fanfare. The rankings table drops Amber and Damage taken. Your rating counts up (or down) from the old number with a tick per step, and the level, mastery and Crest bars chime as they fill (a brighter chime on a level-up).
+- **In-game menu (Esc):** in a ranked match there's no room code, bot skill, join or team-change buttons; your upgrades are listed instead. In a drill or the tutorial the team columns and bot settings are gone too. The menu is wider, bot controls drop to a second line instead of squeezing names, and nothing is cut off at the card edge any more.
+- **Banners fit.** Name plates no longer get cut off in the profile preview, custom lobbies or the in-game menu: when there isn't room the title gives way first, then the medals; the name always shows.
+- **Ranked lobby:** everyone's full banner (level, flag, border, finish, medals, title) is shown while you wait, and the other team's archetypes stay hidden until the match starts. Your party's banners show on the Find game screen too.
+- **No drawing during the countdown:** the bow (and the cursor's draw ring) only works once the round starts.
+- **Rocket Arrow** (new ability for Juggernaut, Trickster and Crossbowman, 14s): your next shot is a big, slow rocket (about 30% of normal arrow speed) that homes hard on the enemy nearest your line of fire and explodes where it lands with a blast half as big again as Blast Tips, throwing everyone nearby. It can be dodged, and boulders stop it. Drawn as a rocket with an exhaust flame, smoke trail and blinking light.
+- **Falling into holes looks right:** an archer knocked hard into a pit now bounces off its inside walls while falling instead of sliding out across the ground.
+- **Arena centred:** the arena sits in the middle of the window whenever it fits beside the scoreboard (before, it always sat left of centre).
+- **Transitions:** screens and cards slide in as they open, and a dark wipe lifts off the arena as a match's first countdown starts.
+- **Graphics options:** *Team glow round archers* (Living: breathes slowly, leans the way the archer moves, tightens and brightens on a draw, flares on a hit · Soft · Ring only) and *Arena detail* (Full: ambient drift, cloud shadows, lava glow and embers, night tints · Low). New at full detail: embers lift off lava, a splash ring and droplets when someone goes into water (a dust ring for a hole), and a puff of dust when an archer slams into a wall. Light effects mode turns all of it off as before.
+- Fixed: a render error from the team glow on cloned archers.
+
 ## 0.30.1
 
 - **Aim guide:** fades to 30% of its brightness at distance (was 12%). The red X now shows only when a boulder is in the way, or when the arena wall is within 240px of you; a shot across the arena ends without one.
