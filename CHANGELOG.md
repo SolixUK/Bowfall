@@ -2,6 +2,16 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.30.0
+
+- **Seeker Arrow reworked to use the homing system.** It used to chase whoever was nearest with a slow, fixed turn, which missed more often than it hit. Now, like the Arrow homing rule, it locks on at release to the enemy nearest your line of fire (within 340px either side, at any range), never switches target, bends harder as it closes in and scales with arrow speed, and boulders still block it. It also leads its target. In a test of 63 shots aimed up to 17° off at still and strafing targets, hits went from 33 to 61; a shot aimed more than about 25° off still misses.
+- **Traps can't be placed over holes or water.** A trap aimed there lands on the nearest edge instead (the aiming circle shows where), and bots no longer try. Lava and bogs are still fine.
+- **New standard rules:** arrow speed **Blazing** (was Very fast), move speed **Normal** (was Fast) and movement feel **Snappy** (was Glide). A new, faster arrow speed, **Bullet**, is above Blazing. Ranked matches always use the standard rules (they have no host, so nothing can be changed). The tutorial, training drills and practice use them too, unless you've set your own in a practice lobby.
+- **Aim guide fades with distance:** brightest by the bow, down to a faint line about 700px out. The red end where it meets a wall or boulder stays bright.
+- **Custom rules:** the "Allowed in this game" list at the bottom is gone; the host takes elements and roles out with Alt+click (or Y on a controller) on the pickers, as before.
+- **Knockout drill:** par times are about 10% longer (10s, 13s, 15.5s, 16.5s) to match the slower standard move speed.
+- `render.yaml` now asks for Render's **Starter** plan. With `plan: free` in the file, every upload to GitHub reset an upgraded service back to free.
+
 ## 0.29.0
 
 - **Tutorial reworked** for everything added since it was first written. It now runs: move → shoot → full draw → dash → **dodge** (new: a stone sniper takes aim with a visible draw, and you dash out of two shots) → abilities → knockouts → a short "build your archer" card that lists every element and role in a few words → pick an upgrade → a real fight against a Flame Juggernaut bot. You play it as a Frost Ranger (the easiest all-rounder). A **Skip to the match** button jumps straight to the fight, and finishing offers Find a match or Custom games. New players default to Ranger.

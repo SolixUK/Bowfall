@@ -30,7 +30,7 @@ Good to know:
 - No account is needed. The server is on your machine, so ping is best for people near you.
 - Games are recorded to `data/games.jsonl` on your computer, and the Balance data screen reads them.
 
-## Option 2: a permanent site on Render (free, about 15 minutes, needs a GitHub account)
+## Option 2: a permanent site on Render (about 15 minutes, needs a GitHub account)
 
 1. Create a GitHub repository and upload the project folder to it. Don't upload `node_modules` or `data`; the `.gitignore` already leaves them out.
 2. Sign up at https://render.com with your GitHub account.
@@ -78,6 +78,7 @@ Save the variables in Render; after the restart the buttons appear on the sign-i
 Good to know:
 
 - On the free plan the server goes to sleep after 15 minutes with nobody connected. The first visit after that takes about 30–60 seconds to wake it.
+- **Which plan:** `render.yaml` asks for the Starter plan (half a CPU core, paid). Render sets the service back to whatever that file says every time it syncs, so a plan changed only in the dashboard is undone by the next upload. To use the free plan instead, change `plan: starter` to `plan: free` in `render.yaml`.
 - Balance data (`data/games.jsonl`) still lives on the server's disk, so it's lost when Render restarts. Use Export on the Balance data screen now and then.
 - Each time you push a change to GitHub, Render redeploys automatically. Accounts, stats and forum posts are safe in the database.
 

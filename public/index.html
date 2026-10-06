@@ -60,9 +60,7 @@
   .netstats small { color: var(--muted); display: block; }
 
   .side { position: absolute; right: 16px; top: 72px; width: 250px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-  .lbbans { margin-top: 10px; display: grid; gap: 6px; }
-  .lbbans .lbl { font-size: 12px; color: var(--muted); }
-  .chip2.ban.off, .chip2.banned { opacity: .42; text-decoration: line-through; position: relative; }
+  .chip2.banned { opacity: .42; text-decoration: line-through; position: relative; }
   .chip2.banned { cursor: not-allowed; }
   .chip2.banned::after { content: '✕'; position: absolute; right: -6px; top: -7px; width: 16px; height: 16px; line-height: 16px; border-radius: 50%; background: #c0392b; color: #fff; font: 700 10px sans-serif; text-align: center; text-decoration: none; opacity: 1; }
   .banhint { font-size: 12px; margin: 2px 0 0; }
@@ -1092,8 +1090,7 @@
               <div class="field" id="lbDiffWrap"><label for="lbDiff">Bot skill (sets all bots)</label>
                 <select id="lbDiff"><option value="easy">Easy</option><option value="normal">Normal</option><option value="hard">Hard</option><option value="extreme">Extreme</option><option value="master">Master</option></select></div>
             </div>
-            <details class="lbfold" id="lbRulesFold"><summary><b>Custom rules</b> <span class="status" id="lbOptNote"></span></summary><div class="lbrules" id="lbOpts"></div>
-              <div class="lbbans"><span class="lbl">Allowed in this game <span class="status" id="lbBanNote">(the host clicks to take one out)</span></span><div class="chips" id="lbBanEl"></div><div class="chips" id="lbBanRo"></div></div></details>
+            <details class="lbfold" id="lbRulesFold"><summary><b>Custom rules</b> <span class="status" id="lbOptNote"></span></summary><div class="lbrules" id="lbOpts"></div></details>
             <details class="lbfold" id="lbRoomFold" hidden><summary><b>Room settings</b> <span class="status">name, size, listing, password</span></summary>
               <div class="roomcfg" id="lbRoomCfg" hidden>
                 <div class="field"><label for="lbRmName">Game name</label><input id="lbRmName" maxlength="32" autocomplete="off"></div>
@@ -1264,7 +1261,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.29.0"></script>
+<script src="sim.js?v=0.30.0"></script>
 <script>
 (() => {
 'use strict';
@@ -1272,7 +1269,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.29.0';
+const PAGE_VERSION = '0.30.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -2009,7 +2006,7 @@ function playerName() { const n = $('nameIn').value.trim().slice(0, 16) || 'Arch
 let TUT = { on: false };
 const TUT_LOADOUT = { el: 'frost', ro: 'ranger' }; // the all-rounder, and the easiest element to see working
 const TUT_STEPS = [
-  { k: 'move', title: 'Move', text: 'Move with W A S D, or the left stick.', hint: 'You speed up over a moment and glide when you let go, like an air-hockey puck. Momentum matters: plan your stops.' },
+  { k: 'move', title: 'Move', text: 'Move with W A S D, or the left stick.', hint: 'You take a moment to get up to speed and slide a little when you let go. Momentum matters: plan your stops.' },
   { k: 'shoot', title: 'Shoot', text: 'Aim with the mouse. Hold the left button to draw, then let go to shoot the dummy.', hint: 'The longer you hold, the faster and harder the arrow flies. You move slower while drawing.' },
   { k: 'full', title: 'Full draw', text: 'Hold until the ring round your cursor turns white, then hit the dummy with a full draw.', hint: 'Full draws hit hardest and knock back furthest. An arrow through the middle of a target is a bullseye: 1.5× damage.' },
   { k: 'dash', title: 'Dash', text: 'Press Space to dash the way you\'re moving.', hint: 'Dashing jumps pits, lava and water, and shoves anyone you run into. It recharges in about a second.' },
@@ -3025,7 +3022,7 @@ function drawMastChips() {
   document.querySelectorAll('#elChips [data-el] .mst, #roChips [data-ro] .mst').forEach(b => {
     const btn = b.parentNode, kind = btn.dataset.el ? 'el' : 'ro', m = account ? mastOf(kind, btn.dataset.el || btn.dataset.ro) : { lv: 0 };
     b.textContent = m.lv ? '★' + m.lv : ''; b.className = 'mst' + (m.lv >= 10 ? ' m10' : m.lv >= 5 ? ' m5' : '');
-    b.title = m.lv ? `Mastery ${m.lv}${m.next ? ` · ${m.pts}/${m.next} to the next (games, wins count twice)` : ' · mastered'}` : '';
+    if (!btn.classList.contains('banned')) b.title = btn.title = m.lv ? `Mastery ${m.lv}${m.next ? ` · ${m.pts}/${m.next} to the next (games, wins count twice)` : ' · mastered'}` : '';
   });
 }
 const utcDay = () => new Date().toISOString().slice(0, 10);
@@ -4118,7 +4115,7 @@ function helpHtml() {
   const S = [
     sec('basics', 'Basics', `
       <ul>
-        <li><b>Move</b> with <kbd>WASD</kbd>. You build up speed over about 2 seconds and glide when you let go, like an air-hockey puck.</li>
+        <li><b>Move</b> with <kbd>WASD</kbd>. You take about a second to reach full speed and slide a little when you let go, so momentum matters.</li>
         <li><b>Aim</b> with the mouse. <b>Hold click</b> to draw, release to shoot. A longer draw flies faster, hits harder and knocks back further. Some upgrades trigger on a <b>full draw</b>.</li>
         <li><b>Critical hits</b> aren't random: an arrow whose path runs through the middle of the target (the centre ${Math.round(Sim.BULLSEYE * 100)}% of its body) is a <b>bullseye</b> and deals ${Sim.CRIT_MUL}× damage.</li>
         <li><b>Dash</b> with <kbd>Space</kbd> or <kbd>Shift</kbd>. It goes the way you're moving (or where you're aiming, if you choose that in Controls; standing still, it always goes where you aim), jumps pits, lava and water, and shoves enemies you hit. Ninjas blink instead: a near-instant hop toward your cursor, twice in a row. Ninjas also throw shuriken instead of drawing a bow: click once for each shuriken.</li>
@@ -4327,9 +4324,6 @@ const OPT_NAMES = Sim.OPT_NAMES;
 $('lbOpts').innerHTML = Object.entries(Sim.OPTIONS).map(([k, o]) => `<div class="field"><label for="opt-${k}">${esc(o.label)}</label><select id="opt-${k}" data-opt="${k}">` +
   Object.keys(o.values).map(v => `<option value="${v}">${OPT_NAMES[v] || v}${v === (o.def || Object.keys(o.values)[0]) ? ' (standard)' : ''}</option>`).join('') + '</select></div>').join('');
 $('lbOpts').addEventListener('change', e => { const sel = e.target.closest('[data-opt]'); if (sel) act({ t: 'cfg', opt: { [sel.dataset.opt]: sel.value } }); });
-// the host takes elements and roles out of the game (or puts them back)
-$('lbBanEl').innerHTML = Object.entries(ELEMENTS).map(([k, e]) => `<button type="button" class="chip2 ban" data-ban="${k}" style="--cc:${e.color}"><i></i>${e.name}</button>`).join('');
-$('lbBanRo').innerHTML = Object.entries(ROLES).map(([k, r]) => `<button type="button" class="chip2 ban" data-ban="${k}" style="--cc:${CAT_COL[r.cat]}">${r.name}</button>`).join('');
 // can this screen's player take elements and roles out? the host of a custom game, in the lobby
 const canBan = () => !!(view && view.m.ph === 'lobby' && isHost() && !(roomInfo && roomInfo.ranked));
 function toggleBan(k) {
@@ -4338,11 +4332,6 @@ function toggleBan(k) {
   act({ t: 'cfg', ban: cur.includes(k) ? cur.filter(x => x !== k) : cur.concat(k) });
   uiSfx.click(); return true;
 }
-function banClick(e) {
-  const b = e.target.closest('[data-ban]'); if (!b || b.disabled) return;
-  toggleBan(b.dataset.ban);
-}
-$('lbBanEl').addEventListener('click', banClick); $('lbBanRo').addEventListener('click', banClick);
 $('gmDiff').onchange = () => act({ t: 'cfg', diff: $('gmDiff').value });
 $('lbStart').onclick = () => act({ t: 'start' });
 $('lbLeave').onclick = () => toMenu();
@@ -4378,14 +4367,13 @@ function renderLobby(v) {
     for (const k in Sim.OPTIONS) { const el = $('opt-' + k); if (!el) continue; el.value = o[k] || (Sim.OPTIONS[k].def || Object.keys(Sim.OPTIONS[k].values)[0]); el.disabled = !host; if (el.value !== (Sim.OPTIONS[k].def || Object.keys(Sim.OPTIONS[k].values)[0])) custom++; }
     $('lbOptNote').textContent = custom ? `${custom} custom ${custom === 1 ? 'rule' : 'rules'} on. Balance data records the rules with every game.` : 'Standard rules.';
   });
-  // taken-out elements and roles: struck through in the host's list, and greyed out in everyone's own picker
+  // taken-out elements and roles are greyed out and struck through in everyone's picker
   setC('lbBan', JSON.stringify(v.m.ban || []) + host + usingPad() + !!(roomInfo && roomInfo.ranked), () => {
     const ban = v.m.ban || [];
-    document.querySelectorAll('[data-ban]').forEach(b => { const off = ban.includes(b.dataset.ban); b.classList.toggle('off', off); b.disabled = !host; b.title = off ? 'Taken out of this game' : host ? 'Click to take it out of this game' : ''; });
     document.querySelectorAll('#elChips [data-el], #roChips [data-ro]').forEach(b => { const k = b.dataset.el || b.dataset.ro, off = ban.includes(k); b.classList.toggle('banned', off); b.title = off ? (canBan() ? 'Taken out of this game. Alt+click to put it back.' : 'The host has taken this out of this game.') : ''; });
+    drawMastChips(); // (puts the mastery tooltips back on the ones still allowed)
     $('banHint').hidden = !canBan();
     $('banHint').textContent = usingPad() ? `Host: press ${padBtn('y')} on an element or role to take it out of this game (again to put it back).` : 'Host: Alt+click an element or role to take it out of this game (again to put it back).';
-    $('lbBanNote').textContent = ban.length ? `· ${ban.length} taken out${host ? ' (click to put back)' : ''}` : host ? '· click one to take it out of this game' : '';
   });
   setC('lbStart', String(v.m.cs) + host + !!meL, () => {
     $('lbStart').hidden = !host;
@@ -7183,9 +7171,12 @@ function drawAimGuide(me, ang, charge) {
     }
     const end = hit ? Math.min(hit, 30 + len) : 30 + len, a0 = 0.12 + charge * 0.25;
     const g = ctx.createLinearGradient(me.x + ax * 30, me.y + ay * 30, me.x + ax * end, me.y + ay * end);
-    g.addColorStop(0, `rgba(255,207,90,${a0})`);
-    if (hit) { g.addColorStop(Math.max(0, 1 - 70 / Math.max(1, end - 30)), `rgba(255,207,90,${a0})`); g.addColorStop(1, `rgba(255,70,60,${0.55 + charge * 0.35})`); }
-    else g.addColorStop(1, `rgba(255,207,90,${a0})`);
+    // strongest by the bow and fading with distance (by how far it is, not how long the line is), so it doesn't clutter the far side of the arena
+    const fade = d => a0 * Math.max(0.12, 1 - 0.88 * Math.min(1, (d - 30) / 700));
+    g.addColorStop(0, `rgba(255,207,90,${fade(30)})`);
+    for (const k of [0.25, 0.5, 0.75]) g.addColorStop(k, `rgba(255,207,90,${fade(30 + (end - 30) * k)})`);
+    if (hit) { const k = Math.max(0.76, 1 - 70 / Math.max(1, end - 30)); g.addColorStop(k, `rgba(255,207,90,${fade(30 + (end - 30) * k)})`); g.addColorStop(1, `rgba(255,70,60,${0.55 + charge * 0.35})`); }
+    else g.addColorStop(1, `rgba(255,207,90,${fade(end)})`);
     ctx.strokeStyle = g; ctx.lineWidth = hit ? 2 : 1.5; ctx.setLineDash([3, 7]);
     ctx.beginPath(); ctx.moveTo(me.x + ax * 30, me.y + ay * 30); ctx.lineTo(me.x + ax * end, me.y + ay * end); ctx.stroke(); ctx.setLineDash([]);
     if (hit && hit <= 30 + len) {
@@ -7217,7 +7208,8 @@ function drawCrosshair(me, charge) {
   if (me && !me.d && me.ab) { const i = me.ab.indexOf('trap'); if (i >= 0 && !((me.ac || [])[i] > 0)) {
     // where a trap would land: the cursor, or as far as it can be thrown
     const dx = x - me.x, dy = y - me.y, d = Math.hypot(dx, dy), k = d > Sim.TRAP_RANGE ? Sim.TRAP_RANGE / d : 1;
-    ctx.strokeStyle = 'rgba(217,160,102,0.45)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 5]); ctx.beginPath(); ctx.arc(me.x + dx * k, me.y + dy * k, 22, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+    const [px, py] = Sim.outOfPits(HAZ, clamp(me.x + dx * k, WALL + 24, AW - WALL - 24), clamp(me.y + dy * k, WALL + 24, AH - WALL - 24), Sim.TRAP_PIT_GAP); // never over a hole or water
+    ctx.strokeStyle = 'rgba(217,160,102,0.45)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 5]); ctx.beginPath(); ctx.arc(px, py, 22, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
   } }
   // bows show it while drawing; shuriken and bolts fly at once, so theirs is always there
   if (me && !me.d && OPTS.guide && (charge > 0 || me.rg)) drawAimGuide(me, me.a, charge > 0 ? charge : 0.5);

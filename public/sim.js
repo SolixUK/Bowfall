@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.29.0';
+const VERSION = '0.30.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -186,19 +186,19 @@ const CRACK_WARN = 4;
 // custom game options; def is the standard rule
 const OPTIONS = {
   size:   { label: 'Archer size',  def: 'large', values: { small: 1, medium: 1.25, large: 1.5 } },
-  aspeed: { label: 'Arrow speed',  def: 'vfast', values: { normal: 1.32, fast: 1.65, vfast: 1.98, blazing: 2.42 } }, // 10% up in 0.23.0 (arrows, bolts and shuriken)
-  mspeed: { label: 'Move speed',   def: 'fast', values: { normal: 1, slow: 0.85, fast: 1.2, vfast: 1.4, blazing: 1.7 } },
+  aspeed: { label: 'Arrow speed',  def: 'blazing', values: { normal: 1.32, fast: 1.65, vfast: 1.98, blazing: 2.42, bullet: 3.1 } }, // 10% up in 0.23.0 (arrows, bolts and shuriken)
+  mspeed: { label: 'Move speed',   def: 'normal', values: { normal: 1, slow: 0.85, fast: 1.2, vfast: 1.4, blazing: 1.7 } },
   kb:     { label: 'Knockback',    def: 'normal', values: { normal: 1, low: 0.75, high: 1.3, chaos: 1.8 } },
   hp:     { label: 'Health',       def: 'normal', values: { normal: 1, low: 0.7, high: 1.5 } },
   dash:   { label: 'Dashes',       def: 'on', values: { on: 1, off: 0 } },
   // arrow homing: every shot bends toward the enemy it's heading for, this many radians a second
   assist: { label: 'Arrow homing',   def: 'none', values: { none: 0, tiny: 0.12, small: 0.25, medium: 0.5, heavy: 1, extreme: 2.2 } },
-  // how moving feels (MOVE_FEEL below): the standard air-hockey glide, or snappier, driftier or fully direct
-  move:   { label: 'Movement feel', def: 'puck', values: { puck: 1, snappy: 2, drift: 3, direct: 4 } },
+  // how moving feels (MOVE_FEEL below): snappy (the standard), an air-hockey glide, driftier, or fully direct
+  move:   { label: 'Movement feel', def: 'snappy', values: { puck: 1, snappy: 2, drift: 3, direct: 4 } },
   // upgrades off: no picks between rounds (and no chests in Strongholds), everyone plays their plain element and role
   upg:    { label: 'Upgrades',     def: 'on', values: { on: 1, off: 2 } },
 };
-const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', puck: 'Glide (air hockey)', snappy: 'Snappy', drift: 'Drifty', direct: 'Direct (no glide)', none: 'None', tiny: 'Tiny', heavy: 'Heavy', extreme: 'Extreme' };
+const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', bullet: 'Bullet', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', puck: 'Glide (air hockey)', snappy: 'Snappy', drift: 'Drifty', direct: 'Direct (no glide)', none: 'None', tiny: 'Tiny', heavy: 'Heavy', extreme: 'Extreme' };
 const optDefaults = () => Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.def || Object.keys(o.values)[0]]));
 let CFG = { opt: optDefaults() };
 const OPT = k => OPTIONS[k].values[(CFG.opt || {})[k]] || 1;
@@ -306,13 +306,13 @@ const arenaId = code => { const m = /^A([0-9A-Z]{1,8})$/i.exec(String(code || ''
 // the knockout drill ('sink'): four set scenes. Each dummy stands in front of a sinkhole; `a` is the direction (degrees)
 // a shot has to push it to send it in, and `gap` how far it stands from the hole's edge. Par is the time for the scene.
 const TRAIN_KNOCK = [
-  { name: 'Warm-up', start: [110, 400], par: 9, holes: [
+  { name: 'Warm-up', start: [110, 400], par: 10, holes: [
     { x: 350, y: 230, r: 62, a: 0, gap: 70 }, { x: 440, y: 610, r: 62, a: 90, gap: 70 }, { x: 790, y: 250, r: 62, a: 0, gap: 70 }, { x: 960, y: 560, r: 60, a: 0, gap: 70 }] },
-  { name: 'Angles', start: [110, 400], par: 12, holes: [
+  { name: 'Angles', start: [110, 400], par: 13, holes: [
     { x: 330, y: 650, r: 52, a: 45, gap: 80 }, { x: 520, y: 170, r: 50, a: -60, gap: 80 }, { x: 640, y: 560, r: 50, a: 180, gap: 80 }, { x: 900, y: 170, r: 50, a: -90, gap: 80 }, { x: 1060, y: 620, r: 50, a: 30, gap: 80 }] },
-  { name: 'Weave', start: [110, 400], par: 14, holes: [
+  { name: 'Weave', start: [110, 400], par: 15.5, holes: [
     { x: 260, y: 180, r: 45, a: -135, gap: 90 }, { x: 250, y: 620, r: 45, a: 135, gap: 90 }, { x: 600, y: 400, r: 55, a: 0, gap: 90 }, { x: 790, y: 140, r: 45, a: -90, gap: 90 }, { x: 790, y: 660, r: 45, a: 90, gap: 90 }, { x: 1080, y: 400, r: 45, a: 0, gap: 90 }] },
-  { name: 'Long shots', start: [110, 400], par: 15, holes: [
+  { name: 'Long shots', start: [110, 400], par: 16.5, holes: [
     { x: 430, y: 150, r: 40, a: 0, gap: 160 }, { x: 200, y: 690, r: 40, a: 180, gap: 160 }, { x: 600, y: 250, r: 40, a: 180, gap: 150 }, { x: 650, y: 650, r: 40, a: 45, gap: 150 }, { x: 990, y: 170, r: 40, a: -45, gap: 150 }, { x: 1050, y: 620, r: 40, a: 0, gap: 160 }] },
 ];
 const knockSpot = h => { const u = h.a * Math.PI / 180, d = h.r + h.gap; return { x: h.x - Math.cos(u) * d, y: h.y - Math.sin(u) * d }; };
@@ -732,7 +732,7 @@ const TREE = {
   rush:      { tree: 'juggernaut', active: { cd: 10 }, name: 'Bull Rush', desc: 'Charge along your aim for half a second, barely moved by hits, bulldozing every enemy in the way for 9 damage and a big shove.' },
   fortify:   { tree: 'juggernaut', active: { cd: 11 }, name: 'Fortify', desc: 'For 3 seconds take 90% less knockback and 30% less damage, but move 40% slower.' },
   parry:     { tree: 'ranger', active: { cd: 9 }, name: 'Parry', desc: 'Raise a guard for 1 second that stops arrows from any side. Block one and you riposte: your next shot is drawn instantly and hits 30% harder, and for 3 seconds you draw twice as fast and move 20% faster. Parry\'s cooldown is halved.' },
-  seeker:    { tree: 'ranger', active: { cd: 12 }, name: 'Seeker Arrow', desc: 'Your next shot curves toward the nearest enemy ahead of it.' },
+  seeker:    { tree: 'ranger', active: { cd: 12 }, name: 'Seeker Arrow', desc: 'Your next shot locks on to the enemy nearest your line of fire and curves hard toward where they are heading. Boulders still block it.' },
   trick:     { tree: 'trickster', active: { cd: 8 }, name: 'Trick Shot', desc: 'Your next shot bounces off walls and boulders up to 3 times, hitting 25% harder and knocking back 10% harder after every bounce.' },
   boomerang: { tree: 'trickster', active: { cd: 6 }, name: 'Boomerang', desc: 'Your next shot flies out, passes through enemies and comes back to you, able to hit each of them again on the way. It deals 25% more damage.' },
   execute:   { tree: 'assassin', active: { cd: 10 }, name: 'Coup de Grâce', desc: 'Your next shot deals double damage to an enemy below 40% health.' },
@@ -791,7 +791,7 @@ const TREE = {
   twinload:  { tree: 'crossbow', cap: true, name: 'Double Crank', desc: 'Hold two bolts: fire them back to back, and each one reloads on its own.' },
   harpoon:   { tree: 'trapper', active: { cd: 9 }, name: 'Harpoon', desc: 'Fire a barbed line along your aim (up to 420px). The first enemy it catches is yanked toward you and briefly stuck.' },
   snare:     { tree: 'trapper', also: ['crossbow'], active: { cd: 5 }, name: 'Snare Arrow', desc: 'Your next shot roots whoever it hits for 1.8 seconds.' },
-  trap:      { tree: 'trapper', active: { cd: 10 }, name: 'Bramble Trap', desc: 'Weave a bramble trap at the spot under your cursor (up to 380px away); it takes half a second to set, and you move at half speed meanwhile. An enemy who steps on it is rooted for 2.5 seconds and hurt. Up to 2 at once.' },
+  trap:      { tree: 'trapper', active: { cd: 10 }, name: 'Bramble Trap', desc: 'Weave a bramble trap at the spot under your cursor (up to 380px away, never over a hole or water); it takes half a second to set, and you move at half speed meanwhile. An enemy who steps on it is rooted for 2.5 seconds and hurt. Up to 2 at once.' },
   bramble:   { tree: 'trapper', trade: true, name: 'Bramble Coat', desc: 'Enemies who touch you are rooted for 1.4 seconds (once every 3 seconds each), but you move 5% slower.' },
   deeproots: { tree: 'trapper', cap: true, name: 'Deep Roots', desc: 'Your roots last twice as long, and rooted enemies take 25% more damage from you.' },
 };
@@ -1682,8 +1682,8 @@ const MOVE_BASE = {
 // the Movement feel rule: changes to the above. Top speed is the same in all of them (it's push ÷ drag); what changes
 // is how quickly you get going, turn and stop.
 const MOVE_FEEL = {
-  1: {},                                                                                            // glide: the standard
-  2: { rampUp: 0.45, rampDown: 0.12, drag: 3.2, glide: 3.2, brake: 12, turnRate: 18 },              // snappy
+  1: {},                                                                                            // glide
+  2: { rampUp: 0.45, rampDown: 0.12, drag: 3.2, glide: 3.2, brake: 12, turnRate: 18 },              // snappy: the standard
   3: { rampUp: 1.5, rampDown: 0.3, drag: 1.8, glide: 0.8, brake: 3.5, turnRate: 6 },                // drifty
   4: { rampUp: 0.08, rampDown: 0.06, drag: 9, glide: 14, brake: 30, turnRate: 40 },                  // direct: no glide at all
 };
@@ -2162,6 +2162,7 @@ function useAbility(w, p, id) {
       const dx = tx - p.x, dy = ty - p.y, d = Math.hypot(dx, dy);
       if (d > TRAP_RANGE) { tx = p.x + dx / d * TRAP_RANGE; ty = p.y + dy / d * TRAP_RANGE; }
       tx = clamp(tx, WALL + 24, AW - WALL - 24); ty = clamp(ty, WALL + 24, AH - WALL - 24);
+      [tx, ty] = outOfPits(HAZ, tx, ty, TRAP_PIT_GAP); // a trap can't hang over a hole or water: it lands on the nearest edge
       // it takes TRAP_SET seconds to weave; you move at half speed meanwhile, and being knocked out cancels it
       p.trapSet = { t: TRAP_SET, x: tx, y: ty };
       ev(w, { e: 'trapStart', id: p.id, tm: p.team, x: r1(tx), y: r1(ty) });
@@ -2359,7 +2360,20 @@ function updateZones(w, dt) {
   }
 }
 
-const TRAP_RANGE = 380, TRAP_SET = 0.5;
+const TRAP_RANGE = 380, TRAP_SET = 0.5, TRAP_PIT_GAP = 26;
+// the nearest spot to (x, y) that isn't over a hole or water (lava and bogs are solid ground: things can sit on them)
+function outOfPits(haz, x, y, gap) {
+  for (let k = 0; k < 4; k++) {
+    let moved = false;
+    for (const h of haz) {
+      if (h.type !== 'pit') continue;
+      const a = hazAway(h, x, y);
+      if (a.dist < gap) { x += a.nx * (gap - a.dist + 1); y += a.ny * (gap - a.dist + 1); moved = true; }
+    }
+    if (!moved) break;
+  }
+  return [x, y];
+}
 const plagueR = p => 110 * p.r / 16;
 function blazePatch(w, owner, x, y, r, t, follow) {
   w.zones.push({ id: w.nid++, ty: 'fire', x, y, r, t, team: owner.team, owner: owner.id, delay: follow ? CLOUD_DELAY : 0, follow: follow || null, q: 1 });
@@ -2560,7 +2574,7 @@ function onArrowEffects(w, a, f, primary) {
 const BULLSEYE = 0.4, CRIT_MUL = 1.5;
 // a pin needs a full-draw hit, then a slam into a wall or boulder within PIN_WINDOW seconds at PIN_SPEED or faster
 const NB_WIND = 0.05, NB_MOVE = 0.09; // Ninja blink: wind-up, then travel time
-const ASSIST_LANE = 220, ASSIST_RAMP = 600; // arrow homing: how far either side of your line of fire it looks for a target (at any range), and the distance over which its turning ramps up
+const ASSIST_LANE = 220, ASSIST_RAMP = 600, SEEK = { power: 1.4, lane: 340, base: 0.6 }; // Seeker Arrow: between the Heavy and Extreme rules, with a wider lane, and it turns firmly from the start; // arrow homing: how far either side of your line of fire it looks for a target (at any range), and the distance over which its turning ramps up
 const XBOW_RANGE = 480, XBOW_RELOAD = 1.15, XBOW_GAP = 0.16, AUTO_TIME = 2, AUTO_GAP = 0.12;
 // how far a player's shots reach before dropping, for roles with a short range (null: the whole arena)
 // (shuriken: 1050px/s slowed by drag 2.4 over their 0.45s life, about 0.275s worth of full speed)
@@ -2684,28 +2698,15 @@ function updateArrows(w, dt) {
     if (a.stuck > 0) { a.stuck -= dt; if (a.stuck <= 0) w.arrows.splice(i, 1); continue; }
     a.age += dt;
     if (WIND) { const wd = windAt(gameTime(w)); if (wd.gust) a.vy += wd.dir * WIND.accel * 0.45 * dt; }
-    // Seeker Arrow: bend toward the nearest enemy ahead
-    if (a.seek && a.age < 1.2) {
-      const h = Math.atan2(a.vy, a.vx); let best = null, bd = 380;
-      for (const q of w.players) {
-        if (q.team === a.team || q.dead || q.falling > 0 || a.hit.includes(q.id)) continue;
-        const d = Math.hypot(q.x - a.x, q.y - a.y);
-        if (d < bd && angOff(Math.atan2(q.y - a.y, q.x - a.x), h) < 1.1) { bd = d; best = q; }
-      }
-      if (best) {
-        const want = Math.atan2(best.y - a.y, best.x - a.x), diff = ((want - h + Math.PI) % TAU + TAU) % TAU - Math.PI;
-        const turn = clamp(diff, -2.2 * dt, 2.2 * dt), sp = Math.hypot(a.vx, a.vy);
-        a.vx = Math.cos(h + turn) * sp; a.vy = Math.sin(h + turn) * sp;
-      }
-    }
-    // Arrow homing (custom rule): the moment the shot leaves the bow it picks the enemy nearest its straight line of fire
-    // (ahead of it, at any distance, no more than ASSIST_LANE px to the side), then bends only toward them for the rest of
-    // its flight. It never switches to someone else it passes.
-    const assist = OPTIONS.assist.values[(CFG.opt || {}).assist] || 0;
-    if (assist > 0 && !a.seek && !a.back && !a.rail && a.age < 1.5) {
+    // Homing: Seeker Arrow, and the Arrow homing custom rule, work the same way. The moment the shot leaves the bow it
+    // picks the enemy nearest its straight line of fire (ahead of it, at any distance, within its lane either side),
+    // then bends only toward them for the rest of its flight; it never switches to someone else it passes.
+    // A Seeker Arrow has a wider lane, turns much harder, and aims at where its target is heading.
+    const assist = a.seek ? SEEK.power : OPTIONS.assist.values[(CFG.opt || {}).assist] || 0;
+    if (assist > 0 && !a.back && !a.rail && a.age < (a.seek ? 2.2 : 1.5)) {
       const h = Math.atan2(a.vy, a.vx), ux = Math.cos(h), uy = Math.sin(h);
       if (a.assistT === undefined) {
-        a.assistT = null; let bs = ASSIST_LANE;
+        a.assistT = null; let bs = a.seek ? SEEK.lane : ASSIST_LANE;
         for (const q of w.players) {
           if (q.team === a.team || q.dead || q.falling > 0 || q.stealthT > 0 || a.hit.includes(q.id)) continue;
           const dx = q.x - a.x, dy = q.y - a.y, along = dx * ux + dy * uy, side = Math.abs(dx * uy - dy * ux);
@@ -2718,10 +2719,13 @@ function updateArrows(w, dt) {
       // it bends gently early on and harder as it closes in, and not at all while a boulder is in the way,
       // so you can shoot around cover and let the shot curl in at the end
       if (best && clearShot(a.x, a.y, best.x, best.y)) {
-        const want = Math.atan2(best.y - a.y, best.x - a.x), diff = ((want - h + Math.PI) % TAU + TAU) % TAU - Math.PI;
+        const sp = Math.hypot(a.vx, a.vy), d = Math.hypot(best.x - a.x, best.y - a.y);
+        // a Seeker leads its target: it steers for where they'll be when it gets there
+        const lead = a.seek ? Math.min(0.5, d / Math.max(200, sp)) : 0;
+        const want = Math.atan2(best.y + best.vy * lead - a.y, best.x + best.vx * lead - a.x), diff = ((want - h + Math.PI) % TAU + TAU) % TAU - Math.PI;
         // (turning scales with the shot's speed, so the curve is the same shape whatever the arrow speed rule)
-        const sp = Math.hypot(a.vx, a.vy), close = 1 - Math.min(1, Math.hypot(best.x - a.x, best.y - a.y) / ASSIST_RAMP);
-        const rate = assist * (0.2 + 2.6 * close * close) * sp / 1000;
+        const close = 1 - Math.min(1, d / ASSIST_RAMP);
+        const rate = assist * ((a.seek ? SEEK.base : 0.2) + 2.6 * close * close) * sp / 1000;
         const turn = clamp(diff, -rate * dt, rate * dt);
         a.vx = Math.cos(h + turn) * sp; a.vy = Math.sin(h + turn) * sp;
       }
@@ -3480,7 +3484,11 @@ function botAbilities(w, p, T, dT, foes, dt) {
       case 'volley': use = chg > 0.5 && !!T && dT < 480 && !p.volleyArmed; break;
       case 'trap':
         // throw it where the target is heading
-        if (T && dT < TRAP_RANGE + 60 && dT > 60 && Math.random() < dt * 0.8) { p.input.tx = T.x + T.vx * 0.6; p.input.ty = T.y + T.vy * 0.6; use = true; }
+        if (T && dT < TRAP_RANGE + 60 && dT > 60 && Math.random() < dt * 0.8) {
+          const tx = T.x + T.vx * 0.6, ty = T.y + T.vy * 0.6;
+          // not over a hole or water: a trap can't sit there (bogs and lava are fine)
+          if (!HAZ.some(h => h.type === 'pit' && inHaz(h, tx, ty, TRAP_PIT_GAP))) { p.input.tx = tx; p.input.ty = ty; use = true; }
+        }
         break;
       case 'stealth': use = !!T && ((dT > 260 && dT < 650 && p.hp > p.maxHp * 0.4) || (p.hp < p.maxHp * 0.35 && dT < 300)); break;
       case 'deflect': {
@@ -4177,7 +4185,7 @@ function masteryOf(games, wins) {
 }
 return {
   MASTERY, masteryOf,
-  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf,
+  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
