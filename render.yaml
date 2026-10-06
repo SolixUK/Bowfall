@@ -3,7 +3,7 @@ services:
   - type: web
     name: bowfall
     runtime: node
-    plan: free
+    plan: starter   # half a CPU core. Render resets the service to whatever is written here each time this file is synced, so change the plan here, not only in the dashboard
     region: frankfurt   # closest to the UK and Europe; others: oregon, ohio, virginia, singapore
     buildCommand: npm install
     startCommand: npm start
