@@ -2,6 +2,11 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.31.1
+
+- **Rocket Arrow is now the Firework, and much weaker.** It flies at a set 210px a second whatever the draw or the arrow speed rule (it was about 940 under the standard rules; an archer runs at about 235), turns at a steady 1.5 radians a second without leading its target, and bursts when it lands or when its 5 second fuse runs out. The burst is 85% the size of Blast Tips (it was 150%) with 70% of the shove, and does 6 damage (it was 12); the direct hit does 35% of a normal arrow's damage and knockback (it was 70% and 60%). In a test a direct hit plus burst cost a Ranger 11 health, down from 22. It's drawn as a striped firework on a stick throwing coloured sparks, and bursts in rings and stars of several colours with a crackle.
+- Bots only use it between 160 and 700px, since it's too slow to matter from across the arena.
+
 ## 0.31.0
 
 - **Match-over screen reworked.** A big headline in the winner's colour ("Red wins"), or **Victory** / **Defeat** in ranked, with the points line small beneath it; the winning archers are shown; the headline and winners animate in with a short fanfare. The rankings table drops Amber and Damage taken. Your rating counts up (or down) from the old number with a tick per step, and the level, mastery and Crest bars chime as they fill (a brighter chime on a level-up).

@@ -1318,7 +1318,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.31.0';
+const VERSION = '0.31.1';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -2041,7 +2041,7 @@ const TREE = {
   rush:      { tree: 'juggernaut', active: { cd: 10 }, name: 'Bull Rush', desc: 'Charge along your aim for half a second, barely moved by hits, bulldozing every enemy in the way for 9 damage and a big shove.' },
   fortify:   { tree: 'juggernaut', active: { cd: 11 }, name: 'Fortify', desc: 'For 3 seconds take 90% less knockback and 30% less damage, but move 40% slower.' },
   parry:     { tree: 'ranger', active: { cd: 9 }, name: 'Parry', desc: 'Raise a guard for 1 second that stops arrows from any side. Block one and you riposte: your next shot is drawn instantly and hits 30% harder, and for 3 seconds you draw twice as fast and move 20% faster. Parry\'s cooldown is halved.' },
-  rocket:    { tree: 'juggernaut', also: ['trickster', 'crossbow'], active: { cd: 14 }, name: 'Rocket Arrow', desc: 'Your next shot is a big, slow rocket that homes hard on the enemy nearest your line of fire and explodes where it lands, throwing everyone nearby. Slow enough to dodge; boulders stop it.' },
+  rocket:    { tree: 'juggernaut', also: ['trickster', 'crossbow'], active: { cd: 14 }, name: 'Firework', desc: 'Your next shot is a big firework that drifts slowly after the enemy nearest your line of fire and bursts where it lands, or when its fuse runs out after 5 seconds, shoving everyone nearby. It is slower than a running archer, so it herds people more than it hits them. Boulders stop it.' },
   seeker:    { tree: 'ranger', active: { cd: 12 }, name: 'Seeker Arrow', desc: 'Your next shot locks on to the enemy nearest your line of fire and curves hard toward where they are heading. Boulders still block it.' },
   trick:     { tree: 'trickster', active: { cd: 8 }, name: 'Trick Shot', desc: 'Your next shot bounces off walls and boulders up to 3 times, hitting 25% harder and knocking back 10% harder after every bounce.' },
   boomerang: { tree: 'trickster', active: { cd: 6 }, name: 'Boomerang', desc: 'Your next shot flies out, passes through enemies and comes back to you, able to hit each of them again on the way. It deals 25% more damage.' },
@@ -2895,7 +2895,7 @@ function fire(w, p, ang, c, burst, vol) {
   const take = k => { const v = !burst && p[k]; if (v) p[k] = false; return v; };
   const recoil = take('recoilArmed'), rocket = take('rocketArmed'), seek = take('seekArmed') || rocket, swap = false, trick = take('trickArmed'), boom = take('boomArmed'), exec = take('execArmed');
   if (boom) dmg *= 1.25;
-  if (rocket) { dmg *= 0.7; kb *= 0.6; speed *= ROCKET.speed; } // the blast does most of the work
+  if (rocket) { dmg *= 0.35; kb *= 0.35; speed = ROCKET.speed; } // a set, slow speed whatever the draw or the arrow speed rule; the burst does the work
   if (recoil) kb *= 1.6;
   if (full && has(p, 'boulder')) kb *= 1.3;
   if (p.emp && p.element === 'stone') kb *= 1.35; // Landslide
@@ -2926,16 +2926,16 @@ function fire(w, p, ang, c, burst, vol) {
 
 
 
-function explode(w, x, y, owner, team, k = 1) { // k: size of the blast (a Rocket Arrow's is bigger)
-  ev(w, { e: 'boom', x: r1(x), y: r1(y), k: k !== 1 ? k : undefined });
+function explode(w, x, y, owner, team, k = 1, fw = false) { // k: size of the blast; fw: a Firework's burst (smaller, and drawn in colours)
+  ev(w, { e: 'boom', x: r1(x), y: r1(y), k: k !== 1 ? k : undefined, fw: fw ? 1 : undefined });
   for (const p of w.players) {
     if (p.dead || p.falling > 0) continue;
     const dx = p.x - x, dy = p.y - y, d = Math.hypot(dx, dy);
     if (d > 125 * k + p.r) continue;
-    const n = d || 1, force = (250 + 650 * Math.max(0, 1 - d / (130 * k))) * (k > 1 ? 1.25 : 1);
+    const n = d || 1, force = (250 + 650 * Math.max(0, 1 - d / (130 * k))) * (fw ? 0.7 : 1);
     if (p.id === owner) { // rocket jump: knockback, no damage
       p.vx += dx / n * force * 0.8; p.vy += dy / n * force * 0.8; p.knock = Math.max(p.knock, 0.35);
-    } else if (p.team !== team) hurt(w, p, 8 * k, dx / n * force, dy / n * force, 'blast', owner);
+    } else if (p.team !== team) hurt(w, p, fw ? ROCKET.dmg : 8 * k, dx / n * force, dy / n * force, 'blast', owner);
   }
 }
 
@@ -3784,7 +3784,7 @@ function separate(w) {
 function stickArrow(w, a, t) {
   a.stuck = t; a.vx = a.vy = 0;
   if (a.own && a.own.emp && a.own.element === 'flame' && !a.own.dead) blazePatch(w, a.own, clamp(a.x, WALL + 22, AW - WALL - 22), clamp(a.y, WALL + 22, AH - WALL - 22), 32, 2.2);
-  if (a.explosive) { explode(w, a.x, a.y, a.owner, a.team, a.rocket ? ROCKET.blast : 1); a.stuck = 0.01; }
+  if (a.explosive) { explode(w, a.x, a.y, a.owner, a.team, a.rocket ? ROCKET.blast : 1, a.rocket); a.stuck = 0.01; }
   else ev(w, { e: 'thunk', x: r1(a.x), y: r1(a.y) });
 }
 
@@ -3899,8 +3899,8 @@ function onArrowEffects(w, a, f, primary) {
 const BULLSEYE = 0.4, CRIT_MUL = 1.5;
 // a pin needs a full-draw hit, then a slam into a wall or boulder within PIN_WINDOW seconds at PIN_SPEED or faster
 const NB_WIND = 0.05, NB_MOVE = 0.09; // Ninja blink: wind-up, then travel time
-// Rocket Arrow: slow, big, homes hard for its whole flight, and its blast is half as big again
-const ROCKET = { speed: 0.3, power: 2.6, life: 3.2, blast: 1.5 };
+// Firework: big and very slow, follows its target for its whole flight, and bursts a little smaller than Blast Tips
+const ROCKET = { speed: 210, turn: 1.5, life: 5, blast: 0.85, dmg: 6 }; // px/s (an archer runs at about 235), radians a second it can turn, fuse, burst size (Blast Tips = 1) and burst damage
 const ASSIST_LANE = 220, ASSIST_RAMP = 600, SEEK = { power: 1.4, lane: 340, base: 0.6 }; // Seeker Arrow: between the Heavy and Extreme rules, with a wider lane, and it turns firmly from the start; // arrow homing: how far either side of your line of fire it looks for a target (at any range), and the distance over which its turning ramps up
 const XBOW_RANGE = 480, XBOW_RELOAD = 1.15, XBOW_GAP = 0.16, AUTO_TIME = 2, AUTO_GAP = 0.12;
 // how far a player's shots reach before dropping, for roles with a short range (null: the whole arena)
@@ -4029,7 +4029,7 @@ function updateArrows(w, dt) {
     // picks the enemy nearest its straight line of fire (ahead of it, at any distance, within its lane either side),
     // then bends only toward them for the rest of its flight; it never switches to someone else it passes.
     // A Seeker Arrow has a wider lane, turns much harder, and aims at where its target is heading.
-    const assist = a.rocket ? ROCKET.power : a.seek ? SEEK.power : OPTIONS.assist.values[(CFG.opt || {}).assist] || 0;
+    const assist = a.rocket ? 1 : a.seek ? SEEK.power : OPTIONS.assist.values[(CFG.opt || {}).assist] || 0;
     if (assist > 0 && !a.back && !a.rail && a.age < (a.rocket ? ROCKET.life : a.seek ? 2.2 : 1.5)) {
       const h = Math.atan2(a.vy, a.vx), ux = Math.cos(h), uy = Math.sin(h);
       if (a.assistT === undefined) {
@@ -4048,11 +4048,11 @@ function updateArrows(w, dt) {
       if (best && clearShot(a.x, a.y, best.x, best.y)) {
         const sp = Math.hypot(a.vx, a.vy), d = Math.hypot(best.x - a.x, best.y - a.y);
         // a Seeker leads its target: it steers for where they'll be when it gets there
-        const lead = a.seek ? Math.min(0.5, d / Math.max(200, sp)) : 0;
+        const lead = a.seek && !a.rocket ? Math.min(0.5, d / Math.max(200, sp)) : 0;
         const want = Math.atan2(best.y + best.vy * lead - a.y, best.x + best.vx * lead - a.x), diff = ((want - h + Math.PI) % TAU + TAU) % TAU - Math.PI;
         // (turning scales with the shot's speed, so the curve is the same shape whatever the arrow speed rule)
         const close = 1 - Math.min(1, d / ASSIST_RAMP);
-        const rate = assist * ((a.seek ? SEEK.base : 0.2) + 2.6 * close * close) * sp / 1000;
+        const rate = a.rocket ? ROCKET.turn : assist * ((a.seek ? SEEK.base : 0.2) + 2.6 * close * close) * sp / 1000;
         const turn = clamp(diff, -rate * dt, rate * dt);
         a.vx = Math.cos(h + turn) * sp; a.vy = Math.sin(h + turn) * sp;
       }
@@ -4174,7 +4174,7 @@ function updateArrows(w, dt) {
             ev(w, { e: 'swap', x1: r1(o.x), y1: r1(o.y), x2: r1(f.x), y2: r1(f.y) });
             o.x = f.x; o.y = f.y; f.x = ox; f.y = oy; o.vx = o.vy = 0; f.vx = -f.vx; f.vy = -f.vy; f.stuck = Math.max(f.stuck, 0.6); a.swap = false; // they keep flying away from you
           }
-          if (a.explosive) explode(w, a.x, a.y, a.owner, a.team, a.rocket ? ROCKET.blast : 1);
+          if (a.explosive) explode(w, a.x, a.y, a.owner, a.team, a.rocket ? ROCKET.blast : 1, a.rocket);
           if (a.pierce > 0 && !a.explosive) { a.pierce--; a.hit.push(f.id); if (!a.rail && !a.boom) { a.vx *= 0.8; a.vy *= 0.8; } continue; }
           w.arrows.splice(i, 1);
           continue outer;
@@ -4200,7 +4200,7 @@ function updateArrows(w, dt) {
     if (a.life <= 0 || Math.hypot(a.vx, a.vy) < 170) {
       a.stuck = 1.2; a.vx = a.vy = 0;
       if (a.own && a.own.emp && a.own.element === 'flame' && !a.own.dead) blazePatch(w, a.own, a.x, a.y, 32, 2.2);
-      if (a.explosive) { explode(w, a.x, a.y, a.owner, a.team, a.rocket ? ROCKET.blast : 1); a.stuck = 0.01; }
+      if (a.explosive) { explode(w, a.x, a.y, a.owner, a.team, a.rocket ? ROCKET.blast : 1, a.rocket); a.stuck = 0.01; }
     }
   }
   for (const b of born) w.arrows.push(b);
@@ -4795,7 +4795,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
       case 'parry': use = (foes.some(q => q.drawing && q.charge > 0.55 && Math.hypot(q.x - p.x, q.y - p.y) < 650 && angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.18)
         || w.arrows.some(a => a.team !== p.team && !a.stuck && shotAt(a, p))) && Math.random() < dt * 6; break; // a bow being drawn at them, or a shot (shuriken, bolt) already on its way
       case 'seeker': use = chg > 0.5 && !!T && dT > 220; break;
-      case 'rocket': use = chg > 0.6 && !!T && dT > 260 && !p.rocketArmed; break;
+      case 'rocket': use = chg > 0.3 && !!T && dT > 160 && dT < 700 && !p.rocketArmed; break; // too slow to be worth it from across the arena
       case 'trick': use = chg > 0.55 && !!T && dT > 200 && !p.trickArmed; break;
       case 'boomerang': use = chg > 0.6 && !!T && dT < 440; break;
       case 'execute': use = !!T && T.hp < T.maxHp * 0.45 && chg > 0.3; break;
@@ -5530,7 +5530,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.31.0';
+const PAGE_VERSION = '0.31.1';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -9074,11 +9074,17 @@ function handleEvents(evs) {
         break;
       case 'block': floater(e.x, e.y, 'Blocked', '#c7b3ff', 13); break;
       case 'boom': {
-        const k = e.k || 1; // a Rocket Arrow's blast is bigger
-        fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, max: 120 * k }); if (k > 1) fx.rings.push({ x: e.x, y: e.y, r: 10, life: -0.08, max: 220 });
-        burst(e.x, e.y, '#ff8a3d', Math.round(28 * k), 320 * k, 4); burst(e.x, e.y, '#ffe066', Math.round(14 * k), 200 * k, 3);
-        if (k > 1) { burst(e.x, e.y, '#4a4a4a', 18, 140, 6); impact(0.05); }
-        sfx.boom(); shake(8 * k); break; }
+        if (e.fw) { // a Firework: rings and stars in several colours, and a crackle after the bang
+          const cols = ['#ff5a7a', '#ffd23f', '#5ad1ff', '#7dff8a', '#c58bff'], rgb = ['255,90,122', '255,210,63', '90,209,255'];
+          rgb.forEach((c, n) => fx.rings.push({ x: e.x, y: e.y, r: 10, life: -0.06 * n, col: c, max: 105 - n * 22 }));
+          cols.forEach((c, n) => burst(e.x, e.y, c, 12, 200 + n * 30, 2.6));
+          burst(e.x, e.y, '#ffffff', 10, 120, 1.6);
+          sfx.boom(); if (!muted) for (let n = 0; n < 6; n++) nz(0.03, 0.05, 'highpass', 4000, 6000, 1, 0.12 + n * 0.05 + Math.random() * 0.03);
+          shake(4); break;
+        }
+        fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0 });
+        burst(e.x, e.y, '#ff8a3d', 28, 320, 4); burst(e.x, e.y, '#ffe066', 14, 200, 3);
+        sfx.boom(); shake(8); break; }
       case 'pick': {
         const d = puInfo(e.ty); burst(e.x, e.y, d.color, e.ty === 'amber' ? 10 : 18, 170);
         if (e.id === myId) { sfx.pick(); floater(e.x, e.y - 20, d.name, d.color, 15); }
@@ -11132,26 +11138,33 @@ function drawArrow(a) {
   ctx.restore();
 }
 
-// Rocket Arrow: drawn in the arrow's frame (already translated and rotated), about twice an arrow's size
+// Firework: drawn in the arrow's frame (already translated and rotated). A striped paper tube on a stick with a
+// pointed cap, wobbling a little as it flies, throwing sparks of several colours from its tail
 function drawRocket(a) {
-  ctx.scale(1.6, 1.6);
-  const t = clock * 40 + a.id, flick = 0.75 + 0.25 * Math.sin(t * 1.7), light = lightFx();
+  const t = clock * 40 + (+a.id || 0), flick = 0.7 + 0.3 * Math.sin(t * 1.7), light = lightFx();
+  ctx.rotate(Math.sin(clock * 9 + (+a.id || 0)) * 0.06);
+  ctx.scale(1.5, 1.5);
   if (!light) {
-    if (Math.random() < 0.7) fx.parts.push({ x: a.x - Math.cos(a.g) * 26 + rand(-3, 3), y: a.y - Math.sin(a.g) * 26 + rand(-3, 3), vx: rand(-25, 25), vy: rand(-25, 25), life: 0, max: rand(0.35, 0.6), color: Math.random() < 0.5 ? 'rgba(120,120,120,0.5)' : 'rgba(80,80,80,0.45)', r: rand(2.5, 4.5) });
-    if (Math.random() < 0.6) fx.parts.push({ x: a.x - Math.cos(a.g) * 22, y: a.y - Math.sin(a.g) * 22, vx: rand(-40, 40), vy: rand(-40, 40), life: 0, max: 0.22, color: Math.random() < 0.5 ? '#ff6a2b' : '#ffcf5a', r: rand(1.2, 2.4) });
+    const cols = ['#ff5a7a', '#ffd23f', '#5ad1ff', '#7dff8a', '#ffffff'], bx = a.x - Math.cos(a.g) * 26, by = a.y - Math.sin(a.g) * 26;
+    if (Math.random() < 0.9) fx.parts.push({ x: bx + rand(-2, 2), y: by + rand(-2, 2), vx: -Math.cos(a.g) * rand(20, 70) + rand(-45, 45), vy: -Math.sin(a.g) * rand(20, 70) + rand(-45, 45), life: 0, max: rand(0.25, 0.55), color: cols[Math.floor(Math.random() * cols.length)], r: rand(1, 2.2) });
+    if (Math.random() < 0.3) fx.parts.push({ x: bx, y: by, vx: rand(-12, 12), vy: rand(-12, 12), life: 0, max: rand(0.4, 0.7), color: 'rgba(200,200,200,0.3)', r: rand(2, 3.5) });
   }
-  // exhaust flame
-  const fl = (14 + 8 * flick);
-  ctx.fillStyle = `rgba(255,120,40,${0.55 * flick})`; ctx.beginPath(); ctx.moveTo(-16, -4); ctx.lineTo(-16 - fl, 0); ctx.lineTo(-16, 4); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = `rgba(255,230,120,${0.8 * flick})`; ctx.beginPath(); ctx.moveTo(-16, -2); ctx.lineTo(-16 - fl * 0.55, 0); ctx.lineTo(-16, 2); ctx.closePath(); ctx.fill();
-  // body, fins and nose
-  ctx.fillStyle = a.c; ctx.beginPath(); ctx.moveTo(-18, -4); ctx.lineTo(-24, -9); ctx.lineTo(-13, -4); ctx.lineTo(-13, 4); ctx.lineTo(-24, 9); ctx.lineTo(-18, 4); ctx.fill();
-  ctx.fillStyle = '#5b6470'; ctx.strokeStyle = 'rgba(20,14,8,0.8)'; ctx.lineWidth = 1.4;
-  ctx.beginPath(); ctx.moveTo(-17, -4.5); ctx.lineTo(8, -4.5); ctx.lineTo(8, 4.5); ctx.lineTo(-17, 4.5); ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.fillRect(-16, -4, 23, 2);
-  ctx.fillStyle = EL_COL[a.el] || '#ff5a7a'; ctx.beginPath(); ctx.moveTo(8, -4.5); ctx.lineTo(17, 0); ctx.lineTo(8, 4.5); ctx.closePath(); ctx.fill(); ctx.stroke();
-  // a blinking light near the nose
-  if (Math.floor(clock * 6) % 2 === 0) { ctx.fillStyle = '#ff5a5a'; ctx.beginPath(); ctx.arc(4, 0, 1.6, 0, TAU); ctx.fill(); }
+  // the stick
+  ctx.strokeStyle = 'rgba(20,14,8,0.75)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-34, 3); ctx.lineTo(-8, 3); ctx.stroke();
+  ctx.strokeStyle = '#c9a56b'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-34, 3); ctx.lineTo(-8, 3); ctx.stroke();
+  // the fuse spark
+  ctx.fillStyle = `rgba(255,230,120,${0.9 * flick})`; ctx.beginPath(); ctx.arc(-17, 0, 2.2 + 1.6 * flick, 0, TAU); ctx.fill();
+  ctx.fillStyle = `rgba(255,255,255,${flick})`; ctx.beginPath(); ctx.arc(-17, 0, 1.1, 0, TAU); ctx.fill();
+  // the tube: the shooter's colour with white stripes
+  ctx.fillStyle = a.c; ctx.strokeStyle = 'rgba(20,14,8,0.8)'; ctx.lineWidth = 1.3;
+  ctx.beginPath(); ctx.rect(-15, -4.5, 22, 9); ctx.fill(); ctx.stroke();
+  ctx.save(); ctx.beginPath(); ctx.rect(-15, -4.5, 22, 9); ctx.clip();
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 2.2;
+  for (let x = -18; x < 10; x += 7) { ctx.beginPath(); ctx.moveTo(x, 6); ctx.lineTo(x + 6, -6); ctx.stroke(); }
+  ctx.restore();
+  // the cap
+  ctx.fillStyle = '#ffd23f'; ctx.strokeStyle = 'rgba(20,14,8,0.8)'; ctx.lineWidth = 1.3;
+  ctx.beginPath(); ctx.moveTo(7, -5.5); ctx.lineTo(16, 0); ctx.lineTo(7, 5.5); ctx.closePath(); ctx.fill(); ctx.stroke();
 }
 function hexPath(r) { ctx.beginPath(); for (let i = 0; i < 6; i++) { const a = i / 6 * TAU + Math.PI / 6; i ? ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r) : ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); }
 function drawAmber(u) {

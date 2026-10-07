@@ -1315,7 +1315,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.31.0"></script>
+<script src="sim.js?v=0.31.1"></script>
 <script>
 (() => {
 'use strict';
@@ -1323,7 +1323,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.31.0';
+const PAGE_VERSION = '0.31.1';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -4867,11 +4867,17 @@ function handleEvents(evs) {
         break;
       case 'block': floater(e.x, e.y, 'Blocked', '#c7b3ff', 13); break;
       case 'boom': {
-        const k = e.k || 1; // a Rocket Arrow's blast is bigger
-        fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, max: 120 * k }); if (k > 1) fx.rings.push({ x: e.x, y: e.y, r: 10, life: -0.08, max: 220 });
-        burst(e.x, e.y, '#ff8a3d', Math.round(28 * k), 320 * k, 4); burst(e.x, e.y, '#ffe066', Math.round(14 * k), 200 * k, 3);
-        if (k > 1) { burst(e.x, e.y, '#4a4a4a', 18, 140, 6); impact(0.05); }
-        sfx.boom(); shake(8 * k); break; }
+        if (e.fw) { // a Firework: rings and stars in several colours, and a crackle after the bang
+          const cols = ['#ff5a7a', '#ffd23f', '#5ad1ff', '#7dff8a', '#c58bff'], rgb = ['255,90,122', '255,210,63', '90,209,255'];
+          rgb.forEach((c, n) => fx.rings.push({ x: e.x, y: e.y, r: 10, life: -0.06 * n, col: c, max: 105 - n * 22 }));
+          cols.forEach((c, n) => burst(e.x, e.y, c, 12, 200 + n * 30, 2.6));
+          burst(e.x, e.y, '#ffffff', 10, 120, 1.6);
+          sfx.boom(); if (!muted) for (let n = 0; n < 6; n++) nz(0.03, 0.05, 'highpass', 4000, 6000, 1, 0.12 + n * 0.05 + Math.random() * 0.03);
+          shake(4); break;
+        }
+        fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0 });
+        burst(e.x, e.y, '#ff8a3d', 28, 320, 4); burst(e.x, e.y, '#ffe066', 14, 200, 3);
+        sfx.boom(); shake(8); break; }
       case 'pick': {
         const d = puInfo(e.ty); burst(e.x, e.y, d.color, e.ty === 'amber' ? 10 : 18, 170);
         if (e.id === myId) { sfx.pick(); floater(e.x, e.y - 20, d.name, d.color, 15); }
@@ -6925,26 +6931,33 @@ function drawArrow(a) {
   ctx.restore();
 }
 
-// Rocket Arrow: drawn in the arrow's frame (already translated and rotated), about twice an arrow's size
+// Firework: drawn in the arrow's frame (already translated and rotated). A striped paper tube on a stick with a
+// pointed cap, wobbling a little as it flies, throwing sparks of several colours from its tail
 function drawRocket(a) {
-  ctx.scale(1.6, 1.6);
-  const t = clock * 40 + a.id, flick = 0.75 + 0.25 * Math.sin(t * 1.7), light = lightFx();
+  const t = clock * 40 + (+a.id || 0), flick = 0.7 + 0.3 * Math.sin(t * 1.7), light = lightFx();
+  ctx.rotate(Math.sin(clock * 9 + (+a.id || 0)) * 0.06);
+  ctx.scale(1.5, 1.5);
   if (!light) {
-    if (Math.random() < 0.7) fx.parts.push({ x: a.x - Math.cos(a.g) * 26 + rand(-3, 3), y: a.y - Math.sin(a.g) * 26 + rand(-3, 3), vx: rand(-25, 25), vy: rand(-25, 25), life: 0, max: rand(0.35, 0.6), color: Math.random() < 0.5 ? 'rgba(120,120,120,0.5)' : 'rgba(80,80,80,0.45)', r: rand(2.5, 4.5) });
-    if (Math.random() < 0.6) fx.parts.push({ x: a.x - Math.cos(a.g) * 22, y: a.y - Math.sin(a.g) * 22, vx: rand(-40, 40), vy: rand(-40, 40), life: 0, max: 0.22, color: Math.random() < 0.5 ? '#ff6a2b' : '#ffcf5a', r: rand(1.2, 2.4) });
+    const cols = ['#ff5a7a', '#ffd23f', '#5ad1ff', '#7dff8a', '#ffffff'], bx = a.x - Math.cos(a.g) * 26, by = a.y - Math.sin(a.g) * 26;
+    if (Math.random() < 0.9) fx.parts.push({ x: bx + rand(-2, 2), y: by + rand(-2, 2), vx: -Math.cos(a.g) * rand(20, 70) + rand(-45, 45), vy: -Math.sin(a.g) * rand(20, 70) + rand(-45, 45), life: 0, max: rand(0.25, 0.55), color: cols[Math.floor(Math.random() * cols.length)], r: rand(1, 2.2) });
+    if (Math.random() < 0.3) fx.parts.push({ x: bx, y: by, vx: rand(-12, 12), vy: rand(-12, 12), life: 0, max: rand(0.4, 0.7), color: 'rgba(200,200,200,0.3)', r: rand(2, 3.5) });
   }
-  // exhaust flame
-  const fl = (14 + 8 * flick);
-  ctx.fillStyle = `rgba(255,120,40,${0.55 * flick})`; ctx.beginPath(); ctx.moveTo(-16, -4); ctx.lineTo(-16 - fl, 0); ctx.lineTo(-16, 4); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = `rgba(255,230,120,${0.8 * flick})`; ctx.beginPath(); ctx.moveTo(-16, -2); ctx.lineTo(-16 - fl * 0.55, 0); ctx.lineTo(-16, 2); ctx.closePath(); ctx.fill();
-  // body, fins and nose
-  ctx.fillStyle = a.c; ctx.beginPath(); ctx.moveTo(-18, -4); ctx.lineTo(-24, -9); ctx.lineTo(-13, -4); ctx.lineTo(-13, 4); ctx.lineTo(-24, 9); ctx.lineTo(-18, 4); ctx.fill();
-  ctx.fillStyle = '#5b6470'; ctx.strokeStyle = 'rgba(20,14,8,0.8)'; ctx.lineWidth = 1.4;
-  ctx.beginPath(); ctx.moveTo(-17, -4.5); ctx.lineTo(8, -4.5); ctx.lineTo(8, 4.5); ctx.lineTo(-17, 4.5); ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.fillRect(-16, -4, 23, 2);
-  ctx.fillStyle = EL_COL[a.el] || '#ff5a7a'; ctx.beginPath(); ctx.moveTo(8, -4.5); ctx.lineTo(17, 0); ctx.lineTo(8, 4.5); ctx.closePath(); ctx.fill(); ctx.stroke();
-  // a blinking light near the nose
-  if (Math.floor(clock * 6) % 2 === 0) { ctx.fillStyle = '#ff5a5a'; ctx.beginPath(); ctx.arc(4, 0, 1.6, 0, TAU); ctx.fill(); }
+  // the stick
+  ctx.strokeStyle = 'rgba(20,14,8,0.75)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-34, 3); ctx.lineTo(-8, 3); ctx.stroke();
+  ctx.strokeStyle = '#c9a56b'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-34, 3); ctx.lineTo(-8, 3); ctx.stroke();
+  // the fuse spark
+  ctx.fillStyle = `rgba(255,230,120,${0.9 * flick})`; ctx.beginPath(); ctx.arc(-17, 0, 2.2 + 1.6 * flick, 0, TAU); ctx.fill();
+  ctx.fillStyle = `rgba(255,255,255,${flick})`; ctx.beginPath(); ctx.arc(-17, 0, 1.1, 0, TAU); ctx.fill();
+  // the tube: the shooter's colour with white stripes
+  ctx.fillStyle = a.c; ctx.strokeStyle = 'rgba(20,14,8,0.8)'; ctx.lineWidth = 1.3;
+  ctx.beginPath(); ctx.rect(-15, -4.5, 22, 9); ctx.fill(); ctx.stroke();
+  ctx.save(); ctx.beginPath(); ctx.rect(-15, -4.5, 22, 9); ctx.clip();
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 2.2;
+  for (let x = -18; x < 10; x += 7) { ctx.beginPath(); ctx.moveTo(x, 6); ctx.lineTo(x + 6, -6); ctx.stroke(); }
+  ctx.restore();
+  // the cap
+  ctx.fillStyle = '#ffd23f'; ctx.strokeStyle = 'rgba(20,14,8,0.8)'; ctx.lineWidth = 1.3;
+  ctx.beginPath(); ctx.moveTo(7, -5.5); ctx.lineTo(16, 0); ctx.lineTo(7, 5.5); ctx.closePath(); ctx.fill(); ctx.stroke();
 }
 function hexPath(r) { ctx.beginPath(); for (let i = 0; i < 6; i++) { const a = i / 6 * TAU + Math.PI / 6; i ? ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r) : ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); }
 function drawAmber(u) {

@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.31.0';
+const VERSION = '0.31.1';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -732,7 +732,7 @@ const TREE = {
   rush:      { tree: 'juggernaut', active: { cd: 10 }, name: 'Bull Rush', desc: 'Charge along your aim for half a second, barely moved by hits, bulldozing every enemy in the way for 9 damage and a big shove.' },
   fortify:   { tree: 'juggernaut', active: { cd: 11 }, name: 'Fortify', desc: 'For 3 seconds take 90% less knockback and 30% less damage, but move 40% slower.' },
   parry:     { tree: 'ranger', active: { cd: 9 }, name: 'Parry', desc: 'Raise a guard for 1 second that stops arrows from any side. Block one and you riposte: your next shot is drawn instantly and hits 30% harder, and for 3 seconds you draw twice as fast and move 20% faster. Parry\'s cooldown is halved.' },
-  rocket:    { tree: 'juggernaut', also: ['trickster', 'crossbow'], active: { cd: 14 }, name: 'Rocket Arrow', desc: 'Your next shot is a big, slow rocket that homes hard on the enemy nearest your line of fire and explodes where it lands, throwing everyone nearby. Slow enough to dodge; boulders stop it.' },
+  rocket:    { tree: 'juggernaut', also: ['trickster', 'crossbow'], active: { cd: 14 }, name: 'Firework', desc: 'Your next shot is a big firework that drifts slowly after the enemy nearest your line of fire and bursts where it lands, or when its fuse runs out after 5 seconds, shoving everyone nearby. It is slower than a running archer, so it herds people more than it hits them. Boulders stop it.' },
   seeker:    { tree: 'ranger', active: { cd: 12 }, name: 'Seeker Arrow', desc: 'Your next shot locks on to the enemy nearest your line of fire and curves hard toward where they are heading. Boulders still block it.' },
   trick:     { tree: 'trickster', active: { cd: 8 }, name: 'Trick Shot', desc: 'Your next shot bounces off walls and boulders up to 3 times, hitting 25% harder and knocking back 10% harder after every bounce.' },
   boomerang: { tree: 'trickster', active: { cd: 6 }, name: 'Boomerang', desc: 'Your next shot flies out, passes through enemies and comes back to you, able to hit each of them again on the way. It deals 25% more damage.' },
@@ -1586,7 +1586,7 @@ function fire(w, p, ang, c, burst, vol) {
   const take = k => { const v = !burst && p[k]; if (v) p[k] = false; return v; };
   const recoil = take('recoilArmed'), rocket = take('rocketArmed'), seek = take('seekArmed') || rocket, swap = false, trick = take('trickArmed'), boom = take('boomArmed'), exec = take('execArmed');
   if (boom) dmg *= 1.25;
-  if (rocket) { dmg *= 0.7; kb *= 0.6; speed *= ROCKET.speed; } // the blast does most of the work
+  if (rocket) { dmg *= 0.35; kb *= 0.35; speed = ROCKET.speed; } // a set, slow speed whatever the draw or the arrow speed rule; the burst does the work
   if (recoil) kb *= 1.6;
   if (full && has(p, 'boulder')) kb *= 1.3;
   if (p.emp && p.element === 'stone') kb *= 1.35; // Landslide
@@ -1617,16 +1617,16 @@ function fire(w, p, ang, c, burst, vol) {
 
 
 
-function explode(w, x, y, owner, team, k = 1) { // k: size of the blast (a Rocket Arrow's is bigger)
-  ev(w, { e: 'boom', x: r1(x), y: r1(y), k: k !== 1 ? k : undefined });
+function explode(w, x, y, owner, team, k = 1, fw = false) { // k: size of the blast; fw: a Firework's burst (smaller, and drawn in colours)
+  ev(w, { e: 'boom', x: r1(x), y: r1(y), k: k !== 1 ? k : undefined, fw: fw ? 1 : undefined });
   for (const p of w.players) {
     if (p.dead || p.falling > 0) continue;
     const dx = p.x - x, dy = p.y - y, d = Math.hypot(dx, dy);
     if (d > 125 * k + p.r) continue;
-    const n = d || 1, force = (250 + 650 * Math.max(0, 1 - d / (130 * k))) * (k > 1 ? 1.25 : 1);
+    const n = d || 1, force = (250 + 650 * Math.max(0, 1 - d / (130 * k))) * (fw ? 0.7 : 1);
     if (p.id === owner) { // rocket jump: knockback, no damage
       p.vx += dx / n * force * 0.8; p.vy += dy / n * force * 0.8; p.knock = Math.max(p.knock, 0.35);
-    } else if (p.team !== team) hurt(w, p, 8 * k, dx / n * force, dy / n * force, 'blast', owner);
+    } else if (p.team !== team) hurt(w, p, fw ? ROCKET.dmg : 8 * k, dx / n * force, dy / n * force, 'blast', owner);
   }
 }
 
@@ -2475,7 +2475,7 @@ function separate(w) {
 function stickArrow(w, a, t) {
   a.stuck = t; a.vx = a.vy = 0;
   if (a.own && a.own.emp && a.own.element === 'flame' && !a.own.dead) blazePatch(w, a.own, clamp(a.x, WALL + 22, AW - WALL - 22), clamp(a.y, WALL + 22, AH - WALL - 22), 32, 2.2);
-  if (a.explosive) { explode(w, a.x, a.y, a.owner, a.team, a.rocket ? ROCKET.blast : 1); a.stuck = 0.01; }
+  if (a.explosive) { explode(w, a.x, a.y, a.owner, a.team, a.rocket ? ROCKET.blast : 1, a.rocket); a.stuck = 0.01; }
   else ev(w, { e: 'thunk', x: r1(a.x), y: r1(a.y) });
 }
 
@@ -2590,8 +2590,8 @@ function onArrowEffects(w, a, f, primary) {
 const BULLSEYE = 0.4, CRIT_MUL = 1.5;
 // a pin needs a full-draw hit, then a slam into a wall or boulder within PIN_WINDOW seconds at PIN_SPEED or faster
 const NB_WIND = 0.05, NB_MOVE = 0.09; // Ninja blink: wind-up, then travel time
-// Rocket Arrow: slow, big, homes hard for its whole flight, and its blast is half as big again
-const ROCKET = { speed: 0.3, power: 2.6, life: 3.2, blast: 1.5 };
+// Firework: big and very slow, follows its target for its whole flight, and bursts a little smaller than Blast Tips
+const ROCKET = { speed: 210, turn: 1.5, life: 5, blast: 0.85, dmg: 6 }; // px/s (an archer runs at about 235), radians a second it can turn, fuse, burst size (Blast Tips = 1) and burst damage
 const ASSIST_LANE = 220, ASSIST_RAMP = 600, SEEK = { power: 1.4, lane: 340, base: 0.6 }; // Seeker Arrow: between the Heavy and Extreme rules, with a wider lane, and it turns firmly from the start; // arrow homing: how far either side of your line of fire it looks for a target (at any range), and the distance over which its turning ramps up
 const XBOW_RANGE = 480, XBOW_RELOAD = 1.15, XBOW_GAP = 0.16, AUTO_TIME = 2, AUTO_GAP = 0.12;
 // how far a player's shots reach before dropping, for roles with a short range (null: the whole arena)
@@ -2720,7 +2720,7 @@ function updateArrows(w, dt) {
     // picks the enemy nearest its straight line of fire (ahead of it, at any distance, within its lane either side),
     // then bends only toward them for the rest of its flight; it never switches to someone else it passes.
     // A Seeker Arrow has a wider lane, turns much harder, and aims at where its target is heading.
-    const assist = a.rocket ? ROCKET.power : a.seek ? SEEK.power : OPTIONS.assist.values[(CFG.opt || {}).assist] || 0;
+    const assist = a.rocket ? 1 : a.seek ? SEEK.power : OPTIONS.assist.values[(CFG.opt || {}).assist] || 0;
     if (assist > 0 && !a.back && !a.rail && a.age < (a.rocket ? ROCKET.life : a.seek ? 2.2 : 1.5)) {
       const h = Math.atan2(a.vy, a.vx), ux = Math.cos(h), uy = Math.sin(h);
       if (a.assistT === undefined) {
@@ -2739,11 +2739,11 @@ function updateArrows(w, dt) {
       if (best && clearShot(a.x, a.y, best.x, best.y)) {
         const sp = Math.hypot(a.vx, a.vy), d = Math.hypot(best.x - a.x, best.y - a.y);
         // a Seeker leads its target: it steers for where they'll be when it gets there
-        const lead = a.seek ? Math.min(0.5, d / Math.max(200, sp)) : 0;
+        const lead = a.seek && !a.rocket ? Math.min(0.5, d / Math.max(200, sp)) : 0;
         const want = Math.atan2(best.y + best.vy * lead - a.y, best.x + best.vx * lead - a.x), diff = ((want - h + Math.PI) % TAU + TAU) % TAU - Math.PI;
         // (turning scales with the shot's speed, so the curve is the same shape whatever the arrow speed rule)
         const close = 1 - Math.min(1, d / ASSIST_RAMP);
-        const rate = assist * ((a.seek ? SEEK.base : 0.2) + 2.6 * close * close) * sp / 1000;
+        const rate = a.rocket ? ROCKET.turn : assist * ((a.seek ? SEEK.base : 0.2) + 2.6 * close * close) * sp / 1000;
         const turn = clamp(diff, -rate * dt, rate * dt);
         a.vx = Math.cos(h + turn) * sp; a.vy = Math.sin(h + turn) * sp;
       }
@@ -2865,7 +2865,7 @@ function updateArrows(w, dt) {
             ev(w, { e: 'swap', x1: r1(o.x), y1: r1(o.y), x2: r1(f.x), y2: r1(f.y) });
             o.x = f.x; o.y = f.y; f.x = ox; f.y = oy; o.vx = o.vy = 0; f.vx = -f.vx; f.vy = -f.vy; f.stuck = Math.max(f.stuck, 0.6); a.swap = false; // they keep flying away from you
           }
-          if (a.explosive) explode(w, a.x, a.y, a.owner, a.team, a.rocket ? ROCKET.blast : 1);
+          if (a.explosive) explode(w, a.x, a.y, a.owner, a.team, a.rocket ? ROCKET.blast : 1, a.rocket);
           if (a.pierce > 0 && !a.explosive) { a.pierce--; a.hit.push(f.id); if (!a.rail && !a.boom) { a.vx *= 0.8; a.vy *= 0.8; } continue; }
           w.arrows.splice(i, 1);
           continue outer;
@@ -2891,7 +2891,7 @@ function updateArrows(w, dt) {
     if (a.life <= 0 || Math.hypot(a.vx, a.vy) < 170) {
       a.stuck = 1.2; a.vx = a.vy = 0;
       if (a.own && a.own.emp && a.own.element === 'flame' && !a.own.dead) blazePatch(w, a.own, a.x, a.y, 32, 2.2);
-      if (a.explosive) { explode(w, a.x, a.y, a.owner, a.team, a.rocket ? ROCKET.blast : 1); a.stuck = 0.01; }
+      if (a.explosive) { explode(w, a.x, a.y, a.owner, a.team, a.rocket ? ROCKET.blast : 1, a.rocket); a.stuck = 0.01; }
     }
   }
   for (const b of born) w.arrows.push(b);
@@ -3486,7 +3486,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
       case 'parry': use = (foes.some(q => q.drawing && q.charge > 0.55 && Math.hypot(q.x - p.x, q.y - p.y) < 650 && angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.18)
         || w.arrows.some(a => a.team !== p.team && !a.stuck && shotAt(a, p))) && Math.random() < dt * 6; break; // a bow being drawn at them, or a shot (shuriken, bolt) already on its way
       case 'seeker': use = chg > 0.5 && !!T && dT > 220; break;
-      case 'rocket': use = chg > 0.6 && !!T && dT > 260 && !p.rocketArmed; break;
+      case 'rocket': use = chg > 0.3 && !!T && dT > 160 && dT < 700 && !p.rocketArmed; break; // too slow to be worth it from across the arena
       case 'trick': use = chg > 0.55 && !!T && dT > 200 && !p.trickArmed; break;
       case 'boomerang': use = chg > 0.6 && !!T && dT < 440; break;
       case 'execute': use = !!T && T.hp < T.maxHp * 0.45 && chg > 0.3; break;
