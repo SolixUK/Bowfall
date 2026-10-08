@@ -620,6 +620,13 @@ async function api(req, res, url) {
     console.error('Client error:', t('where'), t('m'), '|', (t('s').split('\n')[1] || '').trim());
     return json(res, 200, { ok: true });
   }
+  if (route === '/profile' && method === 'GET') {
+    if (!me || !me.admin) return json(res, 403, { error: 'Only the game owner can see this.' });
+    if (PROF.running) return json(res, 202, { running: true });
+    if (!PROF.result) return json(res, 404, { error: 'No profile yet. Type /profile in a game chat to record one.' });
+    if (url.searchParams.get('raw')) { res.writeHead(200, { 'Content-Type': 'application/json', 'Content-Disposition': 'attachment; filename="bowfall-server.cpuprofile"', 'Cache-Control': 'no-store' }); return res.end(JSON.stringify(PROF.raw)); }
+    return json(res, 200, PROF.result, { 'Content-Disposition': 'attachment; filename="bowfall-server-profile.json"' });
+  }
   if (route === '/perf' && method === 'GET') {
     if (!me || !me.admin) return json(res, 403, { error: 'Only the game owner can see this.' });
     return json(res, 200, { now: PERF.now, errors: PERF.errors, history: PERF.hist, reports: PERF.reports.slice(-100), node: process.version, uptime: Math.round(process.uptime()) });
@@ -1080,7 +1087,7 @@ const CMD_HELP = {
     '/locks on|off – whether ranked drafts respect unlocks (off: everything free)', '/rotation [element role|clear] – show or pin this week\'s free picks', '/founders on|off – open or close Founder pack sales',
     '/grant <name> supporter <months>|founder|patron|crests <n>|unlock <key>|revoke <supporter|founder|patron> – for testing and support',
     '/feature <arena code> [ranked|off] – feature a player arena (ranked: also in the ranked map pool)',
-    '/perf – how hard the server is working right now, and the last lag reports from players', '/rooms – list the games running on the server', '/who <name> – ratings, games and where they are playing', '/setelo <name> <rating> [team] – set an account\'s 1v1 (or team) rating', '/clan disband <tag> – remove a clan'],
+    '/perf – how hard the server is working right now, and the last lag reports from players', '/rooms – list the games running on the server', '/who <name> – ratings, games and where they are playing', '/setelo <name> <rating> [team] – set an account\'s 1v1 (or team) rating', '/clan disband <tag> – remove a clan', '/profile [seconds] – record what the server spends its CPU on (default 120s), downloadable at /api/profile'],
 };
 function findIn(clients, q) {
   q = String(q || '').toLowerCase(); if (!q) return null;
@@ -1156,6 +1163,17 @@ async function chatCommand(room, ws, text) {
       const f = mode === 'off' ? { featured: false, ranked: false } : mode === 'ranked' ? { featured: true, ranked: true, pub: true } : { featured: true, pub: true };
       await store.arenaUpdate(a.id, f); await loadRankedArenas();
       return tell(`${a.name} (${Sim.arenaCode(a.id)}) by ${a.author}: ${mode === 'off' ? 'no longer featured' : mode === 'ranked' ? 'featured and in the ranked map pool' : 'featured'}.`);
+    }
+    case 'profile': { // /profile [seconds]: record what the server spends its CPU on, then summarise it
+      if (PROF.running) return tell('A profile is already being recorded.');
+      const secs = Math.max(10, Math.min(600, parseInt(args[0], 10) || 120));
+      PROF.start(secs, r => {
+        if (r.error) return tell('The profile failed: ' + r.error);
+        tell(`Profile done (${secs}s): ${r.busyMs} ms of CPU in the game's code, garbage collection ${r.gc.ms} ms (${r.gc.count} runs, longest ${r.gc.longest} ms), held back ${r.heldBackMs} ms.`);
+        tell('Busiest: ' + r.self.slice(0, 5).map(x => `${x.fn.replace(/ \S+:\d+$/, '')} ${x.pct}%`).join(', '));
+        tell('Download it (signed in as the owner) at /api/profile, and the full profile for Chrome DevTools at /api/profile?raw=1');
+      });
+      return tell(`Recording the server for ${secs} seconds. Keep playing; I'll post the results here.`);
     }
     case 'perf': {
       const h = PERF.hist.slice(-30), s = PERF.now || {};
@@ -1435,6 +1453,7 @@ const CG = (() => {
   const throttled = () => { const t = rd(stat); if (!t) return null; const m = t.match(/throttled_usec (\d+)/) || t.match(/throttled_time (\d+)/); return m ? (/usec/.test(m[0]) ? +m[1] / 1000 : +m[1] / 1e6) : null; };
   return { quota, throttled, last: throttled() };
 })();
+const PROF = require('./lib/profiler')(); // the owner's /profile command
 const PERF = { errors: [], w: { gap: 0, drop: 0, catchup: 0, step: 0, steps: 0, stepMax: 0, send: 0 }, hist: [], reports: [], cpu: process.cpuUsage(), at: Date.now(), now: null };
 function perfSecond() {
   const W = PERF.w, t = Date.now(), wall = (t - PERF.at) * 1000, cpu = process.cpuUsage(PERF.cpu);
@@ -1447,6 +1466,7 @@ function perfSecond() {
     rooms: rooms.size, players, mem: Math.round(process.memoryUsage().rss / 1048576) };
   eld.reset();
   PERF.w = { gap: 0, drop: 0, catchup: 0, step: 0, steps: 0, stepMax: 0, send: 0 };
+  PROF.second(s);
   PERF.now = s; PERF.hist.push(s); if (PERF.hist.length > 120) PERF.hist.shift();
   for (const room of rooms.values()) {
     const rp = room.perf || {}; room.perf = { ms: 0, n: 0, max: 0 };

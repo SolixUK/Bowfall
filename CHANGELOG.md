@@ -2,6 +2,11 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.34.2
+
+- **Server profiling (owner only):** type `/profile` in any game's chat (or `/profile 300` for five minutes; default two) and the server records what its CPU is spent on, with garbage collection and Render's throttling second by second. When it's done it posts a summary in the chat; the full results are at `/api/profile` (a summary, including what was running in each second the server was held back) and `/api/profile?raw=1` (a file Chrome's DevTools can open: Performance tab → Load profile).
+- `tools/perf-report.js` no longer takes minutes on a long recording.
+
 ## 0.34.1
 
 - Fixed: with `PUBLIC_URL` set to `https://bowfall.com`, a visit to `www.bowfall.com` was sent to `bowfall.com` while the domain set-up sent it back to `www.`, so the site never loaded ("redirected you too many times"). The server no longer redirects between the www and plain versions of your address; it still sends the onrender.com address to yours.

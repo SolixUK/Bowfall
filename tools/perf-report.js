@@ -17,13 +17,14 @@ console.log('\nSection        avg ms   95%    99%    max   share of work');
 const tot = avg(F.map(r => segs.reduce((s, k) => s + r[col(k)], 0)));
 for (const k of segs) { const v = F.map(r => r[col(k)]); console.log(`${k.padEnd(12)} ${f1(avg(v)).padStart(7)} ${f1(q(v, 0.95)).padStart(6)} ${f1(q(v, 0.99)).padStart(6)} ${f1(Math.max(...v)).padStart(6)}   ${Math.round(avg(v) / Math.max(1e-9, tot) * 100)}%`); }
 // what's different about the slowest frames
-const slow = F.filter(r => r[1] > q(fm, 0.99)), norm = F.filter(r => r[1] <= q(fm, 0.5));
+const p99 = q(fm, 0.99), p50 = q(fm, 0.5), slow = F.filter(r => r[1] > p99), norm = F.filter(r => r[1] <= p50);
 console.log('\nSlowest 1% of frames vs typical frames (averages):');
 for (const k of segs.concat(['msgs', 'nPlayers', 'nArrows', 'nParticles', 'nZones'])) {
   const i = col(k); if (i < 0) continue;
   console.log(`  ${k.padEnd(10)} ${f1(avg(slow.map(r => r[i]))).padStart(8)}  vs ${f1(avg(norm.map(r => r[i])))}`);
 }
 const unexplained = slow.map(r => r[1] - segs.reduce((s, k) => s + r[col(k)], 0));
+console.log(`  (slow frames: ${slow.length})`);
 console.log(`  outside the game's own code (browser, GC, compositing): ${f1(avg(unexplained))}ms in slow frames`);
 if (d.longTasks.length) console.log(`\nLong tasks (>50ms, Chrome): ${d.longTasks.length}, longest ${Math.max(...d.longTasks.map(x => x[1]))}ms`);
 const heap = d.secs.map(s => s.heap).filter(x => x != null);
