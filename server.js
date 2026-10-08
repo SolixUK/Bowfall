@@ -146,7 +146,7 @@ function trainTop(k, v, inList) {
 const trainHits = new Map();
 function trainLimit(key) { const now = Date.now(), h = (trainHits.get(key) || []).filter(t => now - t < 60000); h.push(now); trainHits.set(key, h); return h.length <= 20; }
 // the look of a signed-in player's name banner: the border they picked (if they've earned it) and how many achievements they have
-const lookOf = u => { const got = (u.ach && u.ach.got) || {}, bd = u.ach && u.ach.border, st = u.guest ? {} : E.statusOf(u); return Object.assign({ bd: bd && got[bd] ? bd : null, na: Object.keys(got).length || null, ow: u.admin ? 1 : null, sp: st.sp || null, fd: st.fd || null, pt: st.pt || null, ct: u.guest ? null : CLANS.tagOf(u.id), cl: u.guest ? null : CLANS.colOf(u.id) }, Sim.bannerOf(u.ach, st)); };
+const lookOf = u => { const got = (u.ach && u.ach.got) || {}, bd = u.ach && u.ach.border, st = u.guest ? {} : E.statusOf(u); return Object.assign({ bd: bd && got[bd] ? bd : null, na: Object.keys(got).length || null, ow: u.admin ? 1 : null, sp: st.sp || null, fd: st.fd || null, pt: st.pt || null, ct: u.guest ? null : CLANS.tagOf(u.id), cl: u.guest ? null : CLANS.colOf(u.id), ce: u.guest ? null : CLANS.emOf(u.id) }, Sim.bannerOf(u.ach, st)); };
 // ---- the owner's switches (kept in the database): whether ranked drafts respect unlocks, and a pinned free rotation
 const SETTINGS = { locks: false, rotPin: null, events: [] };
 async function loadSettings() {
@@ -303,7 +303,7 @@ function saveRecords(room) {
         sides.forEach((S, i) => {
           if (!S.clan) return;
           const out = CLANS.record(S.clan.id, r.win === S.tm, before[1 - i]); if (!out) return;
-          for (const u of S.us) { const ws = [...room.clients].find(q => q.user === u); if (ws) send(ws, { t: 'clanRated', tag: out.tag, name: out.name, rating: out.rating, d: out.d }); }
+          for (const u of S.us) { const ws = [...room.clients].find(q => q.user === u); if (ws) send(ws, { t: 'clanRated', tag: out.tag, em: out.em, name: out.name, rating: out.rating, d: out.d }); }
         });
         for (const [k, v] of rateGame(rec, users)) rated.set(k, v); // worked out for everyone first, from the ratings before this match
         for (const [pid, u] of users) {
@@ -890,7 +890,7 @@ const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 4096,
 const rooms = new Map();
 // friends, parties and matchmaking (lib/social.js)
 // clans (lib/clans.js). When someone joins or leaves, their banner in any game they're in is refreshed
-const CLANS = require('./lib/clans')({ store, onChange: ids => { for (const id of ids) refreshLook(id); } });
+const CLANS = require('./lib/clans')({ store, Sim, onChange: ids => { for (const id of ids) refreshLook(id); } });
 function refreshLook(uid) {
   for (const r of rooms.values()) { let hit = false; for (const c of r.clients) if (c.user && c.user.id === uid) { Object.assign(c, lookOf(c.user)); if (c.pid) Sim.setMeta(r.world, c.pid, lookOf(c.user)); hit = true; } if (hit) sendRoom(r); }
 }
@@ -969,7 +969,7 @@ function roomInfo(room, ws) {
     draft: room.ranked && room.ranked.draftUntil && !room.ranked.go ? Math.max(0, Math.ceil((room.ranked.draftUntil - Date.now()) / 1000)) : undefined,
     ready: room.ranked && room.ranked.ready ? [...room.clients].filter(c => room.ranked.ready.has(c.cid) && c.pid).map(c => c.pid) : undefined,
     cards: Object.fromEntries([...room.clients].map(c => [c.pid ? 'p' + c.pid : 'c' + c.cid, cardOf(c)]).concat([...(room.ai || new Map())].map(([pid, u]) => ['p' + pid, Object.assign(cardOf({ user: u }), { ai: 1 })]))),
-    spec: [...room.clients].filter(c => !c.pid).map(c => ({ cid: c.cid, n: c.name, h: c.cid === room.host ? 1 : 0, you: c === ws ? 1 : 0, cc: c.cc || undefined, lv: c.lv || undefined, bd: c.bd || undefined, sp: c.sp || undefined, fd: c.fd || undefined, pt: c.pt || undefined, na: c.na || undefined, ow: c.ow || undefined, fin: c.fin || undefined, ct: c.ct || undefined, cl: c.cl || undefined, sc: c.sc && c.sc.length ? c.sc : undefined })),
+    spec: [...room.clients].filter(c => !c.pid).map(c => ({ cid: c.cid, n: c.name, h: c.cid === room.host ? 1 : 0, you: c === ws ? 1 : 0, cc: c.cc || undefined, lv: c.lv || undefined, bd: c.bd || undefined, sp: c.sp || undefined, fd: c.fd || undefined, pt: c.pt || undefined, na: c.na || undefined, ow: c.ow || undefined, fin: c.fin || undefined, ct: c.ct || undefined, cl: c.cl || undefined, ce: c.ce || undefined, sc: c.sc && c.sc.length ? c.sc : undefined })),
   };
 }
 // what the lobby's hover card shows about someone: accounts get their record, guests just what their browser says they've earned
@@ -1002,7 +1002,7 @@ function joinTeam(room, ws, team) {
   if (!p) return 'That team is full.';
   ws.pid = p.id;
   if (ws.title) Sim.setTitle(w, p.id, ws.title);
-  Sim.setMeta(w, p.id, { cc: ws.cc, lv: ws.lv, bd: ws.bd, na: ws.na, ow: ws.ow, sp: ws.sp, fd: ws.fd, pt: ws.pt, ct: ws.ct, cl: ws.cl });
+  Sim.setMeta(w, p.id, { cc: ws.cc, lv: ws.lv, bd: ws.bd, na: ws.na, ow: ws.ow, sp: ws.sp, fd: ws.fd, pt: ws.pt, ct: ws.ct, cl: ws.cl, ce: ws.ce });
   send(ws, { t: 'you', id: p.id });
   return null;
 }
@@ -1413,7 +1413,7 @@ function perfSecond() {
   PERF.now = s; PERF.hist.push(s); if (PERF.hist.length > 120) PERF.hist.shift();
   for (const room of rooms.values()) {
     const rp = room.perf || {}; room.perf = { ms: 0, n: 0, max: 0 };
-    const msg = JSON.stringify({ t: 'perf', s: { cpu: s.cpu, thr: s.thr, lag: s.lag, el: s.el, drop: s.drop, step: rp.n ? Math.round(rp.ms / rp.n * 100) / 100 : 0, stepMax: Math.round((rp.max || 0) * 10) / 10, rooms: s.rooms } });
+    const msg = JSON.stringify({ t: 'perf', s: { cpu: s.cpu, thr: s.thr, lag: s.lag, el: s.el, drop: s.drop, step: rp.n ? Math.round(rp.ms / rp.n * 100) / 100 : 0, stepMax: Math.round((rp.max || 0) * 10) / 10, rooms: s.rooms, send: s.send, mem: s.mem, players: s.players, quota: s.quota } });
     for (const c of room.clients) if (c.readyState === 1) c.send(msg);
   }
 }

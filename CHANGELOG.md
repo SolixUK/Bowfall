@@ -2,6 +2,17 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.33.0
+
+- **Clan emblems.** The leader designs one when starting a clan or in Clan settings: a shape (shield, circle, triangle, diamond, hexagon, square or pennant), a pattern (plain, diagonal, horizontal or vertical stripes, chevrons, checks, quarters, a cross, halves or dots), a symbol (a letter of your choice, star, arrow, crossed arrows, flame, crown, moon, bolt or target) and five colours (base, trim, pattern, symbol and backing) from 16. It shows on every member's banner before the tag, on the Clans button on the main menu, on the clan page and lists, in Highscores and on the website leaderboard. Existing clans get a shield with their tag's first letter until the leader changes it.
+- **Match over:** the rating pop-up no longer covers the Victory / Defeat headline; at the end of a match the rating is only shown on the results screen (counting up), with the guest "make an account" link there.
+- **Deciding round and Last Arrow:** when both teams are one round from winning the match, the round is announced as the *Deciding round*; when both are also one game away, that game is the **Last Arrow** ("whoever wins this game wins the match"), with its own sting, and the top bar says so.
+- **Crossbowman:** a normal shot is now a quick burst of three bolts (0.08s apart, with a little scatter), each with 45% of a bolt's damage and 50% of its knockback; all three together hit harder than one bolt did. Reloading takes 1.7s (was 1.15s). An armed ability (Scatter, Recoil, Firework and so on) still fires a single full bolt.
+- **Dodge drill:** you can walk now (as well as dash). The shooter aims like a person: he reacts to where you were a quarter of a second ago, swings his bow round at a limited speed, and stops adjusting just before he lets go, so a dash timed to his release beats him (in a test, 8 of 8 shots dodged with timed dashes, against 2 of 7 standing still). The drill tells you to watch him draw. **All drills** are played as a Frost Ranger now, whatever you last picked.
+- **Firework:** no stick; the flame and sparks out of the back are reds, oranges and yellows.
+- **AI players' team rating:** AI players who had never played a team game get a team rating once, within 60 of their 1v1 rating, so they appear on the team leaderboard. After that it's theirs and moves with their games like anyone's.
+- **Performance recording (F9, or Options):** records how long each part of every frame takes (simulation, arena, archers, shots, particles, overlays, HUD, network messages), what was on screen, memory, ping, long browser stalls and the server's own load each second. Pressing F9 again saves a `.json` file to send in; `node tools/perf-report.js <file>` summarises it. The server now also sends its send time, memory and player count in its per-second numbers.
+
 ## 0.32.0
 
 - **Clans.** A **Clans** button sits next to your profile at the top right of the main menu.

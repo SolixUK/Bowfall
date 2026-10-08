@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.32.0';
+const VERSION = '0.33.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -525,6 +525,56 @@ const achText = (k, t) => { const a = ACHIEVEMENTS[k]; return a ? a.desc.replace
 // someone's best achievements: highest tier first (then the list order, roughly hardest first)
 const achBest = (rec, n) => ACH_ORDER.filter(k => ((rec && rec.tier) || {})[k] > 0).sort((a, b) => rec.tier[b] - rec.tier[a] || ACH_ORDER.indexOf(a) - ACH_ORDER.indexOf(b)).slice(0, n);
 // banner finishes: the look of your name plate, each unlocked by a total number of achievement tiers
+// ---- clan emblems: a shape, a pattern on it, a symbol or letter on top, and five colours from EMB_COLS, packed into
+// a 9-character code (shape, pattern, symbol, letter, then base, trim, pattern, symbol and background colours as hex digits),
+// e.g. 'aabT09c0e'. Drawn as SVG (emblemSvg), so the game, the website and the server all share it.
+const EMB_COLS = ['#ffcf5a', '#ff5a5a', '#ff9a3d', '#ffe66b', '#7dff8a', '#2f8a46', '#3fd0c9', '#5ad1ff', '#3b6cff', '#1f2f6b', '#a46bff', '#ff7ad8', '#f2f2f2', '#8a929e', '#15181d', '#8a5a32'];
+const EMB_SHAPES = { a: ['Shield', 'M12 8H88V44C88 70 70 86 50 95C30 86 12 70 12 44Z'], b: ['Circle', 'M50 8A44 44 0 1 1 49.9 8Z'], c: ['Triangle', 'M50 7L95 90H5Z'],
+  d: ['Diamond', 'M50 4L95 50L50 96L5 50Z'], e: ['Hexagon', 'M50 5L90 27.5V72.5L50 95L10 72.5V27.5Z'], f: ['Square', 'M12 12H88V88H12Z'], g: ['Pennant', 'M14 6H86V93L50 75L14 93Z'] };
+const EMB_PATS = { a: 'Plain', b: 'Diagonal', c: 'Horizontal', d: 'Vertical', e: 'Chevron', f: 'Checks', g: 'Quarters', h: 'Cross', i: 'Halves', j: 'Dots' };
+const EMB_SYMS = { a: 'None', b: 'Letter', c: 'Star', d: 'Arrow', e: 'Crossed arrows', f: 'Flame', g: 'Crown', h: 'Moon', i: 'Bolt', j: 'Target' };
+const EMB_RE = /^[a-g][a-j][a-j][A-Z0-9][0-9a-f]{5}$/;
+const emblemOk = c => typeof c === 'string' && EMB_RE.test(c);
+// a starting emblem for a clan: a shield with its tag's first letter, in colours that suit the tag colour
+function emblemDefault(tag, col) {
+  const L = (String(tag || 'A').toUpperCase().match(/[A-Z0-9]/) || ['A'])[0];
+  const rgb = h => [1, 3, 5].map(k => parseInt(String(h).slice(k, k + 2), 16) || 0), c = rgb(col || EMB_COLS[0]);
+  let i = 0, best = 1e9; EMB_COLS.forEach((h, k) => { const d = rgb(h).reduce((s2, v, n) => s2 + (v - c[n]) ** 2, 0); if (d < best) { best = d; i = k; } });
+  const dark = [5, 8, 9, 10, 14, 15].includes(i);
+  return 'aab' + L + i.toString(16) + (i === 0 ? 'e' : '0') + 'c' + (dark ? 'c' : 'e') + (i === 9 ? 'e' : '9');
+}
+let embN = 0;
+function emblemSvg(code, size) {
+  if (!emblemOk(code)) return '';
+  const [sh, pt, sy, L] = code, col = k => EMB_COLS[parseInt(code[4 + k], 16)], base = col(0), trim = col(1), pc = col(2), cc = col(3), bg = col(4);
+  const id = 'emb' + (++embN), path = EMB_SHAPES[sh][1];
+  const pats = {
+    a: '', b: [-60, -30, 0, 30, 60, 90].map(x => `<path d="M${x} 100L${x + 100} 0" stroke="${pc}" stroke-width="10"/>`).join(''),
+    c: [22, 42, 62, 82].map(y => `<rect x="0" y="${y}" width="100" height="10" fill="${pc}"/>`).join(''),
+    d: [18, 38, 58, 78].map(x => `<rect x="${x}" y="0" width="10" height="100" fill="${pc}"/>`).join(''),
+    e: `<path d="M0 50L50 80L100 50V68L50 98L0 68Z" fill="${pc}"/><path d="M0 22L50 52L100 22V36L50 66L0 36Z" fill="${pc}"/>`,
+    f: [0, 1, 2, 3, 4].map(r => [0, 1, 2, 3, 4].filter(c => (r + c) % 2 === 0).map(c => `<rect x="${c * 20}" y="${r * 20}" width="20" height="20" fill="${pc}"/>`).join('')).join(''),
+    g: `<rect x="0" y="0" width="50" height="52" fill="${pc}"/><rect x="50" y="52" width="50" height="48" fill="${pc}"/>`,
+    h: `<rect x="40" y="0" width="20" height="100" fill="${pc}"/><rect x="0" y="40" width="100" height="20" fill="${pc}"/>`,
+    i: `<path d="M0 0H100L0 100Z" fill="${pc}"/>`,
+    j: [20, 40, 60, 80].map(y => [20, 40, 60, 80].map(x => `<circle cx="${x + (y % 40 ? 10 : 0)}" cy="${y}" r="5" fill="${pc}"/>`).join('')).join(''),
+  }[pt];
+  const ink = 'stroke="rgba(0,0,0,.45)" stroke-width="2.5" stroke-linejoin="round"';
+  const star = n => { let d = ''; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? n * 0.42 : n; d += (i ? 'L' : 'M') + (50 + Math.cos(a) * r).toFixed(1) + ' ' + (52 + Math.sin(a) * r).toFixed(1); } return d + 'Z'; };
+  const arrow = rot => `<g transform="rotate(${rot} 50 52)"><rect x="47" y="30" width="6" height="42" fill="${cc}" ${ink}/><path d="M50 14L62 34H38Z" fill="${cc}" ${ink}/><path d="M50 70L60 82V90L50 80L40 90V82Z" fill="${cc}" ${ink}/></g>`;
+  const syms = {
+    a: '', b: `<text x="50" y="53" text-anchor="middle" dominant-baseline="central" font-family="Rajdhani, 'Arial Narrow', sans-serif" font-weight="700" font-size="54" fill="${cc}" stroke="rgba(0,0,0,.45)" stroke-width="2.5" paint-order="stroke">${L}</text>`,
+    c: `<path d="${star(26)}" fill="${cc}" ${ink}/>`, d: arrow(0), e: arrow(-40) + arrow(40),
+    f: `<path d="M50 20C58 34 70 42 68 60C67 74 58 82 50 82C40 82 31 74 32 61C33 50 41 46 42 36C47 42 47 48 50 50C54 42 54 32 50 20Z" fill="${cc}" ${ink}/>`,
+    g: `<path d="M26 70L22 34L38 48L50 26L62 48L78 34L74 70Z" fill="${cc}" ${ink}/><rect x="26" y="70" width="48" height="8" fill="${cc}" ${ink}/>`,
+    h: `<path d="M60 24A30 30 0 1 0 60 80A24 24 0 1 1 60 24Z" fill="${cc}" ${ink}/>`,
+    i: `<path d="M56 18L32 56H48L42 86L68 46H52Z" fill="${cc}" ${ink}/>`,
+    j: `<circle cx="50" cy="52" r="26" fill="none" stroke="${cc}" stroke-width="7"/><circle cx="50" cy="52" r="13" fill="none" stroke="${cc}" stroke-width="7"/><circle cx="50" cy="52" r="4" fill="${cc}"/>`,
+  }[sy];
+  return `<svg class="emblem" viewBox="0 0 100 100" width="${size || 24}" height="${size || 24}" aria-hidden="true"><rect x="0" y="0" width="100" height="100" rx="14" fill="${bg}"/>` +
+    `<defs><clipPath id="${id}"><path d="${path}"/></clipPath></defs><path d="${path}" fill="${base}"/><g clip-path="url(#${id})">${pats}</g>${syms}` +
+    `<path d="${path}" fill="none" stroke="${trim}" stroke-width="6" stroke-linejoin="round"/></svg>`;
+}
 const BANNER_FINISH = {
   plain:   { name: 'Plain',        tiers: 0 },
   brushed: { name: 'Brushed steel', tiers: 3 },
@@ -633,6 +683,7 @@ function setMeta(w, id, m) {
   if ('pt' in m) p.pt = m.pt ? 1 : null; // patron
   if ('ct' in m) p.ct = /^[A-Z0-9]{2,5}$/.test(String(m.ct || '')) ? String(m.ct) : null; // clan tag
   if ('cl' in m) p.cl = /^#[0-9a-fA-F]{6}$/.test(String(m.cl || '')) ? String(m.cl) : null; // and its colour
+  if ('ce' in m) p.ce = emblemOk(m.ce) ? m.ce : null; // clan emblem
   if ('sc' in m) p.sc = Array.isArray(m.sc) ? m.sc.filter(x => Array.isArray(x) && ACHIEVEMENTS[x[0]] && x[1] >= 1 && x[1] <= 5).slice(0, 3).map(x => [x[0], x[1] | 0]) : null; // showcase medals
   return true;
 }
@@ -662,7 +713,7 @@ ROLES.assassin = { name: 'Assassin', cat: 'Agility', blurb: 'Vanish, get close, 
 ROLES.ninja = { name: 'Ninja', cat: 'Agility', blurb: 'Blink in, strike fast, blink out.', premium: true,
   trait: { name: 'Shadowstep', desc: "No bow: click to throw a shuriken instantly (one per click, up to about 3 a second). They're for close range: each hits softer than an arrow, slows down fast and hurts less the further it flies (about 300px); bullseye shuriken count as fully drawn shots for your upgrades. Your dash is a near-instant blink toward your cursor instead: about 150px, 2 charges usable back to back, straight over pits and lava. 10 less health, and you take 10% more knockback." } };
 ROLES.crossbow = { name: 'Crossbowman', cat: 'Power', blurb: 'Point and shoot: no drawing, shorter reach.', premium: true,
-  trait: { name: 'Crank and Loose', desc: 'A crossbow instead of a bow: click to fire a bolt at once, no drawing. Bolts hit as hard as 85% of a full draw, fly fast and straight, and count as fully drawn shots for your upgrades, but they drop out of the air after 480px. Reloading takes 1.15 seconds, and you can move freely while you reload. Braced behind the stock, you take 15% less damage from enemies and 15% less knockback.' } };
+  trait: { name: 'Crank and Loose', desc: 'A crossbow instead of a bow: click to fire at once, no drawing. Each shot is a quick burst of three bolts, each about 40% as strong as a full draw (all three together hit harder than one full draw); they fly fast and straight, count as fully drawn shots for your upgrades, and drop out of the air after 480px. Reloading takes 1.7 seconds, and you can move freely while you reload. Braced behind the stock, you take 15% less damage from enemies and 15% less knockback.' } };
 const TREE_KEYS = Object.keys(ELEMENTS).concat(Object.keys(ROLES));
 const MAX_SLOTS = 2, CAP_PICKS = 2, OFFER_SIZE = 3;
 // tree: which element/role it belongs to ('element' = any element). base: granted free with the element.
@@ -1563,7 +1614,7 @@ function kill(w, f, cause) {
   if (w.match.ph === 'play') checkRoundEnd(w);
 }
 
-function fire(w, p, ang, c, burst, vol) {
+function fire(w, p, ang, c, burst, vol, x3) { // burst: 1-2 a Volley's shots, 4 a crossbow burst's follow-up bolts; x3: the first bolt of a crossbow burst
   p.shotAt = w.t;
   // Volley: the armed shot becomes the first of three; landing all three on one enemy refreshes it
   if (!burst && p.volleyArmed) {
@@ -1582,7 +1633,8 @@ function fire(w, p, ang, c, burst, vol) {
   if (bolt) { dmg *= 1.5; kb *= 2; }
   if (xb) { dmg *= 0.85; kb *= 0.85 * (has(p, 'heavybolt') ? 1.2 : 1); }
   const auto = xb && p.autoT > 0; if (auto) { dmg *= 0.5; kb *= 0.5; }
-  if (burst) { dmg *= 0.65; kb *= 0.65; }
+  if (burst && burst !== 4) { dmg *= 0.65; kb *= 0.65; }
+  if (x3 || burst === 4) { dmg *= XB3.dmg; kb *= XB3.kb; }
   const rail = !burst && p.railArmed; if (rail) { p.railArmed = false; dmg *= 1.35; kb *= 1.3; }
   if (!burst && p.riposteT > 0 && !p.riposteUsed) { p.riposteUsed = true; dmg *= 1.3; kb *= 1.3; } // Parry's riposte
   const take = k => { const v = !burst && p[k]; if (v) p[k] = false; return v; };
@@ -1913,8 +1965,15 @@ function updatePlayer(w, p, dt) {
       // Hair Trigger: full auto while held, no reloading
       if ((inp.draw || p.throwQ > 0) && p.throwCd <= 0 && p.falling <= 0 && p.disarm <= 0) { p.throwQ = 0; p.throwCd = AUTO_GAP; fire(w, p, p.aim, 1); }
     } else if (p.throwQ > 0 && p.bolts > 0 && p.throwCd <= 0 && p.falling <= 0 && p.disarm <= 0) {
-      p.throwQ = 0; p.bolts--; p.throwCd = XBOW_GAP;
-      fire(w, p, p.aim, 1);
+      p.throwQ = 0; p.bolts--;
+      // an armed ability (Fan Bolt, Railshot, Recoil, Firework...) goes out as one full bolt instead of a burst
+      const special = p.fanArmed || p.railArmed || p.recoilArmed || p.rocketArmed || p.volleyArmed || p.seekArmed || p.trickArmed || p.boomArmed || p.execArmed;
+      if (special) { p.throwCd = XBOW_GAP; fire(w, p, p.aim, 1); }
+      else {
+        p.throwCd = XBOW_GAP + XB3.gap * (XB3.n - 1);
+        fire(w, p, p.aim, 1, 0, null, true);
+        for (let i = 1; i < XB3.n; i++) w.later.push({ t: XB3.gap * i, ty: 'xburst', owner: p.id });
+      }
     }
     p.wasDraw = !!inp.draw; p.drawing = false; p.charge = 0; p.over = 0;
   } else if (inp.draw && p.falling <= 0 && p.disarm <= 0 && !(p.nockT > 0)) {
@@ -2595,7 +2654,9 @@ const NB_WIND = 0.05, NB_MOVE = 0.09; // Ninja blink: wind-up, then travel time
 // Firework: big and very slow, follows its target for its whole flight, and bursts a little smaller than Blast Tips
 const ROCKET = { speed: 210, turn: 1.5, life: 5, blast: 0.85, dmg: 6 }; // px/s (an archer runs at about 235), radians a second it can turn, fuse, burst size (Blast Tips = 1) and burst damage
 const ASSIST_LANE = 220, ASSIST_RAMP = 600, SEEK = { power: 1.4, lane: 340, base: 0.6 }; // Seeker Arrow: between the Heavy and Extreme rules, with a wider lane, and it turns firmly from the start; // arrow homing: how far either side of your line of fire it looks for a target (at any range), and the distance over which its turning ramps up
-const XBOW_RANGE = 480, XBOW_RELOAD = 1.15, XBOW_GAP = 0.16, AUTO_TIME = 2, AUTO_GAP = 0.12;
+const XBOW_RANGE = 480, XBOW_RELOAD = 1.7, XBOW_GAP = 0.16, AUTO_TIME = 2, AUTO_GAP = 0.12;
+// a crossbow's normal shot is a quick burst of three bolts, each this share of a single bolt's damage and knockback
+const XB3 = { n: 3, gap: 0.08, dmg: 0.45, kb: 0.5, spread: 0.035 };
 // how far a player's shots reach before dropping, for roles with a short range (null: the whole arena)
 // (shuriken: 1050px/s slowed by drag 2.4 over their 0.45s life, about 0.275s worth of full speed)
 const rangeOf = (w, p) => p.role === 'crossbow' ? Math.round(p.xbowRange || XBOW_RANGE)
@@ -4015,6 +4076,11 @@ function step(w, dt) {
   for (let i = w.later.length - 1; i >= 0; i--) {
     const L = w.later[i]; L.t -= dt; if (L.t > 0) continue;
     w.later.splice(i, 1);
+    if (L.ty === 'xburst') { // the rest of a crossbow burst: along your aim as it is now, with a little scatter
+      const p = w.players.find(q => q.id === L.owner && !q.dead && q.falling <= 0 && q.disarm <= 0);
+      if (p) fire(w, p, p.aim + (Math.random() - 0.5) * 2 * XB3.spread, 1, 4);
+      continue;
+    }
     if (L.ty === 'volley') {
       // the rest of the burst follows your aim as it is now
       const p = w.players.find(q => q.id === L.owner && !q.dead && q.falling <= 0 && q.disarm <= 0);
@@ -4060,7 +4126,7 @@ function snapshot(w) {
       const pw = {};
       for (const k in p.pw) if (p.pw[k] > 0) pw[k] = r1(p.pw[k]);
       return {
-        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, nk: p.npc ? p.npc.k : undefined, hd: p.hid ? 1 : 0, tw: p.elev ? 1 : 0, rs: w.cq && p.dead && !p.npc && p.respAt != null ? Math.max(0, Math.ceil(p.respAt - w.t)) : undefined, bi: p.npc ? p.npc.bio : undefined, nw: p.npc && (p.npc.wind || p.npc.charge) ? (p.npc.charge ? 'dash' : p.npc.wind) : undefined, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, ct: p.ct || undefined, cl: p.cl || undefined, sp: p.sp || undefined, fd: p.fd || undefined, pt: p.pt || undefined, fin: p.fin || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
+        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, nk: p.npc ? p.npc.k : undefined, hd: p.hid ? 1 : 0, tw: p.elev ? 1 : 0, rs: w.cq && p.dead && !p.npc && p.respAt != null ? Math.max(0, Math.ceil(p.respAt - w.t)) : undefined, bi: p.npc ? p.npc.bio : undefined, nw: p.npc && (p.npc.wind || p.npc.charge) ? (p.npc.charge ? 'dash' : p.npc.wind) : undefined, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, ct: p.ct || undefined, cl: p.cl || undefined, ce: p.ce || undefined, sp: p.sp || undefined, fd: p.fd || undefined, pt: p.pt || undefined, fin: p.fin || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
         x: r1(p.x), y: r1(p.y), vx: Math.round(p.vx), vy: Math.round(p.vy), a: r3(p.aim),
         hp: Math.max(0, Math.ceil(p.hp)), mh: p.maxHp, ch: r2(p.charge), dr: p.drawing ? 1 : 0,
         f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, bu: p.burn > 0 ? 1 : 0, bl: p.bleedT > 0 ? 1 : 0, sl: p.slow > 0 ? 1 : 0, iv: p.inv > 0 ? 1 : 0,
@@ -4209,6 +4275,7 @@ return {
   AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
+  EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
   _grant(w, id, cards) { const p = w.players.find(q => q.id === id); for (const c of cards) takeCard(w, p, c); applyStats(p); p.picked = false; return p; },

@@ -169,6 +169,7 @@
   @keyframes cardIn { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: none; } }
   /* a dark wipe that lifts as a match starts */
   #wipe { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(9,18,11,.92), #050a06); opacity: 0; z-index: 0; }
+  .recbadge { position: fixed; z-index: 30; left: 12px; bottom: 12px; padding: 4px 10px; background: rgba(20,0,0,.8); border: 1px solid #ff4d5e; color: #ff8a8a; font: 700 13px 'Rajdhani', sans-serif; letter-spacing: .04em; pointer-events: none; }
   #wipe.go { animation: wipeOut .9s cubic-bezier(.4,0,.2,1) both; }
   @keyframes wipeOut { 0% { opacity: 1; } 100% { opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { .overlay, .overlay > .card, #wipe.go { animation: none; } }
@@ -194,10 +195,26 @@
   .clanchip b { font: 700 17px 'Rajdhani', 'Arial Narrow', sans-serif; display: flex; align-items: center; gap: 6px; }
   .clanchip small { color: var(--muted); font-size: 12px; }
   .clanchip .pip { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: var(--gold); color: #111; font: 700 12px/18px 'Rajdhani', sans-serif; text-align: center; }
+  .cemb { display: inline-flex; margin-right: 4px; flex: 0 0 auto; vertical-align: -4px; } .cemb svg, .emblem { display: block; border-radius: 3px; }
+  .clanchip { flex-direction: row; align-items: center; gap: 10px; } .clanchip .cct { display: flex; flex-direction: column; gap: 1px; }
+  .clanchip .emblem { width: 40px; height: 40px; }
+  .embed { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 14px; align-items: start; padding: 12px; border: 1px solid var(--line); background: rgba(255,255,255,.03); }
+  .embed .prev .emblem { width: 120px; height: 120px; }
+  .embed .opts { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .embed .erow { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 8px; align-items: center; font-size: 12px; color: var(--muted); }
+  .embed .ech { display: flex; flex-wrap: wrap; gap: 4px; }
+  .embed .ech button { padding: 2px; border: 2px solid transparent; background: rgba(255,255,255,.04); cursor: pointer; line-height: 0; }
+  .embed .ech button.sel { border-color: var(--gold); }
+  .embed .ech button .emblem { width: 28px; height: 28px; }
+  .embed .esw button { width: 20px; height: 20px; padding: 0; border: 2px solid transparent; background: var(--c); cursor: pointer; }
+  .embed .esw button.sel { border-color: #fff; box-shadow: 0 0 0 1px #111 inset; }
+  .embed input.eltr { width: 46px; text-transform: uppercase; text-align: center; font: 700 16px 'Rajdhani', sans-serif; }
+  @media (max-width: 640px) { .embed { grid-template-columns: 1fr; } }
   /* a clan's tag: before the name on every banner, in the clan's colour */
   .ctag { display: inline-block; margin-right: 6px; padding: 0 4px; font: 700 12px/16px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .04em; color: var(--cl, var(--gold)); border: 1px solid var(--cl, var(--gold)); border-radius: 2px; vertical-align: 1px; flex: 0 0 auto; }
   .card.wide.clancard { max-width: 980px; }
   .clanhead { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; padding: 14px; background: linear-gradient(135deg, color-mix(in srgb, var(--cl, var(--gold)) 14%, transparent), rgba(255,255,255,.02)); border: 1px solid var(--line); border-left: 3px solid var(--cl, var(--gold)); }
+  .clanhead .emblem { width: 72px; height: 72px; }
   .clanhead .big { font: 700 30px/1 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--cl, var(--gold)); border: 2px solid var(--cl, var(--gold)); padding: 8px 10px; letter-spacing: .05em; }
   .clanhead h3 { margin: 0; font: 700 24px 'Rajdhani', 'Arial Narrow', sans-serif; }
   .clanhead p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
@@ -853,6 +870,7 @@
 <div class="stage">
   <canvas id="cv" aria-label="Bowfall arena"></canvas>
   <div id="wipe" aria-hidden="true"></div>
+  <div id="recBadge" class="recbadge" hidden>● REC 0:00 · F9 to stop</div>
 
   <div class="hud" id="hud" hidden>
     <div class="hud-l">
@@ -919,7 +937,7 @@
     <div class="homewrap">
       <div class="hometop">
         <div class="toprow">
-          <button type="button" class="clanchip" id="clanChip" title="Your clan, and the best clans" hidden><b id="clanChipName">Clans</b><small id="clanChipSub">Join or start one</small><span class="pip" id="clanPip" hidden></span></button>
+          <button type="button" class="clanchip" id="clanChip" title="Your clan, and the best clans" hidden><span id="clanChipEm"></span><span class="cct"><b id="clanChipName">Clans</b><small id="clanChipSub">Join or start one</small></span><span class="pip" id="clanPip" hidden></span></button>
           <button type="button" class="profchip" id="profChip" title="Edit your profile and banner"><canvas id="profAv" width="96" height="96"></canvas><span class="pcn"><b id="profName">Archer</b><small id="profSub">Guest · edit profile</small></span></button>
         </div>
         <div class="lpbox"><div class="lplist" id="lpList"></div><button type="button" class="ghost sm" id="lpAdd" title="Another player with their own controller, on this screen">+ Add player on controller</button></div>
@@ -1124,6 +1142,7 @@
           <div class="field"><label for="oShadow">Shots' shadows</label><select id="oShadow"><option value="soft">Soft</option><option value="simple">Simple (a dot)</option><option value="off">Off</option></select></div>
           <div class="field"><label for="oPart">Particles</label><select id="oPart"><option value="1">Full</option><option value="0.5">Reduced</option><option value="0.2">Minimal</option></select></div>
           <div class="field"><label for="oShake">Screen shake</label><select id="oShake"><option value="1">On</option><option value="0">Off</option></select></div>
+          <div class="field"><label>Performance recording (F9)</label><button type="button" class="ghost" id="oRec">Start recording</button><small class="status">Records how long each part of the game takes while you play, then saves a file you can send in to find what's slowing it down.</small></div>
           <div class="field"><label for="oNet">Performance stats (F3)</label><select id="oNet"><option value="0">Hidden</option><option value="1">Shown in online games</option></select></div>
         </section>
         <section class="mode" data-navsec><h3>Gameplay</h3>
@@ -1366,7 +1385,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.32.0"></script>
+<script src="sim.js?v=0.33.0"></script>
 <script>
 (() => {
 'use strict';
@@ -1374,7 +1393,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.32.0';
+const PAGE_VERSION = '0.33.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -2024,6 +2043,7 @@ addEventListener('keydown', e => {
   if (!$('achScreen').hidden) { if (e.code === 'Escape') closeAch(); return; }
   if (!$('ctlScreen').hidden) { if (!captureBind(e) && e.code === 'Escape') closeCtl(); return; }
   if (mode === 'menu' && subOpen()) { if (e.code === 'Escape') { if (!$('arenaScr').hidden) openSub('customScr'); else closeSubs(); } return; }
+  if (e.code === 'F9') { e.preventDefault(); PR.toggle(); return; }
   if (e.code === 'F3') { e.preventDefault(); OPTS.net = !OPTS.net; store.set('bowfall-net', OPTS.net ? '1' : '0'); NET.render(true); return; }
   if (RP.on && e.code === 'Space') { e.preventDefault(); return; } // the kill cam can't be skipped
   if (isKey('chat', e.code) && mode === 'online' && view && view.m.ph !== 'lobby') { e.preventDefault(); openGameChat(); return; }
@@ -2694,7 +2714,7 @@ $('lbArenaUse').onclick = () => { const c = $('lbArenaCode').value.trim().toUppe
 let TR = { on: false };
 const DRILLS = {
   target: { name: 'Target practice', map: 'range', dums: 3, blurb: 'Targets pop up across the range and you hit them before they vanish. Round 1 is steady, round 2 quick, round 3 several at once. Graded on speed, accuracy and bullseyes.' },
-  dodge:  { name: 'Dodge drill', map: 'chasm', dums: 1, time: 60, blurb: 'An archer across a rift shoots at you and your feet are tied: dodge with dashes alone (never faster than your dash recharges). Sinkholes open in round 2 and bogs in round 3, so watch where you land.' },
+  dodge:  { name: 'Dodge drill', map: 'chasm', dums: 1, time: 60, blurb: 'An archer across a rift shoots at you. Watch him draw his bow (a white spark means a full-power shot) and dash out of the way just as he lets go; he never shoots faster than your dash recharges. Sinkholes open in round 2 and bogs in round 3, so watch where you land.' },
   peek:   { name: 'Peek and shoot', map: 'yard', dums: 3, time: 60, blurb: 'Turrets cover the yard. Dash out from behind the boulders, land shots on them (three knock one out), and get back before they draw a bead on you. 60 seconds.' },
   sink:   { name: 'Knockout drill', map: 'holes', dums: 6, time: 150, blurb: 'Four scenes of archers standing in front of sinkholes. Work your way through each one, knocking every archer in as fast as you can; one that misses the hole is back on its spot a second later. Line up behind them, and dash to get there quicker. Don\'t fall in yourself. An S needs a clean run: every shot hits and no archer is put back on its spot.' },
 };
@@ -2706,7 +2726,7 @@ const DODGE_ROUNDS = [
   { name: 'Sinkholes', draw: 1.05, pace: 1.12, add: [{ type: 'pit', shape: 'circle', x: 230, y: 210, r: 48 }, { type: 'pit', shape: 'circle', x: 480, y: 580, r: 52 }, { type: 'pit', shape: 'circle', x: 190, y: 610, r: 40 }, { type: 'pit', shape: 'circle', x: 540, y: 220, r: 42 }] },
   { name: 'Bogs', draw: 1.05, pace: 1.0, add: [{ type: 'tar', shape: 'circle', x: 360, y: 400, r: 62 }, { type: 'tar', shape: 'circle', x: 110, y: 290, r: 46 }, { type: 'tar', shape: 'rect', x: 560, y: 380, w: 110, h: 80 }, { type: 'pit', shape: 'circle', x: 330, y: 120, r: 38 }] },
 ];
-const DODGE_WARN = 2.5, DODGE_RT = 20;
+const DODGE_WARN = 2.5, DODGE_RT = 20, DODGE_REACT = 0.25, DODGE_TURN = 2.4, DODGE_COMMIT = 0.18; // the shooter's reaction time (s), how fast he swings his aim (rad/s), and when he stops adjusting before a release
 const TR_PARK = { x: Sim.AW - 50, y: Sim.AH - 50 };
 const GRADE_COL = { S: '#ffcf5a', A: '#7dff8a', B: '#5ad1ff', C: '#c7b3ff', D: '#9aa79c' };
 const trBest = () => { try { return JSON.parse(store.get('bowfall-train', '{}')) || {}; } catch (e) { return {}; } };
@@ -2752,7 +2772,8 @@ function startDrill(kind) {
   if (kind === 'sink') { MAPS.holes.haz.length = 0; floorKey = null; }
   world = Sim.createWorld({ map: D.map, diff: 'normal' });
   setArena(D.map);
-  const me = Sim.join(world, { name: playerName(), team: 'red', element: myLoadout().el, role: myLoadout().ro });
+  // every drill is played as a Frost Ranger, so scores compare fairly (and don't depend on the last archer you picked)
+  const me = Sim.join(world, { name: playerName(), team: 'red', element: TUT_LOADOUT.el, role: TUT_LOADOUT.ro });
   const dums = [];
   for (let i = 0; i < D.dums; i++) { const d = Sim.addBot(world, 'blue', D.dums > 4); d.name = kind === 'target' ? 'Target' : kind === 'dodge' ? 'Shooter' : kind === 'sink' ? 'Dummy' : 'Turret'; Sim.setLoadout(world, d.id, 'storm', 'ranger'); dums.push(d); }
   Sim.startMatch(world);
@@ -2766,9 +2787,8 @@ function startDrill(kind) {
   const start = { target: [200, 400], dodge: [320, 400], peek: [250, 400], sink: Sim.TRAIN_KNOCK[0].start }[kind];
   Object.assign(me, { x: start[0], y: start[1], vx: 0, vy: 0 });
   TR.home = { x: start[0], y: start[1] };
-  me.noWalk = kind === 'dodge';
   if (kind === 'target' || kind === 'dodge' || kind === 'sink') trNextRound(); else notice(D.name, true, '#ffcf5a');
-  if (kind === 'dodge') { const s = TR.tur[0]; s.t = 1.6; }
+  if (kind === 'dodge') { const s = TR.tur[0]; s.t = 2.2; TR.seen = []; setTimeout(() => { if (TR.on && TR.kind === 'dodge') notice('Watch the shooter draw: when the bow is pulled back (a white spark is a full-power shot), dash sideways just as it lets go.', false); }, 900); }
   setScreens(); renderTrainCoach();
 }
 const trHidden = p => TR.on && TR.dum.includes(p.id) && (TR.kind === 'target' || (TR.kind === 'peek' && TR.tur.find(t => t.id === p.id).off > 0) || (TR.kind === 'sink' && !TR.act.some(a => a.id === p.id)));
@@ -2830,7 +2850,13 @@ function trDodge(dt, me) {
   const t = TR.tur[0], d = world.players.find(q => q.id === t.id); if (!d || !me) return;
   const T = TR.t, x = 1105 + 45 * Math.sin(T * 0.8), y = 400 + 285 * Math.sin(T * 0.42 + 0.6 * Math.sin(T * 0.9));
   Object.assign(d, { vx: (x - d.x) / dt, vy: (y - d.y) / dt, x, y, knock: 0, hp: d.maxHp, falling: 0, dead: false, burn: 0 }); d.inv = 9;
-  trAimAt(d, me);
+  // aim like a person: he reacts to where you were a quarter of a second ago, swings his bow round at a limited speed,
+  // and stops adjusting in the last moment before he lets go, so a well-timed dash beats him
+  TR.seen.push({ t: T, x: me.x, y: me.y, vx: me.vx, vy: me.vy }); while (TR.seen.length > 2 && TR.seen[1].t <= T - DODGE_REACT) TR.seen.shift();
+  const S = TR.seen[0], lead = Math.min(0.45, Math.hypot(S.x - d.x, S.y - d.y) / 1800), want = Math.atan2(S.y + S.vy * lead - d.y, S.x + S.vx * lead - d.x);
+  const committed = t.ph === 'draw' && t.t < DODGE_COMMIT;
+  if (d.input.aim == null || !isFinite(d.input.aim)) d.input.aim = want;
+  if (!committed) { const diff = ((want - d.input.aim + Math.PI) % TAU + TAU) % TAU - Math.PI; d.input.aim += clamp(diff, -DODGE_TURN * dt, DODGE_TURN * dt); }
   const R = DODGE_ROUNDS[TR.round] || DODGE_ROUNDS[2], roundLeft = DODGE_RT - (TR.t - TR.roundT);
   t.t -= dt;
   if (t.ph === 'wait') { d.input.draw = false; if (t.t <= 0 && roundLeft > 1.2) { t.ph = 'draw'; t.t = R.draw; } }
@@ -2953,7 +2979,7 @@ function trainGuard() {
 }
 function trainInput(inp) {
   if (!TR.on || TR.done) { if (TR.on) { inp.draw = false; inp.dash = false; } return inp; }
-  // the dodge drill: the stick still steers your dashes (the sim stops you walking), but no shooting or abilities
+  // the dodge drill: walk and dash, but no shooting or abilities
   if (TR.kind === 'dodge') { inp.draw = false; inp.dp = false; inp.q = inp.e = false; }
   return inp;
 }
@@ -3200,7 +3226,7 @@ function connect(joinMsg) {
   try { sock = new WebSocket(url); } catch (e) { status.classList.add('err'); status.textContent = 'Could not reach the server.'; return; }
   ws = sock; LP.joinPw = joinMsg.pw || '';
   sock.binaryType = 'arraybuffer';
-  const rx = zReceiver(sock, x => { try { onMsg(x); } catch (e) { clientError(e, 'message'); } });
+  const rx = zReceiver(sock, x => { const t0 = PR.on ? performance.now() : 0; try { onMsg(x); } catch (e) { clientError(e, 'message'); } if (PR.on) PR.msg(performance.now() - t0); });
   let zBase = null; // the last full snapshot from the stream; deltas build on it
   sock.onopen = () => sock.send(JSON.stringify(Object.assign({ t: 'join', name: playerName(), el: myLoadout().el, ro: myLoadout().ro, gt: GUEST_TOKEN, z: rx.ok ? 1 : 0 }, joinMsg)));
   sock.onmessage = rx.push;
@@ -3317,7 +3343,9 @@ const RATED = { start: null, now: null, match: null };
 function showRated(m) {
   const d = Math.round(m.d), elo = Math.round(m.elo), up = d >= 0, kind = m.key === 'eloT' ? 'Team rating' : '1v1 rating';
   RATED.match = roomInfo && roomInfo.code; RATED.start = elo - d;
-  RATED.now = elo; RATED.kind = kind;
+  RATED.now = elo; RATED.kind = kind; RATED.guest = !!m.guest;
+  // at the end of a match the results screen shows the rating (counting up), so the pop-up would only cover the headline
+  if ((view && view.m && view.m.ph === 'over') || !$('resultsScreen').hidden) { renderResRated(); return; }
   const box = $('ratedBox');
   box.innerHTML = `<span class="eyebrow">${kind}</span><b>${elo}</b><em class="${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(d)}</em>` +
     (m.guest ? `<a href="/#/register?next=/play" target="_blank" rel="noopener">Make an account to keep it</a>` : '');
@@ -3330,7 +3358,8 @@ function renderResRated() {
   const el = $('resRated'); if (!el) return;
   if (RATED.now == null || RATED.match !== (roomInfo && roomInfo.code)) { el.hidden = true; return; }
   const d = Math.round(RATED.now - RATED.start);
-  el.hidden = false; el.innerHTML = `Your ${(RATED.kind || 'rating').toLowerCase()} <b class="ticking">${RATED.start}</b> <em class="${d >= 0 ? 'up' : 'down'}" style="opacity:0">${d >= 0 ? '+' : '−'}${Math.abs(d)} this match</em>`;
+  el.hidden = false; el.innerHTML = `Your ${(RATED.kind || 'rating').toLowerCase()} <b class="ticking">${RATED.start}</b> <em class="${d >= 0 ? 'up' : 'down'}" style="opacity:0">${d >= 0 ? '+' : '−'}${Math.abs(d)} this match</em>` +
+    (RATED.guest ? ` <a href="/#/register?next=/play" target="_blank" rel="noopener" style="margin-left:8px;font-size:14px">Make an account to keep it</a>` : '');
   if (RATED.ticked === RATED.match) { el.querySelector('b').textContent = RATED.now; el.querySelector('em').style.opacity = 1; return; }
   RATED.ticked = RATED.match;
   // the number counts from the old rating to the new one, a tick a step, then the change fades in
@@ -4184,7 +4213,7 @@ function renderAch() {
   $('borderSel').innerHTML = '<option value="">Plain</option>' + have.filter(k => BORDERS[k]).map(k => `<option value="${k}"${Ach.d.border === k ? ' selected' : ''}>${esc(A[k].title)}</option>`).join('');
 }
 function renderBannerPreview() {
-  const b = Ach.banner(), me = { n: account ? account.name : ($('nameIn').value.trim() || 'Archer'), bd: Ach.d.border && Ach.d.got[Ach.d.border] ? Ach.d.border : null, na: Object.keys(Ach.d.got || {}).length || null, sc: b.sc, fin: b.fin, ti: Ach.d.title && Ach.d.got[Ach.d.title] ? Ach.d.title : null, lv: account && account.level && account.level.lv, cc: account && account.country, ct: CLAN.mine && CLAN.mine.tag, cl: CLAN.mine && CLAN.mine.col, ow: account && account.admin, ...((WALLET && WALLET.status) || {}) };
+  const b = Ach.banner(), me = { n: account ? account.name : ($('nameIn').value.trim() || 'Archer'), bd: Ach.d.border && Ach.d.got[Ach.d.border] ? Ach.d.border : null, na: Object.keys(Ach.d.got || {}).length || null, sc: b.sc, fin: b.fin, ti: Ach.d.title && Ach.d.got[Ach.d.title] ? Ach.d.title : null, lv: account && account.level && account.level.lv, cc: account && account.country, ct: CLAN.mine && CLAN.mine.tag, cl: CLAN.mine && CLAN.mine.col, ce: CLAN.mine && CLAN.mine.em, ow: account && account.admin, ...((WALLET && WALLET.status) || {}) };
   $('bnPrev').innerHTML = `<i class="dot" style="background:${TEAM_INFO.red.shades[0]}"></i><span class="nm plate${plateClass(me)}"${plateStyle(me)}><span class="pl1">${idHtml(me)}<b>${esc(me.n)}</b>${ownHtml(me.ow)}${statusHtml(me)}${trophyHtml(me.na)}${medalsHtml(me.sc)}${me.ti ? ` <em class="ttl">${esc(titleName(me.ti))}</em>` : ''}</span><small>${esc(ELEMENTS[myLoadout().el].name + ' ' + ROLES[myLoadout().ro].name)}</small></span><span class="tag you">You</span>`;
 }
 function setMyBanner(patch) {
@@ -4551,11 +4580,27 @@ async function clanLoad(quiet) {
 function clanChip() {
   const c = CLAN.mine, n = CLAN.invites.length + (c && c.requests ? c.requests.length : 0);
   $('clanChip').hidden = OFFLINE;
-  $('clanChipName').innerHTML = c ? clanHtml(c.tag, c.col) + esc(c.name) : 'Clans';
+  $('clanChipEm').innerHTML = c && Sim.emblemOk(c.em) ? Sim.emblemSvg(c.em, 40) : '';
+  $('clanChipName').innerHTML = c ? `<span class="ctag" style="--cl:${c.col}">${esc(c.tag)}</span>${esc(c.name)}` : 'Clans';
   $('clanChipSub').textContent = c ? `Clan rating ${c.rating} · ${c.size}/${c.max}` : CLAN.invites.length ? 'You have an invite' : 'Join or start one';
   $('clanPip').hidden = !n; $('clanPip').textContent = n;
 }
-const clanRow = (c, i, btn) => `<div class="clrow${CLAN.mine && CLAN.mine.id === c.id ? ' me' : ''}"><span class="n">${i != null ? i + 1 : ''}</span><span class="who"><b>${clanHtml(c.tag, c.col)}${esc(c.name)}</b><small>${c.motto ? esc(c.motto) + ' · ' : ''}${c.size}/${c.max} members${c.leader ? ' · led by ' + esc(c.leader) : ''} · ${c.open ? 'open to all' : 'invite or request'}</small></span><span class="val">${c.games ? c.rating : '–'}<small>${c.games ? `${c.wins}–${c.games - c.wins}` : 'unrated'}</small></span><span class="btnrow">${btn || ''}<button type="button" class="ghost sm" data-clview="${c.id}">View</button></span></div>`;
+const clanRow = (c, i, btn) => `<div class="clrow${CLAN.mine && CLAN.mine.id === c.id ? ' me' : ''}"><span class="n">${i != null ? i + 1 : ''}</span><span class="who"><b>${clanHtml(c.tag, c.col, c.em)}${esc(c.name)}</b><small>${c.motto ? esc(c.motto) + ' · ' : ''}${c.size}/${c.max} members${c.leader ? ' · led by ' + esc(c.leader) : ''} · ${c.open ? 'open to all' : 'invite or request'}</small></span><span class="val">${c.games ? c.rating : '–'}<small>${c.games ? `${c.wins}–${c.games - c.wins}` : 'unrated'}</small></span><span class="btnrow">${btn || ''}<button type="button" class="ghost sm" data-clview="${c.id}">View</button></span></div>`;
+// the emblem designer: shape, pattern, symbol (or a letter), and five colours. CLAN.em holds the code being edited.
+const EMB_PARTS = [['Shape', 0, Sim.EMB_SHAPES], ['Pattern', 1, Sim.EMB_PATS], ['Symbol', 2, Sim.EMB_SYMS]];
+const EMB_COLROWS = [['Base', 4], ['Trim', 5], ['Pattern', 6], ['Symbol', 7], ['Backing', 8]];
+const embSet = (code, i, v) => code.slice(0, i) + v + code.slice(i + 1);
+function emblemEditor() {
+  const e = CLAN.em, sample = (i, k) => { // each choice drawn as a small emblem with only that part changed
+    let c = embSet(e, i, k); if (i === 0) c = embSet(embSet(c, 1, 'a'), 2, 'a'); if (i === 1) c = embSet(c, 2, 'a'); return c; };
+  const name = (o, k) => Array.isArray(o[k]) ? o[k][0] : o[k];
+  return `<div class="embed"><div class="prev">${Sim.emblemSvg(e, 120)}</div><div class="opts">` +
+    EMB_PARTS.map(([lbl, i, o]) => `<div class="erow"><span>${lbl}</span><div class="ech">${Object.keys(o).map(k => `<button type="button" data-emi="${i}" data-emv="${k}" class="${e[i] === k ? 'sel' : ''}" title="${esc(name(o, k))}">${Sim.emblemSvg(sample(i, k), 28)}</button>`).join('')}</div></div>`).join('') +
+    `<div class="erow"><span>Letter</span><div><input class="eltr" id="emLtr" maxlength="1" value="${esc(e[3])}" title="Shown when the symbol is Letter"></div></div>` +
+    EMB_COLROWS.map(([lbl, i]) => `<div class="erow"><span>${lbl}</span><div class="ech esw">${Sim.EMB_COLS.map((c, n) => `<button type="button" data-emi="${i}" data-emv="${n.toString(16)}" class="${e[i] === n.toString(16) ? 'sel' : ''}" style="--c:${c}" aria-label="${lbl} colour ${c}"></button>`).join('')}</div></div>`).join('') +
+    '</div></div>';
+}
+function emblemRedraw() { const box = $('clBody').querySelector('.embed'); if (box) box.outerHTML = emblemEditor(); }
 const clanSwatches = sel => `<div class="clsw" id="clSw">${CLAN.colours.map(c => `<button type="button" data-clcol="${c}" class="${c === sel ? 'sel' : ''}" style="--c:${c}" aria-label="Colour ${c}"></button>`).join('')}</div>`;
 function clanMembers(v, manage) {
   const myRole = v.role, R = { leader: 3, officer: 2, member: 1 };
@@ -4565,7 +4610,7 @@ function clanMembers(v, manage) {
     return `<div class="clrow${mine ? ' me' : ''}"><span class="n">${i + 1}</span><span class="who"><b><i class="dot${m.on ? ' on' : ''}" title="${m.on ? 'Online' : 'Offline'}"></i>${rankHtml(m.lv)}${flagHtml(m.cc)}${esc(m.name)}</b><small><span class="clrole ${m.role}">${m.role}</span></small></span><span class="val">${m.elo != null ? m.elo : '–'}<small>1v1 · team ${m.eloT != null ? m.eloT : '–'}</small></span><span class="btnrow">${acts}</span></div>`;
   }).join('');
 }
-const clanHead = v => `<div class="clanhead" style="--cl:${/^#[0-9a-fA-F]{6}$/.test(v.col || '') ? v.col : 'var(--gold)'}"><span class="big">${esc(v.tag)}</span><div><h3>${esc(v.name)}</h3><p>${v.motto ? esc(v.motto) : 'No motto yet.'}</p></div><div class="clanstats"><span class="r"><b>${v.games ? v.rating : '–'}</b>Clan rating</span><span><b>${v.wins}–${v.games - v.wins}</b>Won–lost</span><span><b>${v.size}/${v.max}</b>Members</span></div></div>`;
+const clanHead = v => `<div class="clanhead" style="--cl:${/^#[0-9a-fA-F]{6}$/.test(v.col || '') ? v.col : 'var(--gold)'}">${Sim.emblemOk(v.em) ? Sim.emblemSvg(v.em, 72) : `<span class="big">${esc(v.tag)}</span>`}<div><h3><span class="ctag" style="--cl:${v.col}">${esc(v.tag)}</span>${esc(v.name)}</h3><p>${v.motto ? esc(v.motto) : 'No motto yet.'}</p></div><div class="clanstats"><span class="r"><b>${v.games ? v.rating : '–'}</b>Clan rating</span><span><b>${v.wins}–${v.games - v.wins}</b>Won–lost</span><span><b>${v.size}/${v.max}</b>Members</span></div></div>`;
 const CLAN_HOW = 'The clan rating moves when two or more members queue for a ranked 2v2 or 3v3 together and your whole team is from the clan (no AI players or outsiders on your side). Everyone starts at 800.';
 function renderClan() {
   const c = CLAN.mine, signed = !!account;
@@ -4588,25 +4633,28 @@ function renderClan() {
     h = '<p class="status">Sign in or create an account to start or join a clan. Guests can look at the best clans.</p>';
   } else if (!c) {
     const inv = CLAN.invites.map(x => clanRow(x, null, `<button type="button" class="cta" data-cljoin="${x.id}">Accept</button><button type="button" class="ghost sm" data-clrefuse="${x.id}">Decline</button>`)).join('');
-    CLAN.col = CLAN.col || CLAN.colours[0];
+    CLAN.col = CLAN.col || CLAN.colours[0]; if (!Sim.emblemOk(CLAN.em)) CLAN.em = Sim.emblemDefault('A', CLAN.col);
     h = (inv ? `<div class="clsec"><h3>Invites</h3><div class="clanlist">${inv}</div></div>` : '') +
       `<div class="clgrid" style="margin-top:${inv ? 14 : 0}px"><div class="clsec"><h3>Start a clan</h3>
         <div class="clform"><div class="field"><label for="clName">Name</label><input id="clName" maxlength="24" autocomplete="off" placeholder="3 to 24 characters"></div>
         <div class="field"><label for="clTag">Tag</label><input id="clTag" maxlength="5" autocomplete="off" placeholder="2 to 5" style="text-transform:uppercase"></div>
         <div class="field full"><label for="clMotto">Motto (optional)</label><input id="clMotto" maxlength="80" autocomplete="off"></div>
-        <div class="field full"><label>Colour</label>${clanSwatches(CLAN.col)}</div>
+        <div class="field full"><label>Tag colour</label>${clanSwatches(CLAN.col)}</div>
+        <div class="field full"><label>Emblem</label>${emblemEditor()}</div>
         <label class="clcheck full"><input type="checkbox" id="clOpen"> Anyone can join without asking</label></div>
         <div class="btnrow"><button type="button" class="cta" id="clCreate">Create clan</button></div><span class="status" id="clMsg"></span></div>
       <div class="clsec"><h3>How clans work</h3><p class="status">Your clan's tag sits before your name on your banner. Up to ${CLAN.max} members, with a leader and officers who can invite people and answer requests. ${CLAN_HOW}</p><p class="status">Looking for one? See <b>Best clans</b> and join or ask to join.</p></div></div>`;
   } else {
     const lead = c.role === 'leader', off = lead || c.role === 'officer';
+    if (lead && (!Sim.emblemOk(CLAN.em) || CLAN.emFor !== c.id)) { CLAN.em = Sim.emblemOk(c.em) ? c.em : Sim.emblemDefault(c.tag, c.col); CLAN.emFor = c.id; CLAN.col = c.col; }
     const reqs = (c.requests || []).map(r => `<div class="clrow"><span class="n"></span><span class="who"><b>${esc(r.name)}</b><small>asked to join</small></span><span></span><span class="btnrow"><button type="button" class="cta" data-clacc="${r.id}">Accept</button><button type="button" class="ghost sm" data-cldec="${r.id}">Decline</button></span></div>`).join('');
     const invs = (c.invites || []).map(r => `<div class="clrow"><span class="n"></span><span class="who"><b>${esc(r.name)}</b><small>invited</small></span><span></span><span class="btnrow"><button type="button" class="ghost sm" data-cluninv="${r.id}">Cancel</button></span></div>`).join('');
     h = clanHead(c) + `<div class="clgrid" style="margin-top:14px"><div class="clsec"><h3>Members</h3><div class="clanlist">${clanMembers(c, true)}</div><p class="status">${CLAN_HOW}</p></div>
       <div class="clsec">` +
       (off ? `<h3>Invite a player</h3><div class="row"><div class="field"><input id="clInv" maxlength="16" autocomplete="off" placeholder="Player name"></div><button type="button" class="ghost" id="clInvBtn">Invite</button></div>` +
         (reqs ? `<h3>Requests</h3><div class="clanlist">${reqs}</div>` : '') + (invs ? `<h3>Invited</h3><div class="clanlist">${invs}</div>` : '') : '') +
-      (lead ? `<h3>Clan settings</h3><div class="field"><label for="clMotto">Motto</label><input id="clMotto" maxlength="80" autocomplete="off" value="${esc(c.motto || '')}"></div><div class="field"><label>Colour</label>${clanSwatches(c.col)}</div>
+      (lead ? `<h3>Clan settings</h3><div class="field"><label for="clMotto">Motto</label><input id="clMotto" maxlength="80" autocomplete="off" value="${esc(c.motto || '')}"></div><div class="field"><label>Tag colour</label>${clanSwatches(CLAN.col || c.col)}</div>
+        <div class="field"><label>Emblem</label>${emblemEditor()}</div>
         <label class="clcheck"><input type="checkbox" id="clOpen"${c.open ? ' checked' : ''}> Anyone can join without asking</label><div class="btnrow"><button type="button" class="ghost" id="clSave">Save settings</button></div>` : '') +
       `<span class="status" id="clMsg"></span><div class="btnrow" style="margin-top:6px"><button type="button" class="ghost sm" data-clsure="Leave ${esc(c.name)}?" data-clleave>Leave clan</button>${lead ? `<button type="button" class="ghost sm" data-clsure="Disband for everyone?" data-cldisband>Disband clan</button>` : ''}</div>
       ${lead && c.size > 1 ? '<p class="status">If you leave, the longest-serving officer (or member) becomes leader.</p>' : ''}</div></div>`;
@@ -4626,10 +4674,11 @@ $('clBody').addEventListener('click', async e => {
   if (b.dataset.clsure && !b.dataset.armed) { b.dataset.armed = '1'; b.dataset.was = b.textContent; b.textContent = b.dataset.clsure + ' Click again'; setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = b.dataset.was; } }, 4000); return; }
   const D = b.dataset;
   if (D.clcol) { CLAN.col = D.clcol; $('clSw').querySelectorAll('button').forEach(x => x.classList.toggle('sel', x === b)); return; }
+  if (D.emi) { CLAN.em = embSet(CLAN.em, +D.emi, D.emv); if (+D.emi === 2 && D.emv === 'b' && !/[A-Z0-9]/.test(CLAN.em[3])) CLAN.em = embSet(CLAN.em, 3, 'A'); emblemRedraw(); return; }
   if (D.clback != null) { CLAN.viewing = null; return renderClan(); }
   if (D.clview) { try { const r = await fetch('/api/clan?id=' + encodeURIComponent(D.clview), { cache: 'no-store' }), d = await r.json(); if (!r.ok) throw new Error(d.error); CLAN.viewing = d.clan; renderClan(); } catch (er) { notice(esc(er.message || 'Could not load that clan.'), false); clanLoad(true); } return; }
-  if (b.id === 'clCreate') return clanDo({ op: 'create', name: $('clName').value, tag: $('clTag').value, motto: $('clMotto').value, col: CLAN.col, open: $('clOpen').checked }, 'Clan created.');
-  if (b.id === 'clSave') return clanDo({ op: 'settings', motto: $('clMotto').value, open: $('clOpen').checked, col: CLAN.col || CLAN.mine.col }, 'Saved.');
+  if (b.id === 'clCreate') return clanDo({ op: 'create', name: $('clName').value, tag: $('clTag').value, motto: $('clMotto').value, col: CLAN.col, em: CLAN.em, open: $('clOpen').checked }, 'Clan created.');
+  if (b.id === 'clSave') return clanDo({ op: 'settings', motto: $('clMotto').value, open: $('clOpen').checked, col: CLAN.col || CLAN.mine.col, em: CLAN.em }, 'Saved.');
   if (b.id === 'clInvBtn') return clanDo({ op: 'invite', name: $('clInv').value }, 'Invite sent. They\'ll see it under Clans.');
   if (D.cljoin) return clanDo({ op: 'join', id: +D.cljoin });
   if (D.clrefuse) return clanDo({ op: 'refuse', id: +D.clrefuse });
@@ -4642,10 +4691,15 @@ $('clBody').addEventListener('click', async e => {
   if (D.cldisband != null) return clanDo({ op: 'disband' }, 'Clan disbanded.');
 });
 $('clanChip').onclick = () => openSub('clanScr');
+// the emblem's letter: typing one also switches the symbol to Letter; a new clan's emblem starts from its tag
+$('clBody').addEventListener('input', e => {
+  if (e.target.id === 'emLtr') { const L = (e.target.value.toUpperCase().match(/[A-Z0-9]/) || [])[0]; if (L) { CLAN.em = embSet(embSet(CLAN.em, 3, L), 2, 'b'); const pos = e.target.selectionStart; emblemRedraw(); const n = $('emLtr'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } } }
+  if (e.target.id === 'clTag' && CLAN.em && CLAN.em[2] === 'b') { const L = (e.target.value.toUpperCase().match(/[A-Z0-9]/) || [])[0]; if (L && L !== CLAN.em[3]) { CLAN.em = embSet(CLAN.em, 3, L); emblemRedraw(); } }
+});
 // after a ranked match your clan team played: the clan's new rating, on the results screen
 function clanRated(m) {
   const el = $('resClan'), d = Math.round(m.d);
-  el.innerHTML = `${clanHtml(m.tag, CLAN.mine && CLAN.mine.col)}${esc(m.name)} clan rating <b>${Math.round(m.rating)}</b> <em class="${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '+' : '−'}${Math.abs(d)}</em>`;
+  el.innerHTML = `${clanHtml(m.tag, CLAN.mine && CLAN.mine.col, m.em)}${esc(m.name)} clan rating <b>${Math.round(m.rating)}</b> <em class="${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '+' : '−'}${Math.abs(d)}</em>`;
   el.hidden = false; clanLoad(true);
 }
 
@@ -4661,7 +4715,7 @@ async function renderScores() {
   try {
     if (SC.tab === 'clans') {
       const d = await scFetch('/clans'), rows = (d.top || []).filter(c => c.games > 0);
-      $('scBody').innerHTML = box('Best clans', rows.slice(0, 20).map((c, i) => `<div class="scrow"><span class="n">${i + 1}</span><span>${clanHtml(c.tag, c.col)}<b style="font:600 15px 'Titillium Web',sans-serif">${esc(c.name)}</b> <small class="status">${c.wins}–${c.games - c.wins} · ${c.size} member${c.size === 1 ? '' : 's'}</small></span><b>${c.rating}</b></div>`).join('')) +
+      $('scBody').innerHTML = box('Best clans', rows.slice(0, 20).map((c, i) => `<div class="scrow"><span class="n">${i + 1}</span><span>${clanHtml(c.tag, c.col, c.em)}<b style="font:600 15px 'Titillium Web',sans-serif">${esc(c.name)}</b> <small class="status">${c.wins}–${c.games - c.wins} · ${c.size} member${c.size === 1 ? '' : 's'}</small></span><b>${c.rating}</b></div>`).join('')) +
         '<p class="status" style="margin-top:8px">A clan\'s rating moves when two or more of its members queue for ranked together and their whole team is from the clan. Open Clans from the main menu to join or start one.</p>';
     } else if (SC.tab === 'records') {
       const d = await scFetch('/highscores');
@@ -4685,6 +4739,7 @@ function syncOptions() {
   $('oRes').value = OPTS.res; $('oFx').value = OPTS.fx; $('oShadow').value = OPTS.shadow; $('oGlow').value = OPTS.glow; $('oDetail').value = OPTS.detail; $('oPart').value = String(OPTS.part); $('oShake').value = OPTS.shake ? '1' : '0';
   $('oDmg').value = OPTS.dmg; $('oGuide').value = OPTS.guide ? '1' : '0'; $('oNet').value = OPTS.net ? '1' : '0';
 }
+$('oRec').onclick = () => { PR.toggle(); $('oRec').textContent = PR.on ? 'Stop and save' : 'Start recording'; };
 $('oNet').onchange = () => { OPTS.net = $('oNet').value === '1'; store.set('bowfall-net', OPTS.net ? '1' : '0'); };
 $('oVol').oninput = () => { OPTS.vol = +$('oVol').value; store.set('bowfall-vol', OPTS.vol); $('oVolN').textContent = OPTS.vol + '%'; initAudio(); if (AC) outNode(); };
 $('oVol').onchange = () => { initAudio(); tone(660, 0.12, 'triangle', 0.05); };
@@ -4831,7 +4886,7 @@ function drawProfChip() {
 }
 function myPlateHtml() {
   const bd = Ach.d.border && Ach.d.got[Ach.d.border] ? Ach.d.border : null, na = Object.keys(Ach.d.got || {}).length, bn = Ach.banner();
-  const me = { n: account ? account.name : ($('nameIn').value.trim() || 'Archer'), cc: account && account.country, lv: account && account.level && account.level.lv, ct: CLAN.mine && CLAN.mine.tag, cl: CLAN.mine && CLAN.mine.col, bd, na, sc: bn.sc, fin: bn.fin, ti: Ach.d.title && Ach.d.got[Ach.d.title] ? Ach.d.title : null };
+  const me = { n: account ? account.name : ($('nameIn').value.trim() || 'Archer'), cc: account && account.country, lv: account && account.level && account.level.lv, ct: CLAN.mine && CLAN.mine.tag, cl: CLAN.mine && CLAN.mine.col, ce: CLAN.mine && CLAN.mine.em, bd, na, sc: bn.sc, fin: bn.fin, ti: Ach.d.title && Ach.d.got[Ach.d.title] ? Ach.d.title : null };
   return `<span class="nm plate${plateClass(me)}"${plateStyle(me)}><span class="pl1">${idHtml(me)}<b>${esc(me.n)}</b>${trophyHtml(na)}${medalsHtml(me.sc)}${me.ti ? ` <em class="ttl">${esc(titleName(me.ti))}</em>` : ''}</span><small>${esc(ELEMENTS[myLoadout().el].name + ' ' + ROLES[myLoadout().ro].name)}</small></span>`;
 }
 let COUNTRIES = null;
@@ -4943,8 +4998,8 @@ document.addEventListener('error', e => { const t = e.target; if (t && t.classLi
 const RANKS = [[1, 'Recruit', '#a8835a'], [5, 'Bronze', '#cd8a4e'], [10, 'Silver', '#c9d1dc'], [15, 'Gold', '#f2c14e'], [20, 'Platinum', '#7fe0d8'], [30, 'Diamond', '#9fb8ff'], [45, 'Master', '#ff6a8a']];
 function rankOf(lv) { let r = RANKS[0]; for (const x of RANKS) if (lv >= x[0]) r = x; return { name: r[1], col: r[2] }; }
 function rankHtml(lv) { if (!lv) return ''; const r = rankOf(lv); return `<span class="rkb" style="--rc:${r.col}" title="${r.name} · level ${lv}">${lv}</span>`; }
-const clanHtml = (ct, cl) => (ct && /^[A-Z0-9]{2,5}$/.test(ct) ? `<span class="ctag"${/^#[0-9a-fA-F]{6}$/.test(cl || '') ? ` style="--cl:${cl}"` : ''} title="Clan">${ct}</span>` : '');
-const idHtml = p => rankHtml(p.lv) + flagHtml(p.cc) + clanHtml(p.ct, p.cl);
+const clanHtml = (ct, cl, ce) => (ct && /^[A-Z0-9]{2,5}$/.test(ct) ? (Sim.emblemOk(ce) ? `<span class="cemb">${Sim.emblemSvg(ce, 18)}</span>` : '') + `<span class="ctag"${/^#[0-9a-fA-F]{6}$/.test(cl || '') ? ` style="--cl:${cl}"` : ''} title="Clan">${ct}</span>` : '');
+const idHtml = p => rankHtml(p.lv) + flagHtml(p.cc) + clanHtml(p.ct, p.cl, p.ce);
 // the game's owner: a gold crown with an O after their name
 const OWNER_SVG = '<svg viewBox="0 0 20 16" aria-hidden="true"><path d="M1.5 4.5l4.3 3.6L10 1.5l4.2 6.6 4.3-3.6-1.7 9.5H3.2z" fill="#ffcf5a" stroke="#a86f00" stroke-width="1" stroke-linejoin="round"/><circle cx="10" cy="10.2" r="2.1" fill="none" stroke="#7a4a00" stroke-width="1.5"/></svg>';
 const ownHtml = on => (on ? `<span class="owner" title="Game owner">${OWNER_SVG}</span>` : '');
@@ -5107,7 +5162,10 @@ function handleEvents(evs) {
         if (e.ph === 'pre') {
           myDeath = null; crackT = {};
           if (e.gm === 1 && e.rd === 1) { $('resClan').hidden = true; const wp = $('wipe'); wp.classList.remove('go'); void wp.offsetWidth; wp.classList.add('go'); } // the arena is revealed as the first countdown starts
-          if (e.gm === 1) banner('Round ' + e.rd, m ? `First to ${m.gtw} games · Points ${m.wr}–${m.wb}` : '');
+          // both teams one round from the match: the deciding round; and if both are also one game from it, the last arrow
+          const decide = m && !m.cq && m.ptw > 1 && m.wr === m.ptw - 1 && m.wb === m.ptw - 1, last = decide && m.gr === m.gtw - 1 && m.gb === m.gtw - 1;
+          if (last) { banner('Last Arrow', 'Whoever wins this game wins the match'); tone(220, 0.35, 'sawtooth', 0.04); setTimeout(() => tone(440, 0.3, 'triangle', 0.05), 180); }
+          else if (e.gm === 1) banner(decide ? 'Deciding round' : 'Round ' + e.rd, m ? `First to ${m.gtw} game${m.gtw === 1 ? '' : 's'} · ${decide ? 'it wins the match' : `Points ${m.wr}–${m.wb}`}` : '');
           else banner('Game ' + e.gm, m ? `Round ${e.rd} · Games ${m.gr}–${m.gb}` : '');
           tone(330, 0.2, 'triangle', 0.05);
         }
@@ -7107,23 +7165,22 @@ function drawArrow(a) {
   ctx.restore();
 }
 
-// Firework: drawn in the arrow's frame (already translated and rotated). A striped paper tube on a stick with a
-// pointed cap, wobbling a little as it flies, throwing sparks of several colours from its tail
+// Firework: drawn in the arrow's frame (already translated and rotated). A striped paper tube with a pointed cap,
+// wobbling a little as it flies, with a flame and sparks (reds, oranges and yellows) from its tail
 function drawRocket(a) {
   const t = clock * 40 + (+a.id || 0), flick = 0.7 + 0.3 * Math.sin(t * 1.7), light = lightFx();
   ctx.rotate(Math.sin(clock * 9 + (+a.id || 0)) * 0.06);
   ctx.scale(1.5, 1.5);
   if (!light) {
-    const cols = ['#ff5a7a', '#ffd23f', '#5ad1ff', '#7dff8a', '#ffffff'], bx = a.x - Math.cos(a.g) * 26, by = a.y - Math.sin(a.g) * 26;
+    const cols = ['#ff3b1f', '#ff6a2b', '#ff9a3d', '#ffcf5a', '#ffe9a0'], bx = a.x - Math.cos(a.g) * 26, by = a.y - Math.sin(a.g) * 26;
     if (Math.random() < 0.9) fx.parts.push({ x: bx + rand(-2, 2), y: by + rand(-2, 2), vx: -Math.cos(a.g) * rand(20, 70) + rand(-45, 45), vy: -Math.sin(a.g) * rand(20, 70) + rand(-45, 45), life: 0, max: rand(0.25, 0.55), color: cols[Math.floor(Math.random() * cols.length)], r: rand(1, 2.2) });
     if (Math.random() < 0.3) fx.parts.push({ x: bx, y: by, vx: rand(-12, 12), vy: rand(-12, 12), life: 0, max: rand(0.4, 0.7), color: 'rgba(200,200,200,0.3)', r: rand(2, 3.5) });
   }
-  // the stick
-  ctx.strokeStyle = 'rgba(20,14,8,0.75)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-34, 3); ctx.lineTo(-8, 3); ctx.stroke();
-  ctx.strokeStyle = '#c9a56b'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-34, 3); ctx.lineTo(-8, 3); ctx.stroke();
-  // the fuse spark
-  ctx.fillStyle = `rgba(255,230,120,${0.9 * flick})`; ctx.beginPath(); ctx.arc(-17, 0, 2.2 + 1.6 * flick, 0, TAU); ctx.fill();
-  ctx.fillStyle = `rgba(255,255,255,${flick})`; ctx.beginPath(); ctx.arc(-17, 0, 1.1, 0, TAU); ctx.fill();
+  // the flame out of the back: red outside, orange, then a yellow-white core
+  const fl = 11 + 7 * flick;
+  ctx.fillStyle = `rgba(255,60,30,${0.55 * flick})`; ctx.beginPath(); ctx.moveTo(-15, -4.5); ctx.quadraticCurveTo(-15 - fl * 0.6, -3, -15 - fl, 0); ctx.quadraticCurveTo(-15 - fl * 0.6, 3, -15, 4.5); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = `rgba(255,140,40,${0.8 * flick})`; ctx.beginPath(); ctx.moveTo(-15, -3); ctx.quadraticCurveTo(-15 - fl * 0.45, -2, -15 - fl * 0.7, 0); ctx.quadraticCurveTo(-15 - fl * 0.45, 2, -15, 3); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = `rgba(255,236,150,${0.95 * flick})`; ctx.beginPath(); ctx.moveTo(-15, -1.6); ctx.quadraticCurveTo(-15 - fl * 0.25, -1, -15 - fl * 0.38, 0); ctx.quadraticCurveTo(-15 - fl * 0.25, 1, -15, 1.6); ctx.closePath(); ctx.fill();
   // the tube: the shooter's colour with white stripes
   ctx.fillStyle = a.c; ctx.strokeStyle = 'rgba(20,14,8,0.8)'; ctx.lineWidth = 1.3;
   ctx.beginPath(); ctx.rect(-15, -4.5, 22, 9); ctx.fill(); ctx.stroke();
@@ -7602,7 +7659,7 @@ function render(replaying) {
   mouse.wx = (mouse.sx - OX) / VS; mouse.wy = (mouse.sy - OY) / VS;
   if (view && view.m.map !== MAPKEY) setArena(view.m.map);
   mechDrawT = replaying && view ? view.m.gt || 0 : mechT;
-  drawArena();
+  PR.skip(); drawArena(); PR.lap('arena');
   if (!view) return;
   const me = view.p.find(p => p.id === myId);
   if (me && !me.d && !replaying) me.a = Math.atan2(mouse.wy - me.y, mouse.wx - me.x);
@@ -7615,14 +7672,17 @@ function render(replaying) {
   if (view.b && !view.b.o) drawBall(view.b);
   for (const a of view.a) if (a.s) drawArrow(a);
   if (TRAIL.size && !replaying) drawTrails(view);
+  PR.lap('overlay'); // zones, markers, pickups and stuck arrows count as overlay
   for (const p of view.p) if (p.f > 0 && !trHidden(p) && onScreen(p.x, p.y, 120)) drawPlayer(p, p.id === myId);
   for (const p of view.p) if (!p.f && p.id !== myId && !trHidden(p) && onScreen(p.x, p.y, 120)) drawPlayer(p, false);
   if (TR.on) drawTargets();
   if (me && !me.f) drawPlayer(me, true);
+  PR.lap('players');
   drawSmoke(view, me);
   if (!replaying) allyWarn(view, me);
   drawAbilityFx(view);
   for (const a of view.a) if (!a.s && onScreen(a.x, a.y, 80)) drawArrow(a);
+  PR.lap('shots');
   if (me && me.sr && !me.d && !replaying) drawShroud(me);
   for (const r of fx.rings) { ctx.strokeStyle = `rgba(${r.col || '255,138,61'},${1 - r.life / 0.4})`; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, TAU); ctx.stroke(); }
   for (const p of fx.parts) { ctx.globalAlpha = Math.max(0, 1 - p.life / p.max); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU); ctx.fill(); }
@@ -7636,6 +7696,7 @@ function render(replaying) {
     ctx.fillStyle = f.color; ctx.fillText(f.text, f.x, f.y);
   }
   ctx.globalAlpha = 1;
+  PR.lap('particles');
   if (fx.flash && !replaying) drawEdgeFlash();
   if (!replaying && LP.list.length && view.m.ph !== 'lobby') drawLocalMarks(view);
   if (replaying) { drawReplayFrame(); return; }
@@ -8327,7 +8388,7 @@ function updateHud() {
     $('gdR').innerHTML = dots(m.gr, TEAM_COL.red); $('gdB').innerHTML = dots(m.gb, TEAM_COL.blue);
   });
   if (m.cq) setC('rd', 'cq' + m.ph, () => { $('rdText').textContent = m.ph === 'over' ? 'Match over' : `Strongholds · first to ${m.cq.tg}`; $('rdText').title = `Each stronghold you hold scores a point a second. First to ${m.cq.tg}, or hold all four at once, wins.`; });
-  else setC('rd', m.ph === 'pick' ? (m.op ? 'Opening pick' : 'Choosing upgrades') : m.ph === 'over' ? 'Match over' : `Round ${m.rd} · Game ${m.gm}`, v => { $('rdText').textContent = v; $('rdText').title = `First to ${m.gtw} games wins a round. First to ${m.ptw} points wins the match.`; });
+  else setC('rd', m.ph === 'pick' ? (m.op ? 'Opening pick' : 'Choosing upgrades') : m.ph === 'over' ? 'Match over' : (m.ptw > 1 && m.wr === m.ptw - 1 && m.wb === m.ptw - 1 ? (m.gr === m.gtw - 1 && m.gb === m.gtw - 1 ? 'Last Arrow' : `Deciding round · Game ${m.gm}`) : `Round ${m.rd} · Game ${m.gm}`), v => { $('rdText').textContent = v; $('rdText').title = `First to ${m.gtw} games wins a round. First to ${m.ptw} points wins the match.`; });
   setC('timer', m.cq ? m.cq.el : m.T, v => { $('timer').textContent = fmtT(v); });
   setC('pips', view.p.map(p => p.tm + p.d).join(''), () => {
     $('pips').innerHTML = TEAMS.map(t => '<span>' + view.p.filter(p => p.tm === t && !p.nk).map(p => `<i class="pip${p.d ? ' out' : ''}" style="background:${TEAM_COL[t]}"></i>`).join('') + '</span>').join('');
@@ -8673,7 +8734,52 @@ let pendingSummary = null;
 function showPendingSummary() { if (pendingSummary && view && view.m.ph === 'post') showGameSummary(pendingSummary); pendingSummary = null; }
 function endReplay() { if (!RP.on) return; RP.on = null; RP.cam = null; $('replayBadge').hidden = true; document.body.classList.remove('replaying'); showPendingSummary(); }
 let frameDt = 0;
+// ================= performance recording =================
+// F9 (or Options) starts and stops a recording of how long each part of every frame takes, what's on screen, the
+// network and the server's own load. Stopping saves it as a .json file to send in, so slow spots can be found.
+const PR = {
+  on: false, t0: 0, lapT: 0, seg: null, frames: [], secs: [], longs: [], msgMs: 0, msgN: 0, obs: null, secT: 0, nf: 0, MAX_MS: 15 * 60 * 1000,
+  SEGS: ['sim', 'view', 'fx', 'arena', 'players', 'shots', 'particles', 'overlay', 'hud'],
+  start() {
+    if (this.on) return;
+    Object.assign(this, { on: true, t0: performance.now(), frames: [], secs: [], longs: [], msgMs: 0, msgN: 0, secT: performance.now(), nf: 0 });
+    this.meta = { version: PAGE_VERSION, started: new Date().toISOString(), ua: navigator.userAgent, cores: navigator.hardwareConcurrency || null, mem: navigator.deviceMemory || null,
+      screen: [W, H], dpr: DPR, opts: Object.assign({}, OPTS), lightFx: lightFx(), mode, map: MAPKEY, offline: OFFLINE };
+    try { this.obs = new PerformanceObserver(l => { for (const e of l.getEntries()) this.longs.push([Math.round(e.startTime - this.t0), Math.round(e.duration)]); }); this.obs.observe({ type: 'longtask', buffered: false }); } catch (e) { this.obs = null; }
+    $('recBadge').hidden = false; notice('Recording performance. Play as normal; press F9 again to stop and save the file.', false);
+  },
+  begin(now) { if (!this.on) return; this.seg = new Float32Array(this.SEGS.length); this.lapT = performance.now(); this.fStart = now; },
+  lap(k) { if (!this.on || !this.seg) return; const t = performance.now(); this.seg[this.SEGS.indexOf(k)] += t - this.lapT; this.lapT = t; },
+  skip() { if (this.on) this.lapT = performance.now(); },
+  msg(ms) { if (this.on) { this.msgMs += ms; this.msgN++; } },
+  end(frameMs) {
+    if (!this.on || !this.seg) return;
+    const t = performance.now(), r1 = x => Math.round(x * 100) / 100;
+    this.frames.push([Math.round(t - this.t0), r1(frameMs)].concat(Array.from(this.seg, r1), [r1(this.msgMs), this.msgN, view ? view.p.length : 0, view ? view.a.length : 0, fx.parts.length, view && view.z ? view.z.length : 0]));
+    this.msgMs = 0; this.msgN = 0; this.nf++; this.seg = null;
+    if (t - this.secT >= 1000) { // once a second: frame rate, memory, ping and the server's own numbers
+      const sv = NET.sv.length ? NET.sv[NET.sv.length - 1] : null;
+      this.secs.push({ t: Math.round(t - this.t0), fps: Math.round(this.nf * 1000 / (t - this.secT)), heap: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : null, ping: NET.p.length ? Math.round(NET.p[NET.p.length - 1]) : null, ph: view ? view.m.ph : mode, server: sv ? Object.assign({}, sv, { at: undefined }) : null, lightFx: lightFx() });
+      this.secT = t; this.nf = 0;
+      $('recBadge').textContent = '● REC ' + fmtClock((t - this.t0) / 1000) + ' · F9 to stop';
+      if (t - this.t0 > this.MAX_MS) this.stop();
+    }
+  },
+  stop() {
+    if (!this.on) return; this.on = false; try { this.obs && this.obs.disconnect(); } catch (e) {}
+    $('recBadge').hidden = true;
+    const f = this.frames, ms = f.map(x => x[1]).sort((a, b) => a - b), q = p => ms.length ? ms[Math.min(ms.length - 1, Math.floor(ms.length * p))] : 0;
+    const data = { meta: Object.assign(this.meta, { seconds: Math.round((performance.now() - this.t0) / 1000), frames: f.length, columns: ['t', 'frameMs'].concat(this.SEGS, ['msgMs', 'msgs', 'nPlayers', 'nArrows', 'nParticles', 'nZones']), median: q(0.5), p95: q(0.95), p99: q(0.99) }), secs: this.secs, longTasks: this.longs, frames: f };
+    const blob = new Blob([JSON.stringify(data)], { type: 'application/json' }), a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = `bowfall-perf-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.json`; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+    notice(`Recording saved (${data.meta.seconds}s, ${f.length.toLocaleString()} frames; typical frame ${q(0.5).toFixed(1)}ms, slowest 1% ${q(0.99).toFixed(1)}ms). Send the file in to have it looked at.`, false);
+    this.frames = []; this.secs = [];
+  },
+  toggle() { this.on ? this.stop() : this.start(); },
+};
+const fmtClock = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
 function frame(now) {
+  const frameMs = now - last; PR.begin(now);
   pollPad();
   NET.frame(now - last);
   const dt = Math.min(0.05, (now - last) / 1000); frameDt = dt;
@@ -8694,14 +8800,17 @@ function frame(now) {
         Sim.step(world, STEP);
         acc -= STEP;
       }
+      PR.lap('sim');
       handleEvents(world.events.splice(0));
       if (world.records.length) { const recs = world.records.splice(0); if (!TUT.on && !TR.on) for (const r of recs) Balance.record(r); }
       tutTick(dt); trainTick(dt);
     }
     view = blendView(Sim.snapshot(world), prevPos, paused ? 1 : acc / STEP);
+    PR.lap('view');
   } else if (mode === 'online') {
     if (fx.stop > 0 && view) fx.stop -= dt; // hit-stop: hold the picture for a few frames
     else { view = interpView(now); smoothMe(view, dt); }
+    PR.lap('view');
     const me = view && view.p.find(p => p.id === myId);
     if (me && !me.d && !me.f && view.m.ph === 'play' && (mouse.down || held('draw') || (pad.on && pad.draw)) && !menuOpen) localCharge = Math.min(1, localCharge + dt * (me.pw && me.pw.quick ? 2.2 : 1) * (me.up && me.up.includes('steady') ? 1.25 : 1));
     else localCharge = 0;
@@ -8720,14 +8829,16 @@ function frame(now) {
   } else view = null;
   updateMech(dt);
   statusSounds(dt); bowSounds(dt); perfTick(dt); if (TUT.on || TR.on) coachFade();
-  updateFx(dt);
+  PR.skip(); updateFx(dt); PR.lap('fx');
   replayRecord();
   const rv = replayTick(dt);
   // a drawing error must never freeze the game: report it and carry on with the next frame
   try { camUpdate(dt); } catch (e) { clientError(e, 'camera'); }
   try { if (rv) { const live = view; view = rv; try { render(true); } finally { view = live; } } else render(); }
   catch (e) { clientError(e, 'render'); if (rv) endReplay(); try { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none'; } catch (e2) {} }
+  PR.lap('overlay');
   try { updateHud(); qHelp(); linkAutoJoin(); } catch (e) { clientError(e, 'hud'); }
+  PR.lap('hud'); PR.end(frameMs);
   requestAnimationFrame(frame);
 }
 
