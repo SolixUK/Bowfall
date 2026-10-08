@@ -180,6 +180,8 @@ Some are totals (knockouts, pins, revives), since sheer volume is a virtue too. 
 
 **Sound:** each element has its own sound. Storm arcs crackle with electricity, frost chimes and cracks when it freezes, flame whooshes, and poison bubbles and hisses. While you're burning, poisoned or frozen, you'll hear it quietly in the background.
 
+**Clans:** start or join a clan from the button beside your profile on the main menu. Its tag shows before your name on your banner. A clan has a leader, officers and up to 30 members, and a rating of its own that moves when a whole ranked team (two or more players) is from the clan; the best clans are on the leaderboards. Owner command: `/clan disband <tag>`.
+
 **Match over:** a headline in the winner's colour (Victory or Defeat in ranked), the winning archers, awards for most knockouts, most damage, sharpest aim, most ring-outs and longest hit, and a rankings table you can sort by any column (knockouts, damage, accuracy, ring-outs, longest hit, times out). Your rating counts up or down to its new value, and level, mastery and Crest bars fill with a chime. Damage is credited to whoever caused it, including hazards, burns and pit falls after your knockback.
 
 **Capture powerups** (big hexagons) appear about every 30–40 seconds: **Deep Winter** freezes every enemy for 4s (bows for the first 2), **Thunderhead** strikes every enemy for 15, **Sanctuary** heals your team by 40. Stand inside for 3 seconds with no enemy inside to capture one. With both teams inside it's contested and nobody makes progress; an enemy standing in it alone first winds your progress back. Bots go for them too.

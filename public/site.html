@@ -328,11 +328,15 @@ const pages = {
     by = by || 'elo';
     const role = by === 'role' ? (qs().get('r') || 'sniper') : null;
     const L = { elo: '1v1 rating', eloT: 'Team rating', wins: 'Game wins', kills: 'Knockouts', matchWins: 'Match wins', games: 'Games played', ring: 'Ring-outs', bulls: 'Bullseyes' };
-    const [d, hs] = await Promise.all([api('/leaderboard?by=' + (role ? 'elo&role=' + role : by)), by === 'records' ? api('/highscores') : null]);
-    const tabs = `<div class="tabs">${Object.entries(L).map(([k, v]) => `<button type="button" data-by="${k}" class="${k === by ? 'on' : ''}">${v}</button>`).join('')}<button type="button" data-by="role" class="${role ? 'on' : ''}">By role</button><button type="button" data-by="records" class="${by === 'records' ? 'on' : ''}">Highscores</button></div>`;
+    const [d, hs] = await Promise.all([by === 'clans' ? api('/clans') : api('/leaderboard?by=' + (role ? 'elo&role=' + role : by)), by === 'records' ? api('/highscores') : null]);
+    const tabs = `<div class="tabs">${Object.entries(L).map(([k, v]) => `<button type="button" data-by="${k}" class="${k === by ? 'on' : ''}">${v}</button>`).join('')}<button type="button" data-by="role" class="${role ? 'on' : ''}">By role</button><button type="button" data-by="records" class="${by === 'records' ? 'on' : ''}">Highscores</button><button type="button" data-by="clans" class="${by === 'clans' ? 'on' : ''}">Clans</button></div>`;
     const who = r => `${badge(r.level)}${flag(r.country)}<a href="#/u/${esc(r.name)}"><b>${esc(r.name)}</b></a>${crown(r.own)}${status(r)}${r.ai ? '<span class="tag" title="An AI player: fills matchmaking games when nobody close to your rating is searching">AI</span>' : ''}${r.title ? `<span class="tag">${esc(titleName(r.title))}</span>` : ''}`;
     let body;
-    if (by === 'records') {
+    if (by === 'clans') {
+      const rows = (d.top || []).filter(c => c.games > 0), col = c => (/^#[0-9a-fA-F]{6}$/.test(c.col || '') ? c.col : '#ffcf5a');
+      body = `<div class="card">${rows.length ? `<table><thead><tr><th>#</th><th>Clan</th><th class="n">Rating</th><th class="n">Won–lost</th><th class="n hide-sm">Members</th></tr></thead><tbody>${rows.map((c, i) => `<tr><td>${i + 1}</td><td><span class="tag" style="color:${col(c)};border-color:${col(c)}">${esc(c.tag)}</span> <b>${esc(c.name)}</b>${c.motto ? ` <span class="muted">${esc(c.motto)}</span>` : ''}</td><td class="n"><b>${c.rating}</b></td><td class="n">${c.wins}–${c.games - c.wins}</td><td class="n hide-sm">${c.size}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">No clan has played a rated match yet.</div>'}</div>
+        <p class="muted" style="margin-top:12px">A clan's rating moves when two or more of its members queue for a ranked 2v2 or 3v3 together and their whole team is from the clan. Start or join a clan from the game's main menu.</p>`;
+    } else if (by === 'records') {
       const board = (title, list, unit) => { const max = list.length ? list[0].value : 1;
         return `<div class="card"><h3 style="margin-bottom:10px">${title}</h3>${list.length ? `<div class="hs">${list.map((r, i) => `<div><span class="muted">${i + 1}</span><span>${who(r)}</span><i style="width:${Math.max(4, r.value / max * 100)}%"></i><b>${r.value}${unit}</b></div>`).join('')}</div>` : '<p class="muted">Nobody yet.</p>'}</div>`; };
       body = `<div class="grid g2">${board('Most knockouts in one game', hs.kills, '')}${board('Most damage in one game', hs.dmg, '')}${board('Most ring-outs in one game', hs.ring, '')}${board('Highest rating reached', hs.peak, '')}</div>`;

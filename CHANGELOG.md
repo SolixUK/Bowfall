@@ -2,6 +2,17 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.32.0
+
+- **Clans.** A **Clans** button sits next to your profile at the top right of the main menu.
+  - **Start one** with a name (3 to 24 characters), a tag (2 to 5 letters or numbers), an optional motto, a colour, and whether anyone can join or people must ask. One clan per account, up to 30 members; names and tags are unique. Guests can browse but need an account to join.
+  - **The tag** shows before your name, in the clan's colour, on your banner everywhere: lobbies, the ranked match-found screen, the scoreboard, the in-game menu and your party.
+  - **Roles:** a leader, officers and members. The leader and officers invite players by name and accept or decline requests; officers can remove members; the leader makes and removes officers, hands over the clan, changes its settings and can disband it. If the leader leaves, the longest-serving officer (or member) takes over; when the last member leaves the clan is gone. Leaving, removing, handing over and disbanding ask for a second click.
+  - **Clan rating:** there's no separate queue. In any ranked 2v2 or 3v3, if a whole team is members of one clan (two or more people, no AI players, guests or outsiders on that side), the match also counts for the clan: a win or loss against the other team's clan rating if they are a clan team too, otherwise against their players' average rating. Clans start at 800. Your own rating changes as usual. The clan's change shows on the match-over screen. Two halves of the same clan playing each other doesn't count.
+  - **Best clans** are on a new Clans tab in the game's Highscores and on the website's leaderboard, and the Clans screen lists every clan with Join / Ask to join and a member list.
+  - The server keeps clans in a new `clans` table (made automatically). Owner command: `/clan disband <tag>`.
+- **Ranked match-found screen:** banners get a full line each and are no longer cut off (the card is wider, and the archetype, AI tag and ready state sit on the line below). The arena picture keeps its own shape instead of stretching to the height of the player list.
+
 ## 0.31.1
 
 - **Rocket Arrow is now the Firework, and much weaker.** It flies at a set 210px a second whatever the draw or the arrow speed rule (it was about 940 under the standard rules; an archer runs at about 235), turns at a steady 1.5 radians a second without leading its target, and bursts when it lands or when its 5 second fuse runs out. The burst is 85% the size of Blast Tips (it was 150%) with 70% of the shove, and does 6 damage (it was 12); the direct hit does 35% of a normal arrow's damage and knockback (it was 70% and 60%). In a test a direct hit plus burst cost a Ranger 11 health, down from 22. It's drawn as a striped firework on a stick throwing coloured sparks, and bursts in rings and stars of several colours with a crackle.

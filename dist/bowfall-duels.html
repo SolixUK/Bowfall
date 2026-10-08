@@ -182,6 +182,41 @@
   .hometop { display: flex; justify-content: flex-end; }
   .profchip { display: flex; align-items: center; gap: 10px; padding: 6px 16px 6px 6px; background: var(--panel); border: 1px solid var(--line); color: var(--text); cursor: pointer; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%); }
   .profchip:hover { border-color: var(--gold); }
+  .toprow { display: flex; align-items: stretch; gap: 8px; }
+  .clanchip { position: relative; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 1px; padding: 6px 14px; background: var(--panel); border: 1px solid var(--line); color: var(--text); cursor: pointer; text-align: left; }
+  .clanchip:hover { border-color: var(--gold); }
+  .clanchip b { font: 700 17px 'Rajdhani', 'Arial Narrow', sans-serif; display: flex; align-items: center; gap: 6px; }
+  .clanchip small { color: var(--muted); font-size: 12px; }
+  .clanchip .pip { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: var(--gold); color: #111; font: 700 12px/18px 'Rajdhani', sans-serif; text-align: center; }
+  /* a clan's tag: before the name on every banner, in the clan's colour */
+  .ctag { display: inline-block; margin-right: 6px; padding: 0 4px; font: 700 12px/16px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .04em; color: var(--cl, var(--gold)); border: 1px solid var(--cl, var(--gold)); border-radius: 2px; vertical-align: 1px; flex: 0 0 auto; }
+  .card.wide.clancard { max-width: 980px; }
+  .clanhead { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; padding: 14px; background: linear-gradient(135deg, color-mix(in srgb, var(--cl, var(--gold)) 14%, transparent), rgba(255,255,255,.02)); border: 1px solid var(--line); border-left: 3px solid var(--cl, var(--gold)); }
+  .clanhead .big { font: 700 30px/1 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--cl, var(--gold)); border: 2px solid var(--cl, var(--gold)); padding: 8px 10px; letter-spacing: .05em; }
+  .clanhead h3 { margin: 0; font: 700 24px 'Rajdhani', 'Arial Narrow', sans-serif; }
+  .clanhead p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+  .clanstats { display: flex; gap: 18px; } .clanstats span { display: flex; flex-direction: column; align-items: flex-end; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  .clanstats b { font: 700 22px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--text); } .clanstats .r b { color: var(--gold); }
+  .clanlist { display: flex; flex-direction: column; gap: 4px; }
+  .clrow { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 7px 10px; background: rgba(255,255,255,.04); border: 1px solid var(--line); font-size: 14px; }
+  .clrow.me { border-color: rgba(255,207,90,.5); }
+  .clrow .n { color: var(--muted); font: 700 14px 'Rajdhani', sans-serif; }
+  .clrow .who { min-width: 0; display: flex; flex-direction: column; }
+  .clrow .who b { font: 600 15px 'Titillium Web', sans-serif; display: flex; align-items: center; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .clrow .who small { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .clrow .val { font: 700 17px 'Rajdhani', 'Arial Narrow', sans-serif; font-variant-numeric: tabular-nums; text-align: right; }
+  .clrow .val small { display: block; font: 500 11px 'Titillium Web', sans-serif; color: var(--muted); }
+  .clrow .btnrow { gap: 4px; flex-wrap: nowrap; }
+  .clrow .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-right: 7px; flex: 0 0 auto; } .clrow .dot.on { background: #7dff8a; box-shadow: 0 0 6px #7dff8a; }
+  .clrole { font: 600 11px 'Titillium Web', sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); padding: 0 5px; }
+  .clrole.leader { color: var(--gold); border-color: rgba(255,207,90,.5); } .clrole.officer { color: #8fdcff; border-color: rgba(143,220,255,.4); }
+  .clform { display: grid; grid-template-columns: 1fr 130px; gap: 10px; } .clform .full { grid-column: 1 / -1; }
+  .clsw { display: flex; gap: 6px; flex-wrap: wrap; } .clsw button { width: 28px; height: 28px; border: 2px solid transparent; background: var(--c); cursor: pointer; padding: 0; } .clsw button.sel { border-color: #fff; box-shadow: 0 0 0 2px #111 inset; }
+  .clcheck { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+  .clsec { display: flex; flex-direction: column; gap: 8px; } .clsec h3 { margin: 0; }
+  .clgrid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+  @media (max-width: 820px) { .clgrid { grid-template-columns: 1fr; } .clanhead { grid-template-columns: auto 1fr; } .clanstats { grid-column: 1 / -1; } }
+  .resclan { font-size: 15px; } .resclan b { font: 700 20px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--gold); margin: 0 6px; } .resclan em { font: 700 16px 'Rajdhani', sans-serif; font-style: normal; } .resclan .up { color: #7dff8a; } .resclan .down { color: #ff8a8a; }
   .profchip canvas { width: 48px; height: 48px; background: rgba(255,255,255,.05); }
   .profchip .pcn { display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
   .profchip b { font: 700 18px 'Rajdhani', 'Arial Narrow', sans-serif; display: flex; align-items: center; }
@@ -372,20 +407,23 @@
   .lpkey em { font-style: normal; font-weight: 700; color: var(--gold); }
   .lppickfloat { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 3; max-width: min(760px, calc(100vw - 32px)); background: rgba(8,14,10,.92); border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 8px 10px; }
   #draftScr { z-index: 3; }
-  .dfgrid { display: grid; grid-template-columns: 260px 1fr; gap: 16px; align-items: start; margin: 8px 0 12px; }
-  .dfgrid canvas { width: 100%; border-radius: 10px; background: rgba(255,255,255,.04); }
+  #draftScr .card.wide { max-width: 1120px; }
+  .dfgrid { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 18px; align-items: start; margin: 8px 0 12px; }
+  .dfgrid canvas { width: 100%; height: auto; align-self: start; border-radius: 10px; background: rgba(255,255,255,.04); } /* height follows the arena's own shape, never the row's */
   @media (max-width: 720px) { .dfgrid { grid-template-columns: 1fr; } }
-  .dfteams { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; min-width: 0; }
+  .dfteams { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; min-width: 0; }
+  @media (max-width: 900px) { .dfteams { grid-template-columns: 1fr; } }
   .dfteams h3 { margin: 0 0 6px; }
-  .dfp { display: grid; grid-template-columns: 10px 1fr auto; column-gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); min-width: 0; }
+  .dfp { display: grid; grid-template-columns: 10px minmax(0, 1fr); gap: 3px 8px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--line); min-width: 0; }
   .dfp .dot { width: 10px; height: 10px; border-radius: 50%; }
-  .dfp .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .dfp .status { grid-column: 2; font-size: 12px; }
-  .dfp .rdy { grid-row: 1 / span 2; grid-column: 3; font-size: 12px; color: var(--muted); }
+  .dfp .slot.bn { display: flex; min-height: 0; padding: 0; background: none; font-size: 14px; min-width: 0; }
+  .dfp .slot.bn .plate { margin: 0; flex: 0 1 auto; max-width: 100%; }
+  .dfp .dfsub { grid-column: 2; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); min-width: 0; }
+  .dfp .dfsub .aitag { margin-left: 0; }
+  .dfp .dfsub .what { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dfp .dfsub .hid { font-style: italic; opacity: .75; }
+  .dfp .rdy { color: var(--muted); white-space: nowrap; }
   .dfp .rdy.on { color: #7dff8a; }
-  .dfp .slot.bn { display: flex; align-items: center; gap: 6px; min-height: 0; padding: 0; background: none; font-size: 14px; }
-  .dfp .slot.bn .plate { margin: 0; flex: 0 1 auto; }
-  .dfp .status .hid { font-style: italic; opacity: .75; }
   #dfTimer.low { color: #ff8a8a; }
   .fgwait { color: var(--gold); }
   select.botskill { padding: 2px 6px; font-size: 12px; height: auto; min-height: 0; width: auto; margin-left: 4px; }
@@ -870,7 +908,10 @@
   <div class="overlay" id="home">
     <div class="homewrap">
       <div class="hometop">
-        <button type="button" class="profchip" id="profChip" title="Edit your profile and banner"><canvas id="profAv" width="96" height="96"></canvas><span class="pcn"><b id="profName">Archer</b><small id="profSub">Guest · edit profile</small></span></button>
+        <div class="toprow">
+          <button type="button" class="clanchip" id="clanChip" title="Your clan, and the best clans" hidden><b id="clanChipName">Clans</b><small id="clanChipSub">Join or start one</small><span class="pip" id="clanPip" hidden></span></button>
+          <button type="button" class="profchip" id="profChip" title="Edit your profile and banner"><canvas id="profAv" width="96" height="96"></canvas><span class="pcn"><b id="profName">Archer</b><small id="profSub">Guest · edit profile</small></span></button>
+        </div>
         <div class="lpbox"><div class="lplist" id="lpList"></div><button type="button" class="ghost sm" id="lpAdd" title="Another player with their own controller, on this screen">+ Add player on controller</button></div>
         <div class="frpanel" id="homeFriends" hidden></div>
       </div>
@@ -986,6 +1027,15 @@
   </div>
 
   <!-- highscores -->
+  <!-- clans -->
+  <div class="overlay sub" id="clanScr" hidden>
+    <div class="card wide clancard">
+      <div class="shopbar"><div class="stat"><span class="eyebrow">Play together</span><h2>Clans</h2></div><button class="ghost" type="button" data-back>Back</button></div>
+      <nav class="help-nav bal-tabs" id="clTabs"></nav>
+      <div id="clBody"><div class="status">Loading…</div></div>
+    </div>
+  </div>
+
   <div class="overlay sub" id="scoresScr" hidden>
     <div class="card wide">
       <div class="shopbar"><div class="stat"><span class="eyebrow">Leaderboard</span><h2>Highscores</h2></div><button class="ghost" type="button" data-back>Back</button></div>
@@ -1211,6 +1261,7 @@
         <div class="tablewrap"><table class="rank" id="resTable"></table></div>
       </div>
       <div class="resrated" id="resRated" hidden></div>
+      <div class="resclan" id="resClan" hidden></div>
       <div class="resprog" id="resProg" hidden></div>
       <span class="status" id="resNext"></span>
       <div class="btnrow">
@@ -1318,7 +1369,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.31.1';
+const VERSION = '0.32.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1940,6 +1991,8 @@ function setMeta(w, id, m) {
   if ('sp' in m) p.sp = Math.max(0, Math.min(4, m.sp | 0)) || null; // supporter emblem tier (1-4)
   if ('fd' in m) p.fd = m.fd ? 1 : null; // founder
   if ('pt' in m) p.pt = m.pt ? 1 : null; // patron
+  if ('ct' in m) p.ct = /^[A-Z0-9]{2,5}$/.test(String(m.ct || '')) ? String(m.ct) : null; // clan tag
+  if ('cl' in m) p.cl = /^#[0-9a-fA-F]{6}$/.test(String(m.cl || '')) ? String(m.cl) : null; // and its colour
   if ('sc' in m) p.sc = Array.isArray(m.sc) ? m.sc.filter(x => Array.isArray(x) && ACHIEVEMENTS[x[0]] && x[1] >= 1 && x[1] <= 5).slice(0, 3).map(x => [x[0], x[1] | 0]) : null; // showcase medals
   return true;
 }
@@ -5367,7 +5420,7 @@ function snapshot(w) {
       const pw = {};
       for (const k in p.pw) if (p.pw[k] > 0) pw[k] = r1(p.pw[k]);
       return {
-        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, nk: p.npc ? p.npc.k : undefined, hd: p.hid ? 1 : 0, tw: p.elev ? 1 : 0, rs: w.cq && p.dead && !p.npc && p.respAt != null ? Math.max(0, Math.ceil(p.respAt - w.t)) : undefined, bi: p.npc ? p.npc.bio : undefined, nw: p.npc && (p.npc.wind || p.npc.charge) ? (p.npc.charge ? 'dash' : p.npc.wind) : undefined, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, sp: p.sp || undefined, fd: p.fd || undefined, pt: p.pt || undefined, fin: p.fin || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
+        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, nk: p.npc ? p.npc.k : undefined, hd: p.hid ? 1 : 0, tw: p.elev ? 1 : 0, rs: w.cq && p.dead && !p.npc && p.respAt != null ? Math.max(0, Math.ceil(p.respAt - w.t)) : undefined, bi: p.npc ? p.npc.bio : undefined, nw: p.npc && (p.npc.wind || p.npc.charge) ? (p.npc.charge ? 'dash' : p.npc.wind) : undefined, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, ct: p.ct || undefined, cl: p.cl || undefined, sp: p.sp || undefined, fd: p.fd || undefined, pt: p.pt || undefined, fin: p.fin || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
         x: r1(p.x), y: r1(p.y), vx: Math.round(p.vx), vy: Math.round(p.vy), a: r3(p.aim),
         hp: Math.max(0, Math.ceil(p.hp)), mh: p.maxHp, ch: r2(p.charge), dr: p.drawing ? 1 : 0,
         f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, bu: p.burn > 0 ? 1 : 0, bl: p.bleedT > 0 ? 1 : 0, sl: p.slow > 0 ? 1 : 0, iv: p.inv > 0 ? 1 : 0,
@@ -5530,7 +5583,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.31.1';
+const PAGE_VERSION = '0.32.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -7404,6 +7457,8 @@ function connect(joinMsg) {
       status.classList.add('err'); status.textContent = m.msg;
     } else if (m.t === 'rated') {
       showRated(m);
+    } else if (m.t === 'clanRated') {
+      clanRated(m);
     } else if (m.t === 'wallet') {
       setWallet(m, m.gained, m.why);
     } else if (m.t === 'ach') {
@@ -7433,7 +7488,7 @@ function renderDraft(v) {
     $('dfMode').textContent = `Ranked ${R.ranked || ''} · match found`;
     $('dfMap').textContent = MAPS[v.m.map] ? MAPS[v.m.map].name : 'Arena';
     const c = $('dfThumb'), t = thumbs[v.m.map];
-    if (t) { c.width = t.width; c.height = t.height; c.getContext('2d').drawImage(t, 0, 0); }
+    if (t) { c.width = t.width; c.height = t.height; c.style.aspectRatio = t.width + ' / ' + t.height; c.getContext('2d').drawImage(t, 0, 0); }
     // with locks on: what you don't own is locked (this week's free picks are marked)
     const RT = (WALLET && WALLET.rotation) || {}, tg = k => !mayPick(k) ? ' disabled title="Locked: unlock it in the Store"' : '', tag = k => !mayPick(k) ? '<em class="lock">Locked</em>' : WALLET && WALLET.locks && (RT.el === k || RT.ro === k) ? '<em class="new">Free this week</em>' : '';
     $('dfEl').innerHTML = Object.entries(ELEMENTS).map(([k, e]) => `<button type="button" class="chip2" data-el="${k}" style="--cc:${e.color}"${tg(k)}><i></i>${e.name}${tag(k)}</button>`).join('');
@@ -7449,7 +7504,8 @@ function renderDraft(v) {
   setC('dfTeams', JSON.stringify([v.p.map(p => [p.id, p.n, p.tm, p.el, p.ro, p.b, p.c, p.bd, p.fin, p.sc, p.ti, p.na, p.lv]), ready, myTeam]), () => {
     $('dfTeams').innerHTML = TEAMS.map(t => `<div><h3 style="color:${TEAM_COL[t]}">${teamName(t)}</h3>` + v.p.filter(p => p.tm === t).map(p => {
       const lp = LP.list.find(l => l.pid === p.id), on = p.b || ready.includes(p.id), hide = t !== myTeam;
-      return `<div class="dfp"><span class="dot" style="background:${p.c}"></span><span class="nm slot bn"><span class="nm plate${plateClass(p)}"${plateStyle(p)}><span class="pl1">${idHtml(p)}<b>${esc(p.n)}</b>${ownHtml(p.ow)}${statusHtml(p)}${trophyHtml(p.na)}${medalsHtml(p.sc)}${p.ti ? ` <em class="ttl">${esc(titleName(p.ti))}</em>` : ''}</span></span>${p.b ? '<span class="aitag">AI</span>' : ''}${p.id === myId ? ' <small>(you)</small>' : ''}${lp ? ` <span class="lptag" style="--pc:${lpColor(lp.n)}">P${lp.n}</span>` : ''}</span><span class="rdy${on ? ' on' : ''}">${on ? 'Ready' : 'Picking…'}</span><small class="status">${hide ? '<span class="hid">Archetype hidden until the match starts</span>' : esc(archName(p))}</small></div>`;
+return `<div class="dfp"><span class="dot" style="background:${p.c}"></span><span class="nm slot bn"><span class="nm plate${plateClass(p)}"${plateStyle(p)}><span class="pl1">${idHtml(p)}<b>${esc(p.n)}</b>${ownHtml(p.ow)}${statusHtml(p)}${trophyHtml(p.na)}${medalsHtml(p.sc)}${p.ti ? ` <em class="ttl">${esc(titleName(p.ti))}</em>` : ''}</span></span></span>` +
+        `<span class="dfsub">${p.b ? '<span class="aitag">AI</span>' : ''}${p.id === myId ? '<span>You</span>' : ''}${lp ? `<span class="lptag" style="--pc:${lpColor(lp.n)}">P${lp.n}</span>` : ''}<span class="what">${hide ? '<span class="hid">Archetype hidden</span>' : esc(archName(p))}</span><span class="rdy${on ? ' on' : ''}">${on ? 'Ready' : 'Picking…'}</span></span></div>`;
     }).join('') + '</div>').join('');
   });
   setC('dfArch', me ? me.el + me.ro : '', () => { if (me) { syncArch(me); $('dfArch').textContent = archName(me); } });
@@ -8337,7 +8393,7 @@ function renderAch() {
   $('borderSel').innerHTML = '<option value="">Plain</option>' + have.filter(k => BORDERS[k]).map(k => `<option value="${k}"${Ach.d.border === k ? ' selected' : ''}>${esc(A[k].title)}</option>`).join('');
 }
 function renderBannerPreview() {
-  const b = Ach.banner(), me = { n: account ? account.name : ($('nameIn').value.trim() || 'Archer'), bd: Ach.d.border && Ach.d.got[Ach.d.border] ? Ach.d.border : null, na: Object.keys(Ach.d.got || {}).length || null, sc: b.sc, fin: b.fin, ti: Ach.d.title && Ach.d.got[Ach.d.title] ? Ach.d.title : null, lv: account && account.level && account.level.lv, cc: account && account.country, ow: account && account.admin, ...((WALLET && WALLET.status) || {}) };
+  const b = Ach.banner(), me = { n: account ? account.name : ($('nameIn').value.trim() || 'Archer'), bd: Ach.d.border && Ach.d.got[Ach.d.border] ? Ach.d.border : null, na: Object.keys(Ach.d.got || {}).length || null, sc: b.sc, fin: b.fin, ti: Ach.d.title && Ach.d.got[Ach.d.title] ? Ach.d.title : null, lv: account && account.level && account.level.lv, cc: account && account.country, ct: CLAN.mine && CLAN.mine.tag, cl: CLAN.mine && CLAN.mine.col, ow: account && account.admin, ...((WALLET && WALLET.status) || {}) };
   $('bnPrev').innerHTML = `<i class="dot" style="background:${TEAM_INFO.red.shades[0]}"></i><span class="nm plate${plateClass(me)}"${plateStyle(me)}><span class="pl1">${idHtml(me)}<b>${esc(me.n)}</b>${ownHtml(me.ow)}${statusHtml(me)}${trophyHtml(me.na)}${medalsHtml(me.sc)}${me.ti ? ` <em class="ttl">${esc(titleName(me.ti))}</em>` : ''}</span><small>${esc(ELEMENTS[myLoadout().el].name + ' ' + ROLES[myLoadout().ro].name)}</small></span><span class="tag you">You</span>`;
 }
 function setMyBanner(patch) {
@@ -8686,17 +8742,137 @@ function renderMenu(v) {
   setC('gmDiffV', v.m.df, x => { $('gmDiff').value = x; });
 }
 
+// ================= clans =================
+// One clan per account. The tag goes before your name on every banner. The clan's rating moves only in ranked matches
+// where your whole team is clan members who queued together (see lib/clans.js).
+const CLAN = { mine: null, top: [], invites: [], colours: [], max: 30, tab: null, viewing: null, col: null, busy: false };
+async function clanApi(body) {
+  const r = await fetch('/api/clan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }), d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || 'Something went wrong.');
+  return d;
+}
+function clanTake(d) { if ('mine' in d) CLAN.mine = d.mine; if (d.top) CLAN.top = d.top; if (d.invites) CLAN.invites = d.invites; if (d.colours) CLAN.colours = d.colours; if (d.max) CLAN.max = d.max; clanChip(); SC.cache = {}; hc.fgMe = hc.fgParty = null; }
+async function clanLoad(quiet) {
+  if (OFFLINE) return;
+  try { clanTake(await (await fetch('/api/clans', { cache: 'no-store' })).json()); } catch (e) { if (!quiet) $('clBody').innerHTML = '<p class="status">Could not reach the server.</p>'; return; }
+  if (!$('clanScr').hidden) renderClan();
+}
+function clanChip() {
+  const c = CLAN.mine, n = CLAN.invites.length + (c && c.requests ? c.requests.length : 0);
+  $('clanChip').hidden = OFFLINE;
+  $('clanChipName').innerHTML = c ? clanHtml(c.tag, c.col) + esc(c.name) : 'Clans';
+  $('clanChipSub').textContent = c ? `Clan rating ${c.rating} · ${c.size}/${c.max}` : CLAN.invites.length ? 'You have an invite' : 'Join or start one';
+  $('clanPip').hidden = !n; $('clanPip').textContent = n;
+}
+const clanRow = (c, i, btn) => `<div class="clrow${CLAN.mine && CLAN.mine.id === c.id ? ' me' : ''}"><span class="n">${i != null ? i + 1 : ''}</span><span class="who"><b>${clanHtml(c.tag, c.col)}${esc(c.name)}</b><small>${c.motto ? esc(c.motto) + ' · ' : ''}${c.size}/${c.max} members${c.leader ? ' · led by ' + esc(c.leader) : ''} · ${c.open ? 'open to all' : 'invite or request'}</small></span><span class="val">${c.games ? c.rating : '–'}<small>${c.games ? `${c.wins}–${c.games - c.wins}` : 'unrated'}</small></span><span class="btnrow">${btn || ''}<button type="button" class="ghost sm" data-clview="${c.id}">View</button></span></div>`;
+const clanSwatches = sel => `<div class="clsw" id="clSw">${CLAN.colours.map(c => `<button type="button" data-clcol="${c}" class="${c === sel ? 'sel' : ''}" style="--c:${c}" aria-label="Colour ${c}"></button>`).join('')}</div>`;
+function clanMembers(v, manage) {
+  const myRole = v.role, R = { leader: 3, officer: 2, member: 1 };
+  return v.members.map((m, i) => {
+    const mine = account && m.id === account.id, canKick = manage && !mine && R[myRole] > R[m.role] && R[myRole] >= 2;
+    const acts = manage && !mine ? (myRole === 'leader' ? (m.role === 'member' ? `<button type="button" class="ghost sm" data-clrole="officer" data-u="${m.id}">Make officer</button>` : `<button type="button" class="ghost sm" data-clrole="member" data-u="${m.id}">Remove officer</button>`) + `<button type="button" class="ghost sm" data-clsure="Hand over the clan?" data-clrole="leader" data-u="${m.id}">Make leader</button>` : '') + (canKick ? `<button type="button" class="ghost sm" data-clsure="Remove ${esc(m.name)}?" data-clkick="${m.id}">Remove</button>` : '') : '';
+    return `<div class="clrow${mine ? ' me' : ''}"><span class="n">${i + 1}</span><span class="who"><b><i class="dot${m.on ? ' on' : ''}" title="${m.on ? 'Online' : 'Offline'}"></i>${rankHtml(m.lv)}${flagHtml(m.cc)}${esc(m.name)}</b><small><span class="clrole ${m.role}">${m.role}</span></small></span><span class="val">${m.elo != null ? m.elo : '–'}<small>1v1 · team ${m.eloT != null ? m.eloT : '–'}</small></span><span class="btnrow">${acts}</span></div>`;
+  }).join('');
+}
+const clanHead = v => `<div class="clanhead" style="--cl:${/^#[0-9a-fA-F]{6}$/.test(v.col || '') ? v.col : 'var(--gold)'}"><span class="big">${esc(v.tag)}</span><div><h3>${esc(v.name)}</h3><p>${v.motto ? esc(v.motto) : 'No motto yet.'}</p></div><div class="clanstats"><span class="r"><b>${v.games ? v.rating : '–'}</b>Clan rating</span><span><b>${v.wins}–${v.games - v.wins}</b>Won–lost</span><span><b>${v.size}/${v.max}</b>Members</span></div></div>`;
+const CLAN_HOW = 'The clan rating moves when two or more members queue for a ranked 2v2 or 3v3 together and your whole team is from the clan (no AI players or outsiders on your side). Everyone starts at 800.';
+function renderClan() {
+  const c = CLAN.mine, signed = !!account;
+  if (!CLAN.tab) CLAN.tab = c || signed ? 'mine' : 'top';
+  const tabs = [['mine', c ? 'My clan' : 'Start or join'], ['top', 'Best clans']];
+  $('clTabs').innerHTML = tabs.map(([k, l]) => `<button type="button" data-cltab="${k}" class="${k === CLAN.tab && !CLAN.viewing ? 'on' : ''}">${l}</button>`).join('');
+  let h = '';
+  if (CLAN.viewing) { // someone else's clan (or your own, read-only)
+    const v = CLAN.viewing, can = signed && !c && !v.invited;
+    h = clanHead(v) + `<div class="btnrow" style="margin:10px 0"><button type="button" class="ghost sm" data-clback>Back to the list</button>` +
+      (v.invited ? `<button type="button" class="cta" data-cljoin="${v.id}">Accept invite</button>` : can ? (v.asked ? `<button type="button" class="ghost sm" data-clrefuse="${v.id}">Cancel request</button>` : `<button type="button" class="cta" data-cljoin="${v.id}">${v.open ? 'Join' : 'Ask to join'}</button>`) : '') + '</div>' +
+      `<div class="clsec"><h3>Members</h3><div class="clanlist">${clanMembers(v, false)}</div></div>`;
+  } else if (CLAN.tab === 'top') {
+    const rated = CLAN.top.filter(x => x.games > 0), rest = CLAN.top.filter(x => !x.games);
+    const btn = x => !signed || c ? '' : x.size >= x.max ? '' : `<button type="button" class="ghost sm" data-cljoin="${x.id}">${x.open ? 'Join' : 'Ask to join'}</button>`;
+    h = `<div class="clsec"><h3>Best clans</h3><div class="clanlist">${rated.map((x, i) => clanRow(x, i, btn(x))).join('') || '<span class="status">No clan has played a rated match yet.</span>'}</div></div>` +
+      (rest.length ? `<div class="clsec" style="margin-top:14px"><h3>Not rated yet</h3><div class="clanlist">${rest.map(x => clanRow(x, null, btn(x))).join('')}</div></div>` : '') +
+      `<p class="status" style="margin-top:10px">${CLAN_HOW}</p>`;
+  } else if (!signed) {
+    h = '<p class="status">Sign in or create an account to start or join a clan. Guests can look at the best clans.</p>';
+  } else if (!c) {
+    const inv = CLAN.invites.map(x => clanRow(x, null, `<button type="button" class="cta" data-cljoin="${x.id}">Accept</button><button type="button" class="ghost sm" data-clrefuse="${x.id}">Decline</button>`)).join('');
+    CLAN.col = CLAN.col || CLAN.colours[0];
+    h = (inv ? `<div class="clsec"><h3>Invites</h3><div class="clanlist">${inv}</div></div>` : '') +
+      `<div class="clgrid" style="margin-top:${inv ? 14 : 0}px"><div class="clsec"><h3>Start a clan</h3>
+        <div class="clform"><div class="field"><label for="clName">Name</label><input id="clName" maxlength="24" autocomplete="off" placeholder="3 to 24 characters"></div>
+        <div class="field"><label for="clTag">Tag</label><input id="clTag" maxlength="5" autocomplete="off" placeholder="2 to 5" style="text-transform:uppercase"></div>
+        <div class="field full"><label for="clMotto">Motto (optional)</label><input id="clMotto" maxlength="80" autocomplete="off"></div>
+        <div class="field full"><label>Colour</label>${clanSwatches(CLAN.col)}</div>
+        <label class="clcheck full"><input type="checkbox" id="clOpen"> Anyone can join without asking</label></div>
+        <div class="btnrow"><button type="button" class="cta" id="clCreate">Create clan</button></div><span class="status" id="clMsg"></span></div>
+      <div class="clsec"><h3>How clans work</h3><p class="status">Your clan's tag sits before your name on your banner. Up to ${CLAN.max} members, with a leader and officers who can invite people and answer requests. ${CLAN_HOW}</p><p class="status">Looking for one? See <b>Best clans</b> and join or ask to join.</p></div></div>`;
+  } else {
+    const lead = c.role === 'leader', off = lead || c.role === 'officer';
+    const reqs = (c.requests || []).map(r => `<div class="clrow"><span class="n"></span><span class="who"><b>${esc(r.name)}</b><small>asked to join</small></span><span></span><span class="btnrow"><button type="button" class="cta" data-clacc="${r.id}">Accept</button><button type="button" class="ghost sm" data-cldec="${r.id}">Decline</button></span></div>`).join('');
+    const invs = (c.invites || []).map(r => `<div class="clrow"><span class="n"></span><span class="who"><b>${esc(r.name)}</b><small>invited</small></span><span></span><span class="btnrow"><button type="button" class="ghost sm" data-cluninv="${r.id}">Cancel</button></span></div>`).join('');
+    h = clanHead(c) + `<div class="clgrid" style="margin-top:14px"><div class="clsec"><h3>Members</h3><div class="clanlist">${clanMembers(c, true)}</div><p class="status">${CLAN_HOW}</p></div>
+      <div class="clsec">` +
+      (off ? `<h3>Invite a player</h3><div class="row"><div class="field"><input id="clInv" maxlength="16" autocomplete="off" placeholder="Player name"></div><button type="button" class="ghost" id="clInvBtn">Invite</button></div>` +
+        (reqs ? `<h3>Requests</h3><div class="clanlist">${reqs}</div>` : '') + (invs ? `<h3>Invited</h3><div class="clanlist">${invs}</div>` : '') : '') +
+      (lead ? `<h3>Clan settings</h3><div class="field"><label for="clMotto">Motto</label><input id="clMotto" maxlength="80" autocomplete="off" value="${esc(c.motto || '')}"></div><div class="field"><label>Colour</label>${clanSwatches(c.col)}</div>
+        <label class="clcheck"><input type="checkbox" id="clOpen"${c.open ? ' checked' : ''}> Anyone can join without asking</label><div class="btnrow"><button type="button" class="ghost" id="clSave">Save settings</button></div>` : '') +
+      `<span class="status" id="clMsg"></span><div class="btnrow" style="margin-top:6px"><button type="button" class="ghost sm" data-clsure="Leave ${esc(c.name)}?" data-clleave>Leave clan</button>${lead ? `<button type="button" class="ghost sm" data-clsure="Disband for everyone?" data-cldisband>Disband clan</button>` : ''}</div>
+      ${lead && c.size > 1 ? '<p class="status">If you leave, the longest-serving officer (or member) becomes leader.</p>' : ''}</div></div>`;
+  }
+  $('clBody').innerHTML = h;
+}
+async function clanDo(body, okMsg) {
+  if (CLAN.busy) return; CLAN.busy = true;
+  try { const d = await clanApi(body); clanTake(d); CLAN.viewing = null; if (body.op === 'create' || body.op === 'join') CLAN.tab = CLAN.mine ? 'mine' : CLAN.tab; if (body.op === 'leave' || body.op === 'disband') CLAN.tab = 'mine'; renderClan(); const m = $('clMsg'); const txt = d.asked ? 'Request sent. The clan\'s leader or an officer will answer it.' : d.joined ? 'They had already asked to join, so they\'re in.' : okMsg; if (txt) { if (m) m.textContent = txt; else notice(txt, false); } drawProfChip(); }
+  catch (e) { const m = $('clMsg'); if (m) { m.textContent = e.message; m.classList.add('err'); } else notice(esc(e.message), false); }
+  finally { CLAN.busy = false; }
+}
+$('clTabs').addEventListener('click', e => { const b = e.target.closest('[data-cltab]'); if (!b) return; CLAN.tab = b.dataset.cltab; CLAN.viewing = null; renderClan(); });
+$('clBody').addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  // anything that can't be undone asks once more on the button itself
+  if (b.dataset.clsure && !b.dataset.armed) { b.dataset.armed = '1'; b.dataset.was = b.textContent; b.textContent = b.dataset.clsure + ' Click again'; setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = b.dataset.was; } }, 4000); return; }
+  const D = b.dataset;
+  if (D.clcol) { CLAN.col = D.clcol; $('clSw').querySelectorAll('button').forEach(x => x.classList.toggle('sel', x === b)); return; }
+  if (D.clback != null) { CLAN.viewing = null; return renderClan(); }
+  if (D.clview) { try { const r = await fetch('/api/clan?id=' + encodeURIComponent(D.clview), { cache: 'no-store' }), d = await r.json(); if (!r.ok) throw new Error(d.error); CLAN.viewing = d.clan; renderClan(); } catch (er) { notice(esc(er.message || 'Could not load that clan.'), false); clanLoad(true); } return; }
+  if (b.id === 'clCreate') return clanDo({ op: 'create', name: $('clName').value, tag: $('clTag').value, motto: $('clMotto').value, col: CLAN.col, open: $('clOpen').checked }, 'Clan created.');
+  if (b.id === 'clSave') return clanDo({ op: 'settings', motto: $('clMotto').value, open: $('clOpen').checked, col: CLAN.col || CLAN.mine.col }, 'Saved.');
+  if (b.id === 'clInvBtn') return clanDo({ op: 'invite', name: $('clInv').value }, 'Invite sent. They\'ll see it under Clans.');
+  if (D.cljoin) return clanDo({ op: 'join', id: +D.cljoin });
+  if (D.clrefuse) return clanDo({ op: 'refuse', id: +D.clrefuse });
+  if (D.clacc) return clanDo({ op: 'accept', user: +D.clacc });
+  if (D.cldec) return clanDo({ op: 'decline', user: +D.cldec });
+  if (D.cluninv) return clanDo({ op: 'uninvite', user: +D.cluninv });
+  if (D.clkick) return clanDo({ op: 'kick', user: +D.clkick });
+  if (D.clrole) return clanDo({ op: 'role', user: +D.u, role: D.clrole });
+  if (D.clleave != null) return clanDo({ op: 'leave' }, 'You left the clan.');
+  if (D.cldisband != null) return clanDo({ op: 'disband' }, 'Clan disbanded.');
+});
+$('clanChip').onclick = () => openSub('clanScr');
+// after a ranked match your clan team played: the clan's new rating, on the results screen
+function clanRated(m) {
+  const el = $('resClan'), d = Math.round(m.d);
+  el.innerHTML = `${clanHtml(m.tag, CLAN.mine && CLAN.mine.col)}${esc(m.name)} clan rating <b>${Math.round(m.rating)}</b> <em class="${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '+' : '−'}${Math.abs(d)}</em>`;
+  el.hidden = false; clanLoad(true);
+}
+
 const SC = { tab: 'elo', role: 'sniper', cache: {} };
 async function scFetch(path) { if (SC.cache[path] && Date.now() - SC.cache[path].t < 20000) return SC.cache[path].d; const d = await (await fetch('/api' + path, { cache: 'no-store' })).json(); SC.cache[path] = { t: Date.now(), d }; return d; }
 async function renderScores() {
-  const tabs = [['elo', '1v1 rating'], ['eloT', 'Team rating'], ['role', 'By role'], ['records', 'Single-game records'], ['wins', 'Wins'], ['kills', 'Knockouts']];
+  const tabs = [['elo', '1v1 rating'], ['eloT', 'Team rating'], ['role', 'By role'], ['records', 'Single-game records'], ['wins', 'Wins'], ['kills', 'Knockouts'], ['clans', 'Clans']];
   $('scTabs').innerHTML = tabs.map(([k, l]) => `<button type="button" data-sct="${k}" class="${k === SC.tab ? 'on' : ''}">${l}</button>`).join('');
   $('scSite').hidden = OFFLINE;
   if (OFFLINE) { $('scBody').innerHTML = '<p class="status">Highscores come from the online server. Play at your Bowfall site to get on the board.</p>'; return; }
   const row = (r, i, val, sub) => `<div class="scrow"><span class="n">${i + 1}</span><span>${rankHtml(r.level)}${flagHtml(r.country)}<b style="font:600 15px 'Titillium Web',sans-serif">${esc(r.name)}</b>${ownHtml(r.own)}${statusHtml(r)}${r.ai ? '<span class="aitag" title="AI player">AI</span>' : ''}${sub ? ` <small class="status">${sub}</small>` : ''}</span><b>${val}</b></div>`;
   const box = (title, rows) => `<div class="scbox"><h4>${title}</h4>${rows || '<span class="status">Nobody yet.</span>'}</div>`;
   try {
-    if (SC.tab === 'records') {
+    if (SC.tab === 'clans') {
+      const d = await scFetch('/clans'), rows = (d.top || []).filter(c => c.games > 0);
+      $('scBody').innerHTML = box('Best clans', rows.slice(0, 20).map((c, i) => `<div class="scrow"><span class="n">${i + 1}</span><span>${clanHtml(c.tag, c.col)}<b style="font:600 15px 'Titillium Web',sans-serif">${esc(c.name)}</b> <small class="status">${c.wins}–${c.games - c.wins} · ${c.size} member${c.size === 1 ? '' : 's'}</small></span><b>${c.rating}</b></div>`).join('')) +
+        '<p class="status" style="margin-top:8px">A clan\'s rating moves when two or more of its members queue for ranked together and their whole team is from the clan. Open Clans from the main menu to join or start one.</p>';
+    } else if (SC.tab === 'records') {
       const d = await scFetch('/highscores');
       $('scBody').innerHTML = `<div class="scgrid">${box('Most knockouts in one game', d.kills.map((r, i) => row(r, i, r.value)).join(''))}${box('Most damage in one game', d.dmg.map((r, i) => row(r, i, r.value)).join(''))}${box('Most ring-outs in one game', d.ring.map((r, i) => row(r, i, r.value)).join(''))}${box('Highest rating reached', d.peak.map((r, i) => row(r, i, r.value)).join(''))}</div>`;
     } else if (SC.tab === 'role') {
@@ -8759,7 +8935,7 @@ function olTab(k) {
   else refreshRooms();
 }
 // the main menu's screens
-const SUBS = ['findScr', 'customScr', 'scoresScr', 'trainScr', 'storeScr', 'arenaScr', 'optScr', 'profScr'];
+const SUBS = ['findScr', 'customScr', 'scoresScr', 'trainScr', 'storeScr', 'arenaScr', 'optScr', 'profScr', 'clanScr'];
 function openSub(id) {
   for (const k of SUBS) $(k).hidden = k !== id;
   if (id === 'customScr') { $('olHost').hidden = true; refreshRooms(); }
@@ -8770,6 +8946,7 @@ function openSub(id) {
   if (id === 'arenaScr') AB.open();
   if (id === 'optScr') syncOptions();
   if (id === 'profScr') renderProfile();
+  if (id === 'clanScr') { CLAN.tab = null; CLAN.viewing = null; clanLoad(); }
   const f = $(id).querySelector('[data-back]'); if (f) setTimeout(() => f.focus(), 0);
 }
 function closeSubs() { for (const k of SUBS) $(k).hidden = true; drawProfChip(); }
@@ -8817,7 +8994,7 @@ async function loadAccount() {
   if (OFFLINE) return;
   $('siteLinks').hidden = false;
   try { account = (await (await fetch('/api/me', { cache: 'no-store' })).json()).user; } catch (e) { account = null; }
-  adminBits(); loadWallet(); drawTutBadge(); drawMastChips();
+  adminBits(); loadWallet(); drawTutBadge(); drawMastChips(); clanLoad(true);
   const back = encodeURIComponent('/play' + location.search);
   try { const mv = JSON.parse(sessionStorage.getItem('bowfall-moved') || 'null'); if (mv && account) { sessionStorage.removeItem('bowfall-moved'); setTimeout(() => notice(`Your guest rating (<b>${mv.elo}</b>) and ${mv.games} games moved to your account.`, false), 800); } } catch (e) {}
   if (account) {
@@ -8863,7 +9040,7 @@ function drawProfChip() {
 }
 function myPlateHtml() {
   const bd = Ach.d.border && Ach.d.got[Ach.d.border] ? Ach.d.border : null, na = Object.keys(Ach.d.got || {}).length, bn = Ach.banner();
-  const me = { n: account ? account.name : ($('nameIn').value.trim() || 'Archer'), cc: account && account.country, lv: account && account.level && account.level.lv, bd, na, sc: bn.sc, fin: bn.fin, ti: Ach.d.title && Ach.d.got[Ach.d.title] ? Ach.d.title : null };
+  const me = { n: account ? account.name : ($('nameIn').value.trim() || 'Archer'), cc: account && account.country, lv: account && account.level && account.level.lv, ct: CLAN.mine && CLAN.mine.tag, cl: CLAN.mine && CLAN.mine.col, bd, na, sc: bn.sc, fin: bn.fin, ti: Ach.d.title && Ach.d.got[Ach.d.title] ? Ach.d.title : null };
   return `<span class="nm plate${plateClass(me)}"${plateStyle(me)}><span class="pl1">${idHtml(me)}<b>${esc(me.n)}</b>${trophyHtml(na)}${medalsHtml(me.sc)}${me.ti ? ` <em class="ttl">${esc(titleName(me.ti))}</em>` : ''}</span><small>${esc(ELEMENTS[myLoadout().el].name + ' ' + ROLES[myLoadout().ro].name)}</small></span>`;
 }
 let COUNTRIES = null;
@@ -8975,7 +9152,8 @@ document.addEventListener('error', e => { const t = e.target; if (t && t.classLi
 const RANKS = [[1, 'Recruit', '#a8835a'], [5, 'Bronze', '#cd8a4e'], [10, 'Silver', '#c9d1dc'], [15, 'Gold', '#f2c14e'], [20, 'Platinum', '#7fe0d8'], [30, 'Diamond', '#9fb8ff'], [45, 'Master', '#ff6a8a']];
 function rankOf(lv) { let r = RANKS[0]; for (const x of RANKS) if (lv >= x[0]) r = x; return { name: r[1], col: r[2] }; }
 function rankHtml(lv) { if (!lv) return ''; const r = rankOf(lv); return `<span class="rkb" style="--rc:${r.col}" title="${r.name} · level ${lv}">${lv}</span>`; }
-const idHtml = p => rankHtml(p.lv) + flagHtml(p.cc);
+const clanHtml = (ct, cl) => (ct && /^[A-Z0-9]{2,5}$/.test(ct) ? `<span class="ctag"${/^#[0-9a-fA-F]{6}$/.test(cl || '') ? ` style="--cl:${cl}"` : ''} title="Clan">${ct}</span>` : '');
+const idHtml = p => rankHtml(p.lv) + flagHtml(p.cc) + clanHtml(p.ct, p.cl);
 // the game's owner: a gold crown with an O after their name
 const OWNER_SVG = '<svg viewBox="0 0 20 16" aria-hidden="true"><path d="M1.5 4.5l4.3 3.6L10 1.5l4.2 6.6 4.3-3.6-1.7 9.5H3.2z" fill="#ffcf5a" stroke="#a86f00" stroke-width="1" stroke-linejoin="round"/><circle cx="10" cy="10.2" r="2.1" fill="none" stroke="#7a4a00" stroke-width="1.5"/></svg>';
 const ownHtml = on => (on ? `<span class="owner" title="Game owner">${OWNER_SVG}</span>` : '');
@@ -9137,7 +9315,7 @@ function handleEvents(evs) {
         if (e.ph !== 'post') { $('gameSum').hidden = true; praiseTimers.forEach(clearTimeout); praiseTimers = []; if (RP.on) endReplay(); pendingSummary = null; }
         if (e.ph === 'pre') {
           myDeath = null; crackT = {};
-          if (e.gm === 1 && e.rd === 1) { const wp = $('wipe'); wp.classList.remove('go'); void wp.offsetWidth; wp.classList.add('go'); } // the arena is revealed as the first countdown starts
+          if (e.gm === 1 && e.rd === 1) { $('resClan').hidden = true; const wp = $('wipe'); wp.classList.remove('go'); void wp.offsetWidth; wp.classList.add('go'); } // the arena is revealed as the first countdown starts
           if (e.gm === 1) banner('Round ' + e.rd, m ? `First to ${m.gtw} games · Points ${m.wr}–${m.wb}` : '');
           else banner('Game ' + e.gm, m ? `Round ${e.rd} · Games ${m.gr}–${m.gb}` : '');
           tone(330, 0.2, 'triangle', 0.05);

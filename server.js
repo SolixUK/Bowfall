@@ -146,7 +146,7 @@ function trainTop(k, v, inList) {
 const trainHits = new Map();
 function trainLimit(key) { const now = Date.now(), h = (trainHits.get(key) || []).filter(t => now - t < 60000); h.push(now); trainHits.set(key, h); return h.length <= 20; }
 // the look of a signed-in player's name banner: the border they picked (if they've earned it) and how many achievements they have
-const lookOf = u => { const got = (u.ach && u.ach.got) || {}, bd = u.ach && u.ach.border, st = u.guest ? {} : E.statusOf(u); return Object.assign({ bd: bd && got[bd] ? bd : null, na: Object.keys(got).length || null, ow: u.admin ? 1 : null, sp: st.sp || null, fd: st.fd || null, pt: st.pt || null }, Sim.bannerOf(u.ach, st)); };
+const lookOf = u => { const got = (u.ach && u.ach.got) || {}, bd = u.ach && u.ach.border, st = u.guest ? {} : E.statusOf(u); return Object.assign({ bd: bd && got[bd] ? bd : null, na: Object.keys(got).length || null, ow: u.admin ? 1 : null, sp: st.sp || null, fd: st.fd || null, pt: st.pt || null, ct: u.guest ? null : CLANS.tagOf(u.id), cl: u.guest ? null : CLANS.colOf(u.id) }, Sim.bannerOf(u.ach, st)); };
 // ---- the owner's switches (kept in the database): whether ranked drafts respect unlocks, and a pinned free rotation
 const SETTINGS = { locks: false, rotPin: null, events: [] };
 async function loadSettings() {
@@ -290,6 +290,21 @@ function saveRecords(room) {
         const contrib = pid => { const t = T.p[pid] || {}; return (t.k || 0) + 0.5 * (t.a || 0) + (t.dmg || 0) / 40; };
         const share = p => { const team = ros.p.filter(q => q.tm === p.tm), tot = team.reduce((s2, q) => s2 + contrib(q.id), 0); return tot > 0 ? contrib(p.id) / tot * team.length : 1; };
         const rec = { win: r.win, df: ros.df, key, p: ros.p.map(p => Object.assign({}, p, { w: p.tm === r.win ? 1 : 0, share: share(p) })) };
+        // clans: a team made up only of one clan's members (two or more, no AI players, guests or outsiders) plays for
+        // the clan's rating, against the other team's clan rating if it is a clan team too, or its players' average rating
+        const side = tm => { const ps = ros.p.filter(p => p.tm === tm), us = ps.map(p => users.get(p.id));
+          const clan = ps.length >= 2 && us.every(u => u && !u.guest && !(u.career && u.career.ai)) ? CLANS.of(us[0].id) : null;
+          const ok = clan && us.every(u => CLANS.of(u.id) === clan);
+          const rs = us.filter(Boolean).map(u => ratingOf(u, key));
+          return { tm, us, clan: ok ? clan : null, avg: rs.length ? rs.reduce((a, b) => a + b, 0) / rs.length : ELO_START }; };
+        const sides = [side('red'), side('blue')];
+        if (sides[0].clan && sides[0].clan === sides[1].clan) sides[0].clan = sides[1].clan = null; // a clan playing itself doesn't count
+        const before = sides.map(S => (S.clan ? S.clan.rating : S.avg));
+        sides.forEach((S, i) => {
+          if (!S.clan) return;
+          const out = CLANS.record(S.clan.id, r.win === S.tm, before[1 - i]); if (!out) return;
+          for (const u of S.us) { const ws = [...room.clients].find(q => q.user === u); if (ws) send(ws, { t: 'clanRated', tag: out.tag, name: out.name, rating: out.rating, d: out.d }); }
+        });
         for (const [k, v] of rateGame(rec, users)) rated.set(k, v); // worked out for everyone first, from the ratings before this match
         for (const [pid, u] of users) {
           const x = rated.get(u.id); if (!x) continue;
@@ -341,6 +356,7 @@ function readBody(req, limit = 16 * 1024) {
 }
 const ip = req => String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
 const forgotLimit = A.limiter(5, 15 * 60 * 1000), authLimit = A.limiter(12, 60 * 1000), postLimit = A.limiter(6, 60 * 1000), threadLimit = A.limiter(3, 5 * 60 * 1000);
+const clanLimit = A.limiter(40, 60 * 1000), clanNewLimit = A.limiter(6, 10 * 60 * 1000);
 const cleanText = (s, max) => String(s || '').replace(/\r\n/g, '\n').replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '').trim().slice(0, max);
 
 async function api(req, res, url) {
@@ -635,6 +651,40 @@ async function api(req, res, url) {
     const rows = (await store.leaderboard(by, 50)).map(u => live.get(u.id) || u).filter(u => (u.career || {}).games > 0 && (by !== 'eloT' || (u.career || {}).eloT != null));
     return board({ by, rows: rows.map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, ...stOf(u), title: u.title, country: flagOf(u), level: levelOf(u.career).lv, value: by === 'elo' || by === 'eloT' ? Math.round((u.career || {})[by] || ELO_START) : (u.career || {})[by] || 0, games: (u.career || {}).games || 0, wins: (u.career || {}).wins || 0, kills: (u.career || {}).kills || 0, rate: (u.career || {}).games ? Math.round(((u.career || {}).wins || 0) / u.career.games * 100) : 0 })) });
   }
+  // ---- clans
+  if (route === '/clans' && method === 'GET') {
+    const mine = me ? CLANS.of(me.id) : null;
+    return json(res, 200, { top: CLANS.top(50), mine: mine ? await clanView(mine, me) : null, invites: me ? CLANS.invitesFor(me.id) : [], colours: CLANS.COLOURS, max: CLANS.MAX_MEMBERS });
+  }
+  if (route === '/clan' && method === 'GET') {
+    const c = CLANS.get(url.searchParams.get('id')); if (!c) return json(res, 404, { error: 'That clan no longer exists.' });
+    return json(res, 200, { clan: await clanView(c, me) });
+  }
+  if (route === '/clan' && method === 'POST') {
+    if (!me) return json(res, 401, { error: 'Sign in to use clans.' });
+    if (!(body.op === 'create' ? clanNewLimit : clanLimit)('u' + me.id)) return json(res, 429, { error: 'Slow down a little and try again.' });
+    const byName = async n => { const x = await store.userByName(String(n || '').trim()).catch(() => null); return x ? track(x) : null; };
+    const byId = async id => { const x = live.get(+id) || await store.userById(+id).catch(() => null); return x ? track(x) : null; };
+    let r;
+    switch (String(body.op || '')) {
+      case 'create': r = await CLANS.create(me, body); break;
+      case 'join': r = CLANS.join(me, body.id); break;
+      case 'refuse': r = CLANS.refuse(me, body.id); break;
+      case 'leave': r = await CLANS.leave(me); break;
+      case 'invite': r = CLANS.invite(me, await byName(body.name)); break;
+      case 'uninvite': r = CLANS.uninvite(me, body.user); break;
+      case 'accept': r = CLANS.answer(me, body.user, true, await byId(body.user)); break;
+      case 'decline': r = CLANS.answer(me, body.user, false); break;
+      case 'kick': r = CLANS.kick(me, body.user); break;
+      case 'role': r = CLANS.setRole(me, body.user, String(body.role || '')); break;
+      case 'settings': r = CLANS.settings(me, body); break;
+      case 'disband': r = await CLANS.disband(me); break;
+      default: r = { error: 'Bad request.' };
+    }
+    if (r.error) return json(res, 400, { error: r.error });
+    const mine = CLANS.of(me.id);
+    return json(res, 200, { ok: true, asked: r.asked || undefined, joined: r.joined || undefined, mine: mine ? await clanView(mine, me) : null, top: CLANS.top(50), invites: CLANS.invitesFor(me.id) });
+  }
   // single-game records
   if (route === '/highscores' && method === 'GET') {
     const all = (await store.leaderboard('games', 100000)).map(u => live.get(u.id) || u);
@@ -839,6 +889,17 @@ const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 4096,
   perMessageDeflate: { threshold: 200, zlibDeflateOptions: { level: 1, memLevel: 7 }, serverMaxWindowBits: 12, clientNoContextTakeover: true, concurrencyLimit: 16 } });
 const rooms = new Map();
 // friends, parties and matchmaking (lib/social.js)
+// clans (lib/clans.js). When someone joins or leaves, their banner in any game they're in is refreshed
+const CLANS = require('./lib/clans')({ store, onChange: ids => { for (const id of ids) refreshLook(id); } });
+function refreshLook(uid) {
+  for (const r of rooms.values()) { let hit = false; for (const c of r.clients) if (c.user && c.user.id === uid) { Object.assign(c, lookOf(c.user)); if (c.pid) Sim.setMeta(r.world, c.pid, lookOf(c.user)); hit = true; } if (hit) sendRoom(r); }
+}
+// what a clan page shows about each member: rating, level and whether they're online
+async function clanView(c, me) {
+  const v = CLANS.view(c, me), us = await store.usersByIds(v.members.map(m => m.id)).catch(() => []);
+  for (const m of v.members) { const u = live.get(m.id) || us.find(x => x.id === m.id); if (u) { const k = u.career || {}; m.elo = Math.round(k.elo || ELO_START); m.eloT = Math.round(k.eloT != null ? k.eloT : k.elo || ELO_START); m.lv = levelOf(k).lv; m.cc = flagOf(u); m.on = social.isOnline(m.id) ? 1 : 0; } }
+  return v;
+}
 const social = require('./lib/social')({ lookOf, seedRating: (u, h) => { if (seedRating(u, h)) markDirty(u); }, rankedMaps: () => rankedMaps(), statusOf: u => E.statusOf(u), store, track, markDirty, send, Sim, levelOf, flagOf, ELO_START, ratingOf, keyFor, rooms, createRoom, sendRoom, sysChat, broadcast, live, loadGuest });
 
 function makeCode() {
@@ -908,7 +969,7 @@ function roomInfo(room, ws) {
     draft: room.ranked && room.ranked.draftUntil && !room.ranked.go ? Math.max(0, Math.ceil((room.ranked.draftUntil - Date.now()) / 1000)) : undefined,
     ready: room.ranked && room.ranked.ready ? [...room.clients].filter(c => room.ranked.ready.has(c.cid) && c.pid).map(c => c.pid) : undefined,
     cards: Object.fromEntries([...room.clients].map(c => [c.pid ? 'p' + c.pid : 'c' + c.cid, cardOf(c)]).concat([...(room.ai || new Map())].map(([pid, u]) => ['p' + pid, Object.assign(cardOf({ user: u }), { ai: 1 })]))),
-    spec: [...room.clients].filter(c => !c.pid).map(c => ({ cid: c.cid, n: c.name, h: c.cid === room.host ? 1 : 0, you: c === ws ? 1 : 0, cc: c.cc || undefined, lv: c.lv || undefined, bd: c.bd || undefined, sp: c.sp || undefined, fd: c.fd || undefined, pt: c.pt || undefined, na: c.na || undefined, ow: c.ow || undefined, fin: c.fin || undefined, sc: c.sc && c.sc.length ? c.sc : undefined })),
+    spec: [...room.clients].filter(c => !c.pid).map(c => ({ cid: c.cid, n: c.name, h: c.cid === room.host ? 1 : 0, you: c === ws ? 1 : 0, cc: c.cc || undefined, lv: c.lv || undefined, bd: c.bd || undefined, sp: c.sp || undefined, fd: c.fd || undefined, pt: c.pt || undefined, na: c.na || undefined, ow: c.ow || undefined, fin: c.fin || undefined, ct: c.ct || undefined, cl: c.cl || undefined, sc: c.sc && c.sc.length ? c.sc : undefined })),
   };
 }
 // what the lobby's hover card shows about someone: accounts get their record, guests just what their browser says they've earned
@@ -941,7 +1002,7 @@ function joinTeam(room, ws, team) {
   if (!p) return 'That team is full.';
   ws.pid = p.id;
   if (ws.title) Sim.setTitle(w, p.id, ws.title);
-  Sim.setMeta(w, p.id, { cc: ws.cc, lv: ws.lv, bd: ws.bd, na: ws.na, ow: ws.ow, sp: ws.sp, fd: ws.fd, pt: ws.pt });
+  Sim.setMeta(w, p.id, { cc: ws.cc, lv: ws.lv, bd: ws.bd, na: ws.na, ow: ws.ow, sp: ws.sp, fd: ws.fd, pt: ws.pt, ct: ws.ct, cl: ws.cl });
   send(ws, { t: 'you', id: p.id });
   return null;
 }
@@ -982,7 +1043,7 @@ const CMD_HELP = {
     '/locks on|off – whether ranked drafts respect unlocks (off: everything free)', '/rotation [element role|clear] – show or pin this week\'s free picks', '/founders on|off – open or close Founder pack sales',
     '/grant <name> supporter <months>|founder|patron|crests <n>|unlock <key>|revoke <supporter|founder|patron> – for testing and support',
     '/feature <arena code> [ranked|off] – feature a player arena (ranked: also in the ranked map pool)',
-    '/perf – how hard the server is working right now, and the last lag reports from players', '/rooms – list the games running on the server', '/who <name> – ratings, games and where they are playing', '/setelo <name> <rating> [team] – set an account\'s 1v1 (or team) rating'],
+    '/perf – how hard the server is working right now, and the last lag reports from players', '/rooms – list the games running on the server', '/who <name> – ratings, games and where they are playing', '/setelo <name> <rating> [team] – set an account\'s 1v1 (or team) rating', '/clan disband <tag> – remove a clan'],
 };
 function findIn(clients, q) {
   q = String(q || '').toLowerCase(); if (!q) return null;
@@ -1087,6 +1148,11 @@ async function chatCommand(room, ws, text) {
       const c = (u && u.career) || {};
       tell(`${online ? online.name : u.name}: ${online && !online.user ? 'guest' : 'account'}${u && u.social && u.social.ban ? ' (banned)' : ''} · 1v1 ${Math.round(c.elo || ELO_START)}, team ${Math.round(c.eloT != null ? c.eloT : c.elo || ELO_START)} · ${c.matches || 0} matches, ${c.games || 0} battles · ${online && online.room ? 'in game ' + online.room.code : 'not in a game'}`);
       return;
+    }
+    case 'clan': { // /clan disband <tag>
+      if (!/^disband$/i.test(args[0] || '') || !args[1]) return tell('Usage: /clan disband <tag>');
+      const name = await CLANS.adminDisband(args[1]);
+      return tell(name ? `Clan "${name}" has been disbanded.` : `No clan with the tag "${args[1]}".`);
     }
     case 'setelo': {
       const name = args[0], v = parseInt(args[1], 10), which = /^team$/i.test(args[2] || '') ? 'eloT' : 'elo'; if (!name || !Number.isFinite(v)) return tell('Usage: /setelo <name> <rating> [team]');
@@ -1443,7 +1509,7 @@ function gameLoop() {
 }
 setTimeout(gameLoop, 5);
 
-store.init().then(() => loadSettings()).then(() => loadRankedArenas()).then(() => store.setOnlyAdmin(OWNER)).then(() => social.initAI()).then(() => computeRanks()).then(() => {
+store.init().then(() => CLANS.init()).then(() => loadSettings()).then(() => loadRankedArenas()).then(() => store.setOnlyAdmin(OWNER)).then(() => social.initAI()).then(() => computeRanks()).then(() => {
   server.listen(PORT, () => console.log(`Bowfall server running on http://localhost:${PORT} (${store.kind === 'postgres' ? 'Postgres database' : 'local database file'})`));
 }).catch(e => { console.error('Could not open the database:', e.message); process.exit(1); });
 process.on('SIGTERM', () => { flushUsers().finally(() => process.exit(0)); });

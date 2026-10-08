@@ -76,7 +76,11 @@ Ideas for later (none built):
 - **Life in the arenas:** small ambient motion (grass sway, drifting leaves, water shimmer) that stays away from the play space so it never hides an arrow.
 - **Performance:** everything new respects Light effects mode, and Screen shake: Off also turns off hit-stop and slow motion.
 
-## Clans (not built): how it could work
+## Clans: built in 0.32.0 (tags, roles, invites and requests, clan rating from whole-clan ranked teams, leaderboards)
+
+Still open from the notes below: the weekly clan goal, emblems, a creation cost in Crests, clan rooms and clan-vs-clan events, and a name filter.
+
+### The original notes
 
 The aim is a reason to come back that isn't your own rating: a group you belong to, and something the group is working towards. Keep it small and social, not a second ranked ladder.
 
