@@ -184,6 +184,8 @@ Some are totals (knockouts, pins, revives), since sheer volume is a virtue too. 
 
 **Performance recording:** press F9 (or Options → Performance recording) to record how long each part of the game takes; F9 again saves a `.json` file. `node tools/perf-report.js <file>` summarises one.
 
+**Accounts:** sign up with a name, password and email, or with Google or Discord (set-up in HOSTING.md). On the website profile, under Signing in: link or unlink Google and Discord, add or change a password (signs out other devices), change your email (the old address is told), or delete the account. "Forgot your password?" emails a one-hour link. Privacy and Terms pages are at `/#/privacy` and `/#/terms`.
+
 **Clans:** start or join a clan from the button beside your profile on the main menu. Its emblem (designed by the leader: shape, pattern, symbol or letter, five colours) and tag show before your name on your banner. A clan has a leader, officers and up to 30 members, and a rating of its own that moves when a whole ranked team (two or more players) is from the clan; the best clans are on the leaderboards. Owner command: `/clan disband <tag>`.
 
 **Match over:** a headline in the winner's colour (Victory or Defeat in ranked), the winning archers, awards for most knockouts, most damage, sharpest aim, most ring-outs and longest hit, and a rankings table you can sort by any column (knockouts, damage, accuracy, ring-outs, longest hit, times out). Your rating counts up or down to its new value, and level, mastery and Crest bars fill with a chime. Damage is credited to whoever caused it, including hazards, burns and pit falls after your knockback.

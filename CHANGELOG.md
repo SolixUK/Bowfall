@@ -2,6 +2,23 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.34.0
+
+Accounts and signing in. Google and Discord sign-in, linking, passwords, email and "Forgot your password?" were already built; this release fills the gaps and gets them ready to switch on (see HOSTING.md for the step-by-step set-up).
+
+- **Google and Discord give a recovery email:** signing in with them now also asks for the email address (if they have confirmed it), so those players can reset a password later. It's added to a new account, or to an existing one that has no email, and never if another account already uses it. It stays private, like any account email.
+- **Changing or adding a password signs out your other devices** (the one you're on stays signed in), and emails you a short notice.
+- **Changing your email** sends a notice to the old address, so a hijacked account can't quietly move its recovery email.
+- **Delete my account** (website profile → Signing in): type your player name, and your password if you have one. Stats, ratings, achievements, email, sign-in links and clan membership are wiped and the name is freed; forum posts stay, from a deleted player. The owner's account can't be deleted this way.
+- **Privacy and Terms pages** on the website (linked in the footer and on Create account), which Google asks for before it lets anyone sign in. An optional `CONTACT_EMAIL` setting shows where players can write.
+- **In the game,** the account line under your profile has a "Password and sign-in" link to those settings.
+- HOSTING.md: the Google and Discord set-up rewritten step by step for the current Google console, with the privacy and terms addresses and what to do about a redirect mismatch.
+
+## 0.33.1
+
+- **Meadow looks painted** (Arena detail: Full; Low keeps the plain look). Stone-block walls with moss and ivy spilling over the inside edge replace the hedge, and cast a soft shadow onto the grass (deeper under the top and left walls, as if lit from the top left). The grass has soft darker and lighter clumps and a brushed texture, a few trampled patches and two short trails of flat stepping stones (kept away from hazards, boulders and the middle). Pits get a shadow inside the rim and longer grass hanging over it, and boulders cast a soft shadow instead of a hard disc. All of it is painted once when the arena loads, so it costs nothing while playing. The training arenas, which use the Meadow look, get it too.
+- `docs/art-assets-meadow.md`: the list of art pieces to generate for the next step (grass and outside tiles, wall, corner, pits, pond, lava, boulders, corner burrow, stepping stones, small props), with sizes, rules and a starting prompt.
+
 ## 0.33.0
 
 - **Clan emblems.** The leader designs one when starting a clan or in Clan settings: a shape (shield, circle, triangle, diamond, hexagon, square or pennant), a pattern (plain, diagonal, horizontal or vertical stripes, chevrons, checks, quarters, a cross, halves or dots), a symbol (a letter of your choice, star, arrow, crossed arrows, flame, crown, moon, bolt or target) and five colours (base, trim, pattern, symbol and backing) from 16. It shows on every member's banner before the tag, on the Clans button on the main menu, on the clan page and lists, in Highscores and on the website leaderboard. Existing clans get a shield with their tag's first letter until the leader changes it.

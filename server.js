@@ -436,10 +436,31 @@ async function api(req, res, url) {
     if (!MAIL.validEmail(email)) return json(res, 400, { error: "That doesn't look like an email address." });
     const other = await userWithEmail(email);
     if (other && other.id !== me.id) return json(res, 409, { error: 'That email is already on another account.' });
+    const old = me.social && me.social.email;
     me.social = Object.assign(me.social || {}, { email });
     await store.saveUser(me);
+    if (old && old.toLowerCase() !== email.toLowerCase()) securityMail(req, me, 'The email on your Bowfall account was changed',
+      `The email address on your Bowfall account (${me.name}) was changed to ${maskEmail(email)}. Password reset emails will go there from now on.`, old);
     return json(res, 200, { ok: true, email });
   }
+  // delete your account: type your player name (and your password, if you have one). Your stats, ratings, achievements,
+  // email, sign-in links and clan membership are removed; forum posts stay, shown as from a deleted player.
+  if (route === '/account/delete' && method === 'POST') {
+    if (!me) return json(res, 401, { error: 'Sign in first.' });
+    if (me.admin) return json(res, 400, { error: "The owner's account can't be deleted from here." });
+    if (String(body.confirm || '').trim().toLowerCase() !== me.name.toLowerCase()) return json(res, 400, { error: 'Type your player name exactly to confirm.' });
+    if (me.passHash && !A.checkPassword(body.current, me.passHash)) return json(res, 401, { error: 'Your password is wrong.' });
+    const email = me.social && me.social.email, oldName = me.name;
+    if (CLANS.of(me.id)) await CLANS.leave(me);
+    for (const p of await store.loginsOf(me.id)) await store.removeLogin(p, me.id);
+    await store.deleteSessionsOf(me.id);
+    await store.anonymiseUser(me.id);
+    live.delete(me.id); dirty.delete(me.id);
+    for (const r of rooms.values()) for (const c of r.clients) if (c.user && c.user.id === me.id) { try { c.close(); } catch (e) {} }
+    if (email) MAIL.send(email, 'Your Bowfall account was deleted', `Your Bowfall account (${oldName}) has been deleted, as you asked. Thanks for playing.`).catch(() => {});
+    return json(res, 200, { ok: true }, { 'Set-Cookie': A.sessionCookie(null, req) });
+  }
+  if (route === '/legal' && method === 'GET') return json(res, 200, { contact: process.env.CONTACT_EMAIL || null, payments: PAY.configured(), mail: MAIL.configured(), providers: O.enabled() });
   if (route === '/device-login' && method === 'POST') {
     if (!authLimit(ip(req))) return json(res, 429, { error: 'Too many attempts. Wait a minute and try again.' });
     const u = await store.userByName(String(body.name || '').trim());
@@ -494,6 +515,7 @@ async function api(req, res, url) {
     const u = await store.createUser(name, '', name.toLowerCase() === OWNER);
     if (!u) return json(res, 409, { error: 'That name is taken.' });
     await store.addLogin(pend.p, pend.id, u.id);
+    if (pend.email && !(await userWithEmail(pend.email))) { u.social = Object.assign(u.social || {}, { email: pend.email }); await store.saveUser(u); }
     return login(req, res, u, [clearCookie('bf_pending', req)], await adoptGuest(u, body.guest));
   }
   if (route === '/unlink' && method === 'POST') {
@@ -508,9 +530,13 @@ async function api(req, res, url) {
     if (!me) return json(res, 401, { error: 'Sign in first.' });
     if (me.passHash && !A.checkPassword(body.current, me.passHash)) return json(res, 401, { error: 'Your current password is wrong.' });
     if (!A.validPassword(body.password)) return json(res, 400, { error: 'Passwords need at least 6 characters.' });
+    const had = !!me.passHash;
     me.passHash = A.hashPassword(body.password);
     await store.setPassword(me.id, me.passHash);
-    return json(res, 200, { ok: true });
+    await store.deleteSessionsOf(me.id); // signed out everywhere else; this browser gets a fresh session below
+    securityMail(req, me, had ? 'Your Bowfall password was changed' : 'A password was added to your Bowfall account',
+      `The password for your Bowfall account (${me.name}) was ${had ? 'changed' : 'set'} just now, and any other devices were signed out.`);
+    return login(req, res, me);
   }
   if (route === '/title' && method === 'POST') {
     if (!me) return json(res, 401, { error: 'Sign in first.' });
@@ -791,6 +817,12 @@ async function userWithEmail(e) {
   return has(u) ? u : null;
 }
 const siteBase = req => process.env.PUBLIC_URL ? process.env.PUBLIC_URL.replace(/\/$/, '') : (req.headers['x-forwarded-proto'] || 'http') + '://' + req.headers.host;
+// a short note to the account's email when something about signing in changes (to the old address when the email itself changes)
+const maskEmail = e => String(e).replace(/^(.)(.*)(@.*)$/, (m, a, b, c) => a + '*'.repeat(Math.min(6, Math.max(1, b.length))) + c);
+function securityMail(req, u, subject, line, to) {
+  const addr = to || (u.social && u.social.email); if (!addr) return;
+  MAIL.send(addr, subject, `Hi ${u.name},\n\n${line}\n\nIf this wasn't you, reset your password straight away from the sign-in page (${siteBase(req)}/#/forgot), or reply to this email.`).catch(() => {});
+}
 async function login(req, res, u, extraCookies = [], moved = null) {
   const ck = await sessionFor(req, u), t = track(u);
   return json(res, 200, { user: Object.assign(publicUser(t), { ach: t.ach || {} }), guestMoved: moved }, { 'Set-Cookie': [ck].concat(extraCookies) });
@@ -819,15 +851,17 @@ async function oauth(req, res, url) {
   let who;
   try { who = await O.identify(req, p, String(url.searchParams.get('code') || '')); } catch (e) { return fail(`Couldn't sign in with ${O.PROVIDERS[p].name}. Try again.`); }
   const existing = await store.userForLogin(p, who.id);
+  // the provider's confirmed email, for password recovery: added to an account that has none (and only if no other account uses it)
+  const fillEmail = async u => { if (!who.email || !u || (u.social && u.social.email)) return; const other = await userWithEmail(who.email); if (other && other.id !== u.id) return; const t = live.get(u.id) || u; t.social = Object.assign(t.social || {}, { email: who.email }); await store.saveUser(t); };
   if (st.link && me) {
     // adding this sign-in method to the account you're already signed in to
     if (existing && existing.id !== me.id) return redirect(res, `/#/u/${encodeURIComponent(me.name)}?err=` + encodeURIComponent(`That ${O.PROVIDERS[p].name} account already belongs to another player.`), [clear]);
-    await store.addLogin(p, who.id, me.id);
+    await store.addLogin(p, who.id, me.id); await fillEmail(me);
     return redirect(res, `/#/u/${encodeURIComponent(me.name)}`, [clear]);
   }
-  if (existing) return redirect(res, st.next || '/#/u/' + encodeURIComponent(existing.name), [clear, await sessionFor(req, existing)]);
+  if (existing) { await fillEmail(existing); return redirect(res, st.next || '/#/u/' + encodeURIComponent(existing.name), [clear, await sessionFor(req, existing)]); }
   // someone new: choose a player name first
-  const pend = O.seal({ p, id: who.id, suggest: who.suggest, next: st.next }, 15);
+  const pend = O.seal({ p, id: who.id, suggest: who.suggest, next: st.next, email: who.email || null }, 15);
   return redirect(res, '/#/finish', [clear, tempCookie('bf_pending', pend, req, 15)]);
 }
 

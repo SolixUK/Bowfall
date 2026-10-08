@@ -59,30 +59,46 @@ The server log on Render says `(Postgres database)` when it's connected, or `(lo
 
 ### Sign in with Google and Discord (optional)
 
-The **Continue with Google** and **Continue with Discord** buttons appear once you give the server each service's client ID and secret. First add one more variable in Render's **Environment**: `PUBLIC_URL` = your site's address, e.g. `https://bowfall.com` (no slash at the end).
+The **Continue with Google** and **Continue with Discord** buttons appear once you give the server each service's client ID and secret. Before you start, make sure Render's **Environment** has:
 
-**Google**
+- `PUBLIC_URL` = your site's address, e.g. `https://bowfall.com` (no slash at the end).
+- `CONTACT_EMAIL` = an address players can write to (shown on the Privacy and Terms pages). Optional, but Google asks for a contact anyway.
+
+Bowfall has a **Privacy** page (`https://bowfall.com/#/privacy`) and a **Terms** page (`https://bowfall.com/#/terms`). Google asks for both.
+
+**Google** (about 10 minutes)
 1. Go to https://console.cloud.google.com, sign in, and create a project (top bar → project picker → **New project**, call it Bowfall).
-2. Open **APIs & Services → OAuth consent screen** (it may be called **Google Auth Platform → Branding**). Choose **External**, fill in the app name (Bowfall), your support email and developer email, and save. Under **Audience**, click **Publish app** so anyone can sign in (the app only asks for name and profile picture, so Google doesn't need to review it).
-3. Open **Credentials** (or **Clients**) → **Create credentials → OAuth client ID** → application type **Web application**.
-4. Under **Authorised redirect URIs** add: `https://bowfall.onrender.com/auth/google/callback` (your address + `/auth/google/callback`). Create it.
-5. Copy the **Client ID** and **Client secret** into Render as `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
+2. Open **Google Auth Platform** (in older menus: **APIs & Services → OAuth consent screen**) and click **Get started**. Fill in:
+   - App name **Bowfall**, and your user support email.
+   - Audience: **External**.
+   - Contact information: your email.
+3. In **Branding**, add:
+   - App home page: `https://bowfall.com`
+   - Privacy policy: `https://bowfall.com/#/privacy`
+   - Terms of service: `https://bowfall.com/#/terms`
+   - Authorised domain: `bowfall.com` (or `onrender.com` if you're still on the Render address).
+   - Don't upload a logo for now: a logo makes Google review the app first, which takes days.
+4. In **Data access**, you don't need to add anything. Bowfall only asks for the basic `openid`, `email` and `profile` scopes, which need no review.
+5. In **Audience**, click **Publish app** (to "In production"). Until you do, only test users you list can sign in.
+6. In **Clients**, click **Create client**:
+   - Type **Web application**, name Bowfall.
+   - Under **Authorised redirect URIs** add `https://bowfall.com/auth/google/callback` (your address + `/auth/google/callback`). Add the onrender.com one too if you use both.
+   - Click Create.
+7. Copy the **Client ID** and **Client secret** into Render's Environment as `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
 
-**Discord**
+**Discord** (about 5 minutes)
 1. Go to https://discord.com/developers/applications → **New Application**, call it Bowfall.
-2. Open **OAuth2**. Under **Redirects** add `https://bowfall.onrender.com/auth/discord/callback` and save.
+2. Open **OAuth2**. Under **Redirects** add `https://bowfall.com/auth/discord/callback` and save.
 3. Copy the **Client ID**, click **Reset Secret** and copy the secret. Put them in Render as `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET`.
 
-Save the variables in Render; after the restart the buttons appear on the sign-in page. New players signing in this way pick a player name the first time. Existing players can link Google or Discord (and add or change a password) on their own profile page. Bowfall only receives an ID and a display name from them, no email address.
+Save the variables in Render. After the restart the buttons appear on the sign-in page, on the website and in the game.
 
-Good to know:
+**What players see and what Bowfall keeps:**
+- New players signing in this way pick a player name the first time.
+- Bowfall receives an ID, a display name (to suggest a player name) and, if Google or Discord has confirmed it, the email address. The email is kept privately for password resets, the same as an email typed in at sign-up.
+- Existing players can link Google or Discord, add or change a password and change their email on their profile page under **Signing in**, and can delete their account there too.
 
-- On the free plan the server goes to sleep after 15 minutes with nobody connected. The first visit after that takes about 30–60 seconds to wake it.
-- **Which plan:** `render.yaml` asks for the Starter plan (half a CPU core, paid). Render sets the service back to whatever that file says every time it syncs, so a plan changed only in the dashboard is undone by the next upload. To use the free plan instead, change `plan: starter` to `plan: free` in `render.yaml`.
-- Balance data (`data/games.jsonl`) still lives on the server's disk, so it's lost when Render restarts. Use Export on the Balance data screen now and then.
-- Each time you push a change to GitHub, Render redeploys automatically. Accounts, stats and forum posts are safe in the database.
-
-Railway (https://railway.app) and Fly.io (https://fly.io) work the same way: the build command is `npm install`, the start command is `npm start`, the server reads the `PORT` it's given, and `DATABASE_URL` points it at Postgres.
+**If something goes wrong:** "redirect_uri_mismatch" from Google, or "Invalid OAuth2 redirect_uri" from Discord, means the address in step 6 (or Discord step 2) doesn't exactly match your site. Check `https` and that there's no `www.` and no slash at the end.
 
 ## Option 3: same Wi-Fi only
 

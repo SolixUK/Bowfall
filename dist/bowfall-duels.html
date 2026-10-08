@@ -1388,7 +1388,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.33.0';
+const VERSION = '0.34.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -5669,7 +5669,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.33.0';
+const PAGE_VERSION = '0.34.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -9120,7 +9120,7 @@ async function loadAccount() {
   const back = encodeURIComponent('/play' + location.search);
   try { const mv = JSON.parse(sessionStorage.getItem('bowfall-moved') || 'null'); if (mv && account) { sessionStorage.removeItem('bowfall-moved'); setTimeout(() => notice(`Your guest rating (<b>${mv.elo}</b>) and ${mv.games} games moved to your account.`, false), 800); } } catch (e) {}
   if (account) {
-    $('acctBar').innerHTML = `Signed in as <b>${esc(account.name)}</b> · <a href="/#/u/${encodeURIComponent(account.name)}">Stats and achievements on the website</a> · <a href="#" id="signOut">Sign out</a>`;
+    $('acctBar').innerHTML = `Signed in as <b>${esc(account.name)}</b> · <a href="/#/u/${encodeURIComponent(account.name)}">Stats and achievements on the website</a> · <a href="/#/u/${encodeURIComponent(account.name)}" title="Password, email, Google and Discord">Password and sign-in</a> · <a href="#" id="signOut">Sign out</a>`;
     $('nameIn').value = account.name; $('nameIn').disabled = true; $('nameIn').title = 'You play under your account name.';
     Ach.useAccount(account);
     drawProfChip();
@@ -9933,7 +9933,7 @@ const THEMES = {
     bogBank: '#4d4027', bogEdge: '#332e1b', bog: '#3a3a20', bogSheen: 'rgba(90,86,44,0.55)', lily: ['#6f9a3c', '#58802f'], reeds: true,
     rock: '#4a403a', rockLight: '#62564d', basalt: '#2e2723', scorch: 'rgba(40,24,12,0.55)',
     boulder: '#7c8178', boulderLight: '#9aa093', moss: ['#56752e', '#6b8c3a'],
-    border: 'hedge', wall: '#22401b', wallMid: '#2e5423', wallLight: '#3f6d2c',
+    border: 'hedge', wall: '#22401b', wallMid: '#2e5423', wallLight: '#3f6d2c', stoneWall: true, rich: 'grass',
     stem: ['#5b3b27', '#6d4a31'], thorn: '#e3d9c6', leaf: '#2e5423', berry: '#b3263a', burrow: '#6b4c30',
     ambient: 'leaves', leafCols: ['#c9a646', '#8fb44a', '#d0843a', '#b8c45a'],
   },
@@ -10190,6 +10190,89 @@ function drawNightLights(c) {
   }
 }
 const MARGIN = 90;
+// ---- the painted look (Arena detail: Full) for grass arenas: soft colour variation, worn patches, a few flat stepping
+// stones, and stone walls with moss and ivy. Everything stays low in contrast and off the hazards, so it never reads as
+// something you could bump into.
+function paintRichGround(g, R, T) {
+  // big soft clumps of darker and lighter grass, then thousands of small dabs for a brushed texture
+  for (let i = 0; i < 34; i++) blob(g, R() * AW, R() * AH, 60 + R() * 120, 'rgba(38,78,24,0.22)', 'rgba(38,78,24,0)');
+  for (let i = 0; i < 22; i++) blob(g, R() * AW, R() * AH, 50 + R() * 100, 'rgba(160,205,95,0.14)', 'rgba(160,205,95,0)');
+  const dabs = ['rgba(70,120,40,0.28)', 'rgba(110,160,70,0.24)', 'rgba(50,95,30,0.26)', 'rgba(135,180,80,0.18)'];
+  for (let i = 0; i < 2600; i++) {
+    const x = R() * AW, y = R() * AH;
+    g.fillStyle = dabs[Math.floor(R() * dabs.length)]; g.beginPath(); g.ellipse(x, y, 2 + R() * 4, 1 + R() * 2, R() * Math.PI, 0, TAU); g.fill();
+  }
+  // worn dirt patches where the grass has been trampled
+  for (let i = 0, made = 0; i < 40 && made < 5; i++) {
+    const x = WALL + 60 + R() * (AW - 2 * WALL - 120), y = WALL + 60 + R() * (AH - 2 * WALL - 120);
+    if (hazGap(x, y) < 70 || PILLARS.some(p => Math.hypot(p.x - x, p.y - y) < p.r + 50) || blocked(x, y, 40)) continue;
+    made++;
+    for (let k = 0; k < 6; k++) blob(g, x + (R() - 0.5) * 50, y + (R() - 0.5) * 30, 16 + R() * 22, 'rgba(150,128,72,0.26)', 'rgba(150,128,72,0)');
+    for (let k = 0; k < 30; k++) { g.fillStyle = R() < 0.5 ? 'rgba(90,66,38,0.5)' : 'rgba(170,140,95,0.45)'; g.beginPath(); g.arc(x + (R() - 0.5) * 70, y + (R() - 0.5) * 40, 0.7 + R() * 1.3, 0, TAU); g.fill(); }
+  }
+  // flat stepping stones, set into the ground (no rim, no height), in a couple of short trails
+  for (let t = 0, trails = 0; t < 40 && trails < 2; t++) {
+    let x = WALL + 80 + R() * (AW - 2 * WALL - 160), y = WALL + 80 + R() * (AH - 2 * WALL - 160);
+    const a = R() * TAU, n = 3 + Math.floor(R() * 2), pts = [];
+    for (let k = 0; k < n; k++) pts.push([x + Math.cos(a) * k * 30 + (R() - 0.5) * 8, y + Math.sin(a) * k * 30 + (R() - 0.5) * 8]);
+    if (pts.some(([px, py]) => hazGap(px, py) < 40 || Math.hypot(px - AW / 2, py - AH / 2) < 190 || PILLARS.some(p => Math.hypot(p.x - px, p.y - py) < p.r + 40) || blocked(px, py, 30) || px < WALL + 30 || px > AW - WALL - 30 || py < WALL + 30 || py > AH - WALL - 30)) continue;
+    trails++;
+    for (const [px, py] of pts) {
+      const r = 8 + R() * 4, rot = R() * TAU, poly = [];
+      for (let k = 0; k < 7; k++) { const b = rot + k / 7 * TAU, rr = r * (0.75 + R() * 0.3); poly.push([px + Math.cos(b) * rr * 1.25, py + Math.sin(b) * rr]); }
+      const path = () => { g.beginPath(); poly.forEach(([qx, qy], k) => (k ? g.lineTo(qx, qy) : g.moveTo(qx, qy))); g.closePath(); };
+      g.save(); g.translate(1, 1.5); path(); g.fillStyle = 'rgba(0,0,0,0.12)'; g.fill(); g.restore();
+      path(); g.fillStyle = R() < 0.5 ? 'rgba(150,148,128,0.5)' : 'rgba(128,126,108,0.5)'; g.fill();
+      g.save(); path(); g.clip(); blob(g, px - r * 0.4, py - r * 0.4, r, 'rgba(255,255,240,0.18)', 'rgba(255,255,240,0)'); if (R() < 0.6) blob(g, px + r * 0.3, py + r * 0.2, r * 0.6, 'rgba(90,125,50,0.45)', 'rgba(90,125,50,0)'); g.restore();
+    }
+  }
+}
+function paintStoneWall(g, R, T) {
+  const stones = ['#6f6a5c', '#7d7768', '#625e53', '#8a8370', '#6a6d5e'];
+  g.fillStyle = '#2d3528'; // mortar and gaps
+  g.fillRect(0, 0, AW, WALL); g.fillRect(0, AH - WALL, AW, WALL); g.fillRect(0, 0, WALL, AH); g.fillRect(AW - WALL, 0, WALL, AH);
+  const block = (x, y, w, h) => {
+    const r = 4;
+    g.fillStyle = 'rgba(0,0,0,0.35)'; rrect(g, x + 1, y + 2, w, h, r); g.fill();
+    g.fillStyle = stones[Math.floor(R() * stones.length)]; rrect(g, x, y, w, h, r); g.fill();
+    g.fillStyle = 'rgba(255,255,240,0.16)'; rrect(g, x + 2, y + 1.5, w - 4, Math.min(5, h / 3), 2); g.fill();
+    g.fillStyle = 'rgba(0,0,0,0.16)'; rrect(g, x + 2, y + h - 4, w - 4, 3, 1.5); g.fill();
+    for (let k = 0; k < 6; k++) { g.fillStyle = R() < 0.5 ? 'rgba(40,36,30,0.25)' : 'rgba(255,250,230,0.12)'; g.beginPath(); g.arc(x + 3 + R() * (w - 6), y + 3 + R() * (h - 6), 0.6 + R() * 1.4, 0, TAU); g.fill(); }
+    if (R() < 0.3) { g.strokeStyle = 'rgba(40,38,32,0.5)'; g.lineWidth = 1; g.beginPath(); const cx = x + w * (0.3 + R() * 0.4); g.moveTo(cx, y + 2); g.lineTo(cx + (R() - 0.5) * 6, y + h / 2); g.lineTo(cx + (R() - 0.5) * 8, y + h - 2); g.stroke(); }
+    if (R() < 0.6) { // moss on the stone, in clumps of small dabs
+      g.save(); rrect(g, x, y, w, h, r); g.clip();
+      const mx = x + R() * w, my = y + R() * h, mr = 5 + R() * 9;
+      for (let k = 0; k < 14; k++) { const a = R() * TAU, d = R() * mr; g.fillStyle = ['#4f6e2a', '#5f8433', '#73993f'][Math.floor(R() * 3)]; g.beginPath(); g.arc(mx + Math.cos(a) * d, my + Math.sin(a) * d, 1.5 + R() * 2.5, 0, TAU); g.fill(); }
+      g.restore();
+    }
+  };
+  const run = (len, place) => { let a = -10; while (a < len + 10) { const w = 26 + R() * 30; place(a, w); a += w + 2; } };
+  run(AW, (a, w) => { block(a, 2, w, WALL - 4); block(a, AH - WALL + 2, w, WALL - 4); });
+  run(AH - 2 * WALL, (a, w) => { block(2, WALL + a, WALL - 4, w); block(AW - WALL + 2, WALL + a, WALL - 4, w); });
+  // the wall's shadow on the grass (light from the top left: deeper under the top and left walls)
+  for (const [x0, y0, x1, y1, w, h, k] of [[0, WALL, 0, WALL + 22, AW, 22, 0.32], [0, AH - WALL, 0, AH - WALL - 12, AW, -12, 0.18], [WALL, 0, WALL + 20, 0, 20, AH, 0.3], [AW - WALL, 0, AW - WALL - 12, 0, -12, AH, 0.18]]) {
+    const gr = g.createLinearGradient(x0, y0, x1, y1); gr.addColorStop(0, `rgba(0,0,0,${k})`); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gr; g.fillRect(Math.min(x0, x0 + (w < 0 ? w : 0)), Math.min(y0, y0 + (h < 0 ? h : 0)), Math.abs(w), Math.abs(h));
+  }
+  // ivy spilling over the inside edge here and there (kept clear of the thorn strips)
+  const nearThorn = (side, a) => SPIKES.some(sp => sp.side === side && a > sp.a - 30 && a < sp.b + 30);
+  for (let i = 0; i < 40; i++) {
+    const side = ['top', 'bottom', 'left', 'right'][Math.floor(R() * 4)], len = side === 'top' || side === 'bottom' ? AW : AH, a = WALL + 40 + R() * (len - 2 * WALL - 80);
+    if (nearThorn(side, a)) continue;
+    const dir = side === 'top' || side === 'left' ? 1 : -1, horiz = side === 'top' || side === 'bottom', base = side === 'top' ? WALL : side === 'bottom' ? AH - WALL : side === 'left' ? WALL : AW - WALL;
+    const P = (al, out) => (horiz ? [al, base + dir * out] : [base + dir * out, al]);
+    const reach = 8 + R() * 16, sway = (R() - 0.5) * 30;
+    g.strokeStyle = '#3e5a24'; g.lineWidth = 1.6; g.beginPath();
+    const [x0, y0] = P(a, -8), [cx1, cy1] = P(a + sway * 0.5, reach * 0.5), [x1, y1] = P(a + sway, reach);
+    g.moveTo(x0, y0); g.quadraticCurveTo(cx1, cy1, x1, y1); g.stroke();
+    for (let k = 0; k < 5; k++) {
+      const t = k / 4, [lx, ly] = P(a + sway * t + (R() - 0.5) * 8, -6 + (reach + 6) * t + (R() - 0.5) * 4);
+      g.fillStyle = 'rgba(0,0,0,0.25)'; g.beginPath(); g.ellipse(lx + 1, ly + 1.5, 3.8, 2.5, 0, 0, TAU); g.fill();
+      g.fillStyle = R() < 0.5 ? '#4f7a2c' : '#6a9a3c'; g.beginPath(); g.ellipse(lx, ly, 3.8, 2.5, R() * TAU, 0, TAU); g.fill();
+    }
+  }
+}
+function rrect(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
 function paintFloor(s) {
   const T = THEME;
   const cvs = document.createElement('canvas');
@@ -10229,8 +10312,11 @@ function paintFloor(s) {
     }
   }
 
+  // Arena detail "Full": a painted look for grass arenas (painted once into the floor, so it costs nothing while playing)
+  const RICH = OPTS.detail !== 'low' && T.rich === 'grass';
+  if (RICH) paintRichGround(g, R, T);
   if (T.ground2 === 'grass') {
-    for (let i = 0; i < 1100; i++) {
+    for (let i = 0; i < (RICH ? 1500 : 1100); i++) {
       const x = R() * AW, y = R() * AH;
       if (blocked(x, y, 12)) continue;
       g.strokeStyle = T.blades[Math.floor(R() * T.blades.length)]; g.lineWidth = 1.4;
@@ -10431,9 +10517,14 @@ function paintFloor(s) {
         for (let i = 0; i < 5; i++) { const x = cx + (R() - 0.5) * (h.w || h.r * 1.4) * 0.7, y = cy + (R() - 0.5) * (h.h || h.r * 1.4) * 0.7; g.strokeStyle = 'rgba(220,240,250,0.28)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(x - 10, y); g.quadraticCurveTo(x, y - 3, x + 10, y); g.stroke(); }
       }
       g.restore();
-      for (const p of perim(h, 9, 6, R)) {
+      if (OPTS.detail !== 'low' && T.rich) { // depth: the rim casts a soft shadow down into the hole
+        g.save(); hazP(g, h, 0); g.clip();
+        for (const [w2, a] of [[30, 0.22], [16, 0.3], [6, 0.35]]) { hazP(g, h, 0); g.lineWidth = w2; g.strokeStyle = `rgba(0,0,0,${a})`; g.stroke(); }
+        g.restore();
+      }
+      for (const p of perim(h, 9, T.rich && OPTS.detail !== 'low' ? 4 : 6, R)) {
         g.strokeStyle = T.blades[Math.floor(R() * 3)]; g.lineWidth = 1.6;
-        const L = 5 + R() * 6;
+        const L = (T.rich && OPTS.detail !== 'low' ? 7 : 5) + R() * 6;
         g.beginPath(); g.moveTo(p.x + p.nx * 2, p.y + p.ny * 2); g.lineTo(p.x - p.nx * L + (R() - 0.5) * 4, p.y - p.ny * L + (R() - 0.5) * 4); g.stroke();
       }
     } else if (h.type === 'tar' && T.beach) {
@@ -10503,7 +10594,11 @@ function paintFloor(s) {
       g.strokeStyle = 'rgba(0,0,0,0.8)'; g.lineWidth = 2; g.beginPath(); g.arc(p.x, p.y, p.r + 3, 0, TAU); g.stroke();
       continue;
     }
-    g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(p.x + 7, p.y + 9, p.r + 2, p.r * 0.92, 0, 0, TAU); g.fill();
+    if (RICH) { // a soft shadow that falls away from the light (top left), instead of a hard disc
+      const sg = g.createRadialGradient(p.x + 8, p.y + 10, p.r * 0.5, p.x + 10, p.y + 13, p.r * 1.55);
+      sg.addColorStop(0, 'rgba(0,0,0,0.42)'); sg.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = sg; g.beginPath(); g.arc(p.x + 10, p.y + 13, p.r * 1.55, 0, TAU); g.fill();
+    } else { g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(p.x + 7, p.y + 9, p.r + 2, p.r * 0.92, 0, 0, TAU); g.fill(); }
     g.fillStyle = T.boulder; g.beginPath(); g.arc(p.x, p.y, p.r, 0, TAU); g.fill();
     g.save(); g.beginPath(); g.arc(p.x, p.y, p.r, 0, TAU); g.clip();
     g.fillStyle = T.boulderLight; g.beginPath(); g.arc(p.x - 6, p.y - 7, p.r - 6, 0, TAU); g.fill();
@@ -10538,6 +10633,7 @@ function paintFloor(s) {
   const bumps = [];
   for (let x = 0; x <= AW; x += 13) bumps.push([x, WALL / 2, 0, 1], [x, AH - WALL / 2, 0, -1]);
   for (let y = 0; y <= AH; y += 13) bumps.push([WALL / 2, y, 1, 0], [AW - WALL / 2, y, -1, 0]);
+  if (T.stoneWall && OPTS.detail !== 'low') { paintStoneWall(g, R, T); bumps.length = 0; }
   for (const [x, y, nx, ny] of bumps) {
     const r = 10 + R() * 5, jx = x + (R() - 0.5) * 6 + nx * 2, jy = y + (R() - 0.5) * 6 + ny * 2;
     g.fillStyle = R() < 0.5 ? T.wall : T.wallMid;

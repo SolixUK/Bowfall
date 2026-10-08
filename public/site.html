@@ -196,7 +196,7 @@
   </div>
 </header>
 <main class="wrap" id="app" tabindex="-1"></main>
-<footer><div class="wrap">Bowfall · team knockback archery · <a href="/play">Play now</a> · <span id="ver"></span></div></footer>
+<footer><div class="wrap">Bowfall · team knockback archery · <a href="/play">Play now</a> · <a href="#/privacy">Privacy</a> · <a href="#/terms">Terms</a> · <span id="ver"></span></div></footer>
 
 <script src="sim.js"></script>
 <script>
@@ -436,7 +436,7 @@ const pages = {
       <form class="stack" id="authF"><label>Name<input name="name" maxlength="16" autocomplete="username" required></label>
       ${reg ? '<label>Email<input name="email" type="email" maxlength="254" autocomplete="email" required></label>' : ''}
       <label>Password<input name="password" type="password" maxlength="100" autocomplete="${reg ? 'new-password' : 'current-password'}" required></label>
-      ${reg ? '<p class="muted" style="margin:0;font-size:14px">Name: 3 to 16 letters, numbers, _ or -. Password at least 6 characters. Your email is private and only used to reset your password.</p>' : '<p style="margin:0;font-size:14px"><a href="#/forgot">Forgot your password?</a></p>'}
+      ${reg ? '<p class="muted" style="margin:0;font-size:14px">Name: 3 to 16 letters, numbers, _ or -. Password at least 6 characters. Your email is private and only used to reset your password. Making an account means you agree to the <a href="#/terms">Terms</a>; see <a href="#/privacy">Privacy</a> for what is kept.</p>' : '<p style="margin:0;font-size:14px"><a href="#/forgot">Forgot your password?</a></p>'}
       <p class="err" id="aErr"></p><button class="btn" type="submit">${reg ? 'Create account' : 'Sign in'}</button></form>
       <p class="muted" style="margin:14px 0 0">${reg ? 'Already have one? <a href="#/login">Sign in</a>' : 'New here? <a href="#/register">Create an account</a>'}</p></div>`;
     const f = $('authF'); f.name.focus();
@@ -478,6 +478,33 @@ pages.reset = async () => {
     catch (err) { $('rsErr').textContent = err.message; }
   };
 };
+// privacy and terms: plain statements of what Bowfall keeps and the rules (Google's sign-in setup asks for both pages)
+pages.legal = async kind => {
+  const d = await api('/legal').catch(() => ({}));
+  const contact = d.contact ? `<a href="mailto:${esc(d.contact)}">${esc(d.contact)}</a>` : 'the <a href="#/forum">forum</a>';
+  const priv = `<h1 style="font-size:36px">Privacy</h1>
+    <p>Bowfall is a small independent game. This page says what it keeps about you and why. It doesn't sell your data, show ads or track you across other sites.</p>
+    <h3>What we keep</h3><ul>
+    <li><b>Your account:</b> your player name, and your password stored only as a one-way scrambled hash (scrypt), never the password itself.</li>
+    <li><b>Your email</b>, if you give one or sign in with Google or Discord and they confirm one: kept private and used only for password resets and short security notices (for example when your password or email changes). It's never shown to other players.</li>
+    <li><b>Google or Discord sign-in:</b> the account ID they give us, so we can recognise you next time, your display name (to suggest a player name) and, if confirmed, your email. We don't get your password or anything else from them.</li>
+    <li><b>Your games:</b> ratings, stats, achievements, match history, training scores, your clan, friends and forum posts. Much of this is shown publicly on leaderboards and your profile, as in any online game.</li>
+    <li><b>Your country</b>, worked out roughly from your IP address the first time, to show a flag next to your name. You can change it or hide it on your profile.</li>
+    <li><b>Purchases</b> are handled by Stripe; we see what you bought, never your card details.</li>
+    <li><b>Technical logs:</b> error reports from the game and short-lived server logs, used only to fix problems.</li></ul>
+    <h3>Cookies and storage</h3><p>One cookie keeps you signed in, and two short-lived ones are used while you sign in with Google or Discord. Your browser's local storage keeps your settings and, if you play as a guest, your guest record. There are no advertising or tracking cookies.</p>
+    <h3>Who else handles it</h3><p>Render (hosting), Neon (the database), Resend (sending emails), Stripe (payments), and Google or Discord only if you choose to sign in with them.</p>
+    <h3>Your choices</h3><p>You can change your email and password, unlink Google or Discord, and <b>delete your account</b> from your profile page (under Signing in). Deleting removes your stats, email and sign-in links for good. For anything else, contact ${contact}.</p>`;
+  const terms = `<h1 style="font-size:36px">Terms</h1>
+    <p>By playing Bowfall or making an account you agree to these terms.</p><ul>
+    <li><b>Be decent.</b> No cheating, exploiting bugs on purpose, harassment, hate, or offensive names, clan names or posts. Admins can rename, mute, kick or ban players and remove clans, posts or arenas that break this.</li>
+    <li><b>One person per account.</b> Keep your password to yourself; you're responsible for what happens on your account.</li>
+    <li><b>Purchases</b> unlock things in the game or support it; they have no cash value. If something goes wrong with a purchase, contact ${contact}.</li>
+    <li><b>The game changes.</b> Balance, features and ratings can be changed or reset as the game develops, and the game is provided as it is, without guarantees.</li>
+    <li><b>Things you make</b> (arenas, posts, clan emblems) stay yours, but you let Bowfall show them in the game and on the site.</li></ul>
+    <p>Questions: ${contact}.</p>`;
+  app.innerHTML = `<div class="card" style="max-width:780px;margin:0 auto;line-height:1.6">${kind === 'terms' ? terms : priv}<p class="muted" style="margin-top:20px">See also: <a href="#/${kind === 'terms' ? 'privacy' : 'terms'}">${kind === 'terms' ? 'Privacy' : 'Terms'}</a></p></div>`;
+};
 pages.finish = async () => {
   const d = await api('/oauth/pending');
   if (!d.pending) { app.innerHTML = '<div class="card narrow empty">That sign-in has expired. <a href="#/login">Try again</a></div>'; return; }
@@ -508,14 +535,21 @@ async function methodsCard(u) {
     <p class="muted" style="margin:0;font-size:14px">${me.email ? 'Private. Used only to reset your password.' : 'Add an email so you can reset your password if you forget it.'}</p>
     <label>Email<input name="email" type="email" maxlength="254" autocomplete="email" value="${esc(me.email || '')}" required></label>
     ${me.hasPassword ? '<label>Current password<input name="current" type="password" autocomplete="current-password" required></label>' : ''}
-    <p class="err" id="emErr"></p><div><button class="btn" type="submit">${me.email ? 'Change email' : 'Add email'}</button></div></form></div>`;
+    <p class="err" id="emErr"></p><div><button class="btn" type="submit">${me.email ? 'Change email' : 'Add email'}</button></div></form>
+    <details style="margin-top:22px;max-width:420px"><summary class="muted" style="cursor:pointer">Delete my account</summary>
+    <form class="stack" id="delF" style="margin-top:10px"><p class="muted" style="margin:0;font-size:14px">This removes your stats, ratings, achievements, email, sign-in links and clan membership for good. Your forum posts stay, shown as from a deleted player. It can't be undone.</p>
+    <label>Type your player name to confirm<input name="confirm" autocomplete="off" required></label>
+    ${me.hasPassword ? '<label>Password<input name="current" type="password" autocomplete="current-password" required></label>' : ''}
+    <p class="err" id="delErr"></p><div><button class="btn alt" type="submit" style="border-color:var(--bad,#ff6b6b);color:var(--bad,#ff6b6b)">Delete my account</button></div></form></details></div>`;
 }
 function wireMethods(name) {
   app.querySelectorAll('[data-unlink]').forEach(b => b.onclick = async () => { try { await api('/unlink', { provider: b.dataset.unlink }); await loadMe(); pages.user(name); } catch (e) { alert(e.message); } });
   const g = $('emF');
   if (g) g.onsubmit = async e => { e.preventDefault(); try { await api('/email', { email: g.email.value.trim(), current: g.current ? g.current.value : '' }); await loadMe(); $('emErr').style.color = 'var(--ok)'; $('emErr').textContent = 'Saved.'; if (g.current) g.current.value = ''; } catch (err) { $('emErr').style.color = ''; $('emErr').textContent = err.message; } };
   const f = $('pwF');
-  if (f) f.onsubmit = async e => { e.preventDefault(); try { await api('/password', { current: f.current ? f.current.value : '', password: f.password.value }); await loadMe(); $('pwErr').style.color = 'var(--ok)'; $('pwErr').textContent = 'Saved.'; f.reset(); } catch (err) { $('pwErr').style.color = ''; $('pwErr').textContent = err.message; } };
+  const dl = $('delF');
+  if (dl) dl.onsubmit = async e => { e.preventDefault(); try { await api('/account/delete', { confirm: dl.confirm.value, current: dl.current ? dl.current.value : '' }); me = null; drawWho(); app.innerHTML = '<div class="card narrow empty">Your account has been deleted. Thanks for playing.</div>'; } catch (err) { $('delErr').textContent = err.message; } };
+  if (f) f.onsubmit = async e => { e.preventDefault(); try { await api('/password', { current: f.current ? f.current.value : '', password: f.password.value }); await loadMe(); $('pwErr').style.color = 'var(--ok)'; $('pwErr').textContent = 'Saved. Any other devices have been signed out.'; f.reset(); } catch (err) { $('pwErr').style.color = ''; $('pwErr').textContent = err.message; } };
 }
 function roomTable(list, short) {
   if (!list.length) return `<div class="empty">No public games right now. <a href="/play#create">Host one</a> and your friends can find it here.</div>`;
@@ -606,8 +640,9 @@ async function route() {
     else if (parts[0] === 'finish') await pages.finish();
     else if (parts[0] === 'forgot') await pages.forgot();
     else if (parts[0] === 'reset') await pages.reset();
+    else if (parts[0] === 'privacy' || parts[0] === 'terms') await pages.legal(parts[0]);
     else app.innerHTML = '<div class="card empty">Page not found. <a href="#/">Home</a></div>';
-    document.title = 'Bowfall' + (parts[0] ? ' · ' + ({ servers: 'Games', leaderboard: 'Leaderboard', forum: 'Forum', u: parts[1], login: 'Sign in', register: 'Create account', forgot: 'Forgot password', reset: 'New password' }[parts[0]] || '') : '');
+    document.title = 'Bowfall' + (parts[0] ? ' · ' + ({ servers: 'Games', leaderboard: 'Leaderboard', forum: 'Forum', u: parts[1], login: 'Sign in', register: 'Create account', forgot: 'Forgot password', reset: 'New password', privacy: 'Privacy', terms: 'Terms' }[parts[0]] || '') : '');
   } catch (e) { app.innerHTML = `<div class="card empty">${esc(e.message)}</div>`; }
   window.scrollTo(0, 0);
 }
