@@ -39,3 +39,6 @@ services:
         sync: false
       - key: FOUNDERS_UNTIL
         sync: false
+      # optional: an address players can write to, shown on the Privacy and Terms pages
+      - key: CONTACT_EMAIL
+        sync: false

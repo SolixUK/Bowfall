@@ -871,7 +871,10 @@ const server = http.createServer(async (req, res) => {
   // with PUBLIC_URL set (e.g. https://bowfall.com), anyone arriving at another address (the onrender.com one, www.) is sent there,
   // so sign-ins and links always use one address
   const pub = process.env.PUBLIC_URL && new URL(process.env.PUBLIC_URL);
-  if (pub && req.headers.host && req.headers.host !== pub.host && !/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(req.headers.host)) {
+  // (but never between bowfall.com and www.bowfall.com: the domain provider or host may already send one to the other, and
+  // sending it back would loop forever; the cookies and sign-ins still work on both)
+  const bare = h => String(h || '').toLowerCase().replace(/^www\./, '');
+  if (pub && req.headers.host && req.headers.host !== pub.host && bare(req.headers.host) !== bare(pub.host) && !/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(req.headers.host)) {
     res.writeHead(301, { Location: pub.origin + req.url }); return res.end();
   }
   if (url.pathname.startsWith('/auth/')) {

@@ -2,6 +2,11 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.34.1
+
+- Fixed: with `PUBLIC_URL` set to `https://bowfall.com`, a visit to `www.bowfall.com` was sent to `bowfall.com` while the domain set-up sent it back to `www.`, so the site never loaded ("redirected you too many times"). The server no longer redirects between the www and plain versions of your address; it still sends the onrender.com address to yours.
+- `render.yaml` lists `CONTACT_EMAIL`.
+
 ## 0.34.0
 
 Accounts and signing in. Google and Discord sign-in, linking, passwords, email and "Forgot your password?" were already built; this release fills the gaps and gets them ready to switch on (see HOSTING.md for the step-by-step set-up).
