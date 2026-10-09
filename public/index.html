@@ -460,8 +460,10 @@
   .tstick { position: absolute; width: 116px; height: 116px; margin: -58px 0 0 -58px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); background: rgba(255,255,255,.06); }
   .tstick i { position: absolute; left: 50%; top: 50%; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 50%; background: rgba(255,255,255,.4); }
   .tstick.aim { border-color: rgba(255,207,90,.6); } .tstick.aim i { background: rgba(255,207,90,.6); }
-  .tbfs { position: absolute; left: max(10px, env(safe-area-inset-left)); top: 50%; width: 38px; height: 38px; margin-top: -19px; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgba(255,255,255,.3); background: rgba(10,18,12,.5); color: #fff; pointer-events: auto; } .tbfs svg { width: 18px; height: 18px; }
-  :fullscreen .tbfs, body.standalone .tbfs { display: none; }
+  .tbfs { position: absolute; right: calc(max(14px, env(safe-area-inset-right)) + 92px); top: 8px; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgba(255,255,255,.3); background: rgba(10,18,12,.5); color: #fff; pointer-events: auto; } .tbfs svg { width: 16px; height: 16px; }
+  :fullscreen .tbfs:not(.tbcam), body.standalone .tbfs:not(.tbcam) { display: none; }
+  .tbcam { right: calc(max(14px, env(safe-area-inset-right)) + 134px); } :fullscreen .tbcam, body.standalone .tbcam { right: calc(max(14px, env(safe-area-inset-right)) + 92px); }
+  .tbcam i { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); font: 700 10px 'Rajdhani', sans-serif; font-style: normal; white-space: nowrap; color: rgba(255,255,255,.8); text-shadow: 0 1px 2px #000; }
   .tbtns { position: absolute; right: max(14px, env(safe-area-inset-right)); bottom: max(14px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: auto auto; gap: 20px 12px; align-items: end; pointer-events: auto; }
   .tb { width: 76px; height: 76px; border-radius: 50%; border: 2px solid rgba(255,255,255,.4); background: rgba(10,18,12,.55); color: #fff; font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .06em; text-transform: uppercase; touch-action: none; -webkit-user-select: none; user-select: none; }
   .tb { position: relative; background: conic-gradient(rgba(0,0,0,.55) var(--cd, 0deg), rgba(10,18,12,.55) 0); }
@@ -930,7 +932,10 @@
   @media (max-width: 760px) { .cards { grid-template-columns: 1fr; } .pcard { min-height: 0; } }
   /* phones held sideways (short screens): menus, cards and the upgrade pick shrink to fit instead of scrolling off */
   @media (max-height: 500px) {
-    .overlay { padding: 8px; } .overlay > .card { zoom: .72; } #home .homewrap { zoom: .7; max-width: 1400px; gap: 12px; } #home .mainmenu { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } #home .mm small { display: none; } #home .mm b { white-space: nowrap; } #home .mm .mmlock { top: 4px; right: 22px; bottom: auto; transform: scale(.8); transform-origin: right top; } #home .hometitle h1 { font-size: 80px; line-height: .9; } #home .hometitle { margin-top: -40px; }
+    .overlay { padding: 8px; } .overlay > .card { zoom: .72; } #home .homewrap { zoom: .7; max-width: 1400px; margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) 380px; grid-template-areas: 'title top' 'menu top' 'foot top'; grid-template-rows: auto auto 1fr; gap: 10px 22px; align-items: start; }
+    #home .hometop { grid-area: top; } #home .hometitle { grid-area: title; margin-top: 0 !important; } #home .mainmenu { grid-area: menu; } #home .homefoot { grid-area: foot; }
+    #home .hometop .frpanel { max-height: 300px; overflow-y: auto; } #home .hometop .toprow { flex-wrap: wrap; justify-content: flex-end; }
+    #home .mainmenu { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } #home .mm small { display: none; } #home .mm b { white-space: nowrap; } #home .mm .mmlock { top: -8px; right: 40px; bottom: auto; transform: scale(.8); transform-origin: right top; } #home .hometitle h1 { font-size: 72px; line-height: .9; }
     .card.pick { max-width: 1100px; zoom: .62 !important; } .pick .pcard { min-height: 0; padding: 12px 14px; } .pick .cards { grid-template-columns: repeat(3, 1fr); }
   }
   .card.lobby { max-width: 1240px; padding-bottom: 0; }
@@ -1218,7 +1223,7 @@
   </div>
   <div class="pcwrap" id="pcWrap" hidden><div class="pfcard" id="pcCard" role="dialog" aria-label="Player profile"></div></div>
   <div class="touchui" id="touchUI" hidden><div class="tstick" id="tsMove" hidden><i></i></div><div class="tstick aim" id="tsAim" hidden><i></i></div>
-    <button type="button" class="tbfs" id="tbFs" aria-label="Full screen" title="Full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button><div class="tbtns"><button type="button" id="tbQ" class="tb sm">Q</button><button type="button" id="tbE" class="tb sm">E</button><button type="button" id="tbDash" class="tb">Dash</button></div></div>
+    <button type="button" class="tbfs" id="tbFs" aria-label="Full screen" title="Full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button><button type="button" class="tbfs tbcam" id="tbCam" aria-label="Camera" title="Camera: fixed or following"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M15.5 15.5 20 20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><i id="tbCamT"></i></button><div class="tbtns"><button type="button" id="tbQ" class="tb sm">Q</button><button type="button" id="tbE" class="tb sm">E</button><button type="button" id="tbDash" class="tb">Dash</button></div></div>
   <div class="rotatehint" id="rotateHint" hidden>Turn your phone sideways to play</div>
   <div class="clipbar" id="clipBar" hidden><span id="clipTxt">Your kill cam</span><button class="ghost sm" type="button" id="clipSave">Save video</button><button class="ghost sm" type="button" id="clipFeat">Show on my profile</button><button class="ghost sm" type="button" id="clipX" aria-label="Close">×</button></div>
   <div class="clipview" id="clipView" hidden><div class="cvhead"><b id="cvTitle">Kill cam</b><small id="cvSub"></small></div><div class="cvbtns"><button class="ghost sm" type="button" id="cvAgain" hidden>Watch again</button><button class="ghost sm" type="button" id="cvSave" hidden>Save video</button><button class="cta sm" type="button" id="cvClose">Close</button></div></div>
@@ -1344,8 +1349,8 @@
           <div class="field"><label for="oCb">Colours</label><select id="oCb"><option value="">Standard</option><option value="1">Colour-blind friendly (orange and blue teams)</option></select></div>
           <div class="field"><label for="oMe">Your own archer</label><select id="oMe"><option value="strong">Strongly marked (gold halo, ring and arrow; teammates a little dimmer)</option><option value="soft">Lightly marked (white ring)</option></select></div>
           <div class="field"><label for="oGlow">Team glow round archers</label><select id="oGlow"><option value="live">Living (breathes, leans into movement, flares on a draw)</option><option value="soft">Soft (still)</option><option value="ring">Ring only</option></select></div>
-          <div class="field"><label for="oPz">Phone zoom</label><select id="oPz"><option value="1">Whole arena</option><option value="1.15">Closer (follows you)</option><option value="1.3">Closest (follows you)</option></select></div>
-          <div class="field"><label for="oTaim">Touch aiming</label><select id="oTaim"><option value="pull">Pull back, like drawing a bow</option><option value="point">Point the way you shoot</option></select></div>
+          <div class="field"><label for="oPz">Phone camera</label><select id="oPz"><option value="1">Fixed: the whole arena</option><option value="1.15">Follow: closer</option><option value="1.3">Follow: closest</option></select></div>
+          <div class="field"><label for="oTaim">Touch aiming</label><select id="oTaim"><option value="point">Point the way you shoot</option><option value="pull">Pull back, like drawing a bow</option></select></div>
           <div class="field"><label for="oDetail">Arena detail</label><select id="oDetail"><option value="full">Full (ambient light, drifting leaves, lava glow)</option><option value="low">Low (plain arenas; fastest)</option></select></div>
           <div class="field"><label for="oShadow">Shots' shadows</label><select id="oShadow"><option value="soft">Soft</option><option value="simple">Simple (a dot)</option><option value="off">Off</option></select></div>
           <div class="field"><label for="oPart">Particles</label><select id="oPart"><option value="1">Full</option><option value="0.5">Reduced</option><option value="0.2">Minimal</option></select></div>
@@ -1605,7 +1610,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.39.4"></script>
+<script src="sim.js?v=0.39.5"></script>
 <script>
 (() => {
 'use strict';
@@ -1613,7 +1618,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.39.4';
+const PAGE_VERSION = '0.39.5';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -1928,7 +1933,7 @@ const sfx = {
 };
 const syncMute = () => { $('muteBtn').textContent = muted ? 'Sound off' : 'Sound on'; $('muteBtn').classList.toggle('muted', muted); const m = $('oMute'); if (m) m.value = muted ? '1' : '0'; };
 // options, kept in this browser
-const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') !== '0', guideBold: store.get('bowfall-guide', '1') === '2', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), me: store.get('bowfall-me', 'strong'), detail: store.get('bowfall-detail', 'full'), pz: +store.get('bowfall-pz', '1.15') || 1, taim: store.get('bowfall-taim', 'pull'), cb: store.get('bowfall-cb', '') === '1' };
+const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') !== '0', guideBold: store.get('bowfall-guide', '1') === '2', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), me: store.get('bowfall-me', 'strong'), detail: store.get('bowfall-detail', 'full'), pz: +store.get('bowfall-pz', '1.15') || 1, taim: store.get('bowfall-taim2', 'point'), cb: store.get('bowfall-cb', '') === '1' };
 cbApply();
 const outNode = () => { if (!AC.master) { AC.master = AC.createGain(); AC.master.connect(AC.destination); } AC.master.gain.value = OPTS.vol / 100; return AC.master; };
 syncMute();
@@ -2356,6 +2361,11 @@ cv.addEventListener('touchstart', touchStart, { passive: false });
 cv.addEventListener('touchmove', touchMove, { passive: false });
 cv.addEventListener('touchend', touchEnd); cv.addEventListener('touchcancel', touchEnd);
 $('tbFs').addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); store.set('bowfall-nofs', ''); goFullscreen(); }, { passive: false });
+const PZ_STEPS = [[1, 'Fixed'], [1.15, 'Follow'], [1.3, 'Close']];
+const camLabel = () => { const s = PZ_STEPS.find(x => x[0] === OPTS.pz) || PZ_STEPS[0]; $('tbCamT').textContent = s[1]; };
+function cycleCam() { const i = PZ_STEPS.findIndex(x => x[0] === OPTS.pz); OPTS.pz = PZ_STEPS[(i + 1) % PZ_STEPS.length][0]; store.set('bowfall-pz', String(OPTS.pz)); if ($('oPz')) $('oPz').value = String(OPTS.pz); PCAM.init = false; resize(); camLabel(); }
+$('tbCam').addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); cycleCam(); }, { passive: false });
+$('tbCam').onclick = cycleCam; camLabel();
 $('tbFs').onclick = () => { store.set('bowfall-nofs', ''); goFullscreen(); };
 document.addEventListener('fullscreenchange', () => { if (TOUCH.fsTried && !document.fullscreenElement && mode !== 'menu') store.set('bowfall-nofs', '1'); }); // they left full screen on purpose: don't force it again
 if (isStandalone()) document.body.classList.add('standalone');
@@ -5071,7 +5081,7 @@ document.addEventListener('pointerover', e => {
   const now = performance.now(); if (now - uiHoverT < 45) return; uiHoverT = now; // brushing across a row of buttons doesn't machine-gun
   uiSfx.hover();
 });
-document.addEventListener('pointerdown', e => { const el = e.target.closest && e.target.closest(UI_SEL); if (el && !el.disabled && e.button === 0) { initAudio(); uiSfx.click(); } }, true);
+document.addEventListener('pointerdown', e => { const el = e.target.closest && e.target.closest(UI_SEL); if (el && !el.disabled && e.button === 0 && !el.closest('#touchUI')) { initAudio(); uiSfx.click(); } }, true);
 // hovering a name in the lobby shows a card with their rank, record and best achievements
 const DIFF_LBL = { easy: 'Easy', normal: 'Normal', hard: 'Hard', extreme: 'Extreme', master: 'Master' };
 function cardHtml(key) {
@@ -5405,8 +5415,8 @@ $('oShadow').onchange = () => { OPTS.shadow = $('oShadow').value; store.set('bow
 $('oGlow').onchange = () => { OPTS.glow = $('oGlow').value; store.set('bowfall-glow', OPTS.glow); };
 $('oMe').onchange = () => { OPTS.me = $('oMe').value; store.set('bowfall-me', OPTS.me); };
 $('oCb').onchange = () => { OPTS.cb = $('oCb').value === '1'; store.set('bowfall-cb', OPTS.cb ? '1' : ''); cbApply(); hc = {}; };
-$('oPz').onchange = () => { OPTS.pz = +$('oPz').value || 1; store.set('bowfall-pz', String(OPTS.pz)); PCAM.init = false; resize(); };
-$('oTaim').onchange = () => { OPTS.taim = $('oTaim').value; store.set('bowfall-taim', OPTS.taim); };
+$('oPz').onchange = () => { OPTS.pz = +$('oPz').value || 1; store.set('bowfall-pz', String(OPTS.pz)); PCAM.init = false; resize(); camLabel(); };
+$('oTaim').onchange = () => { OPTS.taim = $('oTaim').value; store.set('bowfall-taim2', OPTS.taim); };
 $('oDetail').onchange = () => { OPTS.detail = $('oDetail').value; store.set('bowfall-detail', OPTS.detail); floorCv = null; };
 $('oPart').onchange = () => { OPTS.part = +$('oPart').value; store.set('bowfall-part', OPTS.part); };
 $('oShake').onchange = () => { OPTS.shake = $('oShake').value === '1'; store.set('bowfall-shake', OPTS.shake ? '1' : '0'); };
@@ -8608,6 +8618,7 @@ function render(replaying) {
   if (!replaying && LP.list.length && view.m.ph !== 'lobby') drawLocalMarks(view);
   if (replaying) { drawReplayFrame(); return; }
   if (!bigMap() && THEME.night && !lightFx() && !replaying) { drawVignette(); ctx.setTransform(DPR * VS, 0, 0, DPR * VS, DPR * OX, DPR * OY); }
+  if (PCAM.on && !bigMap()) { drawPhoneOffscreen(view, me); ctx.setTransform(DPR * VS, 0, 0, DPR * VS, DPR * OX, DPR * OY); }
   if (bigMap()) {
     drawCanopies(view, me); drawTorches(); drawMist(frameDt); drawMotes(frameDt, me);
     if (!lightFx()) drawVignette();
@@ -9153,6 +9164,24 @@ function drawOffscreen(v, me) {
     ctx.restore();
     ctx.font = "700 12px 'Rajdhani', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center'; ctx.fillStyle = col;
     ctx.fillText(`${p.n} · ${Math.round(Math.hypot(p.x - me.x, p.y - me.y) / 100) * 10}m`, x - Math.cos(a) * 26, y - Math.sin(a) * 26 + 4);
+  }
+  ctx.restore();
+}
+// phones zoomed in (the view following you): an arrow at the screen's edge for each archer out of view, pointing at them,
+// in their team's colour (enemies bigger and outlined), so nobody can sneak up from beyond the top or bottom
+function drawPhoneOffscreen(v, me) {
+  ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const m = 16;
+  for (const p of v.p) {
+    if (p.nk || p.d || p.id === myId) continue;
+    const sx = OX + p.x * VS, sy = OY + p.y * VS;
+    if (sx > -6 && sx < W + 6 && sy > -6 && sy < H + 6) continue;
+    const x = clamp(sx, m, W - m), y = clamp(sy, 62, H - m), a = Math.atan2(sy - y, sx - x), foe = me && p.tm !== me.tm;
+    const col = TEAM_COL[p.tm] || '#fff', k = foe ? 1.4 : 0.9;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.scale(k, k);
+    ctx.globalAlpha = foe ? 0.95 : 0.7; ctx.fillStyle = col; ctx.strokeStyle = foe ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.6)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(-8, -9); ctx.lineTo(-4, 0); ctx.lineTo(-8, 9); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.restore();
   }
   ctx.restore();
 }
