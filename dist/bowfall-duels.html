@@ -453,6 +453,9 @@
   .clipview .cvbtns { display: flex; gap: 8px; }
   body.clipmode #home, body.clipmode .overlay.sub, body.clipmode #gate, body.clipmode .rejoinbar, body.clipmode #homeFriends, body.clipmode .hud-l, body.clipmode .hud-r, body.clipmode #powers, body.clipmode #abil, body.clipmode #board { display: none !important; }
   body.clipembed #clipView { bottom: 8px; padding: 6px 10px; } body.clipembed #cvClose { display: none; }
+  .online { display: inline-flex; align-items: center; gap: 7px; margin-top: 6px; font: 600 13px 'Titillium Web', 'Segoe UI', sans-serif; color: var(--muted); } .online i { width: 8px; height: 8px; border-radius: 50%; background: #7dff8a; box-shadow: 0 0 8px #7dff8a; } .online b { color: var(--text); }
+  .dmmini { position: fixed; z-index: 16; right: 16px; bottom: 16px; display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; background: rgba(9,18,11,.95); border: 1px solid var(--line); border-top: 2px solid var(--gold); color: var(--text); font: 700 14px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .04em; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+  .dmmini:hover { border-color: var(--gold); } .dmmini .dmn { margin: 0; }
   .rejoinbar { position: fixed; z-index: 17; left: 50%; top: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: rgba(9,18,11,.97); border: 1px solid var(--gold); box-shadow: 0 8px 24px rgba(0,0,0,.5); font: 600 14px 'Titillium Web', 'Segoe UI', sans-serif; max-width: calc(100vw - 32px); box-sizing: border-box; }
   .invite { position: fixed; z-index: 15; right: 16px; bottom: 16px; max-width: 320px; padding: 12px 14px; background: rgba(9,18,11,.96); border: 1px solid var(--gold); display: flex; flex-direction: column; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
   .invite[hidden] { display: none; }
@@ -502,7 +505,7 @@
   .frpanel .frh { display: flex; justify-content: space-between; align-items: baseline; font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; }
   .frpanel .frh span { font: 500 12px 'Titillium Web', sans-serif; color: #7dff8a; }
   .frrow { display: flex; align-items: center; gap: 8px; }
-  .frrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; } .frrow .dot.on { background: #7dff8a; } .frrow .dot.play { background: var(--gold); }
+  .frrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; } .frrow .dot.on { background: #7dff8a; } .frrow .dot.play { background: var(--gold); } .frrow .dot.away, .fr .dot.away, .dmfr .dot.away { background: #ffb347; box-shadow: inset 0 0 0 2px rgba(9,18,11,.9); }
   .frrow .frn { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; background: none; border: 0; padding: 0; color: inherit; text-align: left; cursor: pointer; font: inherit; }
   .frrow .frn:hover b { text-decoration: underline; text-decoration-color: var(--line); }
   .frrow.froff { opacity: .62; }
@@ -1029,7 +1032,7 @@
         <div class="lpbox"><div class="lplist" id="lpList"></div><button type="button" class="ghost sm" id="lpAdd" title="Another player with their own controller, on this screen">+ Add player on controller</button></div>
         <div class="frpanel" id="homeFriends" hidden></div>
       </div>
-      <div class="hometitle"><span class="eyebrow">Knockback archery · Team rounds</span><h1>Bow<span>fall</span></h1></div>
+      <div class="hometitle"><span class="eyebrow">Knockback archery · Team rounds</span><h1>Bow<span>fall</span></h1><div class="online" id="homeOnline" hidden><i></i><b id="homeOnlineN">0</b> online</div></div>
       <nav class="mainmenu" aria-label="Main menu">
         <button class="mm" id="mFind" type="button"><span class="mmk">01</span><b>Find game</b><small>Ranked matchmaking by rating: 1v1, 2v2 or 3v3, on your own or with friends.</small><em class="mmlock" id="mFindBadge" hidden></em></button>
         <button class="mm" id="mCustom" type="button"><span class="mmk">02</span><b>Custom games</b><small>Browse public games, join with a code, host your own, practise against bots, or build your own arena.</small></button>
@@ -1122,6 +1125,7 @@
   <div class="rotatehint" id="rotateHint" hidden>Turn your phone sideways to play</div>
   <div class="clipbar" id="clipBar" hidden><span id="clipTxt">Your kill cam</span><button class="ghost sm" type="button" id="clipSave">Save video</button><button class="ghost sm" type="button" id="clipFeat">Show on my profile</button><button class="ghost sm" type="button" id="clipX" aria-label="Close">×</button></div>
   <div class="clipview" id="clipView" hidden><div class="cvhead"><b id="cvTitle">Kill cam</b><small id="cvSub"></small></div><div class="cvbtns"><button class="ghost sm" type="button" id="cvAgain" hidden>Watch again</button><button class="ghost sm" type="button" id="cvSave" hidden>Save video</button><button class="cta sm" type="button" id="cvClose">Close</button></div></div>
+  <button type="button" class="dmmini" id="dmMini" hidden>Messages <i class="dmn" id="dmMiniN" hidden>0</i></button>
   <div class="rejoinbar" id="rejoinBar" hidden><span>Your ranked match is still going.</span><button class="cta sm" type="button" id="rejoinGo">Rejoin</button></div>
   <div class="invite" id="inviteToast" hidden><span id="inviteText"></span><div class="btnrow"><button class="cta sm" id="inviteYes" type="button">Join party</button><button class="ghost sm" id="inviteNo" type="button">No thanks</button></div></div>
   <div class="overlay sub" id="customScr" hidden>
@@ -1252,7 +1256,7 @@
         </section>
         <section class="mode" data-navsec><h3>Gameplay</h3>
           <div class="field"><label for="oDmg">Damage numbers</label><select id="oDmg"><option value="all">Everyone's</option><option value="mine">Only mine (and damage to me)</option><option value="off">Off</option></select></div>
-          <div class="field"><label for="oGuide">Aim guide line</label><select id="oGuide"><option value="1">On</option><option value="0">Off</option></select></div>
+          <div class="field"><label for="oGuide">Aim guide line</label><select id="oGuide"><option value="1">On</option><option value="2">Bold (easier to see)</option><option value="0">Off</option></select></div>
         </section>
       </div>
     </div>
@@ -1514,7 +1518,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.37.2';
+const VERSION = '0.38.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -4710,13 +4714,21 @@ function shotAt(a, p) {
   const t = (dx * a.vx + dy * a.vy) / v2; if (t <= 0 || t > 0.28) return false;
   return Math.hypot(a.x + a.vx * t - p.x, a.y + a.vy * t - p.y) < p.r + 8;
 }
+const inBog = (x, y, pad) => HAZ.some(h => h.type === 'tar' && inHaz(h, x, y, pad));
 function botReach(p) { return p.role === 'ninja' ? 1050 * OPT('aspeed') * 0.27 : p.role === 'crossbow' ? (p.xbowRange || XBOW_RANGE) - 30 : 900; }
+// how badly q outranges p: 0 for a bow against a bow, 1 for a crossbow (480) against a bow (900)
+const outranged = (p, q) => clamp((botReach(q) - botReach(p)) / 450, 0, 1);
+// can this archer shoot right now? (a crossbow mid-reload can't; everyone else always can)
+const loaded = p => p.role !== 'crossbow' || p.bolts > 0 || p.autoT > 0;
 // Planned positioning: score spots around the bot and head for the best one. A good spot is one where
 // no enemy's shot can knock us into anything deadly, our shot at the target would knock them into something,
 // we're at our preferred range with a clear line, and it's near a pickup worth having.
+// A short reach changes the sums: standing where the enemy can shoot us and we can't shoot back is the worst
+// place of all, however far from the lava it is, so the range terms grow with how badly we're outranged,
+// and until we're in reach a boulder between us and them counts for us, not against us.
 function botPlan(w, p, T, foes, mates, D, G) {
   const ai = p.ai, st = STYLES[ai.style] || STYLES.skirmisher;
-  const reach = botReach(p);
+  const reach = botReach(p), outg = T ? outranged(p, T) : 0, ready = loaded(p);
   const pref = Math.min(reach * 0.8, (st.near + st.far) / 2 * G.pref);
   const myKb = kbTravel(0.95, T ? T.mass : 1, p.kbMul) * G.kbScale;
   const cand = [[p.x, p.y]];
@@ -4734,20 +4746,29 @@ function botPlan(w, p, T, foes, mates, D, G) {
       const dx = x - q.x, dy = y - q.y, d = Math.hypot(dx, dy) || 1;
       if (d > 1100 || !clearShot(q.x, q.y, x, y)) continue;
       const threat = (q.drawing ? 0.5 + q.charge : 0.6) * (d < 500 ? 1 : 500 / d);
-      sc -= pushRisk(x, y, dx / d, dy / d, kbTravel(q.drawing ? Math.max(0.7, q.charge) : 0.9, p.mass, q.kbMul) * G.kbScale, p.r) * threat * 3 * G.safety;
+      // out of our reach but inside theirs: a free shot for them. Worse the more they outrange us, and the
+      // knockback worry matters a little less there, because hanging back isn't an answer to it
+      const og = outranged(p, q), free = d > reach && d < botReach(q) + 60 ? og : 0;
+      sc -= pushRisk(x, y, dx / d, dy / d, kbTravel(q.drawing ? Math.max(0.7, q.charge) : 0.9, p.mass, q.kbMul) * G.kbScale, p.r) * threat * 3 * G.safety * (1 - 0.35 * free);
+      sc -= (0.4 + 0.8 * og) * threat * free;
     }
     if (T) {
       const dx = T.x - x, dy = T.y - y, d = Math.hypot(dx, dy) || 1, los = clearShot(x, y, T.x, T.y);
-      sc -= Math.abs(d - pref) / 300 * G.pref;
-      if (d > reach) sc -= (d - reach) / 120;
-      if (los) { sc += 0.4 * G.los; sc += pushRisk(T.x, T.y, dx / d, dy / d, myKb, T.r) * 1.6 * G.push; }
+      // (chasing someone who's backing off: measure to where they're heading, so we cut the corner rather than trail them)
+      const dl = outg > 0 && d > reach ? Math.hypot(T.x + T.vx * 0.5 - x, T.y + T.vy * 0.5 - y) : d;
+      sc -= Math.abs(dl - pref) / 300 * G.pref;
+      if (dl > reach) sc -= (dl - reach) / 120 * (1 + 1.5 * outg);
+      if (los) { if (ready) sc += 0.4 * G.los; sc += pushRisk(T.x, T.y, dx / d, dy / d, myKb, T.r) * 1.6 * G.push; }
+      else if (d > reach && outg > 0) sc += 0.35 * outg; // cover on the way in
+      else if (!ready) sc += 0.45; // reloading: a boulder to duck behind is worth more than a line of sight
       else sc -= 0.3 * G.los;
     }
     // amber and powerups nearby
     for (const u of w.pickups) {
       const du = Math.hypot(u.x - x, u.y - y);
-      if (du < 260) sc += (u.chan ? 0.9 : u.type === 'amber' ? 0.5 : 0.8) * (1 - du / 260) * G.pick;
+      if (du < 260 && !inBog(u.x, u.y, 30)) sc += (u.chan ? 0.9 : u.type === 'amber' ? 0.5 : 0.8) * (1 - du / 260) * G.pick;
     }
+    if (inBog(x, y, p.r)) sc -= 0.6; // slow, and no dashing out of trouble
     if (HEAL && p.hp < p.maxHp * 0.6) { const dh = Math.hypot(HEAL.x - x, HEAL.y - y); if (dh < HEAL.r) sc += 0.8 * G.heal * (1 - p.hp / p.maxHp); }
     // don't stand on a teammate
     for (const m of mates) { const dm = Math.hypot(m.x - x, m.y - y); if (dm < 110) sc -= (110 - dm) / 110 * 0.5; }
@@ -4759,8 +4780,29 @@ function botPlan(w, p, T, foes, mates, D, G) {
   // arrive and settle (allowing for momentum), with a little side-to-side jink so we're not a sitting duck
   if (gl > 1) { gx /= gl; gy /= gl; } else { gx = gy = 0; }
   const k = Math.min(1, gl / 40); gx = gx * k - p.vx / 400; gy = gy * k - p.vy / 400;
-  if (T) { const dx = T.x - p.x, dy = T.y - p.y, d = Math.hypot(dx, dy) || 1; gx += -dy / d * ai.strafe * G.jink; gy += dx / d * ai.strafe * G.jink; }
+  if (T) { const dx = T.x - p.x, dy = T.y - p.y, d = Math.hypot(dx, dy) || 1, jink = G.jink * (d > reach ? 1 - 0.5 * outg : 1); gx += -dy / d * ai.strafe * jink; gy += dx / d * ai.strafe * jink; } // (less weaving while there's a gap to close)
   return [gx, gy];
+}
+// Closing the gap: a short-reach archer (crossbow, shuriken) walking in under a bow's fire gets picked apart, so
+// once the last stretch is a dash away they dash it, a little off the straight line so the shot waiting for them
+// misses. Never into anything deadly or through a boulder, and not while a shot is about to land (that dash is the
+// dodge's). Keener the better the bot: easy bots mostly still walk.
+function botCloseIn(w, p, T, dT, reach, D, dt) {
+  const ai = p.ai; ai.closeCd = (ai.closeCd || 0) - dt;
+  const outg = outranged(p, T);
+  const dd = p.role === 'ninja' ? NINJA_BLINK * (has(p, 'longstep') ? 1.4 : 1) : 250;
+  if (!outg || !(p.dashN > 0) || ai.closeCd > 0 || dT < reach * 0.9 || dT > reach * 0.9 + dd || !loaded(p)) return;
+  if (Math.random() > dt * (0.4 + D.dodge * 1.5 + (D.iq || 0) * 2) * outg) return;
+  if (incoming(w, p, 0.4)) return;
+  // the sharper bots time it: not into a bow that's drawn and waiting, but the moment after it looses, while it's being drawn again
+  if ((D.iq || 0) > 0.3 && T.drawing && T.charge > 0.4) return;
+  const ang = Math.atan2(T.y - p.y, T.x - p.x) + ai.strafe * 0.3;
+  const ex = p.x + Math.cos(ang) * dd, ey = p.y + Math.sin(ang) * dd;
+  if (p.role !== 'ninja') { // a dash slides across the ground: every point along it has to be safe, and clear of boulders
+    for (const s of [0.3, 0.6, 0.85, 1, 1.25]) if (lethalDist(p.x + Math.cos(ang) * dd * s, p.y + Math.sin(ang) * dd * s) < p.r + 30) return;
+    if (!clearShot(p.x, p.y, ex, ey)) return;
+  } else if (lethalDist(ex, ey) < p.r + 20) return; // a blink only has to land somewhere safe
+  p.wantDash = true; ai.dashAim = ang; ai.closeCd = rand(1, 2.2);
 }
 // Reading incoming shots: the soonest one that will hit, and the safer side to step to
 function incoming(w, p, horizon) {
@@ -4815,11 +4857,12 @@ function botThink(w, p, dt) {
   let gx = 0, gy = 0;
   const dT = T ? Math.hypot(T.x - p.x, T.y - p.y) : Infinity;
   // amber is worth a detour; a teammate already heading there means leave it
+  // (one lying in a bog is left alone: the steering won't walk into the bog, so a bot wanting it would only dither at the edge)
   const pk = w.pickups.reduce((best, u) => {
     const d = Math.hypot(u.x - p.x, u.y - p.y);
     const range = u.type === 'amber' ? 380 : 320;
     const mateCloser = mates.some(m => Math.hypot(u.x - m.x, u.y - m.y) < d * 0.8);
-    return d < range && !mateCloser && (!best || d < best.d) ? { u, d } : best;
+    return d < range && !mateCloser && !inBog(u.x, u.y, 30) && (!best || d < best.d) ? { u, d } : best;
   }, null);
   ai.strafeT -= dt;
   if (ai.strafeT <= 0) { ai.strafe *= -1; ai.strafeT = rand(0.9, 2.4); }
@@ -4844,7 +4887,7 @@ function botThink(w, p, dt) {
   } else if (hurtBad) {
     if (healD > HEAL.r * 0.5) { gx = (HEAL.x - p.x) / healD; gy = (HEAL.y - p.y) / healD; }
     else { gx = -(p.y - HEAL.y) / (healD || 1) * ai.strafe * 0.4; gy = (p.x - HEAL.x) / (healD || 1) * ai.strafe * 0.4; }
-  } else if (pk && !pk.u.chan && (!T || pk.d < dT * 1.2) && iq < 0.5) {
+  } else if (pk && !pk.u.chan && (!T || pk.d < dT * (1.2 - outranged(p, T))) && iq < 0.5) { // (someone being outranged has no time for detours)
     gx = (pk.u.x - p.x) / pk.d; gy = (pk.u.y - p.y) / pk.d;
   } else if (plan) {
     [gx, gy] = plan;
@@ -4855,14 +4898,23 @@ function botThink(w, p, dt) {
       const ang = Math.atan2(T.y - p.y, T.x - p.x);
       if (pushRisk(T.x, T.y, Math.cos(ang), Math.sin(ang), 200, T.r) > 0.6 && lethalDist(p.x + Math.cos(ang) * (dT + 40), p.y + Math.sin(ang) * (dT + 40)) > 60) { p.wantDash = true; ai.dashAim = ang; ai.bashCd = rand(1.5, 3); }
     }
+    if (!p.wantDash) botCloseIn(w, p, T, dT, botReach(p), D, dt);
   } else if (T) {
     // keep the distance this bot's playstyle likes; aggressive bots close in, cautious ones hang back
     const st = STYLES[ai.style] || STYLES.skirmisher, ag = ai.aggr == null ? 0.6 : ai.aggr;
-    const near = st.near * (1.3 - ag * 0.6), far = st.far * (1.25 - ag * 0.5);
+    // (the playstyles are a bow's distances: a shorter reach caps them, or a crossbowman would stand where his bolts drop short)
+    const reach = botReach(p), outg = outranged(p, T);
+    const near = Math.min(st.near * (1.3 - ag * 0.6), reach * 0.55), far = Math.min(st.far * (1.25 - ag * 0.5), reach * 0.88);
     const dx = T.x - p.x, dy = T.y - p.y, d = dT || 1, ux = dx / d, uy = dy / d;
-    const shaky = p.hp < p.maxHp * 0.35 && ag < 0.65 && d < far * 1.2;
+    // (backing off from someone who outranges you only means being shot in the back: the outgunned stand their ground unless nearly dead)
+    const shaky = p.hp < p.maxHp * (outg > 0.5 ? 0.15 : 0.35) && ag < 0.65 && d < far * 1.2;
     if (shaky || d < near) { gx = -ux; gy = -uy; }
-    else if (d > far || !clearShot(p.x, p.y, T.x, T.y)) { gx = ux * 0.8 - uy * ai.strafe * 0.5; gy = uy * 0.8 + ux * ai.strafe * 0.5; }
+    else if (d > far || !clearShot(p.x, p.y, T.x, T.y)) {
+      // close in with a weave; the outranged weave less, or someone walking backward keeps them out of reach for good
+      const fwd = d > reach ? 0.8 + 0.2 * outg : 0.8, side = 0.5 - 0.25 * (d > reach ? outg : 0);
+      gx = ux * fwd - uy * ai.strafe * side; gy = uy * fwd + ux * ai.strafe * side;
+      botCloseIn(w, p, T, d, reach, D, dt);
+    }
     else { gx = -uy * ai.strafe; gy = ux * ai.strafe; }
     // guardians stay close to their team
     if (st.mates && mates.length) {
@@ -4987,7 +5039,9 @@ function botThink(w, p, dt) {
     inp.draw = p.autoT > 0 ? want : want && !inp.draw; // bots click too (and just hold on full auto)
   } else if (p.role === 'crossbow') {
     // bolts: shoot when lined up and close enough for the bolt to arrive
-    const want = los && onTarget && dT < (p.xbowRange || XBOW_RANGE) - 30 && T.inv <= 0 && (p.autoT > 0 || (p.bolts > 0 && ai.reload <= 0));
+    // a bolt drops out of the air at its range, so against someone backing away allow for how far they'll get while it flies
+    const ux = (T.x - p.x) / (dT || 1), uy = (T.y - p.y) / (dT || 1), away = Math.max(0, (T.vx - p.vx) * ux + (T.vy - p.vy) * uy), dEff = dT + away * dT / shotSpeed(p, 1);
+    const want = los && onTarget && dEff < (p.xbowRange || XBOW_RANGE) - 30 && T.inv <= 0 && (p.autoT > 0 || (p.bolts > 0 && ai.reload <= 0));
     if (p.autoT > 0) inp.draw = want; // full auto: just hold
     else { inp.draw = want && !inp.draw; if (want) ai.reload = rand(0.05, 0.25) + D.react * 0.5; }
   } else if (!inp.draw) {
@@ -5867,7 +5921,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.37.2';
+const PAGE_VERSION = '0.38.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -6181,7 +6235,7 @@ const sfx = {
 };
 const syncMute = () => { $('muteBtn').textContent = muted ? 'Sound off' : 'Sound on'; const m = $('oMute'); if (m) m.value = muted ? '1' : '0'; };
 // options, kept in this browser
-const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') === '1', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), me: store.get('bowfall-me', 'strong'), detail: store.get('bowfall-detail', 'full'), cb: store.get('bowfall-cb', '') === '1' };
+const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') !== '0', guideBold: store.get('bowfall-guide', '1') === '2', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), me: store.get('bowfall-me', 'strong'), detail: store.get('bowfall-detail', 'full'), cb: store.get('bowfall-cb', '') === '1' };
 cbApply();
 const outNode = () => { if (!AC.master) { AC.master = AC.createGain(); AC.master.connect(AC.destination); } AC.master.gain.value = OPTS.vol / 100; return AC.master; };
 syncMute();
@@ -6653,10 +6707,20 @@ function resize() {
 }
 
 // ================= flow =================
+// what you're doing, for your friends' lists; "away" once the page has been out of view (another tab or window) for a while
+const AWAY = { t: null, on: false, AFTER: 60000 };
+function sendStatus() { socialSend({ t: 'status', s: mode === 'local' ? (TUT.on ? 'tutorial' : 'practice') : 'menu', away: AWAY.on ? 1 : 0 }); }
+function awayCheck() {
+  const hidden = document.hidden || !document.hasFocus();
+  if (hidden && mode !== 'online') { if (AWAY.t == null) AWAY.t = Date.now(); else if (!AWAY.on && Date.now() - AWAY.t > AWAY.AFTER) { AWAY.on = true; sendStatus(); } }
+  else { AWAY.t = null; if (AWAY.on) { AWAY.on = false; sendStatus(); } }
+}
+setInterval(awayCheck, 5000); addEventListener('focus', awayCheck); addEventListener('blur', awayCheck); document.addEventListener('visibilitychange', awayCheck);
 function setScreens() {
   const inGame = mode !== 'menu';
   if (typeof renderRejoin === 'function' && $('rejoinBar')) renderRejoin();
-  socialSend({ t: 'status', s: mode === 'local' ? (TUT.on ? 'tutorial' : 'practice') : 'menu' }); // for friends' lists
+  if (typeof dmMini === 'function' && $('dmMini')) dmMini();
+  sendStatus(); // for friends' lists
   $('home').hidden = inGame;
   if (inGame) { for (const k of SUBS) $(k).hidden = true; $('gate').hidden = true; } else drawProfChip();
   $('coach').hidden = !(TUT.on || TR.on) || !inGame;
@@ -8253,9 +8317,10 @@ function socialConnect() {
   sock.onopen = () => { SOC.retry = 0; socialHello(); if (DM.open && DM.with) socialSend({ t: 'dm', op: 'open', with: DM.with }); };
   sock.onmessage = e => {
     let m; try { m = JSON.parse(e.data); } catch (err) { return; }
-    if (m.t === 'social') { SOC.st = m; if (m.party && m.party.mode) SOC.mode = m.party.mode; renderFind(); findBadge(); renderHomeFriends(); dmRenderList(); renderRejoin(); }
+    if (m.t === 'social') { SOC.st = m; if (m.online != null) setOnline(m.online); if (m.party && m.party.mode) SOC.mode = m.party.mode; renderFind(); findBadge(); renderHomeFriends(); dmRenderList(); renderRejoin(); }
     else if (m.t === 'note') notice(esc(m.msg), false);
     else if (m.t === 'partyReady') partyReadyNote(m);
+    else if (m.t === 'online') setOnline(m.n);
     else if (m.t === 'dm') dmGot(m);
     else if (m.t === 'dmHist') dmHist(m);
     else if (m.t === 'invite') showInvite(m);
@@ -8284,7 +8349,7 @@ function noteBotWin() {
 function socialSend(m) { if (SOC.ws && SOC.ws.readyState === 1) SOC.ws.send(JSON.stringify(m)); }
 // ---- friends on the main menu: who's online and what they're doing, with a quick join or invite
 const ACT_TEXT = f => ({ menu: 'Main menu', practice: 'Practising against bots', tutorial: 'Playing the tutorial', searching: `Finding a ${f.mode || ''} match`,
-  ranked: `In a ranked ${f.mode || ''} match`, watching: 'Watching a game', customLobby: `In a custom game lobby${f.n ? ` (${f.n}/${f.max})` : ''}`, custom: `Playing a custom game${f.n ? ` (${f.n}/${f.max})` : ''}` }[f.act] || 'Online');
+  ranked: `In a ranked ${f.mode || ''} match`, watching: 'Watching a game', away: 'Away', customLobby: `In a custom game lobby${f.n ? ` (${f.n}/${f.max})` : ''}`, custom: `Playing a custom game${f.n ? ` (${f.n}/${f.max})` : ''}` }[f.act] || 'Online');
 function renderHomeFriends() {
   const st = SOC.st, box = $('homeFriends');
   if (!st || !st.account) { box.hidden = true; return; }
@@ -8302,7 +8367,7 @@ function renderHomeFriends() {
   box.hidden = false;
   box.innerHTML = `<div class="frh"><b>Friends</b><span>${on.length} online</span>${fr.length ? `<button type="button" class="ghost sm hfmsg" data-hmsg="0">Messages${unread ? `<i class="dmn">${unread}</i>` : ''}</button>` : ''}</div>` +
     inReq.map(f => `<div class="frrow frreq"><i class="dot on"></i><div class="frn"><b>${esc(f.name)}</b><small>Wants to be friends</small></div><button type="button" class="ghost sm fracc" data-hacc="${f.id}">Accept</button><button type="button" class="ghost sm" data-hdec="${f.id}" aria-label="Decline">×</button></div>`).join('') +
-    (on.length ? on.map(f => `<div class="frrow"><i class="dot${f.inGame ? ' play' : ' on'}"></i><button type="button" class="frn" data-hpro="${esc(f.name)}" title="View ${esc(f.name)}'s profile"><b>${rankHtml(f.lv)}${flagHtml(f.cc)}${esc(f.name)}</b><small>${esc(ACT_TEXT(f))}</small></button>` +
+    (on.length ? on.map(f => `<div class="frrow"><i class="dot${f.inGame ? ' play' : f.act === 'away' ? ' away' : ' on'}"></i><button type="button" class="frn" data-hpro="${esc(f.name)}" title="View ${esc(f.name)}'s profile"><b>${rankHtml(f.lv)}${flagHtml(f.cc)}${esc(f.name)}</b><small>${esc(ACT_TEXT(f))}</small></button>` +
       (f.code && f.act === 'customLobby' ? `<button type="button" class="ghost sm" data-hjoin="${esc(f.code)}">Join</button>` : '') +
       (canWatch(f) ? `<button type="button" class="ghost sm" data-hwatch="${f.id}">Watch</button>` : '') +
       (lead && !inParty.has('u' + f.id) && !f.inGame && f.act !== 'searching' ? `<button type="button" class="ghost sm" data-hinv="${f.id}">Invite</button>` : '') +
@@ -8491,7 +8556,7 @@ function renderFind() {
   $('fgReq').innerHTML = st.inReq.map(f => `<div class="fr"><i class="dot"></i><b>${esc(f.name)}</b><small>Wants to be friends</small><div class="btnrow"><button class="cta sm" type="button" data-facc="${f.id}">Accept</button><button class="ghost sm" type="button" data-fdec="${f.id}">Decline</button></div></div>`).join('') +
     st.outReq.map(f => `<div class="fr"><i class="dot"></i><b>${esc(f.name)}</b><small>Request sent</small><div class="btnrow"><button class="ghost sm" type="button" data-fcan="${f.id}">Cancel</button></div></div>`).join('');
   const inParty = new Set((party ? party.members : []).map(p => p.key));
-  $('fgFriends').innerHTML = st.friends.length ? st.friends.sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name)).map(f => `<div class="fr"><i class="dot${f.inGame ? ' play' : f.online ? ' on' : ''}"></i><b><button type="button" class="linkbtn" data-fpro="${esc(f.name)}">${rankHtml(f.lv)}${flagHtml(f.cc)}${esc(f.name)}</button></b>` +
+  $('fgFriends').innerHTML = st.friends.length ? st.friends.sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name)).map(f => `<div class="fr"><i class="dot${f.inGame ? ' play' : f.act === 'away' ? ' away' : f.online ? ' on' : ''}"></i><b><button type="button" class="linkbtn" data-fpro="${esc(f.name)}">${rankHtml(f.lv)}${flagHtml(f.cc)}${esc(f.name)}</button></b>` +
     `<small>${f.online ? esc(ACT_TEXT(f)) : 'Offline'} · Rating ${f.elo}</small><div class="btnrow">` +
     (canWatch(f) ? `<button class="ghost sm" type="button" data-fwatch="${f.id}">Watch</button>` : '') +
     (f.online && lead && !inParty.has('u' + f.id) ? `<button class="ghost sm" type="button" data-finv="${f.id}">Invite</button>` : '') +
@@ -8549,6 +8614,7 @@ $('findScr').addEventListener('click', e => {
   else if (b.id === 'fgLeave') socialSend({ t: 'party', op: 'leave' });
   else if (b.id === 'fgReady') { const p = SOC.st && SOC.st.party; initAudio(); socialSend({ t: 'party', op: 'ready', on: !(p && (p.ready || []).includes(SOC.st.you)) }); }
 });
+function setOnline(n) { $('homeOnline').hidden = !(n > 0) || OFFLINE; $('homeOnlineN').textContent = n; }
 // dropped out of a ranked match (closed the tab, lost connection): a bar to get back in while it's still going
 function renderRejoin() { const r = SOC.st && SOC.st.rejoin; $('rejoinBar').hidden = !r || mode === 'online'; }
 $('rejoinGo').onclick = () => { const r = SOC.st && SOC.st.rejoin; if (!r) return; $('rejoinBar').hidden = true; closeSubs(); connect({ code: r.code }); };
@@ -8565,7 +8631,7 @@ const myUid = () => SOC.st && /^u\d+$/.test(SOC.st.you || '') ? +SOC.st.you.slic
 const dmFriend = id => ((SOC.st && SOC.st.friends) || []).find(f => f.id === id);
 function dmOpen(id) {
   if (!SOC.st || !SOC.st.account) { notice('Sign in to message friends.', false); return; }
-  DM.open = true; $('dmBox').hidden = false;
+  DM.open = true; $('dmBox').hidden = false; $('dmMini').hidden = true;
   if (!id) { // the conversation with the most unread, or the last one
     const fr = SOC.st.friends || [];
     const un = fr.filter(f => f.un).sort((a, b) => b.un - a.un)[0];
@@ -8573,7 +8639,14 @@ function dmOpen(id) {
   }
   dmSelect(id);
 }
-function dmClose() { DM.open = false; $('dmBox').hidden = true; socialSend({ t: 'dm', op: 'close' }); }
+function dmClose() { DM.open = false; DM.mini = true; $('dmBox').hidden = true; socialSend({ t: 'dm', op: 'close' }); dmMini(); }
+// the collapsed Messages button: shown after you've closed the panel, or whenever there's something unread
+function dmMini() {
+  const st = SOC.st, un = st && st.friends ? st.friends.reduce((n, f) => n + (f.un || 0), 0) : 0;
+  const show = !DM.open && st && st.account && (DM.mini || un > 0) && mode === 'menu';
+  $('dmMini').hidden = !show; $('dmMiniN').hidden = !un; $('dmMiniN').textContent = un;
+}
+$('dmMini').onclick = () => dmOpen(null);
 function dmSelect(id) {
   DM.with = id || null;
   $('dmBox').classList.toggle('conv', !!DM.with);
@@ -8583,18 +8656,19 @@ function dmSelect(id) {
   dmRenderList(); dmRenderLog(true);
 }
 function dmRenderList() {
+  dmMini();
   if (!DM.open || !SOC.st) return;
   const fr = (SOC.st.friends || []).slice().sort((a, b) => ((b.un > 0) - (a.un > 0)) || (b.online - a.online) || a.name.localeCompare(b.name));
   if (DM.with && !dmFriend(DM.with)) { DM.with = null; $('dmBox').classList.remove('conv'); $('dmIn').disabled = $('dmGo').disabled = true; dmRenderLog(true); }
   setC('dmList', JSON.stringify([fr.map(f => [f.id, f.name, f.online, f.inGame, f.un]), DM.with]), () => {
-    $('dmList').innerHTML = fr.length ? fr.map(f => `<button type="button" class="dmfr${f.id === DM.with ? ' on' : ''}" data-dm="${f.id}"><i class="dot${f.inGame ? ' play' : f.online ? ' on' : ''}"></i><span>${esc(f.name)}</span>${f.un && f.id !== DM.with ? `<i class="dmn">${f.un}</i>` : ''}</button>`).join('')
+    $('dmList').innerHTML = fr.length ? fr.map(f => `<button type="button" class="dmfr${f.id === DM.with ? ' on' : ''}" data-dm="${f.id}"><i class="dot${f.inGame ? ' play' : f.act === 'away' ? ' away' : f.online ? ' on' : ''}"></i><span>${esc(f.name)}</span>${f.un && f.id !== DM.with ? `<i class="dmn">${f.un}</i>` : ''}</button>`).join('')
       : '<div class="status" style="padding:0 12px">Add friends to message them.</div>';
   });
   const f = DM.with && dmFriend(DM.with);
   $('dmName').textContent = f ? f.name : 'Messages';
   if ($('dmBlock').dataset.for !== String(DM.with)) { $('dmBlock').dataset.for = String(DM.with); $('dmBlock').textContent = 'Block'; delete $('dmBlock').dataset.sure; }
   $('dmBlock').hidden = !f;
-  $('dmSub').textContent = f ? (f.inGame ? 'In a game' : f.online ? 'Online' : 'Offline · they\'ll see it next time they\'re on') : '';
+  $('dmSub').textContent = f ? (f.inGame ? 'In a game' : f.act === 'away' ? 'Away from the game' : f.online ? 'Online' : 'Offline · they\'ll see it next time they\'re on') : '';
 }
 const dmTime = t => { const d = new Date(t); return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); };
 const dmDay = t => { const d = new Date(t), n = new Date(); if (d.toDateString() === n.toDateString()) return 'Today'; n.setDate(n.getDate() - 1); if (d.toDateString() === n.toDateString()) return 'Yesterday'; return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: d.getFullYear() === n.getFullYear() ? undefined : 'numeric' }); };
@@ -9523,7 +9597,7 @@ $('scBody').addEventListener('click', e => { const b = e.target.closest('[data-s
 function syncOptions() {
   $('oVol').value = OPTS.vol; $('oVolN').textContent = OPTS.vol + '%'; $('oMute').value = muted ? '1' : '0';
   $('oRes').value = OPTS.res; $('oFx').value = OPTS.fx; $('oShadow').value = OPTS.shadow; $('oGlow').value = OPTS.glow; $('oMe').value = OPTS.me; $('oCb').value = OPTS.cb ? '1' : ''; $('oDetail').value = OPTS.detail; $('oPart').value = String(OPTS.part); $('oShake').value = OPTS.shake ? '1' : '0';
-  $('oDmg').value = OPTS.dmg; $('oGuide').value = OPTS.guide ? '1' : '0'; $('oNet').value = OPTS.net ? '1' : '0';
+  $('oDmg').value = OPTS.dmg; $('oGuide').value = !OPTS.guide ? '0' : OPTS.guideBold ? '2' : '1'; $('oNet').value = OPTS.net ? '1' : '0';
 }
 $('oRec').onclick = () => { PR.toggle(); $('oRec').textContent = PR.on ? 'Stop and save' : 'Start recording'; };
 $('oNet').onchange = () => { OPTS.net = $('oNet').value === '1'; store.set('bowfall-net', OPTS.net ? '1' : '0'); };
@@ -9540,7 +9614,7 @@ $('oDetail').onchange = () => { OPTS.detail = $('oDetail').value; store.set('bow
 $('oPart').onchange = () => { OPTS.part = +$('oPart').value; store.set('bowfall-part', OPTS.part); };
 $('oShake').onchange = () => { OPTS.shake = $('oShake').value === '1'; store.set('bowfall-shake', OPTS.shake ? '1' : '0'); };
 $('oDmg').onchange = () => { OPTS.dmg = $('oDmg').value; store.set('bowfall-dmgnum', OPTS.dmg); };
-$('oGuide').onchange = () => { OPTS.guide = $('oGuide').value === '1'; store.set('bowfall-guide', OPTS.guide ? '1' : '0'); };
+$('oGuide').onchange = () => { const v = $('oGuide').value; OPTS.guide = v !== '0'; OPTS.guideBold = v === '2'; store.set('bowfall-guide', v); };
 $('rmName').value = store.get('bowfall-room-name', '');
 $('rmPub').value = store.get('bowfall-room-pub', '1');
 $('rmMax').value = store.get('bowfall-room-max', '8');
@@ -12560,7 +12634,7 @@ function drawAimGuide(me, ang, charge) {
       const obj = PILLARS.some(q => Math.hypot(px - q.x, py - q.y) < q.r);
       if (obj || px < WALL || px > AW - WALL || py < WALL || py > AH - WALL) { stop = t; if (obj || t <= AIM_WALL_X) hit = t; break; }
     }
-    const end = stop ? Math.min(stop, 30 + len) : 30 + len, a0 = 0.12 + charge * 0.25;
+    const B = OPTS.guideBold, end = stop ? Math.min(stop, 30 + len) : 30 + len, a0 = B ? 0.45 + charge * 0.45 : 0.2 + charge * 0.35;
     const g = ctx.createLinearGradient(me.x + ax * 30, me.y + ay * 30, me.x + ax * end, me.y + ay * end);
     // strongest by the bow, fading with distance (by how far it is, not how long the line is) down to 30% at 700px
     const fade = d => a0 * Math.max(0.3, 1 - 0.7 * Math.min(1, (d - 30) / 700));
@@ -12568,11 +12642,16 @@ function drawAimGuide(me, ang, charge) {
     for (const k of [0.25, 0.5, 0.75]) g.addColorStop(k, `rgba(255,207,90,${fade(30 + (end - 30) * k)})`);
     if (hit) { const k = Math.max(0.76, 1 - 70 / Math.max(1, end - 30)); g.addColorStop(k, `rgba(255,207,90,${fade(30 + (end - 30) * k)})`); g.addColorStop(1, `rgba(255,70,60,${0.55 + charge * 0.35})`); }
     else g.addColorStop(1, `rgba(255,207,90,${fade(end)})`);
-    ctx.strokeStyle = g; ctx.lineWidth = hit ? 2 : 1.5; ctx.setLineDash([3, 7]);
-    ctx.beginPath(); ctx.moveTo(me.x + ax * 30, me.y + ay * 30); ctx.lineTo(me.x + ax * end, me.y + ay * end); ctx.stroke(); ctx.setLineDash([]);
+    // a dark edge under the gold dashes, so the line shows on any ground (pale sand and ice as well as grass)
+    const w = (hit ? 2 : 1.5) * (B ? 1.8 : 1);
+    ctx.setLineDash(B ? [6, 6] : [3, 7]); ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(me.x + ax * 30, me.y + ay * 30); ctx.lineTo(me.x + ax * end, me.y + ay * end);
+    ctx.strokeStyle = `rgba(12,14,10,${(B ? 0.6 : 0.4) * Math.min(1, a0 * 2.2)})`; ctx.lineWidth = w + (B ? 3 : 2.2); ctx.stroke();
+    ctx.strokeStyle = g; ctx.lineWidth = w; ctx.stroke(); ctx.setLineDash([]); ctx.lineCap = 'butt';
     if (hit && hit <= 30 + len) {
       const hx = me.x + ax * hit, hy = me.y + ay * hit;
-      ctx.strokeStyle = 'rgba(255,70,60,0.9)'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(hx - 6, hy - 6); ctx.lineTo(hx + 6, hy + 6); ctx.moveTo(hx + 6, hy - 6); ctx.lineTo(hx - 6, hy + 6); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(hx - 6, hy - 6); ctx.lineTo(hx + 6, hy + 6); ctx.moveTo(hx + 6, hy - 6); ctx.lineTo(hx - 6, hy + 6);
+      ctx.strokeStyle = 'rgba(12,14,10,0.6)'; ctx.lineWidth = 5; ctx.stroke(); ctx.strokeStyle = 'rgba(255,70,60,0.95)'; ctx.lineWidth = 2.5; ctx.stroke();
     }
   }
 }

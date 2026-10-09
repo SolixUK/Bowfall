@@ -286,7 +286,7 @@ In testing Master won 82% of games against Extreme, and each lower level wins ro
 
 **Colour-blind friendly colours:** Options → Colours swaps the teams to oranges and blues.
 
-**Friends in the game:** the Friends box on the main menu lists online and offline friends. Click a name for their profile (ratings, games, wins, favourite picks, achievements); **Chat** opens **Messages**, which also reach friends who are offline; **Watch** joins a friend's game as a spectator (ranked matches are watch-only). The messages are stored in the database (`dms` table), the newest 300 per conversation.
+**Friends in the game:** the Friends box on the main menu lists online, away (page out of view for a minute) and offline friends, and the main menu shows how many players are online. Click a name for their profile (ratings, games, wins, favourite picks, achievements); **Chat** opens **Messages**, which also reach friends who are offline; **Watch** joins a friend's game as a spectator (ranked matches are watch-only). The messages are stored in the database (`dms` table), the newest 300 per conversation.
 
 See **HOSTING.md** for step-by-step instructions: a free tunnel from your own computer (quickest), a permanent free site on Render (`render.yaml` is included for one-click setup), or the same Wi-Fi.
 

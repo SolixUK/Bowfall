@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.37.2';
+const VERSION = '0.38.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -3205,13 +3205,21 @@ function shotAt(a, p) {
   const t = (dx * a.vx + dy * a.vy) / v2; if (t <= 0 || t > 0.28) return false;
   return Math.hypot(a.x + a.vx * t - p.x, a.y + a.vy * t - p.y) < p.r + 8;
 }
+const inBog = (x, y, pad) => HAZ.some(h => h.type === 'tar' && inHaz(h, x, y, pad));
 function botReach(p) { return p.role === 'ninja' ? 1050 * OPT('aspeed') * 0.27 : p.role === 'crossbow' ? (p.xbowRange || XBOW_RANGE) - 30 : 900; }
+// how badly q outranges p: 0 for a bow against a bow, 1 for a crossbow (480) against a bow (900)
+const outranged = (p, q) => clamp((botReach(q) - botReach(p)) / 450, 0, 1);
+// can this archer shoot right now? (a crossbow mid-reload can't; everyone else always can)
+const loaded = p => p.role !== 'crossbow' || p.bolts > 0 || p.autoT > 0;
 // Planned positioning: score spots around the bot and head for the best one. A good spot is one where
 // no enemy's shot can knock us into anything deadly, our shot at the target would knock them into something,
 // we're at our preferred range with a clear line, and it's near a pickup worth having.
+// A short reach changes the sums: standing where the enemy can shoot us and we can't shoot back is the worst
+// place of all, however far from the lava it is, so the range terms grow with how badly we're outranged,
+// and until we're in reach a boulder between us and them counts for us, not against us.
 function botPlan(w, p, T, foes, mates, D, G) {
   const ai = p.ai, st = STYLES[ai.style] || STYLES.skirmisher;
-  const reach = botReach(p);
+  const reach = botReach(p), outg = T ? outranged(p, T) : 0, ready = loaded(p);
   const pref = Math.min(reach * 0.8, (st.near + st.far) / 2 * G.pref);
   const myKb = kbTravel(0.95, T ? T.mass : 1, p.kbMul) * G.kbScale;
   const cand = [[p.x, p.y]];
@@ -3229,20 +3237,29 @@ function botPlan(w, p, T, foes, mates, D, G) {
       const dx = x - q.x, dy = y - q.y, d = Math.hypot(dx, dy) || 1;
       if (d > 1100 || !clearShot(q.x, q.y, x, y)) continue;
       const threat = (q.drawing ? 0.5 + q.charge : 0.6) * (d < 500 ? 1 : 500 / d);
-      sc -= pushRisk(x, y, dx / d, dy / d, kbTravel(q.drawing ? Math.max(0.7, q.charge) : 0.9, p.mass, q.kbMul) * G.kbScale, p.r) * threat * 3 * G.safety;
+      // out of our reach but inside theirs: a free shot for them. Worse the more they outrange us, and the
+      // knockback worry matters a little less there, because hanging back isn't an answer to it
+      const og = outranged(p, q), free = d > reach && d < botReach(q) + 60 ? og : 0;
+      sc -= pushRisk(x, y, dx / d, dy / d, kbTravel(q.drawing ? Math.max(0.7, q.charge) : 0.9, p.mass, q.kbMul) * G.kbScale, p.r) * threat * 3 * G.safety * (1 - 0.35 * free);
+      sc -= (0.4 + 0.8 * og) * threat * free;
     }
     if (T) {
       const dx = T.x - x, dy = T.y - y, d = Math.hypot(dx, dy) || 1, los = clearShot(x, y, T.x, T.y);
-      sc -= Math.abs(d - pref) / 300 * G.pref;
-      if (d > reach) sc -= (d - reach) / 120;
-      if (los) { sc += 0.4 * G.los; sc += pushRisk(T.x, T.y, dx / d, dy / d, myKb, T.r) * 1.6 * G.push; }
+      // (chasing someone who's backing off: measure to where they're heading, so we cut the corner rather than trail them)
+      const dl = outg > 0 && d > reach ? Math.hypot(T.x + T.vx * 0.5 - x, T.y + T.vy * 0.5 - y) : d;
+      sc -= Math.abs(dl - pref) / 300 * G.pref;
+      if (dl > reach) sc -= (dl - reach) / 120 * (1 + 1.5 * outg);
+      if (los) { if (ready) sc += 0.4 * G.los; sc += pushRisk(T.x, T.y, dx / d, dy / d, myKb, T.r) * 1.6 * G.push; }
+      else if (d > reach && outg > 0) sc += 0.35 * outg; // cover on the way in
+      else if (!ready) sc += 0.45; // reloading: a boulder to duck behind is worth more than a line of sight
       else sc -= 0.3 * G.los;
     }
     // amber and powerups nearby
     for (const u of w.pickups) {
       const du = Math.hypot(u.x - x, u.y - y);
-      if (du < 260) sc += (u.chan ? 0.9 : u.type === 'amber' ? 0.5 : 0.8) * (1 - du / 260) * G.pick;
+      if (du < 260 && !inBog(u.x, u.y, 30)) sc += (u.chan ? 0.9 : u.type === 'amber' ? 0.5 : 0.8) * (1 - du / 260) * G.pick;
     }
+    if (inBog(x, y, p.r)) sc -= 0.6; // slow, and no dashing out of trouble
     if (HEAL && p.hp < p.maxHp * 0.6) { const dh = Math.hypot(HEAL.x - x, HEAL.y - y); if (dh < HEAL.r) sc += 0.8 * G.heal * (1 - p.hp / p.maxHp); }
     // don't stand on a teammate
     for (const m of mates) { const dm = Math.hypot(m.x - x, m.y - y); if (dm < 110) sc -= (110 - dm) / 110 * 0.5; }
@@ -3254,8 +3271,29 @@ function botPlan(w, p, T, foes, mates, D, G) {
   // arrive and settle (allowing for momentum), with a little side-to-side jink so we're not a sitting duck
   if (gl > 1) { gx /= gl; gy /= gl; } else { gx = gy = 0; }
   const k = Math.min(1, gl / 40); gx = gx * k - p.vx / 400; gy = gy * k - p.vy / 400;
-  if (T) { const dx = T.x - p.x, dy = T.y - p.y, d = Math.hypot(dx, dy) || 1; gx += -dy / d * ai.strafe * G.jink; gy += dx / d * ai.strafe * G.jink; }
+  if (T) { const dx = T.x - p.x, dy = T.y - p.y, d = Math.hypot(dx, dy) || 1, jink = G.jink * (d > reach ? 1 - 0.5 * outg : 1); gx += -dy / d * ai.strafe * jink; gy += dx / d * ai.strafe * jink; } // (less weaving while there's a gap to close)
   return [gx, gy];
+}
+// Closing the gap: a short-reach archer (crossbow, shuriken) walking in under a bow's fire gets picked apart, so
+// once the last stretch is a dash away they dash it, a little off the straight line so the shot waiting for them
+// misses. Never into anything deadly or through a boulder, and not while a shot is about to land (that dash is the
+// dodge's). Keener the better the bot: easy bots mostly still walk.
+function botCloseIn(w, p, T, dT, reach, D, dt) {
+  const ai = p.ai; ai.closeCd = (ai.closeCd || 0) - dt;
+  const outg = outranged(p, T);
+  const dd = p.role === 'ninja' ? NINJA_BLINK * (has(p, 'longstep') ? 1.4 : 1) : 250;
+  if (!outg || !(p.dashN > 0) || ai.closeCd > 0 || dT < reach * 0.9 || dT > reach * 0.9 + dd || !loaded(p)) return;
+  if (Math.random() > dt * (0.4 + D.dodge * 1.5 + (D.iq || 0) * 2) * outg) return;
+  if (incoming(w, p, 0.4)) return;
+  // the sharper bots time it: not into a bow that's drawn and waiting, but the moment after it looses, while it's being drawn again
+  if ((D.iq || 0) > 0.3 && T.drawing && T.charge > 0.4) return;
+  const ang = Math.atan2(T.y - p.y, T.x - p.x) + ai.strafe * 0.3;
+  const ex = p.x + Math.cos(ang) * dd, ey = p.y + Math.sin(ang) * dd;
+  if (p.role !== 'ninja') { // a dash slides across the ground: every point along it has to be safe, and clear of boulders
+    for (const s of [0.3, 0.6, 0.85, 1, 1.25]) if (lethalDist(p.x + Math.cos(ang) * dd * s, p.y + Math.sin(ang) * dd * s) < p.r + 30) return;
+    if (!clearShot(p.x, p.y, ex, ey)) return;
+  } else if (lethalDist(ex, ey) < p.r + 20) return; // a blink only has to land somewhere safe
+  p.wantDash = true; ai.dashAim = ang; ai.closeCd = rand(1, 2.2);
 }
 // Reading incoming shots: the soonest one that will hit, and the safer side to step to
 function incoming(w, p, horizon) {
@@ -3310,11 +3348,12 @@ function botThink(w, p, dt) {
   let gx = 0, gy = 0;
   const dT = T ? Math.hypot(T.x - p.x, T.y - p.y) : Infinity;
   // amber is worth a detour; a teammate already heading there means leave it
+  // (one lying in a bog is left alone: the steering won't walk into the bog, so a bot wanting it would only dither at the edge)
   const pk = w.pickups.reduce((best, u) => {
     const d = Math.hypot(u.x - p.x, u.y - p.y);
     const range = u.type === 'amber' ? 380 : 320;
     const mateCloser = mates.some(m => Math.hypot(u.x - m.x, u.y - m.y) < d * 0.8);
-    return d < range && !mateCloser && (!best || d < best.d) ? { u, d } : best;
+    return d < range && !mateCloser && !inBog(u.x, u.y, 30) && (!best || d < best.d) ? { u, d } : best;
   }, null);
   ai.strafeT -= dt;
   if (ai.strafeT <= 0) { ai.strafe *= -1; ai.strafeT = rand(0.9, 2.4); }
@@ -3339,7 +3378,7 @@ function botThink(w, p, dt) {
   } else if (hurtBad) {
     if (healD > HEAL.r * 0.5) { gx = (HEAL.x - p.x) / healD; gy = (HEAL.y - p.y) / healD; }
     else { gx = -(p.y - HEAL.y) / (healD || 1) * ai.strafe * 0.4; gy = (p.x - HEAL.x) / (healD || 1) * ai.strafe * 0.4; }
-  } else if (pk && !pk.u.chan && (!T || pk.d < dT * 1.2) && iq < 0.5) {
+  } else if (pk && !pk.u.chan && (!T || pk.d < dT * (1.2 - outranged(p, T))) && iq < 0.5) { // (someone being outranged has no time for detours)
     gx = (pk.u.x - p.x) / pk.d; gy = (pk.u.y - p.y) / pk.d;
   } else if (plan) {
     [gx, gy] = plan;
@@ -3350,14 +3389,23 @@ function botThink(w, p, dt) {
       const ang = Math.atan2(T.y - p.y, T.x - p.x);
       if (pushRisk(T.x, T.y, Math.cos(ang), Math.sin(ang), 200, T.r) > 0.6 && lethalDist(p.x + Math.cos(ang) * (dT + 40), p.y + Math.sin(ang) * (dT + 40)) > 60) { p.wantDash = true; ai.dashAim = ang; ai.bashCd = rand(1.5, 3); }
     }
+    if (!p.wantDash) botCloseIn(w, p, T, dT, botReach(p), D, dt);
   } else if (T) {
     // keep the distance this bot's playstyle likes; aggressive bots close in, cautious ones hang back
     const st = STYLES[ai.style] || STYLES.skirmisher, ag = ai.aggr == null ? 0.6 : ai.aggr;
-    const near = st.near * (1.3 - ag * 0.6), far = st.far * (1.25 - ag * 0.5);
+    // (the playstyles are a bow's distances: a shorter reach caps them, or a crossbowman would stand where his bolts drop short)
+    const reach = botReach(p), outg = outranged(p, T);
+    const near = Math.min(st.near * (1.3 - ag * 0.6), reach * 0.55), far = Math.min(st.far * (1.25 - ag * 0.5), reach * 0.88);
     const dx = T.x - p.x, dy = T.y - p.y, d = dT || 1, ux = dx / d, uy = dy / d;
-    const shaky = p.hp < p.maxHp * 0.35 && ag < 0.65 && d < far * 1.2;
+    // (backing off from someone who outranges you only means being shot in the back: the outgunned stand their ground unless nearly dead)
+    const shaky = p.hp < p.maxHp * (outg > 0.5 ? 0.15 : 0.35) && ag < 0.65 && d < far * 1.2;
     if (shaky || d < near) { gx = -ux; gy = -uy; }
-    else if (d > far || !clearShot(p.x, p.y, T.x, T.y)) { gx = ux * 0.8 - uy * ai.strafe * 0.5; gy = uy * 0.8 + ux * ai.strafe * 0.5; }
+    else if (d > far || !clearShot(p.x, p.y, T.x, T.y)) {
+      // close in with a weave; the outranged weave less, or someone walking backward keeps them out of reach for good
+      const fwd = d > reach ? 0.8 + 0.2 * outg : 0.8, side = 0.5 - 0.25 * (d > reach ? outg : 0);
+      gx = ux * fwd - uy * ai.strafe * side; gy = uy * fwd + ux * ai.strafe * side;
+      botCloseIn(w, p, T, d, reach, D, dt);
+    }
     else { gx = -uy * ai.strafe; gy = ux * ai.strafe; }
     // guardians stay close to their team
     if (st.mates && mates.length) {
@@ -3482,7 +3530,9 @@ function botThink(w, p, dt) {
     inp.draw = p.autoT > 0 ? want : want && !inp.draw; // bots click too (and just hold on full auto)
   } else if (p.role === 'crossbow') {
     // bolts: shoot when lined up and close enough for the bolt to arrive
-    const want = los && onTarget && dT < (p.xbowRange || XBOW_RANGE) - 30 && T.inv <= 0 && (p.autoT > 0 || (p.bolts > 0 && ai.reload <= 0));
+    // a bolt drops out of the air at its range, so against someone backing away allow for how far they'll get while it flies
+    const ux = (T.x - p.x) / (dT || 1), uy = (T.y - p.y) / (dT || 1), away = Math.max(0, (T.vx - p.vx) * ux + (T.vy - p.vy) * uy), dEff = dT + away * dT / shotSpeed(p, 1);
+    const want = los && onTarget && dEff < (p.xbowRange || XBOW_RANGE) - 30 && T.inv <= 0 && (p.autoT > 0 || (p.bolts > 0 && ai.reload <= 0));
     if (p.autoT > 0) inp.draw = want; // full auto: just hold
     else { inp.draw = want && !inp.draw; if (want) ai.reload = rand(0.05, 0.25) + D.react * 0.5; }
   } else if (!inp.draw) {

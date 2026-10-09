@@ -2,6 +2,19 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.38.0
+
+- **Bots and AI players play short-range roles properly.** A Crossbowman (or Ninja) bot used to hang back where it was safest, which was out of its own range, and could go a whole game without firing. Bots now weigh being outranged much more heavily: they approach behind boulders, dash the last stretch when it lands them in range (never into a hazard, and not into a drawn bow), fire using where a retreating target will be, and keep cover while reloading. Easy bots do this rarely, master bots constantly. Bow roles' behaviour is unchanged. In bot-vs-bot tests a mid-skill Crossbowman's time in range went from 40% to 56% and its win rate against a Ranger from 42% to 59%.
+- Fixed a bot bug on every role: a pickup lying in a bog made bots dither at the bog's edge for seconds.
+- **Away status:** friends show as Away (amber dot) once their game has been out of view for a minute (another tab or window), unless they're in an online match.
+- **Players online** count on the main menu.
+- **Messages collapse** to a small Messages button in the corner when closed, with the unread count; it also appears on its own when a message arrives.
+
+## 0.37.3
+
+- **Aim guide line easier to see:** it now has a dark edge under the gold dashes and is a little stronger, so it shows on pale ground (Tide Cove's sand) as well as grass. The red X where a shot would hit a boulder or a close wall has the same edge.
+- **Options → Aim guide line → Bold:** a thicker, brighter line with longer dashes, for anyone who wants it plainer still.
+
 ## 0.37.2
 
 - **Real profile pictures on the website:** the website profile now draws your picture with the game's own archer drawing (borrowed from a hidden copy of the game page), so it matches what you see in the game.

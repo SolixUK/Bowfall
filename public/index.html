@@ -459,6 +459,9 @@
   .clipview .cvbtns { display: flex; gap: 8px; }
   body.clipmode #home, body.clipmode .overlay.sub, body.clipmode #gate, body.clipmode .rejoinbar, body.clipmode #homeFriends, body.clipmode .hud-l, body.clipmode .hud-r, body.clipmode #powers, body.clipmode #abil, body.clipmode #board { display: none !important; }
   body.clipembed #clipView { bottom: 8px; padding: 6px 10px; } body.clipembed #cvClose { display: none; }
+  .online { display: inline-flex; align-items: center; gap: 7px; margin-top: 6px; font: 600 13px 'Titillium Web', 'Segoe UI', sans-serif; color: var(--muted); } .online i { width: 8px; height: 8px; border-radius: 50%; background: #7dff8a; box-shadow: 0 0 8px #7dff8a; } .online b { color: var(--text); }
+  .dmmini { position: fixed; z-index: 16; right: 16px; bottom: 16px; display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; background: rgba(9,18,11,.95); border: 1px solid var(--line); border-top: 2px solid var(--gold); color: var(--text); font: 700 14px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .04em; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+  .dmmini:hover { border-color: var(--gold); } .dmmini .dmn { margin: 0; }
   .rejoinbar { position: fixed; z-index: 17; left: 50%; top: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: rgba(9,18,11,.97); border: 1px solid var(--gold); box-shadow: 0 8px 24px rgba(0,0,0,.5); font: 600 14px 'Titillium Web', 'Segoe UI', sans-serif; max-width: calc(100vw - 32px); box-sizing: border-box; }
   .invite { position: fixed; z-index: 15; right: 16px; bottom: 16px; max-width: 320px; padding: 12px 14px; background: rgba(9,18,11,.96); border: 1px solid var(--gold); display: flex; flex-direction: column; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
   .invite[hidden] { display: none; }
@@ -508,7 +511,7 @@
   .frpanel .frh { display: flex; justify-content: space-between; align-items: baseline; font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; }
   .frpanel .frh span { font: 500 12px 'Titillium Web', sans-serif; color: #7dff8a; }
   .frrow { display: flex; align-items: center; gap: 8px; }
-  .frrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; } .frrow .dot.on { background: #7dff8a; } .frrow .dot.play { background: var(--gold); }
+  .frrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; } .frrow .dot.on { background: #7dff8a; } .frrow .dot.play { background: var(--gold); } .frrow .dot.away, .fr .dot.away, .dmfr .dot.away { background: #ffb347; box-shadow: inset 0 0 0 2px rgba(9,18,11,.9); }
   .frrow .frn { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; background: none; border: 0; padding: 0; color: inherit; text-align: left; cursor: pointer; font: inherit; }
   .frrow .frn:hover b { text-decoration: underline; text-decoration-color: var(--line); }
   .frrow.froff { opacity: .62; }
@@ -1039,7 +1042,7 @@
         <div class="lpbox"><div class="lplist" id="lpList"></div><button type="button" class="ghost sm" id="lpAdd" title="Another player with their own controller, on this screen">+ Add player on controller</button></div>
         <div class="frpanel" id="homeFriends" hidden></div>
       </div>
-      <div class="hometitle"><span class="eyebrow">Knockback archery · Team rounds</span><h1>Bow<span>fall</span></h1></div>
+      <div class="hometitle"><span class="eyebrow">Knockback archery · Team rounds</span><h1>Bow<span>fall</span></h1><div class="online" id="homeOnline" hidden><i></i><b id="homeOnlineN">0</b> online</div></div>
       <nav class="mainmenu" aria-label="Main menu">
         <button class="mm" id="mFind" type="button"><span class="mmk">01</span><b>Find game</b><small>Ranked matchmaking by rating: 1v1, 2v2 or 3v3, on your own or with friends.</small><em class="mmlock" id="mFindBadge" hidden></em></button>
         <button class="mm" id="mCustom" type="button"><span class="mmk">02</span><b>Custom games</b><small>Browse public games, join with a code, host your own, practise against bots, or build your own arena.</small></button>
@@ -1132,6 +1135,7 @@
   <div class="rotatehint" id="rotateHint" hidden>Turn your phone sideways to play</div>
   <div class="clipbar" id="clipBar" hidden><span id="clipTxt">Your kill cam</span><button class="ghost sm" type="button" id="clipSave">Save video</button><button class="ghost sm" type="button" id="clipFeat">Show on my profile</button><button class="ghost sm" type="button" id="clipX" aria-label="Close">×</button></div>
   <div class="clipview" id="clipView" hidden><div class="cvhead"><b id="cvTitle">Kill cam</b><small id="cvSub"></small></div><div class="cvbtns"><button class="ghost sm" type="button" id="cvAgain" hidden>Watch again</button><button class="ghost sm" type="button" id="cvSave" hidden>Save video</button><button class="cta sm" type="button" id="cvClose">Close</button></div></div>
+  <button type="button" class="dmmini" id="dmMini" hidden>Messages <i class="dmn" id="dmMiniN" hidden>0</i></button>
   <div class="rejoinbar" id="rejoinBar" hidden><span>Your ranked match is still going.</span><button class="cta sm" type="button" id="rejoinGo">Rejoin</button></div>
   <div class="invite" id="inviteToast" hidden><span id="inviteText"></span><div class="btnrow"><button class="cta sm" id="inviteYes" type="button">Join party</button><button class="ghost sm" id="inviteNo" type="button">No thanks</button></div></div>
   <div class="overlay sub" id="customScr" hidden>
@@ -1262,7 +1266,7 @@
         </section>
         <section class="mode" data-navsec><h3>Gameplay</h3>
           <div class="field"><label for="oDmg">Damage numbers</label><select id="oDmg"><option value="all">Everyone's</option><option value="mine">Only mine (and damage to me)</option><option value="off">Off</option></select></div>
-          <div class="field"><label for="oGuide">Aim guide line</label><select id="oGuide"><option value="1">On</option><option value="0">Off</option></select></div>
+          <div class="field"><label for="oGuide">Aim guide line</label><select id="oGuide"><option value="1">On</option><option value="2">Bold (easier to see)</option><option value="0">Off</option></select></div>
         </section>
       </div>
     </div>
@@ -1511,7 +1515,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.37.2"></script>
+<script src="sim.js?v=0.38.0"></script>
 <script>
 (() => {
 'use strict';
@@ -1519,7 +1523,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.37.2';
+const PAGE_VERSION = '0.38.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -1833,7 +1837,7 @@ const sfx = {
 };
 const syncMute = () => { $('muteBtn').textContent = muted ? 'Sound off' : 'Sound on'; const m = $('oMute'); if (m) m.value = muted ? '1' : '0'; };
 // options, kept in this browser
-const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') === '1', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), me: store.get('bowfall-me', 'strong'), detail: store.get('bowfall-detail', 'full'), cb: store.get('bowfall-cb', '') === '1' };
+const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') !== '0', guideBold: store.get('bowfall-guide', '1') === '2', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), me: store.get('bowfall-me', 'strong'), detail: store.get('bowfall-detail', 'full'), cb: store.get('bowfall-cb', '') === '1' };
 cbApply();
 const outNode = () => { if (!AC.master) { AC.master = AC.createGain(); AC.master.connect(AC.destination); } AC.master.gain.value = OPTS.vol / 100; return AC.master; };
 syncMute();
@@ -2305,10 +2309,20 @@ function resize() {
 }
 
 // ================= flow =================
+// what you're doing, for your friends' lists; "away" once the page has been out of view (another tab or window) for a while
+const AWAY = { t: null, on: false, AFTER: 60000 };
+function sendStatus() { socialSend({ t: 'status', s: mode === 'local' ? (TUT.on ? 'tutorial' : 'practice') : 'menu', away: AWAY.on ? 1 : 0 }); }
+function awayCheck() {
+  const hidden = document.hidden || !document.hasFocus();
+  if (hidden && mode !== 'online') { if (AWAY.t == null) AWAY.t = Date.now(); else if (!AWAY.on && Date.now() - AWAY.t > AWAY.AFTER) { AWAY.on = true; sendStatus(); } }
+  else { AWAY.t = null; if (AWAY.on) { AWAY.on = false; sendStatus(); } }
+}
+setInterval(awayCheck, 5000); addEventListener('focus', awayCheck); addEventListener('blur', awayCheck); document.addEventListener('visibilitychange', awayCheck);
 function setScreens() {
   const inGame = mode !== 'menu';
   if (typeof renderRejoin === 'function' && $('rejoinBar')) renderRejoin();
-  socialSend({ t: 'status', s: mode === 'local' ? (TUT.on ? 'tutorial' : 'practice') : 'menu' }); // for friends' lists
+  if (typeof dmMini === 'function' && $('dmMini')) dmMini();
+  sendStatus(); // for friends' lists
   $('home').hidden = inGame;
   if (inGame) { for (const k of SUBS) $(k).hidden = true; $('gate').hidden = true; } else drawProfChip();
   $('coach').hidden = !(TUT.on || TR.on) || !inGame;
@@ -3905,9 +3919,10 @@ function socialConnect() {
   sock.onopen = () => { SOC.retry = 0; socialHello(); if (DM.open && DM.with) socialSend({ t: 'dm', op: 'open', with: DM.with }); };
   sock.onmessage = e => {
     let m; try { m = JSON.parse(e.data); } catch (err) { return; }
-    if (m.t === 'social') { SOC.st = m; if (m.party && m.party.mode) SOC.mode = m.party.mode; renderFind(); findBadge(); renderHomeFriends(); dmRenderList(); renderRejoin(); }
+    if (m.t === 'social') { SOC.st = m; if (m.online != null) setOnline(m.online); if (m.party && m.party.mode) SOC.mode = m.party.mode; renderFind(); findBadge(); renderHomeFriends(); dmRenderList(); renderRejoin(); }
     else if (m.t === 'note') notice(esc(m.msg), false);
     else if (m.t === 'partyReady') partyReadyNote(m);
+    else if (m.t === 'online') setOnline(m.n);
     else if (m.t === 'dm') dmGot(m);
     else if (m.t === 'dmHist') dmHist(m);
     else if (m.t === 'invite') showInvite(m);
@@ -3936,7 +3951,7 @@ function noteBotWin() {
 function socialSend(m) { if (SOC.ws && SOC.ws.readyState === 1) SOC.ws.send(JSON.stringify(m)); }
 // ---- friends on the main menu: who's online and what they're doing, with a quick join or invite
 const ACT_TEXT = f => ({ menu: 'Main menu', practice: 'Practising against bots', tutorial: 'Playing the tutorial', searching: `Finding a ${f.mode || ''} match`,
-  ranked: `In a ranked ${f.mode || ''} match`, watching: 'Watching a game', customLobby: `In a custom game lobby${f.n ? ` (${f.n}/${f.max})` : ''}`, custom: `Playing a custom game${f.n ? ` (${f.n}/${f.max})` : ''}` }[f.act] || 'Online');
+  ranked: `In a ranked ${f.mode || ''} match`, watching: 'Watching a game', away: 'Away', customLobby: `In a custom game lobby${f.n ? ` (${f.n}/${f.max})` : ''}`, custom: `Playing a custom game${f.n ? ` (${f.n}/${f.max})` : ''}` }[f.act] || 'Online');
 function renderHomeFriends() {
   const st = SOC.st, box = $('homeFriends');
   if (!st || !st.account) { box.hidden = true; return; }
@@ -3954,7 +3969,7 @@ function renderHomeFriends() {
   box.hidden = false;
   box.innerHTML = `<div class="frh"><b>Friends</b><span>${on.length} online</span>${fr.length ? `<button type="button" class="ghost sm hfmsg" data-hmsg="0">Messages${unread ? `<i class="dmn">${unread}</i>` : ''}</button>` : ''}</div>` +
     inReq.map(f => `<div class="frrow frreq"><i class="dot on"></i><div class="frn"><b>${esc(f.name)}</b><small>Wants to be friends</small></div><button type="button" class="ghost sm fracc" data-hacc="${f.id}">Accept</button><button type="button" class="ghost sm" data-hdec="${f.id}" aria-label="Decline">×</button></div>`).join('') +
-    (on.length ? on.map(f => `<div class="frrow"><i class="dot${f.inGame ? ' play' : ' on'}"></i><button type="button" class="frn" data-hpro="${esc(f.name)}" title="View ${esc(f.name)}'s profile"><b>${rankHtml(f.lv)}${flagHtml(f.cc)}${esc(f.name)}</b><small>${esc(ACT_TEXT(f))}</small></button>` +
+    (on.length ? on.map(f => `<div class="frrow"><i class="dot${f.inGame ? ' play' : f.act === 'away' ? ' away' : ' on'}"></i><button type="button" class="frn" data-hpro="${esc(f.name)}" title="View ${esc(f.name)}'s profile"><b>${rankHtml(f.lv)}${flagHtml(f.cc)}${esc(f.name)}</b><small>${esc(ACT_TEXT(f))}</small></button>` +
       (f.code && f.act === 'customLobby' ? `<button type="button" class="ghost sm" data-hjoin="${esc(f.code)}">Join</button>` : '') +
       (canWatch(f) ? `<button type="button" class="ghost sm" data-hwatch="${f.id}">Watch</button>` : '') +
       (lead && !inParty.has('u' + f.id) && !f.inGame && f.act !== 'searching' ? `<button type="button" class="ghost sm" data-hinv="${f.id}">Invite</button>` : '') +
@@ -4143,7 +4158,7 @@ function renderFind() {
   $('fgReq').innerHTML = st.inReq.map(f => `<div class="fr"><i class="dot"></i><b>${esc(f.name)}</b><small>Wants to be friends</small><div class="btnrow"><button class="cta sm" type="button" data-facc="${f.id}">Accept</button><button class="ghost sm" type="button" data-fdec="${f.id}">Decline</button></div></div>`).join('') +
     st.outReq.map(f => `<div class="fr"><i class="dot"></i><b>${esc(f.name)}</b><small>Request sent</small><div class="btnrow"><button class="ghost sm" type="button" data-fcan="${f.id}">Cancel</button></div></div>`).join('');
   const inParty = new Set((party ? party.members : []).map(p => p.key));
-  $('fgFriends').innerHTML = st.friends.length ? st.friends.sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name)).map(f => `<div class="fr"><i class="dot${f.inGame ? ' play' : f.online ? ' on' : ''}"></i><b><button type="button" class="linkbtn" data-fpro="${esc(f.name)}">${rankHtml(f.lv)}${flagHtml(f.cc)}${esc(f.name)}</button></b>` +
+  $('fgFriends').innerHTML = st.friends.length ? st.friends.sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name)).map(f => `<div class="fr"><i class="dot${f.inGame ? ' play' : f.act === 'away' ? ' away' : f.online ? ' on' : ''}"></i><b><button type="button" class="linkbtn" data-fpro="${esc(f.name)}">${rankHtml(f.lv)}${flagHtml(f.cc)}${esc(f.name)}</button></b>` +
     `<small>${f.online ? esc(ACT_TEXT(f)) : 'Offline'} · Rating ${f.elo}</small><div class="btnrow">` +
     (canWatch(f) ? `<button class="ghost sm" type="button" data-fwatch="${f.id}">Watch</button>` : '') +
     (f.online && lead && !inParty.has('u' + f.id) ? `<button class="ghost sm" type="button" data-finv="${f.id}">Invite</button>` : '') +
@@ -4201,6 +4216,7 @@ $('findScr').addEventListener('click', e => {
   else if (b.id === 'fgLeave') socialSend({ t: 'party', op: 'leave' });
   else if (b.id === 'fgReady') { const p = SOC.st && SOC.st.party; initAudio(); socialSend({ t: 'party', op: 'ready', on: !(p && (p.ready || []).includes(SOC.st.you)) }); }
 });
+function setOnline(n) { $('homeOnline').hidden = !(n > 0) || OFFLINE; $('homeOnlineN').textContent = n; }
 // dropped out of a ranked match (closed the tab, lost connection): a bar to get back in while it's still going
 function renderRejoin() { const r = SOC.st && SOC.st.rejoin; $('rejoinBar').hidden = !r || mode === 'online'; }
 $('rejoinGo').onclick = () => { const r = SOC.st && SOC.st.rejoin; if (!r) return; $('rejoinBar').hidden = true; closeSubs(); connect({ code: r.code }); };
@@ -4217,7 +4233,7 @@ const myUid = () => SOC.st && /^u\d+$/.test(SOC.st.you || '') ? +SOC.st.you.slic
 const dmFriend = id => ((SOC.st && SOC.st.friends) || []).find(f => f.id === id);
 function dmOpen(id) {
   if (!SOC.st || !SOC.st.account) { notice('Sign in to message friends.', false); return; }
-  DM.open = true; $('dmBox').hidden = false;
+  DM.open = true; $('dmBox').hidden = false; $('dmMini').hidden = true;
   if (!id) { // the conversation with the most unread, or the last one
     const fr = SOC.st.friends || [];
     const un = fr.filter(f => f.un).sort((a, b) => b.un - a.un)[0];
@@ -4225,7 +4241,14 @@ function dmOpen(id) {
   }
   dmSelect(id);
 }
-function dmClose() { DM.open = false; $('dmBox').hidden = true; socialSend({ t: 'dm', op: 'close' }); }
+function dmClose() { DM.open = false; DM.mini = true; $('dmBox').hidden = true; socialSend({ t: 'dm', op: 'close' }); dmMini(); }
+// the collapsed Messages button: shown after you've closed the panel, or whenever there's something unread
+function dmMini() {
+  const st = SOC.st, un = st && st.friends ? st.friends.reduce((n, f) => n + (f.un || 0), 0) : 0;
+  const show = !DM.open && st && st.account && (DM.mini || un > 0) && mode === 'menu';
+  $('dmMini').hidden = !show; $('dmMiniN').hidden = !un; $('dmMiniN').textContent = un;
+}
+$('dmMini').onclick = () => dmOpen(null);
 function dmSelect(id) {
   DM.with = id || null;
   $('dmBox').classList.toggle('conv', !!DM.with);
@@ -4235,18 +4258,19 @@ function dmSelect(id) {
   dmRenderList(); dmRenderLog(true);
 }
 function dmRenderList() {
+  dmMini();
   if (!DM.open || !SOC.st) return;
   const fr = (SOC.st.friends || []).slice().sort((a, b) => ((b.un > 0) - (a.un > 0)) || (b.online - a.online) || a.name.localeCompare(b.name));
   if (DM.with && !dmFriend(DM.with)) { DM.with = null; $('dmBox').classList.remove('conv'); $('dmIn').disabled = $('dmGo').disabled = true; dmRenderLog(true); }
   setC('dmList', JSON.stringify([fr.map(f => [f.id, f.name, f.online, f.inGame, f.un]), DM.with]), () => {
-    $('dmList').innerHTML = fr.length ? fr.map(f => `<button type="button" class="dmfr${f.id === DM.with ? ' on' : ''}" data-dm="${f.id}"><i class="dot${f.inGame ? ' play' : f.online ? ' on' : ''}"></i><span>${esc(f.name)}</span>${f.un && f.id !== DM.with ? `<i class="dmn">${f.un}</i>` : ''}</button>`).join('')
+    $('dmList').innerHTML = fr.length ? fr.map(f => `<button type="button" class="dmfr${f.id === DM.with ? ' on' : ''}" data-dm="${f.id}"><i class="dot${f.inGame ? ' play' : f.act === 'away' ? ' away' : f.online ? ' on' : ''}"></i><span>${esc(f.name)}</span>${f.un && f.id !== DM.with ? `<i class="dmn">${f.un}</i>` : ''}</button>`).join('')
       : '<div class="status" style="padding:0 12px">Add friends to message them.</div>';
   });
   const f = DM.with && dmFriend(DM.with);
   $('dmName').textContent = f ? f.name : 'Messages';
   if ($('dmBlock').dataset.for !== String(DM.with)) { $('dmBlock').dataset.for = String(DM.with); $('dmBlock').textContent = 'Block'; delete $('dmBlock').dataset.sure; }
   $('dmBlock').hidden = !f;
-  $('dmSub').textContent = f ? (f.inGame ? 'In a game' : f.online ? 'Online' : 'Offline · they\'ll see it next time they\'re on') : '';
+  $('dmSub').textContent = f ? (f.inGame ? 'In a game' : f.act === 'away' ? 'Away from the game' : f.online ? 'Online' : 'Offline · they\'ll see it next time they\'re on') : '';
 }
 const dmTime = t => { const d = new Date(t); return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); };
 const dmDay = t => { const d = new Date(t), n = new Date(); if (d.toDateString() === n.toDateString()) return 'Today'; n.setDate(n.getDate() - 1); if (d.toDateString() === n.toDateString()) return 'Yesterday'; return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: d.getFullYear() === n.getFullYear() ? undefined : 'numeric' }); };
@@ -5175,7 +5199,7 @@ $('scBody').addEventListener('click', e => { const b = e.target.closest('[data-s
 function syncOptions() {
   $('oVol').value = OPTS.vol; $('oVolN').textContent = OPTS.vol + '%'; $('oMute').value = muted ? '1' : '0';
   $('oRes').value = OPTS.res; $('oFx').value = OPTS.fx; $('oShadow').value = OPTS.shadow; $('oGlow').value = OPTS.glow; $('oMe').value = OPTS.me; $('oCb').value = OPTS.cb ? '1' : ''; $('oDetail').value = OPTS.detail; $('oPart').value = String(OPTS.part); $('oShake').value = OPTS.shake ? '1' : '0';
-  $('oDmg').value = OPTS.dmg; $('oGuide').value = OPTS.guide ? '1' : '0'; $('oNet').value = OPTS.net ? '1' : '0';
+  $('oDmg').value = OPTS.dmg; $('oGuide').value = !OPTS.guide ? '0' : OPTS.guideBold ? '2' : '1'; $('oNet').value = OPTS.net ? '1' : '0';
 }
 $('oRec').onclick = () => { PR.toggle(); $('oRec').textContent = PR.on ? 'Stop and save' : 'Start recording'; };
 $('oNet').onchange = () => { OPTS.net = $('oNet').value === '1'; store.set('bowfall-net', OPTS.net ? '1' : '0'); };
@@ -5192,7 +5216,7 @@ $('oDetail').onchange = () => { OPTS.detail = $('oDetail').value; store.set('bow
 $('oPart').onchange = () => { OPTS.part = +$('oPart').value; store.set('bowfall-part', OPTS.part); };
 $('oShake').onchange = () => { OPTS.shake = $('oShake').value === '1'; store.set('bowfall-shake', OPTS.shake ? '1' : '0'); };
 $('oDmg').onchange = () => { OPTS.dmg = $('oDmg').value; store.set('bowfall-dmgnum', OPTS.dmg); };
-$('oGuide').onchange = () => { OPTS.guide = $('oGuide').value === '1'; store.set('bowfall-guide', OPTS.guide ? '1' : '0'); };
+$('oGuide').onchange = () => { const v = $('oGuide').value; OPTS.guide = v !== '0'; OPTS.guideBold = v === '2'; store.set('bowfall-guide', v); };
 $('rmName').value = store.get('bowfall-room-name', '');
 $('rmPub').value = store.get('bowfall-room-pub', '1');
 $('rmMax').value = store.get('bowfall-room-max', '8');
@@ -8212,7 +8236,7 @@ function drawAimGuide(me, ang, charge) {
       const obj = PILLARS.some(q => Math.hypot(px - q.x, py - q.y) < q.r);
       if (obj || px < WALL || px > AW - WALL || py < WALL || py > AH - WALL) { stop = t; if (obj || t <= AIM_WALL_X) hit = t; break; }
     }
-    const end = stop ? Math.min(stop, 30 + len) : 30 + len, a0 = 0.12 + charge * 0.25;
+    const B = OPTS.guideBold, end = stop ? Math.min(stop, 30 + len) : 30 + len, a0 = B ? 0.45 + charge * 0.45 : 0.2 + charge * 0.35;
     const g = ctx.createLinearGradient(me.x + ax * 30, me.y + ay * 30, me.x + ax * end, me.y + ay * end);
     // strongest by the bow, fading with distance (by how far it is, not how long the line is) down to 30% at 700px
     const fade = d => a0 * Math.max(0.3, 1 - 0.7 * Math.min(1, (d - 30) / 700));
@@ -8220,11 +8244,16 @@ function drawAimGuide(me, ang, charge) {
     for (const k of [0.25, 0.5, 0.75]) g.addColorStop(k, `rgba(255,207,90,${fade(30 + (end - 30) * k)})`);
     if (hit) { const k = Math.max(0.76, 1 - 70 / Math.max(1, end - 30)); g.addColorStop(k, `rgba(255,207,90,${fade(30 + (end - 30) * k)})`); g.addColorStop(1, `rgba(255,70,60,${0.55 + charge * 0.35})`); }
     else g.addColorStop(1, `rgba(255,207,90,${fade(end)})`);
-    ctx.strokeStyle = g; ctx.lineWidth = hit ? 2 : 1.5; ctx.setLineDash([3, 7]);
-    ctx.beginPath(); ctx.moveTo(me.x + ax * 30, me.y + ay * 30); ctx.lineTo(me.x + ax * end, me.y + ay * end); ctx.stroke(); ctx.setLineDash([]);
+    // a dark edge under the gold dashes, so the line shows on any ground (pale sand and ice as well as grass)
+    const w = (hit ? 2 : 1.5) * (B ? 1.8 : 1);
+    ctx.setLineDash(B ? [6, 6] : [3, 7]); ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(me.x + ax * 30, me.y + ay * 30); ctx.lineTo(me.x + ax * end, me.y + ay * end);
+    ctx.strokeStyle = `rgba(12,14,10,${(B ? 0.6 : 0.4) * Math.min(1, a0 * 2.2)})`; ctx.lineWidth = w + (B ? 3 : 2.2); ctx.stroke();
+    ctx.strokeStyle = g; ctx.lineWidth = w; ctx.stroke(); ctx.setLineDash([]); ctx.lineCap = 'butt';
     if (hit && hit <= 30 + len) {
       const hx = me.x + ax * hit, hy = me.y + ay * hit;
-      ctx.strokeStyle = 'rgba(255,70,60,0.9)'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(hx - 6, hy - 6); ctx.lineTo(hx + 6, hy + 6); ctx.moveTo(hx + 6, hy - 6); ctx.lineTo(hx - 6, hy + 6); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(hx - 6, hy - 6); ctx.lineTo(hx + 6, hy + 6); ctx.moveTo(hx + 6, hy - 6); ctx.lineTo(hx - 6, hy + 6);
+      ctx.strokeStyle = 'rgba(12,14,10,0.6)'; ctx.lineWidth = 5; ctx.stroke(); ctx.strokeStyle = 'rgba(255,70,60,0.95)'; ctx.lineWidth = 2.5; ctx.stroke();
     }
   }
 }
