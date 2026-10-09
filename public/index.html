@@ -469,6 +469,8 @@
   .tb em { position: absolute; right: -4px; top: -4px; min-width: 20px; padding: 1px 4px; border-radius: 10px; background: #0d140f; border: 1px solid rgba(255,255,255,.3); font: 700 11px 'Rajdhani', sans-serif; font-style: normal; }
   .tb span { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); margin-top: 2px; white-space: nowrap; font: 600 10px 'Rajdhani', sans-serif; letter-spacing: .02em; text-transform: none; color: rgba(255,255,255,.75); text-shadow: 0 1px 2px #000; pointer-events: none; }
   /* phones: the touch buttons carry the abilities, so the cards at the bottom go; the rest of the HUD gets compact */
+  body.touchmode .clipbar { bottom: max(6px, env(safe-area-inset-bottom)); left: 50%; padding: 4px 6px; gap: 4px; font-size: 12px; flex-wrap: nowrap; background: rgba(9,18,11,.8); border-color: rgba(255,207,90,.5); }
+  body.touchmode .clipbar #clipTxt { display: none; } body.touchmode .clipbar .sm { padding: 4px 8px; font-size: 12px; }
   body.touchmode #abil, body.touchmode .gchat-hint { display: none !important; }
   body.touchmode .hud-btn { width: 34px; height: 34px; padding: 0 !important; font-size: 0 !important; display: inline-grid; place-items: center; border-radius: 50%; }
   body.touchmode #menuBtn::before { content: ''; width: 16px; height: 12px; background: linear-gradient(currentColor 0 0) top / 100% 2px no-repeat, linear-gradient(currentColor 0 0) center / 100% 2px no-repeat, linear-gradient(currentColor 0 0) bottom / 100% 2px no-repeat; }
@@ -926,6 +928,11 @@
   .build { display: flex; flex-wrap: wrap; gap: 6px; max-width: 560px; }
   .build span { font-size: 12px; padding: 3px 8px; border-radius: 4px; background: rgba(255,255,255,.06); color: var(--muted); }
   @media (max-width: 760px) { .cards { grid-template-columns: 1fr; } .pcard { min-height: 0; } }
+  /* phones held sideways (short screens): menus, cards and the upgrade pick shrink to fit instead of scrolling off */
+  @media (max-height: 500px) {
+    .overlay { padding: 8px; } .overlay > .card { zoom: .72; } #home .homewrap { zoom: .7; max-width: 1400px; gap: 12px; } #home .mainmenu { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } #home .mm small { display: none; } #home .mm b { white-space: nowrap; } #home .mm .mmlock { top: 4px; right: 22px; bottom: auto; transform: scale(.8); transform-origin: right top; } #home .hometitle h1 { font-size: 80px; line-height: .9; } #home .hometitle { margin-top: -40px; }
+    .card.pick { max-width: 1100px; zoom: .62 !important; } .pick .pcard { min-height: 0; padding: 12px 14px; } .pick .cards { grid-template-columns: repeat(3, 1fr); }
+  }
   .card.lobby { max-width: 1240px; padding-bottom: 0; }
   .lbgrid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; align-items: start; }
   .lobby .slot { flex-wrap: wrap; row-gap: 2px; padding: 3px 8px; }
@@ -1337,6 +1344,8 @@
           <div class="field"><label for="oCb">Colours</label><select id="oCb"><option value="">Standard</option><option value="1">Colour-blind friendly (orange and blue teams)</option></select></div>
           <div class="field"><label for="oMe">Your own archer</label><select id="oMe"><option value="strong">Strongly marked (gold halo, ring and arrow; teammates a little dimmer)</option><option value="soft">Lightly marked (white ring)</option></select></div>
           <div class="field"><label for="oGlow">Team glow round archers</label><select id="oGlow"><option value="live">Living (breathes, leans into movement, flares on a draw)</option><option value="soft">Soft (still)</option><option value="ring">Ring only</option></select></div>
+          <div class="field"><label for="oPz">Phone zoom</label><select id="oPz"><option value="1">Whole arena</option><option value="1.15">Closer (follows you)</option><option value="1.3">Closest (follows you)</option></select></div>
+          <div class="field"><label for="oTaim">Touch aiming</label><select id="oTaim"><option value="pull">Pull back, like drawing a bow</option><option value="point">Point the way you shoot</option></select></div>
           <div class="field"><label for="oDetail">Arena detail</label><select id="oDetail"><option value="full">Full (ambient light, drifting leaves, lava glow)</option><option value="low">Low (plain arenas; fastest)</option></select></div>
           <div class="field"><label for="oShadow">Shots' shadows</label><select id="oShadow"><option value="soft">Soft</option><option value="simple">Simple (a dot)</option><option value="off">Off</option></select></div>
           <div class="field"><label for="oPart">Particles</label><select id="oPart"><option value="1">Full</option><option value="0.5">Reduced</option><option value="0.2">Minimal</option></select></div>
@@ -1596,7 +1605,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.39.3"></script>
+<script src="sim.js?v=0.39.4"></script>
 <script>
 (() => {
 'use strict';
@@ -1604,7 +1613,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.39.3';
+const PAGE_VERSION = '0.39.4';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -1919,7 +1928,7 @@ const sfx = {
 };
 const syncMute = () => { $('muteBtn').textContent = muted ? 'Sound off' : 'Sound on'; $('muteBtn').classList.toggle('muted', muted); const m = $('oMute'); if (m) m.value = muted ? '1' : '0'; };
 // options, kept in this browser
-const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') !== '0', guideBold: store.get('bowfall-guide', '1') === '2', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), me: store.get('bowfall-me', 'strong'), detail: store.get('bowfall-detail', 'full'), cb: store.get('bowfall-cb', '') === '1' };
+const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') !== '0', guideBold: store.get('bowfall-guide', '1') === '2', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), me: store.get('bowfall-me', 'strong'), detail: store.get('bowfall-detail', 'full'), pz: +store.get('bowfall-pz', '1.15') || 1, taim: store.get('bowfall-taim', 'pull'), cb: store.get('bowfall-cb', '') === '1' };
 cbApply();
 const outNode = () => { if (!AC.master) { AC.master = AC.createGain(); AC.master.connect(AC.destination); } AC.master.gain.value = OPTS.vol / 100; return AC.master; };
 syncMute();
@@ -2297,7 +2306,7 @@ function touchNearestAim() {
 }
 function touchUI() {
   document.body.classList.toggle('touchmode', TOUCH.on);
-  const show = TOUCH.on && mode !== 'menu' && !menuOpen && view && view.m.ph !== 'lobby' && !RP.on;
+  const show = TOUCH.on && mode !== 'menu' && !menuOpen && view && view.m.ph !== 'lobby' && !RP.on && $('pickScreen').hidden;
   $('touchUI').hidden = !show;
   const put = (el, st) => { if (!st) { el.hidden = true; return; } el.hidden = false; el.style.left = st.x0 + 'px'; el.style.top = st.y0 + 'px'; el.firstElementChild.style.transform = `translate(${st.dx}px, ${st.dy}px)`; };
   put($('tsMove'), TOUCH.mv); put($('tsAim'), TOUCH.am);
@@ -2331,7 +2340,7 @@ function touchMove(e) {
       if (L > R) { dx *= R / L; dy *= R / L; }
       st.dx = dx; st.dy = dy;
       if (st === TOUCH.mv) { const live = L > R * 0.18; TOUCH.mx = live ? dx / R : 0; TOUCH.my = live ? dy / R : 0; } // a small dead zone in the middle
-      else if (L > 14) { st.moved = true; TOUCH.aim = Math.atan2(dy, dx); }
+      else if (L > 14) { st.moved = true; TOUCH.aim = OPTS.taim === 'point' ? Math.atan2(dy, dx) : Math.atan2(-dy, -dx); } // pull back: the arrow flies away from the thumb
     }
   }
   e.preventDefault(); touchUI();
@@ -2350,9 +2359,34 @@ $('tbFs').addEventListener('touchstart', e => { e.preventDefault(); e.stopPropag
 $('tbFs').onclick = () => { store.set('bowfall-nofs', ''); goFullscreen(); };
 document.addEventListener('fullscreenchange', () => { if (TOUCH.fsTried && !document.fullscreenElement && mode !== 'menu') store.set('bowfall-nofs', '1'); }); // they left full screen on purpose: don't force it again
 if (isStandalone()) document.body.classList.add('standalone');
+// the Dash, Q and E buttons sit where the aiming thumb lands: a quick tap uses the button, but a touch that's held
+// or dragged becomes the aiming thumb instead (while you're already aiming with another finger, a touch uses it at once)
+const TB_HOLD = 220, TB_SLOP = 14;
+function tbAim(pd) {
+  if (!pd || pd.aim || TOUCH.am) return; pd.aim = true; clearTimeout(pd.tm); pd.el.classList.remove('on');
+  TOUCH.am = { id: pd.id, x0: pd.x, y0: pd.y, dx: 0, dy: 0, moved: false }; TOUCH.aim = touchNearestAim(); TOUCH.draw = true; drawLatch = true; predictShot(); touchUI();
+}
 for (const [id, fn] of [['tbDash', () => { dashLatch = true; }], ['tbQ', () => { qLatch = true; }], ['tbE', () => { eLatch = true; }]]) {
-  document.getElementById(id).addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); TOUCH.on = true; fn(); e.currentTarget.classList.add('on'); }, { passive: false });
-  document.getElementById(id).addEventListener('touchend', e => { e.currentTarget.classList.remove('on'); });
+  const el = document.getElementById(id);
+  el.addEventListener('touchstart', e => {
+    e.preventDefault(); e.stopPropagation(); TOUCH.on = true;
+    const t = e.changedTouches && e.changedTouches[0];
+    if (TOUCH.am || !t) { fn(); el.classList.add('on'); setTimeout(() => el.classList.remove('on'), 120); return; }
+    el.classList.add('on');
+    const pd = { id: t.identifier, x: t.clientX, y: t.clientY, el, fn, aim: false }; TOUCH.pend = pd;
+    pd.tm = setTimeout(() => { if (TOUCH.pend === pd) tbAim(pd); }, TB_HOLD);
+  }, { passive: false });
+  el.addEventListener('touchmove', e => {
+    const pd = TOUCH.pend;
+    if (pd && !pd.aim) for (const t of e.changedTouches) if (t.identifier === pd.id && Math.hypot(t.clientX - pd.x, t.clientY - pd.y) > TB_SLOP) tbAim(pd);
+    touchMove(e);
+  }, { passive: false });
+  const end = e => {
+    el.classList.remove('on'); const pd = TOUCH.pend;
+    if (pd && pd.el === el && [...e.changedTouches].some(t => t.identifier === pd.id)) { clearTimeout(pd.tm); if (!pd.aim) pd.fn(); TOUCH.pend = null; }
+    touchEnd(e);
+  };
+  el.addEventListener('touchend', end); el.addEventListener('touchcancel', end);
 }
 cv.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'local' && !menuOpen) openMenu(); });
@@ -2386,22 +2420,40 @@ function perfTick(dt) {
   if (perf.ema > 1 / 48 && full * RSCALE > 1.01) { RSCALE = Math.max(1 / full, RSCALE - 0.2); perf.t = 0; resize(); }
   else if (perf.ema < 1 / 58 && RSCALE < 1 && perf.t > 8) { RSCALE = Math.min(1, RSCALE + 0.1); perf.t = 0; resize(); }
 }
-const PHONE_INSET = 15; // world units of wall cropped off each side on phones (the wall is 26 thick)
+const PHONE_INSET = 24, PC_INSET = 14; // world units of wall cropped off each side (the wall is 26 thick): nearly all of it on phones, half on a computer
+// phones can zoom in past the whole arena (Options → Phone zoom); the view then follows your archer, kept inside the walls
+const PCAM = { x: 0, y: 0, init: false, on: false, aw: 0, ah: 0, top: 0, IN: 0 };
+const isPhone = () => TOUCH.on && mode !== 'menu' && (H < 600 || W < 900);
+function phoneCamApply() {
+  const { aw, ah, top, IN } = PCAM, vw = aw / VS, vh = ah / VS;
+  const cx = vw >= AW - IN * 2 ? AW / 2 : clamp(PCAM.x, IN + vw / 2, AW - IN - vw / 2);
+  const cy = vh >= AH - IN * 2 ? AH / 2 : clamp(PCAM.y, IN + vh / 2, AH - IN - vh / 2);
+  OX = aw / 2 - cx * VS; OY = top + ah / 2 - cy * VS;
+}
+function phoneCamUpdate(dt) {
+  if (!PCAM.on || !view) { PCAM.init = false; return; }
+  const me = view.p.find(p => p.id === myId); if (!me) return;
+  if (!PCAM.init) { PCAM.x = me.x; PCAM.y = me.y; PCAM.init = true; }
+  const f = Math.min(1, dt * 6); PCAM.x += (me.x - PCAM.x) * f; PCAM.y += (me.y - PCAM.y) * f;
+  phoneCamApply();
+}
 function resize() {
   const r = cv.getBoundingClientRect();
   DPR = OPTS.res === 'fast' ? 1 : Math.max(1, Math.min(2, devicePixelRatio || 1) * (OPTS.res === 'sharp' ? 1 : RSCALE));
   W = Math.max(1, r.width); H = Math.max(1, r.height);
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
-  const phone = TOUCH.on && mode !== 'menu' && (H < 600 || W < 900);
-  const top = mode === 'menu' ? 12 : phone ? 14 : H < 520 ? 44 : 64; // phones: the top bar sits over the arena's edge
-  const right = mode !== 'menu' && W > 1000 ? 236 : TOUCH.on && mode !== 'menu' ? 96 : 12; // touch: room for the buttons
-  // phones: zoom to the playing area itself (the inside of the wall, plus a sliver of it so the edge still reads);
-  // the trees and forest round the outside only fill whatever's left at the sides
-  const IN = phone ? PHONE_INSET : 0, bot = phone ? 2 : 12, lft = phone ? 0 : 12;
+  const phone = isPhone(), play = mode !== 'menu';
+  const top = !play ? 12 : phone ? 0 : H < 520 ? 44 : 64; // phones: the top bar sits over the arena's edge
+  const right = play && W > 1000 ? 236 : TOUCH.on && play ? 60 : 12; // touch: the buttons sit over the arena's right edge
+  // zoom to the playing area itself: on phones the inside of the wall with a sliver of it so the edge still reads, on a
+  // computer half the wall; the trees and forest round the outside only fill whatever's left at the sides
+  const IN = phone ? PHONE_INSET : play ? PC_INSET : 0, bot = phone ? 0 : 12, lft = phone ? 0 : 12;
   VS = Math.min((W - lft - right) / (AW - IN * 2), (H - top - bot) / (AH - IN * 2));
+  PCAM.on = phone && OPTS.pz > 1 && !bigMap();
+  if (PCAM.on) { VS *= OPTS.pz; Object.assign(PCAM, { aw: W - right, ah: H - top, top, IN }); phoneCamApply(); }
   // centred in the window when the arena fits beside the scoreboard; otherwise as close to centred as the scoreboard allows
-  OX = phone ? (W - right - AW * VS) / 2 : Math.max(12, Math.min((W - AW * VS) / 2, W - right - AW * VS));
-  OY = top + (H - top - bot - AH * VS) / 2;
+  else { OX = phone ? (W - right - AW * VS) / 2 : Math.max(12 - IN * VS, Math.min((W - AW * VS) / 2, W - right - AW * VS));
+    OY = top + (H - top - bot - AH * VS) / 2; }
   if (bigMap() && mode !== 'menu') camApply();
   // end-of-game cards sit in the middle of the arena, not the middle of the window
   placeCoach();
@@ -2422,7 +2474,7 @@ function awayCheck() {
 const awayInput = () => { AWAY.input = Date.now(); if (AWAY.on && !document.hidden) awayCheck(); };
 for (const ev of ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart']) addEventListener(ev, awayInput, { passive: true, capture: true });
 setInterval(() => { if (pad && pad.on && (pad.mx || pad.my || pad.draw)) awayInput(); }, 2000);
-setInterval(awayCheck, 3000); addEventListener('focus', awayCheck); addEventListener('blur', awayCheck); document.addEventListener('visibilitychange', awayCheck);
+setInterval(awayCheck, 3000); setInterval(sendStatus, 60000); // and again now and then, in case the connection was replaced without us noticing addEventListener('focus', awayCheck); addEventListener('blur', awayCheck); document.addEventListener('visibilitychange', awayCheck);
 function setScreens() {
   const inGame = mode !== 'menu';
   if (typeof renderRejoin === 'function' && $('rejoinBar')) renderRejoin();
@@ -4035,6 +4087,7 @@ function socialConnect() {
     else if (m.t === 'ach') Ach.fromServer(m);
     else if (m.t === 'wallet') setWallet(m, m.gained, m.why);
     else if (m.t === 'linkcode') lpLinkAll(m);
+    else if (m.t === 'elsewhere') { SOC.elsewhere = true; if (SOC.st && SOC.st.party) SOC.st.party.queued = null; findBadge(); renderFind(); }
     else if (m.t === 'matched') {
       if (SOC.st && SOC.st.party) SOC.st.party.queued = null; findBadge();
       $('fgStatus').textContent = 'Match found! Joining…'; initAudio(); sfx.found();
@@ -4043,7 +4096,7 @@ function socialConnect() {
   };
   sock.onclose = () => { if (SOC.ws === sock) { SOC.ws = null; SOC.st = null; renderFind(); setTimeout(socialConnect, Math.min(15000, 1000 * 2 ** SOC.retry++)); } };
 }
-function socialHello() { socialSend({ t: 'hello', name: playerName(), gt: GUEST_TOKEN, el: myLoadout().el, ro: myLoadout().ro, mp: mapPref(), hint: { bot: +store.get('bowfall-bestbot', '0') || 0, tut: tutDoneYet() ? 1 : 0 } }); }
+function socialHello() { SOC.elsewhere = false; socialSend({ t: 'hello', s: mode === 'local' ? (TUT.on ? 'tutorial' : 'practice') : 'menu', away: AWAY.on ? 1 : 0, name: playerName(), gt: GUEST_TOKEN, el: myLoadout().el, ro: myLoadout().ro, mp: mapPref(), hint: { bot: +store.get('bowfall-bestbot', '0') || 0, tut: tutDoneYet() ? 1 : 0 } }); }
 // Best practice win against bots — a rough skill hint used to seed a new account's first rating.
 const BOT_LV = { easy: 1, normal: 2, hard: 3, extreme: 4, master: 5 };
 function noteBotWin() {
@@ -4210,6 +4263,7 @@ function findBadge() {
   const n = SOC.st ? SOC.st.inReq.length : 0, q = SOC.st && SOC.st.party && SOC.st.party.queued != null;
   $('mFindBadge').hidden = !n && !q; $('mFindBadge').textContent = q ? 'Searching…' : n + (n === 1 ? ' friend request' : ' friend requests');
 }
+document.addEventListener('click', e => { if (e.target.closest('#fgHere')) { socialHello(); renderFind(); } });
 function renderFind() {
   if ($('findScr').hidden) return;
   const st = SOC.st, party = st && st.party, me = st && st.you, lead = !party || party.leader === me;
@@ -4249,9 +4303,10 @@ function renderFind() {
     $('fgLocals').innerHTML = LP.list.length ? '<h3>Players on controllers</h3>' + LP.list.map(l => `<div class="lprow" style="--pc:${lpColor(l.n)}"><span class="lptag">P${l.n}</span><b>${esc(l.name)}</b>${l.token ? '<small class="status">Signed in</small>' : `<small class="status">Guest</small><button type="button" class="ghost sm" data-lpsign="${l.n}">Sign in</button>`}<button type="button" class="ghost sm" data-lprm2="${l.n}">Remove</button></div>`).join('') : '';
   });
   const rset = new Set((party && party.ready) || []), unready = party ? party.members.filter(p => p.key !== party.leader && !p.local && !rset.has(p.key)) : [];
-  go.disabled = !st || !lead || (!queued && (lpGuests.length > 0 || away.length > 0 || unready.length > 0)); go.classList.toggle('searching', !!queued);
+  go.disabled = !st || !lead || SOC.elsewhere || (!queued && (lpGuests.length > 0 || away.length > 0 || unready.length > 0)); go.classList.toggle('searching', !!queued);
   go.textContent = queued ? `Searching… ${fmtWait(party.queued)} (cancel)` : `Find ${mode} match`;
-  if (!queued && lpGuests.length) $('fgStatus').textContent = 'Extra players on controllers must sign in to play ranked. Sign them in below, or remove them.';
+  if (SOC.elsewhere) $('fgStatus').innerHTML = `<span class="fgwait">Bowfall is open on another device or tab, so searching is paused here.</span> <button type="button" class="ghost sm" id="fgHere">Play here</button>`;
+  else if (!queued && lpGuests.length) $('fgStatus').textContent = 'Extra players on controllers must sign in to play ranked. Sign them in below, or remove them.';
   else if (!queued && away.length) $('fgStatus').innerHTML = `<span class="fgwait">Waiting for teammates to return… (${esc(away.map(p => p.name).join(', '))})</span>`;
   else if (queued) $('fgStatus').textContent = party.queued < party.fill ? 'Looking for players near your rating…' : 'No close match yet: filling the gaps with AI players…';
   else if (!queued && lead && unready.length) $('fgStatus').innerHTML = `<span class="fgwait">Waiting for ${esc(unready.map(p => p.name).join(' and '))} to ready up…</span>`;
@@ -5336,7 +5391,7 @@ $('scTabs').addEventListener('click', e => { const b = e.target.closest('[data-s
 $('scBody').addEventListener('click', e => { const b = e.target.closest('[data-scr]'); if (b) { SC.role = b.dataset.scr; renderScores(); } });
 function syncOptions() {
   $('oVol').value = OPTS.vol; $('oVolN').textContent = OPTS.vol + '%'; $('oMute').value = muted ? '1' : '0';
-  $('oRes').value = OPTS.res; $('oFx').value = OPTS.fx; $('oShadow').value = OPTS.shadow; $('oGlow').value = OPTS.glow; $('oMe').value = OPTS.me; $('oCb').value = OPTS.cb ? '1' : ''; $('oDetail').value = OPTS.detail; $('oPart').value = String(OPTS.part); $('oShake').value = OPTS.shake ? '1' : '0';
+  $('oRes').value = OPTS.res; $('oFx').value = OPTS.fx; $('oShadow').value = OPTS.shadow; $('oGlow').value = OPTS.glow; $('oMe').value = OPTS.me; $('oCb').value = OPTS.cb ? '1' : ''; $('oDetail').value = OPTS.detail; $('oPz').value = String(OPTS.pz); $('oTaim').value = OPTS.taim; $('oPart').value = String(OPTS.part); $('oShake').value = OPTS.shake ? '1' : '0';
   $('oDmg').value = OPTS.dmg; $('oGuide').value = !OPTS.guide ? '0' : OPTS.guideBold ? '2' : '1'; $('oNet').value = OPTS.net ? '1' : '0';
 }
 $('oRec').onclick = () => { PR.toggle(); $('oRec').textContent = PR.on ? 'Stop and save' : 'Start recording'; };
@@ -5350,6 +5405,8 @@ $('oShadow').onchange = () => { OPTS.shadow = $('oShadow').value; store.set('bow
 $('oGlow').onchange = () => { OPTS.glow = $('oGlow').value; store.set('bowfall-glow', OPTS.glow); };
 $('oMe').onchange = () => { OPTS.me = $('oMe').value; store.set('bowfall-me', OPTS.me); };
 $('oCb').onchange = () => { OPTS.cb = $('oCb').value === '1'; store.set('bowfall-cb', OPTS.cb ? '1' : ''); cbApply(); hc = {}; };
+$('oPz').onchange = () => { OPTS.pz = +$('oPz').value || 1; store.set('bowfall-pz', String(OPTS.pz)); PCAM.init = false; resize(); };
+$('oTaim').onchange = () => { OPTS.taim = $('oTaim').value; store.set('bowfall-taim', OPTS.taim); };
 $('oDetail').onchange = () => { OPTS.detail = $('oDetail').value; store.set('bowfall-detail', OPTS.detail); floorCv = null; };
 $('oPart').onchange = () => { OPTS.part = +$('oPart').value; store.set('bowfall-part', OPTS.part); };
 $('oShake').onchange = () => { OPTS.shake = $('oShake').value === '1'; store.set('bowfall-shake', OPTS.shake ? '1' : '0'); };
@@ -8386,22 +8443,22 @@ function drawAimGuide(me, ang, charge) {
       const obj = PILLARS.some(q => Math.hypot(px - q.x, py - q.y) < q.r);
       if (obj || px < WALL || px > AW - WALL || py < WALL || py > AH - WALL) { stop = t; if (obj || t <= AIM_WALL_X) hit = t; break; }
     }
-    const B = OPTS.guideBold, end = stop ? Math.min(stop, 30 + len) : 30 + len, a0 = B ? 0.45 + charge * 0.45 : 0.16 + charge * 0.3;
+    const B = OPTS.guideBold, end = stop ? Math.min(stop, 30 + len) : 30 + len, a0 = B ? 0.5 + charge * 0.45 : 0.3 + charge * 0.4;
     const g = ctx.createLinearGradient(me.x + ax * 30, me.y + ay * 30, me.x + ax * end, me.y + ay * end);
     // strongest by the bow, fading with distance (by how far it is, not how long the line is) down to 30% at 700px
-    const fade = d => a0 * Math.max(B ? 0.3 : 0.12, 1 - (B ? 0.7 : 0.88) * Math.min(1, (d - 30) / 700));
+    const fade = d => a0 * Math.max(B ? 0.3 : 0.2, 1 - (B ? 0.7 : 0.8) * Math.min(1, (d - 30) / 700));
     g.addColorStop(0, `rgba(255,207,90,${fade(30)})`);
     for (const k of [0.25, 0.5, 0.75]) g.addColorStop(k, `rgba(255,207,90,${fade(30 + (end - 30) * k)})`);
     if (hit) { const k = Math.max(0.76, 1 - 70 / Math.max(1, end - 30)); g.addColorStop(k, `rgba(255,207,90,${fade(30 + (end - 30) * k)})`); g.addColorStop(1, `rgba(255,70,60,${0.55 + charge * 0.35})`); }
     else g.addColorStop(1, `rgba(255,207,90,${fade(end)})`);
     // a dark edge under the gold dashes, so the line shows on any ground (pale sand and ice as well as grass)
-    const w = (hit ? 2 : 1.5) * (B ? 1.8 : 1);
-    ctx.setLineDash(B ? [6, 6] : [3, 7]); ctx.lineCap = 'round';
+    const w = (hit ? 2.2 : 1.8) * (B ? 1.7 : 1) * Math.max(1, 0.85 / VS); // never thinner than about 1.5 screen pixels
+    ctx.setLineDash(B ? [6, 6] : [4, 6]); ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(me.x + ax * 30, me.y + ay * 30); ctx.lineTo(me.x + ax * end, me.y + ay * end);
     // the edge fades out along the line just like the gold does, and stays thin and soft
-    const eg = ctx.createLinearGradient(me.x + ax * 30, me.y + ay * 30, me.x + ax * end, me.y + ay * end), ek = B ? 0.55 : 0.32;
+    const eg = ctx.createLinearGradient(me.x + ax * 30, me.y + ay * 30, me.x + ax * end, me.y + ay * end), ek = B ? 0.6 : 0.45;
     eg.addColorStop(0, `rgba(12,14,10,${ek * Math.min(1, a0 * 2)})`); eg.addColorStop(1, `rgba(12,14,10,${ek * Math.min(1, fade(end) * 2)})`);
-    ctx.strokeStyle = eg; ctx.lineWidth = w + (B ? 2.2 : 1.2); ctx.stroke();
+    ctx.strokeStyle = eg; ctx.lineWidth = w + (B ? 2.2 : 1.4) * Math.max(1, 0.85 / VS); ctx.stroke();
     ctx.strokeStyle = g; ctx.lineWidth = w; ctx.stroke(); ctx.setLineDash([]); ctx.lineCap = 'butt';
     if (hit && hit <= 30 + len) {
       const hx = me.x + ax * hit, hy = me.y + ay * hit;
@@ -9836,7 +9893,7 @@ function frame(now) {
   replayRecord();
   const rv = cbView(replayTick(dt));
   // a drawing error must never freeze the game: report it and carry on with the next frame
-  try { camUpdate(dt); } catch (e) { clientError(e, 'camera'); }
+  try { camUpdate(dt); phoneCamUpdate(dt); } catch (e) { clientError(e, 'camera'); }
   try { if (rv) { const live = view; view = rv; try { render(true); } finally { view = live; } } else render(); }
   catch (e) { clientError(e, 'render'); if (rv) endReplay(); try { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none'; } catch (e2) {} }
   PR.lap('overlay');

@@ -2,6 +2,17 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.39.4
+
+- **Phones: bigger again.** The view crops nearly all of the wall and no longer keeps room for the top bar or the buttons, and by default zooms in a little further and follows your archer (Options → Phone zoom: Whole arena, Closer or Closest).
+- **Computers: a little closer** too: half the wall is cropped off.
+- **Touch aiming pulls back like a bow:** drag your right thumb away from where you want to shoot. Options → Touch aiming switches back to pointing.
+- **Aim over the buttons:** a quick tap on Dash, Q or E uses it; holding or dragging from a button aims and draws your bow instead. (While you're already aiming with another finger, a touch on a button uses it at once.)
+- **Aim guide line easier to see:** brighter, a touch thicker (and never thinner than about a pixel and a half on small screens), with a stronger dark edge.
+- **Phones: menus fit the screen.** On short screens the main menu is two columns without the descriptions, and cards, menus and the upgrade pick shrink to fit; the touch buttons hide during the upgrade pick. The kill cam's Save video bar is small and sits at the bottom instead of the middle.
+- **One device at a time:** opening Bowfall on another device (or tab) takes over, and a search the first one started stops; the first shows "searching is paused here" with a Play here button.
+- **Away fixed:** after a reconnect (a server restart, a laptop waking) a player who was away showed as on the main menu until they touched something; the new connection now says straight away, and the page repeats its status every minute.
+
 ## 0.39.3
 
 - **Phones: install Bowfall as an app.** The site is now an installable web app: on Android Chrome use the menu's **Install app** (or Add to Home screen); on iPhone, Safari's Share → **Add to Home Screen**. It opens full screen, sideways, with no browser bars, and has its own icon.
