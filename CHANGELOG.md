@@ -2,6 +2,26 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.41.0
+
+- **Phone menus redesigned for the space, not shrunk to fit.** On a phone held sideways, a section you'd change now and then shows as a one-line summary of what's chosen ("Arena · Meadow", "Match settings · First to 3 · bots Normal"); tapping it opens that section full-screen to change it, with Done to come back (picking an arena closes it by itself). Everything is shown at full size.
+  - **Main menu:** the title and a grid of tiles on the left (Find game the big one, with its description), your profile, clan and friends down the right; nothing scrolls or overlaps.
+  - **Lobby:** the teams on the left; your archetype, the arena (with its picture) and the match settings as three summaries on the right. The arena sheet shows every arena large, with its description.
+  - **Find game:** your rating and the arena preferences as summaries above the Find match button, party and friends beside them.
+  - **Options:** Controls, Sound, Graphics and Gameplay as four summaries; each opens with its settings in two columns.
+  - **Edit profile:** name, then Picture; Title, border and flag; and Your profile page as summaries.
+  - **Challenges:** your banner as a summary; the challenges list scrolls under a fixed header at full size.
+  - **Clans:** the start-a-clan form in three columns, with the emblem editor in its own sheet.
+  - **Store, Highscores, How to play, Controls:** full size, scrolling inside under a header that stays put.
+  - **Someone's profile:** their banner (picture, name, ranks) down the left and stays put, everything else beside it; the banner is no longer squashed (on any screen, the card no longer squeezes its banner to fit).
+  Desktop layouts are unchanged.
+
+## 0.40.1
+
+- **Fewer pop-ups mid-fight:** messages like "You ended …'s streak" or "… is on a rampage" show small in the top-left corner while a game is being played, instead of across the middle of the arena (between games they're shown as before).
+- **Touch: archers under your thumbs** are now shown like the off-screen ones: a small arrow on the line from your archer to them, where it goes under the thumb, pointing at them (so you know which way to shoot).
+- **Touch: the top buttons** (camera, full screen, sound, menu) are white and see-through like Dash, Q and E, and the same size.
+
 ## 0.40.0
 
 - **Touch: tap to place abilities.** Abilities aimed at a spot or an enemy (Bramble Trap, Arrow Rain, Spotter's Mark, Smoke Bomb, Flash, Blink, Shadow Strike) are readied by tapping their button (it pulses, and "Tap where to use …" shows); the next tap on the arena says where, or picks the enemy nearest it. Tap the button again to put it away.

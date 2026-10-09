@@ -124,6 +124,8 @@
   .hurtfx { position: absolute; inset: 0; pointer-events: none; opacity: 0; box-shadow: inset 0 0 140px 30px rgba(255,40,40,.55); }
   .notices { position: absolute; left: 0; right: 0; top: 11%; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
   .notice { padding: 6px 16px; border-radius: 3px; background: rgba(9,18,11,.72); border: 1px solid var(--line); font: 600 16px 'Titillium Web', 'Segoe UI', sans-serif; text-shadow: 0 2px 10px rgba(0,0,0,.7); animation: note 3s ease-out forwards; text-align: center; max-width: 92vw; }
+  .notices.corner { left: 12px; right: auto; top: 72px; align-items: flex-start; gap: 3px; } body.touchmode .notices.corner { top: 50px; }
+  .notices.corner .notice, .notices.corner .notice.big { padding: 2px 8px; font: 600 12px 'Titillium Web', 'Segoe UI', sans-serif; text-shadow: none; background: rgba(9,18,11,.45); border-color: transparent; opacity: .85; } body.touchmode .notices.corner .notice { font-size: 11px; } .notices.corner .notice small { display: inline; margin-left: 6px; font-size: 11px; }
   .notice.big { font: 700 20px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .01em; border-color: var(--nc, var(--gold)); color: var(--nc, var(--gold)); }
   .notice small { display: block; font: 500 12px 'Titillium Web', 'Segoe UI', sans-serif; letter-spacing: .04em; text-transform: none; color: var(--muted); }
   @keyframes note { 0% { opacity: 0; transform: translateY(-6px); } 8% { opacity: 1; transform: none; } 80% { opacity: 1; } 100% { opacity: 0; } }
@@ -419,7 +421,7 @@
   .pcwrap { position: fixed; inset: 0; z-index: 61; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.6); }
   .pfcard { position: relative; width: min(720px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; box-sizing: border-box; padding: 20px 22px; background: #0d1810; border: 1px solid var(--line); border-top: 3px solid var(--gold); display: flex; flex-direction: column; gap: 14px; font-family: 'Titillium Web', 'Segoe UI', sans-serif; }
   .pfcard { --pa: #ffcf5a; border-top-color: var(--pa); padding: 0 0 18px; gap: 14px; }
-  .pfcard > :not(.pchero):not(.pcx) { margin-left: 22px; margin-right: 22px; }
+  .pfcard > :not(.pchero):not(.pcx) { margin-left: 22px; margin-right: 22px; } .pfcard > * { flex-shrink: 0; } /* (a short window scrolls the card rather than squashing its banner) */
   .pchero { position: relative; overflow: hidden; display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 18px; align-items: center; padding: 22px; background-size: cover; background-position: center; border-bottom: 1px solid color-mix(in srgb, var(--pa) 45%, transparent); }
   .pcflag { position: absolute; right: -30px; top: -20px; width: 320px; opacity: .2; transform: rotate(-8deg); pointer-events: none; -webkit-mask-image: linear-gradient(240deg, #000 25%, transparent 75%); mask-image: linear-gradient(240deg, #000 25%, transparent 75%); filter: saturate(1.2); }
   .pchero canvas { position: relative; width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--pa) 30%, transparent), rgba(0,0,0,.3) 70%); box-shadow: 0 0 0 3px var(--pa), 0 0 30px color-mix(in srgb, var(--pa) 45%, transparent); }
@@ -461,9 +463,9 @@
   .tstick { position: absolute; width: 116px; height: 116px; margin: -58px 0 0 -58px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); background: rgba(255,255,255,.06); }
   .tstick i { position: absolute; left: 50%; top: 50%; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 50%; background: rgba(255,255,255,.4); }
   .tstick.aim { border-color: rgba(255,207,90,.6); } .tstick.aim i { background: rgba(255,207,90,.6); }
-  .tbfs { position: absolute; right: calc(max(14px, env(safe-area-inset-right)) + 92px); top: 8px; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgba(255,255,255,.3); background: rgba(10,18,12,.5); color: #fff; pointer-events: auto; } .tbfs svg { width: 16px; height: 16px; }
+  .tbfs { position: absolute; right: calc(max(14px, env(safe-area-inset-right)) + 80px); top: 9px; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgba(255,255,255,.3); background: rgba(255,255,255,.07); color: rgba(255,255,255,.9); pointer-events: auto; } .tbfs svg { width: 16px; height: 16px; }
   :fullscreen .tbfs:not(.tbcam), body.standalone .tbfs:not(.tbcam) { display: none; }
-  .tbcam { right: calc(max(14px, env(safe-area-inset-right)) + 134px); } :fullscreen .tbcam, body.standalone .tbcam { right: calc(max(14px, env(safe-area-inset-right)) + 92px); }
+  .tbcam { right: calc(max(14px, env(safe-area-inset-right)) + 116px); } :fullscreen .tbcam, body.standalone .tbcam { right: calc(max(14px, env(safe-area-inset-right)) + 80px); }
   .tbcam i { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); font: 700 10px 'Rajdhani', sans-serif; font-style: normal; white-space: nowrap; color: rgba(255,255,255,.8); text-shadow: 0 1px 2px #000; }
   .tbtns { position: absolute; right: max(14px, env(safe-area-inset-right)); bottom: max(14px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: auto auto; gap: 20px 12px; align-items: end; pointer-events: auto; }
   .tb { width: 76px; height: 76px; border-radius: 50%; border: 2px solid rgba(255,255,255,.4); background: rgba(10,18,12,.55); color: #fff; font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .06em; text-transform: uppercase; touch-action: none; -webkit-user-select: none; user-select: none; }
@@ -478,7 +480,7 @@
   body.touchmode .clipbar #clipTxt { display: none; } body.touchmode .clipbar .sm { padding: 4px 8px; font-size: 12px; }
   body.touchmode .hud .score { position: absolute; left: 50%; top: 0; height: 64px; transform: translateX(-50%) scale(.85); transform-origin: center top; }
   body.touchmode #feed, body.touchmode #abil, body.touchmode .gchat-hint { display: none !important; }
-  body.touchmode .hud-btn { width: 34px; height: 34px; padding: 0 !important; font-size: 0 !important; display: inline-grid; place-items: center; border-radius: 50%; }
+  body.touchmode .hud-btn { width: 34px; height: 34px; padding: 0 !important; font-size: 0 !important; display: inline-grid; place-items: center; border-radius: 50%; clip-path: none; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.3); color: rgba(255,255,255,.9); box-shadow: none; }
   body.touchmode #menuBtn::before { content: ''; width: 16px; height: 12px; background: linear-gradient(currentColor 0 0) top / 100% 2px no-repeat, linear-gradient(currentColor 0 0) center / 100% 2px no-repeat, linear-gradient(currentColor 0 0) bottom / 100% 2px no-repeat; }
   body.touchmode #muteBtn::before { content: ''; width: 18px; height: 18px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 9h4l5-4v14l-5-4H3z'/%3E%3Cpath d='M16 8a5 5 0 0 1 0 8M19 5a9 9 0 0 1 0 14' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 9h4l5-4v14l-5-4H3z'/%3E%3Cpath d='M16 8a5 5 0 0 1 0 8M19 5a9 9 0 0 1 0 14' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat; }
   body.touchmode #muteBtn.muted::before { opacity: .45; }
@@ -643,6 +645,22 @@
   .achpips { display: flex; gap: 4px; } .achpips i { flex: 1; height: 5px; background: rgba(255,255,255,.08); }
   em.ttl { font-style: normal; color: var(--gold); font-weight: 600; }
   .card.wide.help-card { max-width: 900px; background: #122016; }
+  .msw { display: contents; } .mssum { display: none; }
+  .mssum { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; width: 100%; box-sizing: border-box; padding: 10px 12px; text-align: left; background: rgba(255,255,255,.045); border: 1px solid var(--line); color: var(--text); font: 500 14px 'Titillium Web', 'Segoe UI', sans-serif; cursor: pointer; min-width: 0; }
+  .mssum:hover, .mssum:focus-visible { border-color: var(--gold); outline: none; }
+  .mssum .mst { grid-column: 1; grid-row: 1; font: 700 12px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); }
+  .mssum .msv { grid-column: 1; grid-row: 2; min-width: 0; min-height: 22px; display: flex; align-items: center; gap: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .mssum .msv b { font-weight: 700; }
+  .mssum .msgo { grid-column: 2; grid-row: 1 / 3; font: 600 12px 'Titillium Web', sans-serif; font-style: normal; color: var(--muted); }
+  .msdot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; } .msthumb { height: 30px; aspect-ratio: 138 / 98; border-radius: 2px; flex: 0 0 auto; } .msplate { display: block; min-width: 0; flex: 1; } .msplate .slot { margin: 0; }
+  .msheet { position: fixed; inset: 0; z-index: 80; display: flex; flex-direction: column; background: #0d1810; } .msheet[hidden] { display: none; }
+  .mshead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px max(14px, env(safe-area-inset-right)) 8px max(14px, env(safe-area-inset-left)); background: #122016; border-bottom: 1px solid var(--line); }
+  .mshead b { font: 700 20px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+  .msbody { flex: 1; min-height: 0; overflow-y: auto; padding: 12px max(16px, env(safe-area-inset-right)) 16px max(16px, env(safe-area-inset-left)); }
+  .msbody > .msin { display: flex; flex-direction: column; gap: 10px; } .msbody > .msin > h3:first-child, .msbody > .msin > .archhead h3 { display: none; }
+  .msbody .maps { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 10px !important; } .msbody .mapcard small { display: block !important; }
+  .msbody > .bannered.msin { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); align-items: start; } .msbody .optgrid, .msbody section.mode { border: 0; background: none; padding: 0; }
+  .msbody section.mode:not([data-ms=oc]) { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; align-content: start; }
+  .msbody #stMember { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .help-nav { display: flex; flex-wrap: wrap; gap: 6px; position: sticky; top: 0; z-index: 1; box-shadow: 0 8px 12px -8px rgba(0,0,0,.6); margin: -6px -8px 0; padding: 8px; background: #122016; border-bottom: 1px solid var(--line); }
   .help-nav button { background: rgba(255,255,255,.05); border: 1px solid var(--line); color: var(--text); border-radius: 3px; padding: 6px 12px; font: 600 12px 'Titillium Web', 'Segoe UI', sans-serif; letter-spacing: .01em; cursor: pointer; }
   .help-nav button:hover, .help-nav button:focus-visible { border-color: var(--gold); color: var(--gold); outline: none; }
@@ -937,10 +955,20 @@
   /* phones held sideways (short screens): menus, cards and the upgrade pick shrink to fit instead of scrolling off */
   @media (max-height: 500px) {
     .overlay { padding: 8px; }
-    .overlay > .card { padding: 16px 20px; gap: 12px; } .overlay > .card .shopbar h2 { font-size: 30px; } .overlay > .card .eyebrow { font-size: 12px; } #home .homewrap { zoom: .7; max-width: 1400px; margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) 380px; grid-template-areas: 'title top' 'menu top' 'foot top'; grid-template-rows: auto auto 1fr; gap: 10px 22px; align-items: start; }
-    #home .hometop { grid-area: top; } #home .hometitle { grid-area: title; margin-top: 0 !important; } #home .mainmenu { grid-area: menu; } #home .homefoot { grid-area: foot; }
-    #home .hometop .frpanel { max-height: 300px; overflow-y: auto; } #home .hometop .toprow { flex-wrap: wrap; justify-content: flex-end; }
-    #home .mainmenu { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } #home .mm small { display: none; } #home .mm b { white-space: nowrap; } #home .mm .mmlock { top: -8px; right: 40px; bottom: auto; transform: scale(.8); transform-origin: right top; } #home .hometitle h1 { font-size: 72px; line-height: .9; }
+    .overlay > .card { padding: 14px 18px; gap: 10px; } .overlay > .card .shopbar h2 { font-size: 26px; } .overlay > .card .eyebrow { font-size: 12px; }
+    /* main menu: title and a tile grid on the left (Find game the big one), you, your clan and your friends down the right */
+    #home { padding: 10px 14px; } #home .homewrap { max-width: none; margin: 0; height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 300px; grid-template-rows: auto 1fr auto; grid-template-areas: 'title top' 'menu top' 'foot top'; gap: 8px 16px; padding: 0; }
+    #home .hometitle { grid-area: title; margin: 0 !important; display: flex; align-items: baseline; gap: 14px; } #home .hometitle .eyebrow { display: none; } #home .hometitle h1 { font-size: 46px; line-height: 1; margin: 0; } #home .homelinks { margin: 0; }
+    #home .mainmenu { grid-area: menu; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 8px; align-content: stretch; min-height: 0; }
+    #home .mm { min-height: 0; padding: 8px 18px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; } #home .mm small, #home .mm .mmk { display: none; } #home .mm b { font-size: 18px; white-space: nowrap; letter-spacing: .02em; }
+    #home #mFind small { display: block; font-size: 13px; margin-top: 2px; }
+    #home #mFind { grid-column: 1 / -1; } #home #mFind b { font-size: 28px; }
+    #home .mm .mmlock { top: 6px; right: 14px; bottom: auto; transform: scale(.8); transform-origin: right top; }
+    #home .homefoot { grid-area: foot; gap: 6px 14px; } #home .homefoot .ghost.sm { padding: 5px 10px; font-size: 12px; } #home .sitelinks a { font-size: 13px; }
+    #home .hometop { grid-area: top; display: flex; flex-direction: column; align-items: stretch; gap: 8px; min-height: 0; }
+    #home .toprow { flex-direction: column; align-items: stretch; gap: 6px; } #home .clanchip, #home .profchip { width: 100%; box-sizing: border-box; }
+    #home .hometop .frpanel { flex: 1; min-height: 0; max-height: none; overflow-y: auto; margin: 0; }
+    #home .dclink { position: absolute; right: 10px; bottom: 10px; } #home .lpbox { display: none; }
     .card.pick { max-width: 1100px; } .pick .pcard { min-height: 0; padding: 12px 14px; } .pick .cards { grid-template-columns: repeat(3, 1fr); }
   }
   .card.lobby { max-width: 1240px; padding-bottom: 0; }
@@ -1060,29 +1088,35 @@
      desktop layouts come back instead of the narrow-screen single columns, which would only make them taller ---- */
   @media (max-height: 520px) {
     body .clgrid { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); } body .clanhead { grid-template-columns: auto 1fr auto; } body .clanstats { grid-column: auto; }
-    body .profgrid { grid-template-columns: 240px 1fr; } body .findgrid { grid-template-columns: 1.15fr 1fr; gap: 18px; } body .lpcols { grid-template-columns: 1fr 1fr; }
-    body .dfgrid { grid-template-columns: 240px minmax(0, 1fr); } body .dfteams { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } body .bannered { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); }
-    body .abgrid { grid-template-columns: 150px 1fr 290px; } body .lbgrid { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); } body .ctlgrid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
-    body .teams { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } body .maps, body .lobby .maps { grid-template-columns: repeat(4, minmax(0, 1fr)); } body .cards { grid-template-columns: repeat(3, 1fr); }
-    body .tree { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); } body .optgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    body .lbfoot { margin: 0 -20px; padding: 10px 20px 12px; }
-    body .optgrid { grid-template-columns: minmax(0, .9fr) minmax(0, 2fr) minmax(0, 1.1fr); grid-template-areas: 'c g p' 's g p'; align-items: start; }
-    .optgrid > section:nth-child(1) { grid-area: c; } .optgrid > section:nth-child(2) { grid-area: s; } .optgrid > section:nth-child(4) { grid-area: p; }
-    .optgrid > section:nth-child(3) { grid-area: g; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; align-content: start; } .optgrid > section:nth-child(3) h3 { grid-column: 1 / -1; }
-    body .lobby .lbcol { display: contents; } body .lbgrid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: 'teams arch' 'locals arch' 'chat arch' 'set set'; }
-    .lobby .lbset { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 14px; align-items: start; } .lobby .lbset > h3, .lobby .lbset > .maps, .lobby .lbset > #lbMapDesc { grid-column: 1 / -1; } body .lobby .maps { grid-template-columns: repeat(8, minmax(0, 1fr)); } #banHint { display: none !important; }
-    .lobby .lbset { padding: 10px 12px; gap: 6px 14px; } .lobby .lbset > h3 { margin: 0; } .lobby .arch { gap: 6px; padding: 10px; } .lobby .chips { gap: 4px; } .lobby .archrow .chip2 { padding: 3px 7px; }
-    .overlay > .card .shopbar h2 { font-size: 24px; }
-    .fgmaphint, #fgMe .achs { display: none !important; } body .stgrid { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; } .storecard > h3 { margin: 0; }
+    body .profgrid { grid-template-columns: 150px 1fr; gap: 16px; } #profScr .profleft canvas { width: 130px; height: 130px; } body .findgrid { grid-template-columns: 1.1fr 1fr; gap: 18px; } body .lpcols { grid-template-columns: 1fr 1fr; }
+    body .dfgrid { grid-template-columns: 240px minmax(0, 1fr); } body .dfteams { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    body .abgrid { grid-template-columns: 150px 1fr 290px; } body .ctlgrid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+    body .teams { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } body .maps { grid-template-columns: repeat(4, minmax(0, 1fr)); } body .cards { grid-template-columns: repeat(3, 1fr); }
+    body .tree { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+    /* sections that open as sheets: only their summary shows in place */
+    [data-ms]:not(.msin) { display: none !important; } .mssum:not([hidden]) { display: grid; }
+    /* lobby: the teams on the left; your archetype, the arena and the settings as three summaries on the right */
+    body .lbgrid { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 12px; } .lobby .lbset { padding: 0; background: none; border: 0; gap: 8px; } .lobby .lbcol { gap: 8px; }
+    .slot.empty + .slot.empty { display: none; } #trainScr .card > p.status { display: none; }
+    /* long lists (challenges, highscores, how to play, a clan, the controls, the store) fill the screen at full size and
+       scroll inside, under a header that stays put, rather than being shrunk to fit */
+    #achScreen > .card, #scoresScr > .card, #helpScreen > .card, #clanScr > .card, #ctlScreen > .card, #storeScr > .card { height: calc(100vh - 16px); max-height: calc(100vh - 16px); display: flex; flex-direction: column; overflow: hidden; margin-block: 0; }
+    #achGrid, #scBody, #helpBody, #clBody, #ctlScreen .ctlgrid, #ctlScreen .ctlgrid ~ *, #storeScr .shopbar ~ * { flex-shrink: 0; } #achGrid, #scBody, #helpBody, #clBody, #ctlScreen .ctlgrid { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+    #storeScr > .card { overflow-y: auto; } #storeScr .shopbar { position: sticky; top: -14px; z-index: 2; background: var(--panel); margin: -14px -18px 0; padding: 14px 18px 8px; } #banHint { display: none !important; } body .lbfoot { margin: 0 -18px; padding: 8px 18px 10px; }
+    /* options: four summaries, two by two */
+    body .optgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .fgmaphint, #fgMe .achs, .findcard .olpane > .status:last-child { display: none !important; }
+    body .stgrid { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; } .storecard > h3 { margin: 0; } .storecard #stNote { max-width: none; margin: 0; }
     #helpScreen.tabbed #helpBody > :not(.on) { display: none; } #helpScreen.tabbed .help-nav button.sel { border-color: var(--gold); color: var(--gold); }
-    .slot.empty + .slot.empty { display: none; }
-    #achGrid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; } #achScreen .bnprev .lbl:nth-of-type(2), #achScreen #bnBig, #achGrid ~ p.status { display: none; } #achScreen .bannered { padding: 10px; } #achScreen .bannered { grid-template-columns: minmax(0, .8fr) minmax(0, 2fr); } #achScreen .bnopts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 10px; } #achScreen .bnshow { grid-column: 1 / -1; } .prhint { display: none; } #pfPage:not([hidden]) { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 18px; align-items: center; } #pfPage > .shopbar { grid-column: 1 / -1; } #profScr .chips { gap: 4px; } #profScr .chip2 { padding: 4px 8px; } #profScr .card { gap: 8px; } #profScr hr, #profScr .pfsep { margin: 4px 0; }
-    body .clgrid:has(.clform) { grid-template-columns: 1fr; } .clgrid:has(.clform) > .clsec:nth-child(2) { display: none; } body .clform { display: grid; grid-template-rows: auto auto auto 1fr; grid-template-columns: minmax(0, 1fr) 100px minmax(0, 2.2fr); grid-template-areas: 'n t e' 'm m e' 'c c e' 'k k e'; gap: 8px 12px; align-items: start; }
-    .clform > :nth-child(1) { grid-area: n; } .clform > :nth-child(2) { grid-area: t; } .clform > :nth-child(3) { grid-area: m; } .clform > :nth-child(4) { grid-area: c; } .clform > :nth-child(5) { grid-area: e; } .clform > :nth-child(6) { grid-area: k; }
-    #scBody > .scbox { display: block; columns: 3; column-gap: 28px; } #scBody > .scbox > h4 { column-span: all; margin-bottom: 6px; } #scBody .scrow { break-inside: avoid; margin-bottom: 5px; } .storecard #stNote { max-width: none; margin: 0; } .storecard { gap: 8px !important; } .lobby .lbgrid { gap: 10px; }
-    #lbTeams { grid-area: teams; } #lbLocals { grid-area: locals; } #lbChat { grid-area: chat; } .lobby .arch { grid-area: arch; } .lobby .lbset { grid-area: set; }
-    .lobby .slot.empty + .slot.empty { display: none; } .lobby .maps { gap: 4px; } .lobby .mapcard canvas { aspect-ratio: 138 / 58; object-fit: cover; }
-    .optgrid > section:nth-child(3) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .optgrid .field, .optgrid select { min-width: 0; max-width: 100%; }
+    #achGrid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; } #achGrid ~ p.status { display: none; }
+    body .clgrid:has(.clform) { grid-template-columns: 1fr; } .clgrid:has(.clform) > .clsec:nth-child(2) { display: none; } body .clform { grid-template-columns: minmax(0, 1.2fr) 110px minmax(0, 1.6fr); align-items: end; } .clform > :nth-child(3) { grid-column: 3; } .clform > :nth-child(4) { grid-column: 1 / 3; } .clform > .mssum { grid-column: 3; } .clform > label { grid-column: 1 / -1; } .msem svg, .msem .emblem { width: 28px; height: 28px; display: block; }
+    #scBody > .scbox { display: block; columns: 3; column-gap: 28px; } #scBody > .scbox > h4 { column-span: all; margin-bottom: 6px; } #scBody .scrow { break-inside: avoid; margin-bottom: 5px; }
+    .modes .mode p, #drillList .mode p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    /* someone's profile card: the banner down the left, everything else beside it */
+    .pcwrap .pfcard { width: min(980px, 100%); display: grid; grid-template-columns: 300px minmax(0, 1fr); grid-auto-rows: min-content; column-gap: 16px; row-gap: 10px; padding: 0 0 12px; max-height: calc(100vh - 16px); }
+    .pfcard > .pchero { grid-column: 1; grid-row: 1 / span 20; align-self: start; position: sticky; top: 0; min-height: calc(100vh - 30px); box-sizing: border-box; grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 18px 14px; gap: 10px; }
+    .pfcard > .pchero canvas { width: 110px; height: 110px; } .pfcard > .pchero .pcname { font-size: 30px; } .pfcard > :not(.pchero):not(.pcx) { grid-column: 2; margin: 0 16px 0 0; } .pfcard > :not(.pchero):not(.pcx):nth-child(3) { margin-top: 14px; }
+    .pfcard .pctiers { justify-content: center; flex-wrap: wrap; } .pfcard .pcsig { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   @media (max-height: 520px) and (pointer: coarse) { .ctlgrid > .ctlsec:first-child { display: none; } body .ctlgrid { grid-template-columns: 1fr; } }
 </style>
@@ -1194,13 +1228,13 @@
         <div class="btnrow" data-navsec><button class="ghost" type="button" data-back>Back</button></div></div>
       <div class="findgrid">
         <div class="olpane" data-navsec>
-          <div class="mecard" id="fgMe"></div>
+          <div class="mecard" id="fgMe" data-ms="fgme" data-mst="Your rating"></div>
           <h3>Mode</h3>
           <div class="oltabs" id="fgModes"><button type="button" data-mode="1v1">1v1</button><button type="button" data-mode="2v2">2v2</button><button type="button" data-mode="3v3">3v3</button></div>
-          <h3>Arenas</h3>
+          <div class="msw" data-ms="fgarena" data-mst="Arenas"><h3>Arenas</h3>
           <div class="fgmaps" id="fgMaps"></div>
           <div class="fgmapprev" id="fgMapPrev" hidden><canvas id="fgMapCv" width="300" height="200"></canvas><b id="fgMapName"></b></div>
-          <span class="status fgmaphint">Click your favourite arena, right-click one you'd rather avoid (on a controller, press again to switch it to avoid). Matches lean towards favourites and away from arenas anyone avoids.</span>
+          <span class="status fgmaphint">Click your favourite arena, right-click one you'd rather avoid (on a controller, press again to switch it to avoid). Matches lean towards favourites and away from arenas anyone avoids.</span></div>
           <button class="cta fggo" id="fgGo" type="button">Find match</button>
           <span class="status" id="fgStatus">Matched by rating with players near your level. If nobody close is searching, AI players fill in after a short wait.</span>
           <div class="fgguest" id="fgGuest" hidden><b>Playing as a guest.</b> Your rating and stats are saved in this browser. Create an account to keep them everywhere, climb the leaderboards and add friends. Everything you've earned comes with you.
@@ -1258,6 +1292,7 @@
   <div class="pcwrap" id="pcWrap" hidden><div class="pfcard" id="pcCard" role="dialog" aria-label="Player profile"></div></div>
   <div class="touchui" id="touchUI" hidden><div class="tstick" id="tsMove" hidden><i></i></div><div class="tstick aim" id="tsAim" hidden><i></i></div>
     <button type="button" class="tbfs" id="tbFs" aria-label="Full screen" title="Full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button><button type="button" class="tbfs tbcam" id="tbCam" aria-label="Camera" title="Camera: fixed or following"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M15.5 15.5 20 20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><i id="tbCamT"></i></button><div class="taphint" id="tapHint" hidden></div><div class="tbtns"><button type="button" id="tbQ" class="tb sm">Q</button><button type="button" id="tbE" class="tb sm">E</button><button type="button" id="tbDash" class="tb">Dash</button></div></div>
+  <div class="msheet" id="msSheet" hidden><div class="mshead"><b id="msTitle"></b><button type="button" class="cta sm" id="msDone">Done</button></div><div class="msbody" id="msBody"></div></div>
   <div class="rotatehint" id="rotateHint" hidden>Turn your phone sideways to play</div>
   <div class="clipbar" id="clipBar" hidden><span id="clipTxt">Your kill cam</span><button class="ghost sm" type="button" id="clipSave">Save video</button><button class="ghost sm" type="button" id="clipFeat">Show on my profile</button><button class="ghost sm" type="button" id="clipX" aria-label="Close">×</button></div>
   <div class="clipview" id="clipView" hidden><div class="cvhead"><b id="cvTitle">Kill cam</b><small id="cvSub"></small></div><div class="cvbtns"><button class="ghost sm" type="button" id="cvAgain" hidden>Watch again</button><button class="ghost sm" type="button" id="cvSave" hidden>Save video</button><button class="cta sm" type="button" id="cvClose">Close</button></div></div>
@@ -1332,8 +1367,8 @@
       <p class="status" id="stNote"></p>
       <h3>Elements and roles</h3>
       <div class="stgrid" id="stUnlocks" data-navsec></div>
-      <h3>Membership</h3>
-      <div class="modes" id="stMember"></div>
+      <div class="msw" data-ms="stmem" data-mst="Membership"><h3>Membership</h3>
+      <div class="modes" id="stMember"></div></div>
       <details class="stearn"><summary>How to earn Crests</summary><div id="stEarn" class="status"></div></details>
     </div>
   </div>
@@ -1372,12 +1407,12 @@
     <div class="card wide">
       <div class="shopbar"><div class="stat"><span class="eyebrow">Settings</span><h2>Options</h2></div><button class="ghost" type="button" data-back>Back</button></div>
       <div class="optgrid">
-        <section class="mode" data-navsec><h3>Controls</h3><p>Change any key, and set up an Xbox or PlayStation controller.</p><button class="cta" id="ctlBtn" type="button">Controls and controller</button></section>
-        <section class="mode" data-navsec><h3>Sound</h3>
+        <section class="mode" data-navsec data-ms="oc" data-mst="Controls"><h3>Controls</h3><p>Change any key, and set up an Xbox or PlayStation controller.</p><button class="cta" id="ctlBtn" type="button">Controls and controller</button></section>
+        <section class="mode" data-navsec data-ms="os" data-mst="Sound"><h3>Sound</h3>
           <div class="field"><label for="oVol">Volume <span id="oVolN"></span></label><input type="range" id="oVol" min="0" max="100" step="5"></div>
           <div class="field"><label for="oMute">Sound</label><select id="oMute"><option value="0">On</option><option value="1">Off</option></select></div>
         </section>
-        <section class="mode" data-navsec><h3>Graphics</h3>
+        <section class="mode" data-navsec data-ms="og" data-mst="Graphics"><h3>Graphics</h3>
           <div class="field"><label for="oRes">Resolution</label><select id="oRes"><option value="auto">Automatic (drops when the game slows)</option><option value="sharp">Always sharp</option><option value="fast">Fast (lower resolution)</option></select></div>
           <div class="field"><label for="oFx">Effects</label><select id="oFx"><option value="auto">Automatic (lighter when the game slows)</option><option value="full">Full</option><option value="light">Light (no glows or trails, for older laptops)</option></select></div>
           <div class="field"><label for="oCb">Colours</label><select id="oCb"><option value="">Standard</option><option value="1">Colour-blind friendly (orange and blue teams)</option></select></div>
@@ -1389,7 +1424,7 @@
           <div class="field"><label>Performance recording (F9)</label><button type="button" class="ghost" id="oRec">Start recording</button><small class="status">Records how long each part of the game takes while you play, then saves a file you can send in to find what's slowing it down.</small></div>
           <div class="field"><label for="oNet">Performance stats (F3)</label><select id="oNet"><option value="0">Hidden</option><option value="1">Shown in online games</option></select></div>
         </section>
-        <section class="mode" data-navsec><h3>Gameplay</h3>
+        <section class="mode" data-navsec data-ms="op" data-mst="Gameplay"><h3>Gameplay</h3>
           <div class="field"><label for="oDmg">Damage numbers</label><select id="oDmg"><option value="all">Everyone's</option><option value="mine">Only mine (and damage to me)</option><option value="off">Off</option></select></div>
           <div class="field"><label for="oGuide">Aim guide line</label><select id="oGuide"><option value="1">On</option><option value="2">Bold (easier to see)</option><option value="0">Off</option></select></div>
           <div class="field"><label for="oMe">Your own archer</label><select id="oMe"><option value="strong">Strongly marked (gold halo, ring and arrow; teammates a little dimmer)</option><option value="soft">Lightly marked (white ring)</option></select></div>
@@ -1408,19 +1443,19 @@
         <div class="profleft"><canvas id="pfAv" width="224" height="224"></canvas><span class="lbl">How your name looks in lobbies</span><div class="slot pfslot" id="pfPlate"></div></div>
         <div class="profform">
           <div class="field"><label for="nameIn">Name</label><input id="nameIn" maxlength="16" autocomplete="off" value="Archer"></div>
-          <div class="archrow"><span class="lbl">Picture</span><div class="chips" id="pfEl"></div></div>
+          <div class="msw" data-ms="pfpic" data-mst="Picture"><div class="archrow"><span class="lbl">Picture</span><div class="chips" id="pfEl"></div></div>
           <div class="archrow"><span class="lbl"></span><div class="chips" id="pfRo"></div></div>
-          <div class="archrow"><span class="lbl">Colour</span><div class="chips" id="pfCol"></div></div>
-          <div class="row">
+          <div class="archrow"><span class="lbl">Colour</span><div class="chips" id="pfCol"></div></div></div>
+          <div class="msw" data-ms="pfban" data-mst="Title, border and flag"><div class="row">
             <div class="field"><label for="pfTitle">Title</label><select id="pfTitle"></select></div>
             <div class="field"><label for="pfBorder">Banner border</label><select id="pfBorder"></select></div>
             <div class="field" id="pfFlagWrap" hidden><label for="pfFlag">Flag</label><select id="pfFlag"></select></div>
           </div>
-          <span class="status prhint">Titles and banner borders unlock with achievements.</span>
+          <span class="status prhint">Titles and banner borders unlock with achievements.</span></div>
           <div class="acct" id="acctBar"></div>
         </div>
       </div>
-      <div class="pfpage" id="pfPage" hidden>
+      <div class="pfpage" id="pfPage" hidden data-ms="pfpage" data-mst="Your profile page">
         <div class="shopbar"><div class="stat"><span class="eyebrow">Your profile page</span><h3 style="margin:0">What other players see</h3></div><button class="ghost sm" type="button" id="pfPreview">See it as others do</button></div>
         <div class="row">
           <div class="field"><label for="pfBg">Backdrop</label><select id="pfBg"></select></div>
@@ -1448,7 +1483,7 @@
           <div class="chatbox" id="lbChat" data-navsec hidden><div class="chatlog" id="lbChatLog"><div class="cline sys">Chat with everyone in the room here. In game, press Enter to chat.</div></div><input id="lbChatIn" maxlength="140" placeholder="Say something… (Enter to send)" autocomplete="off"></div>
         </div>
         <div class="lbcol">
-          <div class="arch" data-navsec>
+          <div class="arch" data-navsec data-ms="arch" data-mst="Your archetype">
             <div class="archhead"><div style="display:flex;align-items:center;gap:12px"><canvas id="archPrev" width="128" height="128" style="width:52px;height:52px;border-radius:10px;background:rgba(255,255,255,.05)"></canvas><div class="stat"><h3>Your archetype</h3><span class="archname" id="archName"></span></div></div></div>
             <div class="archrow"><span class="lbl">Element</span><div class="chips" id="elChips"></div></div>
             <div class="archrow"><span class="lbl">Role</span><div class="chips" id="roChips"></div></div>
@@ -1456,9 +1491,10 @@
             <span class="status" id="archBlurb"></span>
           </div>
           <div class="lbset" data-navsec>
-            <h3>Arena</h3>
+            <div class="msw" data-ms="lbmap" data-mst="Arena" data-msauto=".mapcard"><h3>Arena</h3>
             <div class="maps" id="lbMaps"></div>
-            <span class="status" id="lbMapDesc"></span>
+            <span class="status" id="lbMapDesc"></span></div>
+            <div class="msw" data-ms="lbset" data-mst="Match settings">
             <div class="lbrow2" id="lbArenaRow"><div class="field"><label for="lbArenaCode">Player arena</label><input id="lbArenaCode" class="code" maxlength="9" placeholder="Code, e.g. A1F" autocomplete="off"></div><button class="ghost sm" type="button" id="lbArenaUse">Use</button></div>
             <div class="lbrow2">
               <div class="field"><label for="lbPts">Match length</label>
@@ -1475,7 +1511,7 @@
                 <div class="field"><label for="lbRmPw">Password</label><input id="lbRmPw" maxlength="32" autocomplete="off" placeholder="Unchanged"></div>
                 <button class="ghost" id="lbRmSave" type="button">Save</button><button class="ghost" id="lbRmNoPw" type="button">Remove password</button>
               </div>
-            </details>
+            </details></div>
           </div>
         </div>
       </div>
@@ -1600,7 +1636,7 @@
 <div class="overlay" id="achScreen" hidden role="dialog" aria-labelledby="achTitle">
   <div class="card wide bal-card">
     <div class="shopbar"><div class="stat"><span class="eyebrow">Achievements</span><h2 id="achTitle">Challenges</h2></div><button class="cta" id="achClose" type="button">Close</button></div>
-    <section class="bannered" data-navsec>
+    <section class="bannered" data-navsec data-ms="ban" data-mst="Your banner">
       <div class="bnprev"><span class="lbl">Your banner, as others see it in a lobby</span><div class="slot" id="bnPrev"></div><span class="lbl">On your profile</span><div class="bnbig" id="bnBig"></div></div>
       <div class="bnopts">
         <div class="field"><label for="titleSel">Title</label><select id="titleSel"></select></div>
@@ -1644,7 +1680,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.40.0"></script>
+<script src="sim.js?v=0.41.0"></script>
 <script>
 (() => {
 'use strict';
@@ -1652,7 +1688,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.40.0';
+const PAGE_VERSION = '0.41.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -1748,6 +1784,8 @@ const STREAK_TXT = { 3: 'is on a rampage', 5: 'is unstoppable', 7: 'is godlike',
 let myDeath = null;
 function notice(html, big = false, color = '') {
   const box = $('notices'); if (!box) return;
+  // mid-fight they go small in the top-left corner instead of across the middle of the arena
+  box.classList.toggle('corner', mode !== 'menu' && !!view && view.m.ph === 'play');
   const d = document.createElement('div');
   d.className = 'notice' + (big ? ' big' : '');
   if (color) d.style.setProperty('--nc', color);
@@ -2343,15 +2381,82 @@ function touchNearestAim() {
   const f = foes.reduce((b, p) => (Math.hypot(p.x - me.x, p.y - me.y) < Math.hypot(b.x - me.x, b.y - me.y) ? p : b));
   return Math.atan2(f.y - me.y, f.x - me.x);
 }
+// ---- phones held sideways: sections that open as sheets ----
+// A section marked data-ms shows, on a short screen, as a one-line summary card (what's chosen now); tapping it opens the
+// section full-screen to change it, and Done (or picking, for a list of choices) puts it back. Nothing is shrunk to fit.
+const MS = { open: null, short: () => innerHeight < 520 };
+const msVal = f => { const s = f.querySelector('select'), i = f.querySelector('input:not([type=checkbox]):not([type=hidden])'), c = f.querySelector('input[type=checkbox]');
+  if (s) return (s.options[s.selectedIndex] || {}).text || ''; if (c) return c.checked ? 'on' : 'off'; if (i) return i.type === 'range' ? i.value + (i.max === '100' ? '%' : '') : i.value; return ''; };
+const msClean = t => String(t || '').replace(/\s*\(.*$/, '').trim();
+const msDot = c => `<i class="msdot" style="background:${c}"></i>`;
+const MS_SUM = {
+  arch: () => { const e = document.querySelector('#elChips .sel'), r = document.querySelector('#roChips .sel'); return (e ? msDot(getComputedStyle(e).getPropertyValue('--cc')) : '') + esc($('archName').textContent || ''); },
+  lbmap: () => { const b = document.querySelector('#lbMaps .mapcard.sel'), k = b && b.dataset.map; return k ? `<img class="msthumb" src="${thumbURL(k) || ''}" alt="">${esc(MAPS[k].name)}` : 'Pick an arena'; },
+  lbset: el => { const v = [msClean(msVal($('lbPts').closest('.field')))]; if (!$('lbDiffWrap').hidden) v.push('bots ' + msClean(msVal($('lbDiffWrap')))); const code = $('lbArenaCode').value.trim(); if (code) v.push('arena ' + esc(code)); v.push(($('lbOptNote').textContent || 'Standard rules').trim() || 'Standard rules'); return v.filter(Boolean).join(' · '); },
+  fgme: el => { const nm = el.querySelector('.fgtier b'), sm = el.querySelector('.fgtier small'); return nm ? `<b>${esc(nm.textContent)}</b> · ${esc(sm ? sm.textContent : '')}` : 'Loading…'; },
+  fgarena: () => { const m = mapPref(), n = k => (MAPS[k] || {}).name; return [m.fav && '★ ' + esc(n(m.fav)), m.hate && '✕ ' + esc(n(m.hate))].filter(Boolean).join(' · ') || 'No favourite or avoided arena'; },
+  oc: () => 'Keys, controller and dash direction',
+  clem: el => { const pv = el.querySelector('.prev'); return pv ? `<span class="msem">${pv.innerHTML}</span>Shape, pattern, symbol and colours` : ''; },
+  ban: () => { const b = $('bnPrev'); return b ? `<span class="msplate">${b.innerHTML}</span>` : ''; },
+  pfpic: () => { const e = document.querySelector('#pfEl .sel'), r = document.querySelector('#pfRo .sel'), c = document.querySelector('#pfCol .sel'); return (c ? msDot(c.style.background || getComputedStyle(c).backgroundColor) : '') + esc([e && e.textContent.trim(), r && r.textContent.trim()].filter(Boolean).join(' ')); },
+  stmem: el => [...el.querySelectorAll('h3 b, .mode h3, .mode b')].slice(0, 3).map(x => esc(x.textContent.trim())).filter(Boolean).join(' · ') || 'Supporter, Founder pack, donations',
+};
+// anything else: its first few settings, "label value"
+function msGeneric(el) {
+  return [...el.querySelectorAll('.field')].filter(f => !f.hidden && f.offsetParent !== null || el.classList.contains('msin') || true).map(f => {
+    const l = f.querySelector('label'), lt = l ? [...l.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('') : '', v = msClean(msVal(f));
+    return v ? `${esc(msClean(lt))} <b>${esc(v)}</b>` : '';
+  }).filter(Boolean).slice(0, 3).join(' · ');
+}
+function msSetup() {
+  for (const el of document.querySelectorAll('[data-ms]')) {
+    if (el.msSum) continue;
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'mssum'; b.dataset.msopen = el.dataset.ms;
+    b.innerHTML = `<span class="mst">${esc(el.dataset.mst || '')}</span><span class="msv"></span><i class="msgo">Change ›</i>`;
+    el.before(b); el.msSum = b; b.msEl = el;
+  }
+}
+function msRefresh() {
+  if (!MS.short()) { if (MS.open) msClose(); return; }
+  msSetup(); // (sections drawn since, like a clan's emblem editor)
+  if (MS.open) { const ov = MS.open.msPh && MS.open.msPh.parentNode && MS.open.msPh.parentNode.closest && MS.open.msPh.parentNode.closest('.overlay'); if (ov && ov.hidden) msClose(); }
+  for (const b of document.querySelectorAll('.mssum')) {
+    const el = b.msEl; if (!el) continue;
+    b.hidden = el.hidden;
+    if (b.offsetParent === null) continue; // not on screen
+    let h = ''; try { h = (MS_SUM[el.dataset.ms] || msGeneric)(el) || ''; } catch (e) { h = ''; }
+    if (b.msLast !== h) { b.msLast = h; b.querySelector('.msv').innerHTML = h; }
+  }
+}
+function msOpenFor(el) {
+  if (MS.open) msClose();
+  const ph = document.createComment('ms'); el.before(ph); el.msPh = ph;
+  $('msBody').appendChild(el); el.classList.add('msin'); MS.open = el;
+  $('msTitle').textContent = el.dataset.mst || ''; $('msSheet').hidden = false; $('msBody').scrollTop = 0;
+}
+function msClose() {
+  const el = MS.open; if (!el) return; MS.open = null;
+  if (el.msPh && el.msPh.parentNode) el.msPh.replaceWith(el); el.classList.remove('msin');
+  $('msSheet').hidden = true; msRefresh();
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-msopen]');
+  if (b && b.msEl) { msOpenFor(b.msEl); return; }
+  if (MS.open && MS.open.dataset.msauto && e.target.closest && e.target.closest(MS.open.dataset.msauto) && !e.target.closest(MS.open.dataset.msauto).disabled) setTimeout(msClose, 160);
+});
+$('msDone').onclick = msClose;
+addEventListener('keydown', e => { if (MS.open && e.key === 'Escape') { e.stopPropagation(); msClose(); } }, true);
+msSetup(); setInterval(msRefresh, 400); addEventListener('resize', () => setTimeout(msRefresh, 50));
 // short screens (phones held sideways): each open menu card is scaled to fit the screen's height instead of scrolling,
 // and a wide card is let out to the screen's full width first, so it needs less height (scaling stops at 60%)
-const FIT = { busy: false, ro: null };
+const FIT = { busy: false, ro: null }, FIT_SCROLL = ['achScreen', 'scoresScr', 'helpScreen', 'clanScr', 'ctlScreen', 'storeScr'];
 function fitCards() {
   if (FIT.busy) return; FIT.busy = true;
   try {
     const short = innerHeight < 520;
     for (const o of document.querySelectorAll('.overlay')) {
       const c = o.querySelector(':scope > .card'); if (!c) continue;
+      if (FIT_SCROLL.includes(o.id)) { if (c.style.zoom) { c.style.zoom = ''; c.style.maxWidth = ''; } continue; } // (these scroll inside instead)
       if (o.hidden || !short) { if (c.style.zoom) { c.style.zoom = ''; c.style.maxWidth = ''; } continue; }
       if (FIT.ro && !c.fitSeen) { c.fitSeen = true; FIT.ro.observe(c); }
       c.style.zoom = ''; c.style.maxWidth = '';
@@ -5423,7 +5528,7 @@ function renderClan() {
         <div class="field"><label for="clTag">Tag</label><input id="clTag" maxlength="5" autocomplete="off" placeholder="2 to 5" style="text-transform:uppercase"></div>
         <div class="field full"><label for="clMotto">Motto (optional)</label><input id="clMotto" maxlength="80" autocomplete="off"></div>
         <div class="field full"><label>Tag colour</label>${clanSwatches(CLAN.col)}</div>
-        <div class="field full"><label>Emblem</label>${emblemEditor()}</div>
+        <div class="field full" data-ms="clem" data-mst="Emblem"><label>Emblem</label>${emblemEditor()}</div>
         <label class="clcheck full"><input type="checkbox" id="clOpen"> Anyone can join without asking</label></div>
         <div class="btnrow"><button type="button" class="cta" id="clCreate">Create clan</button></div><span class="status" id="clMsg"></span></div>
       <div class="clsec"><h3>How clans work</h3><p class="status">Your clan's tag sits before your name on your banner. Up to ${CLAN.max} members, with a leader and officers who can invite people and answer requests. ${CLAN_HOW}</p><p class="status">Looking for one? See <b>Best clans</b> and join or ask to join.</p></div></div>`;
@@ -9323,7 +9428,7 @@ function drawPhoneOffscreen(v, me) {
   }
   ctx.restore();
 }
-// an archer hidden under a thumb: a marker just above that thumb, straight above the archer, pointing down at them
+// an archer hidden under a thumb: a small arrow where the line from your archer to them goes under the thumb, pointing at them
 function drawFingerMarks(v, me) {
   const r = cv.getBoundingClientRect();
   ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -9334,10 +9439,17 @@ function drawFingerMarks(v, me) {
       if (p.nk || p.d || p.id === myId) continue;
       const sx = OX + p.x * VS, sy = OY + p.y * VS;
       if (Math.hypot(sx - fx, sy - fy) > 58) continue;
-      const foe = me && p.tm !== me.tm, col = TEAM_COL[p.tm] || '#fff', y = Math.max(14, fy - 78), x = clamp(sx, 14, W - 14);
-      ctx.globalAlpha = foe ? 0.95 : 0.65; ctx.fillStyle = col; ctx.strokeStyle = foe ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.6)'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(x, y - 8, foe ? 7 : 5, 0, TAU); ctx.fill(); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(x - 6, y + 2); ctx.lineTo(x + 6, y + 2); ctx.lineTo(x, y + 12); ctx.closePath(); ctx.fill(); ctx.stroke();
+      const foe = me && p.tm !== me.tm, col = TEAM_COL[p.tm] || '#fff';
+      // like the off-screen arrows: on the line from your archer to them, just where it goes under the thumb, pointing at them
+      const ox = me ? OX + me.x * VS : W / 2, oy = me ? OY + me.y * VS : H / 2, dx = sx - ox, dy = sy - oy, R = 64;
+      const ex = ox - fx, ey = oy - fy, A = dx * dx + dy * dy || 1, B = 2 * (ex * dx + ey * dy), C = ex * ex + ey * ey - R * R, disc = B * B - 4 * A * C;
+      let x, y, ang;
+      if (C > 0 && disc > 0) { const t = clamp((-B - Math.sqrt(disc)) / (2 * A), 0, 1); x = ox + dx * t; y = oy + dy * t; ang = Math.atan2(dy, dx); }
+      else { x = clamp(sx, 14, W - 14); y = Math.max(14, fy - R - 6); ang = Math.PI / 2; } // (you're under that thumb too: just above it, pointing down)
+      ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.scale(foe ? 0.85 : 0.6, foe ? 0.85 : 0.6);
+      ctx.globalAlpha = foe ? 0.95 : 0.7; ctx.fillStyle = col; ctx.strokeStyle = foe ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.6)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(-8, -9); ctx.lineTo(-4, 0); ctx.lineTo(-8, 9); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.restore();
     }
   }
   ctx.restore();
