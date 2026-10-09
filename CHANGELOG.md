@@ -2,6 +2,17 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.42.0
+
+- **Online status that's right:** a page put away (a phone locked or switched to another app, a tab hidden) now shows as Away after 30 seconds even though the phone stops running the page, because the server times it; and a page that hasn't been heard from for two and a half minutes (a phone asleep, a laptop shut, its connection still lingering) shows as offline. Friends' lists update on their own within ten seconds.
+- **Browser tab icon fixed** (the icon link was broken, so Chrome showed a globe): the tab now shows the new archer icon, with a real favicon.ico too.
+- **New app icon:** a Storm Ranger archer on the Meadow's grass, for the installed app and the home screen.
+- **Free rotation: one a week,** a premium element one week and a premium role the next, instead of one of each.
+- **Unlocks are a grind:** a premium element or role now costs 12,000 Crests (was 4,000), around fifteen hours of matches. (The £2.49 price is unchanged.)
+- **Controllers on phones and tablets:** pressing anything on a connected controller (Bluetooth Xbox, PlayStation, or any standard pad) puts the touch controls away and plays as on a computer, keeping the phone's camera; touching the screen brings them back. Menus and the phone sheets work with the controller too (B closes a sheet).
+- **Phone main menu:** a bigger BOWFALL title, smaller tiles (Find game stays big), and your profile above your clan.
+- **Strongholds, much grander** (still a preview): the whole map is half as big again with more ground between everything; Castle Greyhold is bigger again, inside a wide moat right round its walls, crossed only by two drawbridges at its gates; and walls of forest (trunks you can't walk or shoot through, under canopies you can hide beneath) close off each camp and both river banks, so you get about by forest paths and the bridges' approaches.
+
 ## 0.41.0
 
 - **Phone menus redesigned for the space, not shrunk to fit.** On a phone held sideways, a section you'd change now and then shows as a one-line summary of what's chosen ("Arena · Meadow", "Match settings · First to 3 · bots Normal"); tapping it opens that section full-screen to change it, with Done to come back (picking an arena closes it by itself). Everything is shown at full size.

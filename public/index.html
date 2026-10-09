@@ -6,13 +6,15 @@
 <!--HEAD-->
 <title>Bowfall Duels</title>
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" href="/icons/archer-180.png">
 <meta name="theme-color" content="#0f1a12">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Bowfall">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"%3E%3Ccircle cx="16" cy="16" r="15" fill="%23ffc94a"/%3E%3Cpath d="M9 7c9 3 13 9 13 18" stroke="%23221a08" stroke-width="3" fill="none" stroke-linecap="round"/%3E%3Cpath d="M9 7l13 18" stroke="%23221a08" stroke-width="1.5"/%3E%3Cpath d="M6 20l14-8" stroke="%23ff5a45" stroke-width="2.5" stroke-linecap="round"/%3E%3Cpath d="M20 12l-4 .5 1.5 3z" fill="%23ff5a45"/%3E%3C/svg%3E">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/archer-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/archer-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Titillium+Web:wght@400;600;700&display=swap">
@@ -958,15 +960,15 @@
     .overlay > .card { padding: 14px 18px; gap: 10px; } .overlay > .card .shopbar h2 { font-size: 26px; } .overlay > .card .eyebrow { font-size: 12px; }
     /* main menu: title and a tile grid on the left (Find game the big one), you, your clan and your friends down the right */
     #home { padding: 10px 14px; } #home .homewrap { max-width: none; margin: 0; height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 300px; grid-template-rows: auto 1fr auto; grid-template-areas: 'title top' 'menu top' 'foot top'; gap: 8px 16px; padding: 0; }
-    #home .hometitle { grid-area: title; margin: 0 !important; display: flex; align-items: baseline; gap: 14px; } #home .hometitle .eyebrow { display: none; } #home .hometitle h1 { font-size: 46px; line-height: 1; margin: 0; } #home .homelinks { margin: 0; }
-    #home .mainmenu { grid-area: menu; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 8px; align-content: stretch; min-height: 0; }
-    #home .mm { min-height: 0; padding: 8px 18px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; } #home .mm small, #home .mm .mmk { display: none; } #home .mm b { font-size: 18px; white-space: nowrap; letter-spacing: .02em; }
+    #home .hometitle { grid-area: title; margin: 0 !important; display: flex; align-items: baseline; gap: 14px; } #home .hometitle .eyebrow { display: none; } #home .hometitle h1 { font-size: 66px; line-height: .95; margin: 0; } #home .homelinks { margin: 0; }
+    #home .mainmenu { grid-area: menu; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: 84px; grid-auto-rows: 50px; gap: 8px; align-content: center; min-height: 0; }
+    #home .mm { min-height: 0; padding: 8px 18px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; } #home .mm small, #home .mm .mmk { display: none; } #home .mm b { font-size: 16px; white-space: nowrap; letter-spacing: .02em; }
     #home #mFind small { display: block; font-size: 13px; margin-top: 2px; }
     #home #mFind { grid-column: 1 / -1; } #home #mFind b { font-size: 28px; }
-    #home .mm .mmlock { top: 6px; right: 14px; bottom: auto; transform: scale(.8); transform-origin: right top; }
+    #home .mm .mmlock { top: -9px; right: 14px; bottom: auto; transform: scale(.8); transform-origin: right top; }
     #home .homefoot { grid-area: foot; gap: 6px 14px; } #home .homefoot .ghost.sm { padding: 5px 10px; font-size: 12px; } #home .sitelinks a { font-size: 13px; }
     #home .hometop { grid-area: top; display: flex; flex-direction: column; align-items: stretch; gap: 8px; min-height: 0; }
-    #home .toprow { flex-direction: column; align-items: stretch; gap: 6px; } #home .clanchip, #home .profchip { width: 100%; box-sizing: border-box; }
+    #home .toprow { flex-direction: column; align-items: stretch; gap: 6px; } #home .profchip { order: -1; } #home .clanchip, #home .profchip { width: 100%; box-sizing: border-box; }
     #home .hometop .frpanel { flex: 1; min-height: 0; max-height: none; overflow-y: auto; margin: 0; }
     #home .dclink { position: absolute; right: 10px; bottom: 10px; } #home .lpbox { display: none; }
     .card.pick { max-width: 1100px; } .pick .pcard { min-height: 0; padding: 12px 14px; } .pick .cards { grid-template-columns: repeat(3, 1fr); }
@@ -1680,7 +1682,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.41.0"></script>
+<script src="sim.js?v=0.42.0"></script>
 <script>
 (() => {
 'use strict';
@@ -1688,7 +1690,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.41.0';
+const PAGE_VERSION = '0.42.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -2133,7 +2135,9 @@ function pollPad() {
   const stick = (x, y) => { const m = Math.hypot(x, y); if (m < dz) return [0, 0, 0]; const k = Math.min(1, (m - dz) / (1 - dz)); return [x / m * k, y / m * k, k]; };
   const [mx, my] = stick(gp.axes[0] || 0, gp.axes[1] || 0), [ax, ay, am] = stick(gp.axes[2] || 0, gp.axes[3] || 0);
   const any = mx || my || am || gp.buttons.some(b => b && b.pressed);
-  if (any) { pad.on = true; pad.used = performance.now(); }
+  if (any) { pad.on = true; pad.used = performance.now();
+    if (TOUCH.on) { TOUCH.on = false; TOUCH.mv = TOUCH.am = null; TOUCH.mx = TOUCH.my = 0; TOUCH.draw = false; document.body.classList.remove('touching'); touchUI(); resize(); }
+  }
   if (!pad.on) return;
   // waiting for a new controller: this one only cancels (B), so its buttons don't make it the new player's
   if (LP.capture && LP.capture.step === 'press') { if (press(1)) { LP.capture = null; $('lpScr').hidden = true; } pad.prev = gp.buttons.map(b => !!(b && (b.pressed || b.value > 0.4))); return; }
@@ -2181,7 +2185,7 @@ function pollPad() {
   }
 }
 // ---- controller in the menus: move a highlight between buttons with the D-pad or left stick, A to press, B to go back
-const NAV_LAYERS = ['gate', 'lpScr', 'draftScr', 'ctlScreen', 'helpScreen', 'achScreen', 'balScreen', 'gameMenu', 'findScr', 'customScr', 'scoresScr', 'trainScr', 'storeScr', 'arenaScr', 'optScr', 'profScr', 'pickScreen', 'resultsScreen', 'lobby', 'home'];
+const NAV_LAYERS = ['msSheet', 'gate', 'lpScr', 'draftScr', 'ctlScreen', 'helpScreen', 'achScreen', 'balScreen', 'gameMenu', 'findScr', 'customScr', 'scoresScr', 'trainScr', 'storeScr', 'arenaScr', 'optScr', 'profScr', 'pickScreen', 'resultsScreen', 'lobby', 'home'];
 const NAV_SEL = 'button, select, input:not([type=hidden]), [data-map], .chip2, a[href]';
 const shown = el => !!(el && !el.hidden && el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden');
 function navLayer() {
@@ -2247,6 +2251,7 @@ function navMove(items, dir) {
   if (best) setPadSel(best);
 }
 function navBack(layer) {
+  if (layer.id === 'msSheet') { uiSfx.click(); msClose(); return; }
   if (['lobby', 'pickScreen', 'resultsScreen', 'home'].includes(layer.id)) return;
   const back = [...layer.querySelectorAll('[data-back], #ctlClose, .close')].find(shown);
   if (back) { uiSfx.click(); back.click(); return; }
@@ -2646,7 +2651,8 @@ const PHONE_INSET = 24, PC_INSET = 14; // world units of wall cropped off each s
 // phones can zoom in past the whole arena (Options → Phone zoom); the view then follows your archer, kept inside the walls
 const PCAM_SLACK = 140;
 const PCAM = { x: 0, y: 0, init: false, on: false, aw: 0, ah: 0, top: 0, IN: 0 };
-const isPhone = () => TOUCH.on && mode !== 'menu' && (H < 600 || W < 900);
+const COARSE = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
+const isPhone = () => (TOUCH.on || COARSE) && mode !== 'menu' && (H < 600 || W < 900); // (a phone with a controller keeps the phone's view)
 function phoneCamApply() {
   const { aw, ah, top, IN } = PCAM, vw = aw / VS, vh = ah / VS;
   const sl = PCAM_SLACK; // how far past the walls the view may go, so at the edge you're nearer the middle of the screen
@@ -2690,7 +2696,7 @@ function resize() {
 // what you're doing, for your friends' lists; "away" once the page has been out of view (another tab or window) for a while
 // "away": the page out of view, or no mouse, keyboard, touch or controller input, for AWAY.AFTER (not in an online match)
 const AWAY = { t: null, on: false, AFTER: 30000, input: Date.now() };
-function sendStatus() { socialSend({ t: 'status', s: mode === 'local' ? (TUT.on ? 'tutorial' : 'practice') : 'menu', away: AWAY.on ? 1 : 0 }); }
+function sendStatus() { socialSend({ t: 'status', s: mode === 'local' ? (TUT.on ? 'tutorial' : 'practice') : 'menu', away: AWAY.on ? 1 : 0, hid: document.hidden ? 1 : 0 }); }
 function awayCheck() {
   const hidden = document.hidden || !document.hasFocus(), idle = Date.now() - AWAY.input > AWAY.AFTER;
   if ((hidden || idle) && mode !== 'online') { if (AWAY.t == null) AWAY.t = hidden ? Date.now() : AWAY.input + AWAY.AFTER; if (!AWAY.on && Date.now() - AWAY.t >= AWAY.AFTER * (hidden ? 1 : 0)) { AWAY.on = true; sendStatus(); } }
@@ -2699,7 +2705,7 @@ function awayCheck() {
 const awayInput = () => { AWAY.input = Date.now(); if (AWAY.on && !document.hidden) awayCheck(); };
 for (const ev of ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart']) addEventListener(ev, awayInput, { passive: true, capture: true });
 setInterval(() => { if (pad && pad.on && (pad.mx || pad.my || pad.draw)) awayInput(); }, 2000);
-setInterval(awayCheck, 3000); setInterval(sendStatus, 60000); // and again now and then, in case the connection was replaced without us noticing addEventListener('focus', awayCheck); addEventListener('blur', awayCheck); document.addEventListener('visibilitychange', awayCheck);
+setInterval(awayCheck, 3000); setInterval(sendStatus, 45000); document.addEventListener('visibilitychange', sendStatus); // (the server times a hidden page itself: a phone stops running the page soon after it's put away) // and again now and then, in case the connection was replaced without us noticing addEventListener('focus', awayCheck); addEventListener('blur', awayCheck); document.addEventListener('visibilitychange', awayCheck);
 function setScreens() {
   const inGame = mode !== 'menu';
   if (typeof renderRejoin === 'function' && $('rejoinBar')) renderRejoin();
@@ -4321,7 +4327,7 @@ function socialConnect() {
   };
   sock.onclose = () => { if (SOC.ws === sock) { SOC.ws = null; SOC.st = null; renderFind(); setTimeout(socialConnect, Math.min(15000, 1000 * 2 ** SOC.retry++)); } };
 }
-function socialHello() { SOC.elsewhere = false; socialSend({ t: 'hello', s: mode === 'local' ? (TUT.on ? 'tutorial' : 'practice') : 'menu', away: AWAY.on ? 1 : 0, name: playerName(), gt: GUEST_TOKEN, el: myLoadout().el, ro: myLoadout().ro, mp: mapPref(), hint: { bot: +store.get('bowfall-bestbot', '0') || 0, tut: tutDoneYet() ? 1 : 0 } }); }
+function socialHello() { SOC.elsewhere = false; socialSend({ t: 'hello', hb: 1, hid: document.hidden ? 1 : 0, s: mode === 'local' ? (TUT.on ? 'tutorial' : 'practice') : 'menu', away: AWAY.on ? 1 : 0, name: playerName(), gt: GUEST_TOKEN, el: myLoadout().el, ro: myLoadout().ro, mp: mapPref(), hint: { bot: +store.get('bowfall-bestbot', '0') || 0, tut: tutDoneYet() ? 1 : 0 } }); }
 // Best practice win against bots — a rough skill hint used to seed a new account's first rating.
 const BOT_LV = { easy: 1, normal: 2, hard: 3, extreme: 4, master: 5 };
 function noteBotWin() {
@@ -9184,6 +9190,12 @@ function paintBuilding(g, b, R) {
   g.strokeStyle = 'rgba(0,0,0,0.55)'; g.lineWidth = 2; g.strokeRect(x, y, w, h);
 }
 function paintProp(g, q, R) {
+  if (q.kind === 'trunk') { // a forest wall's trunk (its canopy is drawn over it with the other trees)
+    g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(q.x + 4, q.y + 5, q.r + 2, q.r, 0, 0, TAU); g.fill();
+    g.fillStyle = '#4b3420'; g.beginPath(); g.arc(q.x, q.y, q.r, 0, TAU); g.fill();
+    g.strokeStyle = 'rgba(0,0,0,0.35)'; g.lineWidth = 2; g.beginPath(); g.arc(q.x, q.y, q.r * 0.55, 0, TAU); g.stroke();
+    return;
+  }
   if (q.kind === 'well') {
     g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(q.x + 4, q.y + 5, q.r + 3, q.r + 1, 0, 0, TAU); g.fill();
     g.fillStyle = '#7d7f78'; g.beginPath(); g.arc(q.x, q.y, q.r + 3, 0, TAU); g.fill();

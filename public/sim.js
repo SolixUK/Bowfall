@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.41.0';
+const VERSION = '0.42.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -3751,7 +3751,8 @@ function botAbilities(w, p, T, dT, foes, dt) {
 // teammate, or come back after CQ.RESPAWN seconds at their nearest held stronghold or camp. Under a tree you can't be
 // seen from further than CQ.PEEK, and shots only fly CQ.RANGE, about as far as you can see, so nobody is hit from off
 // screen. Everything walks at normal speed here: the map is big, and the pace is meant to be slower.
-const CQ = { W: 4800, H: 3200, TARGET: 600, RESPAWN: 8, CAP_T: 10, RANGE: 1000, ZONE_R: 80, NEUTRAL_BACK: 30, REINFORCE: 15, PEEK: 70, HIDE_AFTER: 1.5, REVIVE_T: 3, CHEST_R: 46 };
+const CQ_S = 1.5; // the map is laid out at 4800 × 3200 and then stretched by this, so everything is further apart
+const CQ = { W: 4800 * CQ_S, H: 3200 * CQ_S, TARGET: 600, RESPAWN: 8, CAP_T: 10, RANGE: 1000, ZONE_R: 80, NEUTRAL_BACK: 30, REINFORCE: 15, PEEK: 70, HIDE_AFTER: 1.5, REVIVE_T: 3, CHEST_R: 46 };
 const BIOMES = {
   castle: { name: 'Castle Greyhold', faction: 'Greyhold Guard', water: true, npc: { guard: 'Man-at-arms', sentry: 'Gate warden', archer: 'Longbowman', turret: 'Tower archer', patrol: 'Watchman', captain: 'Sir Aldric' } },
   jungle: { name: 'Vine Temple', faction: 'Temple Wardens', water: true, npc: { guard: 'Temple warden', sentry: 'Root guard', archer: 'Vine archer', turret: 'Lookout', patrol: 'Hunter', captain: 'High Warden' } },
@@ -3781,7 +3782,7 @@ function wallRect(out, x0, y0, x1, y1, T, gaps, tag) {
 }
 function buildStrongholds() {
   const haz = [], pillars = [], blocks = [], holds = [], trees = [], torches = [], build = [];
-  const W = CQ.W, H = CQ.H;
+  const W = CQ.W / CQ_S, H = CQ.H / CQ_S;
   // ---- the river, winding north to south through the middle, with three bridges (gaps in it)
   const wavy = y => 2400 + 300 * Math.sin((y + 200) / 520) + 110 * Math.sin(y / 170 + 1);
   const BRIDGES = [640, 1600, 2560], RR = 125;
@@ -3806,27 +3807,45 @@ function buildStrongholds() {
     return { P, R, side };
   }
   function hold(i, bio, cx, cy, fx, fy, def) {
-    const F = place(cx, cy, fx, fy), B = BIOMES[bio], tag = { bio, sh: i };
+    const k = def.k || 1, F0 = place(cx, cy, fx, fy), B = BIOMES[bio], tag = { bio, sh: i };
+    // (a bigger stronghold: its own layout scaled up by k round its centre)
+    const F = { side: F0.side, P: (x, y) => F0.P(x * k, y * k), R: (x0, y0, x1, y1) => F0.R(x0 * k, y0 * k, x1 * k, y1 * k) };
     const rooms = [];
     // walls: each room is [x0, y0, x1, y1, T, gaps]
     for (const [x0, y0, x1, y1, T, gaps] of def.rooms) {
       const r = F.R(x0, y0, x1, y1);
-      const gs = (gaps || []).map(g => ({ side: F.side(g.side), at: g.side === 'n' || g.side === 's' ? F.P(g.at, 0).x : F.P(0, g.at).y, w: g.w }));
+      const gs = (gaps || []).map(g => ({ side: F.side(g.side), at: g.side === 'n' || g.side === 's' ? F.P(g.at, 0).x : F.P(0, g.at).y, w: g.w * k }));
       wallRect(blocks, r.x, r.y, r.x + r.w, r.y + r.h, T, gs, tag);
       rooms.push(r);
     }
     for (const [x, y, w, h] of def.walls || []) blocks.push(Object.assign(F.R(x, y, x + w, y + h), tag));
-    for (const [x, y, r] of def.towers) { const q = F.P(x, y); pillars.push({ x: q.x, y: q.y, r, tower: true, bio }); }
+    for (const [x, y, r] of def.towers) { const q = F.P(x, y); pillars.push({ x: q.x, y: q.y, r: r * k, tower: true, bio }); }
     for (const [x, y, w, h, kind] of def.buildings || []) { const r = F.R(x, y, x + w, y + h); blocks.push(Object.assign(r, tag, { bld: kind })); build.push(Object.assign({ kind, bio }, r)); }
     for (const [x, y, r, kind] of def.pillars || []) { const q = F.P(x, y); pillars.push({ x: q.x, y: q.y, r, bio, kind }); }
-    for (const h of def.haz || []) { const q = F.P(h.x, h.y); haz.push(Object.assign({}, h, { x: h.shape === 'rect' ? Math.min(q.x, F.P(h.x + h.w, 0).x) : q.x, y: h.shape === 'rect' ? Math.min(q.y, F.P(0, h.y + h.h).y) : q.y, bio })); }
+    for (const h of def.haz || []) { const q = F.P(h.x, h.y); haz.push(Object.assign({}, h, { x: h.shape === 'rect' ? Math.min(q.x, F.P(h.x + h.w, 0).x) : q.x, y: h.shape === 'rect' ? Math.min(q.y, F.P(0, h.y + h.h).y) : q.y, bio }, h.shape === 'rect' ? { w: h.w * k, h: h.h * k } : { r: h.r * k })); }
     for (const [x, y, r] of def.trees || []) { const q = F.P(x, y); trees.push({ x: q.x, y: q.y, r, bio }); }
     for (const [x, y] of def.torches || []) { const q = F.P(x, y); torches.push({ x: q.x, y: q.y, bio }); }
-    for (const [x, y, v] of def.bridges || []) { const q = F.P(x, y); bridges.push({ x: q.x, y: q.y, w: 100, len: 110, v }); }
+    for (const [x, y, v] of def.bridges || []) { const q = F.P(x, y); bridges.push({ x: q.x, y: q.y, w: 100 * k, len: 110 * k, v }); }
+    // a moat right round the outer wall, crossed only on drawbridges at its gates
+    if (def.moat) {
+      const r0 = rooms[0], G = def.moat.gap, M = def.moat.width, GW = def.moat.gate;
+      const ix0 = r0.x - G, iy0 = r0.y - G, ix1 = r0.x + r0.w + G, iy1 = r0.y + r0.h + G, ox0 = ix0 - M, oy0 = iy0 - M, ox1 = ix1 + M, oy1 = iy1 + M;
+      const gates = def.moat.gates.map(g => ({ side: F.side(g.side), at: g.side === 'n' || g.side === 's' ? F.P(g.at, 0).x : F.P(0, g.at).y }));
+      const band = (side, x, y, w, h) => { // split round its gates
+        const gs = gates.filter(g => g.side === side).map(g => g.at).sort((a, b) => a - b), horiz = side === 'n' || side === 's';
+        let s0 = horiz ? x : y; const end = horiz ? x + w : y + h;
+        for (const at of gs.concat([end + GW])) { const e0 = Math.min(end, at - GW / 2); if (e0 > s0) haz.push(horiz ? { type: 'pit', shape: 'rect', x: s0, y, w: e0 - s0, h, water: true, moat: true, bio } : { type: 'pit', shape: 'rect', x, y: s0, w, h: e0 - s0, water: true, moat: true, bio }); s0 = at + GW / 2; }
+      };
+      band('n', ox0, oy0, ox1 - ox0, M); band('s', ox0, iy1, ox1 - ox0, M); band('w', ox0, iy0, M, iy1 - iy0); band('e', ix1, iy0, M, iy1 - iy0);
+      for (const g of gates) {
+        if (g.side === 'e' || g.side === 'w') bridges.push({ x: g.side === 'e' ? ix1 + M / 2 : ox0 + M / 2, y: g.at, w: GW - 10, len: M + 40, v: false });
+        else bridges.push({ x: g.at, y: g.side === 's' ? iy1 + M / 2 : oy0 + M / 2, w: GW - 10, len: M + 40, v: true });
+      }
+    }
     const posts = def.posts.map(p => { const q = F.P(p.x, p.y); return Object.assign({}, p, { x: q.x, y: q.y, path: p.path ? p.path.map(([px, py]) => F.P(px, py)) : undefined }); });
     const throne = F.P(def.throne[0], def.throne[1]), chest = F.P(def.chest[0], def.chest[1]), spawn = F.P(def.spawn[0], def.spawn[1]);
     const bb = rooms[0];
-    holds.push({ i, bio, name: B.name, x: throne.x, y: throne.y, cx, cy, x0: bb.x, y0: bb.y, x1: bb.x + bb.w, y1: bb.y + bb.h, posts, chest, spawn, label: F.P(def.label[0], def.label[1]) });
+    holds.push({ i, bio, name: B.name, x: throne.x, y: throne.y, cx, cy, rad: 620 * k + (def.moat ? def.moat.gap + def.moat.width : 0), x0: bb.x, y0: bb.y, x1: bb.x + bb.w, y1: bb.y + bb.h, posts, chest, spawn, label: F.P(def.label[0], def.label[1]) });
   }
   const T = 24;
   // ---- Castle Greyhold (north-west): a curtain wall with a moat, a keep, a great hall and stables inside, a village south
@@ -3838,14 +3857,12 @@ function buildStrongholds() {
       [-390, 60, -200, 280, 20, [{ side: 'n', at: -295, w: 70 }]],                                  // the stables
     ],
     towers: [[-400, -300, 38], [400, -300, 38], [-400, 300, 38], [400, 300, 38], [400, -95, 30], [400, 95, 30], [350, 560, 26]],
+    k: 1.25, moat: { gap: 40, width: 130, gate: 120, gates: [{ side: 'e', at: 0 }, { side: 's', at: -150 }] },
     haz: [
-      { type: 'pit', shape: 'rect', x: -500, y: -400, w: 1000, h: 60, water: true, moat: true }, { type: 'pit', shape: 'rect', x: -500, y: 340, w: 290, h: 60, water: true, moat: true }, { type: 'pit', shape: 'rect', x: -90, y: 340, w: 590, h: 60, water: true, moat: true },
-      { type: 'pit', shape: 'rect', x: -500, y: -340, w: 60, h: 680, water: true, moat: true }, { type: 'pit', shape: 'rect', x: 440, y: -340, w: 60, h: 280, water: true, moat: true }, { type: 'pit', shape: 'rect', x: 440, y: 60, w: 60, h: 280, water: true, moat: true },
       { type: 'pit', shape: 'circle', x: 250, y: 180, r: 34 }, { type: 'tar', shape: 'circle', x: -20, y: 170, r: 40 },
     ],
     buildings: [[-330, 470, 90, 70, 'house'], [-160, 500, 90, 70, 'house'], [40, 460, 100, 70, 'house'], [220, 520, 90, 70, 'house'], [-60, 640, 130, 90, 'chapel'], [-440, 620, 80, 60, 'house']],
     pillars: [[-20, 560, 14, 'well'], [130, 620, 20], [-230, 440, 18]],
-    bridges: [[470, 0, false], [-150, 370, true]],
     trees: [[-560, 480, 55], [-600, 700, 60], [520, 420, 50], [560, 640, 58], [-300, 760, 52], [260, 740, 55], [480, 760, 48]],
     torches: [[400, -60], [400, 60], [-120, 300], [-180, 300], [-100, -30], [-40, -30], [-160, -30], [110, -150]],
     posts: [
@@ -3940,7 +3957,7 @@ function buildStrongholds() {
   const R = (() => { let s = 20260929; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; })();
   const near = (x, y, r) => haz.some(h => (h.shape === 'circle' ? Math.hypot(h.x - x, h.y - y) < h.r + r + 20 : x + r > h.x - 20 && x - r < h.x + h.w + 20 && y + r > h.y - 20 && y - r < h.y + h.h + 20))
     || blocks.some(b => x + r > b.x - 30 && x - r < b.x + b.w + 30 && y + r > b.y - 30 && y - r < b.y + b.h + 30)
-    || trees.some(t => Math.hypot(t.x - x, t.y - y) < t.r + r - 10) || holds.some(h => Math.hypot(h.cx - x, h.cy - y) < 620)
+    || trees.some(t => Math.hypot(t.x - x, t.y - y) < t.r + r - 10) || holds.some(h => Math.hypot(h.cx - x, h.cy - y) < h.rad)
     || Math.hypot(x - 330, y - 1600) < 260 || Math.hypot(x - 4470, y - 1600) < 260 || bridges.some(b => Math.abs(b.y - y) < 140 && Math.abs(b.x - x) < 360);
   const bioAt = (x, y) => (x < 2400 ? (y < 2000 ? 'castle' : 'beach') : (y < 2000 ? 'jungle' : 'desert'));
   const forest = (cx, cy, n, spread, rmin, rmax) => { for (let i = 0; i < n * 3 && n > 0; i++) { const a = R() * TAU, d = Math.sqrt(R()) * spread, x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d, r = rmin + R() * (rmax - rmin); if (x < 90 || x > W - 90 || y < 90 || y > H - 90 || near(x, y, r)) continue; trees.push({ x, y, r, bio: bioAt(x, y) }); n--; } };
@@ -3949,16 +3966,50 @@ function buildStrongholds() {
   forest(1900, 300, 6, 220, 48, 64); forest(2900, 300, 6, 220, 50, 68); forest(1900, 2900, 5, 200, 44, 58); forest(2900, 2900, 5, 200, 44, 58);
   forest(2400, 1100, 4, 160, 46, 60); forest(2400, 2100, 4, 160, 46, 60);
   for (let i = 0; i < 26; i++) { const x = 120 + R() * (W - 240), y = 120 + R() * (H - 240), r = 18 + R() * 16; if (near(x, y, r)) continue; pillars.push({ x, y, r }); }
+  // forest walls: lines of close-set trunks under their canopies that can't be walked or shot through, with a few gaps,
+  // so the ways out of each camp and up to each bridge are paths, not open ground
+  const hardNear = (x, y, r) => haz.some(h => (h.shape === 'circle' ? Math.hypot(h.x - x, h.y - y) < h.r + r + 30 : x + r > h.x - 30 && x - r < h.x + h.w + 30 && y + r > h.y - 30 && y - r < h.y + h.h + 30))
+    || blocks.some(b => x + r > b.x - 40 && x - r < b.x + b.w + 40 && y + r > b.y - 40 && y - r < b.y + b.h + 40) || holds.some(h => x > h.x0 - 170 && x < h.x1 + 170 && y > h.y0 - 170 && y < h.y1 + 170)
+    || pillars.some(q => q.kind !== 'trunk' && Math.hypot(q.x - x, q.y - y) < q.r + r + 20) || Math.hypot(x - 330, y - 1600) < 200 || Math.hypot(x - 4470, y - 1600) < 200;
+  const belt = (pts, gaps, gw = 130) => {
+    for (let s = 0; s < pts.length - 1; s++) {
+      const [x0, y0] = pts[s], [x1, y1] = pts[s + 1], L = Math.hypot(x1 - x0, y1 - y0), n = Math.ceil(L / 34); // (close enough that nobody squeezes between)
+      for (let i = 0; i <= n; i++) {
+        const t = i / n, x = x0 + (x1 - x0) * t + (R() - 0.5) * 10, y = y0 + (y1 - y0) * t + (R() - 0.5) * 10;
+        if (x < 60 || x > W - 60 || y < 60 || y > H - 60 || gaps.some(([gx, gy]) => Math.hypot(gx - x, gy - y) < gw) || hardNear(x, y, 20)) continue;
+        pillars.push({ x, y, r: 16, kind: 'trunk', bio: bioAt(x, y) }); if (i % 2 === 0) trees.push({ x, y, r: 40 + R() * 8, bio: bioAt(x, y), wall: true });
+      }
+    }
+  };
+  // round each camp, two ways out
+  belt([[600, 120], [600, 3080]], [[600, 1330], [600, 1870]]); belt([[4200, 120], [4200, 3080]], [[4200, 1330], [4200, 1870]]);
+  // along both banks, open only where the bridges are
+  const bank = off => { const pts = []; for (let y = 100; y <= H - 100; y += 80) pts.push([riverX(y) + off, y]); return pts; };
+  belt(bank(-560), BRIDGES.map(b => [riverX(b) - 560, b]), 170); belt(bank(560), BRIDGES.map(b => [riverX(b) + 560, b]), 170);
+  // and across each side, between the middle lane and the strongholds north and south of it: one way through each
+  belt([[600, 1330], [2400, 1330]], [[1650, 1330]]); belt([[600, 1870], [2400, 1870]], [[1650, 1870]]);
+  belt([[2400, 1330], [4200, 1330]], [[3150, 1330]]); belt([[2400, 1870], [4200, 1870]], [[3150, 1870]]);
   // the ruin by the middle bridge: broken walls for cover on both banks
   for (const [x, y, w, h] of [[2040, 1500, 90, 22], [2040, 1500, 22, 80], [2110, 1690, 80, 22], [2700, 1490, 22, 90], [2700, 1490, 90, 22], [2640, 1690, 90, 22]]) blocks.push({ x, y, w, h, ruin: true });
+  // ---- stretch it all out: positions and buildings by CQ_S, trees and rocks a little less (so the land between is wider)
+  const S = CQ_S, sc = o => { o.x *= S; o.y *= S; };
+  for (const h of haz) { sc(h); if (h.w != null) { h.w *= S; h.h *= S; } if (h.r != null) h.r *= h.river ? S : 1.15; }
+  for (const q of pillars) { sc(q); q.r *= q.tower ? S : q.kind === 'trunk' ? 1.4 : 1.1; }
+  for (const b of blocks) { sc(b); b.w *= S; b.h *= S; } for (const b of build) { sc(b); b.w *= S; b.h *= S; }
+  for (const t of trees) { sc(t); t.r *= 1.15; } for (const t of torches) sc(t);
+  for (const b of bridges) { sc(b); b.w *= S; b.len *= S; }
+  for (const h of holds) { sc(h); h.cx *= S; h.cy *= S; h.rad *= S; h.x0 *= S; h.y0 *= S; h.x1 *= S; h.y1 *= S; sc(h.chest); sc(h.spawn); sc(h.label); for (const p of h.posts) { sc(p); if (p.path) p.path.forEach(sc); } }
+  // (a canopy that the stretching pushed over water or a wall goes)
+  for (let i = trees.length - 1; i >= 0; i--) { const t = trees[i]; if (haz.some(h => h.type !== 'tar' && (h.shape === 'circle' ? Math.hypot(h.x - t.x, h.y - t.y) < h.r + 6 : t.x > h.x - 6 && t.x < h.x + h.w + 6 && t.y > h.y - 6 && t.y < h.y + h.h + 6)) || blocks.some(b => t.x > b.x - 6 && t.x < b.x + b.w + 6 && t.y > b.y - 6 && t.y < b.y + b.h + 6)) trees.splice(i, 1); }
+  const riverAt = y => riverX(y / S) * S, at = (x, y) => ({ x: x * S, y: y * S });
   return {
-    name: 'Strongholds', theme: 'meadow', hidden: true, big: true, mode: 'conquest', w: W, h: H,
+    name: 'Strongholds', theme: 'meadow', hidden: true, big: true, mode: 'conquest', w: W * S, h: H * S,
     desc: 'Four castles held by NPCs across a river. Capture them to score.',
     haz, pillars, blocks, holds, trees, torches, build, bridges, spikes: [], cracks: [], saws: [], bumpers: [], portals: [], wind: null,
-    riverX,
-    spawns: [{ x: 300, y: 1560 }, { x: 300, y: 1640 }, { x: 380, y: 1600 }, { x: 240, y: 1600 }],
-    camps: { red: { x: 330, y: 1600 }, blue: { x: W - 330, y: 1600 } },
-    power: [{ x: riverX(1600) - 200, y: 1600 }, { x: riverX(1600) + 200, y: 1600 }, { x: riverX(640) - 190, y: 640 }, { x: riverX(640) + 190, y: 640 }, { x: riverX(2560) - 190, y: 2560 }, { x: riverX(2560) + 190, y: 2560 }], amberY: [WALL + 44, 330],
+    riverX: riverAt,
+    spawns: [at(300, 1560), at(300, 1640), at(380, 1600), at(240, 1600)],
+    camps: { red: at(330, 1600), blue: at(W - 330, 1600) },
+    power: [at(riverX(1600) - 200, 1600), at(riverX(1600) + 200, 1600), at(riverX(640) - 190, 640), at(riverX(640) + 190, 640), at(riverX(2560) - 190, 2560), at(riverX(2560) + 190, 2560)], amberY: [WALL + 44, 330],
     tiles: [['meadow', 'meadow', 'jungle', 'jungle'], ['meadow', 'spring', 'spring', 'jungle'], ['beach', 'spring', 'spring', 'desert'], ['beach', 'beach', 'desert', 'desert']],
   };
 }
