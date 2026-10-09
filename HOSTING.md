@@ -54,8 +54,8 @@ The server log on Render says `(Postgres database)` when it's connected, or `(lo
 1. In Render, open the service → **Settings** → **Custom Domains** → **Add Custom Domain**, and add `bowfall.com` (Render also offers `www.bowfall.com`; keep both).
 2. Render shows the DNS records to create. At the company you bought the domain from, open its DNS settings and add exactly what Render shows: usually an **A** record for `@` pointing at Render's IP address, and a **CNAME** record for `www` pointing at `bowfall.onrender.com`. Delete any existing "parking" A or CNAME records for `@` and `www`.
 3. Back in Render, click **Verify**. Once it's verified Render issues the HTTPS certificate by itself (minutes to a few hours while DNS updates).
-4. Set `PUBLIC_URL` to `https://bowfall.com`. The server then sends anyone who uses the old onrender.com address or `www.` to `https://bowfall.com`, so everyone shares one address and one sign-in.
-5. Use `https://bowfall.com/auth/google/callback` and `https://bowfall.com/auth/discord/callback` as the redirect addresses below.
+4. Set `PUBLIC_URL` to the address your domain settles on: `https://www.bowfall.com` if your domain sends the bare name to `www.` (GoDaddy does), otherwise `https://bowfall.com`. The server sends anyone on the old onrender.com address there.
+5. Your sign-in redirect addresses are `PUBLIC_URL` plus `/auth/google/callback` and `/auth/discord/callback`, for example `https://www.bowfall.com/auth/discord/callback`.
 
 ### Sign in with Google and Discord (optional)
 
@@ -88,17 +88,26 @@ Bowfall has a **Privacy** page (`https://bowfall.com/#/privacy`) and a **Terms**
 
 **Discord** (about 5 minutes)
 1. Go to https://discord.com/developers/applications → **New Application**, call it Bowfall.
-2. Open **OAuth2**. Under **Redirects** add `https://bowfall.com/auth/discord/callback` and save.
+2. Open **OAuth2**. Under **Redirects** add your `PUBLIC_URL` followed by `/auth/discord/callback` (for example `https://www.bowfall.com/auth/discord/callback`) and save.
 3. Copy the **Client ID**, click **Reset Secret** and copy the secret. Put them in Render as `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET`.
 
 Save the variables in Render. After the restart the buttons appear on the sign-in page, on the website and in the game.
+
+### A community Discord server (optional)
+
+1. In the Discord app, click **+** (Add a Server) at the bottom of the server list → **Create My Own** → **For a club or community**, and name it Bowfall.
+2. Make a few channels: `#announcements` (only you can post: channel settings → Permissions → @everyone → Send Messages off), `#general`, `#looking-for-game`, `#feedback` and `#bug-reports`. Server Settings → **Enable Community** turns on a rules screen and welcome page.
+3. Right-click the server → **Invite People** → **Edit invite link**: set **Expire after: Never** and **Max uses: No limit**, then copy the link (`https://discord.gg/…`).
+4. In Render, add `DISCORD_INVITE` with that link. A **Join our Discord** button appears on the game's main menu, and a Discord link in the website's menu and footer.
+
+(The sign-in application from the previous section and the community server are separate: one lets players sign in with Discord, the other is where they chat.)
 
 **What players see and what Bowfall keeps:**
 - New players signing in this way pick a player name the first time.
 - Bowfall receives an ID, a display name (to suggest a player name) and, if Google or Discord has confirmed it, the email address. The email is kept privately for password resets, the same as an email typed in at sign-up.
 - Existing players can link Google or Discord, add or change a password and change their email on their profile page under **Signing in**, and can delete their account there too.
 
-**If something goes wrong:** "redirect_uri_mismatch" from Google, or "Invalid OAuth2 redirect_uri" from Discord, means the address in step 6 (or Discord step 2) doesn't exactly match your site. Check `https` and that there's no `www.` and no slash at the end.
+**If something goes wrong:** "redirect_uri_mismatch" from Google, or "Invalid OAuth2 redirect_uri" from Discord, means the address in step 6 (or Discord step 2) doesn't exactly match your site. Check it's exactly your `PUBLIC_URL` (including `https://` and `www.` if yours has it) followed by the callback path, with no slash at the end.
 
 ## Option 3: same Wi-Fi only
 

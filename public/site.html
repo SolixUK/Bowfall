@@ -219,12 +219,13 @@
       <a href="#/servers" data-r="servers">Servers</a>
       <a href="#/leaderboard" data-r="leaderboard">Leaderboard</a>
       <a href="#/forum" data-r="forum">Forum</a>
+      <a href="#" id="navDiscord" target="_blank" rel="noopener" hidden>Discord</a>
     </nav>
     <div class="who" id="who"></div>
   </div>
 </header>
 <main class="wrap" id="app" tabindex="-1"></main>
-<footer><div class="wrap">Bowfall · team knockback archery · <a href="/play">Play now</a> · <a href="#/privacy">Privacy</a> · <a href="#/terms">Terms</a> · <span id="ver"></span></div></footer>
+<footer><div class="wrap">Bowfall · team knockback archery · <a href="/play">Play now</a> · <a href="#/privacy">Privacy</a> · <a href="#/terms">Terms</a> · <a href="#" id="footDiscord" target="_blank" rel="noopener" hidden>Discord</a> · <span id="ver"></span></div></footer>
 
 <script src="sim.js"></script>
 <script>
@@ -761,6 +762,8 @@ addEventListener('hashchange', route);
 // an invite link (?ref=name): remembered for 30 days, so the account made later counts as theirs
 (() => { const r = new URLSearchParams(location.search).get('ref'); if (r && /^[A-Za-z0-9_-]{3,16}$/.test(r)) { try { localStorage.setItem('bowfall-ref', r); } catch (e) {} document.cookie = 'bf_ref=' + encodeURIComponent(r) + '; Path=/; Max-Age=2592000; SameSite=Lax'; } })();
 function refName() { try { return localStorage.getItem('bowfall-ref') || undefined; } catch (e) { return undefined; } }
+// the community Discord, when the server has its invite link
+fetch('/api/legal').then(r => r.json()).then(d => { if (d && d.discord) for (const id of ['navDiscord', 'footDiscord']) { const a = document.getElementById(id); a.href = d.discord; a.hidden = false; } }).catch(() => {});
 loadMe().then(route);
 })();
 </script>

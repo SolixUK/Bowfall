@@ -2,6 +2,11 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.39.1
+
+- **Join our Discord:** set `DISCORD_INVITE` (a `https://discord.gg/...` link) in the environment and a Join our Discord button appears on the game's main menu, with a Discord link in the website's menu and footer. HOSTING.md explains making the server.
+- HOSTING.md: the Discord and Google sign-in redirect addresses now follow `PUBLIC_URL` (with `www.` when your domain uses it).
+
 ## 0.39.0
 
 - **Banners redone:** six **frames** with real style on top of the background: Circuit, Rime, Primal, Shadow, Bloodied and Gilded, with subtle animation (a scanning sweep, a cold shimmer, a creeping dark, dripping blood, a pulsing gold glow). Four new **backgrounds**: Carbon, Hex plating, Woodland camo and Tidal (moving waves). Frames unlock with achievement tiers. Your profile shows a **bigger banner**: the name large, with level, flag, clan, title, trophies and medals on a compact second line. Hovering a medal now says what the achievement is for. (The "Finish" option is now called Background.)

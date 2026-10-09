@@ -459,7 +459,9 @@
   .clipview .cvbtns { display: flex; gap: 8px; }
   body.clipmode #home, body.clipmode .overlay.sub, body.clipmode #gate, body.clipmode .rejoinbar, body.clipmode #homeFriends, body.clipmode .hud-l, body.clipmode .hud-r, body.clipmode #powers, body.clipmode #abil, body.clipmode #board { display: none !important; }
   body.clipembed #clipView { bottom: 8px; padding: 6px 10px; } body.clipembed #cvClose { display: none; }
-  .online { display: inline-flex; align-items: center; gap: 7px; margin-top: 6px; font: 600 13px 'Titillium Web', 'Segoe UI', sans-serif; color: var(--muted); } .online i { width: 8px; height: 8px; border-radius: 50%; background: #7dff8a; box-shadow: 0 0 8px #7dff8a; } .online b { color: var(--text); }
+  .homelinks { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 6px; }
+  .dclink { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: #5865f2; color: #fff; text-decoration: none; font: 700 13px 'Titillium Web', 'Segoe UI', sans-serif; border-radius: 3px; pointer-events: auto; } .dclink:hover { background: #4752c4; } .dclink svg { width: 16px; height: 16px; }
+  .online { display: inline-flex; align-items: center; gap: 7px; font: 600 13px 'Titillium Web', 'Segoe UI', sans-serif; color: var(--muted); } .online i { width: 8px; height: 8px; border-radius: 50%; background: #7dff8a; box-shadow: 0 0 8px #7dff8a; } .online b { color: var(--text); }
   .dmmini { position: fixed; z-index: 16; right: 16px; bottom: 16px; display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; background: rgba(9,18,11,.95); border: 1px solid var(--line); border-top: 2px solid var(--gold); color: var(--text); font: 700 14px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .04em; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
   .dmmini:hover { border-color: var(--gold); } .dmmini .dmn { margin: 0; }
   .rejoinbar { position: fixed; z-index: 17; left: 50%; top: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: rgba(9,18,11,.97); border: 1px solid var(--gold); box-shadow: 0 8px 24px rgba(0,0,0,.5); font: 600 14px 'Titillium Web', 'Segoe UI', sans-serif; max-width: calc(100vw - 32px); box-sizing: border-box; }
@@ -1084,7 +1086,7 @@
         <div class="lpbox"><div class="lplist" id="lpList"></div><button type="button" class="ghost sm" id="lpAdd" title="Another player with their own controller, on this screen">+ Add player on controller</button></div>
         <div class="frpanel" id="homeFriends" hidden></div>
       </div>
-      <div class="hometitle"><span class="eyebrow">Knockback archery · Team rounds</span><h1>Bow<span>fall</span></h1><div class="online" id="homeOnline" hidden><i></i><b id="homeOnlineN">0</b> online</div></div>
+      <div class="hometitle"><span class="eyebrow">Knockback archery · Team rounds</span><h1>Bow<span>fall</span></h1><div class="homelinks"><div class="online" id="homeOnline" hidden><i></i><b id="homeOnlineN">0</b> online</div><a class="dclink" id="homeDiscord" href="#" target="_blank" rel="noopener" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.3 4.4A19.6 19.6 0 0 0 15.5 3l-.6 1.2a18 18 0 0 0-5.8 0L8.5 3a19.6 19.6 0 0 0-4.8 1.4C.6 9 .0 13.5.3 18a19.8 19.8 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4c-.6.4-1.3.7-2 1L17.7 21a19.7 19.7 0 0 0 6-3c.4-5.2-.7-9.7-3.4-13.6zM8.5 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4zm7 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4z"/></svg>Join our Discord</a></div></div>
       <nav class="mainmenu" aria-label="Main menu">
         <button class="mm" id="mFind" type="button"><span class="mmk">01</span><b>Find game</b><small>Ranked matchmaking by rating: 1v1, 2v2 or 3v3, on your own or with friends.</small><em class="mmlock" id="mFindBadge" hidden></em></button>
         <button class="mm" id="mCustom" type="button"><span class="mmk">02</span><b>Custom games</b><small>Browse public games, join with a code, host your own, practise against bots, or build your own arena.</small></button>
@@ -1571,7 +1573,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.39.0';
+const VERSION = '0.39.1';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -6004,7 +6006,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.39.0';
+const PAGE_VERSION = '0.39.1';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -8835,6 +8837,8 @@ setInterval(() => { const p = SOC.st && SOC.st.party; if (p && p.queued != null)
 if (/^[A-Za-z0-9_-]{3,16}$/.test(params.get('ref') || '')) { try { localStorage.setItem('bowfall-ref', params.get('ref')); } catch (e) {} document.cookie = 'bf_ref=' + encodeURIComponent(params.get('ref')) + '; Path=/; Max-Age=2592000; SameSite=Lax'; }
 const AVATAR_ONLY = params.get('avatar') === '1'; // the website borrows the game's archer drawing for profile pictures
 if (!OFFLINE && !AVATAR_ONLY) setTimeout(socialConnect, 400);
+// the community Discord, when the server has its invite link
+if (!OFFLINE && !AVATAR_ONLY) fetch('/api/legal').then(r => r.json()).then(d => { if (d && d.discord) { $('homeDiscord').href = d.discord; $('homeDiscord').hidden = false; } }).catch(() => {});
 
 // ================= chat (online rooms) =================
 let chatMsgs = [];

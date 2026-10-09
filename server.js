@@ -112,6 +112,8 @@ async function payReferral(u) {
   if (paid <= REF_MAX) { const g2 = E.give(inv, REF_GIFT, 'invite'); markDirty(inv); walletNote(inv, g2, 'invite'); social.notify && social.notify(inv.id, `${u.name}, who you invited, has played ${REF_AFTER} ranked matches: +${REF_GIFT} Crests!`); }
 }
 async function loadById(id) { if (!live.has(id)) { const [x] = await store.usersByIds([id]).catch(() => []); if (x) track(x); } }
+// the community Discord server's invite link (DISCORD_INVITE in the environment), shown on the website and the main menu
+const DISCORD_INVITE = /^https:\/\/(discord\.gg|discord\.com\/invite)\/[A-Za-z0-9-]+$/.test(process.env.DISCORD_INVITE || '') ? process.env.DISCORD_INVITE : null;
 const placedOf = u => { const c = u.career || {}; return !!c.ai || (c.rated != null ? c.rated : c.matches || 0) >= 5; };
 const publicUser = u => ({ placed: placedOf(u), season: SEASON.info(), status: (u.career && u.career.ai) ? {} : E.statusOf(u), name: u.name, title: u.title, admin: !!u.admin, created: u.created, career: Object.assign({}, u.career || {}, { ai: undefined }), got: Object.keys((u.ach && u.ach.got) || {}), stats: (u.ach && u.ach.stats) || {},
   ai: !!(u.career && u.career.ai), country: flagOf(u), level: levelOf(u.career), border: (u.ach && u.ach.border) || null, avatar: (u.ach && u.ach.avatar) || null,
@@ -506,7 +508,7 @@ async function api(req, res, url) {
     if (email) MAIL.send(email, 'Your Bowfall account was deleted', `Your Bowfall account (${oldName}) has been deleted, as you asked. Thanks for playing.`).catch(() => {});
     return json(res, 200, { ok: true }, { 'Set-Cookie': A.sessionCookie(null, req) });
   }
-  if (route === '/legal' && method === 'GET') return json(res, 200, { contact: process.env.CONTACT_EMAIL || null, payments: PAY.configured(), mail: MAIL.configured(), providers: O.enabled() });
+  if (route === '/legal' && method === 'GET') return json(res, 200, { discord: DISCORD_INVITE, contact: process.env.CONTACT_EMAIL || null, payments: PAY.configured(), mail: MAIL.configured(), providers: O.enabled() });
   if (route === '/device-login' && method === 'POST') {
     if (!authLimit(ip(req))) return json(res, 429, { error: 'Too many attempts. Wait a minute and try again.' });
     const u = await store.userByName(String(body.name || '').trim());

@@ -42,3 +42,6 @@ services:
       # optional: an address players can write to, shown on the Privacy and Terms pages
       - key: CONTACT_EMAIL
         sync: false
+      # the community Discord server's invite link (https://discord.gg/...): a Join our Discord button in the game and on the website
+      - key: DISCORD_INVITE
+        sync: false
