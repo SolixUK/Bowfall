@@ -335,6 +335,9 @@
   .fgmaps button.hate { color: #ff7a6a; border-color: #ff7a6a; background: rgba(255,90,70,.08); text-decoration: line-through; }
   .fgmaps button:disabled { opacity: .55; cursor: default; }
   .fgmaphint { font-size: 12.5px; }
+  .fgmapprev { position: fixed; z-index: 40; pointer-events: none; display: flex; flex-direction: column; gap: 4px; padding: 6px; background: var(--panel); border: 1px solid var(--gold); box-shadow: 0 8px 24px rgba(0,0,0,.5); }
+  .fgmapprev canvas { width: 240px; height: auto; display: block; border-radius: 4px; }
+  .fgmapprev b { font: 700 14px 'Rajdhani', 'Arial Narrow', sans-serif; text-align: center; }
   #fgGo.searching { background: var(--panel); color: var(--gold); border: 1px solid var(--gold); }
   .fr { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: center; padding: 7px 10px; background: rgba(255,255,255,.04); border: 1px solid var(--line); }
   .fr .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
@@ -342,6 +345,8 @@
   .fr b { font: 600 15px 'Rajdhani', 'Arial Narrow', sans-serif; } .fr small { color: var(--muted); font-size: 12px; grid-column: 2; }
   .fr .btnrow { grid-row: 1 / span 2; grid-column: 3; gap: 4px; }
   .fr .lead { color: var(--gold); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; margin-left: 6px; }
+  .fr .rdy { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; margin-left: 6px; color: var(--muted); }
+  .fr .rdy.on { color: #6fdc8c; }
   .ratedbox { position: fixed; z-index: 12; left: 50%; top: 84px; transform: translate(-50%, -12px); opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s;
     display: flex; align-items: baseline; gap: 12px; padding: 10px 18px; background: rgba(9,18,11,.94); border: 1px solid var(--gold); box-shadow: 0 8px 24px rgba(0,0,0,.5); }
   .ratedbox.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
@@ -363,6 +368,46 @@
   .resprog .lvup { color: var(--gold); animation: lvpop .6s ease-out; } @keyframes lvpop { 0% { transform: scale(1.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
   .fwin { font-size: 13px; color: var(--muted); margin: 2px 0 4px; } .fwin b { color: var(--gold); }
   .resrated { font-size: 16px; } .resrated b { font: 700 24px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--gold); margin: 0 6px; }
+  .dmbox { position: fixed; z-index: 60; right: 16px; bottom: 16px; width: min(620px, calc(100vw - 32px)); height: min(440px, calc(100vh - 32px)); display: grid; grid-template-columns: 190px minmax(0, 1fr); background: #0a140c; isolation: isolate; border: 1px solid var(--line); border-top: 3px solid var(--gold); box-shadow: 0 10px 30px rgba(0,0,0,.55); font-family: 'Titillium Web', 'Segoe UI', sans-serif; }
+  .dmside { border-right: 1px solid var(--line); overflow-y: auto; display: flex; flex-direction: column; }
+  .dmsh { padding: 10px 12px 6px; font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; }
+  .dmfr { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 12px; background: none; border: 0; border-left: 3px solid transparent; color: var(--text); text-align: left; cursor: pointer; font: 600 13px 'Titillium Web', sans-serif; }
+  .dmfr:hover { background: rgba(255,255,255,.05); } .dmfr.on { background: rgba(255,207,90,.08); border-left-color: var(--gold); }
+  .dmfr .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; } .dmfr .dot.on { background: #7dff8a; } .dmfr .dot.play { background: var(--gold); }
+  .dmfr span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dmn { display: inline-block; min-width: 16px; padding: 0 4px; border-radius: 8px; background: #e0533d; color: #fff; font: 700 11px/16px 'Titillium Web', sans-serif; text-align: center; font-style: normal; margin-left: 5px; }
+  .dmmain { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  .dmhead { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  .dmwho { flex: 1; min-width: 0; display: flex; flex-direction: column; } .dmwho b { font: 700 16px 'Rajdhani', 'Arial Narrow', sans-serif; } .dmwho small { color: var(--muted); font-size: 11.5px; }
+  .dmback, .dmx2 { display: none; } .dmsh { display: flex; justify-content: space-between; align-items: center; }
+  .dmlog { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+  .dmempty { margin: auto; text-align: center; }
+  .dmday { align-self: center; color: var(--muted); font-size: 11px; margin: 6px 0 2px; }
+  .dmm { max-width: 78%; align-self: flex-start; padding: 5px 10px; background: rgba(255,255,255,.07); border-radius: 2px 10px 10px 10px; font-size: 13.5px; line-height: 1.35; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .dmm.me { align-self: flex-end; background: rgba(255,207,90,.16); border-radius: 10px 2px 10px 10px; }
+  .dmm small { display: block; color: var(--muted); font-size: 10.5px; margin-top: 1px; }
+  .dmsend { display: flex; gap: 6px; padding: 8px 10px; border-top: 1px solid var(--line); }
+  .dmsend input { flex: 1; min-width: 0; }
+  .dmmore { align-self: center; }
+  @media (max-width: 600px) { .dmbox { right: 8px; bottom: 8px; width: calc(100vw - 16px); grid-template-columns: 1fr; } .dmbox.conv .dmside { display: none; } .dmbox:not(.conv) .dmmain { display: none; } .dmback, .dmx2 { display: inline-block; } }
+  .btnlink { text-decoration: none; display: inline-block; }
+  .linkbtn { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-align: left; } .linkbtn:hover { text-decoration: underline; text-decoration-color: var(--line); }
+  .pcwrap { position: fixed; inset: 0; z-index: 61; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.6); }
+  .pfcard { position: relative; width: min(720px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; box-sizing: border-box; padding: 20px 22px; background: #0d1810; border: 1px solid var(--line); border-top: 3px solid var(--gold); display: flex; flex-direction: column; gap: 14px; font-family: 'Titillium Web', 'Segoe UI', sans-serif; }
+  .pchead { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 16px; align-items: center; }
+  .pchead canvas { width: 112px; height: 112px; background: radial-gradient(circle, rgba(255,255,255,.08), rgba(255,255,255,.02)); border: 1px solid var(--line); }
+  .pchead h2 { margin: 0; font: 700 30px 'Rajdhani', 'Arial Narrow', sans-serif; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+  .pchead .pcsub { color: var(--muted); font-size: 13px; }
+  .pcstats { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px; }
+  .pcstats div { padding: 7px 10px; background: rgba(255,255,255,.04); border: 1px solid var(--line); display: flex; flex-direction: column; }
+  .pcstats b { font: 700 20px 'Rajdhani', 'Arial Narrow', sans-serif; } .pcstats span { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .pcsec h3 { margin: 0 0 6px; font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .pcchips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pcchips span { padding: 3px 9px; border: 1px solid var(--line); border-left: 3px solid var(--cc, var(--line)); background: rgba(255,255,255,.03); font-size: 13px; }
+  .pcchips small { color: var(--muted); margin-left: 4px; }
+  .pcact { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+  .pcx { position: absolute; right: 12px; top: 10px; }
+  @media (max-width: 520px) { .pchead { grid-template-columns: 72px 1fr; } .pchead canvas { width: 72px; height: 72px; } .pchead h2 { font-size: 22px; } }
   .invite { position: fixed; z-index: 15; right: 16px; bottom: 16px; max-width: 320px; padding: 12px 14px; background: rgba(9,18,11,.96); border: 1px solid var(--gold); display: flex; flex-direction: column; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
   .invite[hidden] { display: none; }
   .aitag { font: 600 10px 'Titillium Web', sans-serif; letter-spacing: .08em; color: #9fb8ff; border: 1px solid #9fb8ff; padding: 0 4px; margin-left: 6px; vertical-align: 2px; }
@@ -412,7 +457,11 @@
   .frpanel .frh span { font: 500 12px 'Titillium Web', sans-serif; color: #7dff8a; }
   .frrow { display: flex; align-items: center; gap: 8px; }
   .frrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; } .frrow .dot.on { background: #7dff8a; } .frrow .dot.play { background: var(--gold); }
-  .frrow .frn { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .frrow .frn { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; background: none; border: 0; padding: 0; color: inherit; text-align: left; cursor: pointer; font: inherit; }
+  .frrow .frn:hover b { text-decoration: underline; text-decoration-color: var(--line); }
+  .frrow.froff { opacity: .62; }
+  .frofft { align-self: flex-start; background: none; border: 0; padding: 2px 0; color: var(--muted); font: 600 12px 'Titillium Web', sans-serif; cursor: pointer; }
+  .frpanel .frh { gap: 8px; } .frpanel .frh .hfmsg { margin-left: auto; padding: 2px 8px; font-size: 12px; }
   .frrow .frn b { font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .frrow .frn small { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .frrow .ghost.sm { padding: 3px 8px; font-size: 12px; }
@@ -964,6 +1013,7 @@
           <div class="oltabs" id="fgModes"><button type="button" data-mode="1v1">1v1</button><button type="button" data-mode="2v2">2v2</button><button type="button" data-mode="3v3">3v3</button></div>
           <h3>Arenas</h3>
           <div class="fgmaps" id="fgMaps"></div>
+          <div class="fgmapprev" id="fgMapPrev" hidden><canvas id="fgMapCv" width="300" height="200"></canvas><b id="fgMapName"></b></div>
           <span class="status fgmaphint">Click your favourite arena, right-click one you'd rather avoid (on a controller, press again to switch it to avoid). Matches lean towards favourites and away from arenas anyone avoids.</span>
           <button class="cta fggo" id="fgGo" type="button">Find match</button>
           <span class="status" id="fgStatus">Matched by rating with players near your level. If nobody close is searching, AI players fill in after a short wait.</span>
@@ -1010,6 +1060,15 @@
   </div>
   <div class="lppickfloat" id="lpPick" hidden></div>
   <div class="ratedbox" id="ratedBox" hidden></div>
+  <div class="dmbox" id="dmBox" role="dialog" aria-label="Messages" hidden>
+    <div class="dmside"><div class="dmsh"><b>Messages</b><button type="button" class="ghost sm dmx2" id="dmClose2" aria-label="Close messages">×</button></div><div id="dmList"></div></div>
+    <div class="dmmain">
+      <div class="dmhead"><button type="button" class="ghost sm dmback" id="dmBack" aria-label="Back to friends">‹</button><div class="dmwho"><b id="dmName">Messages</b><small id="dmSub"></small></div><button type="button" class="ghost sm" id="dmClose" aria-label="Close messages">×</button></div>
+      <div class="dmlog" id="dmLog"><div class="status dmempty">Pick a friend to message.</div></div>
+      <form class="dmsend" id="dmForm" autocomplete="off"><input id="dmIn" maxlength="300" placeholder="Message" disabled><button class="cta sm" type="submit" id="dmGo" disabled>Send</button></form>
+    </div>
+  </div>
+  <div class="pcwrap" id="pcWrap" hidden><div class="pfcard" id="pcCard" role="dialog" aria-label="Player profile"></div></div>
   <div class="invite" id="inviteToast" hidden><span id="inviteText"></span><div class="btnrow"><button class="cta sm" id="inviteYes" type="button">Join party</button><button class="ghost sm" id="inviteNo" type="button">No thanks</button></div></div>
   <div class="overlay sub" id="customScr" hidden>
     <div class="card wide">
@@ -1127,6 +1186,7 @@
         <section class="mode" data-navsec><h3>Graphics</h3>
           <div class="field"><label for="oRes">Resolution</label><select id="oRes"><option value="auto">Automatic (drops when the game slows)</option><option value="sharp">Always sharp</option><option value="fast">Fast (lower resolution)</option></select></div>
           <div class="field"><label for="oFx">Effects</label><select id="oFx"><option value="auto">Automatic (lighter when the game slows)</option><option value="full">Full</option><option value="light">Light (no glows or trails, for older laptops)</option></select></div>
+          <div class="field"><label for="oMe">Your own archer</label><select id="oMe"><option value="strong">Strongly marked (gold ring and arrow)</option><option value="soft">Lightly marked (white ring)</option></select></div>
           <div class="field"><label for="oGlow">Team glow round archers</label><select id="oGlow"><option value="live">Living (breathes, leans into movement, flares on a draw)</option><option value="soft">Soft (still)</option><option value="ring">Ring only</option></select></div>
           <div class="field"><label for="oDetail">Arena detail</label><select id="oDetail"><option value="full">Full (ambient light, drifting leaves, lava glow)</option><option value="low">Low (plain arenas; fastest)</option></select></div>
           <div class="field"><label for="oShadow">Shots' shadows</label><select id="oShadow"><option value="soft">Soft</option><option value="simple">Simple (a dot)</option><option value="off">Off</option></select></div>
@@ -1388,7 +1448,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.34.2';
+const VERSION = '0.35.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1950,7 +2010,8 @@ function emblemSvg(code, size) {
     i: `<path d="M56 18L32 56H48L42 86L68 46H52Z" fill="${cc}" ${ink}/>`,
     j: `<circle cx="50" cy="52" r="26" fill="none" stroke="${cc}" stroke-width="7"/><circle cx="50" cy="52" r="13" fill="none" stroke="${cc}" stroke-width="7"/><circle cx="50" cy="52" r="4" fill="${cc}"/>`,
   }[sy];
-  return `<svg class="emblem" viewBox="0 0 100 100" width="${size || 24}" height="${size || 24}" aria-hidden="true"><rect x="0" y="0" width="100" height="100" rx="14" fill="${bg}"/>` +
+  // the backing colour (the 9th character) is kept in the code but no longer drawn: emblems sit on a transparent background
+  return `<svg class="emblem" viewBox="0 0 100 100" width="${size || 24}" height="${size || 24}" aria-hidden="true">` +
     `<defs><clipPath id="${id}"><path d="${path}"/></clipPath></defs><path d="${path}" fill="${base}"/><g clip-path="url(#${id})">${pats}</g>${syms}` +
     `<path d="${path}" fill="none" stroke="${trim}" stroke-width="6" stroke-linejoin="round"/></svg>`;
 }
@@ -2092,7 +2153,7 @@ ROLES.assassin = { name: 'Assassin', cat: 'Agility', blurb: 'Vanish, get close, 
 ROLES.ninja = { name: 'Ninja', cat: 'Agility', blurb: 'Blink in, strike fast, blink out.', premium: true,
   trait: { name: 'Shadowstep', desc: "No bow: click to throw a shuriken instantly (one per click, up to about 3 a second). They're for close range: each hits softer than an arrow, slows down fast and hurts less the further it flies (about 300px); bullseye shuriken count as fully drawn shots for your upgrades. Your dash is a near-instant blink toward your cursor instead: about 150px, 2 charges usable back to back, straight over pits and lava. 10 less health, and you take 10% more knockback." } };
 ROLES.crossbow = { name: 'Crossbowman', cat: 'Power', blurb: 'Point and shoot: no drawing, shorter reach.', premium: true,
-  trait: { name: 'Crank and Loose', desc: 'A crossbow instead of a bow: click to fire at once, no drawing. Each shot is a quick burst of three bolts, each about 40% as strong as a full draw (all three together hit harder than one full draw); they fly fast and straight, count as fully drawn shots for your upgrades, and drop out of the air after 480px. Reloading takes 1.7 seconds, and you can move freely while you reload. Braced behind the stock, you take 15% less damage from enemies and 15% less knockback.' } };
+  trait: { name: 'Crank and Loose', desc: 'A crossbow instead of a bow: click to fire a bolt at once, no drawing. Bolts hit as hard as 85% of a full draw, fly fast and straight, and count as fully drawn shots for your upgrades, but they drop out of the air after 480px. Reloading takes 1.15 seconds, and you can move freely while you reload. Braced behind the stock, you take 15% less damage from enemies and 15% less knockback.' } };
 const TREE_KEYS = Object.keys(ELEMENTS).concat(Object.keys(ROLES));
 const MAX_SLOTS = 2, CAP_PICKS = 2, OFFER_SIZE = 3;
 // tree: which element/role it belongs to ('element' = any element). base: granted free with the element.
@@ -2218,6 +2279,7 @@ const TREE = {
   fanbolt:   { tree: 'crossbow', active: { cd: 8 }, name: 'Scatter Bolts', desc: 'Your next shot fires five bolts in a fan. Each deals 45% of the damage and 50% of the knockback.' },
   hairtrig:  { tree: 'crossbow', active: { cd: 10 }, name: 'Hair Trigger', desc: 'Raise a guard for 1 second that stops arrows from any side. Block one and your crossbow goes full auto for 2 seconds: hold to fire a bolt every 0.12 seconds with no reloading, each dealing 50% of the damage and knockback.' },
   windlass:  { tree: 'crossbow', name: 'Windlass', desc: 'You reload 25% faster.' },
+  tribolt:   { tree: 'crossbow', trade: true, name: 'Triple Bolt', desc: 'Each shot is a quick burst of three bolts, each with 45% of the damage and 50% of the knockback (all three together hit harder than one bolt), but you reload 50% slower.' },
   heavybolt: { tree: 'crossbow', name: 'Heavy Bolts', desc: 'Your bolts knock back 20% harder.' },
   pointblank:{ tree: 'crossbow', name: 'Point Blank', desc: 'Bolts that hit within 220px of where you fired deal 30% more damage and knock back 15% harder.' },
   longstock: { tree: 'crossbow', trade: true, name: 'Long Stock', desc: 'Your bolts reach 40% further, but you reload 15% slower.' },
@@ -2345,7 +2407,7 @@ function applyStats(p) {
   p.dmgMul = hc * is(has(p, 'glass'), 1.3) * is(has(p, 'potent'), 0.85) * is(R === 'juggernaut', 0.8) * is(has(p, 'unstable'), 0.92);
   p.abCdMul = is(R === 'trapper', 0.6);
   // Crossbowman: reload time, reach and how many bolts they hold
-  p.xbowReload = XBOW_RELOAD * is(has(p, 'windlass'), 0.75) * is(has(p, 'longstock'), 1.15) / p.drawMul;
+  p.xbowReload = XBOW_RELOAD * is(has(p, 'windlass'), 0.75) * is(has(p, 'longstock'), 1.15) * is(has(p, 'tribolt'), XB3.reload) / p.drawMul;
   p.xbowRange = XBOW_RANGE * is(has(p, 'longstock'), 1.4);
   p.xbowMax = has(p, 'twinload') ? 2 : 1;
   p.sure = has(p, 'surefoot');
@@ -2569,7 +2631,7 @@ function choose(w, id, index) {
 // and leans further into it as its upgrades line up (e.g. Battering Ram makes it a brawler).
 const STYLES = {
   brawler:    { name: 'Brawler',    near: 110, far: 250, charge: [0.45, 0.8], bash: 1,    cards: ['hairtrig', 'fanbolt', 'pointblank', 'heavybolt', 'rush', 'fortify', 'rocket', 'pin', 'ram', 'stance', 'vital', 'quake', 'colossus', 'riot', 'deflect', 'feather', 'fleet', 'double', 'dash', 'bramble', 'barbs', 'gust', 'scatter'] },
-  skirmisher: { name: 'Skirmisher', near: 230, far: 430, charge: null,        bash: 0.25, cards: ['repeater', 'windlass', 'longstock', 'twinload', 'volley', 'parry', 'seeker', 'rocket', 'trick', 'boomerang', 'ricochet', 'split', 'curve', 'quickshot', 'double', 'fleet', 'dash', 'grapple', 'rain', 'surefoot'] },
+  skirmisher: { name: 'Skirmisher', near: 230, far: 430, charge: null,        bash: 0.25, cards: ['repeater', 'windlass', 'tribolt', 'longstock', 'twinload', 'volley', 'parry', 'seeker', 'rocket', 'trick', 'boomerang', 'ricochet', 'split', 'curve', 'quickshot', 'double', 'fleet', 'dash', 'grapple', 'rain', 'surefoot'] },
   marksman:   { name: 'Marksman',   near: 420, far: 660, charge: [0.92, 1],   bash: 0.05, cards: ['railshot', 'recoil', 'spot', 'steady', 'longbow', 'deadeye', 'pierce', 'ballista', 'glass', 'heavy', 'pin'] },
   guardian:   { name: 'Guardian',   near: 240, far: 420, charge: null,        bash: 0.15, mates: true, cards: ['totem', 'harpoon', 'rally', 'bond', 'wall', 'oath', 'revive', 'snare', 'trap', 'deeproots', 'gust'] },
 };
@@ -2595,7 +2657,7 @@ function restyle(p) {
 }
 // Learned upgrade values: how much each card changed a Master bot's chance of winning a game, compared with others
 // of the same role and element, over about 11,108 games where bots picked at random. Smart bots pick by these.
-const CARD_VALUE = { rocket: 0, aftershock: -0.024, ambush: -0.022, ballista: -0.049, barbs: -0.026, blinding: -0.039, blink: 0.097, bloodpact: -0.023, bladeguard: 0, blossom: 0.002, bond: 0.009, boomerang: -0.017, boulder: 0.009, bramble: -0.035, burst: -0.04, cloak: -0.045, clone: 0.008, collapse: -0.005, colossus: 0.019, contagion: 0.003, creeping: -0.024, curve: -0.031, dance: -0.015, dash: 0.045, deadeye: 0.063, deathmark: 0.009, deepfreeze: -0.013, deeproots: -0.021, deflect: -0.017, double: -0.035, echo: -0.005, execute: -0.043, execution: -0.012, fanbolt: -0.013, feather: -0.051, fleet: 0.049, flurry: -0.005, forked: 0.016, fortify: -0.022, frenzy: 0.033, frostbite: -0.014, glass: 0.006, grapple: 0, gust: 0.015, hairtrig: 0.014, harpoon: 0.005, heavy: 0, heavybolt: -0.013, hemorrhage: -0.01, horizon: -0.011, inferno: 0.025, lingering: 0.009, longbow: -0.003, longstep: -0.115, longstock: 0.034, nullfield: 0.112, oath: -0.036, obsidian: -0.004, overload: -0.098, parry: 0.019, permafrost: -0.011, petrify: 0.096, phase: 0.022, pierce: 0.015, pin: -0.002, pointblank: -0.004, potent: -0.031, pyre: -0.045, quake: -0.005, quickfeet: -0.008, quickshot: 0.075, railshot: -0.028, rain: 0.003, rally: -0.027, ram: -0.031, recall: 0.007, recoil: -0.063, repeater: 0.128, revive: -0.019, ricochet: 0.017, riot: -0.003, rush: 0.051, scatter: 0.058, seeker: -0.016, shadowdash: -0.077, sharpstar: -0.004, shatter: -0.027, smoke: -0.001, snare: -0.033, split: 0.057, spot: -0.026, sstrike: -0.028, stance: 0.017, static: 0.081, steady: 0.079, stealth: -0.027, surefoot: 0.003, swiftstep: 0.062, terror: -0.008, thirdstep: 0.009, totem: -0.032, toxic: 0.027, transfusion: -0.012, trap: 0.022, trick: 0.026, twinload: 0.108, unstable: -0.035, virulent: 0.015, vital: -0.038, volley: 0.052, wall: 0.007, wildfire: -0.007, windlass: 0.076 };
+const CARD_VALUE = { tribolt: 0, rocket: 0, aftershock: -0.024, ambush: -0.022, ballista: -0.049, barbs: -0.026, blinding: -0.039, blink: 0.097, bloodpact: -0.023, bladeguard: 0, blossom: 0.002, bond: 0.009, boomerang: -0.017, boulder: 0.009, bramble: -0.035, burst: -0.04, cloak: -0.045, clone: 0.008, collapse: -0.005, colossus: 0.019, contagion: 0.003, creeping: -0.024, curve: -0.031, dance: -0.015, dash: 0.045, deadeye: 0.063, deathmark: 0.009, deepfreeze: -0.013, deeproots: -0.021, deflect: -0.017, double: -0.035, echo: -0.005, execute: -0.043, execution: -0.012, fanbolt: -0.013, feather: -0.051, fleet: 0.049, flurry: -0.005, forked: 0.016, fortify: -0.022, frenzy: 0.033, frostbite: -0.014, glass: 0.006, grapple: 0, gust: 0.015, hairtrig: 0.014, harpoon: 0.005, heavy: 0, heavybolt: -0.013, hemorrhage: -0.01, horizon: -0.011, inferno: 0.025, lingering: 0.009, longbow: -0.003, longstep: -0.115, longstock: 0.034, nullfield: 0.112, oath: -0.036, obsidian: -0.004, overload: -0.098, parry: 0.019, permafrost: -0.011, petrify: 0.096, phase: 0.022, pierce: 0.015, pin: -0.002, pointblank: -0.004, potent: -0.031, pyre: -0.045, quake: -0.005, quickfeet: -0.008, quickshot: 0.075, railshot: -0.028, rain: 0.003, rally: -0.027, ram: -0.031, recall: 0.007, recoil: -0.063, repeater: 0.128, revive: -0.019, ricochet: 0.017, riot: -0.003, rush: 0.051, scatter: 0.058, seeker: -0.016, shadowdash: -0.077, sharpstar: -0.004, shatter: -0.027, smoke: -0.001, snare: -0.033, split: 0.057, spot: -0.026, sstrike: -0.028, stance: 0.017, static: 0.081, steady: 0.079, stealth: -0.027, surefoot: 0.003, swiftstep: 0.062, terror: -0.008, thirdstep: 0.009, totem: -0.032, toxic: 0.027, transfusion: -0.012, trap: 0.022, trick: 0.026, twinload: 0.108, unstable: -0.035, virulent: 0.015, vital: -0.038, volley: 0.052, wall: 0.007, wildfire: -0.007, windlass: 0.076 };
 // bots: capstones first, then abilities, cards that suit their playstyle, anything that builds toward one; boosts last.
 // Smart bots (Master, and AI players near it) mostly go by what the learning showed actually wins.
 // cards that do nothing without teammates (yours or theirs): never offered in a 1v1, and bots on their own skip them
@@ -3345,9 +3407,9 @@ function updatePlayer(w, p, dt) {
       if ((inp.draw || p.throwQ > 0) && p.throwCd <= 0 && p.falling <= 0 && p.disarm <= 0) { p.throwQ = 0; p.throwCd = AUTO_GAP; fire(w, p, p.aim, 1); }
     } else if (p.throwQ > 0 && p.bolts > 0 && p.throwCd <= 0 && p.falling <= 0 && p.disarm <= 0) {
       p.throwQ = 0; p.bolts--;
-      // an armed ability (Fan Bolt, Railshot, Recoil, Firework...) goes out as one full bolt instead of a burst
+      // with Triple Bolt, a burst of three; an armed ability (Fan Bolt, Railshot, Recoil, Firework...) still goes out as one full bolt
       const special = p.fanArmed || p.railArmed || p.recoilArmed || p.rocketArmed || p.volleyArmed || p.seekArmed || p.trickArmed || p.boomArmed || p.execArmed;
-      if (special) { p.throwCd = XBOW_GAP; fire(w, p, p.aim, 1); }
+      if (special || !has(p, 'tribolt')) { p.throwCd = XBOW_GAP; fire(w, p, p.aim, 1); }
       else {
         p.throwCd = XBOW_GAP + XB3.gap * (XB3.n - 1);
         fire(w, p, p.aim, 1, 0, null, true);
@@ -4033,9 +4095,9 @@ const NB_WIND = 0.05, NB_MOVE = 0.09; // Ninja blink: wind-up, then travel time
 // Firework: big and very slow, follows its target for its whole flight, and bursts a little smaller than Blast Tips
 const ROCKET = { speed: 210, turn: 1.5, life: 5, blast: 0.85, dmg: 6 }; // px/s (an archer runs at about 235), radians a second it can turn, fuse, burst size (Blast Tips = 1) and burst damage
 const ASSIST_LANE = 220, ASSIST_RAMP = 600, SEEK = { power: 1.4, lane: 340, base: 0.6 }; // Seeker Arrow: between the Heavy and Extreme rules, with a wider lane, and it turns firmly from the start; // arrow homing: how far either side of your line of fire it looks for a target (at any range), and the distance over which its turning ramps up
-const XBOW_RANGE = 480, XBOW_RELOAD = 1.7, XBOW_GAP = 0.16, AUTO_TIME = 2, AUTO_GAP = 0.12;
-// a crossbow's normal shot is a quick burst of three bolts, each this share of a single bolt's damage and knockback
-const XB3 = { n: 3, gap: 0.08, dmg: 0.45, kb: 0.5, spread: 0.035 };
+const XBOW_RANGE = 480, XBOW_RELOAD = 1.15, XBOW_GAP = 0.16, AUTO_TIME = 2, AUTO_GAP = 0.12;
+// Triple Bolt (an upgrade): each shot is a quick burst of three bolts, each this share of a single bolt's damage and knockback, and reloading takes `reload` times as long
+const XB3 = { n: 3, gap: 0.08, dmg: 0.45, kb: 0.5, spread: 0.035, reload: 1.5 };
 // how far a player's shots reach before dropping, for roles with a short range (null: the whole arena)
 // (shuriken: 1050px/s slowed by drag 2.4 over their 0.45s life, about 0.275s worth of full speed)
 const rangeOf = (w, p) => p.role === 'crossbow' ? Math.round(p.xbowRange || XBOW_RANGE)
@@ -5669,7 +5731,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.34.2';
+const PAGE_VERSION = '0.35.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -5976,7 +6038,7 @@ const sfx = {
 };
 const syncMute = () => { $('muteBtn').textContent = muted ? 'Sound off' : 'Sound on'; const m = $('oMute'); if (m) m.value = muted ? '1' : '0'; };
 // options, kept in this browser
-const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') === '1', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), detail: store.get('bowfall-detail', 'full') };
+const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') === '1', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), me: store.get('bowfall-me', 'strong'), detail: store.get('bowfall-detail', 'full') };
 const outNode = () => { if (!AC.master) { AC.master = AC.createGain(); AC.master.connect(AC.destination); } AC.master.gain.value = OPTS.vol / 100; return AC.master; };
 syncMute();
 $('muteBtn').onclick = () => { muted = !muted; syncMute(); initAudio(); store.set('bowfall-muted', muted ? '1' : '0'); };
@@ -7518,7 +7580,7 @@ function connect(joinMsg) {
       hc = {}; setScreens();
       status.textContent = '';
       // players on controllers come along to custom games (matchmade games give them their own ticket)
-      if (!joinMsg.ticket) for (const l of LP.list) { l.team = null; lpConnect(l, { code: m.code, pw: LP.joinPw }); }
+      if (!joinMsg.ticket && !joinMsg.watch) for (const l of LP.list) { l.team = null; lpConnect(l, { code: m.code, pw: LP.joinPw }); }
     } else if (m.t === 'room') {
       m.rcv = performance.now(); roomInfo = m;
       if (m.arena && m.arena.def) useRoomArena(m.arena);
@@ -7534,6 +7596,7 @@ function connect(joinMsg) {
       NET.snap(m.k, at, snap.m && snap.m.ph);
       snaps.push({ time: at, s: snap });
       if (snaps.length > 40) snaps.shift();
+      replaySnap(m.k, snap);
       handleEvents(m.ev || []);
     } else if (m.t === 'you') {
       // joined a team (or went back to spectating)
@@ -7587,6 +7650,10 @@ function renderDraft(v) {
     $('dfEl').innerHTML = Object.entries(ELEMENTS).map(([k, e]) => `<button type="button" class="chip2" data-el="${k}" style="--cc:${e.color}"${tg(k)}><i></i>${e.name}${tag(k)}</button>`).join('');
     $('dfRo').innerHTML = Object.entries(ROLES).map(([k, r]) => `<button type="button" class="chip2" data-ro="${k}" style="--cc:${CAT_COL[r.cat]}"${tg(k)}>${r.name}<em>${r.cat}</em>${tag(k)}</button>`).join('');
     hc.dfArch = null;
+  });
+  setC('dfWatch', !me, w => { // watching a friend's match: no picking, just the line-up
+    $('draftScr').querySelector('.arch').hidden = w; $('dfReady').hidden = w;
+    if (w) { $('dfMode').textContent = `Watching · ranked ${R.ranked || ''}`; $('dfStatus').textContent = "You're watching. The match starts when both sides are ready."; }
   });
   const left = R.draft != null ? Math.max(0, Math.ceil(R.draft - (performance.now() - (R.rcv || performance.now())) / 1000)) : null;
   setC('dfOpen', R.draft != null, x => { if (x) sfx.draft(); });
@@ -7964,16 +8031,19 @@ document.addEventListener('click', e => {
 
 // ================= friends, party and matchmaking =================
 // a second connection, just for these, open while you're on the site (games use their own)
-const SOC = { ws: null, st: null, mode: store.get('bowfall-mm-mode', '1v1'), retry: 0, invite: null };
+const SOC = { ws: null, st: null, mode: store.get('bowfall-mm-mode', '1v1'), retry: 0, invite: null, hideOff: store.get('bowfall-hideoff', '') === '1' };
 function socialConnect() {
   if (OFFLINE || (SOC.ws && SOC.ws.readyState <= 1)) return;
   const sock = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
   SOC.ws = sock;
-  sock.onopen = () => { SOC.retry = 0; socialHello(); };
+  sock.onopen = () => { SOC.retry = 0; socialHello(); if (DM.open && DM.with) socialSend({ t: 'dm', op: 'open', with: DM.with }); };
   sock.onmessage = e => {
     let m; try { m = JSON.parse(e.data); } catch (err) { return; }
-    if (m.t === 'social') { SOC.st = m; if (m.party && m.party.mode) SOC.mode = m.party.mode; renderFind(); findBadge(); renderHomeFriends(); }
+    if (m.t === 'social') { SOC.st = m; if (m.party && m.party.mode) SOC.mode = m.party.mode; renderFind(); findBadge(); renderHomeFriends(); dmRenderList(); }
     else if (m.t === 'note') notice(esc(m.msg), false);
+    else if (m.t === 'partyReady') partyReadyNote(m);
+    else if (m.t === 'dm') dmGot(m);
+    else if (m.t === 'dmHist') dmHist(m);
     else if (m.t === 'invite') showInvite(m);
     else if (m.t === 'ach') Ach.fromServer(m);
     else if (m.t === 'wallet') setWallet(m, m.gained, m.why);
@@ -8000,7 +8070,7 @@ function noteBotWin() {
 function socialSend(m) { if (SOC.ws && SOC.ws.readyState === 1) SOC.ws.send(JSON.stringify(m)); }
 // ---- friends on the main menu: who's online and what they're doing, with a quick join or invite
 const ACT_TEXT = f => ({ menu: 'Main menu', practice: 'Practising against bots', tutorial: 'Playing the tutorial', searching: `Finding a ${f.mode || ''} match`,
-  ranked: `In a ranked ${f.mode || ''} match`, customLobby: `In a custom game lobby${f.n ? ` (${f.n}/${f.max})` : ''}`, custom: `Playing a custom game${f.n ? ` (${f.n}/${f.max})` : ''}` }[f.act] || 'Online');
+  ranked: `In a ranked ${f.mode || ''} match`, watching: 'Watching a game', customLobby: `In a custom game lobby${f.n ? ` (${f.n}/${f.max})` : ''}`, custom: `Playing a custom game${f.n ? ` (${f.n}/${f.max})` : ''}` }[f.act] || 'Online');
 function renderHomeFriends() {
   const st = SOC.st, box = $('homeFriends');
   if (!st || !st.account) { box.hidden = true; return; }
@@ -8011,17 +8081,21 @@ function renderHomeFriends() {
   // a new friend request: a notice, whatever screen you're on
   const seen = SOC.seenReq || (SOC.seenReq = new Set(inReq.map(f => f.id)));
   for (const f of inReq) if (!seen.has(f.id)) { seen.add(f.id); uiSfx.click(); } // the server's own notice says who it's from
-  const key = JSON.stringify([fr, lead, [...inParty], inReq, outReq]);
+  const unread = fr.reduce((n, f) => n + (f.un || 0), 0);
+  const key = JSON.stringify([fr, lead, [...inParty], inReq, outReq, !!SOC.hideOff]);
   if (hc.homeFr === key) return; hc.homeFr = key;
   const typed = $('hfAdd') ? $('hfAdd').value : '', focused = document.activeElement && document.activeElement.id === 'hfAdd';
   box.hidden = false;
-  box.innerHTML = `<div class="frh"><b>Friends</b><span>${on.length} online</span></div>` +
+  box.innerHTML = `<div class="frh"><b>Friends</b><span>${on.length} online</span>${fr.length ? `<button type="button" class="ghost sm hfmsg" data-hmsg="0">Messages${unread ? `<i class="dmn">${unread}</i>` : ''}</button>` : ''}</div>` +
     inReq.map(f => `<div class="frrow frreq"><i class="dot on"></i><div class="frn"><b>${esc(f.name)}</b><small>Wants to be friends</small></div><button type="button" class="ghost sm fracc" data-hacc="${f.id}">Accept</button><button type="button" class="ghost sm" data-hdec="${f.id}" aria-label="Decline">×</button></div>`).join('') +
-    (on.length ? on.map(f => `<div class="frrow"><i class="dot${f.inGame ? ' play' : ' on'}"></i><div class="frn"><b>${rankHtml(f.lv)}${flagHtml(f.cc)}${esc(f.name)}</b><small>${esc(ACT_TEXT(f))}</small></div>` +
-      (f.code && (f.act === 'customLobby' || f.act === 'custom') ? `<button type="button" class="ghost sm" data-hjoin="${esc(f.code)}">Join</button>` : '') +
-      (lead && !inParty.has('u' + f.id) && !f.inGame && f.act !== 'searching' ? `<button type="button" class="ghost sm" data-hinv="${f.id}">Invite</button>` : '') + '</div>').join('')
+    (on.length ? on.map(f => `<div class="frrow"><i class="dot${f.inGame ? ' play' : ' on'}"></i><button type="button" class="frn" data-hpro="${esc(f.name)}" title="View ${esc(f.name)}'s profile"><b>${rankHtml(f.lv)}${flagHtml(f.cc)}${esc(f.name)}</b><small>${esc(ACT_TEXT(f))}</small></button>` +
+      (f.code && f.act === 'customLobby' ? `<button type="button" class="ghost sm" data-hjoin="${esc(f.code)}">Join</button>` : '') +
+      (canWatch(f) ? `<button type="button" class="ghost sm" data-hwatch="${f.id}">Watch</button>` : '') +
+      (lead && !inParty.has('u' + f.id) && !f.inGame && f.act !== 'searching' ? `<button type="button" class="ghost sm" data-hinv="${f.id}">Invite</button>` : '') +
+      `<button type="button" class="ghost sm" data-hmsg="${f.id}" aria-label="Message ${esc(f.name)}">Chat${f.un ? `<i class="dmn">${f.un}</i>` : ''}</button></div>`).join('')
       : `<div class="status">${fr.length ? 'None of your friends are online.' : 'No friends yet. Add one by name below.'}</div>`) +
-    (off ? `<div class="status frmore">${off} offline</div>` : '') +
+    (off ? `<button type="button" class="frofft" data-hoff="1">${SOC.hideOff ? '▸' : '▾'} Offline (${off})</button>` + (SOC.hideOff ? '' : fr.filter(f => !f.online).map(f => `<div class="frrow froff"><i class="dot"></i><button type="button" class="frn" data-hpro="${esc(f.name)}" title="View ${esc(f.name)}'s profile"><b>${rankHtml(f.lv)}${flagHtml(f.cc)}${esc(f.name)}</b><small>Offline</small></button>` +
+      `<button type="button" class="ghost sm" data-hmsg="${f.id}" aria-label="Message ${esc(f.name)}">Chat${f.un ? `<i class="dmn">${f.un}</i>` : ''}</button></div>`).join('')) : '') +
     (outReq.length ? `<div class="status frmore">Request sent to ${outReq.map(f => esc(f.name)).join(', ')}</div>` : '') +
     `<div class="fradd"><input id="hfAdd" maxlength="16" placeholder="Add a friend by name" autocomplete="off"><button type="button" class="ghost sm" id="hfAddBtn">Add</button></div>`;
   if ($('hfAdd')) { $('hfAdd').value = typed; if (focused) $('hfAdd').focus(); }
@@ -8035,7 +8109,50 @@ $('homeFriends').addEventListener('click', e => {
   else if (b.dataset.hacc) socialSend({ t: 'friend', op: 'accept', id: +b.dataset.hacc });
   else if (b.dataset.hdec) socialSend({ t: 'friend', op: 'decline', id: +b.dataset.hdec });
   else if (b.id === 'hfAddBtn') homeAddFriend();
+  else if (b.dataset.hmsg != null) dmOpen(+b.dataset.hmsg || null);
+  else if (b.dataset.hpro) openPlayerCard(b.dataset.hpro);
+  else if (b.dataset.hwatch) watchFriend(+b.dataset.hwatch);
+  else if (b.dataset.hoff) { SOC.hideOff = !SOC.hideOff; store.set('bowfall-hideoff', SOC.hideOff ? '1' : ''); renderHomeFriends(); }
 });
+// ---- a player's card: stats, favourite picks and achievements, from the friends lists
+async function openPlayerCard(name) {
+  const wrap = $('pcWrap'), card = $('pcCard');
+  wrap.hidden = false; card.innerHTML = '<div class="status">Loading…</div>';
+  let u;
+  try { const r = await fetch('/api/users/' + encodeURIComponent(name)); const d = await r.json(); if (!r.ok) throw new Error(d.error || 'Not found'); u = d.user; }
+  catch (e) { card.innerHTML = `<button type="button" class="ghost sm pcx" data-pcx>×</button><div class="status">${esc(e.message || "Couldn't load that profile.")}</div>`; return; }
+  const c = u.career || {}, A = Sim.ACHIEVEMENTS, tier = u.tier || {}, pct = (a, b) => (b ? Math.round(a / b * 100) + '%' : '–');
+  const f = ((SOC.st && SOC.st.friends) || []).find(x => x.name.toLowerCase() === u.name.toLowerCase());
+  const party = SOC.st && SOC.st.party, lead = !party || party.leader === SOC.st.you, inParty = f && party && party.members.some(p => p.key === 'u' + f.id);
+  const top = (o, names, col) => Object.entries(o || {}).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => `<span style="--cc:${col(k)}">${esc((names[k] || {}).name || k)}<small>${v}</small></span>`).join('') || '<small class="status">No games yet</small>';
+  const achs = Object.keys(tier).filter(k => A[k] && tier[k] > 0).sort((a, b) => tier[b] - tier[a]);
+  const stats = [['1v1 rating', Math.round(c.elo || 800)], ['Team rating', Math.round(c.eloT != null ? c.eloT : c.elo || 800)], ['Games', c.matches || 0], ['Wins', c.matchWins || 0], ['Win rate', pct(c.matchWins || 0, c.matches || 0)],
+    ['Knockouts', c.kills || 0], ['K/D', c.deaths ? ((c.kills || 0) / c.deaths).toFixed(2) : (c.kills || 0)], ['Accuracy', pct(c.hits || 0, c.shots || 0)], ['Ring-outs', c.ring || 0]];
+  const status = f ? (f.online ? ACT_TEXT(f) : 'Offline') : '';
+  card.innerHTML = `<button type="button" class="ghost sm pcx" data-pcx aria-label="Close">×</button>
+    <div class="pchead"><canvas id="pcAv" width="224" height="224"></canvas><div><h2>${rankHtml(u.level && u.level.lv)}${flagHtml(u.country)}${esc(u.name)}${u.ai ? ' <span class="tag">AI</span>' : ''}</h2>
+      <div class="pcsub">${u.title && A[u.title] ? `<em class="ttl">${esc(titleName(u.title))}</em> · ` : ''}${u.level ? `Level ${u.level.lv} · ` : ''}Joined ${new Date(u.created).toLocaleDateString()}${status ? ' · ' + esc(status) : ''}</div></div></div>
+    <div class="pcstats">${stats.map(([k, v]) => `<div><b>${v}</b><span>${k}</span></div>`).join('')}</div>
+    <div class="pcsec"><h3>Favourite roles</h3><div class="pcchips">${top(c.roles, ROLES, k => CAT_COL[(ROLES[k] || {}).cat] || 'var(--line)')}</div></div>
+    <div class="pcsec"><h3>Favourite elements</h3><div class="pcchips">${top(c.els, ELEMENTS, k => (ELEMENTS[k] || {}).color || 'var(--line)')}</div></div>
+    <div class="pcsec"><h3>Achievements · ${achs.length} of ${Sim.ACH_ORDER.length}</h3><div class="pcchips">${achs.length ? achs.map(k => { const T = Sim.ACH_TIERS[tier[k] - 1]; return `<span style="--cc:${T.col}" title="${esc(Sim.achText(k, tier[k]))}">${esc(A[k].title)}<small>${T.n}</small></span>`; }).join('') : '<small class="status">None yet</small>'}</div></div>
+    <div class="pcact">${f && canWatch(f) ? `<button type="button" class="ghost sm" data-pcwatch="${f.id}">Watch their game</button>` : ''}${f && f.online && lead && !inParty && !f.inGame ? `<button type="button" class="ghost sm" data-pcinv="${f.id}">Invite to party</button>` : ''}${f ? `<button type="button" class="ghost sm" data-pcmsg="${f.id}">Message</button>` : ''}${OFFLINE ? '' : `<a class="ghost sm btnlink" href="/#/u/${encodeURIComponent(u.name)}" target="_blank" rel="noopener">Full profile</a>`}</div>`;
+  const av = u.avatar || { el: 'frost', ro: 'sniper', c: TEAM_INFO.red.shades[0] };
+  try { drawPreview($('pcAv'), av.el, av.ro, av.c); } catch (e) {}
+}
+function closePlayerCard() { $('pcWrap').hidden = true; }
+$('pcWrap').addEventListener('click', e => {
+  if (e.target === $('pcWrap') || e.target.closest('[data-pcx]')) return closePlayerCard();
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.pcwatch) { closePlayerCard(); watchFriend(+b.dataset.pcwatch); }
+  else if (b.dataset.pcinv) { socialSend({ t: 'party', op: 'invite', id: +b.dataset.pcinv }); b.disabled = true; b.textContent = 'Invited'; }
+  else if (b.dataset.pcmsg) { closePlayerCard(); dmOpen(+b.dataset.pcmsg); }
+});
+$('pcWrap').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') closePlayerCard(); });
+addEventListener('keydown', e => { if (e.key === 'Escape' && !$('pcWrap').hidden) { e.stopImmediatePropagation(); closePlayerCard(); } }, true);
+// watching a friend's game: matchmade games are watch-only; custom games are joined (as a spectator until the game ends)
+const canWatch = f => f.inGame && (f.act === 'ranked' || f.act === 'custom');
+function watchFriend(id) { closeSubs(); if (DM.open) dmClose(); connect({ watch: id }); }
 function findBadge() {
   const n = SOC.st ? SOC.st.inReq.length : 0, q = SOC.st && SOC.st.party && SOC.st.party.queued != null;
   $('mFindBadge').hidden = !n && !q; $('mFindBadge').textContent = q ? 'Searching…' : n + (n === 1 ? ' friend request' : ' friend requests');
@@ -8076,22 +8193,25 @@ function renderFind() {
   setC('fgLp', JSON.stringify(LP.list.map(l => [l.n, l.name, !!l.token])), () => {
     $('fgLocals').innerHTML = LP.list.length ? '<h3>Players on controllers</h3>' + LP.list.map(l => `<div class="lprow" style="--pc:${lpColor(l.n)}"><span class="lptag">P${l.n}</span><b>${esc(l.name)}</b>${l.token ? '<small class="status">Signed in</small>' : `<small class="status">Guest</small><button type="button" class="ghost sm" data-lpsign="${l.n}">Sign in</button>`}<button type="button" class="ghost sm" data-lprm2="${l.n}">Remove</button></div>`).join('') : '';
   });
-  go.disabled = !st || !lead || (!queued && (lpGuests.length > 0 || away.length > 0)); go.classList.toggle('searching', !!queued);
+  const rset = new Set((party && party.ready) || []), unready = party ? party.members.filter(p => p.key !== party.leader && !p.local && !rset.has(p.key)) : [];
+  go.disabled = !st || !lead || (!queued && (lpGuests.length > 0 || away.length > 0 || unready.length > 0)); go.classList.toggle('searching', !!queued);
   go.textContent = queued ? `Searching… ${fmtWait(party.queued)} (cancel)` : `Find ${mode} match`;
   if (!queued && lpGuests.length) $('fgStatus').textContent = 'Extra players on controllers must sign in to play ranked. Sign them in below, or remove them.';
   else if (!queued && away.length) $('fgStatus').innerHTML = `<span class="fgwait">Waiting for teammates to return… (${esc(away.map(p => p.name).join(', '))})</span>`;
   else if (queued) $('fgStatus').textContent = party.queued < party.fill ? 'Looking for players near your rating…' : 'No close match yet: filling the gaps with AI players…';
-  else if (st && !lead) $('fgStatus').textContent = 'Waiting for the party leader to start the search.';
-  else if (st && /^(Looking|No close|Extra players|Waiting for teammates)/.test($('fgStatus').textContent)) $('fgStatus').textContent = 'Matched by rating with players near your level. If nobody close is searching, AI players fill in after a short wait.';
+  else if (!queued && lead && unready.length) $('fgStatus').innerHTML = `<span class="fgwait">Waiting for ${esc(unready.map(p => p.name).join(' and '))} to ready up…</span>`;
+  else if (st && !lead) $('fgStatus').textContent = rset.has(me) ? "You're ready. Waiting for the party leader to start the search." : 'Press Ready when you want to play. The leader can search once everyone is ready.';
+  else if (st && /^(Looking|No close|Extra players|Waiting for)/.test($('fgStatus').textContent)) $('fgStatus').textContent = 'Matched by rating with players near your level. If nobody close is searching, AI players fill in after a short wait.';
   // party
   const members = party ? party.members : P ? [P] : [];
-  const pkey = JSON.stringify(members) + (party && party.leader) + lead;
+  const pkey = JSON.stringify(members) + (party && party.leader) + lead + [...rset].join() + !!queued;
   if (hc.fgParty !== pkey) {
     hc.fgParty = pkey;
     const plateOf = p => { const L = Object.assign({ n: p.name, lv: p.lv, cc: p.cc, ow: p.own, sp: p.sp, fd: p.fd, pt: p.pt }, p.look || {}); return `<span class="nm plate${plateClass(L)}"${plateStyle(L)}><span class="pl1">${idHtml(L)}<b>${esc(p.name)}</b>${ownHtml(p.own)}${statusHtml(p)}${trophyHtml(L.na)}${medalsHtml(L.sc)}${L.ti ? ` <em class="ttl">${esc(titleName(L.ti))}</em>` : ''}</span></span>`; };
     $('fgParty').innerHTML = !st ? '<div class="status">Connecting…</div>' : members.map((p, i) => `<div class="fr mem"><canvas data-av="${i}" width="76" height="76"></canvas>` +
-      `<b class="slot bn">${plateOf(p)}${p.key === me ? ' <small class="status">(you)</small>' : ''}${party && p.key === party.leader && party.members.length > 1 ? '<span class="lead">Leader</span>' : ''}</b>` +
+      `<b class="slot bn">${plateOf(p)}${p.key === me ? ' <small class="status">(you)</small>' : ''}${party && p.key === party.leader && party.members.length > 1 ? '<span class="lead">Leader</span>' : ''}${party && party.members.length > 1 && p.key !== party.leader ? (rset.has(p.key) || p.local ? '<span class="rdy on">Ready</span>' : '<span class="rdy">Not ready</span>') : ''}</b>` +
       `<small>${p.inGame ? '<span class="fgwait">In a game</span> · ' : ''}Rating ${mode === '1v1' ? p.elo : p.eloT}${p.games ? ` · ${p.games} games` : ''}${p.local ? ' · on this screen' : ''}</small><div class="btnrow">${party && lead && p.key !== me ? `<button class="ghost sm" type="button" data-kick="${esc(p.key)}">Remove</button>` : ''}</div></div>`).join('') +
+      (party && party.members.length > 1 && !lead ? `<button class="${rset.has(me) ? 'ghost' : 'cta'} sm" type="button" id="fgReady"${queued ? ' disabled' : ''}>${rset.has(me) ? 'Not ready' : 'Ready'}</button> ` : '') +
       (party && party.members.length > 1 ? `<button class="ghost sm" type="button" id="fgLeave">Leave party</button>` : '') +
       (st && st.account && members.length < 3 ? '<span class="status">Invite friends from the list below to play together (up to 3).</span>' : '');
     $('fgParty').querySelectorAll('canvas[data-av]').forEach(c => { const p = members[+c.dataset.av], el = p.el || (p.key === me ? lo.el : 'frost'), ro = p.ro || (p.key === me ? lo.ro : 'sniper'); try { drawPreview(c, p.avatar ? p.avatar.el : el, p.avatar ? p.avatar.ro : ro, p.avatar ? p.avatar.c : TEAM_INFO.red.shades[0]); } catch (e) {} });
@@ -8104,9 +8224,11 @@ function renderFind() {
   $('fgReq').innerHTML = st.inReq.map(f => `<div class="fr"><i class="dot"></i><b>${esc(f.name)}</b><small>Wants to be friends</small><div class="btnrow"><button class="cta sm" type="button" data-facc="${f.id}">Accept</button><button class="ghost sm" type="button" data-fdec="${f.id}">Decline</button></div></div>`).join('') +
     st.outReq.map(f => `<div class="fr"><i class="dot"></i><b>${esc(f.name)}</b><small>Request sent</small><div class="btnrow"><button class="ghost sm" type="button" data-fcan="${f.id}">Cancel</button></div></div>`).join('');
   const inParty = new Set((party ? party.members : []).map(p => p.key));
-  $('fgFriends').innerHTML = st.friends.length ? st.friends.sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name)).map(f => `<div class="fr"><i class="dot${f.inGame ? ' play' : f.online ? ' on' : ''}"></i><b>${rankHtml(f.lv)}${flagHtml(f.cc)}${esc(f.name)}</b>` +
-    `<small>${f.inGame ? 'In a game' : f.online ? 'Online' : 'Offline'} · Rating ${f.elo}</small><div class="btnrow">` +
+  $('fgFriends').innerHTML = st.friends.length ? st.friends.sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name)).map(f => `<div class="fr"><i class="dot${f.inGame ? ' play' : f.online ? ' on' : ''}"></i><b><button type="button" class="linkbtn" data-fpro="${esc(f.name)}">${rankHtml(f.lv)}${flagHtml(f.cc)}${esc(f.name)}</button></b>` +
+    `<small>${f.online ? esc(ACT_TEXT(f)) : 'Offline'} · Rating ${f.elo}</small><div class="btnrow">` +
+    (canWatch(f) ? `<button class="ghost sm" type="button" data-fwatch="${f.id}">Watch</button>` : '') +
     (f.online && lead && !inParty.has('u' + f.id) ? `<button class="ghost sm" type="button" data-finv="${f.id}">Invite</button>` : '') +
+    `<button class="ghost sm" type="button" data-fmsg="${f.id}">Message${f.un ? `<i class="dmn">${f.un}</i>` : ''}</button>` +
     `<button class="ghost sm" type="button" data-frem="${f.id}" aria-label="Remove ${esc(f.name)}">×</button></div></div>`).join('')
     : '<div class="status">No friends yet. Add someone by their player name.</div>';
 }
@@ -8123,6 +8245,21 @@ function setMapPref(k, how) {
   else mp.fav = k;
   store.set('bowfall-mappref', JSON.stringify(mp)); socialSend(Object.assign({ t: 'mappref' }, mp)); tone(mp.fav === k ? 880 : 520, 0.05, 'triangle', 0.03); renderFind();
 }
+// a picture of the arena when you point at (or move to) its name
+function fgMapPreview(b) {
+  const box = $('fgMapPrev'), k = b && b.dataset.mp, t = k && thumbs[k];
+  if (!t) { box.hidden = true; return; }
+  const c = $('fgMapCv'); c.width = t.width; c.height = t.height; c.getContext('2d').drawImage(t, 0, 0);
+  $('fgMapName').textContent = (MAPS[k] && MAPS[k].name) || b.textContent;
+  box.hidden = false;
+  const r = b.getBoundingClientRect(), bw = box.offsetWidth, bh = box.offsetHeight;
+  let y = r.top - bh - 8; if (y < 8) y = r.bottom + 8;
+  box.style.left = Math.max(8, Math.min(innerWidth - bw - 8, r.left + r.width / 2 - bw / 2)) + 'px'; box.style.top = y + 'px';
+}
+$('fgMaps').addEventListener('mouseover', e => fgMapPreview(e.target.closest('[data-mp]')));
+$('fgMaps').addEventListener('mouseleave', () => { $('fgMapPrev').hidden = true; });
+$('fgMaps').addEventListener('focusin', e => fgMapPreview(e.target.closest('[data-mp]')));
+$('fgMaps').addEventListener('focusout', () => { $('fgMapPrev').hidden = true; });
 $('fgMaps').addEventListener('click', e => { const b = e.target.closest('[data-mp]'); if (b && !b.disabled) setMapPref(b.dataset.mp, 'fav'); });
 $('fgMaps').addEventListener('contextmenu', e => { const b = e.target.closest('[data-mp]'); if (!b) return; e.preventDefault(); if (!b.disabled) setMapPref(b.dataset.mp, 'hate'); });
 $('fgAddBtn').onclick = () => { const n = $('fgAdd').value.trim(); if (n) { socialSend({ t: 'friend', op: 'add', name: n }); $('fgAdd').value = ''; } };
@@ -8135,9 +8272,103 @@ $('findScr').addEventListener('click', e => {
   else if (d.fcan) socialSend({ t: 'friend', op: 'cancel', id: +d.fcan });
   else if (d.frem) { if (b.dataset.sure) socialSend({ t: 'friend', op: 'remove', id: +d.frem }); else { b.dataset.sure = 1; b.textContent = 'Remove?'; } }
   else if (d.finv) socialSend({ t: 'party', op: 'invite', id: +d.finv });
+  else if (d.fmsg) dmOpen(+d.fmsg);
+  else if (d.fpro) openPlayerCard(d.fpro);
+  else if (d.fwatch) watchFriend(+d.fwatch);
   else if (d.kick) socialSend({ t: 'party', op: 'kick', key: d.kick });
   else if (b.id === 'fgLeave') socialSend({ t: 'party', op: 'leave' });
+  else if (b.id === 'fgReady') { const p = SOC.st && SOC.st.party; initAudio(); socialSend({ t: 'party', op: 'ready', on: !(p && (p.ready || []).includes(SOC.st.you)) }); }
 });
+// a party member readied up (or stopped being ready): a chime and a small pop-up
+function partyReadyNote(m) {
+  initAudio();
+  if (m.on) { tone(660, 0.07, 'triangle', 0.05); setTimeout(() => tone(990, 0.1, 'triangle', 0.05), 80); }
+  else tone(440, 0.09, 'triangle', 0.04);
+  notice(`<b>${esc(m.name)}</b> ${m.on ? 'is ready' : 'is no longer ready'}`, false);
+}
+// ---- messages between friends: a panel with your friends down the side and the conversation on the right
+const DM = { open: false, with: null, logs: new Map(), more: new Map(), loading: false };
+const myUid = () => SOC.st && /^u\d+$/.test(SOC.st.you || '') ? +SOC.st.you.slice(1) : null;
+const dmFriend = id => ((SOC.st && SOC.st.friends) || []).find(f => f.id === id);
+function dmOpen(id) {
+  if (!SOC.st || !SOC.st.account) { notice('Sign in to message friends.', false); return; }
+  DM.open = true; $('dmBox').hidden = false;
+  if (!id) { // the conversation with the most unread, or the last one
+    const fr = SOC.st.friends || [];
+    const un = fr.filter(f => f.un).sort((a, b) => b.un - a.un)[0];
+    id = un ? un.id : DM.with && dmFriend(DM.with) ? DM.with : null;
+  }
+  dmSelect(id);
+}
+function dmClose() { DM.open = false; $('dmBox').hidden = true; socialSend({ t: 'dm', op: 'close' }); }
+function dmSelect(id) {
+  DM.with = id || null;
+  $('dmBox').classList.toggle('conv', !!DM.with);
+  $('dmIn').disabled = $('dmGo').disabled = !DM.with;
+  if (DM.with) { socialSend({ t: 'dm', op: 'open', with: DM.with }); if (innerWidth > 600) $('dmIn').focus(); }
+  else socialSend({ t: 'dm', op: 'close' });
+  dmRenderList(); dmRenderLog(true);
+}
+function dmRenderList() {
+  if (!DM.open || !SOC.st) return;
+  const fr = (SOC.st.friends || []).slice().sort((a, b) => ((b.un > 0) - (a.un > 0)) || (b.online - a.online) || a.name.localeCompare(b.name));
+  if (DM.with && !dmFriend(DM.with)) { DM.with = null; $('dmBox').classList.remove('conv'); $('dmIn').disabled = $('dmGo').disabled = true; dmRenderLog(true); }
+  setC('dmList', JSON.stringify([fr.map(f => [f.id, f.name, f.online, f.inGame, f.un]), DM.with]), () => {
+    $('dmList').innerHTML = fr.length ? fr.map(f => `<button type="button" class="dmfr${f.id === DM.with ? ' on' : ''}" data-dm="${f.id}"><i class="dot${f.inGame ? ' play' : f.online ? ' on' : ''}"></i><span>${esc(f.name)}</span>${f.un && f.id !== DM.with ? `<i class="dmn">${f.un}</i>` : ''}</button>`).join('')
+      : '<div class="status" style="padding:0 12px">Add friends to message them.</div>';
+  });
+  const f = DM.with && dmFriend(DM.with);
+  $('dmName').textContent = f ? f.name : 'Messages';
+  $('dmSub').textContent = f ? (f.inGame ? 'In a game' : f.online ? 'Online' : 'Offline · they\'ll see it next time they\'re on') : '';
+}
+const dmTime = t => { const d = new Date(t); return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); };
+const dmDay = t => { const d = new Date(t), n = new Date(); if (d.toDateString() === n.toDateString()) return 'Today'; n.setDate(n.getDate() - 1); if (d.toDateString() === n.toDateString()) return 'Yesterday'; return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: d.getFullYear() === n.getFullYear() ? undefined : 'numeric' }); };
+function dmRenderLog(toEnd, keepFrom) {
+  const log = $('dmLog');
+  if (!DM.with) { log.innerHTML = '<div class="status dmempty">Pick a friend to message.</div>'; return; }
+  const list = DM.logs.get(DM.with), me = myUid();
+  if (!list) { log.innerHTML = '<div class="status dmempty">Loading…</div>'; return; }
+  const atEnd = log.scrollHeight - log.scrollTop - log.clientHeight < 40, oldH = log.scrollHeight;
+  let day = '', html = DM.more.get(DM.with) ? '<button type="button" class="ghost sm dmmore" id="dmMore">Older messages</button>' : '';
+  for (const m of list) {
+    const dd = dmDay(m.at); if (dd !== day) { day = dd; html += `<div class="dmday">${esc(dd)}</div>`; }
+    html += `<div class="dmm${m.from === me ? ' me' : ''}">${esc(m.body)}<small>${dmTime(m.at)}</small></div>`;
+  }
+  if (!list.length) html += `<div class="status dmempty">No messages yet. Say hello!</div>`;
+  log.innerHTML = html;
+  if (keepFrom) log.scrollTop = log.scrollHeight - oldH; // older messages were added on top: stay where you were
+  else if (toEnd || atEnd) log.scrollTop = log.scrollHeight;
+}
+function dmHist(m) {
+  const old = DM.logs.get(m.with) || [];
+  if (m.older) { const have = new Set(old.map(x => x.id)); DM.logs.set(m.with, m.list.filter(x => !have.has(x.id)).concat(old)); }
+  else { const ids = new Set(m.list.map(x => x.id)); DM.logs.set(m.with, m.list.concat(old.filter(x => !ids.has(x.id) && x.id > (m.list.length ? m.list[m.list.length - 1].id : 0)))); }
+  DM.more.set(m.with, !!m.more); DM.loading = false;
+  if (DM.open && DM.with === m.with) dmRenderLog(!m.older, m.older);
+}
+function dmGot(m) {
+  const me = myUid(), msg = m.msg, other = msg.from === me ? msg.to : msg.from;
+  const list = DM.logs.get(other); if (list && !list.some(x => x.id === msg.id)) list.push(msg);
+  const viewing = DM.open && DM.with === other;
+  if (viewing) dmRenderLog(msg.from === me);
+  if (msg.from !== me && !viewing) {
+    const short = msg.body.length > 60 ? msg.body.slice(0, 57) + '…' : msg.body;
+    notice(`<b>${esc(m.name)}</b>: ${esc(short)}`, false);
+    if (mode === 'menu') { initAudio(); tone(784, 0.06, 'sine', 0.045); setTimeout(() => tone(1047, 0.09, 'sine', 0.045), 70); }
+  }
+}
+$('dmList').addEventListener('click', e => { const b = e.target.closest('[data-dm]'); if (b) dmSelect(+b.dataset.dm); });
+$('dmLog').addEventListener('click', e => {
+  if (e.target.id !== 'dmMore' || DM.loading || !DM.with) return;
+  const list = DM.logs.get(DM.with) || []; if (!list.length) return;
+  DM.loading = true; e.target.disabled = true; socialSend({ t: 'dm', op: 'more', with: DM.with, before: list[0].id });
+});
+$('dmForm').addEventListener('submit', e => {
+  e.preventDefault(); const t = $('dmIn').value.trim(); if (!t || !DM.with) return;
+  socialSend({ t: 'dm', op: 'send', with: DM.with, body: t }); $('dmIn').value = '';
+});
+$('dmBox').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') { e.preventDefault(); dmClose(); } });
+$('dmClose').onclick = dmClose; $('dmClose2').onclick = dmClose; $('dmBack').onclick = () => dmSelect(null);
 function showInvite(m) {
   SOC.invite = m; $('inviteText').innerHTML = `<b>${esc(m.from)}</b> invited you to their party.`; $('inviteToast').hidden = false;
   tone(880, 0.1, 'triangle', 0.05); setTimeout(() => tone(1175, 0.12, 'triangle', 0.05), 110);
@@ -8864,7 +9095,7 @@ function clanChip() {
 const clanRow = (c, i, btn) => `<div class="clrow${CLAN.mine && CLAN.mine.id === c.id ? ' me' : ''}"><span class="n">${i != null ? i + 1 : ''}</span><span class="who"><b>${clanHtml(c.tag, c.col, c.em)}${esc(c.name)}</b><small>${c.motto ? esc(c.motto) + ' · ' : ''}${c.size}/${c.max} members${c.leader ? ' · led by ' + esc(c.leader) : ''} · ${c.open ? 'open to all' : 'invite or request'}</small></span><span class="val">${c.games ? c.rating : '–'}<small>${c.games ? `${c.wins}–${c.games - c.wins}` : 'unrated'}</small></span><span class="btnrow">${btn || ''}<button type="button" class="ghost sm" data-clview="${c.id}">View</button></span></div>`;
 // the emblem designer: shape, pattern, symbol (or a letter), and five colours. CLAN.em holds the code being edited.
 const EMB_PARTS = [['Shape', 0, Sim.EMB_SHAPES], ['Pattern', 1, Sim.EMB_PATS], ['Symbol', 2, Sim.EMB_SYMS]];
-const EMB_COLROWS = [['Base', 4], ['Trim', 5], ['Pattern', 6], ['Symbol', 7], ['Backing', 8]];
+const EMB_COLROWS = [['Base', 4], ['Trim', 5], ['Pattern', 6], ['Symbol', 7]];
 const embSet = (code, i, v) => code.slice(0, i) + v + code.slice(i + 1);
 function emblemEditor() {
   const e = CLAN.em, sample = (i, k) => { // each choice drawn as a small emblem with only that part changed
@@ -8982,7 +9213,7 @@ function clanRated(m) {
 const SC = { tab: 'elo', role: 'sniper', cache: {} };
 async function scFetch(path) { if (SC.cache[path] && Date.now() - SC.cache[path].t < 20000) return SC.cache[path].d; const d = await (await fetch('/api' + path, { cache: 'no-store' })).json(); SC.cache[path] = { t: Date.now(), d }; return d; }
 async function renderScores() {
-  const tabs = [['elo', '1v1 rating'], ['eloT', 'Team rating'], ['role', 'By role'], ['records', 'Single-game records'], ['wins', 'Wins'], ['kills', 'Knockouts'], ['clans', 'Clans']];
+  const tabs = [['elo', '1v1 rating'], ['eloT', 'Team rating'], ['role', 'By role'], ['records', 'Single-game records'], ['matchWins', 'Wins'], ['kills', 'Knockouts'], ['clans', 'Clans']];
   $('scTabs').innerHTML = tabs.map(([k, l]) => `<button type="button" data-sct="${k}" class="${k === SC.tab ? 'on' : ''}">${l}</button>`).join('');
   $('scSite').hidden = OFFLINE;
   if (OFFLINE) { $('scBody').innerHTML = '<p class="status">Highscores come from the online server. Play at your Bowfall site to get on the board.</p>'; return; }
@@ -9003,7 +9234,7 @@ async function renderScores() {
     } else {
       const d = await scFetch('/leaderboard?by=' + SC.tab);
       const rows = d.rows.filter(r => r.value > 0).slice(0, 20);
-      $('scBody').innerHTML = box(SC.tab === 'elo' ? 'Top 1v1 ratings' : SC.tab === 'eloT' ? 'Top team ratings (2v2 and 3v3)' : SC.tab === 'wins' ? 'Most game wins' : 'Most knockouts', rows.map((r, i) => row(r, i, r.value, SC.tab === 'elo' || SC.tab === 'eloT' ? `${r.rate}% of ${r.games}` : '')).join('')) +
+      $('scBody').innerHTML = box(SC.tab === 'elo' ? 'Top 1v1 ratings' : SC.tab === 'eloT' ? 'Top team ratings (2v2 and 3v3)' : SC.tab === 'matchWins' ? 'Most wins' : 'Most knockouts', rows.map((r, i) => row(r, i, r.value, SC.tab === 'elo' || SC.tab === 'eloT' ? `${r.rate}% of ${r.games}` : '')).join('')) +
         (SC.tab === 'elo' || SC.tab === 'eloT' ? '<p class="status" style="margin-top:8px">Two ratings: 1v1, and team games (2v2 and 3v3). Everyone starts at 800, and only ranked matches count. In team games how much you did for your team also counts, so being carried gains less.</p>' : '');
     }
   } catch (e) { $('scBody').innerHTML = '<p class="status">Couldn\'t load the highscores.</p>'; }
@@ -9012,7 +9243,7 @@ $('scTabs').addEventListener('click', e => { const b = e.target.closest('[data-s
 $('scBody').addEventListener('click', e => { const b = e.target.closest('[data-scr]'); if (b) { SC.role = b.dataset.scr; renderScores(); } });
 function syncOptions() {
   $('oVol').value = OPTS.vol; $('oVolN').textContent = OPTS.vol + '%'; $('oMute').value = muted ? '1' : '0';
-  $('oRes').value = OPTS.res; $('oFx').value = OPTS.fx; $('oShadow').value = OPTS.shadow; $('oGlow').value = OPTS.glow; $('oDetail').value = OPTS.detail; $('oPart').value = String(OPTS.part); $('oShake').value = OPTS.shake ? '1' : '0';
+  $('oRes').value = OPTS.res; $('oFx').value = OPTS.fx; $('oShadow').value = OPTS.shadow; $('oGlow').value = OPTS.glow; $('oMe').value = OPTS.me; $('oDetail').value = OPTS.detail; $('oPart').value = String(OPTS.part); $('oShake').value = OPTS.shake ? '1' : '0';
   $('oDmg').value = OPTS.dmg; $('oGuide').value = OPTS.guide ? '1' : '0'; $('oNet').value = OPTS.net ? '1' : '0';
 }
 $('oRec').onclick = () => { PR.toggle(); $('oRec').textContent = PR.on ? 'Stop and save' : 'Start recording'; };
@@ -9024,6 +9255,7 @@ $('oRes').onchange = () => { OPTS.res = $('oRes').value; store.set('bowfall-res'
 $('oFx').onchange = () => { OPTS.fx = $('oFx').value; store.set('bowfall-fx', OPTS.fx); perf.low = false; };
 $('oShadow').onchange = () => { OPTS.shadow = $('oShadow').value; store.set('bowfall-shadow', OPTS.shadow); };
 $('oGlow').onchange = () => { OPTS.glow = $('oGlow').value; store.set('bowfall-glow', OPTS.glow); };
+$('oMe').onchange = () => { OPTS.me = $('oMe').value; store.set('bowfall-me', OPTS.me); };
 $('oDetail').onchange = () => { OPTS.detail = $('oDetail').value; store.set('bowfall-detail', OPTS.detail); floorCv = null; };
 $('oPart').onchange = () => { OPTS.part = +$('oPart').value; store.set('bowfall-part', OPTS.part); };
 $('oShake').onchange = () => { OPTS.shake = $('oShake').value === '1'; store.set('bowfall-shake', OPTS.shake ? '1' : '0'); };
@@ -9632,10 +9864,11 @@ function myName() { const me = view && view.p.find(p => p.id === myId); return m
 function showGameSummary(e) {
   const mine = e.rw === myTeam(), draw = e.rw === 'draw';
   $('gameSum').style.setProperty('--tc', draw ? 'var(--muted)' : TEAM_COL[e.rw]);
-  $('gsEye').textContent = draw ? `Round ${e.rd} · Game ${e.gm}` : (mine ? 'Victory' : 'Defeat') + ` · Round ${e.rd}, game ${e.gm}`;
-  $('gsTitle').innerHTML = draw ? 'Draw' : e.rwon ? `${esc(teamName(e.rw))} takes round ${e.rd}` : `${esc(teamName(e.rw))} wins game ${e.gm}`;
+  // kept short: it's only up for a moment (the score is always at the top of the screen)
+  $('gsEye').textContent = draw ? '' : mine ? 'Victory' : 'Defeat'; $('gsEye').hidden = draw;
+  $('gsTitle').innerHTML = draw ? 'Draw' : `${esc(teamName(e.rw))} ${e.rwon ? 'takes the round' : 'wins'}`;
   $('gsTitle').style.color = draw ? '' : TEAM_COL[e.rw];
-  $('gsSub').textContent = e.rwon ? `Points · Red ${e.wins[0]} – ${e.wins[1]} Blue` : `Games · Red ${e.gw[0]} – ${e.gw[1]} Blue · first to ${(view && view.m.gtw) || 3}`;
+  $('gsSub').textContent = ''; $('gsSub').hidden = true;
   // praises pop up one at a time, least impressive first, each with a sound to match; the best one stays up
   const list = (e.hl || []).filter(h => hlText(h)).sort((a, b) => (HL_TIER[a.t] || 1) - (HL_TIER[b.t] || 1));
   praiseTimers.forEach(clearTimeout); praiseTimers = [];
@@ -11291,6 +11524,14 @@ function drawPlayer(p, isMe, bare) {
       ctx.fillStyle = sp; ctx.beginPath(); ctx.arc(0, 0, R * 4.2, 0, TAU); ctx.fill();
     }
     ctx.strokeStyle = `rgba(255,255,255,${0.8 + 0.2 * Math.sin(clock * 4)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, R + 9, 0, TAU); ctx.stroke();
+    if (OPTS.me !== 'soft') {
+      // and a slowly turning gold ring of four arcs further out, which nothing else in the game uses
+      const rr = R + 17, spin = clock * 1.2;
+      ctx.strokeStyle = 'rgba(20,14,4,0.55)'; ctx.lineWidth = 5.5;
+      for (let i = 0; i < 4; i++) { const a = spin + i * TAU / 4; ctx.beginPath(); ctx.arc(0, 0, rr, a, a + 0.95); ctx.stroke(); }
+      ctx.strokeStyle = '#ffcf5a'; ctx.lineWidth = 3;
+      for (let i = 0; i < 4; i++) { const a = spin + i * TAU / 4; ctx.beginPath(); ctx.arc(0, 0, rr, a, a + 0.95); ctx.stroke(); }
+    }
   }
   if (p.em && !p.f) drawEmpower(p, R);
   if (p.pw && p.pw.aegis) {
@@ -11455,7 +11696,7 @@ function drawPlayer(p, isMe, bare) {
       if (fi) { lx -= 16; ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(lx - 1, y - 15, 18, 13.5); ctx.drawImage(fi, lx, y - 14, 16, 12); lx -= 4; }
       if (p.lv) drawRankBadge(lx - 8, y - 9, p.lv);
     }
-    if (isMe) { const by = y - 22 - Math.sin(clock * 4) * 2; ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(p.x - 6, by - 7); ctx.lineTo(p.x + 6, by - 7); ctx.lineTo(p.x, by); ctx.closePath(); ctx.fill(); }
+    if (isMe) { const by = y - 22 - Math.sin(clock * 4) * 2, s2 = OPTS.me !== 'soft' ? 1.5 : 1; ctx.fillStyle = OPTS.me !== 'soft' ? '#ffcf5a' : '#ffffff'; ctx.strokeStyle = 'rgba(20,14,4,0.7)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(p.x - 6 * s2, by - 7 * s2); ctx.lineTo(p.x + 6 * s2, by - 7 * s2); ctx.lineTo(p.x, by); ctx.closePath(); ctx.stroke(); ctx.fill(); }
   }
 }
 
@@ -13005,14 +13246,28 @@ let last = performance.now(), sendT = 0, pingT = 0;
 // The last few seconds of play are kept; when a knockout ends a game, it's replayed zoomed in and in slow motion,
 // following the killer's arrow, then the summary appears. It can't be skipped.
 const RP = { buf: [], evs: [], lastKill: null, on: null, cam: null, enabled: true }; // always on: the game-winning knockout is always replayed
+// online, the replay keeps the server's own updates, timed by the server's tick (60 a second), not the screen frames:
+// those are spaced however the network delivered them, which slow motion turned into visible stutter
+function replaySnap(k, s) {
+  if (k == null || !s || !s.m || s.m.ph === 'lobby' || s.m.ph === 'pick' || (RP.on && RP.on.started)) return;
+  const tt = k / 60;
+  if (RP.koff == null || Math.abs(tt + RP.koff - clock) > 0.5) RP.koff = clock - tt; // line the server's clock up with ours
+  RP.buf.push({ t: tt + RP.koff, v: s }); RP.evT = tt + RP.koff; // this update's events get the same (server) time as its frame
+  while (RP.buf.length && RP.buf[0].t < clock - 6) RP.buf.shift();
+  while (RP.evs.length && RP.evs[0].t < clock - 6) RP.evs.shift();
+}
 function replayRecord() {
+  if (mode === 'online') return; // recorded from the server's updates instead (replaySnap)
   if (!view || view.m.ph === 'lobby' || view.m.ph === 'pick' || (RP.on && RP.on.started)) return;
   RP.buf.push({ t: clock, v: view });
   while (RP.buf.length && RP.buf[0].t < clock - 6) RP.buf.shift();
   while (RP.evs.length && RP.evs[0].t < clock - 6) RP.evs.shift();
 }
 const REPLAY_FX = { throw: 1, sstrike: 1, recall: 1, nblink: 1, flash: 1, swap: 1, fire: 1, hit: 1, dmg: 1, fall: 1, boom: 1, freeze: 1, spike: 1, thud: 1, pinned: 1, chain: 1, burst: 1, trapHit: 1, quake: 1, collapse: 1, aftershock: 1, dash: 1, saw: 1, bump: 1, portal: 1, parry: 1, parried: 1, warp: 1, stun: 1, ambushHit: 1 };
-function replayNote(evs) { for (const e of evs) { if (REPLAY_FX[e.e] || e.e === 'kill') RP.evs.push({ t: clock, e }); if (e.e === 'kill') RP.lastKill = { t: clock, k: e.k, v: e.v, how: e.how, kn: e.kn, vn: e.vn }; } }
+function replayNote(evs) {
+  const t = RP.evT != null ? RP.evT : clock; RP.evT = null;
+  for (const e of evs) { if (REPLAY_FX[e.e] || e.e === 'kill') RP.evs.push({ t, e }); if (e.e === 'kill') RP.lastKill = { t, k: e.k, v: e.v, how: e.how, kn: e.kn, vn: e.vn }; }
+}
 function replayQueue(ge) {
   const K = RP.lastKill;
   if (tutOnDummy() || TR.on) return false; // no kill cam for the practice dummy or training targets
@@ -13046,7 +13301,7 @@ function replayFrameAt(t) {
   return Object.assign({}, A.v, {
     m: Object.assign({}, A.v.m, { gt: lerp(A.v.m.gt || 0, B.v.m.gt || 0, k) }),
     p: A.v.p.map(q => { const n = pb.get(q.id); return n && n.d === q.d && Math.hypot(n.x - q.x, n.y - q.y) < 120 ? Object.assign({}, q, { x: lerp(q.x, n.x, k), y: lerp(q.y, n.y, k), a: lerpAng(q.a, n.a, k), f: q.f && n.f ? lerp(q.f, n.f, k) : q.f }) : q; }),
-    a: A.v.a.map(q => { const n = ab.get(q.id); return n && !q.s && !n.s && Math.hypot(n.x - q.x, n.y - q.y) < 200 ? Object.assign({}, q, { x: lerp(q.x, n.x, k), y: lerp(q.y, n.y, k) }) : q; }),
+    a: A.v.a.map(q => { const n = ab.get(q.id); return n && !q.s && !n.s && Math.hypot(n.x - q.x, n.y - q.y) < 450 ? Object.assign({}, q, { x: lerp(q.x, n.x, k), y: lerp(q.y, n.y, k) }) : q; }),
   });
 }
 function replayTick(dt) {

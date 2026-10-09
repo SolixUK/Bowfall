@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.34.2';
+const VERSION = '0.35.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -571,7 +571,8 @@ function emblemSvg(code, size) {
     i: `<path d="M56 18L32 56H48L42 86L68 46H52Z" fill="${cc}" ${ink}/>`,
     j: `<circle cx="50" cy="52" r="26" fill="none" stroke="${cc}" stroke-width="7"/><circle cx="50" cy="52" r="13" fill="none" stroke="${cc}" stroke-width="7"/><circle cx="50" cy="52" r="4" fill="${cc}"/>`,
   }[sy];
-  return `<svg class="emblem" viewBox="0 0 100 100" width="${size || 24}" height="${size || 24}" aria-hidden="true"><rect x="0" y="0" width="100" height="100" rx="14" fill="${bg}"/>` +
+  // the backing colour (the 9th character) is kept in the code but no longer drawn: emblems sit on a transparent background
+  return `<svg class="emblem" viewBox="0 0 100 100" width="${size || 24}" height="${size || 24}" aria-hidden="true">` +
     `<defs><clipPath id="${id}"><path d="${path}"/></clipPath></defs><path d="${path}" fill="${base}"/><g clip-path="url(#${id})">${pats}</g>${syms}` +
     `<path d="${path}" fill="none" stroke="${trim}" stroke-width="6" stroke-linejoin="round"/></svg>`;
 }
@@ -713,7 +714,7 @@ ROLES.assassin = { name: 'Assassin', cat: 'Agility', blurb: 'Vanish, get close, 
 ROLES.ninja = { name: 'Ninja', cat: 'Agility', blurb: 'Blink in, strike fast, blink out.', premium: true,
   trait: { name: 'Shadowstep', desc: "No bow: click to throw a shuriken instantly (one per click, up to about 3 a second). They're for close range: each hits softer than an arrow, slows down fast and hurts less the further it flies (about 300px); bullseye shuriken count as fully drawn shots for your upgrades. Your dash is a near-instant blink toward your cursor instead: about 150px, 2 charges usable back to back, straight over pits and lava. 10 less health, and you take 10% more knockback." } };
 ROLES.crossbow = { name: 'Crossbowman', cat: 'Power', blurb: 'Point and shoot: no drawing, shorter reach.', premium: true,
-  trait: { name: 'Crank and Loose', desc: 'A crossbow instead of a bow: click to fire at once, no drawing. Each shot is a quick burst of three bolts, each about 40% as strong as a full draw (all three together hit harder than one full draw); they fly fast and straight, count as fully drawn shots for your upgrades, and drop out of the air after 480px. Reloading takes 1.7 seconds, and you can move freely while you reload. Braced behind the stock, you take 15% less damage from enemies and 15% less knockback.' } };
+  trait: { name: 'Crank and Loose', desc: 'A crossbow instead of a bow: click to fire a bolt at once, no drawing. Bolts hit as hard as 85% of a full draw, fly fast and straight, and count as fully drawn shots for your upgrades, but they drop out of the air after 480px. Reloading takes 1.15 seconds, and you can move freely while you reload. Braced behind the stock, you take 15% less damage from enemies and 15% less knockback.' } };
 const TREE_KEYS = Object.keys(ELEMENTS).concat(Object.keys(ROLES));
 const MAX_SLOTS = 2, CAP_PICKS = 2, OFFER_SIZE = 3;
 // tree: which element/role it belongs to ('element' = any element). base: granted free with the element.
@@ -839,6 +840,7 @@ const TREE = {
   fanbolt:   { tree: 'crossbow', active: { cd: 8 }, name: 'Scatter Bolts', desc: 'Your next shot fires five bolts in a fan. Each deals 45% of the damage and 50% of the knockback.' },
   hairtrig:  { tree: 'crossbow', active: { cd: 10 }, name: 'Hair Trigger', desc: 'Raise a guard for 1 second that stops arrows from any side. Block one and your crossbow goes full auto for 2 seconds: hold to fire a bolt every 0.12 seconds with no reloading, each dealing 50% of the damage and knockback.' },
   windlass:  { tree: 'crossbow', name: 'Windlass', desc: 'You reload 25% faster.' },
+  tribolt:   { tree: 'crossbow', trade: true, name: 'Triple Bolt', desc: 'Each shot is a quick burst of three bolts, each with 45% of the damage and 50% of the knockback (all three together hit harder than one bolt), but you reload 50% slower.' },
   heavybolt: { tree: 'crossbow', name: 'Heavy Bolts', desc: 'Your bolts knock back 20% harder.' },
   pointblank:{ tree: 'crossbow', name: 'Point Blank', desc: 'Bolts that hit within 220px of where you fired deal 30% more damage and knock back 15% harder.' },
   longstock: { tree: 'crossbow', trade: true, name: 'Long Stock', desc: 'Your bolts reach 40% further, but you reload 15% slower.' },
@@ -966,7 +968,7 @@ function applyStats(p) {
   p.dmgMul = hc * is(has(p, 'glass'), 1.3) * is(has(p, 'potent'), 0.85) * is(R === 'juggernaut', 0.8) * is(has(p, 'unstable'), 0.92);
   p.abCdMul = is(R === 'trapper', 0.6);
   // Crossbowman: reload time, reach and how many bolts they hold
-  p.xbowReload = XBOW_RELOAD * is(has(p, 'windlass'), 0.75) * is(has(p, 'longstock'), 1.15) / p.drawMul;
+  p.xbowReload = XBOW_RELOAD * is(has(p, 'windlass'), 0.75) * is(has(p, 'longstock'), 1.15) * is(has(p, 'tribolt'), XB3.reload) / p.drawMul;
   p.xbowRange = XBOW_RANGE * is(has(p, 'longstock'), 1.4);
   p.xbowMax = has(p, 'twinload') ? 2 : 1;
   p.sure = has(p, 'surefoot');
@@ -1190,7 +1192,7 @@ function choose(w, id, index) {
 // and leans further into it as its upgrades line up (e.g. Battering Ram makes it a brawler).
 const STYLES = {
   brawler:    { name: 'Brawler',    near: 110, far: 250, charge: [0.45, 0.8], bash: 1,    cards: ['hairtrig', 'fanbolt', 'pointblank', 'heavybolt', 'rush', 'fortify', 'rocket', 'pin', 'ram', 'stance', 'vital', 'quake', 'colossus', 'riot', 'deflect', 'feather', 'fleet', 'double', 'dash', 'bramble', 'barbs', 'gust', 'scatter'] },
-  skirmisher: { name: 'Skirmisher', near: 230, far: 430, charge: null,        bash: 0.25, cards: ['repeater', 'windlass', 'longstock', 'twinload', 'volley', 'parry', 'seeker', 'rocket', 'trick', 'boomerang', 'ricochet', 'split', 'curve', 'quickshot', 'double', 'fleet', 'dash', 'grapple', 'rain', 'surefoot'] },
+  skirmisher: { name: 'Skirmisher', near: 230, far: 430, charge: null,        bash: 0.25, cards: ['repeater', 'windlass', 'tribolt', 'longstock', 'twinload', 'volley', 'parry', 'seeker', 'rocket', 'trick', 'boomerang', 'ricochet', 'split', 'curve', 'quickshot', 'double', 'fleet', 'dash', 'grapple', 'rain', 'surefoot'] },
   marksman:   { name: 'Marksman',   near: 420, far: 660, charge: [0.92, 1],   bash: 0.05, cards: ['railshot', 'recoil', 'spot', 'steady', 'longbow', 'deadeye', 'pierce', 'ballista', 'glass', 'heavy', 'pin'] },
   guardian:   { name: 'Guardian',   near: 240, far: 420, charge: null,        bash: 0.15, mates: true, cards: ['totem', 'harpoon', 'rally', 'bond', 'wall', 'oath', 'revive', 'snare', 'trap', 'deeproots', 'gust'] },
 };
@@ -1216,7 +1218,7 @@ function restyle(p) {
 }
 // Learned upgrade values: how much each card changed a Master bot's chance of winning a game, compared with others
 // of the same role and element, over about 11,108 games where bots picked at random. Smart bots pick by these.
-const CARD_VALUE = { rocket: 0, aftershock: -0.024, ambush: -0.022, ballista: -0.049, barbs: -0.026, blinding: -0.039, blink: 0.097, bloodpact: -0.023, bladeguard: 0, blossom: 0.002, bond: 0.009, boomerang: -0.017, boulder: 0.009, bramble: -0.035, burst: -0.04, cloak: -0.045, clone: 0.008, collapse: -0.005, colossus: 0.019, contagion: 0.003, creeping: -0.024, curve: -0.031, dance: -0.015, dash: 0.045, deadeye: 0.063, deathmark: 0.009, deepfreeze: -0.013, deeproots: -0.021, deflect: -0.017, double: -0.035, echo: -0.005, execute: -0.043, execution: -0.012, fanbolt: -0.013, feather: -0.051, fleet: 0.049, flurry: -0.005, forked: 0.016, fortify: -0.022, frenzy: 0.033, frostbite: -0.014, glass: 0.006, grapple: 0, gust: 0.015, hairtrig: 0.014, harpoon: 0.005, heavy: 0, heavybolt: -0.013, hemorrhage: -0.01, horizon: -0.011, inferno: 0.025, lingering: 0.009, longbow: -0.003, longstep: -0.115, longstock: 0.034, nullfield: 0.112, oath: -0.036, obsidian: -0.004, overload: -0.098, parry: 0.019, permafrost: -0.011, petrify: 0.096, phase: 0.022, pierce: 0.015, pin: -0.002, pointblank: -0.004, potent: -0.031, pyre: -0.045, quake: -0.005, quickfeet: -0.008, quickshot: 0.075, railshot: -0.028, rain: 0.003, rally: -0.027, ram: -0.031, recall: 0.007, recoil: -0.063, repeater: 0.128, revive: -0.019, ricochet: 0.017, riot: -0.003, rush: 0.051, scatter: 0.058, seeker: -0.016, shadowdash: -0.077, sharpstar: -0.004, shatter: -0.027, smoke: -0.001, snare: -0.033, split: 0.057, spot: -0.026, sstrike: -0.028, stance: 0.017, static: 0.081, steady: 0.079, stealth: -0.027, surefoot: 0.003, swiftstep: 0.062, terror: -0.008, thirdstep: 0.009, totem: -0.032, toxic: 0.027, transfusion: -0.012, trap: 0.022, trick: 0.026, twinload: 0.108, unstable: -0.035, virulent: 0.015, vital: -0.038, volley: 0.052, wall: 0.007, wildfire: -0.007, windlass: 0.076 };
+const CARD_VALUE = { tribolt: 0, rocket: 0, aftershock: -0.024, ambush: -0.022, ballista: -0.049, barbs: -0.026, blinding: -0.039, blink: 0.097, bloodpact: -0.023, bladeguard: 0, blossom: 0.002, bond: 0.009, boomerang: -0.017, boulder: 0.009, bramble: -0.035, burst: -0.04, cloak: -0.045, clone: 0.008, collapse: -0.005, colossus: 0.019, contagion: 0.003, creeping: -0.024, curve: -0.031, dance: -0.015, dash: 0.045, deadeye: 0.063, deathmark: 0.009, deepfreeze: -0.013, deeproots: -0.021, deflect: -0.017, double: -0.035, echo: -0.005, execute: -0.043, execution: -0.012, fanbolt: -0.013, feather: -0.051, fleet: 0.049, flurry: -0.005, forked: 0.016, fortify: -0.022, frenzy: 0.033, frostbite: -0.014, glass: 0.006, grapple: 0, gust: 0.015, hairtrig: 0.014, harpoon: 0.005, heavy: 0, heavybolt: -0.013, hemorrhage: -0.01, horizon: -0.011, inferno: 0.025, lingering: 0.009, longbow: -0.003, longstep: -0.115, longstock: 0.034, nullfield: 0.112, oath: -0.036, obsidian: -0.004, overload: -0.098, parry: 0.019, permafrost: -0.011, petrify: 0.096, phase: 0.022, pierce: 0.015, pin: -0.002, pointblank: -0.004, potent: -0.031, pyre: -0.045, quake: -0.005, quickfeet: -0.008, quickshot: 0.075, railshot: -0.028, rain: 0.003, rally: -0.027, ram: -0.031, recall: 0.007, recoil: -0.063, repeater: 0.128, revive: -0.019, ricochet: 0.017, riot: -0.003, rush: 0.051, scatter: 0.058, seeker: -0.016, shadowdash: -0.077, sharpstar: -0.004, shatter: -0.027, smoke: -0.001, snare: -0.033, split: 0.057, spot: -0.026, sstrike: -0.028, stance: 0.017, static: 0.081, steady: 0.079, stealth: -0.027, surefoot: 0.003, swiftstep: 0.062, terror: -0.008, thirdstep: 0.009, totem: -0.032, toxic: 0.027, transfusion: -0.012, trap: 0.022, trick: 0.026, twinload: 0.108, unstable: -0.035, virulent: 0.015, vital: -0.038, volley: 0.052, wall: 0.007, wildfire: -0.007, windlass: 0.076 };
 // bots: capstones first, then abilities, cards that suit their playstyle, anything that builds toward one; boosts last.
 // Smart bots (Master, and AI players near it) mostly go by what the learning showed actually wins.
 // cards that do nothing without teammates (yours or theirs): never offered in a 1v1, and bots on their own skip them
@@ -1966,9 +1968,9 @@ function updatePlayer(w, p, dt) {
       if ((inp.draw || p.throwQ > 0) && p.throwCd <= 0 && p.falling <= 0 && p.disarm <= 0) { p.throwQ = 0; p.throwCd = AUTO_GAP; fire(w, p, p.aim, 1); }
     } else if (p.throwQ > 0 && p.bolts > 0 && p.throwCd <= 0 && p.falling <= 0 && p.disarm <= 0) {
       p.throwQ = 0; p.bolts--;
-      // an armed ability (Fan Bolt, Railshot, Recoil, Firework...) goes out as one full bolt instead of a burst
+      // with Triple Bolt, a burst of three; an armed ability (Fan Bolt, Railshot, Recoil, Firework...) still goes out as one full bolt
       const special = p.fanArmed || p.railArmed || p.recoilArmed || p.rocketArmed || p.volleyArmed || p.seekArmed || p.trickArmed || p.boomArmed || p.execArmed;
-      if (special) { p.throwCd = XBOW_GAP; fire(w, p, p.aim, 1); }
+      if (special || !has(p, 'tribolt')) { p.throwCd = XBOW_GAP; fire(w, p, p.aim, 1); }
       else {
         p.throwCd = XBOW_GAP + XB3.gap * (XB3.n - 1);
         fire(w, p, p.aim, 1, 0, null, true);
@@ -2654,9 +2656,9 @@ const NB_WIND = 0.05, NB_MOVE = 0.09; // Ninja blink: wind-up, then travel time
 // Firework: big and very slow, follows its target for its whole flight, and bursts a little smaller than Blast Tips
 const ROCKET = { speed: 210, turn: 1.5, life: 5, blast: 0.85, dmg: 6 }; // px/s (an archer runs at about 235), radians a second it can turn, fuse, burst size (Blast Tips = 1) and burst damage
 const ASSIST_LANE = 220, ASSIST_RAMP = 600, SEEK = { power: 1.4, lane: 340, base: 0.6 }; // Seeker Arrow: between the Heavy and Extreme rules, with a wider lane, and it turns firmly from the start; // arrow homing: how far either side of your line of fire it looks for a target (at any range), and the distance over which its turning ramps up
-const XBOW_RANGE = 480, XBOW_RELOAD = 1.7, XBOW_GAP = 0.16, AUTO_TIME = 2, AUTO_GAP = 0.12;
-// a crossbow's normal shot is a quick burst of three bolts, each this share of a single bolt's damage and knockback
-const XB3 = { n: 3, gap: 0.08, dmg: 0.45, kb: 0.5, spread: 0.035 };
+const XBOW_RANGE = 480, XBOW_RELOAD = 1.15, XBOW_GAP = 0.16, AUTO_TIME = 2, AUTO_GAP = 0.12;
+// Triple Bolt (an upgrade): each shot is a quick burst of three bolts, each this share of a single bolt's damage and knockback, and reloading takes `reload` times as long
+const XB3 = { n: 3, gap: 0.08, dmg: 0.45, kb: 0.5, spread: 0.035, reload: 1.5 };
 // how far a player's shots reach before dropping, for roles with a short range (null: the whole arena)
 // (shuriken: 1050px/s slowed by drag 2.4 over their 0.45s life, about 0.275s worth of full speed)
 const rangeOf = (w, p) => p.role === 'crossbow' ? Math.round(p.xbowRange || XBOW_RANGE)

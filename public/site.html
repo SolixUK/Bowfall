@@ -327,7 +327,7 @@ const pages = {
   async leaderboard(by) {
     by = by || 'elo';
     const role = by === 'role' ? (qs().get('r') || 'sniper') : null;
-    const L = { elo: '1v1 rating', eloT: 'Team rating', wins: 'Game wins', kills: 'Knockouts', matchWins: 'Match wins', games: 'Games played', ring: 'Ring-outs', bulls: 'Bullseyes' };
+    const L = { elo: '1v1 rating', eloT: 'Team rating', matchWins: 'Wins', kills: 'Knockouts', matches: 'Games played', ring: 'Ring-outs', bulls: 'Bullseyes' };
     const [d, hs] = await Promise.all([by === 'clans' ? api('/clans') : api('/leaderboard?by=' + (role ? 'elo&role=' + role : by)), by === 'records' ? api('/highscores') : null]);
     const tabs = `<div class="tabs">${Object.entries(L).map(([k, v]) => `<button type="button" data-by="${k}" class="${k === by ? 'on' : ''}">${v}</button>`).join('')}<button type="button" data-by="role" class="${role ? 'on' : ''}">By role</button><button type="button" data-by="records" class="${by === 'records' ? 'on' : ''}">Highscores</button><button type="button" data-by="clans" class="${by === 'clans' ? 'on' : ''}">Clans</button></div>`;
     const who = r => `${badge(r.level)}${flag(r.country)}<a href="#/u/${esc(r.name)}"><b>${esc(r.name)}</b></a>${crown(r.own)}${status(r)}${r.ai ? '<span class="tag" title="An AI player: fills matchmaking games when nobody close to your rating is searching">AI</span>' : ''}${r.title ? `<span class="tag">${esc(titleName(r.title))}</span>` : ''}`;
@@ -367,7 +367,7 @@ const pages = {
         ${u.level ? `<div style="width:380px;max-width:100%;margin-top:10px"><div class="muted" style="font-size:13px;display:flex;justify-content:space-between;gap:12px"><span>${rankOf(u.level.lv).name} · level ${u.level.lv}</span><span>${u.level.xp - u.level.cur} / ${u.level.next - u.level.cur} xp to level ${u.level.lv + 1}</span></div><div class="xp"><i style="width:${Math.round((u.level.xp - u.level.cur) / Math.max(1, u.level.next - u.level.cur) * 100)}%"></i></div></div>` : ''}</div>
         ${mine ? '<a class="btn" href="/play">Play</a>' : ''}</div>
       <div class="stats">
-        ${[['1v1 rating', Math.round(c.elo || 800)], ['Team rating', Math.round(c.eloT != null ? c.eloT : c.elo || 800)], ['Games', c.games || 0], ['Wins', c.wins || 0], ['Win rate', pct(c.wins || 0, c.games || 0)], ['Knockouts', c.kills || 0], ['K/D', c.deaths ? ((c.kills || 0) / c.deaths).toFixed(2) : (c.kills || 0)], ['Accuracy', pct(c.hits || 0, c.shots || 0)], ['Ring-outs', c.ring || 0], ['Matches won', `${c.matchWins || 0} / ${c.matches || 0}`]]
+        ${[['1v1 rating', Math.round(c.elo || 800)], ['Team rating', Math.round(c.eloT != null ? c.eloT : c.elo || 800)], ['Games', c.matches || 0], ['Wins', c.matchWins || 0], ['Win rate', pct(c.matchWins || 0, c.matches || 0)], ['Rounds won', c.wins || 0], ['Knockouts', c.kills || 0], ['K/D', c.deaths ? ((c.kills || 0) / c.deaths).toFixed(2) : (c.kills || 0)], ['Accuracy', pct(c.hits || 0, c.shots || 0)], ['Ring-outs', c.ring || 0]]
           .map(([k, v]) => `<div class="stat"><b>${v}</b><span>${k}</span></div>`).join('')}
       </div>
       ${mine ? `<div class="card" style="margin-top:16px"><h3>Your title</h3><p class="muted" style="margin:4px 0 10px">Shown next to your name in games and on the forum.</p>

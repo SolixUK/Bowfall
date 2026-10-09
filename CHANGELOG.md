@@ -2,6 +2,28 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.35.0
+
+Friends and parties.
+
+- **Messages between friends.** A Messages panel (from the Friends box on the main menu, or Message on the Find game screen) lists your friends down the side with the conversation on the right. Messages reach friends who are offline too: they see an unread count when they're next on. A new message pops up with a short sound on the menu (silently in a game). Up to 300 characters, a gentle limit on how fast you can send, and only between friends; the last 300 messages of each conversation are kept. Deleting an account deletes its messages.
+- **Ready up in a party.** Party members press Ready (or Not ready) on the Find game screen; the leader can start the search once everyone is ready, and hears a chime with a small "X is ready" pop-up. Players on the leader's own controllers count as ready.
+- **Offline friends are listed** on the main menu (under a collapsible "Offline" heading).
+- **Friend profiles in the game:** click a friend's name to see their ratings, games, wins, win rate, knockouts, accuracy, favourite roles and elements, and achievements, with buttons to message, invite, watch their game or open the full profile on the website.
+- **Watch a friend's game:** Watch next to a friend who's playing. A ranked match is watch-only (no team, picks or chat; up to 8 watching), a custom game is joined as usual.
+- **AI players chat more like people.** Many more lines, and new moments: first blood, three knockouts in a game, walking into a hazard, a player falling in on their own, clutch rounds, the deciding round, match point, falling behind, sweeps and close finishes. They answer greetings, gg, good luck, "nice shot", laughs, "ez" and "are you a bot?" (and answer to their own name). They don't repeat recent lines, take a moment to "type" before a message appears, and call people by a short name the way a person would ("dave_smith245" becomes "dave").
+- **Games played counts matches**, not every round: profiles, leaderboards ("Games played" and the in-game "Most wins"), the Find game card and party rows. Rounds won is shown separately on the website profile.
+- **Triple Bolt is now an upgrade** (crossbow tree) instead of the Crossbowman's default: the base crossbow fires single bolts again (1.15 s reload); Triple Bolt turns each shot into a three-bolt burst with a 50% longer reload.
+- **Clan emblems have a transparent back** (the backing colour is gone from the editor).
+- **Your own archer stands out more:** a turning gold ring and a larger gold marker. Options → Your archer: Strongly or Lightly marked.
+- **Arena pictures on Find game:** point at (or move to) an arena name to see a picture of it.
+- **Smoother kill cams online:** the replay is now recorded from the server's own timing, so arrows move evenly instead of stuttering.
+- **Shorter end-of-game banner:** just Victory or Defeat and who won.
+
+## 0.34.3
+
+- **Fewer server hitches on Render.** Two server profiles showed the game's own code using only about 1% of a core, yet Render still held the server back for up to 440 ms at a time (1.1 s in one two-minute game). The CPU was going to work done on several threads at once: garbage collection (about six runs a second, split across helper threads) and compressing the game updates. On a plan with half a core, several threads together use up the allowance for each tenth of a second in a few milliseconds, and Render then pauses everything until the next tenth. Garbage collection now runs on the main thread only (`--single-threaded-gc` in `npm start`) and compression on at most two helper threads, so the same work is spread out instead of arriving in bursts. `/perf` also shows how many cores the server can see.
+
 ## 0.34.2
 
 - **Server profiling (owner only):** type `/profile` in any game's chat (or `/profile 300` for five minutes; default two) and the server records what its CPU is spent on, with garbage collection and Render's throttling second by second. When it's done it posts a summary in the chat; the full results are at `/api/profile` (a summary, including what was running in each second the server was held back) and `/api/profile?raw=1` (a file Chrome's DevTools can open: Performance tab → Load profile).

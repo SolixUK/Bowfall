@@ -1,5 +1,9 @@
 // Bowfall server: the website, accounts, forum, room list, and each room's match (run authoritatively here).
 'use strict';
+// On a host with a CPU allowance (Render: half a core), work spread over many threads at once uses the allowance up in a
+// few milliseconds and the whole server is then paused for the rest of each 100 ms slice. So: compression runs on at most
+// two helper threads (and garbage collection on the main thread only: see "start" in package.json).
+process.env.UV_THREADPOOL_SIZE = process.env.UV_THREADPOOL_SIZE || '2';
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -454,7 +458,7 @@ async function api(req, res, url) {
     if (CLANS.of(me.id)) await CLANS.leave(me);
     for (const p of await store.loginsOf(me.id)) await store.removeLogin(p, me.id);
     await store.deleteSessionsOf(me.id);
-    await store.anonymiseUser(me.id);
+    await store.anonymiseUser(me.id); if (store.dmForget) await store.dmForget(me.id).catch(() => {});
     live.delete(me.id); dirty.delete(me.id);
     for (const r of rooms.values()) for (const c of r.clients) if (c.user && c.user.id === me.id) { try { c.close(); } catch (e) {} }
     if (email) MAIL.send(email, 'Your Bowfall account was deleted', `Your Bowfall account (${oldName}) has been deleted, as you asked. Thanks for playing.`).catch(() => {});
@@ -682,7 +686,7 @@ async function api(req, res, url) {
       return board({ by: 'elo', role, min: ROLE_MIN, rows });
     }
     const rows = (await store.leaderboard(by, 50)).map(u => live.get(u.id) || u).filter(u => (u.career || {}).games > 0 && (by !== 'eloT' || (u.career || {}).eloT != null));
-    return board({ by, rows: rows.map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, ...stOf(u), title: u.title, country: flagOf(u), level: levelOf(u.career).lv, value: by === 'elo' || by === 'eloT' ? Math.round((u.career || {})[by] || ELO_START) : (u.career || {})[by] || 0, games: (u.career || {}).games || 0, wins: (u.career || {}).wins || 0, kills: (u.career || {}).kills || 0, rate: (u.career || {}).games ? Math.round(((u.career || {}).wins || 0) / u.career.games * 100) : 0 })) });
+    return board({ by, rows: rows.map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, ...stOf(u), title: u.title, country: flagOf(u), level: levelOf(u.career).lv, value: by === 'elo' || by === 'eloT' ? Math.round((u.career || {})[by] || ELO_START) : (u.career || {})[by] || 0, games: (u.career || {}).matches || 0, wins: (u.career || {}).matchWins || 0, kills: (u.career || {}).kills || 0, rate: (u.career || {}).matches ? Math.round(((u.career || {}).matchWins || 0) / u.career.matches * 100) : 0 })) }); // "games" here are whole matches (a match is several rounds of short fights)
   }
   // ---- clans
   if (route === '/clans' && method === 'GET') {
@@ -1019,10 +1023,10 @@ function roomInfo(room, ws) {
 // what the lobby's hover card shows about someone: accounts get their record, guests just what their browser says they've earned
 const topAch = ach => Sim.achBest(ach, 2);
 function cardOf(c) {
-  if (c.guest && !c.user && c.guest.career.games) { const k = c.guest.career; return { a: 1, guest: 1, g: k.games || 0, w: k.wins || 0, elo: Math.round(k.elo || ELO_START), lv: levelOf(k).lv, top: topAch(c.guest.ach) }; }
+  if (c.guest && !c.user && c.guest.career.games) { const k = c.guest.career; return { a: 1, guest: 1, g: k.matches || 0, w: k.matchWins || 0, elo: Math.round(k.elo || ELO_START), lv: levelOf(k).lv, top: topAch(c.guest.ach) }; }
   if (c.user) {
     const k = c.user.career || {};
-    return { a: 1, g: k.games || 0, w: k.wins || 0, elo: Math.round(k.elo || ELO_START), lv: levelOf(k).lv, top: topAch(c.user.ach) };
+    return { a: 1, g: k.matches || 0, w: k.matchWins || 0, elo: Math.round(k.elo || ELO_START), lv: levelOf(k).lv, top: topAch(c.user.ach) };
   }
   return { top: c.top || [] };
 }
@@ -1065,6 +1069,7 @@ function leave(ws) {
   ws.room = null; ws.pid = null;
   setTimeout(() => social.presence(ws), 0);
   if (!room.clients.size) { social.freeAI(room); if (room.z) { room.z.d.close(); room.z = null; } rooms.delete(room.code); return; }
+  if ([...room.clients].every(c => c.watch)) { for (const c of [...room.clients]) { send(c, { t: 'kicked', msg: 'Everyone has left that game.' }); leave(c); } return; } // only people watching are left
   if (room.ranked) { sysChat(room, `${ws.name} left.`); sendRoom(room); return; }
   if (room.host === ws.cid) {
     // hand the room to someone on a team if possible, otherwise anyone
@@ -1178,7 +1183,7 @@ async function chatCommand(room, ws, text) {
     case 'perf': {
       const h = PERF.hist.slice(-30), s = PERF.now || {};
       const worst = k => h.reduce((m, x) => Math.max(m, x[k] || 0), 0);
-      tell(`Server now: CPU ${s.cpu}% of ${s.quota ? s.quota + ' core' : 'a core'}${s.thr != null ? ` (held back ${s.thr} ms/s)` : ''} · loop stall ${s.lag} ms · tick ${s.step} ms (max ${s.stepMax}) · ${s.rooms} game${s.rooms === 1 ? '' : 's'}, ${s.players} archers · ${s.mem} MB`);
+      tell(`Server now (sees ${s.cores} cores): CPU ${s.cpu}% of ${s.quota ? s.quota + ' core' : 'a core'}${s.thr != null ? ` (held back ${s.thr} ms/s)` : ''} · loop stall ${s.lag} ms · tick ${s.step} ms (max ${s.stepMax}) · ${s.rooms} game${s.rooms === 1 ? '' : 's'}, ${s.players} archers · ${s.mem} MB`);
       tell(`Last 30 s worst: CPU ${worst('cpu')}% · loop stall ${worst('lag')} ms · lost time ${h.reduce((m, x) => m + (x.drop || 0), 0)} ms · tick max ${worst('stepMax')} ms`);
       for (const e of PERF.errors.slice(0, 3)) tell(`Browser error (${e.name}, ${e.where}, ${e.ph || e.mode}): ${e.m} ${(e.s.split('\n')[1] || '').trim().slice(0, 120)}`);
       const reps = PERF.reports.slice(-4).reverse();
@@ -1236,7 +1241,16 @@ async function handle(ws, m) {
     if (ws.room) leave(ws);
     if (bannedWs(ws)) return send(ws, { t: 'err', msg: 'You have been banned from online games.' });
     let room;
-    if (m.create) {
+    ws.watch = false;
+    if (m.watch != null) {
+      // watching a friend's game: find the game they're in; matchmade games are watch-only, custom games are joined as usual
+      const fid = +m.watch;
+      if (!ws.user || !((ws.user.social || {}).friends || []).includes(fid)) return send(ws, { t: 'err', msg: 'You can only watch friends.' });
+      room = [...rooms.values()].find(r => [...r.clients].some(c => c.user && c.user.id === fid && !c.watch));
+      if (!room) return send(ws, { t: 'err', msg: "They're not in a game any more." });
+      if (room.ranked) { ws.watch = true; if ([...room.clients].filter(c => c.watch).length >= 8) return send(ws, { t: 'err', msg: 'Too many people are watching that game.' }); }
+      else if (!pwOk(room, m.pw)) return send(ws, { t: 'needpw', code: room.code, msg: m.pw ? 'Wrong password.' : 'This game needs a password.' });
+    } else if (m.create) {
       if (rooms.size >= MAX_ROOMS) return send(ws, { t: 'err', msg: 'The server is full. Try again later.' });
       room = createRoom({ diff: m.diff, map: m.map });
     } else {
@@ -1246,7 +1260,7 @@ async function handle(ws, m) {
       if (room.ranked || m.ticket) { const err = room.ranked ? social.useTicket(ws, room, m.ticket) : 'That match has expired. Search again.'; if (err) return send(ws, { t: 'err', msg: err }); }
       else if (!pwOk(room, m.pw)) return send(ws, { t: 'needpw', code: room.code, msg: m.pw ? 'Wrong password.' : 'This game needs a password.' });
     }
-    if (!m.create && !room.ranked && room.clients.size >= (room.max || 8)) return send(ws, { t: 'err', msg: `That game is full (${room.clients.size}/${room.max || 8} players).` });
+    if (!m.create && !room.ranked && !ws.watch && room.clients.size >= (room.max || 8)) return send(ws, { t: 'err', msg: `That game is full (${room.clients.size}/${room.max || 8} players).` });
     // signed-in players always play under their account name and wear their account's title
     ws.name = ws.user ? ws.user.name : cleanName(m.name);
     // guests can't pass themselves off as a registered player
@@ -1264,12 +1278,12 @@ async function handle(ws, m) {
     room.clients.add(ws);
     // whoever creates the room starts on Red; everyone else arrives unassigned (or spectating a match in progress) and picks a team
     if (m.create) { room.host = ws.cid; applyRoomCfg(room, Object.assign({ name: '' }, m.room || {}), ws.name); joinTeam(room, ws, 'red'); }
-    else if (room.ranked) { if (ws.mmTeam) joinTeam(room, ws, ws.mmTeam); }
+    else if (room.ranked) { if (ws.mmTeam && !ws.watch) joinTeam(room, ws, ws.mmTeam); }
     else if (!room.host) room.host = ws.cid;
     send(ws, { t: 'welcome', id: ws.pid, code: room.code, account: ws.user ? ws.user.name : null, v: Sim.VERSION });
     sendRoom(room);
-    sysChat(room, room.world.match.ph === 'lobby' || room.world.match.ph === 'over' ? `${ws.name} joined.` : `${ws.name} joined and is spectating until this game ends.`);
-    if (room.ranked) social.arrived(room, ws);
+    sysChat(room, ws.watch ? `${ws.name} is watching.` : room.world.match.ph === 'lobby' || room.world.match.ph === 'over' ? `${ws.name} joined.` : `${ws.name} joined and is spectating until this game ends.`);
+    if (room.ranked && !ws.watch) social.arrived(room, ws);
     social.presence(ws);
     return;
   }
@@ -1277,6 +1291,7 @@ async function handle(ws, m) {
   const room = ws.room;
   if (!room) return;
   const w = room.world, isHost = room.host === ws.cid;
+  if (ws.watch && !['ping', 'nz', 'perfRep'].includes(m.t)) return; // watching a matchmade game: no playing, picking or chatting
   switch (m.t) {
     case 'in': if (ws.pid) Sim.setInput(w, ws.pid, m); break;
     case 'ping': send(ws, { t: 'pong', c: m.c }); break;
@@ -1338,7 +1353,7 @@ async function handle(ws, m) {
       if (mute && mute > now) { send(ws, { t: 'chat', sys: 1, m: `You're muted for ${Math.ceil((mute - now) / 60000)} more minute(s).` }); break; }
       const p = ws.pid && w.players.find(q => q.id === ws.pid);
       broadcast(room, { t: 'chat', n: ws.name, tm: p ? p.team : 'spec', c: p ? p.color : null, m: text, acc: ws.user ? 1 : 0, adm: ws.user && ws.user.admin ? 1 : undefined, sp: ws.sp || undefined, fd: ws.fd || undefined, pt: ws.pt || undefined });
-      social.aiReply(room, text);
+      social.aiReply(room, text, ws.name);
       break;
     }
     // host-only controls
@@ -1463,7 +1478,7 @@ function perfSecond() {
   const cores = CG.quota || 1;
   const s = { t, cpu: Math.round((cpu.user + cpu.system) / Math.max(1, wall * cores) * 100), quota: CG.quota, thr: thMs, lag: Math.round(W.gap), el: Math.round(eld.percentile(99) / 1e6), elMax: Math.round(eld.max / 1e6),
     drop: Math.round(W.drop * 1000), cu: W.catchup, step: W.steps ? Math.round(W.step / W.steps * 100) / 100 : 0, stepMax: Math.round(W.stepMax * 10) / 10, send: Math.round(W.send * 10) / 10,
-    rooms: rooms.size, players, mem: Math.round(process.memoryUsage().rss / 1048576) };
+    rooms: rooms.size, players, mem: Math.round(process.memoryUsage().rss / 1048576), cores: require('os').cpus().length };
   eld.reset();
   PERF.w = { gap: 0, drop: 0, catchup: 0, step: 0, steps: 0, stepMax: 0, send: 0 };
   PROF.second(s);
