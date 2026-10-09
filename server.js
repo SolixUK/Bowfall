@@ -388,7 +388,7 @@ function saveRecords(room) {
 }
 
 // ---------------- HTTP ----------------
-const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.json': 'application/json', '.woff2': 'font/woff2' };
+const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.woff2': 'font/woff2' };
 function json(res, code, obj, headers = {}) {
   res.writeHead(code, Object.assign({ 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }, headers));
   res.end(JSON.stringify(obj));
@@ -1600,6 +1600,7 @@ const CG = (() => {
 })();
 const PROF = require('./lib/profiler')(); // the owner's /profile command
 const PERF = { errors: [], w: { gap: 0, drop: 0, catchup: 0, step: 0, steps: 0, stepMax: 0, send: 0 }, hist: [], reports: [], cpu: process.cpuUsage(), at: Date.now(), now: null };
+const CORES = require('os').cpus().length; // asked once: reading it every second cost a little each time
 function perfSecond() {
   const W = PERF.w, t = Date.now(), wall = (t - PERF.at) * 1000, cpu = process.cpuUsage(PERF.cpu);
   PERF.cpu = process.cpuUsage(); PERF.at = t;
@@ -1608,7 +1609,7 @@ function perfSecond() {
   const cores = CG.quota || 1;
   const s = { t, cpu: Math.round((cpu.user + cpu.system) / Math.max(1, wall * cores) * 100), quota: CG.quota, thr: thMs, lag: Math.round(W.gap), el: Math.round(eld.percentile(99) / 1e6), elMax: Math.round(eld.max / 1e6),
     drop: Math.round(W.drop * 1000), cu: W.catchup, step: W.steps ? Math.round(W.step / W.steps * 100) / 100 : 0, stepMax: Math.round(W.stepMax * 10) / 10, send: Math.round(W.send * 10) / 10,
-    rooms: rooms.size, players, mem: Math.round(process.memoryUsage().rss / 1048576), cores: require('os').cpus().length };
+    rooms: rooms.size, players, mem: Math.round(process.memoryUsage().rss / 1048576), cores: CORES };
   eld.reset();
   PERF.w = { gap: 0, drop: 0, catchup: 0, step: 0, steps: 0, stepMax: 0, send: 0 };
   PROF.second(s);

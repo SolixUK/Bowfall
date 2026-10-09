@@ -2,6 +2,14 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.39.3
+
+- **Phones: install Bowfall as an app.** The site is now an installable web app: on Android Chrome use the menu's **Install app** (or Add to Home screen); on iPhone, Safari's Share → **Add to Home Screen**. It opens full screen, sideways, with no browser bars, and has its own icon.
+- **Phones in the browser go full screen** at your first touch in a game (Android; iPhone Safari doesn't allow it, so install it there). A full screen button sits on the left if you leave full screen; leaving it mid-game stops it coming back on its own.
+- **Phones: a bigger arena.** The view zooms to the playing area itself, so the forest and trees round the outside only fill the spare space at the sides, and less room is kept for the top bar.
+- **Phones: a touch-first HUD.** The Q and E buttons show their ability's name and cooldown (a sweep and a countdown, gold when ready), and Dash shows its recharge, so the ability cards along the bottom are gone. Sound and Menu are icons, the Dash bar is dropped (the button shows it), the Empower meter is smaller, and the top bar's text is shadowed so it reads over the grass.
+- Server: the core count in the once-a-second performance record is read once at start instead of every second (it showed up in a server profile).
+
 ## 0.39.2
 
 - **Browser tab icon:** the Bowfall logo (bow and arrow on gold) on the game and the website.

@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <!--HEAD-->
 <title>Bowfall Duels</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="theme-color" content="#0f1a12">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bowfall">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"%3E%3Ccircle cx="16" cy="16" r="15" fill="%23ffc94a"/%3E%3Cpath d="M9 7c9 3 13 9 13 18" stroke="%23221a08" stroke-width="3" fill="none" stroke-linecap="round"/%3E%3Cpath d="M9 7l13 18" stroke="%23221a08" stroke-width="1.5"/%3E%3Cpath d="M6 20l14-8" stroke="%23ff5a45" stroke-width="2.5" stroke-linecap="round"/%3E%3Cpath d="M20 12l-4 .5 1.5 3z" fill="%23ff5a45"/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -453,13 +460,29 @@
   .tstick { position: absolute; width: 116px; height: 116px; margin: -58px 0 0 -58px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); background: rgba(255,255,255,.06); }
   .tstick i { position: absolute; left: 50%; top: 50%; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 50%; background: rgba(255,255,255,.4); }
   .tstick.aim { border-color: rgba(255,207,90,.6); } .tstick.aim i { background: rgba(255,207,90,.6); }
-  .tbtns { position: absolute; right: max(14px, env(safe-area-inset-right)); bottom: max(14px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: auto auto; gap: 10px; align-items: end; pointer-events: auto; }
+  .tbfs { position: absolute; left: max(10px, env(safe-area-inset-left)); top: 50%; width: 38px; height: 38px; margin-top: -19px; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgba(255,255,255,.3); background: rgba(10,18,12,.5); color: #fff; pointer-events: auto; } .tbfs svg { width: 18px; height: 18px; }
+  :fullscreen .tbfs, body.standalone .tbfs { display: none; }
+  .tbtns { position: absolute; right: max(14px, env(safe-area-inset-right)); bottom: max(14px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: auto auto; gap: 20px 12px; align-items: end; pointer-events: auto; }
   .tb { width: 76px; height: 76px; border-radius: 50%; border: 2px solid rgba(255,255,255,.4); background: rgba(10,18,12,.55); color: #fff; font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .06em; text-transform: uppercase; touch-action: none; -webkit-user-select: none; user-select: none; }
+  .tb { position: relative; background: conic-gradient(rgba(0,0,0,.55) var(--cd, 0deg), rgba(10,18,12,.55) 0); }
+  .tb.ready { border-color: rgba(255,207,90,.85); box-shadow: 0 0 12px rgba(255,207,90,.35); } .tb.empty { opacity: .35; }
+  .tb em { position: absolute; right: -4px; top: -4px; min-width: 20px; padding: 1px 4px; border-radius: 10px; background: #0d140f; border: 1px solid rgba(255,255,255,.3); font: 700 11px 'Rajdhani', sans-serif; font-style: normal; }
+  .tb span { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); margin-top: 2px; white-space: nowrap; font: 600 10px 'Rajdhani', sans-serif; letter-spacing: .02em; text-transform: none; color: rgba(255,255,255,.75); text-shadow: 0 1px 2px #000; pointer-events: none; }
+  /* phones: the touch buttons carry the abilities, so the cards at the bottom go; the rest of the HUD gets compact */
+  body.touchmode #abil, body.touchmode .gchat-hint { display: none !important; }
+  body.touchmode .hud-btn { width: 34px; height: 34px; padding: 0 !important; font-size: 0 !important; display: inline-grid; place-items: center; border-radius: 50%; }
+  body.touchmode #menuBtn::before { content: ''; width: 16px; height: 12px; background: linear-gradient(currentColor 0 0) top / 100% 2px no-repeat, linear-gradient(currentColor 0 0) center / 100% 2px no-repeat, linear-gradient(currentColor 0 0) bottom / 100% 2px no-repeat; }
+  body.touchmode #muteBtn::before { content: ''; width: 18px; height: 18px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 9h4l5-4v14l-5-4H3z'/%3E%3Cpath d='M16 8a5 5 0 0 1 0 8M19 5a9 9 0 0 1 0 14' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 9h4l5-4v14l-5-4H3z'/%3E%3Cpath d='M16 8a5 5 0 0 1 0 8M19 5a9 9 0 0 1 0 14' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat; }
+  body.touchmode #muteBtn.muted::before { opacity: .45; }
+  body.touchmode .hud .lbl, body.touchmode .hud .num, body.touchmode .hud .tscore { text-shadow: 0 1px 3px #000, 0 0 8px rgba(0,0,0,.7); } body.touchmode .hud .lbl { color: rgba(255,255,255,.85); }
+  body.touchmode .hud-l .stat:has(#dashLbl) { display: none; } /* the Dash button shows its own recharge */
+  @media (max-height: 520px) { body.touchmode .powers { transform: scale(.72); transform-origin: left bottom; left: 8px; bottom: 6px; } body.touchmode .hud-l .stat .lbl { font-size: 11px; } }
   .tb.sm { width: 54px; height: 54px; font-size: 18px; } #tbDash { grid-column: 1 / 3; justify-self: end; } .tb.on { background: rgba(255,207,90,.5); }
   .rotatehint { position: fixed; z-index: 30; left: 12px; right: 12px; top: 74px; padding: 10px 14px; background: rgba(9,18,11,.95); border: 1px solid var(--gold); font: 600 14px 'Titillium Web', sans-serif; text-align: center; pointer-events: none; } .rotatehint[hidden] { display: none; }
   #cv { touch-action: none; }
   @media (max-width: 1000px) { body.touchmode #board { display: none; } }
-  @media (max-height: 520px) { body.touchmode .hud-btn { padding: 4px 8px; } body.touchmode .qhelp { font-size: 12px; } }
+  @media (max-height: 520px) { body.touchmode .hud-btn { padding: 3px 7px; font-size: 11px; } body.touchmode .qhelp { font-size: 12px; }
+    body.touchmode .hud-l, body.touchmode .hud-r { transform: scale(.78); } body.touchmode .hud-l { transform-origin: left top; } body.touchmode .hud-r { transform-origin: right top; } }
   .clipbar { position: fixed; z-index: 17; left: 50%; bottom: 76px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: rgba(9,18,11,.95); border: 1px solid var(--gold); box-shadow: 0 8px 24px rgba(0,0,0,.5); font: 600 14px 'Titillium Web', 'Segoe UI', sans-serif; max-width: calc(100vw - 24px); box-sizing: border-box; flex-wrap: wrap; justify-content: center; }
   .clipview { position: fixed; z-index: 18; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; align-items: center; gap: 16px; padding: 10px 14px; background: rgba(9,18,11,.92); border: 1px solid var(--line); border-top: 2px solid var(--gold); max-width: calc(100vw - 24px); box-sizing: border-box; flex-wrap: wrap; justify-content: center; font-family: 'Titillium Web', sans-serif; }
   .clipview .cvhead { display: flex; flex-direction: column; } .clipview b { font: 700 18px 'Rajdhani', 'Arial Narrow', sans-serif; } .clipview small { color: var(--muted); font-size: 12px; }
@@ -1188,7 +1211,7 @@
   </div>
   <div class="pcwrap" id="pcWrap" hidden><div class="pfcard" id="pcCard" role="dialog" aria-label="Player profile"></div></div>
   <div class="touchui" id="touchUI" hidden><div class="tstick" id="tsMove" hidden><i></i></div><div class="tstick aim" id="tsAim" hidden><i></i></div>
-    <div class="tbtns"><button type="button" id="tbQ" class="tb sm">Q</button><button type="button" id="tbE" class="tb sm">E</button><button type="button" id="tbDash" class="tb">Dash</button></div></div>
+    <button type="button" class="tbfs" id="tbFs" aria-label="Full screen" title="Full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button><div class="tbtns"><button type="button" id="tbQ" class="tb sm">Q</button><button type="button" id="tbE" class="tb sm">E</button><button type="button" id="tbDash" class="tb">Dash</button></div></div>
   <div class="rotatehint" id="rotateHint" hidden>Turn your phone sideways to play</div>
   <div class="clipbar" id="clipBar" hidden><span id="clipTxt">Your kill cam</span><button class="ghost sm" type="button" id="clipSave">Save video</button><button class="ghost sm" type="button" id="clipFeat">Show on my profile</button><button class="ghost sm" type="button" id="clipX" aria-label="Close">×</button></div>
   <div class="clipview" id="clipView" hidden><div class="cvhead"><b id="cvTitle">Kill cam</b><small id="cvSub"></small></div><div class="cvbtns"><button class="ghost sm" type="button" id="cvAgain" hidden>Watch again</button><button class="ghost sm" type="button" id="cvSave" hidden>Save video</button><button class="cta sm" type="button" id="cvClose">Close</button></div></div>
@@ -1573,7 +1596,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.39.2"></script>
+<script src="sim.js?v=0.39.3"></script>
 <script>
 (() => {
 'use strict';
@@ -1581,7 +1604,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.39.2';
+const PAGE_VERSION = '0.39.3';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -1894,7 +1917,7 @@ const sfx = {
   creak: () => os('sine', 3200, 2600, 0.08, 0.015),
   splash: () => { nz(0.7, 0.2, 'lowpass', 1800, 300, 1); nz(0.25, 0.1, 'highpass', 5000, 2500, 1, 0.05); os('sine', 300, 90, 0.4, 0.05); },
 };
-const syncMute = () => { $('muteBtn').textContent = muted ? 'Sound off' : 'Sound on'; const m = $('oMute'); if (m) m.value = muted ? '1' : '0'; };
+const syncMute = () => { $('muteBtn').textContent = muted ? 'Sound off' : 'Sound on'; $('muteBtn').classList.toggle('muted', muted); const m = $('oMute'); if (m) m.value = muted ? '1' : '0'; };
 // options, kept in this browser
 const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') !== '0', guideBold: store.get('bowfall-guide', '1') === '2', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), me: store.get('bowfall-me', 'strong'), detail: store.get('bowfall-detail', 'full'), cb: store.get('bowfall-cb', '') === '1' };
 cbApply();
@@ -2280,9 +2303,19 @@ function touchUI() {
   put($('tsMove'), TOUCH.mv); put($('tsAim'), TOUCH.am);
   $('rotateHint').hidden = !(TOUCH.on && mode !== 'menu' && innerHeight > innerWidth && innerWidth < 700);
 }
+// phones: the game goes full screen (and turns sideways where the phone allows) at the first touch in a game,
+// so the browser's address bar and buttons don't eat the arena; installed as an app it starts full screen anyway
+const isStandalone = () => (window.matchMedia && matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches) || navigator.standalone;
+function goFullscreen() {
+  const d = document.documentElement, fs = document.fullscreenElement || document.webkitFullscreenElement;
+  if (fs || isStandalone() || store.get('bowfall-nofs', '') === '1') return;
+  const req = d.requestFullscreen || d.webkitRequestFullscreen; if (!req) return;
+  try { const pr = req.call(d, { navigationUI: 'hide' }); if (pr && pr.then) pr.then(() => { try { screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape').catch(() => {}); } catch (e) {} }).catch(() => {}); } catch (e) {}
+}
 function touchStart(e) {
   if (mode === 'menu' || menuOpen) return;
-  TOUCH.on = true; document.body.classList.add('touching'); initAudio();
+  if (!TOUCH.fsTried) { TOUCH.fsTried = true; goFullscreen(); }
+  const was = TOUCH.on; TOUCH.on = true; document.body.classList.add('touching'); initAudio(); if (!was) { touchUI(); resize(); }
   for (const t of e.changedTouches) {
     const left = t.clientX < innerWidth * 0.45;
     if (left && !TOUCH.mv) TOUCH.mv = { id: t.identifier, x0: t.clientX, y0: t.clientY, dx: 0, dy: 0 };
@@ -2313,6 +2346,10 @@ function touchEnd(e) {
 cv.addEventListener('touchstart', touchStart, { passive: false });
 cv.addEventListener('touchmove', touchMove, { passive: false });
 cv.addEventListener('touchend', touchEnd); cv.addEventListener('touchcancel', touchEnd);
+$('tbFs').addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); store.set('bowfall-nofs', ''); goFullscreen(); }, { passive: false });
+$('tbFs').onclick = () => { store.set('bowfall-nofs', ''); goFullscreen(); };
+document.addEventListener('fullscreenchange', () => { if (TOUCH.fsTried && !document.fullscreenElement && mode !== 'menu') store.set('bowfall-nofs', '1'); }); // they left full screen on purpose: don't force it again
+if (isStandalone()) document.body.classList.add('standalone');
 for (const [id, fn] of [['tbDash', () => { dashLatch = true; }], ['tbQ', () => { qLatch = true; }], ['tbE', () => { eLatch = true; }]]) {
   document.getElementById(id).addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); TOUCH.on = true; fn(); e.currentTarget.classList.add('on'); }, { passive: false });
   document.getElementById(id).addEventListener('touchend', e => { e.currentTarget.classList.remove('on'); });
@@ -2349,17 +2386,22 @@ function perfTick(dt) {
   if (perf.ema > 1 / 48 && full * RSCALE > 1.01) { RSCALE = Math.max(1 / full, RSCALE - 0.2); perf.t = 0; resize(); }
   else if (perf.ema < 1 / 58 && RSCALE < 1 && perf.t > 8) { RSCALE = Math.min(1, RSCALE + 0.1); perf.t = 0; resize(); }
 }
+const PHONE_INSET = 15; // world units of wall cropped off each side on phones (the wall is 26 thick)
 function resize() {
   const r = cv.getBoundingClientRect();
   DPR = OPTS.res === 'fast' ? 1 : Math.max(1, Math.min(2, devicePixelRatio || 1) * (OPTS.res === 'sharp' ? 1 : RSCALE));
   W = Math.max(1, r.width); H = Math.max(1, r.height);
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
-  const top = mode === 'menu' ? 12 : H < 520 ? 44 : 64;
+  const phone = TOUCH.on && mode !== 'menu' && (H < 600 || W < 900);
+  const top = mode === 'menu' ? 12 : phone ? 14 : H < 520 ? 44 : 64; // phones: the top bar sits over the arena's edge
   const right = mode !== 'menu' && W > 1000 ? 236 : TOUCH.on && mode !== 'menu' ? 96 : 12; // touch: room for the buttons
-  VS = Math.min((W - 12 - right) / AW, (H - top - 12) / AH);
+  // phones: zoom to the playing area itself (the inside of the wall, plus a sliver of it so the edge still reads);
+  // the trees and forest round the outside only fill whatever's left at the sides
+  const IN = phone ? PHONE_INSET : 0, bot = phone ? 2 : 12, lft = phone ? 0 : 12;
+  VS = Math.min((W - lft - right) / (AW - IN * 2), (H - top - bot) / (AH - IN * 2));
   // centred in the window when the arena fits beside the scoreboard; otherwise as close to centred as the scoreboard allows
-  OX = Math.max(12, Math.min((W - AW * VS) / 2, W - right - AW * VS));
-  OY = top + (H - top - 12 - AH * VS) / 2;
+  OX = phone ? (W - right - AW * VS) / 2 : Math.max(12, Math.min((W - AW * VS) / 2, W - right - AW * VS));
+  OY = top + (H - top - bot - AH * VS) / 2;
   if (bigMap() && mode !== 'menu') camApply();
   // end-of-game cards sit in the middle of the arena, not the middle of the window
   placeCoach();
@@ -8533,8 +8575,9 @@ const CAM = { x: 0, y: 0, z: 1, uz: 1, init: false };
 const CAM_VIEW = 1350;                  // world units across the screen at normal zoom
 const CAM_ZOOM = { in: 1.6, out: 0.75 }; // zoom limits (the zoom-out cap is the same for everyone)
 const bigMap = () => !!(MAPS[MAPKEY] && MAPS[MAPKEY].big);
-const camRight = () => (mode !== 'menu' && W > 1000 ? 236 : 12);
-function camBase() { return Math.min((W - camRight()) / CAM_VIEW, (H - 64) / (CAM_VIEW * 0.62)); }
+const camRight = () => (mode !== 'menu' && W > 1000 ? 236 : TOUCH.on && mode !== 'menu' ? 96 : 12);
+const camTop = () => (TOUCH.on && mode !== 'menu' && (H < 600 || W < 900) ? 14 : 64);
+function camBase() { return Math.min((W - camRight()) / CAM_VIEW, (H - camTop()) / (CAM_VIEW * 0.62)); }
 function camGroup() {
   if (!view) return [];
   const ids = [myId, ...LP.list.map(l => l.pid)];
@@ -8563,11 +8606,11 @@ function camUpdate(dt) {
   camApply();
 }
 function camApply() {
-  const VSn = camBase() * CAM.z, vw = (W - camRight()) / VSn, vh = (H - 64) / VSn;
+  const T0 = camTop(), VSn = camBase() * CAM.z, vw = (W - camRight()) / VSn, vh = (H - T0) / VSn;
   // keep the view on the map (a little of the surrounding forest may show)
   CAM.x = vw >= AW + 120 ? AW / 2 : clamp(CAM.x, vw / 2 - 60, AW - vw / 2 + 60);
   CAM.y = vh >= AH + 120 ? AH / 2 : clamp(CAM.y, vh / 2 - 60, AH - vh / 2 + 60);
-  VS = VSn; OX = (W - camRight()) / 2 - CAM.x * VS; OY = 64 + (H - 64) / 2 - CAM.y * VS;
+  VS = VSn; OX = (W - camRight()) / 2 - CAM.x * VS; OY = T0 + (H - T0) / 2 - CAM.y * VS;
 }
 function camZoom(k) { if (!bigMap()) return; CAM.uz = clamp(CAM.uz * k, CAM_ZOOM.out, CAM_ZOOM.in); }
 // what's on screen (in world units), for skipping what can't be seen
@@ -9172,6 +9215,17 @@ function updateHud() {
     });
     const bar = $('abc' + i); if (bar) bar.style.width = (cd > 0 ? (1 - cd / max) * 100 : 0) + '%';
   });
+  if (TOUCH.on) {
+    for (let i = 0; i < 2; i++) {
+      const b = $(i ? 'tbE' : 'tbQ'), id = slots[i], cd = id ? (me.ac || [])[i] || 0 : 0, max = id ? TREE[id].active.cd : 1;
+      setC('tb' + i, (id || '') + ':' + Math.ceil(cd) + ':' + Math.round(cd / max * 24), () => {
+        b.classList.toggle('empty', !id); b.classList.toggle('ready', !!id && cd <= 0);
+        b.style.setProperty('--cd', id && cd > 0 ? (cd / max * 360).toFixed(0) + 'deg' : '0deg');
+        b.innerHTML = `${i ? 'E' : 'Q'}${id && cd > 0 ? `<em>${Math.ceil(cd)}</em>` : ''}<span>${id ? esc(TREE[id].name) : ''}</span>`;
+      });
+    }
+    setC('tbD', Math.round(dashFrac * 24) + ':' + noDash, () => { const b = $('tbDash'); b.style.setProperty('--cd', noDash ? '360deg' : ((1 - Math.min(1, dashFrac)) * 360).toFixed(0) + 'deg'); b.classList.toggle('empty', noDash); });
+  }
   // players on extra controllers: each one's abilities in a panel of their own colour
   const lpRows = LP.list.map(l => { const p = view.p.find(q => q.id === l.pid); return p && !p.nk ? { l, p } : null; }).filter(Boolean);
   setC('lpAb', JSON.stringify(lpRows.map(({ l, p }) => [l.n, p.n, p.ab, p.d, l.pad])) + m.ph, () => {

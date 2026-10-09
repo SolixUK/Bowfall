@@ -282,7 +282,7 @@ In testing Master won 82% of games against Extreme, and each lower level wins ro
 
 **Kill cam:** the game-winning knockout is replayed in slow motion. If the same archer knocked out others in the 8 seconds before (a double, triple or clutch), those are shown first, with a cut between them. Your own kill cams are recorded as they play: **Save video** downloads it (or opens your phone's share sheet), and **Show on my profile** makes it your featured kill cam (stored as the replay's data, gzipped, in the `clips` table, one per player; anyone can watch it from your profile, or at `/play?clip=<id>`).
 
-**Touch controls:** on a phone or tablet, the left thumb moves (the stick appears where you touch), the right thumb aims (the bow draws while it's down and shoots when you let go; a tap shoots at the nearest enemy), and buttons give Dash and the two abilities. Phones should be held sideways.
+**Touch controls:** on a phone or tablet, the left thumb moves (the stick appears where you touch), the right thumb aims (the bow draws while it's down and shoots when you let go; a tap shoots at the nearest enemy), and buttons give Dash and the two abilities. Phones should be held sideways. On phones the view zooms to the playing area, the touch buttons show ability cooldowns, and the game goes full screen at the first touch (Android). **Installing as an app:** the site has a web app manifest (`public/manifest.webmanifest`, icons in `public/icons/`), so Android Chrome offers *Install app* and iPhone Safari *Add to Home Screen*; installed, it opens full screen in landscape with no browser bars.
 
 **Colour-blind friendly colours:** Options → Colours swaps the teams to oranges and blues.
 
