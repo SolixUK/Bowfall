@@ -2,6 +2,31 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.40.0
+
+- **Touch: tap to place abilities.** Abilities aimed at a spot or an enemy (Bramble Trap, Arrow Rain, Spotter's Mark, Smoke Bomb, Flash, Blink, Shadow Strike) are readied by tapping their button (it pulses, and "Tap where to use …" shows); the next tap on the arena says where, or picks the enemy nearest it. Tap the button again to put it away.
+- **Touch: archers under your thumbs.** When an archer is hidden under one of your thumbs, a marker in their team's colour shows just above that thumb, pointing down at them.
+- **Touch: shots go where you were aiming.** A thumb rolls as it lifts and used to drag the aim with it; the shot now uses the aim from just before you let go, and your archer doesn't start turning toward the enemies for a moment after a shot.
+- **Touch: clearer buttons.** Dash, Q and E are white and see-through, so the fight shows through them; the kill feed is hidden on phones.
+- **Phone camera:** a closer step (Fixed, Follow, Close, Closer), and the view runs a little further past the walls, so at the edge your archer stays nearer the middle.
+- **Phones: end-of-game messages are centred on the screen** (they followed the arena, which the camera may have off to one side).
+- **Amber points are no longer shown** (the HUD counter, the scoreboard column and the "+N amber" pop-ups). Amber pickups still give their boost.
+
+## 0.39.9
+
+- **Touch aiming fixed:** a thumb landing on something drawn over the arena (the how-to-play card, a stick's ring, the top bar) now still aims or moves, instead of doing nothing, and a touch the phone never reported as lifted no longer blocks the next one.
+- **No pinch or double-tap zoom** on the game page (two thumbs on the screen could start the browser zooming instead of aiming).
+- **Bots close in on archers who outrange them** (crossbowmen and ninjas against bows), instead of dodging side to side out of reach:
+  - every dodge also steps forward, diagonally (a dash dodge too), so dodging gains ground;
+  - a weaker shot is sometimes just taken rather than given up ground for, when the hit wouldn't throw them into anything and they're healthy;
+  - a long way out, they dash in the moment after the bow looses, while the next shot is still being drawn;
+  - a boulder or wall between them and the bow counts for more when picking the way in.
+  Against a bow standing far off and spamming shots, a master crossbowman went from in reach 9% of the time and winning 60% of games to 20% and 81%; against a master bot that kites, from 24% to 47% in reach, and its opponent gets half as many shots off. Its other matchups are unchanged.
+
+## 0.39.8
+
+- **Lag diagnostics (F9):** a single short server pause (60–100 ms, a memory clean-up or the host briefly busy elsewhere) no longer reads as "The server is struggling to keep up"; it shows as a warning (!) instead. The server is only blamed when it loses game time, is held back or maxed out, pauses for over 100 ms, or pauses more than once in 10 seconds.
+
 ## 0.39.7
 
 - **Phones: menus fit without scrolling.** On short screens (a phone held sideways) every menu card is scaled to fit the screen's height and let out to its full width, and the desktop layouts are kept instead of collapsing to one tall column. Screen by screen:

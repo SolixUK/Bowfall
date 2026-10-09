@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.39.7';
+const VERSION = '0.40.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -3280,7 +3280,7 @@ function botPlan(w, p, T, foes, mates, D, G) {
       sc -= Math.abs(dl - pref) / 300 * G.pref;
       if (dl > reach) sc -= (dl - reach) / 120 * (1 + 1.5 * outg);
       if (los) { if (ready) sc += 0.4 * G.los; sc += pushRisk(T.x, T.y, dx / d, dy / d, myKb, T.r) * 1.6 * G.push; }
-      else if (d > reach && outg > 0) sc += 0.35 * outg; // cover on the way in
+      else if (d > reach && outg > 0) sc += 0.8 * outg; // cover on the way in
       else if (!ready) sc += 0.45; // reloading: a boulder to duck behind is worth more than a line of sight
       else sc -= 0.3 * G.los;
     }
@@ -3469,16 +3469,33 @@ function botThink(w, p, dt) {
   ai.dodgeCd -= dt;
   if (iq >= 0.5) {
     const hit = incoming(w, p, G.dodgeT);
-    if (hit) {
+    // walking in on someone who outranges us: every dodge also gains ground (a diagonal step still clears the shot's
+    // line), and a weaker shot is sometimes simply taken on the chin rather than given up ground for, when a hit
+    // wouldn't throw us into anything. Standing still dodging side to side is just what a kiter wants.
+    const og = T ? outranged(p, T) : 0, gap = og > 0 && dT > botReach(p) * 0.85;
+    const fx = gap ? (T.x - p.x) / (dT || 1) : 0, fy = gap ? (T.y - p.y) / (dT || 1) : 0;
+    if (hit && gap && !hit.a.full && !hit.a.bolt && !hit.a.heavy && p.hp > p.maxHp * 0.45 && lethalDist(p.x, p.y) > 170) {
+      if (ai.tankA !== hit.a.id) { ai.tankA = hit.a.id; ai.tank = Math.random() < 0.35 * og * (0.5 + (D.iq || 0)); }
+    } else if (!hit) ai.tankA = null;
+    if (hit && !(ai.tankA === hit.a.id && ai.tank)) {
       const a = hit.a; let px = -a.vy, py = a.vx; const pl = Math.hypot(px, py) || 1; px /= pl; py /= pl;
       // step to whichever side is safer, preferring the side we're already off-centre toward
       const sa = lethalDist(p.x + px * 90, p.y + py * 90), sb = lethalDist(p.x - px * 90, p.y - py * 90);
       if (sb > sa + 20 || (Math.abs(sb - sa) <= 20 && px * hit.cx + py * hit.cy < 0)) { px = -px; py = -py; }
-      gx = px * 2 + gx * 0.2; gy = py * 2 + gy * 0.2;
-      // can we step clear in time? if not, dash (when it's safe to)
+      const fw = gap ? 1.3 * og : 0;
+      gx = px * 2 + fx * fw + gx * 0.2; gy = py * 2 + fy * fw + gy * 0.2;
+      // can we step clear in time? if not, dash (when it's safe to); closing in, the dash goes diagonally forward
       const need = p.r + 14 - hit.cd, canStep = p.baseSpeed * hit.t * 0.7;
-      if (need > canStep && hit.t < 0.3 && ai.dodgeCd <= 0 && p.dashN > 0 && Math.random() < D.dodge && lethalDist(p.x + px * 140, p.y + py * 140) > 50) {
-        ai.dodgeCd = 0.5; p.wantDash = true; ai.dashAim = Math.atan2(py, px);
+      const dx2 = px + fx * 0.9 * og, dy2 = py + fy * 0.9 * og;
+      if (need > canStep && hit.t < 0.3 && ai.dodgeCd <= 0 && p.dashN > 0 && Math.random() < D.dodge && lethalDist(p.x + dx2 * 110, p.y + dy2 * 110) > 50) {
+        ai.dodgeCd = 0.5; p.wantDash = true; ai.dashAim = Math.atan2(dy2, dx2);
+      }
+    } else if (gap && !hit && T && p.dashN > 0 && ai.dodgeCd <= 0 && (ai.runCd = (ai.runCd || 0) - dt) <= 0 && dT > botReach(p) + 150
+      && !(T.drawing && T.charge > 0.25) && !incoming(w, p, 0.6) && Math.random() < dt * 3 * og * (0.3 + (D.iq || 0))) {
+      // a long way out, just after they've loosed: dash in while their next shot is still being drawn
+      const ang = Math.atan2(fy, fx) + ai.strafe * 0.35, ex = p.x + Math.cos(ang) * 250, ey = p.y + Math.sin(ang) * 250;
+      if ([0.4, 0.7, 1, 1.2].every(k => lethalDist(p.x + Math.cos(ang) * 250 * k, p.y + Math.sin(ang) * 250 * k) > p.r + 30) && clearShot(p.x, p.y, ex, ey)) {
+        p.wantDash = true; ai.dashAim = ang; ai.runCd = rand(1.4, 2.4);
       }
     }
   } else for (const a of w.arrows) {

@@ -26,6 +26,7 @@
   html, body { height: 100%; margin: 0; }
   body { background: var(--bg); color: var(--text); font-family: 'Titillium Web', 'Segoe UI', sans-serif; overflow: hidden; }
   .stage { position: relative; width: 100%; height: 100%; }
+  html, body { touch-action: pan-x pan-y; } /* no pinch or double-tap zoom: two thumbs on the screen are moving and aiming, not zooming */
   canvas { display: block; width: 100%; height: 100%; cursor: none; touch-action: none; }
 
   .hud { position: absolute; top: 0; left: 0; right: 0; height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-inline: 16px; pointer-events: none; }
@@ -64,7 +65,7 @@
   .chip2.banned { cursor: not-allowed; }
   .chip2.banned::after { content: '✕'; position: absolute; right: -6px; top: -7px; width: 16px; height: 16px; line-height: 16px; border-radius: 50%; background: #c0392b; color: #fff; font: 700 10px sans-serif; text-align: center; text-decoration: none; opacity: 1; }
   .banhint { font-size: 12px; margin: 2px 0 0; }
-  .board { background: var(--panel); border: 1px solid var(--line); border-radius: 2px; padding: 8px 10px; display: grid; grid-template-columns: 10px 1fr 26px 26px; gap: 5px 8px; align-items: center; font-size: 13px; }
+  .board { background: var(--panel); border: 1px solid var(--line); border-radius: 2px; padding: 8px 10px; display: grid; grid-template-columns: 10px 1fr 26px; gap: 5px 8px; align-items: center; font-size: 13px; }
   .board .h { font-size: 12px; letter-spacing: .01em; color: var(--muted); }
   .board .n { font-variant-numeric: tabular-nums; text-align: right; font-family: 'Rajdhani', 'Arial Narrow', sans-serif; font-weight: 600; }
   .board .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -458,7 +459,9 @@
   .tbcam i { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); font: 700 10px 'Rajdhani', sans-serif; font-style: normal; white-space: nowrap; color: rgba(255,255,255,.8); text-shadow: 0 1px 2px #000; }
   .tbtns { position: absolute; right: max(14px, env(safe-area-inset-right)); bottom: max(14px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: auto auto; gap: 20px 12px; align-items: end; pointer-events: auto; }
   .tb { width: 76px; height: 76px; border-radius: 50%; border: 2px solid rgba(255,255,255,.4); background: rgba(10,18,12,.55); color: #fff; font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .06em; text-transform: uppercase; touch-action: none; -webkit-user-select: none; user-select: none; }
-  .tb { position: relative; background: conic-gradient(rgba(0,0,0,.55) var(--cd, 0deg), rgba(10,18,12,.55) 0); }
+  .tb { position: relative; border-color: rgba(255,255,255,.35); color: rgba(255,255,255,.9); background: conic-gradient(rgba(0,0,0,.3) var(--cd, 0deg), rgba(255,255,255,.07) 0); text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+  .tb.targ { border-color: #fff; background: rgba(255,207,90,.35); animation: tbtarg 1s ease-in-out infinite; } @keyframes tbtarg { 50% { box-shadow: 0 0 0 6px rgba(255,207,90,.25); } }
+  .taphint { position: absolute; left: 50%; top: 64px; transform: translateX(-50%); padding: 5px 12px; background: rgba(10,18,12,.7); border: 1px solid rgba(255,207,90,.6); color: #ffcf5a; font: 700 13px 'Rajdhani', sans-serif; letter-spacing: .03em; pointer-events: none; white-space: nowrap; }
   .tb.ready { border-color: rgba(255,207,90,.85); box-shadow: 0 0 12px rgba(255,207,90,.35); } .tb.empty { opacity: .35; }
   .tb em { position: absolute; right: -4px; top: -4px; min-width: 20px; padding: 1px 4px; border-radius: 10px; background: #0d140f; border: 1px solid rgba(255,255,255,.3); font: 700 11px 'Rajdhani', sans-serif; font-style: normal; }
   .tb span { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); margin-top: 2px; white-space: nowrap; font: 600 10px 'Rajdhani', sans-serif; letter-spacing: .02em; text-transform: none; color: rgba(255,255,255,.75); text-shadow: 0 1px 2px #000; pointer-events: none; }
@@ -466,7 +469,7 @@
   body.touchmode .clipbar { bottom: max(6px, env(safe-area-inset-bottom)); left: 50%; padding: 4px 6px; gap: 4px; font-size: 12px; flex-wrap: nowrap; background: rgba(9,18,11,.8); border-color: rgba(255,207,90,.5); }
   body.touchmode .clipbar #clipTxt { display: none; } body.touchmode .clipbar .sm { padding: 4px 8px; font-size: 12px; }
   body.touchmode .hud .score { position: absolute; left: 50%; top: 0; height: 64px; transform: translateX(-50%) scale(.85); transform-origin: center top; }
-  body.touchmode #abil, body.touchmode .gchat-hint { display: none !important; }
+  body.touchmode #feed, body.touchmode #abil, body.touchmode .gchat-hint { display: none !important; }
   body.touchmode .hud-btn { width: 34px; height: 34px; padding: 0 !important; font-size: 0 !important; display: inline-grid; place-items: center; border-radius: 50%; }
   body.touchmode #menuBtn::before { content: ''; width: 16px; height: 12px; background: linear-gradient(currentColor 0 0) top / 100% 2px no-repeat, linear-gradient(currentColor 0 0) center / 100% 2px no-repeat, linear-gradient(currentColor 0 0) bottom / 100% 2px no-repeat; }
   body.touchmode #muteBtn::before { content: ''; width: 18px; height: 18px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 9h4l5-4v14l-5-4H3z'/%3E%3Cpath d='M16 8a5 5 0 0 1 0 8M19 5a9 9 0 0 1 0 14' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 9h4l5-4v14l-5-4H3z'/%3E%3Cpath d='M16 8a5 5 0 0 1 0 8M19 5a9 9 0 0 1 0 14' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat; }
@@ -681,7 +684,7 @@
   .pips span { display: flex; gap: 3px; }
   .pip { width: 7px; height: 7px; border-radius: 50%; }
   .pip.out { background: transparent !important; box-shadow: inset 0 0 0 1px rgba(233,237,242,.35); }
-  .board { grid-template-columns: 10px 1fr 22px 30px; }
+  .board { grid-template-columns: 10px 1fr 22px; }
   .board .team-h { grid-column: 1 / -1; font: 700 12px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .01em; margin-top: 4px; }
   .board .out { opacity: .38; }
   .countdown { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; font: 700 96px 'Rajdhani', 'Arial Narrow', sans-serif; text-shadow: 0 6px 40px rgba(0,0,0,.8); color: var(--text); }
@@ -1085,7 +1088,7 @@
     <div class="hud-l">
       <div class="stat"><span class="lbl">Health <span id="hpText"></span></span><div class="hp"><div class="hp-fill" id="hpFill"></div></div></div>
       <div class="stat"><span class="lbl" id="dashLbl">Dash</span><div class="dash"><div class="dash-fill" id="dashFill"></div></div></div>
-      <div class="stat amber-stat"><span class="lbl">Amber</span><span class="num" id="amberN">0</span></div>
+      <div class="stat amber-stat" style="display:none"><span class="lbl">Amber</span><span class="num" id="amberN">0</span></div>
     </div>
     <div class="score">
       <div class="tside"><span class="tscore red" id="scR">0</span><div class="gdots" id="gdR"></div></div>
@@ -1242,7 +1245,7 @@
   </div>
   <div class="pcwrap" id="pcWrap" hidden><div class="pfcard" id="pcCard" role="dialog" aria-label="Player profile"></div></div>
   <div class="touchui" id="touchUI" hidden><div class="tstick" id="tsMove" hidden><i></i></div><div class="tstick aim" id="tsAim" hidden><i></i></div>
-    <button type="button" class="tbfs" id="tbFs" aria-label="Full screen" title="Full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button><button type="button" class="tbfs tbcam" id="tbCam" aria-label="Camera" title="Camera: fixed or following"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M15.5 15.5 20 20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><i id="tbCamT"></i></button><div class="tbtns"><button type="button" id="tbQ" class="tb sm">Q</button><button type="button" id="tbE" class="tb sm">E</button><button type="button" id="tbDash" class="tb">Dash</button></div></div>
+    <button type="button" class="tbfs" id="tbFs" aria-label="Full screen" title="Full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button><button type="button" class="tbfs tbcam" id="tbCam" aria-label="Camera" title="Camera: fixed or following"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M15.5 15.5 20 20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><i id="tbCamT"></i></button><div class="taphint" id="tapHint" hidden></div><div class="tbtns"><button type="button" id="tbQ" class="tb sm">Q</button><button type="button" id="tbE" class="tb sm">E</button><button type="button" id="tbDash" class="tb">Dash</button></div></div>
   <div class="rotatehint" id="rotateHint" hidden>Turn your phone sideways to play</div>
   <div class="clipbar" id="clipBar" hidden><span id="clipTxt">Your kill cam</span><button class="ghost sm" type="button" id="clipSave">Save video</button><button class="ghost sm" type="button" id="clipFeat">Show on my profile</button><button class="ghost sm" type="button" id="clipX" aria-label="Close">×</button></div>
   <div class="clipview" id="clipView" hidden><div class="cvhead"><b id="cvTitle">Kill cam</b><small id="cvSub"></small></div><div class="cvbtns"><button class="ghost sm" type="button" id="cvAgain" hidden>Watch again</button><button class="ghost sm" type="button" id="cvSave" hidden>Save video</button><button class="cta sm" type="button" id="cvClose">Close</button></div></div>
@@ -1378,7 +1381,7 @@
           <div class="field"><label for="oDmg">Damage numbers</label><select id="oDmg"><option value="all">Everyone's</option><option value="mine">Only mine (and damage to me)</option><option value="off">Off</option></select></div>
           <div class="field"><label for="oGuide">Aim guide line</label><select id="oGuide"><option value="1">On</option><option value="2">Bold (easier to see)</option><option value="0">Off</option></select></div>
           <div class="field"><label for="oMe">Your own archer</label><select id="oMe"><option value="strong">Strongly marked (gold halo, ring and arrow; teammates a little dimmer)</option><option value="soft">Lightly marked (white ring)</option></select></div>
-          <div class="field"><label for="oPz">Phone camera</label><select id="oPz"><option value="1">Fixed: the whole arena</option><option value="1.15">Follow: closer</option><option value="1.3">Follow: closest</option></select></div>
+          <div class="field"><label for="oPz">Phone camera</label><select id="oPz"><option value="1">Fixed: the whole arena</option><option value="1.15">Follow: closer</option><option value="1.3">Follow: close</option><option value="1.45">Follow: closest</option></select></div>
           <div class="field"><label for="oTaim">Touch aiming</label><select id="oTaim"><option value="point">Point the way you shoot</option><option value="pull">Pull back, like drawing a bow</option></select></div>
         </section>
       </div>
@@ -1642,7 +1645,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.39.7';
+const VERSION = '0.40.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -4913,7 +4916,7 @@ function botPlan(w, p, T, foes, mates, D, G) {
       sc -= Math.abs(dl - pref) / 300 * G.pref;
       if (dl > reach) sc -= (dl - reach) / 120 * (1 + 1.5 * outg);
       if (los) { if (ready) sc += 0.4 * G.los; sc += pushRisk(T.x, T.y, dx / d, dy / d, myKb, T.r) * 1.6 * G.push; }
-      else if (d > reach && outg > 0) sc += 0.35 * outg; // cover on the way in
+      else if (d > reach && outg > 0) sc += 0.8 * outg; // cover on the way in
       else if (!ready) sc += 0.45; // reloading: a boulder to duck behind is worth more than a line of sight
       else sc -= 0.3 * G.los;
     }
@@ -5102,16 +5105,33 @@ function botThink(w, p, dt) {
   ai.dodgeCd -= dt;
   if (iq >= 0.5) {
     const hit = incoming(w, p, G.dodgeT);
-    if (hit) {
+    // walking in on someone who outranges us: every dodge also gains ground (a diagonal step still clears the shot's
+    // line), and a weaker shot is sometimes simply taken on the chin rather than given up ground for, when a hit
+    // wouldn't throw us into anything. Standing still dodging side to side is just what a kiter wants.
+    const og = T ? outranged(p, T) : 0, gap = og > 0 && dT > botReach(p) * 0.85;
+    const fx = gap ? (T.x - p.x) / (dT || 1) : 0, fy = gap ? (T.y - p.y) / (dT || 1) : 0;
+    if (hit && gap && !hit.a.full && !hit.a.bolt && !hit.a.heavy && p.hp > p.maxHp * 0.45 && lethalDist(p.x, p.y) > 170) {
+      if (ai.tankA !== hit.a.id) { ai.tankA = hit.a.id; ai.tank = Math.random() < 0.35 * og * (0.5 + (D.iq || 0)); }
+    } else if (!hit) ai.tankA = null;
+    if (hit && !(ai.tankA === hit.a.id && ai.tank)) {
       const a = hit.a; let px = -a.vy, py = a.vx; const pl = Math.hypot(px, py) || 1; px /= pl; py /= pl;
       // step to whichever side is safer, preferring the side we're already off-centre toward
       const sa = lethalDist(p.x + px * 90, p.y + py * 90), sb = lethalDist(p.x - px * 90, p.y - py * 90);
       if (sb > sa + 20 || (Math.abs(sb - sa) <= 20 && px * hit.cx + py * hit.cy < 0)) { px = -px; py = -py; }
-      gx = px * 2 + gx * 0.2; gy = py * 2 + gy * 0.2;
-      // can we step clear in time? if not, dash (when it's safe to)
+      const fw = gap ? 1.3 * og : 0;
+      gx = px * 2 + fx * fw + gx * 0.2; gy = py * 2 + fy * fw + gy * 0.2;
+      // can we step clear in time? if not, dash (when it's safe to); closing in, the dash goes diagonally forward
       const need = p.r + 14 - hit.cd, canStep = p.baseSpeed * hit.t * 0.7;
-      if (need > canStep && hit.t < 0.3 && ai.dodgeCd <= 0 && p.dashN > 0 && Math.random() < D.dodge && lethalDist(p.x + px * 140, p.y + py * 140) > 50) {
-        ai.dodgeCd = 0.5; p.wantDash = true; ai.dashAim = Math.atan2(py, px);
+      const dx2 = px + fx * 0.9 * og, dy2 = py + fy * 0.9 * og;
+      if (need > canStep && hit.t < 0.3 && ai.dodgeCd <= 0 && p.dashN > 0 && Math.random() < D.dodge && lethalDist(p.x + dx2 * 110, p.y + dy2 * 110) > 50) {
+        ai.dodgeCd = 0.5; p.wantDash = true; ai.dashAim = Math.atan2(dy2, dx2);
+      }
+    } else if (gap && !hit && T && p.dashN > 0 && ai.dodgeCd <= 0 && (ai.runCd = (ai.runCd || 0) - dt) <= 0 && dT > botReach(p) + 150
+      && !(T.drawing && T.charge > 0.25) && !incoming(w, p, 0.6) && Math.random() < dt * 3 * og * (0.3 + (D.iq || 0))) {
+      // a long way out, just after they've loosed: dash in while their next shot is still being drawn
+      const ang = Math.atan2(fy, fx) + ai.strafe * 0.35, ex = p.x + Math.cos(ang) * 250, ey = p.y + Math.sin(ang) * 250;
+      if ([0.4, 0.7, 1, 1.2].every(k => lethalDist(p.x + Math.cos(ang) * 250 * k, p.y + Math.sin(ang) * 250 * k) > p.r + 30) && clearShot(p.x, p.y, ex, ey)) {
+        p.wantDash = true; ai.dashAim = ang; ai.runCd = rand(1.4, 2.4);
       }
     }
   } else for (const a of w.arrows) {
@@ -6075,7 +6095,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.39.7';
+const PAGE_VERSION = '0.40.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -6827,11 +6847,15 @@ function touchMove(e) {
   for (const t of e.changedTouches) {
     for (const st of [TOUCH.mv, TOUCH.am]) {
       if (!st || st.id !== t.identifier) continue;
+      st.fx = t.clientX; st.fy = t.clientY;
       let dx = t.clientX - st.x0, dy = t.clientY - st.y0; const L = Math.hypot(dx, dy), R = TOUCH.R;
       if (L > R) { dx *= R / L; dy *= R / L; }
       st.dx = dx; st.dy = dy;
       if (st === TOUCH.mv) { const live = L > R * 0.18; TOUCH.mx = live ? dx / R : 0; TOUCH.my = live ? dy / R : 0; } // a small dead zone in the middle
-      else if (L > 14) { st.moved = true; TOUCH.aim = OPTS.taim === 'point' ? Math.atan2(dy, dx) : Math.atan2(-dy, -dx); } // pull back: the arrow flies away from the thumb
+      else if (L > 14) {
+        st.moved = true; TOUCH.aim = OPTS.taim === 'point' ? Math.atan2(dy, dx) : Math.atan2(-dy, -dx); // pull back: the arrow flies away from the thumb
+        const now = performance.now(); (st.hist || (st.hist = [])).push([now, TOUCH.aim]); while (st.hist.length > 2 && st.hist[0][0] < now - 250) st.hist.shift();
+      }
     }
   }
   e.preventDefault(); touchUI();
@@ -6839,15 +6863,40 @@ function touchMove(e) {
 function touchEnd(e) {
   for (const t of e.changedTouches) {
     if (TOUCH.mv && TOUCH.mv.id === t.identifier) { TOUCH.mv = null; TOUCH.mx = TOUCH.my = 0; }
-    if (TOUCH.am && TOUCH.am.id === t.identifier) { TOUCH.am = null; TOUCH.draw = false; }
+    if (TOUCH.am && TOUCH.am.id === t.identifier) {
+      // a thumb rolls as it lifts and drags the touch point with it: shoot along the aim it held ~80 ms before letting go
+      const h = TOUCH.am.hist, now = performance.now();
+      if (h && h.length) { let a = h[h.length - 1][1]; for (let i = h.length - 1; i >= 0; i--) { a = h[i][1]; if (h[i][0] <= now - 80) break; } TOUCH.aim = a; }
+      TOUCH.am = null; TOUCH.draw = false; TOUCH.relT = now;
+    }
   }
   touchUI();
 }
-cv.addEventListener('touchstart', touchStart, { passive: false });
-cv.addEventListener('touchmove', touchMove, { passive: false });
-cv.addEventListener('touchend', touchEnd); cv.addEventListener('touchcancel', touchEnd);
+// listened for on the whole page, not just the canvas: a thumb landing on something drawn over the arena (the how-to-play
+// card, the kill cam bar's edge, a stick ring) still moves or aims; only real controls (buttons, menus, inputs) keep their touches
+// (iPhones ignore the page's no-zoom setting, so their pinch gesture is stopped here)
+for (const ev of ['gesturestart', 'gesturechange']) document.addEventListener(ev, e => e.preventDefault(), { passive: false });
+const TOUCH_UI = 'button, a, input, select, textarea, summary, label, .overlay, .dmbox, .dmmini, .pfcard, .clipview, .clipbar, .rejoinbar, .invite';
+const gameTouch = e => e.target === cv || !(e.target.closest && e.target.closest(TOUCH_UI));
+document.addEventListener('touchstart', e => {
+  if (mode === 'menu' || !gameTouch(e)) return;
+  if (TOUCH.targ) { // the tap that places a readied ability
+    const t = e.changedTouches[0], r = cv.getBoundingClientRect();
+    TOUCH.cast = { wx: (t.clientX - r.left - OX) / VS, wy: (t.clientY - r.top - OY) / VS, until: performance.now() + 250 };
+    mouse.wx = TOUCH.cast.wx; mouse.wy = TOUCH.cast.wy; // (now: the next input may go out before the next frame is drawn)
+    if (TOUCH.targ.slot) eLatch = true; else qLatch = true;
+    touchTarget(null); e.preventDefault(); return;
+  }
+  // forget a thumb the browser never told us had lifted (a touch cancelled by the system, a gesture, a missed end)
+  const live = new Set([...e.touches].map(t => t.identifier));
+  if (TOUCH.mv && !live.has(TOUCH.mv.id)) { TOUCH.mv = null; TOUCH.mx = TOUCH.my = 0; }
+  if (TOUCH.am && !live.has(TOUCH.am.id)) { TOUCH.am = null; TOUCH.draw = false; }
+  touchStart(e);
+}, { passive: false });
+document.addEventListener('touchmove', e => { if (mode !== 'menu' && (TOUCH.mv || TOUCH.am)) touchMove(e); }, { passive: false });
+document.addEventListener('touchend', touchEnd); document.addEventListener('touchcancel', touchEnd);
 $('tbFs').addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); store.set('bowfall-nofs', ''); goFullscreen(); }, { passive: false });
-const PZ_STEPS = [[1, 'Fixed'], [1.15, 'Follow'], [1.3, 'Close']];
+const PZ_STEPS = [[1, 'Fixed'], [1.15, 'Follow'], [1.3, 'Close'], [1.45, 'Closer']];
 const camLabel = () => { const s = PZ_STEPS.find(x => x[0] === OPTS.pz) || PZ_STEPS[0]; $('tbCamT').textContent = s[1]; };
 function cycleCam() { const i = PZ_STEPS.findIndex(x => x[0] === OPTS.pz); OPTS.pz = PZ_STEPS[(i + 1) % PZ_STEPS.length][0]; store.set('bowfall-pz', String(OPTS.pz)); if ($('oPz')) $('oPz').value = String(OPTS.pz); PCAM.init = false; resize(); camLabel(); }
 $('tbCam').addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); cycleCam(); }, { passive: false });
@@ -6862,7 +6911,22 @@ function tbAim(pd) {
   if (!pd || pd.aim || TOUCH.am) return; pd.aim = true; clearTimeout(pd.tm); pd.el.classList.remove('on');
   TOUCH.am = { id: pd.id, x0: pd.x, y0: pd.y, dx: 0, dy: 0, moved: false }; TOUCH.aim = touchNearestAim(); TOUCH.draw = true; drawLatch = true; predictShot(); touchUI();
 }
-for (const [id, fn] of [['tbDash', () => { dashLatch = true; }], ['tbQ', () => { qLatch = true; }], ['tbE', () => { eLatch = true; }]]) {
+// abilities aimed at a spot or an enemy (Bramble Trap, Arrow Rain, Spotter's Mark, Blink…): on a touch screen, tapping the
+// button readies it and the next tap on the arena says where (the enemy nearest that tap, for the ones that pick an enemy)
+const TAP_TARGET = new Set(['spot', 'trap', 'rain', 'smoke', 'flash', 'blink', 'sstrike']);
+function tbAbility(i) {
+  const me = view && view.p.find(p => p.id === myId), id = me && (me.ab || [])[i], cd = me ? (me.ac || [])[i] || 0 : 0;
+  if (TOUCH.targ && TOUCH.targ.slot === i) { touchTarget(null); return; } // tapped again: never mind
+  if (id && TAP_TARGET.has(id) && cd <= 0) { touchTarget({ slot: i, id, until: performance.now() + 6000 }); return; }
+  if (i) eLatch = true; else qLatch = true;
+}
+function touchTarget(t) {
+  TOUCH.targ = t;
+  for (const [k, el] of [[0, $('tbQ')], [1, $('tbE')]]) el.classList.toggle('targ', !!t && t.slot === k);
+  const h = $('tapHint'); h.hidden = !t; if (t) h.textContent = `Tap where to use ${TREE[t.id] ? TREE[t.id].name : 'it'}`;
+}
+setInterval(() => { if (TOUCH.targ && performance.now() > TOUCH.targ.until) touchTarget(null); }, 500);
+for (const [id, fn] of [['tbDash', () => { dashLatch = true; }], ['tbQ', () => tbAbility(0)], ['tbE', () => tbAbility(1)]]) {
   const el = document.getElementById(id);
   el.addEventListener('touchstart', e => {
     e.preventDefault(); e.stopPropagation(); TOUCH.on = true;
@@ -6875,12 +6939,12 @@ for (const [id, fn] of [['tbDash', () => { dashLatch = true; }], ['tbQ', () => {
   el.addEventListener('touchmove', e => {
     const pd = TOUCH.pend;
     if (pd && !pd.aim) for (const t of e.changedTouches) if (t.identifier === pd.id && Math.hypot(t.clientX - pd.x, t.clientY - pd.y) > TB_SLOP) tbAim(pd);
-    touchMove(e);
+    touchMove(e); e.stopPropagation();
   }, { passive: false });
   const end = e => {
     el.classList.remove('on'); const pd = TOUCH.pend;
     if (pd && pd.el === el && [...e.changedTouches].some(t => t.identifier === pd.id)) { clearTimeout(pd.tm); if (!pd.aim) pd.fn(); TOUCH.pend = null; }
-    touchEnd(e);
+    touchEnd(e); e.stopPropagation();
   };
   el.addEventListener('touchend', end); el.addEventListener('touchcancel', end);
 }
@@ -6918,7 +6982,7 @@ function perfTick(dt) {
 }
 const PHONE_INSET = 24, PC_INSET = 14; // world units of wall cropped off each side (the wall is 26 thick): nearly all of it on phones, half on a computer
 // phones can zoom in past the whole arena (Options → Phone zoom); the view then follows your archer, kept inside the walls
-const PCAM_SLACK = 90;
+const PCAM_SLACK = 140;
 const PCAM = { x: 0, y: 0, init: false, on: false, aw: 0, ah: 0, top: 0, IN: 0 };
 const isPhone = () => TOUCH.on && mode !== 'menu' && (H < 600 || W < 900);
 function phoneCamApply() {
@@ -6955,8 +7019,9 @@ function resize() {
   if (bigMap() && mode !== 'menu') camApply();
   // end-of-game cards sit in the middle of the arena, not the middle of the window
   placeCoach();
-  for (const [id, fy] of [['countdown', 0.52], ['banner', 0.27]]) { const el = $(id); if (el) { el.style.left = (OX + AW * VS / 2) + 'px'; el.style.top = (OY + AH * VS * fy) + 'px'; } }
-  const gs = $('gameSum'); if (gs) { gs.style.left = (r.left + OX + AW * VS / 2) + 'px'; gs.style.top = (r.top + OY + AH * VS / 2) + 'px'; }
+  const midX = phone ? W / 2 : OX + AW * VS / 2;
+  for (const [id, fy] of [['countdown', 0.52], ['banner', 0.27]]) { const el = $(id); if (el) { el.style.left = midX + 'px'; el.style.top = (phone ? H * fy : OY + AH * VS * fy) + 'px'; } }
+  const gs = $('gameSum'); if (gs) { gs.style.left = (r.left + midX) + 'px'; gs.style.top = (r.top + (phone ? H / 2 : OY + AH * VS / 2)) + 'px'; }
 }
 
 // ================= flow =================
@@ -10536,7 +10601,7 @@ function onKill(e) {
   feedAdd(howSentence(how, K, V, e.m), mine);
   if (e.k === myId) {
     sfx.kill();
-    if (e.am) floater(e.x, e.y - 52, `+${e.am} amber`, AMBER_COL, 15);
+    // (amber points are no longer shown)
     notice(howSentence(how, { name: 'you', you: true }, { name: e.vn, html: nameTag(e.vn, e.vc) }, e.m));
   }
   if (e.v === myId) { sfx.hurt(); shake(10); myDeath = e; impact(0.08); edgeFlash('255,70,80', 0.45); }
@@ -10737,6 +10802,7 @@ function zReceiver(sock, handle) {
 // your computer (frames that take too long to draw), the connection (packets arriving late or bunched up, measured
 // against the server's own tick numbers), and the server (a stalled game loop, CPU held back by the host). The server
 // sends its numbers once a second; every 10 seconds a summary goes back, so the owner can read lag reports with /perf.
+const svStruggling = S => S.drop > 0 || S.thr > 50 || S.cpu >= 90 || S.lag > 100 || (S.stalls || 0) >= 2;
 const NET = {
   f: [], g: [], p: [], sv: [], lastK: null, lastT: null, starve: 0, starveT: 0, t: 0, repT: 0, shown: false,
   frame(ms) {
@@ -10768,12 +10834,14 @@ const NET = {
     const lateG = g.filter(x => x[1] - x[2] > 60), late = lateG.filter(x => !frozen(x[0], x[1])).length;
     const gapMax = Math.round(g.reduce((m, x) => Math.max(m, x[1]), 0));
     const sv = this.sv.filter(x => x.at > performance.now() - 10000);
-    const S = { cpu: Math.max(0, ...sv.map(x => x.cpu || 0)), thr: Math.max(0, ...sv.map(x => x.thr || 0)), lag: Math.max(0, ...sv.map(x => x.lag || 0)), drop: sv.reduce((m, x) => m + (x.drop || 0), 0), step: Math.max(0, ...sv.map(x => x.stepMax || 0)), n: sv.length };
+    const S = { cpu: Math.max(0, ...sv.map(x => x.cpu || 0)), thr: Math.max(0, ...sv.map(x => x.thr || 0)), lag: Math.max(0, ...sv.map(x => x.lag || 0)), stalls: sv.filter(x => (x.lag || 0) > 60).length, drop: sv.reduce((m, x) => m + (x.drop || 0), 0), step: Math.max(0, ...sv.map(x => x.stepMax || 0)), n: sv.length };
     return { fps, fMax, slow, ping, jit, late, gapMax, starve: this.starve, S };
   },
+  // the server is struggling when it loses game time, is held back or maxed out, stalls badly (over 100 ms), or stalls
+  // repeatedly; a single short pause (a garbage collection or the host scheduling something else) the game absorbs
   verdict(x) {
     const pc = x.slow >= 3 || x.fps < 45;
-    const server = x.S.lag > 60 || x.S.drop > 0 || x.S.thr > 50 || x.S.cpu >= 90;
+    const server = svStruggling(x.S);
     const net = (x.late >= 2 && !server) || x.jit > 25;
     const far = x.ping != null && x.ping > 150;
     const list = [];
@@ -10795,7 +10863,7 @@ const NET = {
     this.shown = want;
     if (!want) return;
     const x = this.stats(), v = this.verdict(x), c = (bad, meh) => bad ? 'bad' : meh ? 'meh' : 'ok', mark = (bad, meh) => `<span class="${c(bad, meh)}">${bad ? '✗' : meh ? '!' : '✓'}</span>`;
-    const pcBad = x.slow >= 3 || x.fps < 45, netBad = (x.late >= 2 && !(x.S.lag > 60 || x.S.drop > 0)) || x.jit > 25, svBad = x.S.lag > 60 || x.S.drop > 0 || x.S.thr > 50 || x.S.cpu >= 90;
+    const pcBad = x.slow >= 3 || x.fps < 45, netBad = (x.late >= 2 && !svStruggling(x.S)) || x.jit > 25, svBad = svStruggling(x.S);
     el.style.setProperty('--nc', v.length ? '#ff8a8a' : '#7dff8a');
     el.innerHTML = `<b>${v.length ? 'Lag: ' + v.map(a => a[0]).join(' + ') : 'Smooth'}</b>
       <div class="nrow"><span>Your PC</span><span>${x.fps} fps · worst frame ${x.fMax} ms · ${x.slow} slow</span>${mark(pcBad, x.fMax > 34)}</div>
@@ -13067,7 +13135,7 @@ function render(replaying) {
   } else ctx.setTransform(DPR * VS, 0, 0, DPR * VS, DPR * (OX + sx), DPR * (OY + sy));
   mouse.wx = (mouse.sx - OX) / VS; mouse.wy = (mouse.sy - OY) / VS;
   // touch, not aiming: the archer turns smoothly to face the enemies (their average direction, nearer ones counting more)
-  if (TOUCH.on && !TOUCH.am && view && !replaying && !menuOpen) {
+  if (TOUCH.on && !TOUCH.am && view && !replaying && !menuOpen && !(performance.now() - (TOUCH.relT || 0) < 700)) { // (not straight after a shot: it would look like the shot turned)
     const me = view.p.find(p => p.id === myId);
     if (me && !me.d) {
       let ax = 0, ay = 0;
@@ -13076,6 +13144,7 @@ function render(replaying) {
     }
   }
   if (TOUCH.on && TOUCH.aim != null && view && !replaying) { const me = view.p.find(p => p.id === myId); if (me) { mouse.wx = me.x + Math.cos(TOUCH.aim) * 260; mouse.wy = me.y + Math.sin(TOUCH.aim) * 260; } }
+  if (TOUCH.cast && performance.now() < TOUCH.cast.until) { mouse.wx = TOUCH.cast.wx; mouse.wy = TOUCH.cast.wy; } // (a tapped spot for an ability, just long enough to be sent)
   if (view && view.m.map !== MAPKEY) setArena(view.m.map);
   mechDrawT = replaying && view ? view.m.gt || 0 : mechT;
   PR.skip(); drawArena(); PR.lap('arena');
@@ -13124,6 +13193,7 @@ function render(replaying) {
   if (replaying) { drawReplayFrame(); return; }
   if (!bigMap() && THEME.night && !lightFx() && !replaying) { drawVignette(); ctx.setTransform(DPR * VS, 0, 0, DPR * VS, DPR * OX, DPR * OY); }
   if (PCAM.on && !bigMap()) { drawPhoneOffscreen(view, me); ctx.setTransform(DPR * VS, 0, 0, DPR * VS, DPR * OX, DPR * OY); }
+  if (TOUCH.on && (TOUCH.mv || TOUCH.am) && !replaying) { drawFingerMarks(view, me); ctx.setTransform(DPR * VS, 0, 0, DPR * VS, DPR * OX, DPR * OY); }
   if (bigMap()) {
     drawCanopies(view, me); drawTorches(); drawMist(frameDt); drawMotes(frameDt, me);
     if (!lightFx()) drawVignette();
@@ -13696,6 +13766,25 @@ function drawPhoneOffscreen(v, me) {
   }
   ctx.restore();
 }
+// an archer hidden under a thumb: a marker just above that thumb, straight above the archer, pointing down at them
+function drawFingerMarks(v, me) {
+  const r = cv.getBoundingClientRect();
+  ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  for (const st of [TOUCH.mv, TOUCH.am]) {
+    if (!st) continue;
+    const fx = (st.fx != null ? st.fx : st.x0) - r.left, fy = (st.fy != null ? st.fy : st.y0) - r.top;
+    for (const p of v.p) {
+      if (p.nk || p.d || p.id === myId) continue;
+      const sx = OX + p.x * VS, sy = OY + p.y * VS;
+      if (Math.hypot(sx - fx, sy - fy) > 58) continue;
+      const foe = me && p.tm !== me.tm, col = TEAM_COL[p.tm] || '#fff', y = Math.max(14, fy - 78), x = clamp(sx, 14, W - 14);
+      ctx.globalAlpha = foe ? 0.95 : 0.65; ctx.fillStyle = col; ctx.strokeStyle = foe ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.6)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(x, y - 8, foe ? 7 : 5, 0, TAU); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x - 6, y + 2); ctx.lineTo(x + 6, y + 2); ctx.lineTo(x, y + 12); ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
 let miniBg = null, miniKey = null;
 function drawMinimap(v, me) {
   if (!bigMap()) return;
@@ -13856,11 +13945,11 @@ function updateHud() {
 
   syncTitle(view.p.find(p => p.id === myId));
   setC('board', view.p.filter(p => !p.nk).map(p => p.id + p.n + (p.cc || '') + (p.lv || '') + p.k + ':' + p.am + p.d + p.tm + p.el + p.ro + (p.ti || '')).join('|') + m.wr + m.wb, () => {
-    let html = '<span></span><span class="h">Archer</span><span class="h n">K</span><span class="h n">Amb</span>';
+    let html = '<span></span><span class="h">Archer</span><span class="h n">K</span>';
     for (const t of TEAMS) {
       const rows = view.p.filter(p => p.tm === t && !p.nk).sort((a, b) => a.d - b.d || b.k - a.k);
       html += `<span class="team-h" style="color:${TEAM_COL[t]}">${teamName(t)} · ${t === 'red' ? m.wr : m.wb}</span>`;
-      html += rows.map(p => { const o = p.d ? ' out' : ''; return `<span class="dot${o}" style="background:${p.c}"></span><span class="nm${p.id === myId ? ' me' : ''}${o}">${idHtml(p)}${esc(p.n)}${ownHtml(p.ow)}${statusHtml(p)}${p.b ? '<span class="aitag">AI</span>' : ''}${p.id === myId ? ' (you)' : ''}${p.ti ? ` <em class="ttl">${esc(titleName(p.ti))}</em>` : ''}<small>${esc(archName(p))}${p.bs && Sim.STYLES[p.bs] ? ` · <em>${Sim.STYLES[p.bs].name}</em>` : ''}</small></span><span class="n${o}">${p.k}</span><span class="n${o}" style="color:${AMBER_COL}">${p.am}</span>`; }).join('');
+      html += rows.map(p => { const o = p.d ? ' out' : ''; return `<span class="dot${o}" style="background:${p.c}"></span><span class="nm${p.id === myId ? ' me' : ''}${o}">${idHtml(p)}${esc(p.n)}${ownHtml(p.ow)}${statusHtml(p)}${p.b ? '<span class="aitag">AI</span>' : ''}${p.id === myId ? ' (you)' : ''}${p.ti ? ` <em class="ttl">${esc(titleName(p.ti))}</em>` : ''}<small>${esc(archName(p))}${p.bs && Sim.STYLES[p.bs] ? ` · <em>${Sim.STYLES[p.bs].name}</em>` : ''}</small></span><span class="n${o}">${p.k}</span>`; }).join('');
     }
     $('board').innerHTML = html;
   });
