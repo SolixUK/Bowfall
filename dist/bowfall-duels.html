@@ -465,6 +465,7 @@
   /* phones: the touch buttons carry the abilities, so the cards at the bottom go; the rest of the HUD gets compact */
   body.touchmode .clipbar { bottom: max(6px, env(safe-area-inset-bottom)); left: 50%; padding: 4px 6px; gap: 4px; font-size: 12px; flex-wrap: nowrap; background: rgba(9,18,11,.8); border-color: rgba(255,207,90,.5); }
   body.touchmode .clipbar #clipTxt { display: none; } body.touchmode .clipbar .sm { padding: 4px 8px; font-size: 12px; }
+  body.touchmode .hud .score { position: absolute; left: 50%; top: 0; height: 64px; transform: translateX(-50%) scale(.85); transform-origin: center top; }
   body.touchmode #abil, body.touchmode .gchat-hint { display: none !important; }
   body.touchmode .hud-btn { width: 34px; height: 34px; padding: 0 !important; font-size: 0 !important; display: inline-grid; place-items: center; border-radius: 50%; }
   body.touchmode #menuBtn::before { content: ''; width: 16px; height: 12px; background: linear-gradient(currentColor 0 0) top / 100% 2px no-repeat, linear-gradient(currentColor 0 0) center / 100% 2px no-repeat, linear-gradient(currentColor 0 0) bottom / 100% 2px no-repeat; }
@@ -1611,7 +1612,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.39.5';
+const VERSION = '0.39.6';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -6044,7 +6045,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.39.5';
+const PAGE_VERSION = '0.39.6';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -6858,12 +6859,14 @@ function perfTick(dt) {
 }
 const PHONE_INSET = 24, PC_INSET = 14; // world units of wall cropped off each side (the wall is 26 thick): nearly all of it on phones, half on a computer
 // phones can zoom in past the whole arena (Options → Phone zoom); the view then follows your archer, kept inside the walls
+const PCAM_SLACK = 90;
 const PCAM = { x: 0, y: 0, init: false, on: false, aw: 0, ah: 0, top: 0, IN: 0 };
 const isPhone = () => TOUCH.on && mode !== 'menu' && (H < 600 || W < 900);
 function phoneCamApply() {
   const { aw, ah, top, IN } = PCAM, vw = aw / VS, vh = ah / VS;
-  const cx = vw >= AW - IN * 2 ? AW / 2 : clamp(PCAM.x, IN + vw / 2, AW - IN - vw / 2);
-  const cy = vh >= AH - IN * 2 ? AH / 2 : clamp(PCAM.y, IN + vh / 2, AH - IN - vh / 2);
+  const sl = PCAM_SLACK; // how far past the walls the view may go, so at the edge you're nearer the middle of the screen
+  const cx = vw >= AW - IN * 2 + sl * 2 ? AW / 2 : clamp(PCAM.x, IN - sl + vw / 2, AW - IN + sl - vw / 2);
+  const cy = vh >= AH - IN * 2 + sl * 2 ? AH / 2 : clamp(PCAM.y, IN - sl + vh / 2, AH - IN + sl - vh / 2);
   OX = aw / 2 - cx * VS; OY = top + ah / 2 - cy * VS;
 }
 function phoneCamUpdate(dt) {
@@ -12996,6 +12999,15 @@ function render(replaying) {
     ctx.setTransform(DPR * Z, 0, 0, DPR * Z, DPR * (cx - RP.cam.x * Z + sx), DPR * (cy - RP.cam.y * Z + sy));
   } else ctx.setTransform(DPR * VS, 0, 0, DPR * VS, DPR * (OX + sx), DPR * (OY + sy));
   mouse.wx = (mouse.sx - OX) / VS; mouse.wy = (mouse.sy - OY) / VS;
+  // touch, not aiming: the archer turns smoothly to face the enemies (their average direction, nearer ones counting more)
+  if (TOUCH.on && !TOUCH.am && view && !replaying && !menuOpen) {
+    const me = view.p.find(p => p.id === myId);
+    if (me && !me.d) {
+      let ax = 0, ay = 0;
+      for (const f of view.p) { if (f.tm === me.tm || f.d || f.nk || f.tm === 'spec') continue; const d = Math.max(1, Math.hypot(f.x - me.x, f.y - me.y)), w = 1 / Math.max(120, d); ax += (f.x - me.x) / d * w; ay += (f.y - me.y) / d * w; }
+      if (ax || ay) { const t = Math.atan2(ay, ax); if (TOUCH.aim == null) TOUCH.aim = t; else { let da = t - TOUCH.aim; da = Math.atan2(Math.sin(da), Math.cos(da)); TOUCH.aim += da * Math.min(1, frameDt * 5); } }
+    }
+  }
   if (TOUCH.on && TOUCH.aim != null && view && !replaying) { const me = view.p.find(p => p.id === myId); if (me) { mouse.wx = me.x + Math.cos(TOUCH.aim) * 260; mouse.wy = me.y + Math.sin(TOUCH.aim) * 260; } }
   if (view && view.m.map !== MAPKEY) setArena(view.m.map);
   mechDrawT = replaying && view ? view.m.gt || 0 : mechT;
@@ -13602,7 +13614,13 @@ function drawPhoneOffscreen(v, me) {
     if (p.nk || p.d || p.id === myId) continue;
     const sx = OX + p.x * VS, sy = OY + p.y * VS;
     if (sx > -6 && sx < W + 6 && sy > -6 && sy < H + 6) continue;
-    const x = clamp(sx, m, W - m), y = clamp(sy, 62, H - m), a = Math.atan2(sy - y, sx - x), foe = me && p.tm !== me.tm;
+    // on the line from you to them, where it leaves the screen, pointing at them: aim along it to hit them
+    const ox = me ? OX + me.x * VS : W / 2, oy = me ? OY + me.y * VS : H / 2, dx = sx - ox, dy = sy - oy;
+    let t = 1;
+    if (dx > 0) t = Math.min(t, (W - m - ox) / dx); else if (dx < 0) t = Math.min(t, (m - ox) / dx);
+    if (dy > 0) t = Math.min(t, (H - m - oy) / dy); else if (dy < 0) t = Math.min(t, (62 - oy) / dy);
+    t = Math.max(0, t);
+    const x = ox + dx * t, y = oy + dy * t, a = Math.atan2(dy, dx), foe = me && p.tm !== me.tm;
     const col = TEAM_COL[p.tm] || '#fff', k = foe ? 1.4 : 0.9;
     ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.scale(k, k);
     ctx.globalAlpha = foe ? 0.95 : 0.7; ctx.fillStyle = col; ctx.strokeStyle = foe ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.6)'; ctx.lineWidth = 2;

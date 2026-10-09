@@ -2,6 +2,13 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.39.6
+
+- **Touch: your archer faces the enemies** while you're not aiming, turning smoothly toward their general direction (nearer enemies count more), instead of staying frozen on the last aim.
+- **Off-screen arrows point the way to shoot:** each one sits on the straight line from your archer to that archer, where it leaves the screen, pointing along it.
+- **Phone camera runs a little past the walls**, so near the edge of the arena your archer stays nearer the middle of the screen.
+- **Phones: the score and timer are centred** on the screen.
+
 ## 0.39.5
 
 - **Touch aiming points again** by default (pull back stays in Options → Touch aiming).
