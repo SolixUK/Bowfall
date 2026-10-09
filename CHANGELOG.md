@@ -2,6 +2,15 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.39.2
+
+- **Browser tab icon:** the Bowfall logo (bow and arrow on gold) on the game and the website.
+- **Discord button** is now just the Discord logo, on the right under the Friends box.
+- **Aim guide line:** softer again. The dark edge is thinner and lighter and fades out along the line with the gold, and the line itself fades more toward its end, as before. (Bold in Options is unchanged.)
+- **Custom game invites count as friend invites:** when you're signed in, the lobby's Copy invite link carries your name, so a newcomer who joins your game from it and then makes an account counts as your invite (and you both get the Crests after their 3 ranked matches).
+- Your profile button shows Unranked instead of ratings until your placement matches are done.
+- HOSTING.md: the Stripe webhook address example uses `www.`.
+
 ## 0.39.1
 
 - **Join our Discord:** set `DISCORD_INVITE` (a `https://discord.gg/...` link) in the environment and a Join our Discord button appears on the game's main menu, with a Discord link in the website's menu and footer. HOSTING.md explains making the server.

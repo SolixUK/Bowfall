@@ -135,7 +135,7 @@ The Store's paid items (Supporter membership, Founder pack, donations and single
 
 1. Make a Stripe account (stripe.com) and finish its business details so it can take live payments. You can do all of this in **test mode** first.
 2. **Developers → API keys:** copy the secret key (`sk_test_...` in test mode, `sk_live_...` for real).
-3. **Developers → Webhooks → Add endpoint:** URL `https://your-site/api/stripe/webhook` (e.g. `https://bowfall.com/api/stripe/webhook`). Choose these events: `checkout.session.completed`, `invoice.paid`, `customer.subscription.updated`, `customer.subscription.deleted`. Copy its **signing secret** (`whsec_...`).
+3. **Developers → Webhooks → Add endpoint:** URL: your `PUBLIC_URL` followed by `/api/stripe/webhook` (e.g. `https://www.bowfall.com/api/stripe/webhook`). Choose these events: `checkout.session.completed`, `invoice.paid`, `customer.subscription.updated`, `customer.subscription.deleted`. Copy its **signing secret** (`whsec_...`).
 4. **Settings → Billing → Customer portal:** turn it on, and allow customers to cancel subscriptions. The Store's **Manage membership** button opens it.
 5. On Render: **Environment**, add `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` (never put these in GitHub), and make sure `PUBLIC_URL` is set to your address so Stripe sends buyers back to the right place. Optionally set `FOUNDERS_UNTIL` to a date (e.g. `2027-03-31`) to end Founder pack sales then; the owner can also close or reopen them in game with `/founders off` or `/founders on`.
 6. Test with Stripe's test card `4242 4242 4242 4242` (any future date, any CVC). When everything works, swap both variables for the live-mode key and a live-mode webhook secret.
