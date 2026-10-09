@@ -177,6 +177,31 @@
     .logo span { display: none; }
     .hide-sm { display: none; }
   }
+  .tierc { display: inline-flex; align-items: center; gap: 4px; margin-right: 10px; font-weight: 700; font-size: 13px; vertical-align: middle; }
+  .tierbadge { vertical-align: middle; filter: drop-shadow(0 1px 2px rgba(0,0,0,.45)); }
+  .phero { position: relative; overflow: hidden; display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 28px; align-items: center; padding: 30px 32px; border: 1px solid color-mix(in srgb, var(--pa) 40%, transparent); border-top: 4px solid var(--pa); background: radial-gradient(ellipse at 20% 30%, color-mix(in srgb, var(--pa) 18%, transparent), transparent 55%), linear-gradient(120deg, var(--b1), var(--b2)); }
+  .pflag { position: absolute; right: -60px; top: -40px; width: 560px; max-width: 70%; opacity: .2; transform: rotate(-8deg); pointer-events: none; -webkit-mask-image: linear-gradient(235deg, #000 25%, transparent 72%); mask-image: linear-gradient(235deg, #000 25%, transparent 72%); }
+  .phero canvas { position: relative; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--pa) 28%, transparent), rgba(0,0,0,.35) 70%); box-shadow: 0 0 0 4px var(--pa), 0 0 50px color-mix(in srgb, var(--pa) 40%, transparent); }
+  .pwho { position: relative; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .pname { font: 700 clamp(40px, 7vw, 76px)/0.92 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .01em; text-shadow: 0 3px 24px rgba(0,0,0,.6); overflow-wrap: anywhere; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ptags { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; } .ptags .tag { margin: 0; }
+  .pclan { display: inline-flex; align-items: center; gap: 6px; } .pclan b { color: var(--cl); }
+  .pmotto { font-style: italic; font-size: 18px; color: color-mix(in srgb, var(--pa) 65%, #fff); }
+  .ptiers { display: flex; gap: 22px; flex-wrap: wrap; } .ptiers > span { display: inline-flex; align-items: center; gap: 8px; } .ptiers b { font: 700 22px 'Rajdhani', 'Arial Narrow', sans-serif; display: block; line-height: 1; } .ptiers small { color: var(--muted, #9aa); font-size: 12px; }
+  .plv { width: 380px; max-width: 100%; } .plv > div:first-child { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+  .psig { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 14px; }
+  .psig > div { position: relative; display: flex; flex-direction: column; gap: 3px; padding: 14px 16px; background: linear-gradient(135deg, color-mix(in srgb, var(--sc) 16%, transparent), rgba(255,255,255,.02)); border: 1px solid color-mix(in srgb, var(--sc) 35%, transparent); border-left: 4px solid var(--sc); }
+  .psig span { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .7; } .psig b { font: 700 28px/1.05 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--sc); } .psig small { opacity: .75; font-size: 13px; } .psig svg { position: absolute; right: 12px; top: 12px; }
+  .ppins { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+  .ppins > div { padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--pa) 35%, transparent); background: rgba(255,255,255,.03); display: flex; flex-direction: column; }
+  .ppins b { font: 700 36px 'Rajdhani', 'Arial Narrow', sans-serif; } .ppins span { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; opacity: .7; }
+  .pclip { margin-top: 16px; padding: 14px; border: 1px solid color-mix(in srgb, var(--pa) 45%, transparent); background: linear-gradient(90deg, color-mix(in srgb, var(--pa) 14%, transparent), transparent); }
+  .pcliph { display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px; } .pcliph h2 { margin: 0; font-size: 26px; }
+  .pclipb { display: flex; align-items: center; justify-content: center; gap: 14px; width: 100%; aspect-ratio: 16 / 9; max-height: 420px; border: 0; cursor: pointer; color: #fff; font: 700 22px 'Rajdhani', 'Arial Narrow', sans-serif; background: radial-gradient(circle, color-mix(in srgb, var(--pa) 25%, #0b120c), #070b08); }
+  .pclipb i { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: var(--pa); color: #111; font-style: normal; font-size: 28px; box-shadow: 0 0 40px color-mix(in srgb, var(--pa) 60%, transparent); }
+  .pclipf { width: 100%; aspect-ratio: 16 / 9; max-height: 560px; border: 0; display: block; background: #000; }
+  .pseasons { display: flex; flex-wrap: wrap; gap: 10px; } .pseasons > div { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid color-mix(in srgb, var(--sc) 40%, transparent); border-left: 3px solid var(--sc); } .pseasons b { display: block; } .pseasons small { opacity: .75; }
+  @media (max-width: 760px) { .phero { grid-template-columns: 1fr; padding: 22px 18px; } .phero canvas { width: 120px; height: 120px; } .ppins { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pflag { width: 360px; } }
 </style>
 </head>
 <body>
@@ -282,6 +307,66 @@ function achCards(u, R) {
       <div class="muted" style="font-size:13px">${next == null ? 'Maxed out' : `${Math.round(v)}${unit} / ${next}${unit}`}${t && R[k] && R[k][t - 1] != null ? ` · <b style="color:${T.col}">${rarityText(R[k][t - 1])}</b>` : ''}</div></div>`;
   }).join('');
 }
+// ---- profile pages: a hero with their backdrop, accent, big name, flag, ranks and motto, then what makes them stand out
+const BG_COLS = { meadow: ['#2f5a24', '#0c160d'], spring: ['#2f6a3a', '#0c160d'], rift: ['#4a2a1c', '#120a06'], beach: ['#b89a5c', '#123f55'], pitch: ['#2f6d2a', '#0b140b'], mill: ['#5a4430', '#16110b'], farm: ['#7a6a38', '#18140a'], reach: ['#3a3348', '#0f0d16'] };
+const PSTAT = {
+  elo: ['1v1 rating', c => Math.round(c.elo || 800)], eloT: ['Team rating', c => Math.round(c.eloT != null ? c.eloT : c.elo || 800)],
+  matches: ['Games', c => c.matches || 0], matchWins: ['Wins', c => c.matchWins || 0], rate: ['Win rate', c => (c.matches ? Math.round((c.matchWins || 0) / c.matches * 100) + '%' : '–')],
+  wins: ['Rounds won', c => c.wins || 0], kills: ['Knockouts', c => c.kills || 0], kd: ['K/D', c => (c.deaths ? ((c.kills || 0) / c.deaths).toFixed(2) : c.kills || 0)],
+  acc: ['Accuracy', c => (c.shots ? Math.round((c.hits || 0) / c.shots * 100) + '%' : '–')], ring: ['Ring-outs', c => c.ring || 0], bulls: ['Bullseyes', c => c.bulls || 0],
+  dmg: ['Damage dealt', c => Math.round(c.dmg || 0)], best: ['Most KOs in a game', c => (c.best || {}).k || 0], level: ['Level', (c, u) => (u.level ? u.level.lv : 1)],
+};
+function profSig(u) {
+  const c = u.career || {}, out = [], top = o => Object.entries(o || {}).sort((a, b) => b[1] - a[1])[0];
+  const el = top(c.els), ro = top(c.roles), E = Sim.ELEMENTS, Rr = Sim.ROLES;
+  if (el && ro) { const m = Sim.masteryOf(c.els[el[0]], (c.elW || {})[el[0]]), mr = Sim.masteryOf(c.roles[ro[0]], (c.roleW || {})[ro[0]]); out.push({ k: 'Main', big: `${(E[el[0]] || {}).name || el[0]} ${(Rr[ro[0]] || {}).name || ro[0]}`, sub: `Mastery ${m.lv} · ${mr.lv}`, col: (E[el[0]] || {}).color }); }
+  const best = ['elo', 'eloT'].map(k => ({ k, r: c[k] })).filter(x => x.r != null).sort((a, b) => b.r - a.r)[0];
+  const peakS = (c.seasons || []).flatMap(x => [[x.k1, x.t1, x.n], [x.kT, x.tT, x.n]]).filter(x => x[0]).sort((a, b) => Sim.TIERS.findIndex(t => t.k === b[0]) - Sim.TIERS.findIndex(t => t.k === a[0]))[0];
+  if (best) { const T = Sim.tierOf(best.r, u.placed !== false); out.push({ k: best.k === 'elo' ? '1v1 rank' : 'Team rank', big: T.label, sub: peakS ? `Peaked ${peakS[1]} in season ${peakS[2]}` : `${Math.round(best.r)} rating`, col: T.col, badge: T.k }); }
+  const tr = u.play && u.play.traits ? u.play.traits.filter(x => x.pct != null).sort((a, b) => b.pct - a.pct)[0] : null;
+  if (tr && tr.pct >= 0.5) out.push({ k: 'Playstyle', big: tr.name, sub: `Top ${Math.max(1, Math.round((1 - tr.pct) * 100))}% · ${tr.value} ${tr.what}`, col: '#5ad1ff' });
+  const bk = (c.best || {}).k; if (bk >= 3) out.push({ k: 'Best game', big: `${bk} knockouts`, sub: 'In a single game', col: '#ff9f43' });
+  return out.slice(0, 4);
+}
+function profHero(u, mine) {
+  const c = u.career || {}, P = u.prof || {}, acc = P.acc || '#ffcf5a', bg = BG_COLS[P.bg] || BG_COLS[Object.keys(c.maps || {})[0]] || BG_COLS.meadow;
+  const t1 = Sim.tierOf(c.elo, u.placed), tT = Sim.tierOf(c.eloT != null ? c.eloT : c.elo, u.placed), sig = profSig(u);
+  const pins = (P.pins && P.pins.length ? P.pins : ['matchWins', 'rate', 'kills', 'acc']).filter(k => PSTAT[k]);
+  const lv = u.level;
+  return `<section class="phero" style="--pa:${acc};--b1:${bg[0]};--b2:${bg[1]}">
+      ${u.country && P.flag !== 'off' ? `<img class="pflag" src="https://flagcdn.com/w640/${esc(u.country)}.png" alt="" aria-hidden="true">` : ''}
+      <canvas id="pAv" width="320" height="320" aria-hidden="true"></canvas>
+      <div class="pwho">
+        <div class="pname">${esc(u.name)}${crown(u.admin, true)}${status(u.status, true)}</div>
+        <div class="ptags">${badge(lv && lv.lv, true)}${u.country ? flag(u.country) + `<span class="muted">${esc(regionName(u.country))}</span>` : ''}${u.clan ? `<span class="pclan" style="--cl:${u.clan.col || acc}">${Sim.emblemOk(u.clan.em) ? Sim.emblemSvg(u.clan.em, 22) : ''}<b>[${esc(u.clan.tag)}]</b> ${esc(u.clan.name)}</span>` : ''}${u.title ? `<span class="tag">${esc(titleName(u.title))}</span>` : ''}${u.admin ? '<span class="tag admin">Game owner</span>' : ''}${u.ai ? '<span class="tag">AI player</span>' : ''}</div>
+        ${P.motto ? `<div class="pmotto">“${esc(P.motto)}”</div>` : ''}
+        <div class="ptiers"><span>${Sim.tierSvg(t1.k, 34)}<span><b style="color:${t1.col}">${esc(t1.label)}</b><small>1v1 · ${Math.round(c.elo || 800)}</small></span></span><span>${Sim.tierSvg(tT.k, 34)}<span><b style="color:${tT.col}">${esc(tT.label)}</b><small>Team · ${Math.round(c.eloT != null ? c.eloT : c.elo || 800)}</small></span></span></div>
+        ${lv ? `<div class="plv"><div class="muted"><span>${rankOf(lv.lv).name} · level ${lv.lv}</span><span>${lv.xp - lv.cur} / ${lv.next - lv.cur} xp</span></div><div class="xp"><i style="width:${Math.round((lv.xp - lv.cur) / Math.max(1, lv.next - lv.cur) * 100)}%"></i></div></div>` : ''}
+        <div class="muted" style="font-size:13px">Joined ${new Date(u.created).toLocaleDateString()}${mine ? ' · <a href="/play">Customise your profile in the game</a> (Profile → Your profile page)' : ''}</div>
+      </div>
+    </section>
+    ${sig.length ? `<div class="psig">${sig.map(x => `<div style="--sc:${x.col || acc}"><span>${esc(x.k)}</span>${x.badge ? Sim.tierSvg(x.badge, 26) : ''}<b>${esc(String(x.big))}</b><small>${esc(x.sub)}</small></div>`).join('')}</div>` : ''}
+    <div class="ppins" style="--pa:${acc}">${pins.map(k => `<div><b>${PSTAT[k][1](c, u)}</b><span>${PSTAT[k][0]}</span></div>`).join('')}</div>
+    ${u.clip ? `<div class="pclip" style="--pa:${acc}"><div class="pcliph"><h2>${esc(u.clip.label || 'Kill cam')}</h2><span class="muted">Featured kill cam</span></div><button class="pclipb" id="pClipBtn" type="button"><i>▶</i><span>Watch it</span></button></div>` : ''}
+    <div class="stats" style="margin-top:16px">${['matches', 'matchWins', 'rate', 'wins', 'kills', 'kd', 'acc', 'ring', 'bulls', 'best'].filter(k => !pins.includes(k)).map(k => `<div class="stat"><b>${PSTAT[k][1](c, u)}</b><span>${PSTAT[k][0]}</span></div>`).join('')}</div>`;
+}
+function seasonsCard(list) {
+  return `<div class="card" style="margin-top:16px"><h3 style="margin-bottom:10px">Seasons</h3><div class="pseasons">${list.slice().reverse().map(x => { const k = x.k1 || x.kT, T = Sim.TIERS.find(t => t.k === k);
+    return `<div style="--sc:${T ? T.col : '#8f9aa8'}">${Sim.tierSvg(k || 'unranked', 28)}<span><b>Season ${x.n}</b><small>${esc([x.t1 && '1v1 ' + x.t1, x.tT && 'Team ' + x.tT].filter(Boolean).join(' · ') || 'Unranked')}</small></span></div>`; }).join('')}</div></div>`;
+}
+// a simple drawing of their profile picture (an archer from above, in their colours)
+function profAvatar(cv, av) {
+  if (!cv) return; const g = cv.getContext('2d'), W = cv.width, a = av || { el: 'frost', ro: 'sniper', c: '#ff6b5a' }, ec = (Sim.ELEMENTS[a.el] || {}).color || '#fff';
+  g.clearRect(0, 0, W, W); g.save(); g.translate(W / 2, W / 2); const r = W * 0.24;
+  g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.arc(6, 10, r, 0, 7); g.fill();
+  g.strokeStyle = '#c99a5a'; g.lineWidth = W * 0.03; g.lineCap = 'round'; g.beginPath(); g.arc(r * 0.35, 0, r * 1.25, -1.15, 1.15); g.stroke();
+  g.strokeStyle = 'rgba(255,255,255,.8)'; g.lineWidth = 2; g.beginPath(); g.moveTo(r * 0.35 + Math.cos(-1.15) * r * 1.25, Math.sin(-1.15) * r * 1.25); g.lineTo(r * 0.35 + Math.cos(1.15) * r * 1.25, Math.sin(1.15) * r * 1.25); g.stroke();
+  const gr = g.createRadialGradient(-r * 0.3, -r * 0.35, r * 0.1, 0, 0, r); gr.addColorStop(0, '#fff'); gr.addColorStop(0.18, a.c); gr.addColorStop(1, a.c);
+  g.fillStyle = gr; g.beginPath(); g.arc(0, 0, r, 0, 7); g.fill();
+  g.lineWidth = W * 0.025; g.strokeStyle = ec; g.beginPath(); g.arc(0, 0, r, 0, 7); g.stroke();
+  g.fillStyle = ec; g.beginPath(); g.arc(0, 0, r * 0.32, 0, 7); g.fill(); g.strokeStyle = 'rgba(0,0,0,.4)'; g.lineWidth = 2; g.stroke();
+  g.restore();
+}
 const pages = {
   async home() {
     const [rooms, forum, lb] = await Promise.all([api('/rooms').catch(() => ({ rooms: [], online: 0 })), api('/forum').catch(() => ({ recent: [] })), api('/leaderboard?by=elo').catch(() => ({ rows: [] }))]);
@@ -344,7 +429,8 @@ const pages = {
       const rows = d.rows.filter(r => r.value > 0);
       const roleChips = role ? `<div class="tabs sm">${Object.entries(Sim.ROLES).map(([k, r]) => `<button type="button" data-role="${k}" class="${k === role ? 'on' : ''}">${esc(r.name)}</button>`).join('')}</div><p class="muted" style="margin:0 0 12px">Rating as ${esc(Sim.ROLES[role].name)}, for players with at least ${d.min} games in the role. Each role has its own rating, so it shows who's best at that role rather than who plays it most.</p>` : '';
       const head = by === 'elo' || by === 'eloT' || role ? `<th class="n">Rating</th><th class="n">Win rate</th><th class="n hide-sm">Games</th>` : `<th class="n">${L[by]}</th><th class="n hide-sm">Games</th><th class="n hide-sm">Wins</th>`;
-      const cells = r => by === 'elo' || by === 'eloT' || role ? `<td class="n"><b>${r.value}</b></td><td class="n">${r.rate}%</td><td class="n hide-sm">${r.games}</td>` : `<td class="n"><b>${r.value}</b></td><td class="n hide-sm">${r.games}</td><td class="n hide-sm">${r.wins}</td>`;
+      const tierCell = r => { if (!(by === 'elo' || by === 'eloT')) return ''; const T = Sim.tierOf(r.value, !!r.pl); return `<span class="tierc" title="${T.label}" style="color:${T.col}">${Sim.tierSvg(T.k, 18)}<span class="hide-sm">${T.label}</span></span>`; };
+      const cells = r => by === 'elo' || by === 'eloT' || role ? `<td class="n">${tierCell(r)}<b>${r.value}</b></td><td class="n">${r.rate}%</td><td class="n hide-sm">${r.games}</td>` : `<td class="n"><b>${r.value}</b></td><td class="n hide-sm">${r.games}</td><td class="n hide-sm">${r.wins}</td>`;
       body = roleChips + `<div class="card">${rows.length ? `<table><thead><tr><th>#</th><th>Player</th>${head}</tr></thead><tbody>${rows.map((r, i) => `<tr><td>${i + 1}</td><td>${who(r)}</td>${cells(r)}</tr>`).join('')}</tbody></table>`
         : `<div class="empty">${role ? `Nobody has played ${d.min} rated games as ${esc(Sim.ROLES[role].name)} yet.` : 'No one on the board yet. Sign in and play an online game to be first.'}</div>`}</div>` +
         ((by === 'elo' || by === 'eloT') && !role ? '<p class="muted" style="margin-top:12px">There are two ratings: 1v1, and team games (2v2 and 3v3). Everyone starts at 800. Only ranked games from Find game count; custom games do not. In team games your change also depends on how much you did for your team, so being carried gains less. Each ranked match moves your rating up or down once, when the match is decided, depending on whether your team won the match and how strong both teams were: beating a stronger side gains more.</p>' : '');
@@ -362,14 +448,7 @@ const pages = {
     const bars = (obj, names) => { const e = Object.entries(obj || {}).sort((a, b) => b[1] - a[1]).slice(0, 5), max = e.length ? e[0][1] : 1;
       return e.length ? `<div class="bars">${e.map(([k, v]) => `<div><span>${esc((names[k] || {}).name || k)}</span><i style="width:${Math.max(4, v / max * 100)}%"></i><span class="muted">${v}</span></div>`).join('')}</div>` : '<p class="muted">No games yet.</p>'; };
     app.innerHTML = (movedNote ? `<div class="card" style="margin-bottom:16px;border-left:3px solid var(--gold)">Your guest rating (<b>${movedNote.elo}</b>) and ${movedNote.games} games moved to this account.</div>` : '') + `
-      <div class="section-h" style="margin-top:0"><div><h1 style="font-size:44px;display:flex;align-items:center;flex-wrap:wrap">${badge(u.level && u.level.lv, true)}${u.country ? flag(u.country).replace('width="20" height="15"', 'width="32" height="24" style="width:32px;height:24px;vertical-align:2px"') : ''}${esc(u.name)}${crown(u.admin, true)}${status(u.status, true)}</h1>
-        <p class="muted" style="margin:6px 0 0">${u.title ? `<span class="tag" style="margin:0 6px 0 0">${esc(titleName(u.title))}</span>` : ''}${u.admin ? '<span class="tag admin" style="margin:0 6px 0 0">Game owner</span>' : ''}${u.ai ? '<span class="tag" style="margin:0 6px 0 0">AI player</span>An AI opponent that fills matchmaking games. ' : ''}Joined ${new Date(u.created).toLocaleDateString()}</p>
-        ${u.level ? `<div style="width:380px;max-width:100%;margin-top:10px"><div class="muted" style="font-size:13px;display:flex;justify-content:space-between;gap:12px"><span>${rankOf(u.level.lv).name} · level ${u.level.lv}</span><span>${u.level.xp - u.level.cur} / ${u.level.next - u.level.cur} xp to level ${u.level.lv + 1}</span></div><div class="xp"><i style="width:${Math.round((u.level.xp - u.level.cur) / Math.max(1, u.level.next - u.level.cur) * 100)}%"></i></div></div>` : ''}</div>
-        ${mine ? '<a class="btn" href="/play">Play</a>' : ''}</div>
-      <div class="stats">
-        ${[['1v1 rating', Math.round(c.elo || 800)], ['Team rating', Math.round(c.eloT != null ? c.eloT : c.elo || 800)], ['Games', c.matches || 0], ['Wins', c.matchWins || 0], ['Win rate', pct(c.matchWins || 0, c.matches || 0)], ['Rounds won', c.wins || 0], ['Knockouts', c.kills || 0], ['K/D', c.deaths ? ((c.kills || 0) / c.deaths).toFixed(2) : (c.kills || 0)], ['Accuracy', pct(c.hits || 0, c.shots || 0)], ['Ring-outs', c.ring || 0]]
-          .map(([k, v]) => `<div class="stat"><b>${v}</b><span>${k}</span></div>`).join('')}
-      </div>
+      ${profHero(u, mine)}
       ${mine ? `<div class="card" style="margin-top:16px"><h3>Your title</h3><p class="muted" style="margin:4px 0 10px">Shown next to your name in games and on the forum.</p>
         <div style="display:flex;gap:8px;max-width:420px"><select id="titleSel"><option value="">No title</option>${Object.keys(A).filter(k => got.has(k)).map(k => `<option value="${k}"${u.title === k ? ' selected' : ''}>${esc(A[k].title)}</option>`).join('')}</select><button class="btn" id="titleSave" type="button">Save</button></div><p class="err" id="titleErr"></p></div>` : ''}
       ${mine ? `<div class="card" style="margin-top:16px"><h3>Your flag</h3><p class="muted" style="margin:4px 0 10px">Shown next to your name in games, on the leaderboard and on the forum. It starts as the country you're playing from.</p>
@@ -379,11 +458,14 @@ const pages = {
         <div class="card"><h3 style="margin-bottom:10px">Favourite roles</h3>${bars(c.roles, Sim.ROLES)}</div>
         <div class="card"><h3 style="margin-bottom:10px">Favourite elements</h3>${bars(c.els, Sim.ELEMENTS)}</div>
       </div>
+      ${(u.career && u.career.seasons && u.career.seasons.length) ? seasonsCard(u.career.seasons) : ''}
       ${playCard(u.play)}
       ${histCard(c.hist)}
       <div class="section-h"><h2>Achievements</h2><span class="muted">${Object.values(u.tier || {}).reduce((x, y) => x + y, 0)} of ${Sim.ACH_ORDER.length * 5} tiers</span></div>
       <div class="achs">${achCards(u, (rr && rr.rarity) || {})}</div>`;
     if (mine) wireMethods(name);
+    profAvatar($('pAv'), u.avatar);
+    const cb = $('pClipBtn'); if (cb) cb.onclick = () => { cb.outerHTML = `<iframe class="pclipf" src="/play?clip=${encodeURIComponent(u.clip.id)}&embed=1" title="Featured kill cam" allow="autoplay"></iframe>`; };
     if (mine) $('ccSave').onclick = async () => { try { await api('/country', { country: $('ccSel').value }); await loadMe(); pages.user(name); } catch (e) { $('ccErr').textContent = e.message; } };
     if (mine) $('titleSave').onclick = async () => { try { await api('/title', { title: $('titleSel').value || null }); await loadMe(); pages.user(name); } catch (e) { $('titleErr').textContent = e.message; } };
   },

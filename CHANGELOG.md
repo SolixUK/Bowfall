@@ -2,6 +2,26 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.37.0
+
+- **Ranked tiers and seasons.** Bronze, Silver, Gold, Platinum, Diamond and Master (each III, II and I), then Champion, from your 1v1 and team ratings, with a badge for each. Shown on Find game with your progress to the next division and the days left in the season, after each ranked match (promotions get a fanfare line), on party rows, the leaderboards and profiles. Seasons run three months; at the end your peak tier is recorded, you get Crests for it, ratings soften toward the middle and there are 3 placement matches. Owner command `/season`.
+- **Rejoin a ranked match** you dropped out of: your archer and seat are kept, the main menu shows Rejoin, and a reload goes straight back in. Leaving no longer dodges the result.
+- **Block players:** from their profile card or a message conversation. No messages, invites or friend requests from them, and their chat is hidden in your games. Unblock from Find game.
+- **Profiles redesigned to show off:** a hero with your backdrop arena and accent colour, a big name, your banner, a big faded flag, motto, tiers and clan; then what makes you stand out (your main and mastery, best rank and season peak, strongest playstyle, best game), four pinned stats you choose, your featured kill cam, achievements and seasons. In the game (click any friend, or Preview in Profile) and on the website. Customise it in Profile → Your profile page.
+- **Kill cams for multi-kills:** when the winning archer knocked out others in the 8 seconds before, those knockouts are shown too (Double kill, Triple kill…), cutting between them. The slow motion now eases in and out, and the camera chases fast arrows harder so they stay in view.
+- **Save and share kill cams:** your own kill cams are recorded as they play. **Save video** downloads the clip (or opens the share sheet on a phone); **Show on my profile** features it on your profile, where anyone can watch it (also at `/play?clip=…`).
+- **Touch controls** for phones and tablets: twin sticks (left to move, right to aim and shoot; a tap shoots the nearest enemy) and Dash, Q and E buttons. The scoreboard tucks away on small screens and the how-to-play hint explains the touch controls. Hold phones sideways.
+- **Colour-blind friendly colours** (Options → Colours): orange and blue teams.
+- **New arena: Harvest Field** (a farm: hay bale lanes, wells, duck ponds and mud in the middle), replacing Frozen Lake, which is out of the rotation (the ice is gone; it can come back without the sliding).
+- **Training drills use standard rules:** they're now played as a plain Frost Trapper with no upgrade picks. The Ranger used before moves 5% faster and keeps more speed while drawing, which made the drills feel faster than normal games.
+
+## 0.36.0
+
+- **New arena: Frozen Lake**, in place of Portal Ruins (which is out of the rotation for now). A snowy clearing ringed by pines with a frozen lake in the middle. Out on the ice you slide: you're slower to turn and stop, dashes carry further, and knockback sends you much further, so a hit near a hole is deadly. Two holes are open from the start and two more crack open (with a warning) 35 and 70 seconds into each game. The banks are normal ground with snowy boulders, thorn bushes and soft snowdrifts that slow you down.
+- Ice can now cover just part of an arena (`ice.zone` in an arena's definition).
+- The arena builder has a Snow look.
+- Fixed: the in-game chat overlapped the Empowered box in the bottom-left corner. The box now shows just the name (the description is in its tooltip, and in the announcement when you become empowered), and the chat always sits above that corner.
+
 ## 0.35.0
 
 Friends and parties.

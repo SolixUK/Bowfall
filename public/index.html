@@ -358,6 +358,15 @@
   .ratedbox.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
   .ratedbox b { font: 700 30px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--gold); }
   .ratedbox em, .resrated em { font: 700 18px 'Rajdhani', 'Arial Narrow', sans-serif; font-style: normal; }
+  .fgtier { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; margin: 8px 0 2px; padding: 8px 10px; background: linear-gradient(90deg, color-mix(in srgb, var(--tc) 16%, transparent), transparent 70%); border-left: 3px solid var(--tc); }
+  .fgtier b { font: 700 20px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--tc); display: block; line-height: 1.1; } .fgtier small { color: var(--muted); font-size: 12px; }
+  .fgtier .tbar { display: block; height: 4px; margin-top: 4px; background: rgba(255,255,255,.08); } .fgtier .tbar i { display: block; height: 100%; background: var(--tc); }
+  .fgseason { text-align: right; font: 700 14px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .04em; text-transform: uppercase; } .fgseason small { display: block; text-transform: none; letter-spacing: 0; font: 500 11.5px 'Titillium Web', sans-serif; }
+  .tier { display: inline-flex; align-items: center; gap: 5px; } .tier b { color: var(--tc); font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .03em; }
+  .tierbadge { flex: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,.5)); vertical-align: middle; }
+  .tierchg { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; font: 600 14px 'Titillium Web', sans-serif; color: var(--muted); } .tierchg b { color: var(--tc, var(--text)); }
+  .tierchg.up b { text-shadow: 0 0 10px var(--tc); }
+  .ratedbox .tierchg { display: flex; margin: 4px 0 0; justify-content: center; }
   .ratedbox .up, .resrated .up { color: #7dff8a; } .ratedbox .down, .resrated .down { color: #ff8a8a; }
   .ratedbox a { font-size: 12px; color: var(--muted); }
   .chip2 .mst { font: 700 11px 'Rajdhani', 'Arial Narrow', sans-serif; margin-left: 6px; color: #d9a066; } .chip2 .mst.m5 { color: #dfe7f0; } .chip2 .mst.m10 { color: var(--gold); text-shadow: 0 0 6px rgba(255,207,90,.6); }
@@ -400,20 +409,57 @@
   .linkbtn { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-align: left; } .linkbtn:hover { text-decoration: underline; text-decoration-color: var(--line); }
   .pcwrap { position: fixed; inset: 0; z-index: 61; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.6); }
   .pfcard { position: relative; width: min(720px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; box-sizing: border-box; padding: 20px 22px; background: #0d1810; border: 1px solid var(--line); border-top: 3px solid var(--gold); display: flex; flex-direction: column; gap: 14px; font-family: 'Titillium Web', 'Segoe UI', sans-serif; }
-  .pchead { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 16px; align-items: center; }
-  .pchead canvas { width: 112px; height: 112px; background: radial-gradient(circle, rgba(255,255,255,.08), rgba(255,255,255,.02)); border: 1px solid var(--line); }
-  .pchead h2 { margin: 0; font: 700 30px 'Rajdhani', 'Arial Narrow', sans-serif; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
-  .pchead .pcsub { color: var(--muted); font-size: 13px; }
-  .pcstats { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px; }
-  .pcstats div { padding: 7px 10px; background: rgba(255,255,255,.04); border: 1px solid var(--line); display: flex; flex-direction: column; }
-  .pcstats b { font: 700 20px 'Rajdhani', 'Arial Narrow', sans-serif; } .pcstats span { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .pfcard { --pa: #ffcf5a; border-top-color: var(--pa); padding: 0 0 18px; gap: 14px; }
+  .pfcard > :not(.pchero):not(.pcx) { margin-left: 22px; margin-right: 22px; }
+  .pchero { position: relative; overflow: hidden; display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 18px; align-items: center; padding: 22px; background-size: cover; background-position: center; border-bottom: 1px solid color-mix(in srgb, var(--pa) 45%, transparent); }
+  .pcflag { position: absolute; right: -30px; top: -20px; width: 320px; opacity: .2; transform: rotate(-8deg); pointer-events: none; -webkit-mask-image: linear-gradient(240deg, #000 25%, transparent 75%); mask-image: linear-gradient(240deg, #000 25%, transparent 75%); filter: saturate(1.2); }
+  .pchero canvas { position: relative; width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--pa) 30%, transparent), rgba(0,0,0,.3) 70%); box-shadow: 0 0 0 3px var(--pa), 0 0 30px color-mix(in srgb, var(--pa) 45%, transparent); }
+  .pcwho { position: relative; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .pcname { font: 700 46px/0.95 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .01em; text-shadow: 0 2px 18px rgba(0,0,0,.7); overflow-wrap: anywhere; }
+  .pcplate .plate { display: inline-flex; }
+  .pcmotto { color: color-mix(in srgb, var(--pa) 70%, #fff); font-style: italic; font-size: 14px; }
+  .pctiers { display: flex; flex-wrap: wrap; gap: 14px; } .pctiers span { display: inline-flex; align-items: center; gap: 6px; } .pctiers b { font: 700 18px 'Rajdhani', 'Arial Narrow', sans-serif; } .pctiers small { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+  .pcclan b { color: var(--cl); font: 700 16px 'Rajdhani', 'Arial Narrow', sans-serif; } .pcclan svg { width: 22px; height: 22px; }
+  .pcsub { color: var(--muted); font-size: 12.5px; }
+  .pcsig { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+  .pcsig div { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; background: linear-gradient(135deg, color-mix(in srgb, var(--sc) 16%, transparent), rgba(255,255,255,.02)); border: 1px solid color-mix(in srgb, var(--sc) 35%, transparent); border-left: 3px solid var(--sc); }
+  .pcsig span { font: 700 11px 'Titillium Web', sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); } .pcsig b { font: 700 21px/1.1 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--sc); } .pcsig small { color: var(--muted); font-size: 12px; }
+  .pcsig svg { position: absolute; right: 10px; top: 10px; }
+  .pcstats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .pcstats div { padding: 9px 10px; background: rgba(255,255,255,.04); border: 1px solid var(--line); display: flex; flex-direction: column; }
+  .pcstats b { font: 700 24px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--text); } .pcstats span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .pcclip { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: linear-gradient(90deg, color-mix(in srgb, var(--pa) 20%, transparent), rgba(255,255,255,.02)); border: 1px solid color-mix(in srgb, var(--pa) 50%, transparent); color: var(--text); cursor: pointer; text-align: left; font-family: 'Titillium Web', sans-serif; }
+  .pcclip i { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--pa); color: #111; font-style: normal; font-size: 14px; flex: none; }
+  .pcclip b { display: block; font: 700 17px 'Rajdhani', 'Arial Narrow', sans-serif; } .pcclip small { color: var(--muted); font-size: 12px; } .pcclip:hover { border-color: var(--pa); }
   .pcsec h3 { margin: 0 0 6px; font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
   .pcchips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .pcchips span { padding: 3px 9px; border: 1px solid var(--line); border-left: 3px solid var(--cc, var(--line)); background: rgba(255,255,255,.03); font-size: 13px; }
+  .pcchips span { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border: 1px solid var(--line); border-left: 3px solid var(--cc, var(--line)); background: rgba(255,255,255,.03); font-size: 13px; }
   .pcchips small { color: var(--muted); margin-left: 4px; }
+  @media (max-width: 560px) { .pchero { grid-template-columns: 1fr; justify-items: start; } .pchero canvas { width: 96px; height: 96px; } .pcname { font-size: 34px; } .pcstats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .pfpage { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
+  .pfpins { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; } @media (max-width: 560px) { .pfpins { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .chk { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
   .pcact { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
-  .pcx { position: absolute; right: 12px; top: 10px; }
+  .pcx { position: absolute; right: 12px; top: 10px; z-index: 2; }
   @media (max-width: 520px) { .pchead { grid-template-columns: 72px 1fr; } .pchead canvas { width: 72px; height: 72px; } .pchead h2 { font-size: 22px; } }
+  .touchui { position: fixed; inset: 0; z-index: 4; pointer-events: none; }
+  .tstick { position: absolute; width: 116px; height: 116px; margin: -58px 0 0 -58px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); background: rgba(255,255,255,.06); }
+  .tstick i { position: absolute; left: 50%; top: 50%; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 50%; background: rgba(255,255,255,.4); }
+  .tstick.aim { border-color: rgba(255,207,90,.6); } .tstick.aim i { background: rgba(255,207,90,.6); }
+  .tbtns { position: absolute; right: max(14px, env(safe-area-inset-right)); bottom: max(14px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: auto auto; gap: 10px; align-items: end; pointer-events: auto; }
+  .tb { width: 76px; height: 76px; border-radius: 50%; border: 2px solid rgba(255,255,255,.4); background: rgba(10,18,12,.55); color: #fff; font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .06em; text-transform: uppercase; touch-action: none; -webkit-user-select: none; user-select: none; }
+  .tb.sm { width: 54px; height: 54px; font-size: 18px; } #tbDash { grid-column: 1 / 3; justify-self: end; } .tb.on { background: rgba(255,207,90,.5); }
+  .rotatehint { position: fixed; z-index: 30; left: 12px; right: 12px; top: 74px; padding: 10px 14px; background: rgba(9,18,11,.95); border: 1px solid var(--gold); font: 600 14px 'Titillium Web', sans-serif; text-align: center; pointer-events: none; } .rotatehint[hidden] { display: none; }
+  #cv { touch-action: none; }
+  @media (max-width: 1000px) { body.touchmode #board { display: none; } }
+  @media (max-height: 520px) { body.touchmode .hud-btn { padding: 4px 8px; } body.touchmode .qhelp { font-size: 12px; } }
+  .clipbar { position: fixed; z-index: 17; left: 50%; bottom: 76px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: rgba(9,18,11,.95); border: 1px solid var(--gold); box-shadow: 0 8px 24px rgba(0,0,0,.5); font: 600 14px 'Titillium Web', 'Segoe UI', sans-serif; max-width: calc(100vw - 24px); box-sizing: border-box; flex-wrap: wrap; justify-content: center; }
+  .clipview { position: fixed; z-index: 18; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; align-items: center; gap: 16px; padding: 10px 14px; background: rgba(9,18,11,.92); border: 1px solid var(--line); border-top: 2px solid var(--gold); max-width: calc(100vw - 24px); box-sizing: border-box; flex-wrap: wrap; justify-content: center; font-family: 'Titillium Web', sans-serif; }
+  .clipview .cvhead { display: flex; flex-direction: column; } .clipview b { font: 700 18px 'Rajdhani', 'Arial Narrow', sans-serif; } .clipview small { color: var(--muted); font-size: 12px; }
+  .clipview .cvbtns { display: flex; gap: 8px; }
+  body.clipmode #home, body.clipmode .overlay.sub, body.clipmode #gate, body.clipmode .rejoinbar, body.clipmode #homeFriends, body.clipmode .hud-l, body.clipmode .hud-r, body.clipmode #powers, body.clipmode #abil, body.clipmode #board { display: none !important; }
+  body.embed #clipView { bottom: 8px; padding: 6px 10px; } body.embed #cvClose { display: none; }
+  .rejoinbar { position: fixed; z-index: 17; left: 50%; top: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: rgba(9,18,11,.97); border: 1px solid var(--gold); box-shadow: 0 8px 24px rgba(0,0,0,.5); font: 600 14px 'Titillium Web', 'Segoe UI', sans-serif; max-width: calc(100vw - 32px); box-sizing: border-box; }
   .invite { position: fixed; z-index: 15; right: 16px; bottom: 16px; max-width: 320px; padding: 12px 14px; background: rgba(9,18,11,.96); border: 1px solid var(--gold); display: flex; flex-direction: column; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
   .invite[hidden] { display: none; }
   .aitag { font: 600 10px 'Titillium Web', sans-serif; letter-spacing: .08em; color: #9fb8ff; border: 1px solid #9fb8ff; padding: 0 4px; margin-left: 6px; vertical-align: 2px; }
@@ -466,6 +512,7 @@
   .frrow .frn { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; background: none; border: 0; padding: 0; color: inherit; text-align: left; cursor: pointer; font: inherit; }
   .frrow .frn:hover b { text-decoration: underline; text-decoration-color: var(--line); }
   .frrow.froff { opacity: .62; }
+  .fgblh { margin: 10px 0 4px; font: 700 13px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
   .frofft { align-self: flex-start; background: none; border: 0; padding: 2px 0; color: var(--muted); font: 600 12px 'Titillium Web', sans-serif; cursor: pointer; }
   .frpanel .frh { gap: 8px; } .frpanel .frh .hfmsg { margin-left: auto; padding: 2px 8px; font-size: 12px; }
   .frrow .frn b { font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1039,6 +1086,7 @@
           <div id="fgAddRow" class="row"><div class="field"><label for="fgAdd">Add a friend</label><input id="fgAdd" maxlength="16" autocomplete="off" placeholder="Player name"></div><button class="ghost" id="fgAddBtn" type="button">Send request</button></div>
           <div id="fgReq"></div>
           <div class="roomlist" id="fgFriends"></div>
+          <div class="roomlist" id="fgBlocked"></div>
         </div>
       </div>
     </div>
@@ -1073,12 +1121,18 @@
   <div class="dmbox" id="dmBox" role="dialog" aria-label="Messages" hidden>
     <div class="dmside"><div class="dmsh"><b>Messages</b><button type="button" class="ghost sm dmx2" id="dmClose2" aria-label="Close messages">×</button></div><div id="dmList"></div></div>
     <div class="dmmain">
-      <div class="dmhead"><button type="button" class="ghost sm dmback" id="dmBack" aria-label="Back to friends">‹</button><div class="dmwho"><b id="dmName">Messages</b><small id="dmSub"></small></div><button type="button" class="ghost sm" id="dmClose" aria-label="Close messages">×</button></div>
+      <div class="dmhead"><button type="button" class="ghost sm dmback" id="dmBack" aria-label="Back to friends">‹</button><div class="dmwho"><b id="dmName">Messages</b><small id="dmSub"></small></div><button type="button" class="ghost sm" id="dmBlock" hidden>Block</button><button type="button" class="ghost sm" id="dmClose" aria-label="Close messages">×</button></div>
       <div class="dmlog" id="dmLog"><div class="status dmempty">Pick a friend to message.</div></div>
       <form class="dmsend" id="dmForm" autocomplete="off"><input id="dmIn" maxlength="300" placeholder="Message" disabled><button class="cta sm" type="submit" id="dmGo" disabled>Send</button></form>
     </div>
   </div>
   <div class="pcwrap" id="pcWrap" hidden><div class="pfcard" id="pcCard" role="dialog" aria-label="Player profile"></div></div>
+  <div class="touchui" id="touchUI" hidden><div class="tstick" id="tsMove" hidden><i></i></div><div class="tstick aim" id="tsAim" hidden><i></i></div>
+    <div class="tbtns"><button type="button" id="tbQ" class="tb sm">Q</button><button type="button" id="tbE" class="tb sm">E</button><button type="button" id="tbDash" class="tb">Dash</button></div></div>
+  <div class="rotatehint" id="rotateHint" hidden>Turn your phone sideways to play</div>
+  <div class="clipbar" id="clipBar" hidden><span id="clipTxt">Your kill cam</span><button class="ghost sm" type="button" id="clipSave">Save video</button><button class="ghost sm" type="button" id="clipFeat">Show on my profile</button><button class="ghost sm" type="button" id="clipX" aria-label="Close">×</button></div>
+  <div class="clipview" id="clipView" hidden><div class="cvhead"><b id="cvTitle">Kill cam</b><small id="cvSub"></small></div><div class="cvbtns"><button class="ghost sm" type="button" id="cvAgain" hidden>Watch again</button><button class="ghost sm" type="button" id="cvSave" hidden>Save video</button><button class="cta sm" type="button" id="cvClose">Close</button></div></div>
+  <div class="rejoinbar" id="rejoinBar" hidden><span>Your ranked match is still going.</span><button class="cta sm" type="button" id="rejoinGo">Rejoin</button></div>
   <div class="invite" id="inviteToast" hidden><span id="inviteText"></span><div class="btnrow"><button class="cta sm" id="inviteYes" type="button">Join party</button><button class="ghost sm" id="inviteNo" type="button">No thanks</button></div></div>
   <div class="overlay sub" id="customScr" hidden>
     <div class="card wide">
@@ -1196,6 +1250,7 @@
         <section class="mode" data-navsec><h3>Graphics</h3>
           <div class="field"><label for="oRes">Resolution</label><select id="oRes"><option value="auto">Automatic (drops when the game slows)</option><option value="sharp">Always sharp</option><option value="fast">Fast (lower resolution)</option></select></div>
           <div class="field"><label for="oFx">Effects</label><select id="oFx"><option value="auto">Automatic (lighter when the game slows)</option><option value="full">Full</option><option value="light">Light (no glows or trails, for older laptops)</option></select></div>
+          <div class="field"><label for="oCb">Colours</label><select id="oCb"><option value="">Standard</option><option value="1">Colour-blind friendly (orange and blue teams)</option></select></div>
           <div class="field"><label for="oMe">Your own archer</label><select id="oMe"><option value="strong">Strongly marked (gold ring and arrow)</option><option value="soft">Lightly marked (white ring)</option></select></div>
           <div class="field"><label for="oGlow">Team glow round archers</label><select id="oGlow"><option value="live">Living (breathes, leans into movement, flares on a draw)</option><option value="soft">Soft (still)</option><option value="ring">Ring only</option></select></div>
           <div class="field"><label for="oDetail">Arena detail</label><select id="oDetail"><option value="full">Full (ambient light, drifting leaves, lava glow)</option><option value="low">Low (plain arenas; fastest)</option></select></div>
@@ -1232,6 +1287,17 @@
           <span class="status">Titles and banner borders unlock with achievements.</span>
           <div class="acct" id="acctBar"></div>
         </div>
+      </div>
+      <div class="pfpage" id="pfPage" hidden>
+        <div class="shopbar"><div class="stat"><span class="eyebrow">Your profile page</span><h3 style="margin:0">What other players see</h3></div><button class="ghost sm" type="button" id="pfPreview">Preview</button></div>
+        <div class="row">
+          <div class="field"><label for="pfBg">Backdrop</label><select id="pfBg"></select></div>
+          <div class="field"><label for="pfMotto">Motto</label><input id="pfMotto" maxlength="80" autocomplete="off" placeholder="A line under your name"></div>
+        </div>
+        <div class="archrow"><span class="lbl">Accent</span><div class="chips" id="pfAcc"></div></div>
+        <div class="archrow"><span class="lbl">Pinned stats</span><div class="pfpins" id="pfPins"></div></div>
+        <div class="archrow"><span class="lbl">Flag</span><label class="chk"><input type="checkbox" id="pfFlagBig"> Show my flag big behind my name</label></div>
+        <div class="archrow"><span class="lbl">Kill cam</span><div id="pfClip" class="status"></div></div>
       </div>
     </div>
   </div>
@@ -1445,7 +1511,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.35.0"></script>
+<script src="sim.js?v=0.37.0"></script>
 <script>
 (() => {
 'use strict';
@@ -1453,7 +1519,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.35.0';
+const PAGE_VERSION = '0.37.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -1466,6 +1532,13 @@ const CAT_COL = { Power: '#ff8a5b', Agility: '#5ad1ff', Utility: '#c7b3ff' };
 const archName = p => (ELEMENTS[p.el] ? ELEMENTS[p.el].name : '') + ' ' + (ROLES[p.ro] ? ROLES[p.ro].name : '');
 const AMBER_COL = '#ffb84d';
 const TEAM_COL = { red: '#ff5a45', blue: '#3d8bff', npc: '#d9d2bd' };
+// colour-blind friendly colours: the red team becomes oranges and yellows, the blue team clear blues and cyans (the two
+// sides then differ in brightness and on the blue–yellow axis, which most colour blindness leaves intact)
+const CB_TEAM = { red: '#ff9f1c', blue: '#2f7bff' };
+const CB_MAP = {}; [['red', ['#ff9f1c', '#ffd166', '#e36414', '#fff0a8']], ['blue', ['#2f7bff', '#00b4d8', '#4361ee', '#9fe7ff']]].forEach(([t, cols]) => Sim.TEAM_INFO[t].shades.forEach((c, i) => { CB_MAP[c.toLowerCase()] = cols[i]; }));
+const TEAM_COL0 = Object.assign({}, TEAM_COL);
+function cbApply() { Object.assign(TEAM_COL, OPTS.cb ? CB_TEAM : TEAM_COL0); }
+function cbView(v) { if (!OPTS.cb || !v || !v.p) return v; for (const p of v.p) { const m = p.c && CB_MAP[String(p.c).toLowerCase()]; if (m) p.c = m; } return v; }
 const TEAM_RGB = { red: '255,90,69', blue: '61,139,255', npc: '217,210,189' };
 const teamName = t => (TEAM_INFO[t] ? TEAM_INFO[t].name : 'Nobody');
 const puInfo = ty => (ty === 'amber' ? { name: `+${Sim.AMBER_BOOST.hp} health · cooldowns`, color: AMBER_COL } : PU[ty]);
@@ -1760,7 +1833,8 @@ const sfx = {
 };
 const syncMute = () => { $('muteBtn').textContent = muted ? 'Sound off' : 'Sound on'; const m = $('oMute'); if (m) m.value = muted ? '1' : '0'; };
 // options, kept in this browser
-const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') === '1', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), me: store.get('bowfall-me', 'strong'), detail: store.get('bowfall-detail', 'full') };
+const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') === '1', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), me: store.get('bowfall-me', 'strong'), detail: store.get('bowfall-detail', 'full'), cb: store.get('bowfall-cb', '') === '1' };
+cbApply();
 const outNode = () => { if (!AC.master) { AC.master = AC.createGain(); AC.master.connect(AC.destination); } AC.master.gain.value = OPTS.vol / 100; return AC.master; };
 syncMute();
 $('muteBtn').onclick = () => { muted = !muted; syncMute(); initAudio(); store.set('bowfall-muted', muted ? '1' : '0'); };
@@ -2120,9 +2194,66 @@ addEventListener('keydown', e => {
 });
 addEventListener('keyup', e => keys.delete(e.code));
 addEventListener('blur', () => { keys.clear(); mouse.down = false; });
-cv.addEventListener('pointermove', e => { const r = cv.getBoundingClientRect(); mouse.sx = e.clientX - r.left; mouse.sy = e.clientY - r.top; pad.aim = null; }); // the mouse takes over aiming again
-cv.addEventListener('pointerdown', e => { if (e.button !== 0) return; const r = cv.getBoundingClientRect(); mouse.sx = e.clientX - r.left; mouse.sy = e.clientY - r.top; mouse.down = true; drawLatch = true; initAudio(); predictShot(); });
-addEventListener('pointerup', e => { if (e.button === 0) mouse.down = false; });
+cv.addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; const r = cv.getBoundingClientRect(); mouse.sx = e.clientX - r.left; mouse.sy = e.clientY - r.top; pad.aim = null; }); // the mouse takes over aiming again
+cv.addEventListener('pointerdown', e => { if (e.button !== 0 || e.pointerType === 'touch') return; const r = cv.getBoundingClientRect(); mouse.sx = e.clientX - r.left; mouse.sy = e.clientY - r.top; mouse.down = true; drawLatch = true; initAudio(); predictShot(); });
+addEventListener('pointerup', e => { if (e.button === 0 && e.pointerType !== 'touch') mouse.down = false; });
+// ================= touch controls (phones and tablets) =================
+// Twin sticks: touch anywhere on the left of the screen to move (the stick appears under your thumb), and anywhere on
+// the right to aim: the bow draws while your thumb is down and shoots when you let go. A quick tap shoots at the
+// nearest enemy. Buttons on the right for Dash and the two abilities.
+const TOUCH = { on: !!(window.matchMedia && matchMedia('(pointer: coarse)').matches), mv: null, am: null, mx: 0, my: 0, aim: null, draw: false, R: 58 };
+function touchNearestAim() {
+  const me = view && view.p.find(p => p.id === myId); if (!me) return null;
+  const foes = view.p.filter(p => p.tm !== me.tm && !p.d && !p.f && p.tm !== 'spec');
+  if (!foes.length) return TOUCH.aim;
+  const f = foes.reduce((b, p) => (Math.hypot(p.x - me.x, p.y - me.y) < Math.hypot(b.x - me.x, b.y - me.y) ? p : b));
+  return Math.atan2(f.y - me.y, f.x - me.x);
+}
+function touchUI() {
+  document.body.classList.toggle('touchmode', TOUCH.on);
+  const show = TOUCH.on && mode !== 'menu' && !menuOpen && view && view.m.ph !== 'lobby' && !RP.on;
+  $('touchUI').hidden = !show;
+  const put = (el, st) => { if (!st) { el.hidden = true; return; } el.hidden = false; el.style.left = st.x0 + 'px'; el.style.top = st.y0 + 'px'; el.firstElementChild.style.transform = `translate(${st.dx}px, ${st.dy}px)`; };
+  put($('tsMove'), TOUCH.mv); put($('tsAim'), TOUCH.am);
+  $('rotateHint').hidden = !(TOUCH.on && mode !== 'menu' && innerHeight > innerWidth && innerWidth < 700);
+}
+function touchStart(e) {
+  if (mode === 'menu' || menuOpen) return;
+  TOUCH.on = true; document.body.classList.add('touching'); initAudio();
+  for (const t of e.changedTouches) {
+    const left = t.clientX < innerWidth * 0.45;
+    if (left && !TOUCH.mv) TOUCH.mv = { id: t.identifier, x0: t.clientX, y0: t.clientY, dx: 0, dy: 0 };
+    else if (!left && !TOUCH.am) { TOUCH.am = { id: t.identifier, x0: t.clientX, y0: t.clientY, dx: 0, dy: 0, moved: false }; TOUCH.aim = touchNearestAim(); TOUCH.draw = true; drawLatch = true; predictShot(); }
+  }
+  e.preventDefault(); touchUI();
+}
+function touchMove(e) {
+  for (const t of e.changedTouches) {
+    for (const st of [TOUCH.mv, TOUCH.am]) {
+      if (!st || st.id !== t.identifier) continue;
+      let dx = t.clientX - st.x0, dy = t.clientY - st.y0; const L = Math.hypot(dx, dy), R = TOUCH.R;
+      if (L > R) { dx *= R / L; dy *= R / L; }
+      st.dx = dx; st.dy = dy;
+      if (st === TOUCH.mv) { const live = L > R * 0.18; TOUCH.mx = live ? dx / R : 0; TOUCH.my = live ? dy / R : 0; } // a small dead zone in the middle
+      else if (L > 14) { st.moved = true; TOUCH.aim = Math.atan2(dy, dx); }
+    }
+  }
+  e.preventDefault(); touchUI();
+}
+function touchEnd(e) {
+  for (const t of e.changedTouches) {
+    if (TOUCH.mv && TOUCH.mv.id === t.identifier) { TOUCH.mv = null; TOUCH.mx = TOUCH.my = 0; }
+    if (TOUCH.am && TOUCH.am.id === t.identifier) { TOUCH.am = null; TOUCH.draw = false; }
+  }
+  touchUI();
+}
+cv.addEventListener('touchstart', touchStart, { passive: false });
+cv.addEventListener('touchmove', touchMove, { passive: false });
+cv.addEventListener('touchend', touchEnd); cv.addEventListener('touchcancel', touchEnd);
+for (const [id, fn] of [['tbDash', () => { dashLatch = true; }], ['tbQ', () => { qLatch = true; }], ['tbE', () => { eLatch = true; }]]) {
+  document.getElementById(id).addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); TOUCH.on = true; fn(); e.currentTarget.classList.add('on'); }, { passive: false });
+  document.getElementById(id).addEventListener('touchend', e => { e.currentTarget.classList.remove('on'); });
+}
 cv.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'local' && !menuOpen) openMenu(); });
 
@@ -2130,9 +2261,10 @@ function buildInput(me) {
   let mx = (held('right') ? 1 : 0) - (held('left') ? 1 : 0);
   let my = (held('down') ? 1 : 0) - (held('up') ? 1 : 0);
   if (pad.on && (pad.mx || pad.my)) { mx = pad.mx; my = pad.my; }
+  if (TOUCH.mv) { mx = TOUCH.mx; my = TOUCH.my; }
   // a controller aims along the stick's line (with its aim assist), not at the crosshair, so moving doesn't knock it off
   const aim = pad.on && pad.aim != null ? pad.aim : me ? Math.atan2(mouse.wy - me.y, mouse.wx - me.x) : 0;
-  return { mx, my, aim, draw: (mouse.down || held('draw') || (pad.on && pad.draw)) && !menuOpen, dash: dashLatch && !menuOpen, q: qLatch && !menuOpen, e: eLatch && !menuOpen, dp: drawLatch && !menuOpen, tx: Math.round(mouse.wx), ty: Math.round(mouse.wy), dmv: dashMove() ? 1 : 0 };
+  return { mx, my, aim, draw: (mouse.down || held('draw') || (pad.on && pad.draw) || TOUCH.draw) && !menuOpen, dash: dashLatch && !menuOpen, q: qLatch && !menuOpen, e: eLatch && !menuOpen, dp: drawLatch && !menuOpen, tx: Math.round(mouse.wx), ty: Math.round(mouse.wy), dmv: dashMove() ? 1 : 0 };
 }
 
 // ================= view sizing =================
@@ -2159,8 +2291,8 @@ function resize() {
   DPR = OPTS.res === 'fast' ? 1 : Math.max(1, Math.min(2, devicePixelRatio || 1) * (OPTS.res === 'sharp' ? 1 : RSCALE));
   W = Math.max(1, r.width); H = Math.max(1, r.height);
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
-  const top = mode === 'menu' ? 12 : 64;
-  const right = mode !== 'menu' && W > 1000 ? 236 : 12;
+  const top = mode === 'menu' ? 12 : H < 520 ? 44 : 64;
+  const right = mode !== 'menu' && W > 1000 ? 236 : TOUCH.on && mode !== 'menu' ? 96 : 12; // touch: room for the buttons
   VS = Math.min((W - 12 - right) / AW, (H - top - 12) / AH);
   // centred in the window when the arena fits beside the scoreboard; otherwise as close to centred as the scoreboard allows
   OX = Math.max(12, Math.min((W - AW * VS) / 2, W - right - AW * VS));
@@ -2175,6 +2307,7 @@ function resize() {
 // ================= flow =================
 function setScreens() {
   const inGame = mode !== 'menu';
+  if (typeof renderRejoin === 'function' && $('rejoinBar')) renderRejoin();
   socialSend({ t: 'status', s: mode === 'local' ? (TUT.on ? 'tutorial' : 'practice') : 'menu' }); // for friends' lists
   $('home').hidden = inGame;
   if (inGame) { for (const k of SUBS) $(k).hidden = true; $('gate').hidden = true; } else drawProfChip();
@@ -2191,6 +2324,7 @@ function playerName() { const n = $('nameIn').value.trim().slice(0, 16) || 'Arch
 // you'll use in every game, then a real game against an easy bot. Each step is short and moves on as soon as you've done
 // it; any step can be skipped, and "Skip to the match" jumps straight to the bot.
 let TUT = { on: false };
+const DRILL_LOADOUT = { el: 'frost', ro: 'trapper' };
 const TUT_LOADOUT = { el: 'frost', ro: 'ranger' }; // the all-rounder, and the easiest element to see working
 const TUT_STEPS = [
   { k: 'move', title: 'Move', text: 'Move with W A S D, or the left stick.', hint: 'You take a moment to get up to speed and slide a little when you let go. Momentum matters: plan your stops.' },
@@ -2484,7 +2618,7 @@ const AB_TOOLS = [
   { k: 'gate', name: 'Gate', kind: 'portals', o: {}, sw: '#b48cff' },
   { k: 'spike', name: 'Thorns (edge)', kind: 'spikes', o: {}, sw: '#7a6a3a', sq: 1 },
 ];
-const AB_THEME_NAMES = { meadow: 'Meadow', spring: 'Spring', rift: 'Volcanic', beach: 'Beach', mill: 'Sawmill', ruins: 'Ruins', grove: 'Mushroom grove', pitch: 'Football pitch' };
+const AB_THEME_NAMES = { farm: 'Farm', meadow: 'Meadow', spring: 'Spring', rift: 'Volcanic', beach: 'Beach', mill: 'Sawmill', ruins: 'Ruins', grove: 'Mushroom grove', pitch: 'Football pitch' };
 const abBlank = () => ({ v: 1, name: '', theme: 'meadow', haz: [], pillars: [], bumpers: [], spikes: [], portals: [], ball: false });
 const AB = {
   def: abBlank(), id: null, code: null, pub: false, sel: null, tool: 'sel', hist: [], floor: null, drag: null, testing: false, tab: 'edit', check: null, repaintT: null,
@@ -2830,10 +2964,11 @@ function startDrill(kind) {
   const D = DRILLS[kind];
   if (kind === 'dodge') { const M = MAPS.chasm; M.base = M.base || M.haz.slice(); M.haz.length = 0; M.haz.push(...M.base); floorKey = null; }
   if (kind === 'sink') { MAPS.holes.haz.length = 0; floorKey = null; }
-  world = Sim.createWorld({ map: D.map, diff: 'normal' });
+  world = Sim.createWorld({ map: D.map, diff: 'normal', opt: { upg: 'off' } }); // standard rules, and no upgrade picks
   setArena(D.map);
-  // every drill is played as a Frost Ranger, so scores compare fairly (and don't depend on the last archer you picked)
-  const me = Sim.join(world, { name: playerName(), team: 'red', element: TUT_LOADOUT.el, role: TUT_LOADOUT.ro });
+  // every drill is played as a plain Frost Trapper, so scores compare fairly: a role whose trait doesn't change how you
+  // move or draw (the Ranger moves faster), with no opening upgrade
+  const me = Sim.join(world, { name: playerName(), team: 'red', element: DRILL_LOADOUT.el, role: DRILL_LOADOUT.ro });
   const dums = [];
   for (let i = 0; i < D.dums; i++) { const d = Sim.addBot(world, 'blue', D.dums > 4); d.name = kind === 'target' ? 'Target' : kind === 'dodge' ? 'Shooter' : kind === 'sink' ? 'Dummy' : 'Turret'; Sim.setLoadout(world, d.id, 'storm', 'ranger'); dums.push(d); }
   Sim.startMatch(world);
@@ -3408,23 +3543,32 @@ const RATED = { start: null, now: null, match: null };
 function showRated(m) {
   const d = Math.round(m.d), elo = Math.round(m.elo), up = d >= 0, kind = m.key === 'eloT' ? 'Team rating' : '1v1 rating';
   RATED.match = roomInfo && roomInfo.code; RATED.start = elo - d;
-  RATED.now = elo; RATED.kind = kind; RATED.guest = !!m.guest;
+  RATED.now = elo; RATED.kind = kind; RATED.guest = !!m.guest; RATED.pl = m.pl == null ? 1 : m.pl; RATED.left = m.left || 0;
   // at the end of a match the results screen shows the rating (counting up), so the pop-up would only cover the headline
   if ((view && view.m && view.m.ph === 'over') || !$('resultsScreen').hidden) { renderResRated(); return; }
   const box = $('ratedBox');
-  box.innerHTML = `<span class="eyebrow">${kind}</span><b>${elo}</b><em class="${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(d)}</em>` +
+  box.innerHTML = `<span class="eyebrow">${kind}</span><b>${elo}</b><em class="${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(d)}</em>${tierChange(elo - d, elo, RATED.pl, RATED.left)}` +
     (m.guest ? `<a href="/#/register?next=/play" target="_blank" rel="noopener">Make an account to keep it</a>` : '');
   box.classList.remove('show'); void box.offsetWidth; box.classList.add('show'); box.hidden = false;
   clearTimeout(RATED.t); RATED.t = setTimeout(() => { box.classList.remove('show'); }, 6500);
   tone(up ? 784 : 392, 0.12, 'triangle', 0.04); setTimeout(() => tone(up ? 1047 : 330, 0.16, 'triangle', 0.04), 110);
   renderResRated();
 }
+// ranked tiers: a badge, and what a match did to your tier (promoted, dropped, or how far to the next division)
+function tierHtml(r, placed, size = 18) { const T = Sim.tierOf(r, placed); return `<span class="tier" style="--tc:${T.col}">${Sim.tierSvg(T.k, size)}<b>${esc(T.label)}</b></span>`; }
+function tierChange(from, to, placed, left) {
+  if (!placed) return `<span class="tierchg">${Sim.tierSvg('unranked', 18)} Placement: ${left} match${left === 1 ? '' : 'es'} left</span>`;
+  const a = Sim.tierOf(from), b = Sim.tierOf(to), rank = T => T.i * 3 + ['III', 'II', 'I', ''].indexOf(T.div);
+  if (rank(b) > rank(a)) return `<span class="tierchg up" style="--tc:${b.col}">${Sim.tierSvg(b.k, 20)} Promoted to <b>${esc(b.label)}</b></span>`;
+  if (rank(b) < rank(a)) return `<span class="tierchg down" style="--tc:${b.col}">${Sim.tierSvg(b.k, 20)} Down to <b>${esc(b.label)}</b></span>`;
+  return `<span class="tierchg" style="--tc:${b.col}">${Sim.tierSvg(b.k, 20)} <b>${esc(b.label)}</b>${b.next ? ` · ${b.toNext} to ${esc(b.next)}` : ''}</span>`;
+}
 function renderResRated() {
   const el = $('resRated'); if (!el) return;
   if (RATED.now == null || RATED.match !== (roomInfo && roomInfo.code)) { el.hidden = true; return; }
   const d = Math.round(RATED.now - RATED.start);
   el.hidden = false; el.innerHTML = `Your ${(RATED.kind || 'rating').toLowerCase()} <b class="ticking">${RATED.start}</b> <em class="${d >= 0 ? 'up' : 'down'}" style="opacity:0">${d >= 0 ? '+' : '−'}${Math.abs(d)} this match</em>` +
-    (RATED.guest ? ` <a href="/#/register?next=/play" target="_blank" rel="noopener" style="margin-left:8px;font-size:14px">Make an account to keep it</a>` : '');
+    (RATED.guest ? ` <a href="/#/register?next=/play" target="_blank" rel="noopener" style="margin-left:8px;font-size:14px">Make an account to keep it</a>` : '') + tierChange(RATED.start, RATED.now, RATED.pl, RATED.left);
   if (RATED.ticked === RATED.match) { el.querySelector('b').textContent = RATED.now; el.querySelector('em').style.opacity = 1; return; }
   RATED.ticked = RATED.match;
   // the number counts from the old rating to the new one, a tick a step, then the change fades in
@@ -3761,7 +3905,7 @@ function socialConnect() {
   sock.onopen = () => { SOC.retry = 0; socialHello(); if (DM.open && DM.with) socialSend({ t: 'dm', op: 'open', with: DM.with }); };
   sock.onmessage = e => {
     let m; try { m = JSON.parse(e.data); } catch (err) { return; }
-    if (m.t === 'social') { SOC.st = m; if (m.party && m.party.mode) SOC.mode = m.party.mode; renderFind(); findBadge(); renderHomeFriends(); dmRenderList(); }
+    if (m.t === 'social') { SOC.st = m; if (m.party && m.party.mode) SOC.mode = m.party.mode; renderFind(); findBadge(); renderHomeFriends(); dmRenderList(); renderRejoin(); }
     else if (m.t === 'note') notice(esc(m.msg), false);
     else if (m.t === 'partyReady') partyReadyNote(m);
     else if (m.t === 'dm') dmGot(m);
@@ -3837,28 +3981,72 @@ $('homeFriends').addEventListener('click', e => {
   else if (b.dataset.hoff) { SOC.hideOff = !SOC.hideOff; store.set('bowfall-hideoff', SOC.hideOff ? '1' : ''); renderHomeFriends(); }
 });
 // ---- a player's card: stats, favourite picks and achievements, from the friends lists
+// profile pages: stats people can pin (four), and what makes a player stand out
+const PSTAT = {
+  elo: ['1v1 rating', c => Math.round(c.elo || 800)], eloT: ['Team rating', c => Math.round(c.eloT != null ? c.eloT : c.elo || 800)],
+  matches: ['Games', c => c.matches || 0], matchWins: ['Wins', c => c.matchWins || 0], rate: ['Win rate', c => (c.matches ? Math.round((c.matchWins || 0) / c.matches * 100) + '%' : '–')],
+  wins: ['Rounds won', c => c.wins || 0], kills: ['Knockouts', c => c.kills || 0], kd: ['K/D', c => (c.deaths ? ((c.kills || 0) / c.deaths).toFixed(2) : c.kills || 0)],
+  acc: ['Accuracy', c => (c.shots ? Math.round((c.hits || 0) / c.shots * 100) + '%' : '–')], ring: ['Ring-outs', c => c.ring || 0], bulls: ['Bullseyes', c => c.bulls || 0],
+  dmg: ['Damage dealt', c => Math.round(c.dmg || 0)], best: ['Most KOs in a game', c => (c.best || {}).k || 0], level: ['Level', (c, u) => (u.level ? u.level.lv : 1)],
+};
+const PROF_PINS = ['matchWins', 'rate', 'kills', 'acc'];
+const PROF_COLS = ['#ffcf5a', '#ff6b5a', '#ff9f43', '#7dff8a', '#4fe3c6', '#5ad1ff', '#7fb6ff', '#c77dff', '#ff7ac8', '#e9edf2'];
+const thumbURL = k => { const t = thumbs[k]; if (!t) return null; thumbURL.c = thumbURL.c || {}; return thumbURL.c[k] || (thumbURL.c[k] = t.toDataURL('image/jpeg', 0.8)); };
+// the few things that make someone stand out: their main, their rank, their playstyle and their best moment
+function profSignature(u) {
+  const c = u.career || {}, out = [], top = o => Object.entries(o || {}).sort((a, b) => b[1] - a[1])[0];
+  const el = top(c.els), ro = top(c.roles);
+  if (el && ro) { const m = Sim.masteryOf(c.els[el[0]], (c.elW || {})[el[0]]), mr = Sim.masteryOf(c.roles[ro[0]], (c.roleW || {})[ro[0]]);
+    out.push({ k: 'Main', big: `${(ELEMENTS[el[0]] || {}).name || el[0]} ${(ROLES[ro[0]] || {}).name || ro[0]}`, sub: `Mastery ${m.lv} · ${mr.lv}`, col: EL_COL[el[0]] }); }
+  const best = ['elo', 'eloT'].map(k => ({ k, r: c[k] })).filter(x => x.r != null).sort((a, b) => b.r - a.r)[0];
+  const peakS = (c.seasons || []).map(x => [x.k1, x.t1, x.n, x.tT, x.kT]).flatMap(([k1, t1, n, tT, kT]) => [[k1, t1, n], [kT, tT, n]]).filter(x => x[0])
+    .sort((a, b) => Sim.TIERS.findIndex(t => t.k === b[0]) - Sim.TIERS.findIndex(t => t.k === a[0]))[0];
+  if (best) { const T = Sim.tierOf(best.r, u.placed !== false); out.push({ k: best.k === 'elo' ? '1v1 rank' : 'Team rank', big: T.label, sub: peakS ? `Peaked ${peakS[1]} in season ${peakS[2]}` : `${Math.round(best.r)} rating`, col: T.col, badge: T.k }); }
+  const tr = u.play && u.play.traits ? u.play.traits.filter(x => x.pct != null).sort((a, b) => b.pct - a.pct)[0] : null;
+  if (tr && tr.pct >= 0.5) out.push({ k: 'Playstyle', big: tr.name, sub: `Top ${Math.max(1, Math.round((1 - tr.pct) * 100))}% · ${tr.value} ${tr.what}`, col: '#5ad1ff' });
+  else if (u.play && u.play.style && u.play.style.length) out.push({ k: 'Playstyle', big: u.play.style.join(' · '), sub: 'How they play', col: '#5ad1ff' });
+  const bk = (c.best || {}).k;
+  if (bk >= 3) out.push({ k: 'Best game', big: `${bk} knockouts`, sub: 'In a single game', col: '#ff9f43' });
+  else if (c.eloPeak) out.push({ k: 'Peak rating', big: Math.round(c.eloPeak), sub: '1v1, all time', col: '#ff9f43' });
+  return out.slice(0, 4);
+}
 async function openPlayerCard(name) {
   const wrap = $('pcWrap'), card = $('pcCard');
-  wrap.hidden = false; card.innerHTML = '<div class="status">Loading…</div>';
+  wrap.hidden = false; card.innerHTML = '<div class="status" style="padding:20px">Loading…</div>'; card.style.removeProperty('--pa');
   let u;
   try { const r = await fetch('/api/users/' + encodeURIComponent(name)); const d = await r.json(); if (!r.ok) throw new Error(d.error || 'Not found'); u = d.user; }
-  catch (e) { card.innerHTML = `<button type="button" class="ghost sm pcx" data-pcx>×</button><div class="status">${esc(e.message || "Couldn't load that profile.")}</div>`; return; }
-  const c = u.career || {}, A = Sim.ACHIEVEMENTS, tier = u.tier || {}, pct = (a, b) => (b ? Math.round(a / b * 100) + '%' : '–');
+  catch (e) { card.innerHTML = `<button type="button" class="ghost sm pcx" data-pcx>×</button><div class="status" style="padding:20px">${esc(e.message || "Couldn't load that profile.")}</div>`; return; }
+  const c = u.career || {}, A = Sim.ACHIEVEMENTS, tier = u.tier || {}, P = u.prof || {};
   const f = ((SOC.st && SOC.st.friends) || []).find(x => x.name.toLowerCase() === u.name.toLowerCase());
   const party = SOC.st && SOC.st.party, lead = !party || party.leader === SOC.st.you, inParty = f && party && party.members.some(p => p.key === 'u' + f.id);
-  const top = (o, names, col) => Object.entries(o || {}).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => `<span style="--cc:${col(k)}">${esc((names[k] || {}).name || k)}<small>${v}</small></span>`).join('') || '<small class="status">No games yet</small>';
+  const mine = !!(account && account.name.toLowerCase() === u.name.toLowerCase());
+  const acc = P.acc || '#ffcf5a', bg = P.bg && thumbURL(P.bg) ? P.bg : (Object.keys(c.maps || {})[0] && thumbURL(Object.keys(c.maps)[0]) ? Object.keys(c.maps)[0] : 'meadow');
+  const L = Object.assign({ n: u.name, lv: u.level && u.level.lv, cc: u.country, ow: u.admin ? 1 : 0 }, u.status || {}, u.look || {});
+  const plate = `<span class="nm plate${plateClass(L)}"${plateStyle(L)}><span class="pl1">${idHtml(L)}<b>${esc(u.name)}</b>${ownHtml(L.ow)}${statusHtml(L)}${trophyHtml(L.na)}${medalsHtml(L.sc)}${u.title ? ` <em class="ttl">${esc(titleName(u.title))}</em>` : ''}</span></span>`;
   const achs = Object.keys(tier).filter(k => A[k] && tier[k] > 0).sort((a, b) => tier[b] - tier[a]);
-  const stats = [['1v1 rating', Math.round(c.elo || 800)], ['Team rating', Math.round(c.eloT != null ? c.eloT : c.elo || 800)], ['Games', c.matches || 0], ['Wins', c.matchWins || 0], ['Win rate', pct(c.matchWins || 0, c.matches || 0)],
-    ['Knockouts', c.kills || 0], ['K/D', c.deaths ? ((c.kills || 0) / c.deaths).toFixed(2) : (c.kills || 0)], ['Accuracy', pct(c.hits || 0, c.shots || 0)], ['Ring-outs', c.ring || 0]];
+  const pins = (P.pins && P.pins.length ? P.pins : PROF_PINS).filter(k => PSTAT[k]);
+  const t1 = Sim.tierOf(c.elo, u.placed), tT = Sim.tierOf(c.eloT != null ? c.eloT : c.elo, u.placed);
   const status = f ? (f.online ? ACT_TEXT(f) : 'Offline') : '';
+  const sig = profSignature(u), seasons = (c.seasons || []).slice().reverse();
+  card.style.setProperty('--pa', acc);
   card.innerHTML = `<button type="button" class="ghost sm pcx" data-pcx aria-label="Close">×</button>
-    <div class="pchead"><canvas id="pcAv" width="224" height="224"></canvas><div><h2>${rankHtml(u.level && u.level.lv)}${flagHtml(u.country)}${esc(u.name)}${u.ai ? ' <span class="tag">AI</span>' : ''}</h2>
-      <div class="pcsub">${u.title && A[u.title] ? `<em class="ttl">${esc(titleName(u.title))}</em> · ` : ''}${u.level ? `Level ${u.level.lv} · ` : ''}Joined ${new Date(u.created).toLocaleDateString()}${status ? ' · ' + esc(status) : ''}</div></div></div>
-    <div class="pcstats">${stats.map(([k, v]) => `<div><b>${v}</b><span>${k}</span></div>`).join('')}</div>
-    <div class="pcsec"><h3>Favourite roles</h3><div class="pcchips">${top(c.roles, ROLES, k => CAT_COL[(ROLES[k] || {}).cat] || 'var(--line)')}</div></div>
-    <div class="pcsec"><h3>Favourite elements</h3><div class="pcchips">${top(c.els, ELEMENTS, k => (ELEMENTS[k] || {}).color || 'var(--line)')}</div></div>
+    <div class="pchero" style="background-image:linear-gradient(100deg, rgba(8,14,10,.94) 30%, rgba(8,14,10,.55)), url(${thumbURL(bg) || ''})">
+      ${u.country && P.flag !== 'off' && !OFFLINE ? `<img class="pcflag" src="https://flagcdn.com/w320/${esc(u.country)}.png" alt="" aria-hidden="true">` : ''}
+      <canvas id="pcAv" width="260" height="260"></canvas>
+      <div class="pcwho">
+        <div class="pcname">${esc(u.name)}${u.ai ? ' <span class="tag">AI</span>' : ''}</div>
+        <div class="pcplate">${plate}</div>
+        ${P.motto ? `<div class="pcmotto">“${esc(P.motto)}”</div>` : ''}
+        <div class="pctiers"><span>${Sim.tierSvg(t1.k, 26)}<b style="color:${t1.col}">${esc(t1.label)}</b><small>1v1</small></span><span>${Sim.tierSvg(tT.k, 26)}<b style="color:${tT.col}">${esc(tT.label)}</b><small>Team</small></span>${u.clan ? `<span class="pcclan" style="--cl:${u.clan.col || acc}">${Sim.emblemSvg ? Sim.emblemSvg(u.clan.em, 22) : ''}<b>[${esc(u.clan.tag)}]</b><small>${esc(u.clan.name)}</small></span>` : ''}</div>
+        <div class="pcsub">${u.level ? `Level ${u.level.lv} · ` : ''}Joined ${new Date(u.created).toLocaleDateString()}${status ? ' · ' + esc(status) : ''}</div>
+      </div>
+    </div>
+    ${sig.length ? `<div class="pcsig">${sig.map(x => `<div style="--sc:${x.col || acc}"><span>${esc(x.k)}</span>${x.badge ? Sim.tierSvg(x.badge, 22) : ''}<b>${esc(String(x.big))}</b><small>${esc(x.sub)}</small></div>`).join('')}</div>` : ''}
+    <div class="pcstats">${pins.map(k => `<div><b>${PSTAT[k][1](c, u)}</b><span>${PSTAT[k][0]}</span></div>`).join('')}</div>
+    ${u.clip ? `<button type="button" class="pcclip" data-pcclip="${esc(u.clip.id)}"><i>▶</i><span><b>${esc(u.clip.label || 'Kill cam')}</b><small>Featured kill cam${mine ? ' · yours' : ''}</small></span></button>` : ''}
     <div class="pcsec"><h3>Achievements · ${achs.length} of ${Sim.ACH_ORDER.length}</h3><div class="pcchips">${achs.length ? achs.map(k => { const T = Sim.ACH_TIERS[tier[k] - 1]; return `<span style="--cc:${T.col}" title="${esc(Sim.achText(k, tier[k]))}">${esc(A[k].title)}<small>${T.n}</small></span>`; }).join('') : '<small class="status">None yet</small>'}</div></div>
-    <div class="pcact">${f && canWatch(f) ? `<button type="button" class="ghost sm" data-pcwatch="${f.id}">Watch their game</button>` : ''}${f && f.online && lead && !inParty && !f.inGame ? `<button type="button" class="ghost sm" data-pcinv="${f.id}">Invite to party</button>` : ''}${f ? `<button type="button" class="ghost sm" data-pcmsg="${f.id}">Message</button>` : ''}${OFFLINE ? '' : `<a class="ghost sm btnlink" href="/#/u/${encodeURIComponent(u.name)}" target="_blank" rel="noopener">Full profile</a>`}</div>`;
+    ${seasons.length ? `<div class="pcsec"><h3>Seasons</h3><div class="pcchips">${seasons.map(x => { const k = x.k1 || x.kT, T = Sim.TIERS.find(t => t.k === k); return `<span style="--cc:${T ? T.col : 'var(--line)'}">${k ? Sim.tierSvg(k, 14) : ''} Season ${x.n}<small>${esc([x.t1 && '1v1 ' + x.t1, x.tT && 'team ' + x.tT].filter(Boolean).join(' · ') || 'Unranked')}</small></span>`; }).join('')}</div></div>` : ''}
+    <div class="pcact">${mine ? `<button type="button" class="ghost sm" data-pcedit="1">Customise</button>` : ''}${f && canWatch(f) ? `<button type="button" class="ghost sm" data-pcwatch="${f.id}">Watch their game</button>` : ''}${f && f.online && lead && !inParty && !f.inGame ? `<button type="button" class="ghost sm" data-pcinv="${f.id}">Invite to party</button>` : ''}${f ? `<button type="button" class="ghost sm" data-pcmsg="${f.id}">Message</button>` : ''}${SOC.st && SOC.st.account && !u.ai && !mine ? (isBlockedName(u.name) ? `<button type="button" class="ghost sm" data-pcunb="${esc(u.name)}">Unblock</button>` : `<button type="button" class="ghost sm" data-pcblock="${esc(u.name)}">Block</button>`) : ''}${OFFLINE ? '' : `<a class="ghost sm btnlink" href="/#/u/${encodeURIComponent(u.name)}" target="_blank" rel="noopener">Full profile</a>`}</div>`;
   const av = u.avatar || { el: 'frost', ro: 'sniper', c: TEAM_INFO.red.shades[0] };
   try { drawPreview($('pcAv'), av.el, av.ro, av.c); } catch (e) {}
 }
@@ -3869,9 +4057,16 @@ $('pcWrap').addEventListener('click', e => {
   if (b.dataset.pcwatch) { closePlayerCard(); watchFriend(+b.dataset.pcwatch); }
   else if (b.dataset.pcinv) { socialSend({ t: 'party', op: 'invite', id: +b.dataset.pcinv }); b.disabled = true; b.textContent = 'Invited'; }
   else if (b.dataset.pcmsg) { closePlayerCard(); dmOpen(+b.dataset.pcmsg); }
+  else if (b.dataset.pcclip) { closePlayerCard(); closeSubs(); playClip(b.dataset.pcclip); }
+  else if (b.dataset.pcedit) { closePlayerCard(); openSub('profScr'); setTimeout(() => { const el = $('pfPage'); if (el) el.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 60); }
+  else if (b.dataset.pcblock) { if (b.dataset.sure) { socialSend({ t: 'friend', op: 'block', name: b.dataset.pcblock }); closePlayerCard(); } else { b.dataset.sure = 1; b.textContent = 'Block? They can\'t message, invite or add you'; } }
+  else if (b.dataset.pcunb) { socialSend({ t: 'friend', op: 'unblock', name: b.dataset.pcunb }); closePlayerCard(); }
 });
 $('pcWrap').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') closePlayerCard(); });
-addEventListener('keydown', e => { if (e.key === 'Escape' && !$('pcWrap').hidden) { e.stopImmediatePropagation(); closePlayerCard(); } }, true);
+addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !$('pcWrap').hidden) { e.stopImmediatePropagation(); closePlayerCard(); }
+  else if (e.key === 'Escape' && CLIP.playing && !CLIP.playing.embed) { e.stopImmediatePropagation(); closeClipView(); }
+}, true);
 // watching a friend's game: matchmade games are watch-only; custom games are joined (as a spectator until the game ends)
 const canWatch = f => f.inGame && (f.act === 'ranked' || f.act === 'custom');
 function watchFriend(id) { closeSubs(); if (DM.open) dmClose(); connect({ watch: id }); }
@@ -3888,12 +4083,14 @@ function renderFind() {
   if (!P) $('fgMe').innerHTML = '<div class="status">Connecting…</div>';
   else {
     const rate = P.games ? Math.round(P.wins / P.games * 100) + '%' : '–';
-    const team = mode !== '1v1', key = [P.name, P.elo, P.eloT, team, P.games, P.lv, P.cc, P.top.join(), lo.el, lo.ro, P.place, firstWinReady()].join('|');
+    const team = mode !== '1v1', key = [P.name, P.elo, P.eloT, team, P.games, P.lv, P.cc, P.top.join(), lo.el, lo.ro, P.place, firstWinReady(), st.season && st.season.n].join('|');
     if (hc.fgMe !== key) {
       hc.fgMe = key;
       $('fgMe').innerHTML = `<canvas id="fgAv" width="184" height="184"></canvas>
         <div class="nm">${rankHtml(P.lv)}${flagHtml(P.cc)}${esc(P.name)}${ownHtml(P.own)}${statusHtml(P)}${P.guest ? '<span class="tag">Guest</span>' : ''}</div>
         <div class="rt"><span class="elo"><b>${team ? P.eloT : P.elo}</b>${team ? 'Team rating' : '1v1 rating'}</span><span><b>${team ? P.elo : P.eloT}</b>${team ? '1v1' : 'Team'}</span><span><b>${P.games}</b>Games</span><span><b>${rate}</b>Win rate</span><span><b>${P.kills}</b>Knockouts</span></div>
+        ${(() => { const r = team ? P.eloT : P.elo, T = Sim.tierOf(r, !P.place), se = st.season;
+          return `<div class="fgtier" style="--tc:${T.col}">${Sim.tierSvg(T.k, 40)}<div><b>${esc(T.label)}</b><small>${P.place ? `${P.place} placement match${P.place > 1 ? 'es' : ''} to go` : T.next ? `${T.toNext} rating to ${esc(T.next)}` : 'The top tier'}</small>${!P.place && T.next ? `<i class="tbar"><i style="width:${Math.round(T.frac * 100)}%"></i></i>` : ''}</div>${se ? `<span class="fgseason">Season ${se.n}<small>${Math.max(1, Math.ceil((se.end - Date.now()) / 86400000))} days left</small></span>` : ''}</div>`; })()}
         ${account && !P.guest ? `<div class="fwin">${firstWinReady() ? `Daily first win: <b>+100 Crests</b> waiting for your first match win today` : 'Daily first win claimed. It comes back at midnight (UTC).'}</div>` : ''}
         ${P.place && !P.guest ? `<div class="status" style="margin:4px 0">Placement: ${P.place} ranked match${P.place > 1 ? 'es' : ''} left — your rating moves faster until then.</div>` : ''}
         <div class="achs">${P.top.length ? P.top.map(k => `<span style="--bd:${BORDERS[k] || '#c9d1dc'}">${esc(Sim.ACHIEVEMENTS[k].title)}${(P.tiers || {})[k] ? ' ' + Sim.ACH_TIERS[P.tiers[k] - 1].n : ''}</span>`).join('') + (P.nAch > P.top.length ? `<small class="status">+${P.nAch - P.top.length} more</small>` : '') : '<small class="status">No achievements yet</small>'}</div>`;
@@ -3932,7 +4129,7 @@ function renderFind() {
     const plateOf = p => { const L = Object.assign({ n: p.name, lv: p.lv, cc: p.cc, ow: p.own, sp: p.sp, fd: p.fd, pt: p.pt }, p.look || {}); return `<span class="nm plate${plateClass(L)}"${plateStyle(L)}><span class="pl1">${idHtml(L)}<b>${esc(p.name)}</b>${ownHtml(p.own)}${statusHtml(p)}${trophyHtml(L.na)}${medalsHtml(L.sc)}${L.ti ? ` <em class="ttl">${esc(titleName(L.ti))}</em>` : ''}</span></span>`; };
     $('fgParty').innerHTML = !st ? '<div class="status">Connecting…</div>' : members.map((p, i) => `<div class="fr mem"><canvas data-av="${i}" width="76" height="76"></canvas>` +
       `<b class="slot bn">${plateOf(p)}${p.key === me ? ' <small class="status">(you)</small>' : ''}${party && p.key === party.leader && party.members.length > 1 ? '<span class="lead">Leader</span>' : ''}${party && party.members.length > 1 && p.key !== party.leader ? (rset.has(p.key) || p.local ? '<span class="rdy on">Ready</span>' : '<span class="rdy">Not ready</span>') : ''}</b>` +
-      `<small>${p.inGame ? '<span class="fgwait">In a game</span> · ' : ''}Rating ${mode === '1v1' ? p.elo : p.eloT}${p.games ? ` · ${p.games} games` : ''}${p.local ? ' · on this screen' : ''}</small><div class="btnrow">${party && lead && p.key !== me ? `<button class="ghost sm" type="button" data-kick="${esc(p.key)}">Remove</button>` : ''}</div></div>`).join('') +
+      `<small>${p.inGame ? '<span class="fgwait">In a game</span> · ' : ''}${(() => { const r = mode === '1v1' ? p.elo : p.eloT, T = Sim.tierOf(r, !p.place); return `${Sim.tierSvg(T.k, 14)} ${esc(T.label)} · ${r}`; })()}${p.games ? ` · ${p.games} games` : ''}${p.local ? ' · on this screen' : ''}</small><div class="btnrow">${party && lead && p.key !== me ? `<button class="ghost sm" type="button" data-kick="${esc(p.key)}">Remove</button>` : ''}</div></div>`).join('') +
       (party && party.members.length > 1 && !lead ? `<button class="${rset.has(me) ? 'ghost' : 'cta'} sm" type="button" id="fgReady"${queued ? ' disabled' : ''}>${rset.has(me) ? 'Not ready' : 'Ready'}</button> ` : '') +
       (party && party.members.length > 1 ? `<button class="ghost sm" type="button" id="fgLeave">Leave party</button>` : '') +
       (st && st.account && members.length < 3 ? '<span class="status">Invite friends from the list below to play together (up to 3).</span>' : '');
@@ -3953,6 +4150,8 @@ function renderFind() {
     `<button class="ghost sm" type="button" data-fmsg="${f.id}">Message${f.un ? `<i class="dmn">${f.un}</i>` : ''}</button>` +
     `<button class="ghost sm" type="button" data-frem="${f.id}" aria-label="Remove ${esc(f.name)}">×</button></div></div>`).join('')
     : '<div class="status">No friends yet. Add someone by their player name.</div>';
+  const bl = st.blocked || [];
+  $('fgBlocked').innerHTML = bl.length ? `<h3 class="fgblh">Blocked</h3>` + bl.map(b => `<div class="fr"><i class="dot"></i><b>${esc(b.name)}</b><small>Blocked</small><div class="btnrow"><button class="ghost sm" type="button" data-funb="${b.id}">Unblock</button></div></div>`).join('') : '';
 }
 const fmtWait = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 $('fgModes').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (!b) return; SOC.mode = b.dataset.mode; store.set('bowfall-mm-mode', SOC.mode); socialSend({ t: 'party', op: 'mode', mode: SOC.mode }); renderFind(); });
@@ -3996,11 +4195,15 @@ $('findScr').addEventListener('click', e => {
   else if (d.finv) socialSend({ t: 'party', op: 'invite', id: +d.finv });
   else if (d.fmsg) dmOpen(+d.fmsg);
   else if (d.fpro) openPlayerCard(d.fpro);
+  else if (d.funb) socialSend({ t: 'friend', op: 'unblock', id: +d.funb });
   else if (d.fwatch) watchFriend(+d.fwatch);
   else if (d.kick) socialSend({ t: 'party', op: 'kick', key: d.kick });
   else if (b.id === 'fgLeave') socialSend({ t: 'party', op: 'leave' });
   else if (b.id === 'fgReady') { const p = SOC.st && SOC.st.party; initAudio(); socialSend({ t: 'party', op: 'ready', on: !(p && (p.ready || []).includes(SOC.st.you)) }); }
 });
+// dropped out of a ranked match (closed the tab, lost connection): a bar to get back in while it's still going
+function renderRejoin() { const r = SOC.st && SOC.st.rejoin; $('rejoinBar').hidden = !r || mode === 'online'; }
+$('rejoinGo').onclick = () => { const r = SOC.st && SOC.st.rejoin; if (!r) return; $('rejoinBar').hidden = true; closeSubs(); connect({ code: r.code }); };
 // a party member readied up (or stopped being ready): a chime and a small pop-up
 function partyReadyNote(m) {
   initAudio();
@@ -4041,6 +4244,8 @@ function dmRenderList() {
   });
   const f = DM.with && dmFriend(DM.with);
   $('dmName').textContent = f ? f.name : 'Messages';
+  if ($('dmBlock').dataset.for !== String(DM.with)) { $('dmBlock').dataset.for = String(DM.with); $('dmBlock').textContent = 'Block'; delete $('dmBlock').dataset.sure; }
+  $('dmBlock').hidden = !f;
   $('dmSub').textContent = f ? (f.inGame ? 'In a game' : f.online ? 'Online' : 'Offline · they\'ll see it next time they\'re on') : '';
 }
 const dmTime = t => { const d = new Date(t); return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); };
@@ -4090,6 +4295,7 @@ $('dmForm').addEventListener('submit', e => {
   socialSend({ t: 'dm', op: 'send', with: DM.with, body: t }); $('dmIn').value = '';
 });
 $('dmBox').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') { e.preventDefault(); dmClose(); } });
+$('dmBlock').onclick = () => { const b = $('dmBlock'); if (!DM.with) return; if (b.dataset.sure) { socialSend({ t: 'friend', op: 'block', id: DM.with }); dmSelect(null); } else { b.dataset.sure = 1; b.textContent = 'Block them?'; } };
 $('dmClose').onclick = dmClose; $('dmClose2').onclick = dmClose; $('dmBack').onclick = () => dmSelect(null);
 function showInvite(m) {
   SOC.invite = m; $('inviteText').innerHTML = `<b>${esc(m.from)}</b> invited you to their party.`; $('inviteToast').hidden = false;
@@ -4104,7 +4310,9 @@ if (!OFFLINE) setTimeout(socialConnect, 400);
 // ================= chat (online rooms) =================
 let chatMsgs = [];
 const chatLine = d => d.sys ? esc(d.m) : `<b style="color:${d.tm === 'spec' ? 'var(--muted)' : (d.c || TEAM_COL[d.tm])}">${esc(d.n)}${ownHtml(d.adm)}${statusHtml(d)}${d.ai ? '<span class="aitag">AI</span>' : ''}${d.tm === 'spec' ? (d.lobby ? ' <small>(unassigned)</small>' : ' <small>(spectating)</small>') : ''}:</b> ${esc(d.m)}`;
+const isBlockedName = n => !!(n && SOC.st && (SOC.st.blocked || []).some(b => b.name.toLowerCase() === String(n).toLowerCase()));
 function addChat(m) {
+  if (!m.sys && isBlockedName(m.n)) return; // someone you've blocked: their chat is hidden
   const d = { n: m.n, tm: m.tm, c: m.c, m: m.m, sys: m.sys, ai: m.ai, adm: m.adm, sp: m.sp, fd: m.fd, pt: m.pt, lobby: !view || view.m.ph === 'lobby' };
   chatMsgs.push(d); if (chatMsgs.length > 80) chatMsgs.shift();
   for (const id of ['lbChatLog', 'gChatLog']) {
@@ -4965,7 +5173,7 @@ $('scTabs').addEventListener('click', e => { const b = e.target.closest('[data-s
 $('scBody').addEventListener('click', e => { const b = e.target.closest('[data-scr]'); if (b) { SC.role = b.dataset.scr; renderScores(); } });
 function syncOptions() {
   $('oVol').value = OPTS.vol; $('oVolN').textContent = OPTS.vol + '%'; $('oMute').value = muted ? '1' : '0';
-  $('oRes').value = OPTS.res; $('oFx').value = OPTS.fx; $('oShadow').value = OPTS.shadow; $('oGlow').value = OPTS.glow; $('oMe').value = OPTS.me; $('oDetail').value = OPTS.detail; $('oPart').value = String(OPTS.part); $('oShake').value = OPTS.shake ? '1' : '0';
+  $('oRes').value = OPTS.res; $('oFx').value = OPTS.fx; $('oShadow').value = OPTS.shadow; $('oGlow').value = OPTS.glow; $('oMe').value = OPTS.me; $('oCb').value = OPTS.cb ? '1' : ''; $('oDetail').value = OPTS.detail; $('oPart').value = String(OPTS.part); $('oShake').value = OPTS.shake ? '1' : '0';
   $('oDmg').value = OPTS.dmg; $('oGuide').value = OPTS.guide ? '1' : '0'; $('oNet').value = OPTS.net ? '1' : '0';
 }
 $('oRec').onclick = () => { PR.toggle(); $('oRec').textContent = PR.on ? 'Stop and save' : 'Start recording'; };
@@ -4978,6 +5186,7 @@ $('oFx').onchange = () => { OPTS.fx = $('oFx').value; store.set('bowfall-fx', OP
 $('oShadow').onchange = () => { OPTS.shadow = $('oShadow').value; store.set('bowfall-shadow', OPTS.shadow); };
 $('oGlow').onchange = () => { OPTS.glow = $('oGlow').value; store.set('bowfall-glow', OPTS.glow); };
 $('oMe').onchange = () => { OPTS.me = $('oMe').value; store.set('bowfall-me', OPTS.me); };
+$('oCb').onchange = () => { OPTS.cb = $('oCb').value === '1'; store.set('bowfall-cb', OPTS.cb ? '1' : ''); cbApply(); hc = {}; };
 $('oDetail').onchange = () => { OPTS.detail = $('oDetail').value; store.set('bowfall-detail', OPTS.detail); floorCv = null; };
 $('oPart').onchange = () => { OPTS.part = +$('oPart').value; store.set('bowfall-part', OPTS.part); };
 $('oShake').onchange = () => { OPTS.shake = $('oShake').value === '1'; store.set('bowfall-shake', OPTS.shake ? '1' : '0'); };
@@ -5138,7 +5347,41 @@ function renderProfile() {
   $('pfFlagWrap').hidden = !account;
   if (account) $('pfFlag').innerHTML = `<option value="">Where I'm playing from</option><option value="-"${account.countryRaw === '-' ? ' selected' : ''}>No flag</option>` + countryList().map(([cc, n]) => `<option value="${cc}"${account.countryRaw === cc ? ' selected' : ''}>${esc(n)}</option>`).join('');
   $('pfPlate').innerHTML = myPlateHtml();
+  renderProfPage();
 }
+// the profile page settings (signed in): backdrop, accent, motto, pinned stats, flag, featured kill cam
+function renderProfPage() {
+  const box = $('pfPage'); box.hidden = !account || OFFLINE; if (box.hidden) return;
+  const P = account.prof || {};
+  $('pfBg').innerHTML = '<option value="">Most played arena</option>' + MAP_KEYS.map(k => `<option value="${k}"${P.bg === k ? ' selected' : ''}>${esc(MAPS[k].name)}</option>`).join('');
+  if (document.activeElement !== $('pfMotto')) $('pfMotto').value = P.motto || '';
+  $('pfAcc').innerHTML = PROF_COLS.map(c => `<button type="button" class="chip2 colchip${(P.acc || '#ffcf5a') === c ? ' sel' : ''}" data-pacc="${c}" style="--cc:${c}" aria-label="Accent ${c}"></button>`).join('');
+  const pins = (P.pins && P.pins.length ? P.pins : PROF_PINS).slice(0, 4);
+  $('pfPins').innerHTML = [0, 1, 2, 3].map(i => `<select data-ppin="${i}">${Object.entries(PSTAT).map(([k, v]) => `<option value="${k}"${pins[i] === k ? ' selected' : ''}>${v[0]}</option>`).join('')}</select>`).join('');
+  $('pfFlagBig').checked = P.flag !== 'off';
+  const cl = (account.ach && account.ach.clip) || account.clip;
+  $('pfClip').innerHTML = cl ? `${esc(cl.label || 'Kill cam')} <button type="button" class="ghost sm" id="pfClipWatch">Watch</button> <button type="button" class="ghost sm" id="pfClipDrop">Remove</button>` : 'None yet. After one of your knockouts wins a game, choose "Show on my profile" under the kill cam.';
+}
+async function saveProf(patch) {
+  account.prof = Object.assign({}, account.prof || {}, patch);
+  try { const r = await fetch('/api/look', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prof: patch }) }); const d = await r.json(); if (r.ok && d.prof) account.prof = d.prof; } catch (e) {}
+  renderProfPage();
+}
+$('pfPage').addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.pacc) saveProf({ acc: b.dataset.pacc });
+  else if (b.id === 'pfPreview') openPlayerCard(account.name);
+  else if (b.id === 'pfClipWatch') { const cl = (account.ach && account.ach.clip) || account.clip; if (cl) { closeSubs(); playClip(cl.id); } }
+  else if (b.id === 'pfClipDrop') { await fetch('/api/clip', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ drop: 1 }) }).catch(() => {}); if (account.ach) account.ach.clip = null; account.clip = null; renderProfPage(); }
+});
+$('pfPage').addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'pfBg') saveProf({ bg: t.value || null });
+  else if (t.id === 'pfFlagBig') saveProf({ flag: t.checked ? null : 'off' });
+  else if (t.dataset.ppin != null) saveProf({ pins: [...$('pfPins').querySelectorAll('select')].map(x => x.value) });
+});
+$('pfMotto').addEventListener('keydown', e => e.stopPropagation());
+$('pfMotto').addEventListener('change', () => saveProf({ motto: $('pfMotto').value }));
 $('profScr').addEventListener('click', e => {
   const b = e.target.closest('[data-pel],[data-pro],[data-pcol]'); if (!b) return;
   const a = myAvatar();
@@ -5170,11 +5413,12 @@ function qHelp() {
   const ph = view && view.m && view.m.ph, n = +store.get('bowfall-qh', '0') || 0;
   const want = mode !== 'menu' && !TUT.on && !TR.on && n < 3 && !tutDoneYet() && !!ph && (ph === 'pre' || (ph === 'play' && view.m.T > (Sim.TIMES.game - 25))) && !menuOpen;
   if (want && ph === 'play' && hc.qhGame !== (view.m.rd + ':' + view.m.gm)) { hc.qhGame = view.m.rd + ':' + view.m.gm; store.set('bowfall-qh', String(n + 1)); }
-  const key = want ? (usingPad() ? 'pad' : 'kb') : '';
+  const key = want ? (TOUCH.on ? 'touch' : usingPad() ? 'pad' : 'kb') : '';
   if (hc.qh === key) return; hc.qh = key;
   el.hidden = !want; if (!want) return;
   const P = usingPad();
-  el.innerHTML = `<b>How to play</b><span><kbd>${P ? 'Left stick' : 'W A S D'}</kbd>move</span><span><kbd>${P ? padBtn('draw') : 'Hold click'}</kbd>draw, let go to shoot</span><span><kbd>${P ? padBtn('dash') : 'Space'}</kbd>dash</span><span><kbd>${P ? padBtn('q') + ' ' + padBtn('e') : 'Q E'}</kbd>abilities</span><span>Knock them into pits and walls!</span><button class="ghost sm" type="button" id="qHelpX">Got it</button>`;
+  if (TOUCH.on) el.innerHTML = `<b>How to play</b><span><kbd>Left thumb</kbd>move</span><span><kbd>Right thumb</kbd>aim, let go to shoot (tap: shoot the nearest)</span><span><kbd>Dash</kbd><kbd>Q</kbd><kbd>E</kbd>buttons</span><button class="ghost sm" type="button" id="qHelpX">Got it</button>`;
+  else el.innerHTML = `<b>How to play</b><span><kbd>${P ? 'Left stick' : 'W A S D'}</kbd>move</span><span><kbd>${P ? padBtn('draw') : 'Hold click'}</kbd>draw, let go to shoot</span><span><kbd>${P ? padBtn('dash') : 'Space'}</kbd>dash</span><span><kbd>${P ? padBtn('q') + ' ' + padBtn('e') : 'Q E'}</kbd>abilities</span><span>Knock them into pits and walls!</span><button class="ghost sm" type="button" id="qHelpX">Got it</button>`;
   $('qHelpX').onclick = () => { store.set('bowfall-qh', '9'); hc.qh = null; el.hidden = true; };
 }
 $('gateName').addEventListener('keydown', e => { if (e.key === 'Enter') passGate(); e.stopPropagation(); });
@@ -5917,6 +6161,24 @@ THEMES.ice = {
   stem: ['#8db4cb', '#a8c9dc'], thorn: '#f4fbff', leaf: '#cfe6f2', berry: '#9fdcff', burrow: null,
   ambient: 'snow', leafCols: ['#ffffff', '#eef8ff', '#dff1fb', '#ffffff'],
 };
+// Frozen Lake: snow on the banks, pines all round, a frozen lake in the middle (painted from the map's ice zone)
+THEMES.frost = Object.assign({}, THEMES.ice, {
+  forest: '#13221e', canopy: ['#1d362f', '#234238', '#2a4d41', '#183029'], canopyHi: 'rgba(255,255,255,0.30)',
+  ground: '#e4ecf1', patchA: 'rgba(255,255,255,0.55)', patchB: 'rgba(165,190,210,0.22)', patchBase: 'rgba(228,236,241,0)', sun: 'rgba(255,255,255,0.12)',
+  blades: ['#6f8a5a', '#58704a', '#8aa070', '#4d6340'], ground2: 'snow', snowy: true,
+  boulder: '#6f7d86', boulderLight: '#a9b8c1', moss: null, frosty: true,
+  wall: '#7d8b94', wallMid: '#6c7a83', wallLight: '#eef4f7', border: 'rock',
+  bogBank: '#ffffff', bogEdge: '#e5eef4', bog: '#f4f8fb', bogSheen: 'rgba(255,255,255,0.95)',
+});
+// Harvest Field: stubble and furrows, hedgerows round the edge, round hay bales for cover
+THEMES.farm = Object.assign({}, THEMES.meadow, {
+  canopy: ['#3c4a1e', '#4a5a24', '#56682a', '#34411a'], canopyHi: 'rgba(230,200,110,0.12)',
+  ground: '#9c8a4e', patchA: 'rgba(214,190,112,0.30)', patchB: 'rgba(110,92,44,0.26)', patchBase: 'rgba(156,138,78,0)', sun: 'rgba(255,240,190,0.10)',
+  blades: ['#c9b06a', '#e0c983', '#a8904e', '#d7bd70'], ground2: 'field', flowers: 6, fairy: false, rich: null, stoneWall: false,
+  dirt: '#6b5130', dirtDark: '#3d2c18', pitOut: '#2a1f12', hay: true,
+  bogBank: '#5e4a2c', bogEdge: '#4a3920', bog: '#4f3d24', bogSheen: 'rgba(140,110,70,0.35)', lily: ['#6f9a3c', '#58802f'], reeds: true,
+  ambient: 'leaves', leafCols: ['#e0c983', '#c9a646', '#d7bd70', '#b8902e'],
+});
 THEMES.beach = {
   // the sea all around, sand underfoot
   forest: '#15607f', canopy: ['#1b7194', '#2383a8', '#1a6a8a', '#2b91b5'], canopyHi: 'rgba(255,255,255,0.20)',
@@ -6016,7 +6278,7 @@ function setArena(key) {
   const was = AW + 'x' + AH; AW = m.w || Sim.AW; AH = m.h || Sim.AH;
   if (was !== AW + 'x' + AH && typeof cv !== 'undefined' && W > 1) resize(); // a bigger arena: fit the view to it
   HAZ = m.haz; PILLARS = m.pillars; SPIKES = m.spikes; HEAL = m.heal || null; THEME = THEMES[m.theme] || THEMES.meadow;
-  MECH = { saws: m.saws || [], bumpers: m.bumpers || [], portals: m.portals || [], wind: m.wind || null };
+  MECH = { saws: m.saws || [], bumpers: m.bumpers || [], portals: m.portals || [], wind: m.wind || null, lake: m.ice && m.ice.zone || null };
 }
 setArena('meadow');
 
@@ -6358,6 +6620,36 @@ function paintFloor(s) {
       g.beginPath(); for (let b = 0; b < 3; b++) { const a = -Math.PI / 2 + (b - 1) * 0.5; g.moveTo(x, y); g.lineTo(x + Math.cos(a) * 5, y + Math.sin(a) * 5); } g.stroke();
     }
     // faint carved rings under each gate pair's plinth are painted with the gates below
+  } else if (T.ground2 === 'field') {
+    // ploughed rows of stubble running across the field, a little wavy, with straw scattered between
+    for (let y = WALL + 10, row = 0; y < AH - WALL; y += 26, row++) {
+      g.strokeStyle = row % 2 ? 'rgba(90,72,34,0.30)' : 'rgba(230,206,130,0.22)'; g.lineWidth = 10;
+      g.beginPath(); g.moveTo(WALL, y); for (let x = WALL; x <= AW - WALL; x += 40) g.lineTo(x, y + Math.sin(x / 90 + row) * 3); g.stroke();
+    }
+    for (let i = 0; i < 1300; i++) {
+      const x = R() * AW, y = R() * AH; if (blocked(x, y, 10)) continue;
+      const a = (R() - 0.5) * 1.2, L = 3 + R() * 5;
+      g.strokeStyle = T.blades[Math.floor(R() * T.blades.length)]; g.lineWidth = 1.2;
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * L, y + Math.sin(a) * L); g.stroke();
+    }
+  } else if (T.ground2 === 'snow') {
+    // soft drifts, sparkle, a few tufts of grass poking through, and trails of footprints
+    for (let i = 0; i < 40; i++) blob(g, R() * AW, R() * AH, 30 + R() * 60, 'rgba(255,255,255,0.7)', 'rgba(255,255,255,0)');
+    for (let i = 0; i < 30; i++) blob(g, R() * AW, R() * AH, 20 + R() * 40, 'rgba(150,180,205,0.18)', 'rgba(150,180,205,0)');
+    for (let i = 0; i < 300; i++) { const x = R() * AW, y = R() * AH; if (blocked(x, y, 8)) continue; g.fillStyle = R() < 0.6 ? 'rgba(255,255,255,0.9)' : 'rgba(160,195,220,0.55)'; g.beginPath(); g.arc(x, y, 0.7 + R() * 1.4, 0, TAU); g.fill(); }
+    for (let i = 0; i < 60; i++) {
+      const x = R() * AW, y = R() * AH; if (blocked(x, y, 12)) continue;
+      g.strokeStyle = T.blades[Math.floor(R() * T.blades.length)]; g.lineWidth = 1.3;
+      g.beginPath(); for (let b = 0; b < 4; b++) { const a = -Math.PI / 2 + (b - 1.5) * 0.35; g.moveTo(x + b - 2, y); g.lineTo(x + b - 2 + Math.cos(a) * 6, y + Math.sin(a) * 6); } g.stroke();
+    }
+    for (let t = 0; t < 5; t++) {
+      let x = R() * AW, y = R() * AH, a = R() * TAU;
+      for (let k = 0; k < 14; k++) {
+        x += Math.cos(a) * 16; y += Math.sin(a) * 16; a += (R() - 0.5) * 0.5; if (blocked(x, y, 10)) continue;
+        const side = k % 2 ? 1 : -1, px = x - Math.sin(a) * 4 * side, py = y + Math.cos(a) * 4 * side;
+        g.fillStyle = 'rgba(120,150,175,0.28)'; g.beginPath(); g.ellipse(px, py, 3.2, 2, a, 0, TAU); g.fill();
+      }
+    }
   } else if (T.ground2 === 'ice') {
     // skate scratches, frozen bubbles and faint fault lines
     for (let i = 0; i < 160; i++) {
@@ -6381,7 +6673,7 @@ function paintFloor(s) {
       for (let k = 0; k < 5; k++) { x += (R() - 0.5) * 50; y += (R() - 0.5) * 50; g.lineTo(x, y); }
       g.stroke();
     }
-  } else {
+  } else if (!T.snowy) {
     // cracked basalt: pebbles and glowing fissures
     for (let i = 0; i < 700; i++) {
       const x = R() * AW, y = R() * AH;
@@ -6419,6 +6711,27 @@ function paintFloor(s) {
       for (let p = 0; p < 5; p++) { const a = p / 5 * TAU; g.beginPath(); g.arc(x + Math.cos(a) * 2.2, y + Math.sin(a) * 2.2, 1.7, 0, TAU); g.fill(); }
       g.fillStyle = col === '#f2c14e' ? '#c98a1e' : '#f2c14e'; g.beginPath(); g.arc(x, y, 1.3, 0, TAU); g.fill();
     }
+  }
+
+  // a frozen lake: snowy bank, then glossy ice with scratches, bubbles and fault lines
+  if (MECH.lake) {
+    const z = MECH.lake;
+    const ell = (grow) => { g.beginPath(); g.ellipse(z.x, z.y, z.rx + grow, z.ry + grow, 0, 0, TAU); };
+    ell(14); g.fillStyle = 'rgba(255,255,255,0.75)'; g.fill();
+    ell(6); g.fillStyle = 'rgba(150,180,200,0.45)'; g.fill();
+    const gr = g.createRadialGradient(z.x - z.rx * 0.3, z.y - z.ry * 0.4, 10, z.x, z.y, Math.max(z.rx, z.ry));
+    gr.addColorStop(0, '#d8eef8'); gr.addColorStop(0.6, '#a9d3e6'); gr.addColorStop(1, '#86bcd6');
+    ell(0); g.fillStyle = gr; g.fill();
+    g.save(); ell(0); g.clip();
+    for (let i = 0; i < 12; i++) blob(g, z.x + (R() - 0.5) * z.rx * 1.6, z.y + (R() - 0.5) * z.ry * 1.6, 30 + R() * 60, 'rgba(60,120,160,0.16)', 'rgba(60,120,160,0)');
+    for (let i = 0; i < 90; i++) {
+      const x = z.x + (R() - 0.5) * z.rx * 2, y = z.y + (R() - 0.5) * z.ry * 2, a = R() * TAU, L = 20 + R() * 60, bend = (R() - 0.5) * 30;
+      g.strokeStyle = R() < 0.65 ? 'rgba(255,255,255,0.55)' : 'rgba(90,150,190,0.35)'; g.lineWidth = 0.8 + R();
+      g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + Math.cos(a) * L / 2 - Math.sin(a) * bend, y + Math.sin(a) * L / 2 + Math.cos(a) * bend, x + Math.cos(a) * L, y + Math.sin(a) * L); g.stroke();
+    }
+    for (let i = 0; i < 120; i++) { g.fillStyle = R() < 0.5 ? 'rgba(255,255,255,0.7)' : 'rgba(120,180,215,0.5)'; g.beginPath(); g.arc(z.x + (R() - 0.5) * z.rx * 2, z.y + (R() - 0.5) * z.ry * 2, 0.8 + R() * 2, 0, TAU); g.fill(); }
+    g.strokeStyle = 'rgba(255,255,255,0.35)'; g.lineWidth = 6; g.beginPath(); g.ellipse(z.x - z.rx * 0.25, z.y - z.ry * 0.3, z.rx * 0.45, z.ry * 0.3, -0.3, Math.PI * 1.1, Math.PI * 1.6); g.stroke();
+    g.restore();
   }
 
   // healing spring: ring of stones around shallow water (water itself animates)
@@ -6541,6 +6854,18 @@ function paintFloor(s) {
   paintMechBase(g, R);
   // boulders
   for (const p of PILLARS) {
+    if (p.kind === 'hay' || (T.hay && !p.kind)) { // a round hay bale seen from above: a golden roll with a spiral
+      g.fillStyle = 'rgba(0,0,0,0.32)'; g.beginPath(); g.ellipse(p.x + 7, p.y + 9, p.r + 2, p.r * 0.92, 0, 0, TAU); g.fill();
+      const hg = g.createRadialGradient(p.x - p.r * 0.35, p.y - p.r * 0.4, 2, p.x, p.y, p.r);
+      hg.addColorStop(0, '#f0d488'); hg.addColorStop(0.7, '#d6b05a'); hg.addColorStop(1, '#a8823a');
+      g.fillStyle = hg; g.beginPath(); g.arc(p.x, p.y, p.r, 0, TAU); g.fill();
+      g.strokeStyle = 'rgba(120,88,34,0.65)'; g.lineWidth = 1.6; g.beginPath();
+      for (let a = 0; a < TAU * 3.2; a += 0.2) { const rr = p.r * 0.92 * a / (TAU * 3.2); const x = p.x + Math.cos(a) * rr, y = p.y + Math.sin(a) * rr; a ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke();
+      g.strokeStyle = 'rgba(255,240,190,0.45)'; g.lineWidth = 1;
+      for (let i = 0; i < 14; i++) { const a = R() * TAU, rr = p.r * (0.3 + R() * 0.65); g.beginPath(); g.moveTo(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr); g.lineTo(p.x + Math.cos(a + 0.25) * rr, p.y + Math.sin(a + 0.25) * rr); g.stroke(); }
+      g.strokeStyle = 'rgba(70,48,16,0.9)'; g.lineWidth = 2.5; g.beginPath(); g.arc(p.x, p.y, p.r, 0, TAU); g.stroke();
+      continue;
+    }
     if (p.kind === 'brazier') { // an iron fire-bowl on a stone plinth (the fire is drawn live)
       g.fillStyle = 'rgba(0,0,0,0.4)'; g.beginPath(); g.ellipse(p.x + 5, p.y + 7, p.r + 4, p.r + 1, 0, 0, TAU); g.fill();
       g.fillStyle = '#4a4e55'; g.beginPath(); g.arc(p.x, p.y, p.r + 3, 0, TAU); g.fill();
@@ -7992,6 +8317,7 @@ function render(replaying) {
     ctx.setTransform(DPR * Z, 0, 0, DPR * Z, DPR * (cx - RP.cam.x * Z + sx), DPR * (cy - RP.cam.y * Z + sy));
   } else ctx.setTransform(DPR * VS, 0, 0, DPR * VS, DPR * (OX + sx), DPR * (OY + sy));
   mouse.wx = (mouse.sx - OX) / VS; mouse.wy = (mouse.sy - OY) / VS;
+  if (TOUCH.on && TOUCH.aim != null && view && !replaying) { const me = view.p.find(p => p.id === myId); if (me) { mouse.wx = me.x + Math.cos(TOUCH.aim) * 260; mouse.wy = me.y + Math.sin(TOUCH.aim) * 260; } }
   if (view && view.m.map !== MAPKEY) setArena(view.m.map);
   mechDrawT = replaying && view ? view.m.gt || 0 : mechT;
   PR.skip(); drawArena(); PR.lap('arena');
@@ -8745,8 +9071,11 @@ function updateHud() {
   setC('pset', active.join(',') + '|' + (me.em ? me.el : '') + '|' + (me.ep || 0), () => {
     const E = me.em && Sim.EMPOWER[me.el], ec = EL_COL[me.el] || '#ffcf5a', N = Sim.EMPOWER_AT;
     const meter = !E && Sim.EMPOWER[me.el] ? `<div class="pchip meter" style="--ec:${ec}" title="Knock out ${N} in a row without going down to become empowered"><b style="color:${ec}">Empower</b><span class="pips">${Array.from({ length: N }, (_, i) => `<i class="${i < (me.ep || 0) ? 'on' : ''}"></i>`).join('')}</span></div>` : '';
-    $('powers').innerHTML = meter + (E ? `<div class="pchip emp" style="--ec:${ec}"><b style="color:${ec}">Empowered · ${esc(E.name)}</b><small>${esc(E.desc)} Lasts until you're knocked out.</small></div>` : '') +
+    // empowered: just the name here (the full description is in the tooltip and was announced when it happened)
+    $('powers').innerHTML = meter + (E ? `<div class="pchip emp" style="--ec:${ec}" title="${esc(E.desc)} Lasts until you're knocked out."><b style="color:${ec}">Empowered · ${esc(E.name)}</b></div>` : '') +
       active.map(k => `<div class="pchip"><b style="color:${PU[k].color}">${PU[k].name}</b><div class="pbar"><i id="pb-${k}" style="background:${PU[k].color}"></i></div></div>`).join('');
+    // the chat sits above whatever is in this corner, so the two never overlap
+    const ph = $('powers').hidden ? 0 : $('powers').offsetHeight; $('gChat').style.bottom = Math.max(64, ph + 26) + 'px';
   });
   for (const k of active) { const el = $('pb-' + k); if (el) el.style.width = (me.pw[k] / PU[k].dur * 100) + '%'; }
 
@@ -8967,6 +9296,8 @@ let last = performance.now(), sendT = 0, pingT = 0;
 // ================= game-winning kill replay =================
 // The last few seconds of play are kept; when a knockout ends a game, it's replayed zoomed in and in slow motion,
 // following the killer's arrow, then the summary appears. It can't be skipped.
+const RP_KEEP = 12; // seconds of play kept: enough for a multi-kill
+const RP_MULTI = 8;  // the winning killer's other knockouts this many seconds before the last one are shown too
 const RP = { buf: [], evs: [], lastKill: null, on: null, cam: null, enabled: true }; // always on: the game-winning knockout is always replayed
 // online, the replay keeps the server's own updates, timed by the server's tick (60 a second), not the screen frames:
 // those are spaced however the network delivered them, which slow motion turned into visible stutter
@@ -8975,29 +9306,27 @@ function replaySnap(k, s) {
   const tt = k / 60;
   if (RP.koff == null || Math.abs(tt + RP.koff - clock) > 0.5) RP.koff = clock - tt; // line the server's clock up with ours
   RP.buf.push({ t: tt + RP.koff, v: s }); RP.evT = tt + RP.koff; // this update's events get the same (server) time as its frame
-  while (RP.buf.length && RP.buf[0].t < clock - 6) RP.buf.shift();
-  while (RP.evs.length && RP.evs[0].t < clock - 6) RP.evs.shift();
+  while (RP.buf.length && RP.buf[0].t < clock - RP_KEEP) RP.buf.shift();
+  while (RP.evs.length && RP.evs[0].t < clock - RP_KEEP) RP.evs.shift();
 }
 function replayRecord() {
   if (mode === 'online') return; // recorded from the server's updates instead (replaySnap)
   if (!view || view.m.ph === 'lobby' || view.m.ph === 'pick' || (RP.on && RP.on.started)) return;
   RP.buf.push({ t: clock, v: view });
-  while (RP.buf.length && RP.buf[0].t < clock - 6) RP.buf.shift();
-  while (RP.evs.length && RP.evs[0].t < clock - 6) RP.evs.shift();
+  while (RP.buf.length && RP.buf[0].t < clock - RP_KEEP) RP.buf.shift();
+  while (RP.evs.length && RP.evs[0].t < clock - RP_KEEP) RP.evs.shift();
 }
 const REPLAY_FX = { throw: 1, sstrike: 1, recall: 1, nblink: 1, flash: 1, swap: 1, fire: 1, hit: 1, dmg: 1, fall: 1, boom: 1, freeze: 1, spike: 1, thud: 1, pinned: 1, chain: 1, burst: 1, trapHit: 1, quake: 1, collapse: 1, aftershock: 1, dash: 1, saw: 1, bump: 1, portal: 1, parry: 1, parried: 1, warp: 1, stun: 1, ambushHit: 1 };
 function replayNote(evs) {
   const t = RP.evT != null ? RP.evT : clock; RP.evT = null;
   for (const e of evs) { if (REPLAY_FX[e.e] || e.e === 'kill') RP.evs.push({ t, e }); if (e.e === 'kill') RP.lastKill = { t, k: e.k, v: e.v, how: e.how, kn: e.kn, vn: e.vn }; }
 }
-function replayQueue(ge) {
-  const K = RP.lastKill;
-  if (tutOnDummy() || TR.on) return false; // no kill cam for the practice dummy or training targets
-  if (!RP.enabled || reduceMotion || ge.rw === 'draw' || !K || clock - K.t > 1.2) return false;
-  // find the arrow that did it: the killer's last hit on the victim, and the arrow of theirs nearest the victim just before it
+// one knockout's piece of the replay: from just before the arrow was loosed to just after the knockout
+function replaySeg(K, last) {
   let hitT = null, aid = null, shotT = null;
   for (let i = RP.evs.length - 1; i >= 0; i--) { const x = RP.evs[i]; if (x.e.e === 'hit' && x.e.id === K.v && x.e.by === K.k && x.t <= K.t + 0.02) { hitT = x.t; break; } }
   if (hitT != null && K.t - hitT < 3) {
+    // the arrow that did it: the killer's arrow nearest the victim just before the hit
     const before = RP.buf.filter(f => f.t < hitT).slice(-1)[0];
     const vic = before && before.v.p.find(p => p.id === K.v);
     const mine = before && vic ? before.v.a.filter(a => a.o === K.k && !a.s) : [];
@@ -9007,9 +9336,26 @@ function replayQueue(ge) {
       shotT = first ? first.t : null;
     }
   }
-  const t0 = Math.max(RP.buf.length ? RP.buf[0].t : K.t - 1.5, shotT != null ? shotT - 0.7 : K.t - 1.5), t1 = K.t + 0.9;
-  RP.on = { wait: t1, t0, t1, kt: K.t, hitT, shotT, aid, cur: t0, k: K.k, v: K.v, fired: 0, started: false, frames: null, evs: null,
-    speed: clamp((t1 - t0) / 4.6, 0.28, 0.6) };
+  const t0 = Math.max(RP.buf.length ? RP.buf[0].t : K.t - 1.5, shotT != null ? shotT - 0.7 : K.t - 1.5);
+  return { t0, t1: K.t + (last ? 0.9 : 0.55), subs: [{ kt: K.t, hitT, shotT, aid, v: K.v }] };
+}
+function replayQueue(ge) {
+  const K = RP.lastKill;
+  if (tutOnDummy() || TR.on) return false; // no kill cam for the practice dummy or training targets
+  if (!RP.enabled || reduceMotion || ge.rw === 'draw' || !K || clock - K.t > 1.2) return false;
+  // the same archer's other knockouts shortly before (a clutch, a double or triple kill) are shown first, in order
+  const kills = K.k ? RP.evs.filter(x => x.e.e === 'kill' && x.e.k === K.k && x.t >= K.t - RP_MULTI && x.t < K.t - 0.02).map(x => ({ t: x.t, k: x.e.k, v: x.e.v })) : [];
+  const segs = [];
+  for (const k of kills.concat([K])) {
+    const sg = replaySeg(k, k === K), prev = segs[segs.length - 1];
+    if (prev && sg.t0 <= prev.t1 + 0.4) { prev.t1 = Math.max(prev.t1, sg.t1); prev.subs.push(...sg.subs); } // close together: one piece
+    else segs.push(sg);
+  }
+  const n = kills.length + 1, len = segs.reduce((a, g) => a + g.t1 - g.t0, 0);
+  // slow motion: about 4.6 seconds for a single knockout; a multi-kill plays a little quicker so it doesn't drag
+  // (it has to finish inside the 10 seconds between games, so a long one plays faster)
+  const speed = n > 1 ? Math.max(0.32, len / 7.4) : clamp(len / 4.6, 0.28, 0.6);
+  RP.on = { wait: segs[segs.length - 1].t1, segs, si: 0, cur: segs[0].t0, k: K.k, n, fired: 0, started: false, frames: null, evs: null, speed, rate: speed };
   return true;
 }
 function replayFrameAt(t) {
@@ -9026,32 +9372,51 @@ function replayFrameAt(t) {
     a: A.v.a.map(q => { const n = ab.get(q.id); return n && !q.s && !n.s && Math.hypot(n.x - q.x, n.y - q.y) < 450 ? Object.assign({}, q, { x: lerp(q.x, n.x, k), y: lerp(q.y, n.y, k) }) : q; }),
   });
 }
+const MULTI_NAME = ['', '', 'Double kill', 'Triple kill', 'Quad kill', 'Penta kill'];
 function replayTick(dt) {
   const R = RP.on; if (!R) return null;
   if (!R.started) {
     if (clock < R.wait) return null;
-    R.frames = RP.buf.filter(f => f.t >= R.t0 - 0.05 && f.t <= R.t1 + 0.05);
-    R.evs = RP.evs.filter(x => x.t >= R.t0 && x.t <= R.t1);
+    const a = R.segs[0].t0, b = R.segs[R.segs.length - 1].t1;
+    R.frames = R.frames || RP.buf.filter(f => f.t >= a - 0.05 && f.t <= b + 0.05);
+    R.evs = R.evs || RP.evs.filter(x => x.t >= a && x.t <= b);
     if (R.frames.length < 10) { RP.on = null; showPendingSummary(); return null; }
-    R.started = true; R.cur = R.frames[0].t; RP.cam = null;
+    // kept so it can be saved as a video or put on your profile (your own knockouts), and recorded as it plays
+    if (!CLIP.playing) CLIP.last = R.k === myId && myId != null ? { map: MAPKEY, me: myId, k: R.k, n: R.n, segs: R.segs, frames: R.frames, evs: R.evs, at: Date.now() } : null;
+    if (CLIP.playing || CLIP.last) clipRecStart(); else CLIP.video = null;
+    R.started = true; R.cur = Math.max(R.segs[0].t0, R.frames[0].t); RP.cam = null;
+    $('replayBadge').innerHTML = `<span class="rec"></span>${R.n > 1 ? `${MULTI_NAME[Math.min(5, R.n)] || R.n + ' kills'}` : 'Kill cam'}`;
     $('replayBadge').hidden = false; $('gameSum').hidden = true; document.body.classList.add('replaying');
     os('sine', 300, 90, 0.6, 0.05); nz(0.6, 0.06, 'lowpass', 1200, 200, 1);
   }
-  // slower still as the arrow lands and at the knockout itself
-  const near = (R.hitT != null && Math.abs(R.cur - R.hitT) < 0.25) || Math.abs(R.cur - R.kt) < 0.25;
-  R.cur += dt * R.speed * (near ? 0.5 : 1);
+  let seg = R.segs[R.si];
+  // which knockout in this piece we're watching: the first that hasn't happened yet (or just has)
+  const sub = seg.subs.find(q => R.cur <= q.kt + 0.3) || seg.subs[seg.subs.length - 1];
+  // slower still as the arrow lands and at the knockout itself (eased, so the speed never jumps)
+  const near = (R.n === 1 || R.si === R.segs.length - 1) && ((sub.hitT != null && Math.abs(R.cur - sub.hitT) < 0.25) || Math.abs(R.cur - sub.kt) < 0.25);
+  R.rate += ((near ? R.speed * 0.45 : R.speed) - R.rate) * (1 - Math.exp(-dt * 10));
+  R.cur += dt * R.rate;
   // replay the visual effects as their moment comes round
   while (R.fired < R.evs.length && R.evs[R.fired].t <= R.cur) { replayFx(R.evs[R.fired].e); R.fired++; }
-  if (R.cur >= R.t1) { endReplay(); return null; }
+  if (R.cur >= seg.t1) {
+    if (++R.si >= R.segs.length) { endReplay(); return null; }
+    // cut to the next knockout: skip the quiet bit in between (and its effects), with a quick flash
+    seg = R.segs[R.si]; R.cur = seg.t0; RP.flash = 0.7; RP.cut = 1;
+    while (R.fired < R.evs.length && R.evs[R.fired].t < R.cur) R.fired++;
+    const done = R.segs.slice(0, R.si).reduce((a, g) => a + g.subs.length, 0);
+    notice(`Knockout ${done + 1} of ${R.n}`, false, '#ffcf5a');
+  }
   const v = RP.lastV = replayFrameAt(R.cur);
+  const now = seg.subs.find(q => R.cur <= q.kt + 0.3) || seg.subs[seg.subs.length - 1];
   // camera: on the shooter as they loose the arrow, riding the arrow in, then on the victim as they go down
-  const vic = v.p.find(p => p.id === R.v), kil = v.p.find(p => p.id === R.k), arrow = R.aid != null ? v.a.find(a => a.id === R.aid) : null;
+  const vic = v.p.find(p => p.id === now.v), kil = v.p.find(p => p.id === R.k), arrow = now.aid != null ? v.a.find(a => a.id === now.aid) : null;
   let fx0 = vic ? vic.x : AW / 2, fy0 = vic ? vic.y : AH / 2, zoom = 1.9;
-  if (R.shotT != null && R.cur < R.shotT + 0.05 && kil) { fx0 = kil.x; fy0 = kil.y; zoom = 2.2; }
-  else if (arrow && !arrow.s && (R.hitT == null || R.cur < R.hitT)) { fx0 = arrow.x; fy0 = arrow.y; zoom = 2.0; }
+  if (now.shotT != null && R.cur < now.shotT + 0.05 && kil) { fx0 = kil.x; fy0 = kil.y; zoom = 2.2; }
+  else if (arrow && !arrow.s && (now.hitT == null || R.cur < now.hitT)) { fx0 = arrow.x; fy0 = arrow.y; zoom = 2.0; }
   else if (!vic && RP.cam) { fx0 = RP.cam.x; fy0 = RP.cam.y; }
-  if (!RP.cam) RP.cam = { x: fx0, y: fy0, z: 1.2 };
-  const k = 1 - Math.exp(-dt * 7);
+  if (!RP.cam || RP.cut) { RP.cam = { x: fx0, y: fy0, z: RP.cam ? RP.cam.z : 1.2 }; RP.cut = 0; }
+  // the camera follows smoothly; it chases a fast arrow harder so the arrow never runs off the edge of the view
+  const far = Math.hypot(fx0 - RP.cam.x, fy0 - RP.cam.y), k = 1 - Math.exp(-dt * (far > 120 ? 12 : 7));
   RP.cam.x += (fx0 - RP.cam.x) * k; RP.cam.y += (fy0 - RP.cam.y) * k; RP.cam.z += (zoom - RP.cam.z) * (1 - Math.exp(-dt * 3));
   // keep the zoomed view inside the arena so we never look past its edge
   const hw = AW / (2 * RP.cam.z), hh = AH / (2 * RP.cam.z);
@@ -9081,7 +9446,94 @@ function replayFx(e) {
 }
 let pendingSummary = null;
 function showPendingSummary() { if (pendingSummary && view && view.m.ph === 'post') showGameSummary(pendingSummary); pendingSummary = null; }
-function endReplay() { if (!RP.on) return; RP.on = null; RP.cam = null; $('replayBadge').hidden = true; document.body.classList.remove('replaying'); showPendingSummary(); }
+function endReplay() {
+  if (!RP.on) return; RP.on = null; RP.cam = null; $('replayBadge').hidden = true; document.body.classList.remove('replaying');
+  clipRecStop();
+  if (CLIP.playing) { $('cvAgain').hidden = false; if (CLIP.playing.embed) setTimeout(() => { if (CLIP.playing && !RP.on) clipReplay(); }, 2500); return; }
+  showPendingSummary();
+  if (CLIP.last) { CLIP.barT = Date.now(); renderClipBar(); }
+}
+// ---- kill cam clips: your own kill cams can be saved as a video, or featured on your profile (anyone can watch it there)
+const CLIP = { last: null, rec: null, chunks: null, video: null, playing: null, barT: 0 };
+function clipRecStart() {
+  CLIP.video = null;
+  if (typeof MediaRecorder === 'undefined' || !cv.captureStream) return;
+  try {
+    const type = ['video/mp4;codecs=avc1', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'].find(t => MediaRecorder.isTypeSupported(t)); if (!type) return;
+    const rec = new MediaRecorder(cv.captureStream(30), { mimeType: type, videoBitsPerSecond: 6e6 });
+    const chunks = []; rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+    rec.onstop = () => { CLIP.video = chunks.length ? new Blob(chunks, { type: type.split(';')[0] }) : null; renderClipBar(); };
+    rec.start(250); CLIP.rec = rec;
+  } catch (e) { CLIP.rec = null; }
+}
+function clipRecStop() { try { if (CLIP.rec && CLIP.rec.state !== 'inactive') CLIP.rec.stop(); } catch (e) {} CLIP.rec = null; }
+const clipLabel = c => `${c.n > 1 ? (MULTI_NAME[Math.min(5, c.n)] || c.n + ' kills') : 'Knockout'} on ${(MAPS[c.map] || {}).name || 'an arena'}`;
+function renderClipBar() {
+  const c = CLIP.last, show = !!c && !CLIP.playing && Date.now() - CLIP.barT < 16000 && mode !== 'menu';
+  $('clipBar').hidden = !show; $('cvSave').hidden = !(CLIP.playing && CLIP.video);
+  if (!show) return;
+  $('clipTxt').textContent = 'Your ' + clipLabel(c).replace(/^Knockout/, 'knockout').replace(/^(\w+ kill)/, m => m.toLowerCase());
+  $('clipSave').hidden = !CLIP.video;
+  $('clipFeat').hidden = !(account && !OFFLINE && MAPS[c.map] && !/^a\d/.test(c.map) && c.map !== 'edit' && c.map !== 'pv');
+  $('clipFeat').disabled = !!c.feat; $('clipFeat').textContent = c.feat === 'saving' ? 'Saving…' : c.feat ? 'On your profile ✓' : 'Show on my profile';
+}
+setInterval(() => { if (!$('clipBar').hidden) renderClipBar(); }, 1000);
+async function clipSaveVideo() {
+  const b = CLIP.video; if (!b) return;
+  const ext = /mp4/.test(b.type) ? 'mp4' : 'webm', name = `bowfall-${(CLIP.playing ? 'highlight' : 'killcam')}-${new Date().toISOString().slice(0, 10)}.${ext}`;
+  const file = new File([b], name, { type: b.type });
+  try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Bowfall kill cam' }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+async function gzipB64(str) {
+  const buf = new Uint8Array(await new Response(new Blob([str]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer());
+  let out = ''; for (let i = 0; i < buf.length; i += 0x8000) out += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+  return btoa(out);
+}
+async function gunzipB64(b64) { const bin = Uint8Array.from(atob(b64), ch => ch.charCodeAt(0)); return new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'))).text(); }
+// a replay as data: the first frame in full, then only what changed in each frame after it
+function clipPack(c) {
+  const f = []; let prev = null;
+  for (const x of c.frames) { const v = JSON.parse(JSON.stringify(x.v)); f.push(prev ? { t: x.t, d: Sim.snapDelta(prev, v) } : { t: x.t, s: v }); prev = v; }
+  return { v: 1, map: c.map, me: c.me, k: c.k, n: c.n, segs: c.segs, f, ev: c.evs.map(x => ({ t: x.t, e: x.e })) };
+}
+function clipUnpack(o) { const frames = []; let prev = null; for (const x of o.f) { const v = x.s || Sim.applyDelta(prev, x.d); frames.push({ t: x.t, v }); prev = v; } return { map: o.map, me: o.me, k: o.k, n: o.n, segs: o.segs, frames, evs: o.ev || [] }; }
+async function clipFeature() {
+  const c = CLIP.last, b = $('clipFeat'); if (!c || !account) return;
+  b.disabled = true; b.textContent = 'Saving…'; c.feat = 'saving';
+  try {
+    const data = await gzipB64(JSON.stringify(clipPack(c)));
+    const r = await fetch('/api/clip', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data, meta: { label: clipLabel(c) } }) });
+    const d = await r.json(); if (!r.ok) throw new Error(d.error || 'Could not save it');
+    b.textContent = 'On your profile ✓'; c.feat = true; if (account.ach) account.ach.clip = d.clip;
+  } catch (e) { c.feat = false; b.disabled = false; b.textContent = 'Show on my profile'; notice(esc(e.message || 'Could not save it'), false); }
+}
+$('clipSave').onclick = clipSaveVideo; $('cvSave').onclick = clipSaveVideo; $('clipFeat').onclick = clipFeature;
+$('clipX').onclick = () => { CLIP.barT = 0; renderClipBar(); };
+// watching a featured kill cam (from a profile, or a link): played on the game's own canvas
+async function playClip(id, embed) {
+  if (mode !== 'menu') { notice('Finish your game first.', false); return; }
+  try {
+    const r = await fetch('/api/clip/' + encodeURIComponent(id)); const d = await r.json(); if (!r.ok) throw new Error(d.error || 'Not found');
+    const c = clipUnpack(JSON.parse(await gunzipB64(d.data)));
+    if (!MAPS[c.map]) throw new Error('That arena is gone');
+    CLIP.playing = { c, owner: d.owner, meta: d.meta || {}, embed: !!embed };
+    if (!$('pcWrap').hidden) closePlayerCard();
+    $('cvTitle').textContent = (d.meta && d.meta.label) || clipLabel(c); $('cvSub').textContent = d.owner ? `${d.owner}'s highlight` : '';
+    document.body.classList.add('clipmode'); $('clipView').hidden = false;
+    clipReplay();
+  } catch (e) { notice(esc(e.message || "Couldn't load that replay."), false); }
+}
+function clipReplay() {
+  const P = CLIP.playing; if (!P) return;
+  const c = P.c; setArena(c.map); floorKey = null; myId = c.k; fx.parts.length = 0;
+  const len = c.segs.reduce((a, g) => a + g.t1 - g.t0, 0);
+  const speed = c.n > 1 ? Math.max(0.32, len / 7.4) : clamp(len / 4.6, 0.28, 0.6);
+  RP.on = { wait: -1e9, segs: c.segs, si: 0, cur: c.segs[0].t0, k: c.k, n: c.n, fired: 0, started: false, frames: c.frames, evs: c.evs, speed, rate: speed };
+  $('cvAgain').hidden = true; $('cvSave').hidden = true;
+}
+function closeClipView() { if (RP.on) { RP.on = null; RP.cam = null; $('replayBadge').hidden = true; document.body.classList.remove('replaying'); } clipRecStop(); CLIP.playing = null; document.body.classList.remove('clipmode'); $('clipView').hidden = true; myId = null; setArena('meadow'); floorKey = null; }
+$('cvAgain').onclick = clipReplay; $('cvClose').onclick = closeClipView;
 let frameDt = 0;
 // ================= performance recording =================
 // F9 (or Options) starts and stops a recording of how long each part of every frame takes, what's on screen, the
@@ -9161,7 +9613,7 @@ function frame(now) {
     else { view = interpView(now); smoothMe(view, dt); }
     PR.lap('view');
     const me = view && view.p.find(p => p.id === myId);
-    if (me && !me.d && !me.f && view.m.ph === 'play' && (mouse.down || held('draw') || (pad.on && pad.draw)) && !menuOpen) localCharge = Math.min(1, localCharge + dt * (me.pw && me.pw.quick ? 2.2 : 1) * (me.up && me.up.includes('steady') ? 1.25 : 1));
+    if (me && !me.d && !me.f && view.m.ph === 'play' && (mouse.down || held('draw') || (pad.on && pad.draw) || TOUCH.draw) && !menuOpen) localCharge = Math.min(1, localCharge + dt * (me.pw && me.pw.quick ? 2.2 : 1) * (me.up && me.up.includes('steady') ? 1.25 : 1));
     else localCharge = 0;
     sendT -= dt; pingT -= dt;
     if (ws && ws.readyState === 1) {
@@ -9179,20 +9631,28 @@ function frame(now) {
   updateMech(dt);
   statusSounds(dt); bowSounds(dt); perfTick(dt); if (TUT.on || TR.on) coachFade();
   PR.skip(); updateFx(dt); PR.lap('fx');
+  cbView(view);
   replayRecord();
-  const rv = replayTick(dt);
+  const rv = cbView(replayTick(dt));
   // a drawing error must never freeze the game: report it and carry on with the next frame
   try { camUpdate(dt); } catch (e) { clientError(e, 'camera'); }
   try { if (rv) { const live = view; view = rv; try { render(true); } finally { view = live; } } else render(); }
   catch (e) { clientError(e, 'render'); if (rv) endReplay(); try { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none'; } catch (e2) {} }
   PR.lap('overlay');
-  try { updateHud(); qHelp(); linkAutoJoin(); } catch (e) { clientError(e, 'hud'); }
+  try { updateHud(); qHelp(); linkAutoJoin(); if (TOUCH.on) touchUI(); } catch (e) { clientError(e, 'hud'); }
   PR.lap('hud'); PR.end(frameMs);
   requestAnimationFrame(frame);
 }
 
 new ResizeObserver(resize).observe(cv);
 setScreens();
+// a link to a featured kill cam (?clip=…), or the website showing one (&embed=1: just the replay, looping)
+if (params.get('clip') && /^[a-f0-9]{12}$/.test(params.get('clip'))) {
+  const embed = params.get('embed') === '1';
+  if (embed) document.body.classList.add('embed');
+  $('gate').hidden = true;
+  setTimeout(() => playClip(params.get('clip'), embed), 300);
+}
 buildMapCards();
 buildArchChips();
 syncArch();

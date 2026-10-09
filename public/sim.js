@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.35.0';
+const VERSION = '0.37.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -137,7 +137,7 @@ MAPS.mill = buildMap({
     power: [{ x: 600, y: 400 }], amberY: [80, 200],
   });
 MAPS.ruins = buildMap({
-    name: 'Portal Ruins', theme: 'ruins',
+    name: 'Portal Ruins', theme: 'ruins', hidden: true, retired: true, // out of the rotation for now (Frozen Lake replaced it)
     desc: 'Ancient gates link the corners. Step in one and you, or your arrow, come out of its twin on the far side, still moving.',
     haz: [
       { type: 'pit', shape: 'rect', x: 540, y: WALL, w: 120, h: 90 },
@@ -147,6 +147,38 @@ MAPS.ruins = buildMap({
     spikes: [{ side: 'top', a: 200, b: 420 }],
     portals: [{ x: 280, y: 190 }, { x: 280, y: 610 }],
     power: [{ x: 600, y: 400 }], amberY: [150, 330],
+  });
+// Frozen Lake: a snowy clearing round a frozen lake. Out on the ice you slide and hits carry much further; holes in the
+// ice are deadly, and more crack open as the game goes on. The banks are normal ground.
+MAPS.frost = buildMap({
+    name: 'Frozen Lake', theme: 'frost', hidden: true, retired: true, // out of the rotation (the ice wasn't liked)
+    desc: 'A frozen lake in a snowy clearing. On the ice you slide, and hits send you much further. Holes in the ice are deadly, and more crack open as the game goes on.',
+    ice: { glide: 0.5, knock: 0.8, brake: 2.5, over: 2, zone: { x: 600, y: 400, rx: 300, ry: 225 } },
+    haz: [
+      { type: 'pit', water: true, shape: 'circle', x: 465, y: 300, r: 36 },
+      { type: 'tar', shape: 'circle', x: 150, y: 645, r: 55 },
+    ],
+    cracks: [
+      { type: 'pit', water: true, shape: 'circle', x: 520, y: 525, r: 34, at: 35 },
+      { type: 'pit', water: true, shape: 'circle', x: 410, y: 420, r: 30, at: 70 },
+    ],
+    pillars: [{ x: 245, y: 200, r: 26 }, { x: 240, y: 600, r: 24 }, { x: 600, y: 112, r: 22 }],
+    spikes: [{ side: 'top', a: 200, b: 380 }, { side: 'left', a: 300, b: 500 }],
+    power: [{ x: 600, y: 400 }], amberY: [WALL + 44, 330],
+  });
+// Harvest Field: a farm field. Round hay bales are the cover, laid out in lanes; an old well on each side, a duck pond,
+// and a muddy patch in the middle where the two halves meet
+MAPS.farm = buildMap({
+    name: 'Harvest Field', theme: 'farm',
+    desc: 'A farm field at harvest time. Hay bales give cover in lanes, the old wells and the duck pond are deep, and the mud in the middle slows you right down.',
+    haz: [
+      { type: 'pit', shape: 'circle', x: 190, y: 165, r: 40 },
+      { type: 'pit', water: true, shape: 'circle', x: 470, y: 650, r: 54 },
+      { type: 'tar', centre: true, shape: 'circle', x: 600, y: 400, r: 58 },
+    ],
+    pillars: [{ x: 330, y: 240, r: 30, kind: 'hay' }, { x: 330, y: 560, r: 30, kind: 'hay' }, { x: 470, y: 400, r: 26, kind: 'hay' }, { x: 600, y: 150, r: 24, kind: 'hay' }],
+    spikes: [{ side: 'top', a: 380, b: 560 }, { side: 'left', a: 300, b: 500 }],
+    power: [{ x: 600, y: 270 }, { x: 600, y: 530 }], amberY: [WALL + 44, 330],
   });
 MAPS.grove = buildMap({
     name: 'Mushroom Grove', theme: 'grove', hidden: true, retired: true, // out of the rotation for now
@@ -252,7 +284,7 @@ const MAP_KEYS = Object.keys(MAPS).filter(k => !MAPS[k].hidden); // the rotation
 // and tidied by cleanArena before it can be played: sizes and counts are capped, the spawns must be clear, and the
 // two sides must be able to reach each other on foot. registerArena() adds it to MAPS under a key like 'a12'.
 const ARENA_LIMITS = { haz: 12, pillars: 8, bumpers: 4, spikes: 4, portals: 2 };
-const ARENA_THEMES = ['meadow', 'spring', 'rift', 'beach', 'mill', 'ruins', 'grove', 'pitch'];
+const ARENA_THEMES = ['meadow', 'spring', 'rift', 'beach', 'mill', 'ruins', 'grove', 'pitch', 'farm'];
 const HALF = AW / 2;
 function cleanArena(def) {
   const errors = [], d = def && typeof def === 'object' ? def : {};
@@ -1762,6 +1794,11 @@ let MOVE = MOVE_PROFILES[1];
 // Blood Frenzy: the lower your health, the faster you draw (up to 60% near death)
 const MIN_DRAW = 0.25, NOCK = 0.3, NOCK_SNIPER = 0.45; // bows: the least draw that fires, and the pause before the next draw can start
 const frenzyDraw = p => (has(p, 'frenzy') ? 1 + 0.6 * clamp(1 - p.hp / p.maxHp, 0, 1) : 1);
+function onIce(f) {
+  const z = ICE && ICE.zone; if (!z) return !!ICE;
+  const dx = (f.x - z.x) / z.rx, dy = (f.y - z.y) / z.ry;
+  return dx * dx + dy * dy <= 1;
+}
 function accelerate(f, mx, my, sp, dt) {
   const moving = !!(mx || my);
   // throttle ramps with an ease-in so the very first moment is slowest
@@ -1771,12 +1808,13 @@ function accelerate(f, mx, my, sp, dt) {
     f.tdx += (mx - f.tdx) * k; f.tdy += (my - f.tdy) * k;
   }
   const push = f.thr * f.thr * (3 - 2 * f.thr); // smoothstep
-  const glide = ICE ? ICE.glide : MOVE.glide;
+  const ice = ICE && onIce(f) ? ICE : null; // a whole icy arena, or just its frozen lake
+  const glide = ice ? ice.glide : MOVE.glide;
   let drag = glide + (MOVE.drag - glide) * push;
   let thrust = sp * MOVE.drag * push;
   if (f.resp && f.resp !== 1) { drag *= f.resp; thrust *= f.resp; } // Fleet Foot: same top speed, snappier response
   if (f.inTar && !f.sure) drag *= 3; // bog: same push, triple drag, so about a third of the speed
-  if (f.knock > 0) { drag = f.inTar && !f.sure ? 7 : ICE ? ICE.knock : MOVE.knockDrag; thrust *= MOVE.knockPush; }
+  if (f.knock > 0) { drag = f.inTar && !f.sure ? 7 : ice ? ice.knock : MOVE.knockDrag; thrust *= MOVE.knockPush; }
   if (f.stuck > 0 && f.knock <= 0) drag = 12; // rooted: can't walk, but hits still send you flying
   f.vx += f.tdx * thrust * dt; f.vy += f.tdy * thrust * dt;
   const e = Math.exp(-drag * dt);
@@ -1784,11 +1822,11 @@ function accelerate(f, mx, my, sp, dt) {
   // turning: bleed off motion that goes against the held direction
   if (moving && f.knock <= 0) {
     const along = f.vx * mx + f.vy * my;
-    if (along < 0) { const b = along * (1 - Math.exp(-(ICE ? ICE.brake : MOVE.brake * (f.agile || 1)) * dt)); f.vx -= mx * b; f.vy -= my * b; }
+    if (along < 0) { const b = along * (1 - Math.exp(-(ice ? ice.brake : MOVE.brake * (f.agile || 1)) * dt)); f.vx -= mx * b; f.vy -= my * b; }
   }
   const cur = Math.hypot(f.vx, f.vy), cap = f.speed;
   if (cur > cap * 1.05 && f.knock <= 0) {
-    const target = cap + (cur - cap) * Math.exp(-(ICE ? ICE.over : MOVE.overSpeed) * dt);
+    const target = cap + (cur - cap) * Math.exp(-(ice ? ice.over : MOVE.overSpeed) * dt);
     f.vx *= target / cur; f.vy *= target / cur;
   }
 }
@@ -4272,7 +4310,39 @@ function masteryOf(games, wins) {
   while (lv < 10 && pts >= MASTERY[lv + 1]) lv++;
   return { lv, pts, cur: MASTERY[lv], next: lv < 10 ? MASTERY[lv + 1] : null };
 }
+// Ranked tiers: named bands of rating, each split into three divisions (III, II, I) except Champion. Before your
+// placement matches you're Unranked. Seasons (server side) record where you peaked and then soften everyone's rating.
+const TIERS = [
+  { k: 'bronze', n: 'Bronze', min: -1e9, lo: 500, col: '#cd8f58' },
+  { k: 'silver', n: 'Silver', min: 700, col: '#c7d3dd' },
+  { k: 'gold', n: 'Gold', min: 900, col: '#ffcf5a' },
+  { k: 'plat', n: 'Platinum', min: 1100, col: '#4fe3c6' },
+  { k: 'diamond', n: 'Diamond', min: 1300, col: '#7fb6ff' },
+  { k: 'master', n: 'Master', min: 1500, col: '#c77dff' },
+  { k: 'champ', n: 'Champion', min: 1700, col: '#ff6b5a' },
+];
+const DIVS = ['III', 'II', 'I'];
+function tierOf(r, placed = true) {
+  if (!placed || r == null) return { k: 'unranked', n: 'Unranked', label: 'Unranked', col: '#8f9aa8', i: -1, div: '', frac: 0 };
+  let i = TIERS.length - 1; while (i > 0 && r < TIERS[i].min) i--;
+  const T = TIERS[i], next = TIERS[i + 1];
+  if (!next) return { k: T.k, n: T.n, label: T.n, col: T.col, i, div: '', frac: 1, next: null };
+  const lo = T.lo != null ? T.lo : T.min, w = (next.min - lo) / 3, d = Math.max(0, Math.min(2, Math.floor((r - lo) / w)));
+  const divLo = lo + d * w, toNext = Math.ceil(divLo + w - r);
+  return { k: T.k, n: T.n, div: DIVS[d], label: T.n + ' ' + DIVS[d], col: T.col, i, frac: Math.max(0, Math.min(1, (r - divLo) / w)),
+    next: d < 2 ? T.n + ' ' + DIVS[d + 1] : next.n + (TIERS[i + 2] ? ' III' : ''), toNext: Math.max(1, toNext) };
+}
+// a tier's badge: a shield in its colour with one to seven chevrons (Unranked: an empty outline)
+function tierSvg(k, size = 22) {
+  const i = TIERS.findIndex(t => t.k === k), T = TIERS[i];
+  if (!T) return `<svg class="tierbadge" width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.4 9-8 11-4.6-2-8-6-8-11V5z" fill="none" stroke="#8f9aa8" stroke-width="1.6"/></svg>`;
+  const ch = Array.from({ length: Math.min(3, Math.floor(i / 2) + 1) }, (_, j) => `<path d="M7.5 ${9 + j * 3.2}l4.5 2.6 4.5-2.6" fill="none" stroke="rgba(20,16,10,.75)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>`).join('');
+  const gem = i >= 4 ? `<circle cx="12" cy="6.4" r="1.7" fill="#fff" opacity=".85"/>` : '';
+  const wings = i >= 5 ? `<path d="M4 6L1 4.5 2 9zM20 6l3-1.5-1 4.5z" fill="${T.col}"/>` : '';
+  return `<svg class="tierbadge" width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true">${wings}<path d="M12 2l8 3v6c0 5-3.4 9-8 11-4.6-2-8-6-8-11V5z" fill="${T.col}" stroke="rgba(0,0,0,.55)" stroke-width="1"/><path d="M12 3.4l6.6 2.5v5.1c0 4.2-2.8 7.6-6.6 9.4z" fill="rgba(255,255,255,.18)"/>${ch}${gem}</svg>`;
+}
 return {
+  TIERS, tierOf, tierSvg,
   MASTERY, masteryOf,
   AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
