@@ -2,6 +2,17 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.37.2
+
+- **Real profile pictures on the website:** the website profile now draws your picture with the game's own archer drawing (borrowed from a hidden copy of the game page), so it matches what you see in the game.
+- **See your profile as others do:** your profile button in the game now opens your profile card, the same as everyone sees it, with an **Edit profile** button. The edit screen has **View my profile**, and Done takes you back to your profile.
+- **Website:** your own profile page shows what everyone sees, with an **Edit profile** button that opens your profile page settings (backdrop, motto, accent, pinned stats, flag), title, flag and sign-in settings. Profile page settings can now be changed on the website too.
+
+## 0.37.1
+
+- Fixed: the featured kill cam on website profiles showed squashed into a thin strip (the embedded replay page picked up the clan emblem editor's layout).
+- AI players' chat after a match is less samey: only one or two of them speak, a few seconds apart, they don't open the same way as the last few messages ("gg… gg… ggs"), and there are more lines that don't start with gg. A close finish or a sweep gets a line about it half the time, otherwise their own personality's. After a single game, at most one of them says something.
+
 ## 0.37.0
 
 - **Ranked tiers and seasons.** Bronze, Silver, Gold, Platinum, Diamond and Master (each III, II and I), then Champion, from your 1v1 and team ratings, with a badge for each. Shown on Find game with your progress to the next division and the days left in the season, after each ranked match (promotions get a fanfare line), on party rows, the leaderboards and profiles. Seasons run three months; at the end your peak tier is recorded, you get Crests for it, ratings soften toward the middle and there are 3 placement matches. Owner command `/season`.

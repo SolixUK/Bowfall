@@ -202,6 +202,9 @@
   .pclipf { width: 100%; aspect-ratio: 16 / 9; max-height: 560px; border: 0; display: block; background: #000; }
   .pseasons { display: flex; flex-wrap: wrap; gap: 10px; } .pseasons > div { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid color-mix(in srgb, var(--sc) 40%, transparent); border-left: 3px solid var(--sc); } .pseasons b { display: block; } .pseasons small { opacity: .75; }
   @media (max-width: 760px) { .phero { grid-template-columns: 1fr; padding: 22px 18px; } .phero canvas { width: 120px; height: 120px; } .ppins { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pflag { width: 360px; } }
+  .pform { display: grid; gap: 12px; max-width: 640px; } .pform label { display: grid; gap: 6px; font-size: 14px; } .pform .pchk { display: flex; align-items: center; gap: 8px; }
+  .paccs { display: flex; flex-wrap: wrap; gap: 8px; } .pacc { width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; } .pacc.on { border-color: #fff; box-shadow: 0 0 0 2px rgba(0,0,0,.6); }
+  .ppinsel { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; } @media (max-width: 600px) { .ppinsel { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>
 </head>
 <body>
@@ -342,7 +345,8 @@ function profHero(u, mine) {
         ${P.motto ? `<div class="pmotto">“${esc(P.motto)}”</div>` : ''}
         <div class="ptiers"><span>${Sim.tierSvg(t1.k, 34)}<span><b style="color:${t1.col}">${esc(t1.label)}</b><small>1v1 · ${Math.round(c.elo || 800)}</small></span></span><span>${Sim.tierSvg(tT.k, 34)}<span><b style="color:${tT.col}">${esc(tT.label)}</b><small>Team · ${Math.round(c.eloT != null ? c.eloT : c.elo || 800)}</small></span></span></div>
         ${lv ? `<div class="plv"><div class="muted"><span>${rankOf(lv.lv).name} · level ${lv.lv}</span><span>${lv.xp - lv.cur} / ${lv.next - lv.cur} xp</span></div><div class="xp"><i style="width:${Math.round((lv.xp - lv.cur) / Math.max(1, lv.next - lv.cur) * 100)}%"></i></div></div>` : ''}
-        <div class="muted" style="font-size:13px">Joined ${new Date(u.created).toLocaleDateString()}${mine ? ' · <a href="/play">Customise your profile in the game</a> (Profile → Your profile page)' : ''}</div>
+        <div class="muted" style="font-size:13px">Joined ${new Date(u.created).toLocaleDateString()}</div>
+        ${mine ? '<div><button class="btn" id="pEditBtn" type="button">Edit profile</button> <span class="muted" style="font-size:13px">This is how everyone sees your profile.</span></div>' : ''}
       </div>
     </section>
     ${sig.length ? `<div class="psig">${sig.map(x => `<div style="--sc:${x.col || acc}"><span>${esc(x.k)}</span>${x.badge ? Sim.tierSvg(x.badge, 26) : ''}<b>${esc(String(x.big))}</b><small>${esc(x.sub)}</small></div>`).join('')}</div>` : ''}
@@ -355,8 +359,17 @@ function seasonsCard(list) {
     return `<div style="--sc:${T ? T.col : '#8f9aa8'}">${Sim.tierSvg(k || 'unranked', 28)}<span><b>Season ${x.n}</b><small>${esc([x.t1 && '1v1 ' + x.t1, x.tT && 'Team ' + x.tT].filter(Boolean).join(' · ') || 'Unranked')}</small></span></div>`; }).join('')}</div></div>`;
 }
 // a simple drawing of their profile picture (an archer from above, in their colours)
+// the real picture comes from the game's own drawing code, borrowed from a hidden copy of the game page; this simple
+// version shows until it's ready (or if it can't load)
+let avatarFrame = null;
+function gameAvatar(cv, av) {
+  const draw = () => { try { const w = avatarFrame.contentWindow; if (!w || !w.bowfallDrawAvatar) return false; w.bowfallDrawAvatar(cv, av.el, av.ro, av.c); return true; } catch (e) { return false; } };
+  if (!avatarFrame) { avatarFrame = document.createElement('iframe'); avatarFrame.src = '/play?avatar=1'; avatarFrame.title = ''; avatarFrame.setAttribute('aria-hidden', 'true'); avatarFrame.style.cssText = 'position:absolute;width:1px;height:1px;left:-9999px;top:0;border:0;opacity:0'; document.body.appendChild(avatarFrame); }
+  let n = 0; const t = setInterval(() => { if (draw() || ++n > 60 || !cv.isConnected) clearInterval(t); }, 150);
+}
 function profAvatar(cv, av) {
-  if (!cv) return; const g = cv.getContext('2d'), W = cv.width, a = av || { el: 'frost', ro: 'sniper', c: '#ff6b5a' }, ec = (Sim.ELEMENTS[a.el] || {}).color || '#fff';
+  if (!cv) return;
+  setTimeout(() => gameAvatar(cv, av && av.el && av.ro && av.c ? av : { el: 'frost', ro: 'sniper', c: '#ff6b5a' }), 0); const g = cv.getContext('2d'), W = cv.width, a = av || { el: 'frost', ro: 'sniper', c: '#ff6b5a' }, ec = (Sim.ELEMENTS[a.el] || {}).color || '#fff';
   g.clearRect(0, 0, W, W); g.save(); g.translate(W / 2, W / 2); const r = W * 0.24;
   g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.arc(6, 10, r, 0, 7); g.fill();
   g.strokeStyle = '#c99a5a'; g.lineWidth = W * 0.03; g.lineCap = 'round'; g.beginPath(); g.arc(r * 0.35, 0, r * 1.25, -1.15, 1.15); g.stroke();
@@ -449,11 +462,18 @@ const pages = {
       return e.length ? `<div class="bars">${e.map(([k, v]) => `<div><span>${esc((names[k] || {}).name || k)}</span><i style="width:${Math.max(4, v / max * 100)}%"></i><span class="muted">${v}</span></div>`).join('')}</div>` : '<p class="muted">No games yet.</p>'; };
     app.innerHTML = (movedNote ? `<div class="card" style="margin-bottom:16px;border-left:3px solid var(--gold)">Your guest rating (<b>${movedNote.elo}</b>) and ${movedNote.games} games moved to this account.</div>` : '') + `
       ${profHero(u, mine)}
-      ${mine ? `<div class="card" style="margin-top:16px"><h3>Your title</h3><p class="muted" style="margin:4px 0 10px">Shown next to your name in games and on the forum.</p>
+      ${mine ? `<div id="pEdit" hidden><div class="card" style="margin-top:16px"><h3>Your profile page</h3><p class="muted" style="margin:4px 0 10px">How your profile looks to everyone.</p>
+        <div class="pform"><label>Backdrop<select id="pfBg"><option value="">Most played arena</option>${Sim.MAP_KEYS.map(k => `<option value="${k}"${(u.prof || {}).bg === k ? ' selected' : ''}>${esc(Sim.MAPS[k].name)}</option>`).join('')}</select></label>
+          <label>Motto<input id="pfMotto" maxlength="80" value="${esc((u.prof || {}).motto || '')}" placeholder="A line under your name"></label>
+          <label>Accent<span class="paccs">${['#ffcf5a', '#ff6b5a', '#ff9f43', '#7dff8a', '#4fe3c6', '#5ad1ff', '#7fb6ff', '#c77dff', '#ff7ac8', '#e9edf2'].map(c => `<button type="button" class="pacc${((u.prof || {}).acc || '#ffcf5a') === c ? ' on' : ''}" data-acc="${c}" style="background:${c}" aria-label="Accent ${c}"></button>`).join('')}</span></label>
+          <label>Pinned stats<span class="ppinsel">${[0, 1, 2, 3].map(i => { const cur = ((u.prof || {}).pins && u.prof.pins.length ? u.prof.pins : ['matchWins', 'rate', 'kills', 'acc'])[i]; return `<select data-pin="${i}">${Object.entries(PSTAT).map(([k, v]) => `<option value="${k}"${cur === k ? ' selected' : ''}>${v[0]}</option>`).join('')}</select>`; }).join('')}</span></label>
+          <label class="pchk"><input type="checkbox" id="pfFlag"${(u.prof || {}).flag === 'off' ? '' : ' checked'}> Show my flag big behind my name</label>
+          <div><button class="btn" id="pfSave" type="button">Save</button> <span class="muted" id="pfMsg"></span></div></div></div>
+      <div class="card" style="margin-top:16px"><h3>Your title</h3><p class="muted" style="margin:4px 0 10px">Shown next to your name in games and on the forum.</p>
         <div style="display:flex;gap:8px;max-width:420px"><select id="titleSel"><option value="">No title</option>${Object.keys(A).filter(k => got.has(k)).map(k => `<option value="${k}"${u.title === k ? ' selected' : ''}>${esc(A[k].title)}</option>`).join('')}</select><button class="btn" id="titleSave" type="button">Save</button></div><p class="err" id="titleErr"></p></div>` : ''}
       ${mine ? `<div class="card" style="margin-top:16px"><h3>Your flag</h3><p class="muted" style="margin:4px 0 10px">Shown next to your name in games, on the leaderboard and on the forum. It starts as the country you're playing from.</p>
         <div style="display:flex;gap:8px;max-width:420px"><select id="ccSel"><option value="">Where I'm playing from</option><option value="-"${me.countryRaw === '-' ? ' selected' : ''}>Don't show a flag</option>${COUNTRIES.map(([cc, n]) => `<option value="${cc}"${me.countryRaw === cc ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select><button class="btn" id="ccSave" type="button">Save</button></div><p class="err" id="ccErr"></p></div>` : ''}
-      ${mine ? await methodsCard(u) : ''}
+      ${mine ? await methodsCard(u) + '</div>' : ''}
       <div class="grid g2" style="margin-top:16px">
         <div class="card"><h3 style="margin-bottom:10px">Favourite roles</h3>${bars(c.roles, Sim.ROLES)}</div>
         <div class="card"><h3 style="margin-bottom:10px">Favourite elements</h3>${bars(c.els, Sim.ELEMENTS)}</div>
@@ -464,6 +484,15 @@ const pages = {
       <div class="section-h"><h2>Achievements</h2><span class="muted">${Object.values(u.tier || {}).reduce((x, y) => x + y, 0)} of ${Sim.ACH_ORDER.length * 5} tiers</span></div>
       <div class="achs">${achCards(u, (rr && rr.rarity) || {})}</div>`;
     if (mine) wireMethods(name);
+    if (mine) {
+      $('pEditBtn').onclick = () => { const e = $('pEdit'); e.hidden = !e.hidden; $('pEditBtn').textContent = e.hidden ? 'Edit profile' : 'Done editing'; if (!e.hidden) e.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+      let acc = (u.prof || {}).acc || '#ffcf5a';
+      document.querySelectorAll('.pacc').forEach(b => b.onclick = () => { acc = b.dataset.acc; document.querySelectorAll('.pacc').forEach(x => x.classList.toggle('on', x === b)); });
+      $('pfSave').onclick = async () => {
+        try { await api('/look', { prof: { bg: $('pfBg').value || null, motto: $('pfMotto').value, acc, pins: [...document.querySelectorAll('[data-pin]')].map(x => x.value), flag: $('pfFlag').checked ? null : 'off' } }); await pages.user(name); window.scrollTo(0, 0); }
+        catch (e) { $('pfMsg').textContent = e.message; }
+      };
+    }
     profAvatar($('pAv'), u.avatar);
     const cb = $('pClipBtn'); if (cb) cb.onclick = () => { cb.outerHTML = `<iframe class="pclipf" src="/play?clip=${encodeURIComponent(u.clip.id)}&embed=1" title="Featured kill cam" allow="autoplay"></iframe>`; };
     if (mine) $('ccSave').onclick = async () => { try { await api('/country', { country: $('ccSel').value }); await loadMe(); pages.user(name); } catch (e) { $('ccErr').textContent = e.message; } };

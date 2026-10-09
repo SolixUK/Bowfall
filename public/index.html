@@ -458,7 +458,7 @@
   .clipview .cvhead { display: flex; flex-direction: column; } .clipview b { font: 700 18px 'Rajdhani', 'Arial Narrow', sans-serif; } .clipview small { color: var(--muted); font-size: 12px; }
   .clipview .cvbtns { display: flex; gap: 8px; }
   body.clipmode #home, body.clipmode .overlay.sub, body.clipmode #gate, body.clipmode .rejoinbar, body.clipmode #homeFriends, body.clipmode .hud-l, body.clipmode .hud-r, body.clipmode #powers, body.clipmode #abil, body.clipmode #board { display: none !important; }
-  body.embed #clipView { bottom: 8px; padding: 6px 10px; } body.embed #cvClose { display: none; }
+  body.clipembed #clipView { bottom: 8px; padding: 6px 10px; } body.clipembed #cvClose { display: none; }
   .rejoinbar { position: fixed; z-index: 17; left: 50%; top: 14px; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: rgba(9,18,11,.97); border: 1px solid var(--gold); box-shadow: 0 8px 24px rgba(0,0,0,.5); font: 600 14px 'Titillium Web', 'Segoe UI', sans-serif; max-width: calc(100vw - 32px); box-sizing: border-box; }
   .invite { position: fixed; z-index: 15; right: 16px; bottom: 16px; max-width: 320px; padding: 12px 14px; background: rgba(9,18,11,.96); border: 1px solid var(--gold); display: flex; flex-direction: column; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
   .invite[hidden] { display: none; }
@@ -1271,7 +1271,7 @@
   <!-- profile: picture, name, title, banner border, flag -->
   <div class="overlay sub" id="profScr" hidden>
     <div class="card wide">
-      <div class="shopbar"><div class="stat"><span class="eyebrow">Profile</span><h2>Your profile</h2></div><button class="cta" type="button" data-back>Done</button></div>
+      <div class="shopbar"><div class="stat"><span class="eyebrow">Profile</span><h2>Edit profile</h2></div><div class="btnrow"><button class="ghost" type="button" id="pfView" hidden>View my profile</button><button class="cta" type="button" id="pfDone" data-back>Done</button></div></div>
       <div class="profgrid">
         <div class="profleft"><canvas id="pfAv" width="224" height="224"></canvas><span class="lbl">How your name looks in lobbies</span><div class="slot pfslot" id="pfPlate"></div></div>
         <div class="profform">
@@ -1289,7 +1289,7 @@
         </div>
       </div>
       <div class="pfpage" id="pfPage" hidden>
-        <div class="shopbar"><div class="stat"><span class="eyebrow">Your profile page</span><h3 style="margin:0">What other players see</h3></div><button class="ghost sm" type="button" id="pfPreview">Preview</button></div>
+        <div class="shopbar"><div class="stat"><span class="eyebrow">Your profile page</span><h3 style="margin:0">What other players see</h3></div><button class="ghost sm" type="button" id="pfPreview">See it as others do</button></div>
         <div class="row">
           <div class="field"><label for="pfBg">Backdrop</label><select id="pfBg"></select></div>
           <div class="field"><label for="pfMotto">Motto</label><input id="pfMotto" maxlength="80" autocomplete="off" placeholder="A line under your name"></div>
@@ -1511,7 +1511,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.37.0"></script>
+<script src="sim.js?v=0.37.2"></script>
 <script>
 (() => {
 'use strict';
@@ -1519,7 +1519,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.37.0';
+const PAGE_VERSION = '0.37.2';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -4046,7 +4046,7 @@ async function openPlayerCard(name) {
     ${u.clip ? `<button type="button" class="pcclip" data-pcclip="${esc(u.clip.id)}"><i>▶</i><span><b>${esc(u.clip.label || 'Kill cam')}</b><small>Featured kill cam${mine ? ' · yours' : ''}</small></span></button>` : ''}
     <div class="pcsec"><h3>Achievements · ${achs.length} of ${Sim.ACH_ORDER.length}</h3><div class="pcchips">${achs.length ? achs.map(k => { const T = Sim.ACH_TIERS[tier[k] - 1]; return `<span style="--cc:${T.col}" title="${esc(Sim.achText(k, tier[k]))}">${esc(A[k].title)}<small>${T.n}</small></span>`; }).join('') : '<small class="status">None yet</small>'}</div></div>
     ${seasons.length ? `<div class="pcsec"><h3>Seasons</h3><div class="pcchips">${seasons.map(x => { const k = x.k1 || x.kT, T = Sim.TIERS.find(t => t.k === k); return `<span style="--cc:${T ? T.col : 'var(--line)'}">${k ? Sim.tierSvg(k, 14) : ''} Season ${x.n}<small>${esc([x.t1 && '1v1 ' + x.t1, x.tT && 'team ' + x.tT].filter(Boolean).join(' · ') || 'Unranked')}</small></span>`; }).join('')}</div></div>` : ''}
-    <div class="pcact">${mine ? `<button type="button" class="ghost sm" data-pcedit="1">Customise</button>` : ''}${f && canWatch(f) ? `<button type="button" class="ghost sm" data-pcwatch="${f.id}">Watch their game</button>` : ''}${f && f.online && lead && !inParty && !f.inGame ? `<button type="button" class="ghost sm" data-pcinv="${f.id}">Invite to party</button>` : ''}${f ? `<button type="button" class="ghost sm" data-pcmsg="${f.id}">Message</button>` : ''}${SOC.st && SOC.st.account && !u.ai && !mine ? (isBlockedName(u.name) ? `<button type="button" class="ghost sm" data-pcunb="${esc(u.name)}">Unblock</button>` : `<button type="button" class="ghost sm" data-pcblock="${esc(u.name)}">Block</button>`) : ''}${OFFLINE ? '' : `<a class="ghost sm btnlink" href="/#/u/${encodeURIComponent(u.name)}" target="_blank" rel="noopener">Full profile</a>`}</div>`;
+    <div class="pcact">${mine ? `<button type="button" class="cta sm" data-pcedit="1">Edit profile</button>` : ''}${f && canWatch(f) ? `<button type="button" class="ghost sm" data-pcwatch="${f.id}">Watch their game</button>` : ''}${f && f.online && lead && !inParty && !f.inGame ? `<button type="button" class="ghost sm" data-pcinv="${f.id}">Invite to party</button>` : ''}${f ? `<button type="button" class="ghost sm" data-pcmsg="${f.id}">Message</button>` : ''}${SOC.st && SOC.st.account && !u.ai && !mine ? (isBlockedName(u.name) ? `<button type="button" class="ghost sm" data-pcunb="${esc(u.name)}">Unblock</button>` : `<button type="button" class="ghost sm" data-pcblock="${esc(u.name)}">Block</button>`) : ''}${OFFLINE ? '' : `<a class="ghost sm btnlink" href="/#/u/${encodeURIComponent(u.name)}" target="_blank" rel="noopener">Full profile</a>`}</div>`;
   const av = u.avatar || { el: 'frost', ro: 'sniper', c: TEAM_INFO.red.shades[0] };
   try { drawPreview($('pcAv'), av.el, av.ro, av.c); } catch (e) {}
 }
@@ -4058,7 +4058,7 @@ $('pcWrap').addEventListener('click', e => {
   else if (b.dataset.pcinv) { socialSend({ t: 'party', op: 'invite', id: +b.dataset.pcinv }); b.disabled = true; b.textContent = 'Invited'; }
   else if (b.dataset.pcmsg) { closePlayerCard(); dmOpen(+b.dataset.pcmsg); }
   else if (b.dataset.pcclip) { closePlayerCard(); closeSubs(); playClip(b.dataset.pcclip); }
-  else if (b.dataset.pcedit) { closePlayerCard(); openSub('profScr'); setTimeout(() => { const el = $('pfPage'); if (el) el.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 60); }
+  else if (b.dataset.pcedit) { closePlayerCard(); openSub('profScr'); }
   else if (b.dataset.pcblock) { if (b.dataset.sure) { socialSend({ t: 'friend', op: 'block', name: b.dataset.pcblock }); closePlayerCard(); } else { b.dataset.sure = 1; b.textContent = 'Block? They can\'t message, invite or add you'; } }
   else if (b.dataset.pcunb) { socialSend({ t: 'friend', op: 'unblock', name: b.dataset.pcunb }); closePlayerCard(); }
 });
@@ -4305,7 +4305,8 @@ function showInvite(m) {
 $('inviteYes').onclick = () => { if (SOC.invite) socialSend({ t: 'party', op: 'accept', party: SOC.invite.party }); $('inviteToast').hidden = true; if (mode === 'menu') openSub('findScr'); };
 $('inviteNo').onclick = () => { $('inviteToast').hidden = true; };
 setInterval(() => { const p = SOC.st && SOC.st.party; if (p && p.queued != null) renderFind(); }, 1000);
-if (!OFFLINE) setTimeout(socialConnect, 400);
+const AVATAR_ONLY = params.get('avatar') === '1'; // the website borrows the game's archer drawing for profile pictures
+if (!OFFLINE && !AVATAR_ONLY) setTimeout(socialConnect, 400);
 
 // ================= chat (online rooms) =================
 let chatMsgs = [];
@@ -5241,7 +5242,7 @@ $('mCustom').onclick = () => openSub('customScr');
 $('mFind').onclick = () => { if (OFFLINE) { notice('Find game needs the Bowfall server. Open your Bowfall site to play ranked.', false); return; } openSub('findScr'); };
 $('mScores').onclick = () => openSub('scoresScr');
 $('mOpts').onclick = () => openSub('optScr');
-$('profChip').onclick = () => openSub('profScr');
+$('profChip').onclick = () => { if (account && !OFFLINE) openPlayerCard(account.name); else openSub('profScr'); }; // your profile as others see it (Edit profile on it)
 $('mTut').onclick = startTutorial;
 $('mTrain').onclick = () => openSub('trainScr');
 $('mStore').onclick = () => openSub('storeScr');
@@ -5348,7 +5349,10 @@ function renderProfile() {
   if (account) $('pfFlag').innerHTML = `<option value="">Where I'm playing from</option><option value="-"${account.countryRaw === '-' ? ' selected' : ''}>No flag</option>` + countryList().map(([cc, n]) => `<option value="${cc}"${account.countryRaw === cc ? ' selected' : ''}>${esc(n)}</option>`).join('');
   $('pfPlate').innerHTML = myPlateHtml();
   renderProfPage();
+  $('pfView').hidden = !account || OFFLINE;
 }
+$('pfView').onclick = () => openPlayerCard(account.name);
+$('pfDone').onclick = () => { closeSubs(); if (account && !OFFLINE) openPlayerCard(account.name); }; // back to your profile, as others see it
 // the profile page settings (signed in): backdrop, accent, motto, pinned stats, flag, featured kill cam
 function renderProfPage() {
   const box = $('pfPage'); box.hidden = !account || OFFLINE; if (box.hidden) return;
@@ -9646,10 +9650,11 @@ function frame(now) {
 
 new ResizeObserver(resize).observe(cv);
 setScreens();
+if (AVATAR_ONLY) { $('gate').hidden = true; window.bowfallDrawAvatar = (cvs, el, ro, c) => drawPreview(cvs, el, ro, c); }
 // a link to a featured kill cam (?clip=…), or the website showing one (&embed=1: just the replay, looping)
 if (params.get('clip') && /^[a-f0-9]{12}$/.test(params.get('clip'))) {
   const embed = params.get('embed') === '1';
-  if (embed) document.body.classList.add('embed');
+  if (embed) document.body.classList.add('clipembed');
   $('gate').hidden = true;
   setTimeout(() => playClip(params.get('clip'), embed), 300);
 }
