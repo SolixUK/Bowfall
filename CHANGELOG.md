@@ -2,6 +2,19 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.39.0
+
+- **Banners redone:** six **frames** with real style on top of the background: Circuit, Rime, Primal, Shadow, Bloodied and Gilded, with subtle animation (a scanning sweep, a cold shimmer, a creeping dark, dripping blood, a pulsing gold glow). Four new **backgrounds**: Carbon, Hex plating, Woodland camo and Tidal (moving waves). Frames unlock with achievement tiers. Your profile shows a **bigger banner**: the name large, with level, flag, clan, title, trophies and medals on a compact second line. Hovering a medal now says what the achievement is for. (The "Finish" option is now called Background.)
+- **Easier to find yourself in team games:** a wide, faint gold halo with a slowly turning dashed ring round your archer, and teammates drawn a little dimmer. (Options → Your own archer → Lightly marked turns both off.)
+- **Bramble Trap:** range up from 380 to 450, cooldown down from 10 to 8.5 seconds.
+- **Invite a friend:** Invite in the Friends box gives you a link; when someone new makes an account from it and plays 3 ranked matches, you get 500 Crests and they get 250 (up to 25 friends).
+- **Ratings hidden until placed:** until your 5 placement matches are done you're shown as Unranked everywhere (Find game, party, friends, profiles, after a match), and you're not on the rating leaderboards; the rating still works behind the scenes for matchmaking.
+- **A slower standard pace:** move speed is now what used to be the "slow" setting, and knockback is about 13% lower. (Training drills use it too, so drill times may be a little slower than before.)
+- **Custom rules sliders:** arrow speed, move speed, knockback and health are now sliders (a percentage of the standard, 100% in the middle), so hosts can fine-tune them; a Standard button resets one. Old saved choices and records are mapped onto the sliders.
+- **Fully drawn bow sound is louder** (about three times), and the held creak a little louder too.
+- **Away also when idle:** friends now show as Away after 30 seconds with no mouse, keyboard, touch or controller input (or with the game out of view), not just when the page is hidden for a minute.
+- **Lower starting ratings:** a new account's estimated start (from bot wins and drill grades) now tops out at 1000 instead of 1200, so a beginner who beat hard bots doesn't start above experienced players.
+
 ## 0.38.0
 
 - **Bots and AI players play short-range roles properly.** A Crossbowman (or Ninja) bot used to hang back where it was safest, which was out of its own range, and could go a whole game without firing. Bots now weigh being outranged much more heavily: they approach behind boulders, dash the last stretch when it lands them in range (never into a hazard, and not into a drawn bow), fire using where a retreating target will be, and keep cover while reloading. Easy bots do this rarely, master bots constantly. Bow roles' behaviour is unchanged. In bot-vs-bot tests a mid-skill Crossbowman's time in range went from 40% to 56% and its win rate against a Ranger from 42% to 59%.

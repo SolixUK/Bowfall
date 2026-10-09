@@ -91,6 +91,27 @@ async function userFromReq(req) {
 }
 // a player's flag: the country they picked, none if they hid it ('-'), or unset (we fill it in from their location)
 const flagOf = u => (u && u.country && u.country !== '-' ? u.country : null);
+// ---- inviting friends: a link with your name (?ref=yourname). A new account made from it is noted as yours; once it has
+// played REF_AFTER ranked matches you both get Crests (REF_GIFT to you, REF_WELCOME to them), for up to REF_MAX friends
+const REF_AFTER = 3, REF_GIFT = 500, REF_WELCOME = 250, REF_MAX = 25;
+async function noteReferral(u, req, body) {
+  const ref = String((body && body.ref) || A.parseCookies(req.headers.cookie).bf_ref || '').trim().slice(0, 16);
+  if (!ref || !A.validName(ref)) return;
+  const by = await store.userByName(ref).catch(() => null); if (!by || by.id === u.id || (by.career && by.career.ai)) return;
+  const inv = live.get(by.id) || track(by);
+  u.social = Object.assign(u.social || {}, { refBy: inv.id, refIp: ip(req) });
+  inv.social = inv.social || {}; inv.social.refs = (inv.social.refs || []).concat(u.id).slice(-200); markDirty(inv);
+}
+async function payReferral(u) {
+  const s = u.social; if (!s || !s.refBy || s.refPaid || u.guest) return;
+  const c = u.career || {}; if ((c.rated || 0) < REF_AFTER) return;
+  s.refPaid = Date.now(); markDirty(u);
+  await loadById(s.refBy); const inv = live.get(s.refBy); if (!inv) return;
+  inv.social = inv.social || {}; const paid = inv.social.refPaid = (inv.social.refPaid || 0) + 1; markDirty(inv);
+  const g1 = E.give(u, REF_WELCOME, 'invite'); walletNote(u, g1, 'invite');
+  if (paid <= REF_MAX) { const g2 = E.give(inv, REF_GIFT, 'invite'); markDirty(inv); walletNote(inv, g2, 'invite'); social.notify && social.notify(inv.id, `${u.name}, who you invited, has played ${REF_AFTER} ranked matches: +${REF_GIFT} Crests!`); }
+}
+async function loadById(id) { if (!live.has(id)) { const [x] = await store.usersByIds([id]).catch(() => []); if (x) track(x); } }
 const placedOf = u => { const c = u.career || {}; return !!c.ai || (c.rated != null ? c.rated : c.matches || 0) >= 5; };
 const publicUser = u => ({ placed: placedOf(u), season: SEASON.info(), status: (u.career && u.career.ai) ? {} : E.statusOf(u), name: u.name, title: u.title, admin: !!u.admin, created: u.created, career: Object.assign({}, u.career || {}, { ai: undefined }), got: Object.keys((u.ach && u.ach.got) || {}), stats: (u.ach && u.ach.stats) || {},
   ai: !!(u.career && u.career.ai), country: flagOf(u), level: levelOf(u.career), border: (u.ach && u.ach.border) || null, avatar: (u.ach && u.ach.avatar) || null,
@@ -333,6 +354,7 @@ function saveRecords(room) {
           const c = u.career; c[key] = x.elo; c.rated = (c.rated != null ? c.rated : Math.max(0, (c.matches || 0) - 1)) + 1;
           const pk = key === 'elo' ? 'eloPeak' : 'eloTPeak'; c[pk] = Math.max(c[pk] || ELO_START, x.elo);
           SEASON.noteRating(u, key, x.elo);
+          payReferral(u).catch(e => console.error('Referral:', e.message));
           c.relo = c.relo || {}; c.relo[x.role] = x.roleElo;
           const ws = [...room.clients].find(q => q.user === u || q.guest === u);
           if (ws) send(ws, { t: 'rated', elo: x.elo, d: x.delta, key, guest: u.guest ? 1 : undefined, pl: placedOf(u) ? 1 : 0, left: Math.max(0, 5 - (c.rated || 0)) });
@@ -414,8 +436,9 @@ async function api(req, res, url) {
     const u = await store.createUser(name, A.hashPassword(body.password), name.toLowerCase() === OWNER);
     if (!u) return json(res, 409, { error: 'That name is taken.' });
     u.social = Object.assign(u.social || {}, { email });
+    await noteReferral(u, req, body);
     await store.saveUser(u);
-    return login(req, res, u, [], await adoptGuest(u, body.guest));
+    return login(req, res, u, [clearCookie('bf_ref', req)], await adoptGuest(u, body.guest));
   }
   // forgotten password: email a one-use link that lasts an hour (the reply is the same whether or not the account exists)
   if (route === '/forgot' && method === 'POST') {
@@ -538,8 +561,9 @@ async function api(req, res, url) {
     const u = await store.createUser(name, '', name.toLowerCase() === OWNER);
     if (!u) return json(res, 409, { error: 'That name is taken.' });
     await store.addLogin(pend.p, pend.id, u.id);
-    if (pend.email && !(await userWithEmail(pend.email))) { u.social = Object.assign(u.social || {}, { email: pend.email }); await store.saveUser(u); }
-    return login(req, res, u, [clearCookie('bf_pending', req)], await adoptGuest(u, body.guest));
+    if (pend.email && !(await userWithEmail(pend.email))) u.social = Object.assign(u.social || {}, { email: pend.email });
+    await noteReferral(u, req, body); await store.saveUser(u);
+    return login(req, res, u, [clearCookie('bf_pending', req), clearCookie('bf_ref', req)], await adoptGuest(u, body.guest));
   }
   if (route === '/unlink' && method === 'POST') {
     if (!me) return json(res, 401, { error: 'Sign in first.' });
@@ -682,6 +706,13 @@ async function api(req, res, url) {
     return json(res, 200, { kind: k, score: sc, best, isNew, g: me ? me.career.train[k].g : Sim.trainGrade(k, sc, body.clean !== false), top: trainTop(k, sc, !!me && best === sc), topBest: me ? trainTop(k, best, true) : null, n: TRAIN.dist[k].length + (me ? 0 : 1) });
   }
   // (m is declared at the top of api)
+  if (route === '/invite' && method === 'GET') {
+    if (!me) return json(res, 401, { error: 'Sign in first.' });
+    const ids = (me.social && me.social.refs) || []; const users = ids.length ? await store.usersByIds(ids.slice(-50)).catch(() => []) : [];
+    const list = users.map(x => live.get(x.id) || x).map(x => ({ name: x.name, games: (x.career || {}).rated || 0, done: !!(x.social && x.social.refPaid) }));
+    const origin = process.env.PUBLIC_URL ? process.env.PUBLIC_URL.replace(/\/$/, '') : (secure(req) ? 'https://' : 'http://') + req.headers.host;
+    return json(res, 200, { link: origin + '/?ref=' + encodeURIComponent(me.name), after: REF_AFTER, gift: REF_GIFT, welcome: REF_WELCOME, max: REF_MAX, list });
+  }
   // featured kill cams: a player puts one of their own kill cams on their profile (the replay's frames, gzipped)
   if (route === '/clip' && method === 'POST') {
     if (!me) return json(res, 401, { error: 'Sign in first.' });
@@ -726,7 +757,8 @@ async function api(req, res, url) {
         .sort((a, b) => b.value - a.value).slice(0, 50);
       return board({ by: 'elo', role, min: ROLE_MIN, rows });
     }
-    const rows = (await store.leaderboard(by, 50)).map(u => live.get(u.id) || u).filter(u => (u.career || {}).games > 0 && (by !== 'eloT' || (u.career || {}).eloT != null));
+    let rows = (await store.leaderboard(by, 50)).map(u => live.get(u.id) || u).filter(u => (u.career || {}).games > 0 && (by !== 'eloT' || (u.career || {}).eloT != null));
+    if (by === 'elo' || by === 'eloT') rows = rows.filter(placedOf); // ratings stay hidden until the 5 placement matches are done
     return board({ by, rows: rows.map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, ...stOf(u), title: u.title, country: flagOf(u), level: levelOf(u.career).lv, value: by === 'elo' || by === 'eloT' ? Math.round((u.career || {})[by] || ELO_START) : (u.career || {})[by] || 0, games: (u.career || {}).matches || 0, wins: (u.career || {}).matchWins || 0, kills: (u.career || {}).kills || 0, pl: placedOf(u) ? 1 : 0, rate: (u.career || {}).matches ? Math.round(((u.career || {}).matchWins || 0) / u.career.matches * 100) : 0 })) }); // "games" here are whole matches (a match is several rounds of short fights)
   }
   // ---- clans
@@ -783,6 +815,9 @@ async function api(req, res, url) {
       me.ach.avatar = { el: a.el, ro: a.ro, c: String(a.c) }; markDirty(me);
       if (!('border' in body)) return json(res, 200, { ok: true, avatar: me.ach.avatar });
     }
+    if ('frame' in body) { const f = body.frame && body.frame !== 'none' ? String(body.frame) : null; if (f && !Sim.frameAllowed(f, me.ach)) return json(res, 400, { error: "You haven't unlocked that frame." }); me.ach.frame = f; markDirty(me);
+      for (const r of rooms.values()) for (const c of r.clients) if (c.user && c.user.id === me.id) { Object.assign(c, lookOf(me)); if (c.pid) Sim.setMeta(r.world, c.pid, lookOf(me)); sendRoom(r); }
+      if (!('finish' in body) && !('show' in body) && !('border' in body)) return json(res, 200, { ok: true, frame: me.ach.frame }); }
     if ('finish' in body || 'show' in body) { // banner finish and showcase medals, checked against what they've earned
       if ('finish' in body) { const f = body.finish ? String(body.finish) : null; if (f && !Sim.finishAllowed(f, me.ach, E.statusOf(me))) return json(res, 400, { error: "You haven't unlocked that finish." }); me.ach.finish = f; }
       if ('show' in body) { const tier = me.ach.tier || {}; me.ach.show = (Array.isArray(body.show) ? body.show : []).map(String).filter(k => tier[k] > 0).slice(0, 3); }
@@ -1023,7 +1058,7 @@ function announceCfg(room, a, b) {
   if (a.map !== b.map) lines.push(`Arena set to ${Sim.MAPS[b.map].name}.`);
   if (a.diff !== b.diff) lines.push(`Bot skill set to ${DIFF_NAMES[b.diff] || b.diff}.`);
   if (a.ptw !== b.ptw) lines.push(`Match length set to first to ${b.ptw} points.`);
-  for (const k of Object.keys(Sim.OPTIONS)) if (a.opt[k] !== b.opt[k]) lines.push(`${Sim.OPTIONS[k].label} set to ${Sim.OPT_NAMES[b.opt[k]] || b.opt[k]}.`);
+  for (const k of Object.keys(Sim.OPTIONS)) if (a.opt[k] !== b.opt[k]) lines.push(`${Sim.OPTIONS[k].label} set to ${Sim.OPTIONS[k].slider ? b.opt[k] + '%' + (b.opt[k] === Sim.OPTIONS[k].def ? ' (standard)' : '') : Sim.OPT_NAMES[b.opt[k]] || b.opt[k]}.`);
   const nm = k => (Sim.ELEMENTS[k] || Sim.ROLES[k] || {}).name || k;
   const off = b.ban.filter(k => !a.ban.includes(k)), on = a.ban.filter(k => !b.ban.includes(k));
   if (off.length) lines.push(`Taken out of this game: ${off.map(nm).join(', ')}.`);
@@ -1059,7 +1094,7 @@ function roomInfo(room, ws) {
     draft: room.ranked && room.ranked.draftUntil && !room.ranked.go ? Math.max(0, Math.ceil((room.ranked.draftUntil - Date.now()) / 1000)) : undefined,
     ready: room.ranked && room.ranked.ready ? [...room.clients].filter(c => room.ranked.ready.has(c.cid) && c.pid).map(c => c.pid) : undefined,
     cards: Object.fromEntries([...room.clients].map(c => [c.pid ? 'p' + c.pid : 'c' + c.cid, cardOf(c)]).concat([...(room.ai || new Map())].map(([pid, u]) => ['p' + pid, Object.assign(cardOf({ user: u }), { ai: 1 })]))),
-    spec: [...room.clients].filter(c => !c.pid).map(c => ({ cid: c.cid, n: c.name, h: c.cid === room.host ? 1 : 0, you: c === ws ? 1 : 0, cc: c.cc || undefined, lv: c.lv || undefined, bd: c.bd || undefined, sp: c.sp || undefined, fd: c.fd || undefined, pt: c.pt || undefined, na: c.na || undefined, ow: c.ow || undefined, fin: c.fin || undefined, ct: c.ct || undefined, cl: c.cl || undefined, ce: c.ce || undefined, sc: c.sc && c.sc.length ? c.sc : undefined })),
+    spec: [...room.clients].filter(c => !c.pid).map(c => ({ cid: c.cid, n: c.name, h: c.cid === room.host ? 1 : 0, you: c === ws ? 1 : 0, cc: c.cc || undefined, lv: c.lv || undefined, bd: c.bd || undefined, sp: c.sp || undefined, fd: c.fd || undefined, pt: c.pt || undefined, na: c.na || undefined, ow: c.ow || undefined, fin: c.fin || undefined, fr: c.fr || undefined, ct: c.ct || undefined, cl: c.cl || undefined, ce: c.ce || undefined, sc: c.sc && c.sc.length ? c.sc : undefined })),
   };
 }
 // what the lobby's hover card shows about someone: accounts get their record, guests just what their browser says they've earned
@@ -1405,6 +1440,7 @@ async function handle(ws, m) {
         const g = ws.guest; g.ach = g.ach || {};
         const bd = Sim.ACHIEVEMENTS[m.bd] && (g.ach.got || {})[m.bd] ? String(m.bd) : null;
         if (m.fin !== undefined) g.ach.finish = m.fin && Sim.BANNER_FINISH[m.fin] ? String(m.fin) : null;
+        if (m.fr !== undefined) g.ach.frame = m.fr && Sim.BANNER_FRAME[m.fr] ? String(m.fr) : null;
         if (Array.isArray(m.show)) g.ach.show = m.show.map(String).filter(k => (g.ach.tier || {})[k] > 0).slice(0, 3);
         g.ach.border = bd; markDirty(g);
         look = Object.assign({ bd, na: Object.keys(g.ach.got || {}).length || null }, Sim.bannerOf(g.ach));

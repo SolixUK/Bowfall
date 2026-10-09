@@ -433,6 +433,12 @@
   .pfpage { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
   .pfpins { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; } @media (max-width: 560px) { .pfpins { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .chk { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
+  .invh { padding: 22px 22px 0; display: flex; flex-direction: column; gap: 8px; } .invh h2 { margin: 0; font: 700 30px 'Rajdhani', 'Arial Narrow', sans-serif; }
+  .invlink { display: flex; gap: 8px; flex-wrap: wrap; } .invlink input { flex: 1; min-width: 200px; }
+  .invlist { display: flex; flex-direction: column; gap: 6px; } .invlist > div { position: relative; display: flex; justify-content: space-between; gap: 10px; padding: 7px 10px; border: 1px solid var(--line); overflow: hidden; }
+  .invlist span { color: var(--muted); font-size: 13px; } .invlist i { position: absolute; left: 0; bottom: 0; height: 3px; width: calc(var(--f) * 100%); background: var(--gold); }
+  .optsl label { display: flex; justify-content: space-between; } .optsl output { color: var(--gold); font-weight: 700; }
+  .optsl input[type=range] { width: 100%; accent-color: var(--gold); } .optrs { align-self: flex-end; font-size: 12px; color: var(--muted); }
   .pcact { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
   .pcx { position: absolute; right: 12px; top: 10px; z-index: 2; }
   @media (max-width: 520px) { .pchead { grid-template-columns: 72px 1fr; } .pchead canvas { width: 72px; height: 72px; } .pchead h2 { font-size: 22px; } }
@@ -812,6 +818,52 @@
   .emb { display: inline-block; width: 1em; height: 1em; margin-left: 4px; vertical-align: -2px; }
   .emb svg { width: 100%; height: 100%; display: block; }
   @media (prefers-reduced-motion: reduce) { .plate.fin-aurora { animation: none; } }
+  /* ---- banner frames: a styled edge on top of the background, drawn with overlays so any background shows through */
+  .plate.frm { position: relative; isolation: isolate; }
+  .plate.frm::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  .plate.frm::before { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: -1; }
+  .plate.frm-tech { box-shadow: inset 0 0 0 1px rgba(90,209,255,.35), 0 0 14px -4px #5ad1ff !important; }
+  .plate.frm-tech::after { background:
+    linear-gradient(#5ad1ff,#5ad1ff) left 2px top 2px / 12px 2px no-repeat, linear-gradient(#5ad1ff,#5ad1ff) left 2px top 2px / 2px 9px no-repeat,
+    linear-gradient(#5ad1ff,#5ad1ff) left 2px bottom 2px / 12px 2px no-repeat, linear-gradient(#5ad1ff,#5ad1ff) left 2px bottom 2px / 2px 9px no-repeat,
+    linear-gradient(#5ad1ff,#5ad1ff) right 18px top 2px / 22px 2px no-repeat, linear-gradient(#5ad1ff,#5ad1ff) right 18px bottom 2px / 22px 2px no-repeat,
+    radial-gradient(circle, #9ff0ff 0 1.5px, transparent 2px) right 44px top 0 / 6px 6px no-repeat, radial-gradient(circle, #9ff0ff 0 1.5px, transparent 2px) right 44px bottom 0 / 6px 6px no-repeat; }
+  .plate.frm-tech::before { background: linear-gradient(90deg, transparent, rgba(90,209,255,.22), transparent) 0 0 / 35% 100% no-repeat; animation: scan 3.2s linear infinite; }
+  @keyframes scan { from { background-position: -40% 0; } to { background-position: 140% 0; } }
+  .plate.frm-frost { box-shadow: inset 0 0 0 1px rgba(200,236,255,.55), inset 0 0 14px rgba(160,220,255,.25), 0 0 14px -5px #bfe8ff !important; }
+  .plate.frm-frost::before { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='22' viewBox='0 0 34 22'%3E%3Cpath d='M0 0h34L22 4l6 2-12 2 4 4-9-1-3 7-2-6-6 5z' fill='%23dff4ff' opacity='.85'/%3E%3Cpath d='M0 0l9 1-4 4 6 1-7 3z' fill='%239fdcff'/%3E%3C/svg%3E") left top / 34px 22px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='22' viewBox='0 0 34 22'%3E%3Cpath d='M34 22H0l12-4-6-2 12-2-4-4 9 1 3-7 2 6 6-5z' fill='%23dff4ff' opacity='.85'/%3E%3C/svg%3E") right 12px bottom / 34px 22px no-repeat; filter: drop-shadow(0 0 3px rgba(191,232,255,.7)); animation: rime 4s ease-in-out infinite; }
+  @keyframes rime { 50% { filter: drop-shadow(0 0 6px rgba(191,232,255,1)); } }
+  .plate.frm-primal { box-shadow: inset 0 0 0 1px rgba(233,197,138,.4), inset 0 -3px 0 rgba(120,70,20,.5), 0 0 12px -5px #e9a54a !important; }
+  .plate.frm-primal::before { opacity: .9; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='40' viewBox='0 0 34 40'%3E%3Cg stroke-linecap='round'%3E%3Cpath d='M6 36L16 4M15 38L25 6M24 36L32 10' stroke='%231a0f06' stroke-width='5'/%3E%3Cpath d='M6 36L16 4M15 38L25 6M24 36L32 10' stroke='%23e9c58a' stroke-width='2.2'/%3E%3C/g%3E%3C/svg%3E") right 22px center / auto 78% no-repeat, linear-gradient(90deg, rgba(233,197,138,.55) 0 3px, transparent 3px) left / 100% 100%; }
+  .plate.frm-shadow { box-shadow: inset 0 0 0 1px rgba(150,110,255,.35), inset 0 0 18px rgba(10,0,25,.85), 0 0 16px -4px #7b4dff !important; }
+  .plate.frm-shadow::before { background: radial-gradient(ellipse 30% 90% at 0 50%, rgba(120,70,255,.35), transparent), radial-gradient(ellipse 25% 90% at 100% 50%, rgba(120,70,255,.3), transparent); animation: umbra 3.6s ease-in-out infinite; }
+  .plate.frm-shadow::after { background: repeating-linear-gradient(115deg, transparent 0 18px, rgba(0,0,0,.35) 18px 20px, transparent 20px 34px) left / 55% 100% no-repeat; -webkit-mask-image: linear-gradient(90deg, #000, transparent); mask-image: linear-gradient(90deg, #000, transparent); }
+  @keyframes umbra { 50% { opacity: .45; } }
+  .plate.frm-blood { box-shadow: inset 0 0 0 1px rgba(255,59,79,.45), inset 0 0 14px rgba(90,0,10,.6), 0 0 14px -4px #d01530 !important; }
+  .plate.frm-blood::before { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='16' viewBox='0 0 60 16'%3E%3Cpath d='M0 0h60v3c-3 0-3 2-4 6-1 4-4 4-4 0 0-3-2-4-5-4s-3 1-3 3-2 3-3 0-2-2-5-2-4 2-5 7c-1 4-5 4-5-1 0-3-2-4-4-4s-4 1-5 3-3 1-3-2-2-2-4-2-3 2-4 3-2-1-2-2z' fill='%23b3122a'/%3E%3Cpath d='M0 0h60v1.4H0z' fill='%23ff3b4f' opacity='.6'/%3E%3C/svg%3E") left top / 60px 16px repeat-x; transform-origin: top; animation: drip 5s ease-in-out infinite; }
+  .slot .plate.frm-blood::before { background-size: 34px 9px; } .slot .plate.frm-frost::before { background-size: 20px 13px, 20px 13px; }
+  @keyframes drip { 50% { transform: scaleY(1.25); } }
+  .plate.frm-gilded { box-shadow: inset 0 0 0 1px #ffcf5a, inset 0 0 0 3px rgba(40,26,4,.8), inset 0 0 0 4px rgba(255,207,90,.7), 0 0 18px -4px #ffcf5a !important; animation: gild 3s ease-in-out infinite; }
+  .plate.frm-gilded::after { background:
+    linear-gradient(45deg, transparent 40%, #ffe9a8 40% 60%, transparent 60%) left 4px top 50% / 9px 9px no-repeat,
+    radial-gradient(circle, #ffe9a8 0 2px, transparent 2.5px) left 50% top 1px / 8px 8px no-repeat, radial-gradient(circle, #ffe9a8 0 2px, transparent 2.5px) left 50% bottom 1px / 8px 8px no-repeat; }
+  @keyframes gild { 50% { box-shadow: inset 0 0 0 1px #ffe9a8, inset 0 0 0 3px rgba(40,26,4,.8), inset 0 0 0 4px rgba(255,233,168,.9), 0 0 24px -3px #ffcf5a; } }
+  .plate.frm-gilded b, .plate.frm-blood b { text-shadow: 0 0 8px rgba(0,0,0,.6); }
+  /* more backgrounds */
+  .plate.fin-carbon { background: repeating-linear-gradient(45deg, rgba(255,255,255,.07) 0 3px, rgba(0,0,0,.18) 3px 6px), repeating-linear-gradient(-45deg, rgba(255,255,255,.04) 0 3px, transparent 3px 6px), #1a1d20 !important; }
+  .plate.fin-hex { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='42' viewBox='0 0 24 42'%3E%3Cpath d='M12 0l12 7v14L12 28 0 21V7zM12 28v14' fill='none' stroke='rgba(255,255,255,.13)' stroke-width='1.2'/%3E%3C/svg%3E") 0 0 / 24px 42px, linear-gradient(90deg, rgba(90,209,255,.18), rgba(255,255,255,.03)) !important; }
+  .plate.fin-camo { background: radial-gradient(ellipse 22% 60% at 15% 30%, #3f5a2a 98%, transparent), radial-gradient(ellipse 18% 55% at 45% 75%, #2b3d1d 98%, transparent), radial-gradient(ellipse 20% 50% at 70% 25%, #5b6b36 98%, transparent), radial-gradient(ellipse 16% 60% at 92% 70%, #2b3d1d 98%, transparent), #44552c !important; }
+  .plate.fin-waves { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='14' viewBox='0 0 40 14'%3E%3Cpath d='M0 7q10-7 20 0t20 0' fill='none' stroke='rgba(120,230,255,.28)' stroke-width='2'/%3E%3C/svg%3E") 0 0 / 40px 14px, linear-gradient(90deg, rgba(40,140,190,.4), rgba(20,60,90,.2)) !important; animation: tide 6s linear infinite; }
+  @keyframes tide { to { background-position: 40px 0, 0 0; } }
+  /* the large banner (profile card, editor) */
+  .plate.big { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 34px 10px 16px; min-width: 280px; max-width: 100%; box-sizing: border-box; background: linear-gradient(90deg, rgba(255,255,255,.09), rgba(255,255,255,.02)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%); }
+  .plate.big.bordered { box-shadow: inset 0 0 0 2px var(--bd), 0 0 16px -4px var(--bd); }
+  .plate.big .bp1 { display: flex; align-items: center; gap: 6px; } .plate.big .bp1 b { font: 700 34px/1 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .01em; }
+  .plate.big .bp2 { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; font-size: 13px; } .plate.big .bp2 .ttl { color: var(--gold); font-style: normal; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: 12px; margin-right: 4px; }
+  .plate.big .bp2 .medals { display: inline-flex; gap: 3px; }
+  .bnbig { margin-top: 2px; } .plate.big.frm-primal { padding-right: 76px; }
+  @media (prefers-reduced-motion: reduce) { .plate.frm::before, .plate.frm::after, .plate.frm-gilded, .plate.fin-waves { animation: none !important; } }
+
   .troph { display: inline-flex; align-items: center; gap: 2px; margin-left: 7px; color: #f2c14e; font: 700 11px 'Rajdhani', 'Arial Narrow', sans-serif; }
   .troph svg { width: 12px; height: 12px; }
   .slot .nm small .hid { font-style: italic; opacity: .7; }
@@ -1245,7 +1297,7 @@
           <div class="field"><label for="oRes">Resolution</label><select id="oRes"><option value="auto">Automatic (drops when the game slows)</option><option value="sharp">Always sharp</option><option value="fast">Fast (lower resolution)</option></select></div>
           <div class="field"><label for="oFx">Effects</label><select id="oFx"><option value="auto">Automatic (lighter when the game slows)</option><option value="full">Full</option><option value="light">Light (no glows or trails, for older laptops)</option></select></div>
           <div class="field"><label for="oCb">Colours</label><select id="oCb"><option value="">Standard</option><option value="1">Colour-blind friendly (orange and blue teams)</option></select></div>
-          <div class="field"><label for="oMe">Your own archer</label><select id="oMe"><option value="strong">Strongly marked (gold ring and arrow)</option><option value="soft">Lightly marked (white ring)</option></select></div>
+          <div class="field"><label for="oMe">Your own archer</label><select id="oMe"><option value="strong">Strongly marked (gold halo, ring and arrow; teammates a little dimmer)</option><option value="soft">Lightly marked (white ring)</option></select></div>
           <div class="field"><label for="oGlow">Team glow round archers</label><select id="oGlow"><option value="live">Living (breathes, leans into movement, flares on a draw)</option><option value="soft">Soft (still)</option><option value="ring">Ring only</option></select></div>
           <div class="field"><label for="oDetail">Arena detail</label><select id="oDetail"><option value="full">Full (ambient light, drifting leaves, lava glow)</option><option value="low">Low (plain arenas; fastest)</option></select></div>
           <div class="field"><label for="oShadow">Shots' shadows</label><select id="oShadow"><option value="soft">Soft</option><option value="simple">Simple (a dot)</option><option value="off">Off</option></select></div>
@@ -1463,11 +1515,12 @@
   <div class="card wide bal-card">
     <div class="shopbar"><div class="stat"><span class="eyebrow">Achievements</span><h2 id="achTitle">Challenges</h2></div><button class="cta" id="achClose" type="button">Close</button></div>
     <section class="bannered" data-navsec>
-      <div class="bnprev"><span class="lbl">Your banner, as others see it in a lobby</span><div class="slot" id="bnPrev"></div></div>
+      <div class="bnprev"><span class="lbl">Your banner, as others see it in a lobby</span><div class="slot" id="bnPrev"></div><span class="lbl">On your profile</span><div class="bnbig" id="bnBig"></div></div>
       <div class="bnopts">
         <div class="field"><label for="titleSel">Title</label><select id="titleSel"></select></div>
         <div class="field"><label for="borderSel">Border</label><select id="borderSel"></select></div>
-        <div class="field"><label for="finSel">Finish</label><select id="finSel"></select></div>
+        <div class="field"><label for="finSel">Background</label><select id="finSel"></select></div>
+        <div class="field"><label for="frameSel">Frame</label><select id="frameSel"></select></div>
         <div class="field bnshow"><label>Medals to show (up to 3, click below to pick)</label><div id="bnShow" class="chips"></div></div>
       </div>
     </section>
@@ -1518,7 +1571,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.38.0';
+const VERSION = '0.39.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1727,10 +1780,13 @@ const CRACK_WARN = 4;
 // custom game options; def is the standard rule
 const OPTIONS = {
   size:   { label: 'Archer size',  def: 'large', values: { small: 1, medium: 1.25, large: 1.5 } },
-  aspeed: { label: 'Arrow speed',  def: 'blazing', values: { normal: 1.32, fast: 1.65, vfast: 1.98, blazing: 2.42, bullet: 3.1 } }, // 10% up in 0.23.0 (arrows, bolts and shuriken)
-  mspeed: { label: 'Move speed',   def: 'normal', values: { normal: 1, slow: 0.85, fast: 1.2, vfast: 1.4, blazing: 1.7 } },
-  kb:     { label: 'Knockback',    def: 'normal', values: { normal: 1, low: 0.75, high: 1.3, chaos: 1.8 } },
-  hp:     { label: 'Health',       def: 'normal', values: { normal: 1, low: 0.7, high: 1.5 } },
+  // sliders: a percentage of the standard (100%, the middle of the track); `base` is what 100% means. Changing the standard pace later is just
+  // changing `base`. `legacy` maps the old named settings (saved lobby choices, old records) onto the slider.
+  aspeed: { label: 'Arrow speed',  slider: true, def: 100, base: 2.42, min: 70, max: 130, step: 5, legacy: { normal: 55, fast: 68, vfast: 82, blazing: 100, bullet: 128 } },
+  // 0.39.0: the standard pace was slowed to what used to be "slow" movement, with a little less knockback (it played better)
+  mspeed: { label: 'Move speed',   slider: true, def: 100, base: 0.85, min: 50, max: 150, step: 5, legacy: { normal: 118, slow: 100, fast: 141, vfast: 165, blazing: 200 } },
+  kb:     { label: 'Knockback',    slider: true, def: 100, base: 0.87, min: 40, max: 160, step: 5, legacy: { normal: 115, low: 86, high: 149, chaos: 207 } },
+  hp:     { label: 'Health',       slider: true, def: 100, base: 1, min: 50, max: 150, step: 5, legacy: { normal: 100, low: 70, high: 150 } },
   dash:   { label: 'Dashes',       def: 'on', values: { on: 1, off: 0 } },
   // arrow homing: every shot bends toward the enemy it's heading for, this many radians a second
   assist: { label: 'Arrow homing',   def: 'none', values: { none: 0, tiny: 0.12, small: 0.25, medium: 0.5, heavy: 1, extreme: 2.2 } },
@@ -1740,9 +1796,18 @@ const OPTIONS = {
   upg:    { label: 'Upgrades',     def: 'on', values: { on: 1, off: 2 } },
 };
 const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', bullet: 'Bullet', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', puck: 'Glide (air hockey)', snappy: 'Snappy', drift: 'Drifty', direct: 'Direct (no glide)', none: 'None', tiny: 'Tiny', heavy: 'Heavy', extreme: 'Extreme' };
-const optDefaults = () => Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.def || Object.keys(o.values)[0]]));
+const optDefaults = () => Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.slider ? o.def : o.def || Object.keys(o.values)[0]]));
+// a slider setting as a percentage (old named settings and anything out of range are mapped and clamped)
+function optPct(k, v) {
+  const o = OPTIONS[k]; if (!o || !o.slider) return null;
+  let n = typeof v === 'number' || (typeof v === 'string' && /^\d+(\.\d+)?$/.test(v)) ? +v : o.legacy && o.legacy[v] != null ? o.legacy[v] : o.def;
+  n = Math.round(Math.max(o.min, Math.min(o.max, n)) / o.step) * o.step;
+  return n;
+}
+// what a setting comes to as a multiplier, for any rules object (records, the page's own display)
+function optValue(opt, k) { const o = OPTIONS[k], v = (opt || {})[k]; if (o.slider) return o.base * optPct(k, v) / 100; return o.values[v] || o.values[o.def] || 1; }
 let CFG = { opt: optDefaults() };
-const OPT = k => OPTIONS[k].values[(CFG.opt || {})[k]] || 1;
+const OPT = k => optValue(CFG.opt, k);
 // Handicap: the host can give any archer a percentage, e.g. +50% for a lone player in a 1v2.
 // It scales their health and arrow damage by that much, and their knockback resistance by half as much.
 const HANDICAPS = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
@@ -2119,7 +2184,11 @@ function emblemSvg(code, size) {
 }
 const BANNER_FINISH = {
   plain:   { name: 'Plain',        tiers: 0 },
+  carbon:  { name: 'Carbon',       tiers: 2 },
   brushed: { name: 'Brushed steel', tiers: 3 },
+  hex:     { name: 'Hex plating',  tiers: 6 },
+  camo:    { name: 'Woodland camo', tiers: 11 },
+  waves:   { name: 'Tidal',        tiers: 18 },
   chevron: { name: 'Chevrons',     tiers: 8 },
   ember:   { name: 'Ember',        tiers: 15 },
   storm:   { name: 'Stormfront',   tiers: 25 },
@@ -2130,6 +2199,17 @@ const BANNER_FINISH = {
   founder: { name: 'Founder',      need: 'fd', label: 'Founders' },
   rose:    { name: 'Patron rose',  need: 'pt', label: 'Patrons' },
 };
+// banner frames: a styled edge round the banner (on top of its finish), unlocked by total achievement tiers
+const BANNER_FRAME = {
+  none:   { name: 'None',       tiers: 0 },
+  tech:   { name: 'Circuit',    tiers: 5 },
+  frost:  { name: 'Rime',       tiers: 12 },
+  primal: { name: 'Primal',     tiers: 20 },
+  shadow: { name: 'Shadow',     tiers: 30 },
+  blood:  { name: 'Bloodied',   tiers: 45 },
+  gilded: { name: 'Gilded',     tiers: 65 },
+};
+const frameAllowed = (f, rec) => { const F = BANNER_FRAME[f]; return !!F && F.tiers <= tierTotal(rec); };
 // may this record (and status: { sp, fd, pt }) wear this finish?
 const finishAllowed = (f, rec, st) => { const F = BANNER_FINISH[f]; if (!F) return false; return F.need ? !!(st && st[F.need]) : F.tiers <= tierTotal(rec); };
 const tierTotal = rec => Object.values((rec && rec.tier) || {}).reduce((s, t) => s + t, 0);
@@ -2137,8 +2217,9 @@ const tierTotal = rec => Object.values((rec && rec.tier) || {}).reduce((s, t) =>
 function bannerOf(rec, st) {
   const tier = (rec && rec.tier) || {};
   const fin = rec && rec.finish && finishAllowed(rec.finish, rec, st) ? rec.finish : null;
+  const fr = rec && rec.frame && rec.frame !== 'none' && frameAllowed(rec.frame, rec) ? rec.frame : null;
   const want = Array.isArray(rec && rec.show) ? rec.show.filter(k => tier[k] > 0) : achBest(rec, 3);
-  return { fin, sc: want.slice(0, 3).map(k => [k, tier[k]]) };
+  return { fin, fr, sc: want.slice(0, 3).map(k => [k, tier[k]]) };
 }
 const HAZARD_OUTS = ['lava', 'burn', 'spikes', 'wall', 'crush', 'pit', 'water', 'saw'];
 // what these events add to one archer's achievement stats: a list of [stat, amount, 'max'|'sum'|'set']
@@ -2220,6 +2301,7 @@ function setMeta(w, id, m) {
   if ('na' in m) p.na = Math.max(0, Math.min(Object.keys(ACHIEVEMENTS).length, m.na | 0)) || null;
   if ('ow' in m) p.ow = m.ow ? 1 : null; // the game's owner: a crown by their name
   if ('fin' in m) p.fin = BANNER_FINISH[m.fin] ? m.fin : null; // banner finish
+  if ('fr' in m) p.fr = BANNER_FRAME[m.fr] ? m.fr : null; // banner frame
   if ('sp' in m) p.sp = Math.max(0, Math.min(4, m.sp | 0)) || null; // supporter emblem tier (1-4)
   if ('fd' in m) p.fd = m.fd ? 1 : null; // founder
   if ('pt' in m) p.pt = m.pt ? 1 : null; // patron
@@ -2388,7 +2470,7 @@ const TREE = {
   twinload:  { tree: 'crossbow', cap: true, name: 'Double Crank', desc: 'Hold two bolts: fire them back to back, and each one reloads on its own.' },
   harpoon:   { tree: 'trapper', active: { cd: 9 }, name: 'Harpoon', desc: 'Fire a barbed line along your aim (up to 420px). The first enemy it catches is yanked toward you and briefly stuck.' },
   snare:     { tree: 'trapper', also: ['crossbow'], active: { cd: 5 }, name: 'Snare Arrow', desc: 'Your next shot roots whoever it hits for 1.8 seconds.' },
-  trap:      { tree: 'trapper', active: { cd: 10 }, name: 'Bramble Trap', desc: 'Weave a bramble trap at the spot under your cursor (up to 380px away, never over a hole or water); it takes half a second to set, and you move at half speed meanwhile. An enemy who steps on it is rooted for 2.5 seconds and hurt. Up to 2 at once.' },
+  trap:      { tree: 'trapper', active: { cd: 8.5 }, name: 'Bramble Trap', desc: 'Weave a bramble trap at the spot under your cursor (up to 450px away, never over a hole or water); it takes half a second to set, and you move at half speed meanwhile. An enemy who steps on it is rooted for 2.5 seconds and hurt. Up to 2 at once.' },
   bramble:   { tree: 'trapper', trade: true, name: 'Bramble Coat', desc: 'Enemies who touch you are rooted for 1.4 seconds (once every 3 seconds each), but you move 5% slower.' },
   deeproots: { tree: 'trapper', cap: true, name: 'Deep Roots', desc: 'Your roots last twice as long, and rooted enemies take 25% more damage from you.' },
 };
@@ -2631,9 +2713,10 @@ function setMap(w, key) {
   return true;
 }
 function setOption(w, key, val) {
-  if (w.match.ph !== 'lobby' || !OPTIONS[key] || !(val in OPTIONS[key].values)) return false;
+  const o = OPTIONS[key];
+  if (w.match.ph !== 'lobby' || !o || (!o.slider && !(val in o.values))) return false;
   useMap(w);
-  w.cfg.opt[key] = val;
+  w.cfg.opt[key] = o.slider ? optPct(key, val) : val;
   for (const p of w.players) { applyStats(p); p.hp = p.maxHp; }
   return true;
 }
@@ -3986,7 +4069,7 @@ function updateZones(w, dt) {
   }
 }
 
-const TRAP_RANGE = 380, TRAP_SET = 0.5, TRAP_PIT_GAP = 26;
+const TRAP_RANGE = 450, TRAP_SET = 0.5, TRAP_PIT_GAP = 26;
 // the nearest spot to (x, y) that isn't over a hole or water (lava and bogs are solid ground: things can sit on them)
 function outOfPits(haz, x, y, gap) {
   for (let k = 0; k < 4; k++) {
@@ -4209,7 +4292,7 @@ const XB3 = { n: 3, gap: 0.08, dmg: 0.45, kb: 0.5, spread: 0.035, reload: 1.5 };
 // how far a player's shots reach before dropping, for roles with a short range (null: the whole arena)
 // (shuriken: 1050px/s slowed by drag 2.4 over their 0.45s life, about 0.275s worth of full speed)
 const rangeOf = (w, p) => p.role === 'crossbow' ? Math.round(p.xbowRange || XBOW_RANGE)
-  : p.role === 'ninja' ? Math.round(1050 * (OPTIONS.aspeed.values[((w.cfg || {}).opt || {}).aspeed] || 1) * 0.275) : null;
+  : p.role === 'ninja' ? Math.round(1050 * optValue((w.cfg || {}).opt, 'aspeed') * 0.275) : null;
 const SNIPE_FULL = Math.hypot(AW - 2 * WALL, AH - 2 * WALL); // corner to corner
 const VOLLEY_GAP = 0.12, BLINK_RANGE = 300, HARPOON_RANGE = 420, NINJA_BLINK = 150, FLASH_RANGE = 240;
 // is this archer hidden inside smoke from someone standing at (x, y)?
@@ -5725,7 +5808,7 @@ function snapshot(w) {
       const pw = {};
       for (const k in p.pw) if (p.pw[k] > 0) pw[k] = r1(p.pw[k]);
       return {
-        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, nk: p.npc ? p.npc.k : undefined, hd: p.hid ? 1 : 0, tw: p.elev ? 1 : 0, rs: w.cq && p.dead && !p.npc && p.respAt != null ? Math.max(0, Math.ceil(p.respAt - w.t)) : undefined, bi: p.npc ? p.npc.bio : undefined, nw: p.npc && (p.npc.wind || p.npc.charge) ? (p.npc.charge ? 'dash' : p.npc.wind) : undefined, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, ct: p.ct || undefined, cl: p.cl || undefined, ce: p.ce || undefined, sp: p.sp || undefined, fd: p.fd || undefined, pt: p.pt || undefined, fin: p.fin || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
+        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, nk: p.npc ? p.npc.k : undefined, hd: p.hid ? 1 : 0, tw: p.elev ? 1 : 0, rs: w.cq && p.dead && !p.npc && p.respAt != null ? Math.max(0, Math.ceil(p.respAt - w.t)) : undefined, bi: p.npc ? p.npc.bio : undefined, nw: p.npc && (p.npc.wind || p.npc.charge) ? (p.npc.charge ? 'dash' : p.npc.wind) : undefined, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, ct: p.ct || undefined, cl: p.cl || undefined, ce: p.ce || undefined, sp: p.sp || undefined, fd: p.fd || undefined, pt: p.pt || undefined, fin: p.fin || undefined, fr: p.fr || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
         x: r1(p.x), y: r1(p.y), vx: Math.round(p.vx), vy: Math.round(p.vy), a: r3(p.aim),
         hp: Math.max(0, Math.ceil(p.hp)), mh: p.maxHp, ch: r2(p.charge), dr: p.drawing ? 1 : 0,
         f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, bu: p.burn > 0 ? 1 : 0, bl: p.bleedT > 0 ? 1 : 0, sl: p.slow > 0 ? 1 : 0, iv: p.inv > 0 ? 1 : 0,
@@ -5903,11 +5986,11 @@ function tierSvg(k, size = 22) {
 return {
   TIERS, tierOf, tierSvg,
   MASTERY, masteryOf,
-  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
+  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg,
-  setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
+  setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, BANNER_FRAME, frameAllowed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
   _grant(w, id, cards) { const p = w.players.find(q => q.id === id); for (const c of cards) takeCard(w, p, c); applyStats(p); p.picked = false; return p; },
 };
@@ -5921,7 +6004,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.38.0';
+const PAGE_VERSION = '0.39.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -6200,7 +6283,8 @@ const sfx = {
     nz(0.1 + c * 0.06, (0.025 + c * 0.035) * v, 'bandpass', 1800, 700, 1.5, 0.01);   // arrow whoosh
   },
   // full draw: a low, dry wooden click
-  full: () => { nz(0.018, 0.1, 'bandpass', 1400, 1800, 2); os('sine', 150, 115, 0.12, 0.05); tone(698, 0.12, 'triangle', 0.018); setTimeout(() => tone(932, 0.12, 'triangle', 0.013), 55); },
+  // fully drawn: a taut thrum and a bright two-note ping, loud enough to hear over a fight (about three times what it was)
+  full: () => { nz(0.05, 0.12, 'bandpass', 1400, 1800, 2); os('sine', 160, 110, 0.16, 0.14); tone(698, 0.14, 'triangle', 0.06); setTimeout(() => tone(932, 0.16, 'triangle', 0.05), 55); },
   // a match has been found: a bright rising chord; the draft opening: two quick notes
   found: () => { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.22, 'triangle', 0.055), i * 90)); },
   draft: () => { tone(392, 0.14, 'triangle', 0.05); setTimeout(() => tone(784, 0.24, 'triangle', 0.05), 130); },
@@ -6307,7 +6391,7 @@ const wrapA = a => ((a + Math.PI) % TAU + TAU) % TAU - Math.PI;
 function padAssistTarget(aim, meP) {
   const me = meP || (view && view.p.find(q => q.id === myId));
   if (!me || me.d || !view.m || view.m.ph !== 'play') return null;
-  const opt = view.m.opt || {}, aspeed = (Sim.OPTIONS.aspeed.values[opt.aspeed] || 1);
+  const opt = view.m.opt || {}, aspeed = Sim.optValue(opt, 'aspeed');
   const shot = (me.ro === 'ninja' ? 1050 : 1300 * (me.ro === 'sniper' ? 1.1 : 1)) * aspeed;
   let best = null;
   for (const q of view.p) {
@@ -6708,14 +6792,18 @@ function resize() {
 
 // ================= flow =================
 // what you're doing, for your friends' lists; "away" once the page has been out of view (another tab or window) for a while
-const AWAY = { t: null, on: false, AFTER: 60000 };
+// "away": the page out of view, or no mouse, keyboard, touch or controller input, for AWAY.AFTER (not in an online match)
+const AWAY = { t: null, on: false, AFTER: 30000, input: Date.now() };
 function sendStatus() { socialSend({ t: 'status', s: mode === 'local' ? (TUT.on ? 'tutorial' : 'practice') : 'menu', away: AWAY.on ? 1 : 0 }); }
 function awayCheck() {
-  const hidden = document.hidden || !document.hasFocus();
-  if (hidden && mode !== 'online') { if (AWAY.t == null) AWAY.t = Date.now(); else if (!AWAY.on && Date.now() - AWAY.t > AWAY.AFTER) { AWAY.on = true; sendStatus(); } }
+  const hidden = document.hidden || !document.hasFocus(), idle = Date.now() - AWAY.input > AWAY.AFTER;
+  if ((hidden || idle) && mode !== 'online') { if (AWAY.t == null) AWAY.t = hidden ? Date.now() : AWAY.input + AWAY.AFTER; if (!AWAY.on && Date.now() - AWAY.t >= AWAY.AFTER * (hidden ? 1 : 0)) { AWAY.on = true; sendStatus(); } }
   else { AWAY.t = null; if (AWAY.on) { AWAY.on = false; sendStatus(); } }
 }
-setInterval(awayCheck, 5000); addEventListener('focus', awayCheck); addEventListener('blur', awayCheck); document.addEventListener('visibilitychange', awayCheck);
+const awayInput = () => { AWAY.input = Date.now(); if (AWAY.on && !document.hidden) awayCheck(); };
+for (const ev of ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart']) addEventListener(ev, awayInput, { passive: true, capture: true });
+setInterval(() => { if (pad && pad.on && (pad.mx || pad.my || pad.draw)) awayInput(); }, 2000);
+setInterval(awayCheck, 3000); addEventListener('focus', awayCheck); addEventListener('blur', awayCheck); document.addEventListener('visibilitychange', awayCheck);
 function setScreens() {
   const inGame = mode !== 'menu';
   if (typeof renderRejoin === 'function' && $('rejoinBar')) renderRejoin();
@@ -6909,7 +6997,7 @@ function renderCoach() {
 }
 function startPractice(mapKey) {
   initAudio();
-  const opt = {}; for (const k in Sim.OPTIONS) { const v = store.get('bowfall-opt-' + k, null); if (v && v in Sim.OPTIONS[k].values) opt[k] = v; }
+  const opt = {}; for (const k in Sim.OPTIONS) { const v = store.get('bowfall-opt-' + k, null), o = Sim.OPTIONS[k]; if (v != null && (o.slider ? true : v in o.values)) opt[k] = o.slider ? Sim.optPct(k, v) : v; }
   world = Sim.createWorld({ map: mapKey || store.get('bowfall-map', 'meadow'), diff: store.get('bowfall-diff', 'normal'), opt });
   const me = Sim.join(world, { name: playerName(), team: 'red', element: myLoadout().el, role: myLoadout().ro });
   for (const l of LP.list) { l.pid = null; l.team = null; lpJoinLocal(l); } // players on controllers join too
@@ -6933,7 +7021,7 @@ function setWallet(w, gained, why) {
   if (!w || typeof w !== 'object') return;
   const hadStatus = WALLET && JSON.stringify(WALLET.status);
   WALLET = w;
-  if (gained > 0) notice(`+${gained.toLocaleString()} Crests${why === 'ach' ? ' for an achievement tier' : why === 'train' ? ' for your training grade' : why === 'renewal' ? ': thanks for supporting Bowfall!' : why === 'founder' ? ': welcome, Founder!' : ''}<small>You have ${Math.round(w.crests).toLocaleString()}</small>`, false, '#ffcf5a');
+  if (gained > 0) notice(`+${gained.toLocaleString()} Crests${why === 'ach' ? ' for an achievement tier' : why === 'train' ? ' for your training grade' : why === 'renewal' ? ': thanks for supporting Bowfall!' : why === 'founder' ? ': welcome, Founder!' : why === 'invite' ? ' for inviting a friend' : why === 'season' ? ' for your season rank' : ''}<small>You have ${Math.round(w.crests).toLocaleString()}</small>`, false, '#ffcf5a');
   if (why === 'supporter') notice('You\'re a Bowfall supporter. Thank you!', true, '#8ff3ff');
   if (why === 'donate') notice('Thank you for supporting Bowfall!', true, '#ff6f91');
   if (why === 'unlock' && gained == null) notice('Unlocked!', false, '#7dff8a');
@@ -7959,7 +8047,7 @@ function showRated(m) {
   // at the end of a match the results screen shows the rating (counting up), so the pop-up would only cover the headline
   if ((view && view.m && view.m.ph === 'over') || !$('resultsScreen').hidden) { renderResRated(); return; }
   const box = $('ratedBox');
-  box.innerHTML = `<span class="eyebrow">${kind}</span><b>${elo}</b><em class="${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(d)}</em>${tierChange(elo - d, elo, RATED.pl, RATED.left)}` +
+  box.innerHTML = (RATED.pl ? `<span class="eyebrow">${kind}</span><b>${elo}</b><em class="${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(d)}</em>` : `<span class="eyebrow">Placement</span>`) + tierChange(elo - d, elo, RATED.pl, RATED.left) +
     (m.guest ? `<a href="/#/register?next=/play" target="_blank" rel="noopener">Make an account to keep it</a>` : '');
   box.classList.remove('show'); void box.offsetWidth; box.classList.add('show'); box.hidden = false;
   clearTimeout(RATED.t); RATED.t = setTimeout(() => { box.classList.remove('show'); }, 6500);
@@ -7979,6 +8067,7 @@ function renderResRated() {
   const el = $('resRated'); if (!el) return;
   if (RATED.now == null || RATED.match !== (roomInfo && roomInfo.code)) { el.hidden = true; return; }
   const d = Math.round(RATED.now - RATED.start);
+  if (!RATED.pl) { el.hidden = false; el.innerHTML = tierChange(RATED.start, RATED.now, 0, RATED.left) + (RATED.guest ? ` <a href="/#/register?next=/play" target="_blank" rel="noopener" style="margin-left:8px;font-size:14px">Make an account to keep it</a>` : ''); return; } // still placing: no number yet
   el.hidden = false; el.innerHTML = `Your ${(RATED.kind || 'rating').toLowerCase()} <b class="ticking">${RATED.start}</b> <em class="${d >= 0 ? 'up' : 'down'}" style="opacity:0">${d >= 0 ? '+' : '−'}${Math.abs(d)} this match</em>` +
     (RATED.guest ? ` <a href="/#/register?next=/play" target="_blank" rel="noopener" style="margin-left:8px;font-size:14px">Make an account to keep it</a>` : '') + tierChange(RATED.start, RATED.now, RATED.pl, RATED.left);
   if (RATED.ticked === RATED.match) { el.querySelector('b').textContent = RATED.now; el.querySelector('em').style.opacity = 1; return; }
@@ -8365,7 +8454,7 @@ function renderHomeFriends() {
   if (hc.homeFr === key) return; hc.homeFr = key;
   const typed = $('hfAdd') ? $('hfAdd').value : '', focused = document.activeElement && document.activeElement.id === 'hfAdd';
   box.hidden = false;
-  box.innerHTML = `<div class="frh"><b>Friends</b><span>${on.length} online</span>${fr.length ? `<button type="button" class="ghost sm hfmsg" data-hmsg="0">Messages${unread ? `<i class="dmn">${unread}</i>` : ''}</button>` : ''}</div>` +
+  box.innerHTML = `<div class="frh"><b>Friends</b><span>${on.length} online</span>${fr.length ? `<button type="button" class="ghost sm hfmsg" data-hmsg="0">Messages${unread ? `<i class="dmn">${unread}</i>` : ''}</button>` : ''}<button type="button" class="ghost sm hfmsg" data-hinvite="1" title="Invite a friend and you both get Crests">Invite</button></div>` +
     inReq.map(f => `<div class="frrow frreq"><i class="dot on"></i><div class="frn"><b>${esc(f.name)}</b><small>Wants to be friends</small></div><button type="button" class="ghost sm fracc" data-hacc="${f.id}">Accept</button><button type="button" class="ghost sm" data-hdec="${f.id}" aria-label="Decline">×</button></div>`).join('') +
     (on.length ? on.map(f => `<div class="frrow"><i class="dot${f.inGame ? ' play' : f.act === 'away' ? ' away' : ' on'}"></i><button type="button" class="frn" data-hpro="${esc(f.name)}" title="View ${esc(f.name)}'s profile"><b>${rankHtml(f.lv)}${flagHtml(f.cc)}${esc(f.name)}</b><small>${esc(ACT_TEXT(f))}</small></button>` +
       (f.code && f.act === 'customLobby' ? `<button type="button" class="ghost sm" data-hjoin="${esc(f.code)}">Join</button>` : '') +
@@ -8390,13 +8479,14 @@ $('homeFriends').addEventListener('click', e => {
   else if (b.id === 'hfAddBtn') homeAddFriend();
   else if (b.dataset.hmsg != null) dmOpen(+b.dataset.hmsg || null);
   else if (b.dataset.hpro) openPlayerCard(b.dataset.hpro);
+  else if (b.dataset.hinvite) openInvite();
   else if (b.dataset.hwatch) watchFriend(+b.dataset.hwatch);
   else if (b.dataset.hoff) { SOC.hideOff = !SOC.hideOff; store.set('bowfall-hideoff', SOC.hideOff ? '1' : ''); renderHomeFriends(); }
 });
 // ---- a player's card: stats, favourite picks and achievements, from the friends lists
 // profile pages: stats people can pin (four), and what makes a player stand out
 const PSTAT = {
-  elo: ['1v1 rating', c => Math.round(c.elo || 800)], eloT: ['Team rating', c => Math.round(c.eloT != null ? c.eloT : c.elo || 800)],
+  elo: ['1v1 rating', (c, u) => (u && u.placed === false ? 'Unranked' : Math.round(c.elo || 800))], eloT: ['Team rating', (c, u) => (u && u.placed === false ? 'Unranked' : Math.round(c.eloT != null ? c.eloT : c.elo || 800))],
   matches: ['Games', c => c.matches || 0], matchWins: ['Wins', c => c.matchWins || 0], rate: ['Win rate', c => (c.matches ? Math.round((c.matchWins || 0) / c.matches * 100) + '%' : '–')],
   wins: ['Rounds won', c => c.wins || 0], kills: ['Knockouts', c => c.kills || 0], kd: ['K/D', c => (c.deaths ? ((c.kills || 0) / c.deaths).toFixed(2) : c.kills || 0)],
   acc: ['Accuracy', c => (c.shots ? Math.round((c.hits || 0) / c.shots * 100) + '%' : '–')], ring: ['Ring-outs', c => c.ring || 0], bulls: ['Bullseyes', c => c.bulls || 0],
@@ -8414,7 +8504,7 @@ function profSignature(u) {
   const best = ['elo', 'eloT'].map(k => ({ k, r: c[k] })).filter(x => x.r != null).sort((a, b) => b.r - a.r)[0];
   const peakS = (c.seasons || []).map(x => [x.k1, x.t1, x.n, x.tT, x.kT]).flatMap(([k1, t1, n, tT, kT]) => [[k1, t1, n], [kT, tT, n]]).filter(x => x[0])
     .sort((a, b) => Sim.TIERS.findIndex(t => t.k === b[0]) - Sim.TIERS.findIndex(t => t.k === a[0]))[0];
-  if (best) { const T = Sim.tierOf(best.r, u.placed !== false); out.push({ k: best.k === 'elo' ? '1v1 rank' : 'Team rank', big: T.label, sub: peakS ? `Peaked ${peakS[1]} in season ${peakS[2]}` : `${Math.round(best.r)} rating`, col: T.col, badge: T.k }); }
+  if (best) { const T = Sim.tierOf(best.r, u.placed !== false); out.push({ k: best.k === 'elo' ? '1v1 rank' : 'Team rank', big: T.label, sub: peakS ? `Peaked ${peakS[1]} in season ${peakS[2]}` : u.placed === false ? "Placement matches to go" : `${Math.round(best.r)} rating`, col: T.col, badge: T.k }); }
   const tr = u.play && u.play.traits ? u.play.traits.filter(x => x.pct != null).sort((a, b) => b.pct - a.pct)[0] : null;
   if (tr && tr.pct >= 0.5) out.push({ k: 'Playstyle', big: tr.name, sub: `Top ${Math.max(1, Math.round((1 - tr.pct) * 100))}% · ${tr.value} ${tr.what}`, col: '#5ad1ff' });
   else if (u.play && u.play.style && u.play.style.length) out.push({ k: 'Playstyle', big: u.play.style.join(' · '), sub: 'How they play', col: '#5ad1ff' });
@@ -8435,7 +8525,7 @@ async function openPlayerCard(name) {
   const mine = !!(account && account.name.toLowerCase() === u.name.toLowerCase());
   const acc = P.acc || '#ffcf5a', bg = P.bg && thumbURL(P.bg) ? P.bg : (Object.keys(c.maps || {})[0] && thumbURL(Object.keys(c.maps)[0]) ? Object.keys(c.maps)[0] : 'meadow');
   const L = Object.assign({ n: u.name, lv: u.level && u.level.lv, cc: u.country, ow: u.admin ? 1 : 0 }, u.status || {}, u.look || {});
-  const plate = `<span class="nm plate${plateClass(L)}"${plateStyle(L)}><span class="pl1">${idHtml(L)}<b>${esc(u.name)}</b>${ownHtml(L.ow)}${statusHtml(L)}${trophyHtml(L.na)}${medalsHtml(L.sc)}${u.title ? ` <em class="ttl">${esc(titleName(u.title))}</em>` : ''}</span></span>`;
+  const plate = bigPlate(Object.assign({}, L, { ti: u.title }));
   const achs = Object.keys(tier).filter(k => A[k] && tier[k] > 0).sort((a, b) => tier[b] - tier[a]);
   const pins = (P.pins && P.pins.length ? P.pins : PROF_PINS).filter(k => PSTAT[k]);
   const t1 = Sim.tierOf(c.elo, u.placed), tT = Sim.tierOf(c.eloT != null ? c.eloT : c.elo, u.placed);
@@ -8447,8 +8537,7 @@ async function openPlayerCard(name) {
       ${u.country && P.flag !== 'off' && !OFFLINE ? `<img class="pcflag" src="https://flagcdn.com/w320/${esc(u.country)}.png" alt="" aria-hidden="true">` : ''}
       <canvas id="pcAv" width="260" height="260"></canvas>
       <div class="pcwho">
-        <div class="pcname">${esc(u.name)}${u.ai ? ' <span class="tag">AI</span>' : ''}</div>
-        <div class="pcplate">${plate}</div>
+        <div class="pcplate">${plate}${u.ai ? ' <span class="tag">AI</span>' : ''}</div>
         ${P.motto ? `<div class="pcmotto">“${esc(P.motto)}”</div>` : ''}
         <div class="pctiers"><span>${Sim.tierSvg(t1.k, 26)}<b style="color:${t1.col}">${esc(t1.label)}</b><small>1v1</small></span><span>${Sim.tierSvg(tT.k, 26)}<b style="color:${tT.col}">${esc(tT.label)}</b><small>Team</small></span>${u.clan ? `<span class="pcclan" style="--cl:${u.clan.col || acc}">${Sim.emblemSvg ? Sim.emblemSvg(u.clan.em, 22) : ''}<b>[${esc(u.clan.tag)}]</b><small>${esc(u.clan.name)}</small></span>` : ''}</div>
         <div class="pcsub">${u.level ? `Level ${u.level.lv} · ` : ''}Joined ${new Date(u.created).toLocaleDateString()}${status ? ' · ' + esc(status) : ''}</div>
@@ -8462,6 +8551,21 @@ async function openPlayerCard(name) {
     <div class="pcact">${mine ? `<button type="button" class="cta sm" data-pcedit="1">Edit profile</button>` : ''}${f && canWatch(f) ? `<button type="button" class="ghost sm" data-pcwatch="${f.id}">Watch their game</button>` : ''}${f && f.online && lead && !inParty && !f.inGame ? `<button type="button" class="ghost sm" data-pcinv="${f.id}">Invite to party</button>` : ''}${f ? `<button type="button" class="ghost sm" data-pcmsg="${f.id}">Message</button>` : ''}${SOC.st && SOC.st.account && !u.ai && !mine ? (isBlockedName(u.name) ? `<button type="button" class="ghost sm" data-pcunb="${esc(u.name)}">Unblock</button>` : `<button type="button" class="ghost sm" data-pcblock="${esc(u.name)}">Block</button>`) : ''}${OFFLINE ? '' : `<a class="ghost sm btnlink" href="/#/u/${encodeURIComponent(u.name)}" target="_blank" rel="noopener">Full profile</a>`}</div>`;
   const av = u.avatar || { el: 'frost', ro: 'sniper', c: TEAM_INFO.red.shades[0] };
   try { drawPreview($('pcAv'), av.el, av.ro, av.c); } catch (e) {}
+}
+// inviting friends: your link, what you both get, and how your invites are getting on
+async function openInvite() {
+  const wrap = $('pcWrap'), card = $('pcCard'); wrap.hidden = false; card.style.removeProperty('--pa');
+  card.innerHTML = '<div class="status" style="padding:20px">Loading…</div>';
+  let d; try { const r = await fetch('/api/invite'); d = await r.json(); if (!r.ok) throw new Error(d.error); } catch (e) { card.innerHTML = `<button type="button" class="ghost sm pcx" data-pcx>×</button><div class="status" style="padding:20px">${esc((e && e.message) || "Couldn't load your invite link.")}</div>`; return; }
+  const done = d.list.filter(x => x.done).length;
+  card.innerHTML = `<button type="button" class="ghost sm pcx" data-pcx aria-label="Close">×</button>
+    <div class="invh"><span class="eyebrow">Invite a friend</span><h2>You both get Crests</h2>
+      <p class="status">Send a friend your link. When they make an account and play ${d.after} ranked matches, you get <b>${d.gift} Crests</b> and they get <b>${d.welcome}</b>. (For up to ${d.max} friends.)</p>
+      <div class="invlink"><input id="invLink" readonly value="${esc(d.link)}"><button type="button" class="cta sm" id="invCopy">Copy link</button>${navigator.share ? '<button type="button" class="ghost sm" id="invShare">Share</button>' : ''}</div></div>
+    <div class="pcsec"><h3>Your invites · ${done} rewarded</h3>${d.list.length ? `<div class="invlist">${d.list.map(x => `<div><b>${esc(x.name)}</b><span>${x.done ? 'Done: Crests paid' : `${Math.min(x.games, d.after)} of ${d.after} ranked matches`}</span><i style="--f:${Math.min(1, x.games / d.after)}"></i></div>`).join('')}</div>` : '<span class="status">Nobody yet.</span>'}</div>`;
+  $('invCopy').onclick = async () => { try { await navigator.clipboard.writeText(d.link); } catch (e) { $('invLink').select(); document.execCommand('copy'); } $('invCopy').textContent = 'Copied!'; };
+  if ($('invShare')) $('invShare').onclick = () => navigator.share({ title: 'Bowfall', text: 'Come and play Bowfall with me: knockback archery in your browser.', url: d.link }).catch(() => {});
+  $('invLink').addEventListener('keydown', e => e.stopPropagation());
 }
 function closePlayerCard() { $('pcWrap').hidden = true; }
 $('pcWrap').addEventListener('click', e => {
@@ -8501,7 +8605,7 @@ function renderFind() {
       hc.fgMe = key;
       $('fgMe').innerHTML = `<canvas id="fgAv" width="184" height="184"></canvas>
         <div class="nm">${rankHtml(P.lv)}${flagHtml(P.cc)}${esc(P.name)}${ownHtml(P.own)}${statusHtml(P)}${P.guest ? '<span class="tag">Guest</span>' : ''}</div>
-        <div class="rt"><span class="elo"><b>${team ? P.eloT : P.elo}</b>${team ? 'Team rating' : '1v1 rating'}</span><span><b>${team ? P.elo : P.eloT}</b>${team ? '1v1' : 'Team'}</span><span><b>${P.games}</b>Games</span><span><b>${rate}</b>Win rate</span><span><b>${P.kills}</b>Knockouts</span></div>
+        <div class="rt"><span class="elo"><b>${P.place ? '–' : team ? P.eloT : P.elo}</b>${P.place ? 'Unranked' : team ? 'Team rating' : '1v1 rating'}</span><span><b>${P.place ? '–' : team ? P.elo : P.eloT}</b>${team ? '1v1' : 'Team'}</span><span><b>${P.games}</b>Games</span><span><b>${rate}</b>Win rate</span><span><b>${P.kills}</b>Knockouts</span></div>
         ${(() => { const r = team ? P.eloT : P.elo, T = Sim.tierOf(r, !P.place), se = st.season;
           return `<div class="fgtier" style="--tc:${T.col}">${Sim.tierSvg(T.k, 40)}<div><b>${esc(T.label)}</b><small>${P.place ? `${P.place} placement match${P.place > 1 ? 'es' : ''} to go` : T.next ? `${T.toNext} rating to ${esc(T.next)}` : 'The top tier'}</small>${!P.place && T.next ? `<i class="tbar"><i style="width:${Math.round(T.frac * 100)}%"></i></i>` : ''}</div>${se ? `<span class="fgseason">Season ${se.n}<small>${Math.max(1, Math.ceil((se.end - Date.now()) / 86400000))} days left</small></span>` : ''}</div>`; })()}
         ${account && !P.guest ? `<div class="fwin">${firstWinReady() ? `Daily first win: <b>+100 Crests</b> waiting for your first match win today` : 'Daily first win claimed. It comes back at midnight (UTC).'}</div>` : ''}
@@ -8542,7 +8646,7 @@ function renderFind() {
     const plateOf = p => { const L = Object.assign({ n: p.name, lv: p.lv, cc: p.cc, ow: p.own, sp: p.sp, fd: p.fd, pt: p.pt }, p.look || {}); return `<span class="nm plate${plateClass(L)}"${plateStyle(L)}><span class="pl1">${idHtml(L)}<b>${esc(p.name)}</b>${ownHtml(p.own)}${statusHtml(p)}${trophyHtml(L.na)}${medalsHtml(L.sc)}${L.ti ? ` <em class="ttl">${esc(titleName(L.ti))}</em>` : ''}</span></span>`; };
     $('fgParty').innerHTML = !st ? '<div class="status">Connecting…</div>' : members.map((p, i) => `<div class="fr mem"><canvas data-av="${i}" width="76" height="76"></canvas>` +
       `<b class="slot bn">${plateOf(p)}${p.key === me ? ' <small class="status">(you)</small>' : ''}${party && p.key === party.leader && party.members.length > 1 ? '<span class="lead">Leader</span>' : ''}${party && party.members.length > 1 && p.key !== party.leader ? (rset.has(p.key) || p.local ? '<span class="rdy on">Ready</span>' : '<span class="rdy">Not ready</span>') : ''}</b>` +
-      `<small>${p.inGame ? '<span class="fgwait">In a game</span> · ' : ''}${(() => { const r = mode === '1v1' ? p.elo : p.eloT, T = Sim.tierOf(r, !p.place); return `${Sim.tierSvg(T.k, 14)} ${esc(T.label)} · ${r}`; })()}${p.games ? ` · ${p.games} games` : ''}${p.local ? ' · on this screen' : ''}</small><div class="btnrow">${party && lead && p.key !== me ? `<button class="ghost sm" type="button" data-kick="${esc(p.key)}">Remove</button>` : ''}</div></div>`).join('') +
+      `<small>${p.inGame ? '<span class="fgwait">In a game</span> · ' : ''}${(() => { const r = mode === '1v1' ? p.elo : p.eloT, T = Sim.tierOf(r, !p.place); return `${Sim.tierSvg(T.k, 14)} ${esc(T.label)}${p.place ? '' : ' · ' + r}`; })()}${p.games ? ` · ${p.games} games` : ''}${p.local ? ' · on this screen' : ''}</small><div class="btnrow">${party && lead && p.key !== me ? `<button class="ghost sm" type="button" data-kick="${esc(p.key)}">Remove</button>` : ''}</div></div>`).join('') +
       (party && party.members.length > 1 && !lead ? `<button class="${rset.has(me) ? 'ghost' : 'cta'} sm" type="button" id="fgReady"${queued ? ' disabled' : ''}>${rset.has(me) ? 'Not ready' : 'Ready'}</button> ` : '') +
       (party && party.members.length > 1 ? `<button class="ghost sm" type="button" id="fgLeave">Leave party</button>` : '') +
       (st && st.account && members.length < 3 ? '<span class="status">Invite friends from the list below to play together (up to 3).</span>' : '');
@@ -8557,7 +8661,7 @@ function renderFind() {
     st.outReq.map(f => `<div class="fr"><i class="dot"></i><b>${esc(f.name)}</b><small>Request sent</small><div class="btnrow"><button class="ghost sm" type="button" data-fcan="${f.id}">Cancel</button></div></div>`).join('');
   const inParty = new Set((party ? party.members : []).map(p => p.key));
   $('fgFriends').innerHTML = st.friends.length ? st.friends.sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name)).map(f => `<div class="fr"><i class="dot${f.inGame ? ' play' : f.act === 'away' ? ' away' : f.online ? ' on' : ''}"></i><b><button type="button" class="linkbtn" data-fpro="${esc(f.name)}">${rankHtml(f.lv)}${flagHtml(f.cc)}${esc(f.name)}</button></b>` +
-    `<small>${f.online ? esc(ACT_TEXT(f)) : 'Offline'} · Rating ${f.elo}</small><div class="btnrow">` +
+    `<small>${f.online ? esc(ACT_TEXT(f)) : 'Offline'} · ${f.pl ? 'Rating ' + f.elo : 'Unranked'}</small><div class="btnrow">` +
     (canWatch(f) ? `<button class="ghost sm" type="button" data-fwatch="${f.id}">Watch</button>` : '') +
     (f.online && lead && !inParty.has('u' + f.id) ? `<button class="ghost sm" type="button" data-finv="${f.id}">Invite</button>` : '') +
     `<button class="ghost sm" type="button" data-fmsg="${f.id}">Message${f.un ? `<i class="dmn">${f.un}</i>` : ''}</button>` +
@@ -8727,6 +8831,8 @@ function showInvite(m) {
 $('inviteYes').onclick = () => { if (SOC.invite) socialSend({ t: 'party', op: 'accept', party: SOC.invite.party }); $('inviteToast').hidden = true; if (mode === 'menu') openSub('findScr'); };
 $('inviteNo').onclick = () => { $('inviteToast').hidden = true; };
 setInterval(() => { const p = SOC.st && SOC.st.party; if (p && p.queued != null) renderFind(); }, 1000);
+// an invite link to the game itself (/play?ref=name): kept for when they make an account on the website
+if (/^[A-Za-z0-9_-]{3,16}$/.test(params.get('ref') || '')) { try { localStorage.setItem('bowfall-ref', params.get('ref')); } catch (e) {} document.cookie = 'bf_ref=' + encodeURIComponent(params.get('ref')) + '; Path=/; Max-Age=2592000; SameSite=Lax'; }
 const AVATAR_ONLY = params.get('avatar') === '1'; // the website borrows the game's archer drawing for profile pictures
 if (!OFFLINE && !AVATAR_ONLY) setTimeout(socialConnect, 400);
 
@@ -9020,15 +9126,15 @@ $('balClear').onclick = async () => {
 // Challenges with five tiers (Bronze to Diamond), earned in ranked games and in custom games without bots. The server
 // keeps them for accounts and guests alike and sends them here; each one you've reached is a title and a border.
 const Ach = {
-  d: { stats: {}, got: {}, tier: {}, title: null, border: null, finish: null, show: null },
+  d: { stats: {}, got: {}, tier: {}, title: null, border: null, finish: null, frame: null, show: null },
   rarity: null,
   load() {
     let pref = {}; try { pref = JSON.parse(localStorage.getItem('bowfall-ach-look') || '{}'); } catch (e) {}
-    return { stats: {}, got: {}, tier: {}, title: pref.title || null, border: pref.border || null, finish: pref.finish || null, show: Array.isArray(pref.show) ? pref.show : null };
+    return { stats: {}, got: {}, tier: {}, title: pref.title || null, border: pref.border || null, finish: pref.finish || null, frame: pref.frame || null, show: Array.isArray(pref.show) ? pref.show : null };
   },
-  save() { if (this.account) return; try { localStorage.setItem('bowfall-ach-look', JSON.stringify({ title: this.d.title, border: this.d.border, finish: this.d.finish, show: this.d.show })); } catch (e) {} },
+  save() { if (this.account) return; try { localStorage.setItem('bowfall-ach-look', JSON.stringify({ title: this.d.title, border: this.d.border, finish: this.d.finish, frame: this.d.frame, show: this.d.show })); } catch (e) {} },
   // what my banner shows: finish (if earned) and up to 3 medals (my choice, else my best)
-  banner() { return Sim.bannerOf({ tier: this.d.tier, finish: this.d.finish, show: this.d.show }, (WALLET && WALLET.status) || {}); },
+  banner() { return Sim.bannerOf({ tier: this.d.tier, finish: this.d.finish, frame: this.d.frame, show: this.d.show }, (WALLET && WALLET.status) || {}); },
   unlocked(keys) {
     for (const k of keys) {
       const a = Sim.ACHIEVEMENTS[k], t = (this.d.tier || {})[k] || 1, T = Sim.ACH_TIERS[t - 1]; if (!a || !T) continue;
@@ -9037,7 +9143,7 @@ const Ach = {
     }
   },
   onEvents() {}, // progress is counted on the server now
-  useAccount(u) { this.account = u.name; const a = Sim.achMigrate(JSON.parse(JSON.stringify(u.ach || {}))); this.d = { stats: a.stats || {}, got: a.got || {}, tier: a.tier || {}, title: u.title || null, border: a.border || null, finish: a.finish || null, show: Array.isArray(a.show) ? a.show : null }; hc.titleSent = hc.lookSent = null; },
+  useAccount(u) { this.account = u.name; const a = Sim.achMigrate(JSON.parse(JSON.stringify(u.ach || {}))); this.d = { stats: a.stats || {}, got: a.got || {}, tier: a.tier || {}, title: u.title || null, border: a.border || null, finish: a.finish || null, frame: a.frame || null, show: Array.isArray(a.show) ? a.show : null }; hc.titleSent = hc.lookSent = null; },
   fromServer(m) {
     const a = Sim.achMigrate(JSON.parse(JSON.stringify(m.ach || {})));
     this.d.stats = a.stats || {}; this.d.got = a.got || {}; this.d.tier = a.tier || {};
@@ -9065,6 +9171,7 @@ function renderAch() {
   // banner: finish (unlocked by total tiers), medals to show, and a live preview
   const myst = (WALLET && WALLET.status) || {};
   $('finSel').innerHTML = Object.entries(Sim.BANNER_FINISH).map(([k, f]) => { const ok = Sim.finishAllowed(k, { tier: Ach.d.tier }, myst); return `<option value="${k}"${(Ach.d.finish || 'plain') === k ? ' selected' : ''}${ok ? '' : ' disabled'}>${esc(f.name)}${f.need ? ` (${f.label})` : f.tiers ? ` (${f.tiers} tiers${f.tiers > total ? ', ' + (f.tiers - total) + ' to go' : ''})` : ''}</option>`; }).join('');
+  $('frameSel').innerHTML = Object.entries(Sim.BANNER_FRAME).map(([k, f]) => { const ok = Sim.frameAllowed(k, { tier: Ach.d.tier }); return `<option value="${k}"${(Ach.d.frame || 'none') === k ? ' selected' : ''}${ok ? '' : ' disabled'}>${esc(f.name)}${f.tiers ? ` (${f.tiers} tiers${f.tiers > total ? ', ' + (f.tiers - total) + ' to go' : ''})` : ''}</option>`; }).join('');
   const shown = Ach.banner().sc.map(x => x[0]);
   $('bnShow').innerHTML = have.length ? have.map(k => `<button type="button" class="chip2${shown.includes(k) ? ' sel' : ''}" data-bnpick="${k}" style="--cc:${Sim.ACH_TIERS[tier[k] - 1].col}">${medalSvg(k, tier[k], 12)} ${esc(A[k].title)}</button>`).join('') : '<span class="status">Reach a tier in any challenge to earn a medal.</span>';
   renderBannerPreview();
@@ -9073,8 +9180,9 @@ function renderAch() {
   $('borderSel').innerHTML = '<option value="">Plain</option>' + have.filter(k => BORDERS[k]).map(k => `<option value="${k}"${Ach.d.border === k ? ' selected' : ''}>${esc(A[k].title)}</option>`).join('');
 }
 function renderBannerPreview() {
-  const b = Ach.banner(), me = { n: account ? account.name : ($('nameIn').value.trim() || 'Archer'), bd: Ach.d.border && Ach.d.got[Ach.d.border] ? Ach.d.border : null, na: Object.keys(Ach.d.got || {}).length || null, sc: b.sc, fin: b.fin, ti: Ach.d.title && Ach.d.got[Ach.d.title] ? Ach.d.title : null, lv: account && account.level && account.level.lv, cc: account && account.country, ct: CLAN.mine && CLAN.mine.tag, cl: CLAN.mine && CLAN.mine.col, ce: CLAN.mine && CLAN.mine.em, ow: account && account.admin, ...((WALLET && WALLET.status) || {}) };
+  const b = Ach.banner(), me = { n: account ? account.name : ($('nameIn').value.trim() || 'Archer'), bd: Ach.d.border && Ach.d.got[Ach.d.border] ? Ach.d.border : null, na: Object.keys(Ach.d.got || {}).length || null, sc: b.sc, fin: b.fin, fr: b.fr, ti: Ach.d.title && Ach.d.got[Ach.d.title] ? Ach.d.title : null, lv: account && account.level && account.level.lv, cc: account && account.country, ct: CLAN.mine && CLAN.mine.tag, cl: CLAN.mine && CLAN.mine.col, ce: CLAN.mine && CLAN.mine.em, ow: account && account.admin, ...((WALLET && WALLET.status) || {}) };
   $('bnPrev').innerHTML = `<i class="dot" style="background:${TEAM_INFO.red.shades[0]}"></i><span class="nm plate${plateClass(me)}"${plateStyle(me)}><span class="pl1">${idHtml(me)}<b>${esc(me.n)}</b>${ownHtml(me.ow)}${statusHtml(me)}${trophyHtml(me.na)}${medalsHtml(me.sc)}${me.ti ? ` <em class="ttl">${esc(titleName(me.ti))}</em>` : ''}</span><small>${esc(ELEMENTS[myLoadout().el].name + ' ' + ROLES[myLoadout().ro].name)}</small></span><span class="tag you">You</span>`;
+  $('bnBig').innerHTML = bigPlate(me);
 }
 function setMyBanner(patch) {
   Object.assign(Ach.d, patch); Ach.save(); hc.lookSent = null;
@@ -9082,6 +9190,7 @@ function setMyBanner(patch) {
   renderAch();
 }
 $('finSel').onchange = () => setMyBanner({ finish: $('finSel').value === 'plain' ? null : $('finSel').value });
+$('frameSel').onchange = () => setMyBanner({ frame: $('frameSel').value === 'none' ? null : $('frameSel').value });
 $('bnShow').addEventListener('click', e => {
   const b = e.target.closest('[data-bnpick]'); if (!b) return;
   const k = b.dataset.bnpick; let show = Ach.banner().sc.map(x => x[0]);
@@ -9105,11 +9214,11 @@ $('titleSel').onchange = () => setMyTitle($('titleSel').value || null);
 function syncLook(me) {
   if (!me) return;
   const bd = Ach.d.border && Ach.d.got[Ach.d.border] ? Ach.d.border : null, na = Object.keys(Ach.d.got || {}).length || null, b = Ach.banner();
-  const key = bd + ':' + na + ':' + myId + ':' + (b.fin || '') + ':' + JSON.stringify(b.sc);
-  if ((me.bd || null) === bd && (me.na || null) === na && (me.fin || null) === b.fin && JSON.stringify(me.sc || []) === JSON.stringify(b.sc)) { hc.lookSent = key; return; }
+  const key = bd + ':' + na + ':' + myId + ':' + (b.fin || '') + ':' + (b.fr || '') + ':' + JSON.stringify(b.sc);
+  if ((me.bd || null) === bd && (me.na || null) === na && (me.fin || null) === b.fin && (me.fr || null) === (b.fr || null) && JSON.stringify(me.sc || []) === JSON.stringify(b.sc)) { hc.lookSent = key; return; }
   if (hc.lookSent === key) return;
   hc.lookSent = key;
-  act({ t: 'look', bd, na, top: Sim.achBest(Ach.d, 2), fin: b.fin, show: b.sc.map(x => x[0]) });
+  act({ t: 'look', bd, na, top: Sim.achBest(Ach.d, 2), fin: b.fin, fr: b.fr || null, show: b.sc.map(x => x[0]) });
 }
 function syncTitle(me) {
   syncLook(me);
@@ -9175,7 +9284,7 @@ function helpHtml() {
         <li>Streaks of 3, 5, 7 and 10 get called out. Ending someone's streak is a shutdown.</li>
         <li>If you're your team's last archer against 2 or more and your team wins the game, it's a <b>clutch</b>.</li>
       </ul>`),
-    sec('custom', 'Custom rules', `<p>The host can change these in the lobby. The standard rule is marked.</p><ul>${Object.values(Sim.OPTIONS).map(o => `<li><b>${esc(o.label)}:</b> ${Object.keys(o.values).map(v => (OPT_NAMES[v] || v) + (v === o.def ? ' (standard)' : '')).join(', ')}</li>`).join('')}</ul>`),
+    sec('custom', 'Custom rules', `<p>The host can change these in the lobby. The standard rule is marked.</p><ul>${Object.values(Sim.OPTIONS).map(o => `<li><b>${esc(o.label)}:</b> ${o.slider ? `a slider from ${o.min}% to ${o.max}% of the standard (100%)` : Object.keys(o.values).map(v => (OPT_NAMES[v] || v) + (v === o.def ? ' (standard)' : '')).join(', ')}</li>`).join('')}</ul>`),
     sec('arenas', 'Arenas', `<div class="help-grid">${MAP_KEYS.map(k => `<div class="help-box"><h4>${esc(MAPS[k].name)}</h4><span class="status">${esc(MAPS[k].desc)}</span></div>`).join('')}</div>`),
     sec('powerups', 'Powerups', `<p>Powerups appear at the centre of the arena, taking turns between spots so neither side is favoured. Run over them to pick them up.</p>
       <p><b>Capture powerups</b> (the big hexagons) appear about every 30–40 seconds. Stand inside one for ${Sim.CHANNEL_TIME} seconds with no enemy inside to capture it; if both teams are in, it's contested and nobody makes progress.</p>
@@ -9339,9 +9448,14 @@ $('lbDiff').onchange = () => act({ t: 'cfg', diff: $('lbDiff').value });
 $('lbPts').onchange = () => act({ t: 'cfg', ptw: +$('lbPts').value });
 // custom rules: one select per option, first value is the default
 const OPT_NAMES = Sim.OPT_NAMES;
-$('lbOpts').innerHTML = Object.entries(Sim.OPTIONS).map(([k, o]) => `<div class="field"><label for="opt-${k}">${esc(o.label)}</label><select id="opt-${k}" data-opt="${k}">` +
-  Object.keys(o.values).map(v => `<option value="${v}">${OPT_NAMES[v] || v}${v === (o.def || Object.keys(o.values)[0]) ? ' (standard)' : ''}</option>`).join('') + '</select></div>').join('');
-$('lbOpts').addEventListener('change', e => { const sel = e.target.closest('[data-opt]'); if (sel) act({ t: 'cfg', opt: { [sel.dataset.opt]: sel.value } }); });
+// numeric rules are sliders (a percentage of the standard, 100% in the middle of the track's marks); the rest are lists
+const optDef = o => (o.slider ? o.def : o.def || Object.keys(o.values)[0]);
+$('lbOpts').innerHTML = Object.entries(Sim.OPTIONS).map(([k, o]) => o.slider
+  ? `<div class="field optsl"><label for="opt-${k}">${esc(o.label)} <output id="optv-${k}">100%</output></label><input type="range" id="opt-${k}" data-opt="${k}" min="${o.min}" max="${o.max}" step="${o.step}" value="${o.def}" list="optm-${k}"><datalist id="optm-${k}"><option value="${o.def}"></option></datalist><button type="button" class="linkbtn optrs" data-optreset="${k}" title="Back to the standard">Standard</button></div>`
+  : `<div class="field"><label for="opt-${k}">${esc(o.label)}</label><select id="opt-${k}" data-opt="${k}">` + Object.keys(o.values).map(v => `<option value="${v}">${OPT_NAMES[v] || v}${v === optDef(o) ? ' (standard)' : ''}</option>`).join('') + '</select></div>').join('');
+$('lbOpts').addEventListener('input', e => { const el = e.target.closest('input[data-opt]'); if (el) $('optv-' + el.dataset.opt).textContent = el.value + '%' + (+el.value === Sim.OPTIONS[el.dataset.opt].def ? ' (standard)' : ''); });
+$('lbOpts').addEventListener('change', e => { const sel = e.target.closest('[data-opt]'); if (sel) act({ t: 'cfg', opt: { [sel.dataset.opt]: Sim.OPTIONS[sel.dataset.opt].slider ? +sel.value : sel.value } }); });
+$('lbOpts').addEventListener('click', e => { const b = e.target.closest('[data-optreset]'); if (b && !b.disabled) act({ t: 'cfg', opt: { [b.dataset.optreset]: Sim.OPTIONS[b.dataset.optreset].def } }); });
 // can this screen's player take elements and roles out? the host of a custom game, in the lobby
 const canBan = () => !!(view && view.m.ph === 'lobby' && isHost() && !(roomInfo && roomInfo.ranked));
 function toggleBan(k) {
@@ -9382,7 +9496,11 @@ function renderLobby(v) {
   setC('lbPts', v.m.ptw + ':' + host, () => { $('lbPts').value = String(v.m.ptw); $('lbPts').disabled = !host; });
   setC('lbOpts', JSON.stringify(v.m.opt || {}) + host, () => {
     const o = v.m.opt || {}; let custom = 0;
-    for (const k in Sim.OPTIONS) { const el = $('opt-' + k); if (!el) continue; el.value = o[k] || (Sim.OPTIONS[k].def || Object.keys(Sim.OPTIONS[k].values)[0]); el.disabled = !host; if (el.value !== (Sim.OPTIONS[k].def || Object.keys(Sim.OPTIONS[k].values)[0])) custom++; }
+    for (const k in Sim.OPTIONS) {
+      const el = $('opt-' + k), O = Sim.OPTIONS[k]; if (!el) continue;
+      if (O.slider) { const n = Sim.optPct(k, o[k]); if (document.activeElement !== el) el.value = n; el.disabled = !host; $('optv-' + k).textContent = n + '%' + (n === O.def ? ' (standard)' : ''); const rs = el.parentElement.querySelector('[data-optreset]'); if (rs) { rs.hidden = n === O.def; rs.disabled = !host; } if (n !== O.def) custom++; }
+      else { el.value = o[k] || optDef(O); el.disabled = !host; if (el.value !== optDef(O)) custom++; }
+    }
     $('lbOptNote').textContent = custom ? `${custom} custom ${custom === 1 ? 'rule' : 'rules'} on. Balance data records the rules with every game.` : 'Standard rules.';
   });
   // taken-out elements and roles are greyed out and struck through in everyone's picker
@@ -9931,10 +10049,15 @@ const BORDERS = { onfire: '#ff5a2e', unstoppable: '#ff8a3d', untouchable: '#ffff
   longshot: '#7dff8a', clutch: '#ff5a7a', lonewolf: '#9aa3b5', giantslayer: '#c58bff', champion: '#ffd23f', warlord: '#f2c14e', pinmaster: '#d8c7a0', empowered: '#b48cff', stormkeeper: '#fff27a', lifeline: '#5dffb0' };
 const trophyHtml = n => (n ? `<span class="troph" title="${n} achievement${n === 1 ? '' : 's'}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h8v2h2.5v1.5A3.5 3.5 0 0 1 11.3 9 4 4 0 0 1 9 10.8V12h2v2H5v-2h2v-1.2A4 4 0 0 1 4.7 9 3.5 3.5 0 0 1 1.5 5.5V4H4zm0 3.5H3a2 2 0 0 0 1.2 1.8zM12 5.5v1.8a2 2 0 0 0 1-1.8z" fill="currentColor"/></svg>${n}</span>` : '');
 const plateStyle = p => (p.bd && BORDERS[p.bd] ? ` style="--bd:${BORDERS[p.bd]}"` : '');
-const plateClass = p => (p.bd ? ' bordered' : '') + (p.fin && Sim.BANNER_FINISH[p.fin] ? ' fin-' + p.fin : '');
+const plateClass = p => (p.bd ? ' bordered' : '') + (p.fin && Sim.BANNER_FINISH[p.fin] ? ' fin-' + p.fin : '') + (p.fr && Sim.BANNER_FRAME[p.fr] ? ' frm frm-' + p.fr : '');
 // showcase medals: up to three achievements, each a small shield in its tier's colour with the tier numeral
 const medalSvg = (k, t, size) => { const T = Sim.ACH_TIERS[t - 1], a = Sim.ACHIEVEMENTS[k]; if (!T || !a) return '';
-  return `<span class="medal" style="--mc:${T.col};${size ? `width:${size}px;height:${size * 1.15}px;` : ''}" title="${esc(a.title)} ${T.n} · ${T.name}"><svg viewBox="0 0 20 23" aria-hidden="true"><path d="M10 1l8 3v7c0 5-3.5 8.6-8 11-4.5-2.4-8-6-8-11V4z" fill="var(--mc)" stroke="rgba(0,0,0,.45)" stroke-width="1.2"/><path d="M10 3.4l6 2.2v5.6c0 3.8-2.6 6.7-6 8.7-3.4-2-6-4.9-6-8.7V5.6z" fill="none" stroke="rgba(255,255,255,.45)" stroke-width=".8"/><text x="10" y="15" text-anchor="middle" font-size="9" font-weight="700" font-family="Rajdhani, Arial Narrow, sans-serif" fill="#111">${T.n}</text></svg></span>`; };
+  return `<span class="medal" style="--mc:${T.col};${size ? `width:${size}px;height:${size * 1.15}px;` : ''}" title="${esc(a.title)} ${T.n} (${T.name}): ${esc(Sim.achText(k, t))}"><svg viewBox="0 0 20 23" aria-hidden="true"><path d="M10 1l8 3v7c0 5-3.5 8.6-8 11-4.5-2.4-8-6-8-11V4z" fill="var(--mc)" stroke="rgba(0,0,0,.45)" stroke-width="1.2"/><path d="M10 3.4l6 2.2v5.6c0 3.8-2.6 6.7-6 8.7-3.4-2-6-4.9-6-8.7V5.6z" fill="none" stroke="rgba(255,255,255,.45)" stroke-width=".8"/><text x="10" y="15" text-anchor="middle" font-size="9" font-weight="700" font-family="Rajdhani, Arial Narrow, sans-serif" fill="#111">${T.n}</text></svg></span>`; };
+// the large banner (profile card, banner editor): the name big on the first line; level, flag, clan, title, trophies
+// and medals tucked into a second, smaller line, so it never gets crowded
+function bigPlate(L) {
+  return `<span class="nm plate big${plateClass(L)}"${plateStyle(L)}><span class="bp1"><b>${esc(L.n)}</b>${ownHtml(L.ow)}${statusHtml(L)}</span><span class="bp2">${idHtml(L)}${L.ti ? `<em class="ttl">${esc(titleName(L.ti))}</em>` : ''}${trophyHtml(L.na)}${medalsHtml(L.sc, 20)}</span></span>`;
+}
 const medalsHtml = (sc, size) => (Array.isArray(sc) && sc.length ? `<span class="medals">${sc.map(([k, t]) => medalSvg(k, t, size)).join('')}</span>` : '');
 const flagImgs = {};
 function flagImg(cc) {
@@ -11934,6 +12057,7 @@ function drawPreview(cvs, el, ro, color) {
   try { drawPlayer({ id: '_preview', x: 32, y: 34, a: -0.5, c: color, el, ro, tm: 'red', hp: 1, mh: 1, rz: 16, n: '', ch: 0, dr: 0, up: [], f: 0 }, false, true); }
   finally { ctx = keep; }
 }
+let MATE_DIM = 1;
 function drawPlayer(p, isMe, bare) {
   if (p.d) return;
   if (p.nk) return drawNpc(p); // a stronghold's NPC
@@ -11949,6 +12073,7 @@ function drawPlayer(p, isMe, bare) {
   if (p.ph) alpha *= 0.35; // Phase Step: arrows pass through
   if (p.nb) alpha *= 0.55; // mid-blink
   if (p.f > 0) alpha *= Math.pow(sc, 1.4); // falling: spin, shrink and fade away
+  if (!isMe && !bare && MATE_DIM < 1 && view && p.tm === myTeam()) alpha *= MATE_DIM; // teammates a touch dimmer, so you stand out
   let hideTag = false;
   if (!bare && !isMe && view && smokeHides(p, view.p.find(q => q.id === myId))) return;
   if (p.sth) {
@@ -11998,6 +12123,11 @@ function drawPlayer(p, isMe, bare) {
     }
     ctx.strokeStyle = `rgba(255,255,255,${0.8 + 0.2 * Math.sin(clock * 4)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, R + 9, 0, TAU); ctx.stroke();
     if (OPTS.me !== 'soft') {
+      // a wide, faint gold halo on the ground: easy to spot from across the arena without hiding anything
+      const hr = R * 5.2, hg = ctx.createRadialGradient(0, 0, R * 1.6, 0, 0, hr), pul = 0.85 + 0.15 * Math.sin(clock * 2.2);
+      hg.addColorStop(0, `rgba(255,207,90,${0.16 * pul})`); hg.addColorStop(0.65, `rgba(255,207,90,${0.07 * pul})`); hg.addColorStop(1, 'rgba(255,207,90,0)');
+      ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(0, 0, hr, 0, TAU); ctx.fill();
+      ctx.strokeStyle = `rgba(255,207,90,${0.22 * pul})`; ctx.lineWidth = 2; ctx.setLineDash([10, 9]); ctx.beginPath(); ctx.arc(0, 0, R * 3.4, -clock * 0.5, -clock * 0.5 + TAU); ctx.stroke(); ctx.setLineDash([]);
       // and a slowly turning gold ring of four arcs further out, which nothing else in the game uses
       const rr = R + 17, spin = clock * 1.2;
       ctx.strokeStyle = 'rgba(20,14,4,0.55)'; ctx.lineWidth = 5.5;
@@ -12766,7 +12896,10 @@ function render(replaying) {
   if (TRAIL.size && !replaying) drawTrails(view);
   PR.lap('overlay'); // zones, markers, pickups and stuck arrows count as overlay
   for (const p of view.p) if (p.f > 0 && !trHidden(p) && onScreen(p.x, p.y, 120)) drawPlayer(p, p.id === myId);
+  // in team games your teammates are drawn a little dimmer (Options: Your own archer), so you stand out from your own side
+  MATE_DIM = OPTS.me === 'strong' && me && view.p.filter(q => q.tm === me.tm && !q.nk).length > 1 && !replaying ? 0.72 : 1;
   for (const p of view.p) if (!p.f && p.id !== myId && !trHidden(p) && onScreen(p.x, p.y, 120)) drawPlayer(p, false);
+  MATE_DIM = 1;
   if (TR.on) drawTargets();
   if (me && !me.f) drawPlayer(me, true);
   PR.lap('players');
@@ -13381,7 +13514,7 @@ function startStrongholds() {
   setTimeout(startStrongholdsNow, 40);
 }
 function startStrongholdsNow() {
-  world = Sim.createWorld({ map: 'strongholds', diff: 'normal', opt: { mspeed: 'normal' } }); // a slower pace than the arenas
+  world = Sim.createWorld({ map: 'strongholds', diff: 'normal', opt: { mspeed: 100 } });
   setArena('strongholds');
   try { buildFloor(); } catch (e) { clientError(e, 'paint'); }
   const me = Sim.join(world, { name: playerName(), team: 'red', element: myLoadout().el, role: myLoadout().ro });
@@ -13708,7 +13841,7 @@ function bowSounds(dt) {
     if (bowS.creakT <= 0) {
       bowS.creakT = rand(0.55, 0.9);
       const f = rand(420, 560);
-      nz(0.18, 0.09, 'bandpass', f * 2, f * 1.6, 7); os('triangle', rand(700, 820), rand(640, 700), 0.16, 0.012);
+      nz(0.18, 0.13, 'bandpass', f * 2, f * 1.6, 7); os('triangle', rand(700, 820), rand(640, 700), 0.16, 0.02); // the held creak, a little louder too
     }
   } else bowS.creakT = 0.35;
   bowS.was = drawing;

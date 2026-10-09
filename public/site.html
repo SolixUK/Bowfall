@@ -313,7 +313,7 @@ function achCards(u, R) {
 // ---- profile pages: a hero with their backdrop, accent, big name, flag, ranks and motto, then what makes them stand out
 const BG_COLS = { meadow: ['#2f5a24', '#0c160d'], spring: ['#2f6a3a', '#0c160d'], rift: ['#4a2a1c', '#120a06'], beach: ['#b89a5c', '#123f55'], pitch: ['#2f6d2a', '#0b140b'], mill: ['#5a4430', '#16110b'], farm: ['#7a6a38', '#18140a'], reach: ['#3a3348', '#0f0d16'] };
 const PSTAT = {
-  elo: ['1v1 rating', c => Math.round(c.elo || 800)], eloT: ['Team rating', c => Math.round(c.eloT != null ? c.eloT : c.elo || 800)],
+  elo: ['1v1 rating', (c, u) => (u && u.placed === false ? 'Unranked' : Math.round(c.elo || 800))], eloT: ['Team rating', (c, u) => (u && u.placed === false ? 'Unranked' : Math.round(c.eloT != null ? c.eloT : c.elo || 800))],
   matches: ['Games', c => c.matches || 0], matchWins: ['Wins', c => c.matchWins || 0], rate: ['Win rate', c => (c.matches ? Math.round((c.matchWins || 0) / c.matches * 100) + '%' : '–')],
   wins: ['Rounds won', c => c.wins || 0], kills: ['Knockouts', c => c.kills || 0], kd: ['K/D', c => (c.deaths ? ((c.kills || 0) / c.deaths).toFixed(2) : c.kills || 0)],
   acc: ['Accuracy', c => (c.shots ? Math.round((c.hits || 0) / c.shots * 100) + '%' : '–')], ring: ['Ring-outs', c => c.ring || 0], bulls: ['Bullseyes', c => c.bulls || 0],
@@ -325,7 +325,7 @@ function profSig(u) {
   if (el && ro) { const m = Sim.masteryOf(c.els[el[0]], (c.elW || {})[el[0]]), mr = Sim.masteryOf(c.roles[ro[0]], (c.roleW || {})[ro[0]]); out.push({ k: 'Main', big: `${(E[el[0]] || {}).name || el[0]} ${(Rr[ro[0]] || {}).name || ro[0]}`, sub: `Mastery ${m.lv} · ${mr.lv}`, col: (E[el[0]] || {}).color }); }
   const best = ['elo', 'eloT'].map(k => ({ k, r: c[k] })).filter(x => x.r != null).sort((a, b) => b.r - a.r)[0];
   const peakS = (c.seasons || []).flatMap(x => [[x.k1, x.t1, x.n], [x.kT, x.tT, x.n]]).filter(x => x[0]).sort((a, b) => Sim.TIERS.findIndex(t => t.k === b[0]) - Sim.TIERS.findIndex(t => t.k === a[0]))[0];
-  if (best) { const T = Sim.tierOf(best.r, u.placed !== false); out.push({ k: best.k === 'elo' ? '1v1 rank' : 'Team rank', big: T.label, sub: peakS ? `Peaked ${peakS[1]} in season ${peakS[2]}` : `${Math.round(best.r)} rating`, col: T.col, badge: T.k }); }
+  if (best) { const T = Sim.tierOf(best.r, u.placed !== false); out.push({ k: best.k === 'elo' ? '1v1 rank' : 'Team rank', big: T.label, sub: peakS ? `Peaked ${peakS[1]} in season ${peakS[2]}` : u.placed === false ? 'Placement matches to go' : `${Math.round(best.r)} rating`, col: T.col, badge: T.k }); }
   const tr = u.play && u.play.traits ? u.play.traits.filter(x => x.pct != null).sort((a, b) => b.pct - a.pct)[0] : null;
   if (tr && tr.pct >= 0.5) out.push({ k: 'Playstyle', big: tr.name, sub: `Top ${Math.max(1, Math.round((1 - tr.pct) * 100))}% · ${tr.value} ${tr.what}`, col: '#5ad1ff' });
   const bk = (c.best || {}).k; if (bk >= 3) out.push({ k: 'Best game', big: `${bk} knockouts`, sub: 'In a single game', col: '#ff9f43' });
@@ -343,7 +343,7 @@ function profHero(u, mine) {
         <div class="pname">${esc(u.name)}${crown(u.admin, true)}${status(u.status, true)}</div>
         <div class="ptags">${badge(lv && lv.lv, true)}${u.country ? flag(u.country) + `<span class="muted">${esc(regionName(u.country))}</span>` : ''}${u.clan ? `<span class="pclan" style="--cl:${u.clan.col || acc}">${Sim.emblemOk(u.clan.em) ? Sim.emblemSvg(u.clan.em, 22) : ''}<b>[${esc(u.clan.tag)}]</b> ${esc(u.clan.name)}</span>` : ''}${u.title ? `<span class="tag">${esc(titleName(u.title))}</span>` : ''}${u.admin ? '<span class="tag admin">Game owner</span>' : ''}${u.ai ? '<span class="tag">AI player</span>' : ''}</div>
         ${P.motto ? `<div class="pmotto">“${esc(P.motto)}”</div>` : ''}
-        <div class="ptiers"><span>${Sim.tierSvg(t1.k, 34)}<span><b style="color:${t1.col}">${esc(t1.label)}</b><small>1v1 · ${Math.round(c.elo || 800)}</small></span></span><span>${Sim.tierSvg(tT.k, 34)}<span><b style="color:${tT.col}">${esc(tT.label)}</b><small>Team · ${Math.round(c.eloT != null ? c.eloT : c.elo || 800)}</small></span></span></div>
+        <div class="ptiers"><span>${Sim.tierSvg(t1.k, 34)}<span><b style="color:${t1.col}">${esc(t1.label)}</b><small>1v1${u.placed === false ? '' : ' · ' + Math.round(c.elo || 800)}</small></span></span><span>${Sim.tierSvg(tT.k, 34)}<span><b style="color:${tT.col}">${esc(tT.label)}</b><small>Team${u.placed === false ? '' : ' · ' + Math.round(c.eloT != null ? c.eloT : c.elo || 800)}</small></span></span></div>
         ${lv ? `<div class="plv"><div class="muted"><span>${rankOf(lv.lv).name} · level ${lv.lv}</span><span>${lv.xp - lv.cur} / ${lv.next - lv.cur} xp</span></div><div class="xp"><i style="width:${Math.round((lv.xp - lv.cur) / Math.max(1, lv.next - lv.cur) * 100)}%"></i></div></div>` : ''}
         <div class="muted" style="font-size:13px">Joined ${new Date(u.created).toLocaleDateString()}</div>
         ${mine ? '<div><button class="btn" id="pEditBtn" type="button">Edit profile</button> <span class="muted" style="font-size:13px">This is how everyone sees your profile.</span></div>' : ''}
@@ -553,7 +553,7 @@ const pages = {
     const f = $('authF'); f.name.focus();
     f.onsubmit = async e => {
       e.preventDefault();
-      try { const r = await api(reg ? '/register' : '/login', { name: f.name.value.trim(), email: reg ? f.email.value.trim() : undefined, password: f.password.value, guest: guestToken() }); me = r.user; await loadMe(); drawWho(); guestMoved(r);
+      try { const r = await api(reg ? '/register' : '/login', { name: f.name.value.trim(), email: reg ? f.email.value.trim() : undefined, password: f.password.value, guest: guestToken(), ref: refName() }); me = r.user; await loadMe(); drawWho(); guestMoved(r);
         const next = new URLSearchParams(location.hash.split('?')[1] || '').get('next');
         if (next && next.startsWith('/')) location.href = next; else go('#/u/' + me.name);
       } catch (err) { $('aErr').textContent = err.message; }
@@ -626,7 +626,7 @@ pages.finish = async () => {
   const f = $('finF'); f.name.select();
   f.onsubmit = async e => {
     e.preventDefault();
-    try { const r = await api('/oauth/finish', { name: f.name.value.trim(), guest: guestToken() }); me = r.user; drawWho(); guestMoved(r); if (d.pending.next) location.href = d.pending.next; else go('#/u/' + me.name); }
+    try { const r = await api('/oauth/finish', { name: f.name.value.trim(), guest: guestToken(), ref: refName() }); me = r.user; drawWho(); guestMoved(r); if (d.pending.next) location.href = d.pending.next; else go('#/u/' + me.name); }
     catch (err) { $('fErr').textContent = err.message; }
   };
 };
@@ -758,6 +758,9 @@ async function route() {
   window.scrollTo(0, 0);
 }
 addEventListener('hashchange', route);
+// an invite link (?ref=name): remembered for 30 days, so the account made later counts as theirs
+(() => { const r = new URLSearchParams(location.search).get('ref'); if (r && /^[A-Za-z0-9_-]{3,16}$/.test(r)) { try { localStorage.setItem('bowfall-ref', r); } catch (e) {} document.cookie = 'bf_ref=' + encodeURIComponent(r) + '; Path=/; Max-Age=2592000; SameSite=Lax'; } })();
+function refName() { try { return localStorage.getItem('bowfall-ref') || undefined; } catch (e) { return undefined; } }
 loadMe().then(route);
 })();
 </script>

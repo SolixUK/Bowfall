@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.38.0';
+const VERSION = '0.39.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -218,10 +218,13 @@ const CRACK_WARN = 4;
 // custom game options; def is the standard rule
 const OPTIONS = {
   size:   { label: 'Archer size',  def: 'large', values: { small: 1, medium: 1.25, large: 1.5 } },
-  aspeed: { label: 'Arrow speed',  def: 'blazing', values: { normal: 1.32, fast: 1.65, vfast: 1.98, blazing: 2.42, bullet: 3.1 } }, // 10% up in 0.23.0 (arrows, bolts and shuriken)
-  mspeed: { label: 'Move speed',   def: 'normal', values: { normal: 1, slow: 0.85, fast: 1.2, vfast: 1.4, blazing: 1.7 } },
-  kb:     { label: 'Knockback',    def: 'normal', values: { normal: 1, low: 0.75, high: 1.3, chaos: 1.8 } },
-  hp:     { label: 'Health',       def: 'normal', values: { normal: 1, low: 0.7, high: 1.5 } },
+  // sliders: a percentage of the standard (100%, the middle of the track); `base` is what 100% means. Changing the standard pace later is just
+  // changing `base`. `legacy` maps the old named settings (saved lobby choices, old records) onto the slider.
+  aspeed: { label: 'Arrow speed',  slider: true, def: 100, base: 2.42, min: 70, max: 130, step: 5, legacy: { normal: 55, fast: 68, vfast: 82, blazing: 100, bullet: 128 } },
+  // 0.39.0: the standard pace was slowed to what used to be "slow" movement, with a little less knockback (it played better)
+  mspeed: { label: 'Move speed',   slider: true, def: 100, base: 0.85, min: 50, max: 150, step: 5, legacy: { normal: 118, slow: 100, fast: 141, vfast: 165, blazing: 200 } },
+  kb:     { label: 'Knockback',    slider: true, def: 100, base: 0.87, min: 40, max: 160, step: 5, legacy: { normal: 115, low: 86, high: 149, chaos: 207 } },
+  hp:     { label: 'Health',       slider: true, def: 100, base: 1, min: 50, max: 150, step: 5, legacy: { normal: 100, low: 70, high: 150 } },
   dash:   { label: 'Dashes',       def: 'on', values: { on: 1, off: 0 } },
   // arrow homing: every shot bends toward the enemy it's heading for, this many radians a second
   assist: { label: 'Arrow homing',   def: 'none', values: { none: 0, tiny: 0.12, small: 0.25, medium: 0.5, heavy: 1, extreme: 2.2 } },
@@ -231,9 +234,18 @@ const OPTIONS = {
   upg:    { label: 'Upgrades',     def: 'on', values: { on: 1, off: 2 } },
 };
 const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', bullet: 'Bullet', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', puck: 'Glide (air hockey)', snappy: 'Snappy', drift: 'Drifty', direct: 'Direct (no glide)', none: 'None', tiny: 'Tiny', heavy: 'Heavy', extreme: 'Extreme' };
-const optDefaults = () => Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.def || Object.keys(o.values)[0]]));
+const optDefaults = () => Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.slider ? o.def : o.def || Object.keys(o.values)[0]]));
+// a slider setting as a percentage (old named settings and anything out of range are mapped and clamped)
+function optPct(k, v) {
+  const o = OPTIONS[k]; if (!o || !o.slider) return null;
+  let n = typeof v === 'number' || (typeof v === 'string' && /^\d+(\.\d+)?$/.test(v)) ? +v : o.legacy && o.legacy[v] != null ? o.legacy[v] : o.def;
+  n = Math.round(Math.max(o.min, Math.min(o.max, n)) / o.step) * o.step;
+  return n;
+}
+// what a setting comes to as a multiplier, for any rules object (records, the page's own display)
+function optValue(opt, k) { const o = OPTIONS[k], v = (opt || {})[k]; if (o.slider) return o.base * optPct(k, v) / 100; return o.values[v] || o.values[o.def] || 1; }
 let CFG = { opt: optDefaults() };
-const OPT = k => OPTIONS[k].values[(CFG.opt || {})[k]] || 1;
+const OPT = k => optValue(CFG.opt, k);
 // Handicap: the host can give any archer a percentage, e.g. +50% for a lone player in a 1v2.
 // It scales their health and arrow damage by that much, and their knockback resistance by half as much.
 const HANDICAPS = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
@@ -610,7 +622,11 @@ function emblemSvg(code, size) {
 }
 const BANNER_FINISH = {
   plain:   { name: 'Plain',        tiers: 0 },
+  carbon:  { name: 'Carbon',       tiers: 2 },
   brushed: { name: 'Brushed steel', tiers: 3 },
+  hex:     { name: 'Hex plating',  tiers: 6 },
+  camo:    { name: 'Woodland camo', tiers: 11 },
+  waves:   { name: 'Tidal',        tiers: 18 },
   chevron: { name: 'Chevrons',     tiers: 8 },
   ember:   { name: 'Ember',        tiers: 15 },
   storm:   { name: 'Stormfront',   tiers: 25 },
@@ -621,6 +637,17 @@ const BANNER_FINISH = {
   founder: { name: 'Founder',      need: 'fd', label: 'Founders' },
   rose:    { name: 'Patron rose',  need: 'pt', label: 'Patrons' },
 };
+// banner frames: a styled edge round the banner (on top of its finish), unlocked by total achievement tiers
+const BANNER_FRAME = {
+  none:   { name: 'None',       tiers: 0 },
+  tech:   { name: 'Circuit',    tiers: 5 },
+  frost:  { name: 'Rime',       tiers: 12 },
+  primal: { name: 'Primal',     tiers: 20 },
+  shadow: { name: 'Shadow',     tiers: 30 },
+  blood:  { name: 'Bloodied',   tiers: 45 },
+  gilded: { name: 'Gilded',     tiers: 65 },
+};
+const frameAllowed = (f, rec) => { const F = BANNER_FRAME[f]; return !!F && F.tiers <= tierTotal(rec); };
 // may this record (and status: { sp, fd, pt }) wear this finish?
 const finishAllowed = (f, rec, st) => { const F = BANNER_FINISH[f]; if (!F) return false; return F.need ? !!(st && st[F.need]) : F.tiers <= tierTotal(rec); };
 const tierTotal = rec => Object.values((rec && rec.tier) || {}).reduce((s, t) => s + t, 0);
@@ -628,8 +655,9 @@ const tierTotal = rec => Object.values((rec && rec.tier) || {}).reduce((s, t) =>
 function bannerOf(rec, st) {
   const tier = (rec && rec.tier) || {};
   const fin = rec && rec.finish && finishAllowed(rec.finish, rec, st) ? rec.finish : null;
+  const fr = rec && rec.frame && rec.frame !== 'none' && frameAllowed(rec.frame, rec) ? rec.frame : null;
   const want = Array.isArray(rec && rec.show) ? rec.show.filter(k => tier[k] > 0) : achBest(rec, 3);
-  return { fin, sc: want.slice(0, 3).map(k => [k, tier[k]]) };
+  return { fin, fr, sc: want.slice(0, 3).map(k => [k, tier[k]]) };
 }
 const HAZARD_OUTS = ['lava', 'burn', 'spikes', 'wall', 'crush', 'pit', 'water', 'saw'];
 // what these events add to one archer's achievement stats: a list of [stat, amount, 'max'|'sum'|'set']
@@ -711,6 +739,7 @@ function setMeta(w, id, m) {
   if ('na' in m) p.na = Math.max(0, Math.min(Object.keys(ACHIEVEMENTS).length, m.na | 0)) || null;
   if ('ow' in m) p.ow = m.ow ? 1 : null; // the game's owner: a crown by their name
   if ('fin' in m) p.fin = BANNER_FINISH[m.fin] ? m.fin : null; // banner finish
+  if ('fr' in m) p.fr = BANNER_FRAME[m.fr] ? m.fr : null; // banner frame
   if ('sp' in m) p.sp = Math.max(0, Math.min(4, m.sp | 0)) || null; // supporter emblem tier (1-4)
   if ('fd' in m) p.fd = m.fd ? 1 : null; // founder
   if ('pt' in m) p.pt = m.pt ? 1 : null; // patron
@@ -879,7 +908,7 @@ const TREE = {
   twinload:  { tree: 'crossbow', cap: true, name: 'Double Crank', desc: 'Hold two bolts: fire them back to back, and each one reloads on its own.' },
   harpoon:   { tree: 'trapper', active: { cd: 9 }, name: 'Harpoon', desc: 'Fire a barbed line along your aim (up to 420px). The first enemy it catches is yanked toward you and briefly stuck.' },
   snare:     { tree: 'trapper', also: ['crossbow'], active: { cd: 5 }, name: 'Snare Arrow', desc: 'Your next shot roots whoever it hits for 1.8 seconds.' },
-  trap:      { tree: 'trapper', active: { cd: 10 }, name: 'Bramble Trap', desc: 'Weave a bramble trap at the spot under your cursor (up to 380px away, never over a hole or water); it takes half a second to set, and you move at half speed meanwhile. An enemy who steps on it is rooted for 2.5 seconds and hurt. Up to 2 at once.' },
+  trap:      { tree: 'trapper', active: { cd: 8.5 }, name: 'Bramble Trap', desc: 'Weave a bramble trap at the spot under your cursor (up to 450px away, never over a hole or water); it takes half a second to set, and you move at half speed meanwhile. An enemy who steps on it is rooted for 2.5 seconds and hurt. Up to 2 at once.' },
   bramble:   { tree: 'trapper', trade: true, name: 'Bramble Coat', desc: 'Enemies who touch you are rooted for 1.4 seconds (once every 3 seconds each), but you move 5% slower.' },
   deeproots: { tree: 'trapper', cap: true, name: 'Deep Roots', desc: 'Your roots last twice as long, and rooted enemies take 25% more damage from you.' },
 };
@@ -1122,9 +1151,10 @@ function setMap(w, key) {
   return true;
 }
 function setOption(w, key, val) {
-  if (w.match.ph !== 'lobby' || !OPTIONS[key] || !(val in OPTIONS[key].values)) return false;
+  const o = OPTIONS[key];
+  if (w.match.ph !== 'lobby' || !o || (!o.slider && !(val in o.values))) return false;
   useMap(w);
-  w.cfg.opt[key] = val;
+  w.cfg.opt[key] = o.slider ? optPct(key, val) : val;
   for (const p of w.players) { applyStats(p); p.hp = p.maxHp; }
   return true;
 }
@@ -2477,7 +2507,7 @@ function updateZones(w, dt) {
   }
 }
 
-const TRAP_RANGE = 380, TRAP_SET = 0.5, TRAP_PIT_GAP = 26;
+const TRAP_RANGE = 450, TRAP_SET = 0.5, TRAP_PIT_GAP = 26;
 // the nearest spot to (x, y) that isn't over a hole or water (lava and bogs are solid ground: things can sit on them)
 function outOfPits(haz, x, y, gap) {
   for (let k = 0; k < 4; k++) {
@@ -2700,7 +2730,7 @@ const XB3 = { n: 3, gap: 0.08, dmg: 0.45, kb: 0.5, spread: 0.035, reload: 1.5 };
 // how far a player's shots reach before dropping, for roles with a short range (null: the whole arena)
 // (shuriken: 1050px/s slowed by drag 2.4 over their 0.45s life, about 0.275s worth of full speed)
 const rangeOf = (w, p) => p.role === 'crossbow' ? Math.round(p.xbowRange || XBOW_RANGE)
-  : p.role === 'ninja' ? Math.round(1050 * (OPTIONS.aspeed.values[((w.cfg || {}).opt || {}).aspeed] || 1) * 0.275) : null;
+  : p.role === 'ninja' ? Math.round(1050 * optValue((w.cfg || {}).opt, 'aspeed') * 0.275) : null;
 const SNIPE_FULL = Math.hypot(AW - 2 * WALL, AH - 2 * WALL); // corner to corner
 const VOLLEY_GAP = 0.12, BLINK_RANGE = 300, HARPOON_RANGE = 420, NINJA_BLINK = 150, FLASH_RANGE = 240;
 // is this archer hidden inside smoke from someone standing at (x, y)?
@@ -4216,7 +4246,7 @@ function snapshot(w) {
       const pw = {};
       for (const k in p.pw) if (p.pw[k] > 0) pw[k] = r1(p.pw[k]);
       return {
-        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, nk: p.npc ? p.npc.k : undefined, hd: p.hid ? 1 : 0, tw: p.elev ? 1 : 0, rs: w.cq && p.dead && !p.npc && p.respAt != null ? Math.max(0, Math.ceil(p.respAt - w.t)) : undefined, bi: p.npc ? p.npc.bio : undefined, nw: p.npc && (p.npc.wind || p.npc.charge) ? (p.npc.charge ? 'dash' : p.npc.wind) : undefined, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, ct: p.ct || undefined, cl: p.cl || undefined, ce: p.ce || undefined, sp: p.sp || undefined, fd: p.fd || undefined, pt: p.pt || undefined, fin: p.fin || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
+        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, nk: p.npc ? p.npc.k : undefined, hd: p.hid ? 1 : 0, tw: p.elev ? 1 : 0, rs: w.cq && p.dead && !p.npc && p.respAt != null ? Math.max(0, Math.ceil(p.respAt - w.t)) : undefined, bi: p.npc ? p.npc.bio : undefined, nw: p.npc && (p.npc.wind || p.npc.charge) ? (p.npc.charge ? 'dash' : p.npc.wind) : undefined, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, ct: p.ct || undefined, cl: p.cl || undefined, ce: p.ce || undefined, sp: p.sp || undefined, fd: p.fd || undefined, pt: p.pt || undefined, fin: p.fin || undefined, fr: p.fr || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
         x: r1(p.x), y: r1(p.y), vx: Math.round(p.vx), vy: Math.round(p.vy), a: r3(p.aim),
         hp: Math.max(0, Math.ceil(p.hp)), mh: p.maxHp, ch: r2(p.charge), dr: p.drawing ? 1 : 0,
         f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, bu: p.burn > 0 ? 1 : 0, bl: p.bleedT > 0 ? 1 : 0, sl: p.slow > 0 ? 1 : 0, iv: p.inv > 0 ? 1 : 0,
@@ -4394,11 +4424,11 @@ function tierSvg(k, size = 22) {
 return {
   TIERS, tierOf, tierSvg,
   MASTERY, masteryOf,
-  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
+  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg,
-  setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
+  setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, BANNER_FRAME, frameAllowed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
   _grant(w, id, cards) { const p = w.players.find(q => q.id === id); for (const c of cards) takeCard(w, p, c); applyStats(p); p.picked = false; return p; },
 };
