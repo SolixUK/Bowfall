@@ -925,11 +925,12 @@
   @media (max-width: 760px) { .cards { grid-template-columns: 1fr; } .pcard { min-height: 0; } }
   /* phones held sideways (short screens): menus, cards and the upgrade pick shrink to fit instead of scrolling off */
   @media (max-height: 500px) {
-    .overlay { padding: 8px; } .overlay > .card { zoom: .72; } #home .homewrap { zoom: .7; max-width: 1400px; margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) 380px; grid-template-areas: 'title top' 'menu top' 'foot top'; grid-template-rows: auto auto 1fr; gap: 10px 22px; align-items: start; }
+    .overlay { padding: 8px; }
+    .overlay > .card { padding: 16px 20px; gap: 12px; } .overlay > .card .shopbar h2 { font-size: 30px; } .overlay > .card .eyebrow { font-size: 12px; } #home .homewrap { zoom: .7; max-width: 1400px; margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) 380px; grid-template-areas: 'title top' 'menu top' 'foot top'; grid-template-rows: auto auto 1fr; gap: 10px 22px; align-items: start; }
     #home .hometop { grid-area: top; } #home .hometitle { grid-area: title; margin-top: 0 !important; } #home .mainmenu { grid-area: menu; } #home .homefoot { grid-area: foot; }
     #home .hometop .frpanel { max-height: 300px; overflow-y: auto; } #home .hometop .toprow { flex-wrap: wrap; justify-content: flex-end; }
     #home .mainmenu { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } #home .mm small { display: none; } #home .mm b { white-space: nowrap; } #home .mm .mmlock { top: -8px; right: 40px; bottom: auto; transform: scale(.8); transform-origin: right top; } #home .hometitle h1 { font-size: 72px; line-height: .9; }
-    .card.pick { max-width: 1100px; zoom: .62 !important; } .pick .pcard { min-height: 0; padding: 12px 14px; } .pick .cards { grid-template-columns: repeat(3, 1fr); }
+    .card.pick { max-width: 1100px; } .pick .pcard { min-height: 0; padding: 12px 14px; } .pick .cards { grid-template-columns: repeat(3, 1fr); }
   }
   .card.lobby { max-width: 1240px; padding-bottom: 0; }
   .lbgrid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; align-items: start; }
@@ -1044,6 +1045,35 @@
   .ctlboth { margin-top: 0; }
   .padmap { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 6px 14px; font-size: 14px; }
   .padmap b { color: var(--gold); font-family: 'Rajdhani', 'Arial Narrow', sans-serif; }
+  /* ---- phones held sideways (short screens): menu cards are scaled to fit (see fitCards) and use the full width, so the
+     desktop layouts come back instead of the narrow-screen single columns, which would only make them taller ---- */
+  @media (max-height: 520px) {
+    body .clgrid { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); } body .clanhead { grid-template-columns: auto 1fr auto; } body .clanstats { grid-column: auto; }
+    body .profgrid { grid-template-columns: 240px 1fr; } body .findgrid { grid-template-columns: 1.15fr 1fr; gap: 18px; } body .lpcols { grid-template-columns: 1fr 1fr; }
+    body .dfgrid { grid-template-columns: 240px minmax(0, 1fr); } body .dfteams { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } body .bannered { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); }
+    body .abgrid { grid-template-columns: 150px 1fr 290px; } body .lbgrid { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); } body .ctlgrid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+    body .teams { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } body .maps, body .lobby .maps { grid-template-columns: repeat(4, minmax(0, 1fr)); } body .cards { grid-template-columns: repeat(3, 1fr); }
+    body .tree { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); } body .optgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    body .lbfoot { margin: 0 -20px; padding: 10px 20px 12px; }
+    body .optgrid { grid-template-columns: minmax(0, .9fr) minmax(0, 2fr) minmax(0, 1.1fr); grid-template-areas: 'c g p' 's g p'; align-items: start; }
+    .optgrid > section:nth-child(1) { grid-area: c; } .optgrid > section:nth-child(2) { grid-area: s; } .optgrid > section:nth-child(4) { grid-area: p; }
+    .optgrid > section:nth-child(3) { grid-area: g; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; align-content: start; } .optgrid > section:nth-child(3) h3 { grid-column: 1 / -1; }
+    body .lobby .lbcol { display: contents; } body .lbgrid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: 'teams arch' 'locals arch' 'chat arch' 'set set'; }
+    .lobby .lbset { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 14px; align-items: start; } .lobby .lbset > h3, .lobby .lbset > .maps, .lobby .lbset > #lbMapDesc { grid-column: 1 / -1; } body .lobby .maps { grid-template-columns: repeat(8, minmax(0, 1fr)); } #banHint { display: none !important; }
+    .lobby .lbset { padding: 10px 12px; gap: 6px 14px; } .lobby .lbset > h3 { margin: 0; } .lobby .arch { gap: 6px; padding: 10px; } .lobby .chips { gap: 4px; } .lobby .archrow .chip2 { padding: 3px 7px; }
+    .overlay > .card .shopbar h2 { font-size: 24px; }
+    .fgmaphint, #fgMe .achs { display: none !important; } body .stgrid { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; } .storecard > h3 { margin: 0; }
+    #helpScreen.tabbed #helpBody > :not(.on) { display: none; } #helpScreen.tabbed .help-nav button.sel { border-color: var(--gold); color: var(--gold); }
+    .slot.empty + .slot.empty { display: none; }
+    #achGrid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; } #achScreen .bnprev .lbl:nth-of-type(2), #achScreen #bnBig, #achGrid ~ p.status { display: none; } #achScreen .bannered { padding: 10px; } #achScreen .bannered { grid-template-columns: minmax(0, .8fr) minmax(0, 2fr); } #achScreen .bnopts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 10px; } #achScreen .bnshow { grid-column: 1 / -1; } .prhint { display: none; } #pfPage:not([hidden]) { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 18px; align-items: center; } #pfPage > .shopbar { grid-column: 1 / -1; } #profScr .chips { gap: 4px; } #profScr .chip2 { padding: 4px 8px; } #profScr .card { gap: 8px; } #profScr hr, #profScr .pfsep { margin: 4px 0; }
+    body .clgrid:has(.clform) { grid-template-columns: 1fr; } .clgrid:has(.clform) > .clsec:nth-child(2) { display: none; } body .clform { display: grid; grid-template-rows: auto auto auto 1fr; grid-template-columns: minmax(0, 1fr) 100px minmax(0, 2.2fr); grid-template-areas: 'n t e' 'm m e' 'c c e' 'k k e'; gap: 8px 12px; align-items: start; }
+    .clform > :nth-child(1) { grid-area: n; } .clform > :nth-child(2) { grid-area: t; } .clform > :nth-child(3) { grid-area: m; } .clform > :nth-child(4) { grid-area: c; } .clform > :nth-child(5) { grid-area: e; } .clform > :nth-child(6) { grid-area: k; }
+    #scBody > .scbox { display: block; columns: 3; column-gap: 28px; } #scBody > .scbox > h4 { column-span: all; margin-bottom: 6px; } #scBody .scrow { break-inside: avoid; margin-bottom: 5px; } .storecard #stNote { max-width: none; margin: 0; } .storecard { gap: 8px !important; } .lobby .lbgrid { gap: 10px; }
+    #lbTeams { grid-area: teams; } #lbLocals { grid-area: locals; } #lbChat { grid-area: chat; } .lobby .arch { grid-area: arch; } .lobby .lbset { grid-area: set; }
+    .lobby .slot.empty + .slot.empty { display: none; } .lobby .maps { gap: 4px; } .lobby .mapcard canvas { aspect-ratio: 138 / 58; object-fit: cover; }
+    .optgrid > section:nth-child(3) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .optgrid .field, .optgrid select { min-width: 0; max-width: 100%; }
+  }
+  @media (max-height: 520px) and (pointer: coarse) { .ctlgrid > .ctlsec:first-child { display: none; } body .ctlgrid { grid-template-columns: 1fr; } }
 </style>
 <div id="plcard" class="plcard" hidden role="tooltip"></div>
 <div class="stage">
@@ -1336,10 +1366,7 @@
           <div class="field"><label for="oRes">Resolution</label><select id="oRes"><option value="auto">Automatic (drops when the game slows)</option><option value="sharp">Always sharp</option><option value="fast">Fast (lower resolution)</option></select></div>
           <div class="field"><label for="oFx">Effects</label><select id="oFx"><option value="auto">Automatic (lighter when the game slows)</option><option value="full">Full</option><option value="light">Light (no glows or trails, for older laptops)</option></select></div>
           <div class="field"><label for="oCb">Colours</label><select id="oCb"><option value="">Standard</option><option value="1">Colour-blind friendly (orange and blue teams)</option></select></div>
-          <div class="field"><label for="oMe">Your own archer</label><select id="oMe"><option value="strong">Strongly marked (gold halo, ring and arrow; teammates a little dimmer)</option><option value="soft">Lightly marked (white ring)</option></select></div>
           <div class="field"><label for="oGlow">Team glow round archers</label><select id="oGlow"><option value="live">Living (breathes, leans into movement, flares on a draw)</option><option value="soft">Soft (still)</option><option value="ring">Ring only</option></select></div>
-          <div class="field"><label for="oPz">Phone camera</label><select id="oPz"><option value="1">Fixed: the whole arena</option><option value="1.15">Follow: closer</option><option value="1.3">Follow: closest</option></select></div>
-          <div class="field"><label for="oTaim">Touch aiming</label><select id="oTaim"><option value="point">Point the way you shoot</option><option value="pull">Pull back, like drawing a bow</option></select></div>
           <div class="field"><label for="oDetail">Arena detail</label><select id="oDetail"><option value="full">Full (ambient light, drifting leaves, lava glow)</option><option value="low">Low (plain arenas; fastest)</option></select></div>
           <div class="field"><label for="oShadow">Shots' shadows</label><select id="oShadow"><option value="soft">Soft</option><option value="simple">Simple (a dot)</option><option value="off">Off</option></select></div>
           <div class="field"><label for="oPart">Particles</label><select id="oPart"><option value="1">Full</option><option value="0.5">Reduced</option><option value="0.2">Minimal</option></select></div>
@@ -1350,6 +1377,9 @@
         <section class="mode" data-navsec><h3>Gameplay</h3>
           <div class="field"><label for="oDmg">Damage numbers</label><select id="oDmg"><option value="all">Everyone's</option><option value="mine">Only mine (and damage to me)</option><option value="off">Off</option></select></div>
           <div class="field"><label for="oGuide">Aim guide line</label><select id="oGuide"><option value="1">On</option><option value="2">Bold (easier to see)</option><option value="0">Off</option></select></div>
+          <div class="field"><label for="oMe">Your own archer</label><select id="oMe"><option value="strong">Strongly marked (gold halo, ring and arrow; teammates a little dimmer)</option><option value="soft">Lightly marked (white ring)</option></select></div>
+          <div class="field"><label for="oPz">Phone camera</label><select id="oPz"><option value="1">Fixed: the whole arena</option><option value="1.15">Follow: closer</option><option value="1.3">Follow: closest</option></select></div>
+          <div class="field"><label for="oTaim">Touch aiming</label><select id="oTaim"><option value="point">Point the way you shoot</option><option value="pull">Pull back, like drawing a bow</option></select></div>
         </section>
       </div>
     </div>
@@ -1371,7 +1401,7 @@
             <div class="field"><label for="pfBorder">Banner border</label><select id="pfBorder"></select></div>
             <div class="field" id="pfFlagWrap" hidden><label for="pfFlag">Flag</label><select id="pfFlag"></select></div>
           </div>
-          <span class="status">Titles and banner borders unlock with achievements.</span>
+          <span class="status prhint">Titles and banner borders unlock with achievements.</span>
           <div class="acct" id="acctBar"></div>
         </div>
       </div>
@@ -1612,7 +1642,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.39.6';
+const VERSION = '0.39.7';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -6045,7 +6075,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.39.6';
+const PAGE_VERSION = '0.39.7';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -6736,6 +6766,35 @@ function touchNearestAim() {
   const f = foes.reduce((b, p) => (Math.hypot(p.x - me.x, p.y - me.y) < Math.hypot(b.x - me.x, b.y - me.y) ? p : b));
   return Math.atan2(f.y - me.y, f.x - me.x);
 }
+// short screens (phones held sideways): each open menu card is scaled to fit the screen's height instead of scrolling,
+// and a wide card is let out to the screen's full width first, so it needs less height (scaling stops at 60%)
+const FIT = { busy: false, ro: null };
+function fitCards() {
+  if (FIT.busy) return; FIT.busy = true;
+  try {
+    const short = innerHeight < 520;
+    for (const o of document.querySelectorAll('.overlay')) {
+      const c = o.querySelector(':scope > .card'); if (!c) continue;
+      if (o.hidden || !short) { if (c.style.zoom) { c.style.zoom = ''; c.style.maxWidth = ''; } continue; }
+      if (FIT.ro && !c.fitSeen) { c.fitSeen = true; FIT.ro.observe(c); }
+      c.style.zoom = ''; c.style.maxWidth = '';
+      const cs = getComputedStyle(o), aw = o.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), ah = o.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const mw = parseFloat(getComputedStyle(c).maxWidth) || 9999, wide = mw >= 760;
+      let z = 1;
+      for (let i = 0; i < 3; i++) {
+        if (wide) c.style.maxWidth = Math.floor(aw / z) + 'px';
+        const h = c.scrollHeight + 6; z = Math.max(0.6, Math.min(1, ah / h));
+      }
+      if (wide) c.style.maxWidth = Math.floor(aw / z) + 'px';
+      c.style.zoom = z < 0.995 ? String(Math.floor(z * 1000) / 1000) : '';
+    }
+  } finally { requestAnimationFrame(() => { FIT.busy = false; }); }
+}
+try {
+  FIT.ro = new ResizeObserver(() => { if (!FIT.busy) requestAnimationFrame(fitCards); });
+  new MutationObserver(ms => { if (ms.some(m => m.target.classList && m.target.classList.contains('overlay'))) requestAnimationFrame(fitCards); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['hidden'] });
+} catch (e) {}
+addEventListener('resize', () => requestAnimationFrame(fitCards));
 function touchUI() {
   document.body.classList.toggle('touchmode', TOUCH.on);
   const show = TOUCH.on && mode !== 'menu' && !menuOpen && view && view.m.ph !== 'lobby' && !RP.on && $('pickScreen').hidden;
@@ -9413,13 +9472,21 @@ let helpBuilt = false, helpFrom = null;
 function openHelp() {
   if (!helpBuilt) { helpHtml(); helpBuilt = true; }
   helpFrom = document.activeElement;
-  $('helpScreen').hidden = false; $('helpScreen').scrollTop = 0; $('helpClose').focus();
+  helpTab(null); $('helpScreen').hidden = false; $('helpScreen').scrollTop = 0; $('helpClose').focus();
 }
 function closeHelp() { $('helpScreen').hidden = true; if (helpFrom && helpFrom.focus) helpFrom.focus(); }
 $('helpBtn').onclick = openHelp;
 $('gmHelpBtn').onclick = openHelp;
 $('helpClose').onclick = closeHelp;
-$('helpNav').addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) $('help-' + b.dataset.go).scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }); });
+// short screens: the sections become tabs, one at a time, instead of one long page
+function helpTab(id) {
+  const tabbed = innerHeight < 520; $('helpScreen').classList.toggle('tabbed', tabbed);
+  for (const el of $('helpBody').children) el.classList.toggle('on', !id ? el === $('helpBody').firstElementChild : el.id === 'help-' + id);
+  for (const b of $('helpNav').querySelectorAll('[data-go]')) b.classList.toggle('sel', tabbed && $('help-' + b.dataset.go).classList.contains('on'));
+}
+$('helpNav').addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (!b) return;
+  if (innerHeight < 520) { helpTab(b.dataset.go); $('helpScreen').scrollTop = 0; requestAnimationFrame(fitCards); }
+  else $('help-' + b.dataset.go).scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }); });
 function openMenu() {
   if (view && view.m.ph === 'lobby') return;
   menuOpen = true; mouse.down = false;

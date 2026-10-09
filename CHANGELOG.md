@@ -2,6 +2,22 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.39.7
+
+- **Phones: menus fit without scrolling.** On short screens (a phone held sideways) every menu card is scaled to fit the screen's height and let out to its full width, and the desktop layouts are kept instead of collapsing to one tall column. Screen by screen:
+  - **Lobby:** teams beside your archetype, the arena picker in one row across the bottom with the match settings beside each other, and only one open slot shown per team. (The Alt+click hint is hidden.)
+  - **Find game:** the arena tip and achievement list on your card are hidden.
+  - **Options:** Controls and Sound share a column, Graphics is two columns wide, and Your own archer, Phone camera and Touch aiming moved to Gameplay (on every screen).
+  - **Controls:** the keyboard section is hidden on touch screens.
+  - **Store:** all unlocks in one row.
+  - **Highscores:** the list runs in three columns.
+  - **Challenges:** six across, with the banner options in one row.
+  - **Clans:** the start-a-clan form sits beside the emblem editor.
+  - **Edit profile:** the profile page settings are two columns.
+  - **How to play:** the sections become tabs, one at a time.
+  - **In-game menu:** only one open slot per team.
+  The longest screens stop shrinking at 60% and scroll a little rather than get unreadable (the arena builder can still scroll).
+
 ## 0.39.6
 
 - **Touch: your archer faces the enemies** while you're not aiming, turning smoothly toward their general direction (nearer enemies count more), instead of staying frozen on the last aim.
