@@ -244,7 +244,7 @@ async function stripeEvent(ev) {
   markDirty(u); await flushUsers(); store.setSetting('stripeEvents', SETTINGS.events).catch(() => {});
   walletNote(u, gained, why);
 }
-// in a ranked room with locks on, swap a locked element or role for a free one
+// in an online game with locks on, swap a locked element or role for a free one
 function lockedFix(ws) {
   if (!SETTINGS.locks) return;
   const u = ws.user || ws.guest, R = rot();
@@ -1124,7 +1124,7 @@ function joinTeam(room, ws, team) {
     if (!bot) return 'That team is full.';
     Sim.removeBot(w, bot.id);
   }
-  if (room.ranked) lockedFix(ws);
+  lockedFix(ws); // (ranked and custom games alike: only practice and training, which run in the page, have everything)
   const p = Sim.join(w, { name: ws.name, team, element: ws.el, role: ws.ro });
   if (!p) return 'That team is full.';
   ws.pid = p.id;
@@ -1421,8 +1421,8 @@ async function handle(ws, m) {
     }
     case 'loadout': {
       const el = String(m.el), ro = String(m.ro), u = ws.user || ws.guest;
-      // ranked drafts: only what you own, this week's free picks, or everything if locks are off
-      if (room.ranked && SETTINGS.locks && !(E.owns(u, el, true, rot()) && E.owns(u, ro, true, rot()))) { send(ws, { t: 'note', msg: 'That one is locked. Unlock it in the Store, or pick from your own and this week\'s free ones.' }); break; }
+      // ranked and custom games: only what you own, this week's free pick, or everything if locks are off
+      if (SETTINGS.locks && !(E.owns(u, el, true, rot()) && E.owns(u, ro, true, rot()))) { send(ws, { t: 'note', msg: 'That one is locked. Unlock it in the Store, or pick from your own and this week\'s free ones.' }); break; }
       ws.el = el; ws.ro = ro; if (ws.pid) Sim.setLoadout(w, ws.pid, ws.el, ws.ro); if (room.ranked && !room.ranked.go) sendRoom(room); break;
     }
     case 'title': {

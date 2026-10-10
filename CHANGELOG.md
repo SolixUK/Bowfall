@@ -2,6 +2,31 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.43.0
+
+**Upgrades reworked.** A big pass over the upgrades that felt clunky, gimmicky or invisible. Bots know how to use every new ability.
+
+- **Dashing: no more charges.** Everyone has one dash on a short cooldown (about 0.85 seconds; Rangers a little quicker; Quick Dash 35% faster). Ninjas blink once, recharging in under a second (Swift Shadows: 30% faster). Anti-dash upgrades (Static, Petrify, Null Field and the rest) work as before.
+  - **Double Dash** is replaced by **Momentum** (Ranger): for 0.6 seconds after a dash, your arrows fly 30% faster and hit 20% harder.
+  - **Third Step** is replaced by **Echo Step** (Ninja): within 1.2 seconds of a blink, dash again to blink straight back to where you started, free.
+- **Boomerang, redone:** pressing it swaps your bow for a boomerang (held further back as you draw). It's a wide spinning blade that flies straight out through enemies, turns back at full range or off a wall, and homes back to you through everything, hitting everyone again on the way back for 50% more. Catch it to halve the cooldown (7s).
+- **Parry, simpler:** a 0.6-second guard (7s cooldown). Block an arrow and your next shot is drawn instantly. That's all.
+- **Rally** is 20% faster (was 15%), and you can see it: a soft green aura shows its reach around whoever has it.
+- **Curve Shot** is replaced by **Bank Shot** (Trickster): one more bounce off walls and boulders, and arrows that have bounced deal 40% more damage and knockback.
+- **Elemental Burst** is gone.
+- **Shadow, rethought:** no more shrouding on every bullseye. Fully drawn hits (and bullseyes) plant a **shade** that bursts 1.2 seconds later for 7 damage; hit them again before it bursts to deepen it (12). **Eclipse** (new ability, replaces Blinding Dark) drops darkness on a spot for 4 seconds, shrouding enemies inside. **Creeping Dark** makes shades burst sooner and slow, **Night Terror** makes them throw the target away from you, and **Deep Shade** (trade-off, replaces Lingering Dark) makes them 70% stronger. Nightfall: every hit plants a shade, and they burst faster.
+- **Flame:** **Inferno** is replaced by **Flashpoint** (hitting a burning enemy bursts into flame around them: 4 damage to everyone within 110px, setting them alight), and **Pyre** by **Kindling** (burning enemies take 50% more knockback from you).
+- **Forked Lightning** chains properly: up to four jumps from enemy to enemy, reaching further (220px).
+- **Trapper:** **Bramble Coat** is replaced by two abilities: **Bramble Line** (a 380px line of thorns along your aim that roots everyone it crosses) and **Rip** (your hits leave thorns, up to 5; rip them all out for 5 damage each, rooting anyone with 2 or more).
+- **Warden:** new ability **Mend**: heal the most hurt teammate within 350px (or yourself) for 25.
+- **Sniper:** new upgrade **Hold the Line**: hits on enemies within 250px of you knock back 50% harder.
+- **The storm stun** sounds like a proper electric buzz.
+- **Bots:** they use Boomerang, Eclipse, Bramble Line, Rip (when there's a pile of thorns, a kill, or someone held near a hazard), Mend, and Echo Step (blinking back out after a strike, or away from a hazard), and fire their Momentum shots straight after a dash. Their upgrade picks were re-learned from about 20,700 bot games under the new rules.
+
+## 0.42.1
+
+- **Locked picks are locked in custom games too** (when the owner has locks on): online custom games now follow the same rule as ranked, so a premium element or role needs unlocking (or this week's free pick) there as well; anyone joining with a locked one is switched to a free one, and the lobby shows them as Locked. Practice against bots and training still have everything, for trying them out.
+
 ## 0.42.0
 
 - **Online status that's right:** a page put away (a phone locked or switched to another app, a tab hidden) now shows as Away after 30 seconds even though the phone stops running the page, because the server times it; and a page that hasn't been heard from for two and a half minutes (a phone asleep, a laptop shut, its connection still lingering) shows as offline. Friends' lists update on their own within ten seconds.

@@ -71,6 +71,7 @@
   .netstats small { color: var(--muted); display: block; }
 
   .side { position: absolute; right: 16px; top: 72px; width: 250px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+  .chip2.locked { opacity: .45; } .chip2.locked em.new { display: none; } .chip2.locked::after { content: 'Locked'; margin-left: 4px; font: 700 10px 'Rajdhani', sans-serif; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
   .chip2.banned { opacity: .42; text-decoration: line-through; position: relative; }
   .chip2.banned { cursor: not-allowed; }
   .chip2.banned::after { content: '✕'; position: absolute; right: -6px; top: -7px; width: 16px; height: 16px; line-height: 16px; border-radius: 50%; background: #c0392b; color: #fff; font: 700 10px sans-serif; text-align: center; text-decoration: none; opacity: 1; }
@@ -1682,7 +1683,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.42.0"></script>
+<script src="sim.js?v=0.43.0"></script>
 <script>
 (() => {
 'use strict';
@@ -1690,7 +1691,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.42.0';
+const PAGE_VERSION = '0.43.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -1766,6 +1767,9 @@ const HOW = {
   quake:    ['Quaked', '{k} flattened {v} with Earthshaker', '{v} got flattened'],
   rain:     ['Rained on', '{k} rained arrows on {v}', '{v} got caught in the arrow rain'],
   trap:     ['Trapped', '{k} caught {v} in a bramble trap', '{v} stepped in a bramble trap'],
+  shade:    ['Shaded', "{k}'s shade burst on {v}", '{v} was taken by a shade'],
+  briar:    ['Thorned', '{k} lashed {v} with brambles', '{v} got caught in brambles'],
+  rip:      ['Ripped', '{k} tore the thorns out of {v}', '{v} had the thorns torn out'],
 };
 // builds the sentence; k/v are {name, you, html?}
 function howSentence(how, k, v, metres) {
@@ -1914,12 +1918,12 @@ const elSfx = {
 function buzz(dur = 0.8, v = 1) {
   if (muted || !AC) return;
   const t0 = AC.currentTime, o1 = AC.createOscillator(), o2 = AC.createOscillator(), f = AC.createBiquadFilter(), g = AC.createGain(), lfo = AC.createOscillator(), lg = AC.createGain();
-  o1.type = 'sawtooth'; o1.frequency.setValueAtTime(64, t0); o1.frequency.linearRampToValueAtTime(56, t0 + dur);
-  o2.type = 'square'; o2.frequency.setValueAtTime(96, t0); o2.frequency.linearRampToValueAtTime(84, t0 + dur);
-  f.type = 'lowpass'; f.frequency.value = 480; f.Q.value = 4;
-  const pk = 0.075 * v;
+  o1.type = 'sawtooth'; o1.frequency.setValueAtTime(118, t0); o1.frequency.linearRampToValueAtTime(104, t0 + dur);
+  o2.type = 'sawtooth'; o2.frequency.setValueAtTime(120.5, t0); o2.frequency.linearRampToValueAtTime(106, t0 + dur);
+  f.type = 'lowpass'; f.frequency.value = 2600; f.Q.value = 1.5;
+  const pk = 0.05 * v;
   g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(pk, t0 + 0.03); g.gain.setValueAtTime(pk, t0 + dur * 0.55); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-  lfo.frequency.value = 23; lg.gain.value = pk * 0.45; lfo.connect(lg).connect(g.gain); // the flutter that makes it buzz
+  lfo.frequency.value = 31; lg.gain.value = pk * 0.3; lfo.connect(lg).connect(g.gain); // the flutter that makes it buzz
   o1.connect(f); o2.connect(f); f.connect(g).connect(outNode());
   for (const o of [o1, o2, lfo]) { o.start(t0); o.stop(t0 + dur + 0.02); }
 }
@@ -2580,7 +2584,7 @@ function tbAim(pd) {
 }
 // abilities aimed at a spot or an enemy (Bramble Trap, Arrow Rain, Spotter's Mark, Blink…): on a touch screen, tapping the
 // button readies it and the next tap on the arena says where (the enemy nearest that tap, for the ones that pick an enemy)
-const TAP_TARGET = new Set(['spot', 'trap', 'rain', 'smoke', 'flash', 'blink', 'sstrike']);
+const TAP_TARGET = new Set(['spot', 'trap', 'rain', 'smoke', 'flash', 'blink', 'sstrike', 'eclipse']);
 function tbAbility(i) {
   const me = view && view.p.find(p => p.id === myId), id = me && (me.ab || [])[i], cd = me ? (me.ac || [])[i] || 0 : 0;
   if (TOUCH.targ && TOUCH.targ.slot === i) { touchTarget(null); return; } // tapped again: never mind
@@ -2931,7 +2935,7 @@ function setWallet(w, gained, why) {
   if (hadStatus !== JSON.stringify(w.status)) { try { if (!$('achScreen').hidden) Ach.render(); } catch (e) {} drawProfChip(); }
   hc.df = null; // redraw the draft's locks
 }
-// may I pick this in a ranked draft?
+// may I pick this in an online game (ranked or custom)?
 function mayPick(k) {
   const W = WALLET; if (!W || !W.locks) return true;
   const x = ELEMENTS[k] || ROLES[k]; if (!x || !x.premium) return true;
@@ -5141,7 +5145,6 @@ function helpHtml() {
   const N = Sim.EMPOWER_AT, T = Sim.TIMES;
   const tagsFor = n => (n.active ? `<span class="tg act">Q/E · ${n.active.cd}s</span>` : '') + (n.cap ? '<span class="tg cap">Capstone</span>' : '') + (n.trade ? '<span class="tg trade">Trade-off</span>' : '');
   const cards = tree => Object.entries(TREE).filter(([id, n]) => Sim.treesOf(id).includes(tree) && !n.base).map(([, n]) => `<li><b>${esc(n.name)}</b>${tagsFor(n)}: ${esc(n.desc)}</li>`).join('');
-  const burst = TREE.burst;
   const sec = (id, title, body) => ({ id, title, html: `<section class="help-sec" id="help-${id}"><h3>${title}</h3>${body}</section>` });
   const S = [
     sec('basics', 'Basics', `
@@ -5149,7 +5152,7 @@ function helpHtml() {
         <li><b>Move</b> with <kbd>WASD</kbd>. You take about a second to reach full speed and slide a little when you let go, so momentum matters.</li>
         <li><b>Aim</b> with the mouse. <b>Hold click</b> to draw, release to shoot. A longer draw flies faster, hits harder and knocks back further. Some upgrades trigger on a <b>full draw</b>.</li>
         <li><b>Critical hits</b> aren't random: an arrow whose path runs through the middle of the target (the centre ${Math.round(Sim.BULLSEYE * 100)}% of its body) is a <b>bullseye</b> and deals ${Sim.CRIT_MUL}× damage.</li>
-        <li><b>Dash</b> with <kbd>Space</kbd> or <kbd>Shift</kbd>. It goes the way you're moving (or where you're aiming, if you choose that in Controls; standing still, it always goes where you aim), jumps pits, lava and water, and shoves enemies you hit. Ninjas blink instead: a near-instant hop toward your cursor, twice in a row. Ninjas also throw shuriken instead of drawing a bow: click once for each shuriken.</li>
+        <li><b>Dash</b> with <kbd>Space</kbd> or <kbd>Shift</kbd>. It goes the way you're moving (or where you're aiming, if you choose that in Controls; standing still, it always goes where you aim), jumps pits, lava and water, and shoves enemies you hit. It recharges in under a second. Ninjas blink instead: a near-instant hop toward your cursor. Ninjas also throw shuriken instead of drawing a bow: click once for each shuriken.</li>
         <li><b>Abilities</b> go on <kbd>Q</kbd> and <kbd>E</kbd> once you pick them. <kbd>Esc</kbd> opens the menu.</li>
         <li><b>Controls</b> can be changed in <b>Controls</b> on the main screen or in the menu. A <b>controller</b> works too: left stick moves, right stick aims, right trigger draws, A or left trigger dashes, LB and RB are your abilities.</li>
         <li><b>Knockback is the main weapon.</b> Knocking an enemy into a hazard, a wall or another archer does far more than the arrow alone.</li>
@@ -5174,7 +5177,7 @@ function helpHtml() {
         <li>While you aim, the guide line turns <b>red</b> just before a wall or boulder that would stop your arrow.</li>
       </ul>`),
     sec('archetype', 'Your archetype', `<p>Every archer is one <b>element</b> plus one <b>role</b>, chosen in the lobby. Your element's base effect is on from the start. Each role has a built-in <b>trait</b>. Upgrades come from picks (see below).</p>
-      <div class="help-grid">${Object.entries(ELEMENTS).map(([k, e]) => `<div class="help-box" style="--cc:${e.color}"><h4>${esc(e.name)}</h4><span class="base">${esc(TREE[k].desc)}</span><span class="status">Empowered: <b>${esc(Sim.EMPOWER[k].name)}</b>. ${esc(Sim.EMPOWER[k].desc)}</span><details><summary>Upgrades</summary><ul>${cards(k)}<li><b>${esc(burst.name)}</b><span class="tg cap">Capstone</span>: ${esc(burst.desc)}</li></ul></details></div>`).join('')}</div>
+      <div class="help-grid">${Object.entries(ELEMENTS).map(([k, e]) => `<div class="help-box" style="--cc:${e.color}"><h4>${esc(e.name)}</h4><span class="base">${esc(TREE[k].desc)}</span><span class="status">Empowered: <b>${esc(Sim.EMPOWER[k].name)}</b>. ${esc(Sim.EMPOWER[k].desc)}</span><details><summary>Upgrades</summary><ul>${cards(k)}</ul></details></div>`).join('')}</div>
       <div class="help-grid">${Object.entries(ROLES).map(([k, r]) => `<div class="help-box" style="--cc:${CAT_COL[r.cat]}"><h4>${esc(r.name)} <small style="color:var(--muted);font-weight:500">${esc(r.cat)}</small></h4><span class="base"><b>${esc(r.trait.name)}:</b> ${esc(r.trait.desc)}</span><details><summary>Upgrades</summary><ul>${cards(k)}</ul></details></div>`).join('')}</div>`),
     sec('picks', 'Upgrade picks', `
       <ul>
@@ -5423,6 +5426,8 @@ function renderLobby(v) {
   setC('lbBan', JSON.stringify(v.m.ban || []) + host + usingPad() + !!(roomInfo && roomInfo.ranked), () => {
     const ban = v.m.ban || [];
     document.querySelectorAll('#elChips [data-el], #roChips [data-ro]').forEach(b => { const k = b.dataset.el || b.dataset.ro, off = ban.includes(k); b.classList.toggle('banned', off); b.title = off ? (canBan() ? 'Taken out of this game. Alt+click to put it back.' : 'The host has taken this out of this game.') : ''; });
+    // locked premium picks (when the owner has locks on): online games only; practice and training have everything
+    document.querySelectorAll('#elChips [data-el], #roChips [data-ro]').forEach(b => { const lk = mode === 'online' && !mayPick(b.dataset.el || b.dataset.ro); b.classList.toggle('locked', lk); b.disabled = lk; if (lk) b.title = 'Locked: unlock it in the Store (practice and training have everything)'; });
     drawMastChips(); // (puts the mastery tooltips back on the ones still allowed)
     $('banHint').hidden = !canBan();
     $('banHint').textContent = usingPad() ? `Host: press ${padBtn('y')} on an element or role to take it out of this game (again to put it back).` : 'Host: Alt+click an element or role to take it out of this game (again to put it back).';
@@ -6168,9 +6173,39 @@ function handleEvents(evs) {
       case 'wind': fx.rings.push({ x: e.x, y: e.y, r: 8, life: 0, col: '159,240,181', max: 60 }); noise(0.35, 0.08, 2500); break;
       case 'swap': burst(e.x1, e.y1, '#ff78e6', 14, 150, 2.5); burst(e.x2, e.y2, '#ff78e6', 14, 150, 2.5); fx.bolts.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, life: 0, col: '255,120,230' }); os('sine', 400, 1200, 0.12, 0.04); os('sine', 1200, 400, 0.12, 0.04, 0.1); break;
       case 'boomTurn': nz(0.2, 0.04, 'bandpass', 900, 1800, 3); break;
-      case 'catch': if (e.id === myId) tone(1200, 0.05, 'triangle', 0.04); break;
+      case 'catch': if (e.id === myId) { tone(1200, 0.05, 'triangle', 0.04); setTimeout(() => tone(1600, 0.05, 'triangle', 0.035), 50); } if (e.x != null) fx.rings.push({ x: e.x, y: e.y, r: 6, life: 0, col: '217,160,102', max: 30 }); break;
+      case 'shade': { burst(e.x, e.y, '#2b2747', 8, 70, 2.5); os('sine', 260, 140, 0.25, e.id === myId ? 0.05 : 0.03); break; }
+      case 'shadeUp': { const q = view && view.p.find(z => z.id === e.id); if (q) { burst(q.x, q.y, '#8e95c9', 8, 90, 2); floater(q.x, q.y - 34, 'Deepened', '#aab0e0', 13); } os('sine', 180, 90, 0.2, 0.04); break; }
+      case 'shadeBurst': {
+        const big = e.d ? 1.4 : 1;
+        burst(e.x, e.y, '#1c1a2e', Math.round(16 * big), 170 * big, 3.2); burst(e.x, e.y, '#8e95c9', Math.round(10 * big), 130 * big, 2.2);
+        fx.rings.push({ x: e.x, y: e.y, r: 8, life: 0, col: '142,149,201', max: 48 * big });
+        nz(0.22, 0.09 * big, 'lowpass', 700, 160, 2); os('sawtooth', 140, 50, 0.22, 0.035 * big);
+        if (e.id === myId) shake(3 * big);
+        break;
+      }
+      case 'eclipse': burst(e.x, e.y, '#15132a', 26, 160, 4); nz(0.6, 0.08, 'lowpass', 500, 120, 1); os('sine', 220, 70, 0.6, 0.05); break;
+      case 'briar': {
+        fx.bolts.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, life: 0, col: '120,170,70', straight: 1 });
+        const L = Math.hypot(e.x2 - e.x1, e.y2 - e.y1), n = Math.max(4, Math.round(L / 22));
+        for (let i = 1; i <= n; i++) fx.parts.push({ x: lerp(e.x1, e.x2, i / n) + rand(-5, 5), y: lerp(e.y1, e.y2, i / n) + rand(-5, 5), vx: rand(-25, 25), vy: rand(-25, 25), life: 0, max: 0.6, color: i % 2 ? '#6f8f3c' : '#4c3a22', r: rand(1.6, 2.8) });
+        nz(0.2, 0.08, 'bandpass', 1600, 700, 2); if (e.n) tone(170, 0.12, 'square', 0.035, -50);
+        break;
+      }
+      case 'rip': {
+        burst(e.x, e.y, '#6f8f3c', 6 + e.n * 3, 150, 2.4); burst(e.x, e.y, '#c8243a', 4 + e.n * 2, 120, 2);
+        floater(e.x, e.y - 34, `Rip ×${e.n}`, '#9bd46a', 14 + e.n);
+        for (let i = 0; i < Math.min(5, e.n); i++) nz(0.06, 0.06, 'highpass', 2600, 1200, 2, i * 0.04);
+        break;
+      }
+      case 'mend': {
+        fx.bolts.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, life: 0, col: '140,240,170', straight: 1 });
+        burst(e.x2, e.y2, '#9ff0b5', 14, 120, 2.5); fx.rings.push({ x: e.x2, y: e.y2, r: 8, life: 0, col: '140,240,170', max: 36 });
+        if (e.to === myId || e.id === myId) fanfare([523, 784], 'sine', 0.04, 60);
+        break;
+      }
+      case 'flashpoint': burst(e.x, e.y, '#ff8a3d', 18, 200, 3); burst(e.x, e.y, '#ffd27a', 10, 140, 2); fx.rings.push({ x: e.x, y: e.y, r: 8, life: 0, col: '255,138,61', max: 110 }); nz(0.25, 0.09, 'lowpass', 1400, 300, 1); break;
       case 'execute': floater(e.x, e.y - 46, 'Coup de grâce!', '#ff4d5e', 17); tone(110, 0.25, 'sawtooth', 0.05, -40); break;
-      case 'shroud': burst(e.x, e.y, '#1c1a2e', 10, 100, 3); if (e.id === myId) { os('sine', 200, 50, 0.5, 0.05); shroudR = 0; } break;
       case 'dance': if (e.id === myId) { const m = view && view.p.find(p => p.id === myId); if (m) floater(m.x, m.y - 46, 'Shadow Dance', '#aab0e0', 15); fanfare([440, 660, 880], 'sine', 0.04, 60); } break;
       case 'railArmed': if (e.id === myId) { os('sawtooth', 300, 1200, 0.25, 0.03); os('sine', 1200, 1800, 0.2, 0.03, 0.18); const m = view && view.p.find(p => p.id === myId); if (m) floater(m.x, m.y - 40, 'Railshot ready', '#8cffff', 14); } break;
       case 'blink': {
@@ -7877,6 +7912,20 @@ function drawCrossbow(R, p) {
   else if (p.xr != null && p.xr < 1) { // cranking: a little wheel turning at the back of the stock
     ctx.strokeStyle = '#d8c7a0'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x0 + 2, 0, 4, clock * 12, clock * 12 + 4.5); ctx.stroke(); }
 }
+function boomPath(k) { ctx.beginPath(); ctx.moveTo(-11 * k, -7 * k); ctx.quadraticCurveTo(0, 2 * k, 11 * k, -7 * k); }
+function drawBoomBlade(k, col) {
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = '#6b4526'; ctx.lineWidth = 6 * k; boomPath(k); ctx.stroke();
+  ctx.strokeStyle = col; ctx.lineWidth = 3 * k; boomPath(k); ctx.stroke();
+}
+// a boomerang in hand instead of the bow: cocked further back the longer it's drawn
+function drawBoomHeld(R, p) {
+  const c = p.dr ? p.ch : 0;
+  ctx.save(); ctx.translate(R + 8 - 26 * c, R * 0.8 * c); ctx.rotate(-0.5 - 1.2 * c);
+  drawBoomBlade(1.1, '#d9a066');
+  ctx.strokeStyle = p.c; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-4, -2); ctx.quadraticCurveTo(0, 0.4, 4, -2); ctx.stroke();
+  ctx.restore();
+}
 function drawBow(charge, drawing, len, col) {
   const bend = 1.15 - charge * 0.2;
   ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.lineCap = 'round';
@@ -8082,14 +8131,6 @@ function drawPlayer(p, isMe, bare) {
     ctx.beginPath(); ctx.arc(0, 0, R + 17, -Math.PI / 2, -Math.PI / 2 + TAU * Math.min(1, p.au / 2)); ctx.stroke();
     if (Math.random() < 0.6) { const a = rand(0, TAU); fx.parts.push({ x: p.x + Math.cos(a) * (R + 8), y: p.y + Math.sin(a) * (R + 8), vx: Math.cos(a) * rand(40, 120), vy: Math.sin(a) * rand(40, 120), life: 0, max: 0.25, color: Math.random() < 0.5 ? '#ff8a3d' : '#ffe0a0', r: rand(1, 2) }); }
   }
-  if (p.fo && !p.f) {
-    // Focus after a parry: a golden aura and sparks while draw speed is doubled
-    const a = 0.3 + 0.15 * Math.sin(clock * 10);
-    const fg = ctx.createRadialGradient(0, 0, R * 0.8, 0, 0, R * 2.1);
-    fg.addColorStop(0, `rgba(255,207,90,${a})`); fg.addColorStop(1, 'rgba(255,207,90,0)');
-    ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(0, 0, R * 2.1, 0, TAU); ctx.fill();
-    if (!reduceMotion && Math.random() < 0.5) fx.parts.push({ x: p.x + rand(-R, R), y: p.y + rand(-R, R), vx: rand(-10, 10), vy: rand(-60, -25), life: 0, max: 0.5, color: Math.random() < 0.5 ? '#ffcf5a' : '#fff4c2', r: rand(1, 2.2) });
-  }
   ctx.save(); ctx.rotate(p.a); drawGear(p, R, false); ctx.restore(); // role gear behind the body
   ctx.fillStyle = dark(p.c); ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.fill();
   ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(0, -1.5, R - 3, 0, TAU); ctx.fill();
@@ -8108,6 +8149,7 @@ function drawPlayer(p, isMe, bare) {
   }
   if (p.ro === 'ninja') drawHandStar(R, p);
   else if (p.ro === 'crossbow') drawCrossbow(R, p);
+  else if (p.arm === 'boomerang') drawBoomHeld(R, p);
   else drawBow(p.ch, !!p.dr, Math.max(20, R + 4), p.dz ? '#7b8594' : '#c89b5b');
   // full draw, readable from across the arena: a small bright spark at the arrowhead, so you can see when someone
   // is about to loose a full-power shot (and time a Parry or a dodge)
@@ -8119,6 +8161,23 @@ function drawPlayer(p, isMe, bare) {
   }
   if (p.dz) { ctx.strokeStyle = 'rgba(191,232,255,0.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(18, -8); ctx.lineTo(30, 8); ctx.moveTo(30, -8); ctx.lineTo(18, 8); ctx.stroke(); }
   ctx.restore();
+  if ((p.up || []).includes('rally') && !p.f && !p.d) { // Rally's reach: a soft green aura
+    const RR = 170, pu = 0.5 + 0.5 * Math.sin(clock * 3);
+    const rg = ctx.createRadialGradient(0, 0, RR * 0.55, 0, 0, RR);
+    rg.addColorStop(0, 'rgba(125,255,138,0)'); rg.addColorStop(1, `rgba(125,255,138,${0.07 + 0.04 * pu})`);
+    ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(0, 0, RR, 0, TAU); ctx.fill();
+    ctx.strokeStyle = `rgba(125,255,138,${0.22 + 0.12 * pu})`; ctx.lineWidth = 1.6; ctx.setLineDash([6, 10]); ctx.beginPath(); ctx.arc(0, 0, RR, clock * 0.4, clock * 0.4 + TAU); ctx.stroke(); ctx.setLineDash([]);
+  }
+  if (p.shd && !p.f) { // a shade waiting to burst: a dark ring closing in
+    const k = Math.max(0, Math.min(1, p.sht || 0)), rr = R + 4 + 16 * k;
+    ctx.strokeStyle = p.shd === 2 ? 'rgba(170,176,224,0.95)' : 'rgba(142,149,201,0.8)'; ctx.lineWidth = p.shd === 2 ? 3 : 2;
+    for (let i = 0; i < 4; i++) { const a0 = clock * 4 + i * TAU / 4; ctx.beginPath(); ctx.arc(0, 0, rr, a0, a0 + 0.9); ctx.stroke(); }
+    ctx.fillStyle = `rgba(20,18,36,${0.18 + 0.2 * (1 - k)})`; ctx.beginPath(); ctx.arc(0, 0, rr, 0, TAU); ctx.fill();
+  }
+  if (p.th && !p.f) { // thorns stuck in them (Rip)
+    ctx.strokeStyle = '#6f8f3c'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    for (let i = 0; i < p.th; i++) { const a0 = -Math.PI / 2 + (i - (p.th - 1) / 2) * 0.55, x0 = Math.cos(a0) * (R - 2), y0 = Math.sin(a0) * (R - 2); ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0 + Math.cos(a0) * 8, y0 + Math.sin(a0) * 8); ctx.stroke(); }
+  }
   if (p.ra && !p.f) { ctx.strokeStyle = 'rgba(125,255,138,0.35)'; ctx.lineWidth = 2; ctx.setLineDash([2, 5]); ctx.beginPath(); ctx.arc(0, 0, R + 9, clock, clock + TAU); ctx.stroke(); ctx.setLineDash([]); }
   if (p.ov) { ctx.strokeStyle = `rgba(255,207,90,${0.5 + 0.4 * Math.sin(clock * 16)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, R + 7, 0, TAU); ctx.stroke(); }
   if (p.sx && !p.f && Math.random() < 0.4) fx.parts.push({ x: p.x + rand(-12, 12), y: p.y + rand(-12, 12), vx: rand(-60, 60), vy: rand(-60, 60), life: 0, max: 0.15, color: '#fff27a', r: 1.4 });
@@ -8262,10 +8321,10 @@ function drawArrow(a) {
     starPath(a.sh === 2 ? 8.5 : 7, 2); ctx.fill(); ctx.stroke();
     ctx.restore(); return;
   }
-  if (a.bm && !a.s) { // boomerang: a spinning bent blade
-    ctx.save(); ctx.translate(a.x, a.y); ctx.rotate(clock * 18 + a.id);
-    ctx.strokeStyle = '#6b4526'; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-11, -7); ctx.quadraticCurveTo(0, 2, 11, -7); ctx.stroke();
-    ctx.strokeStyle = a.c; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-11, -7); ctx.quadraticCurveTo(0, 2, 11, -7); ctx.stroke();
+  if (a.bm && !a.s) { // boomerang: a big spinning bent blade, with a blur of its sweep
+    ctx.save(); ctx.translate(a.x, a.y);
+    if (!lightFx()) { ctx.fillStyle = 'rgba(217,160,102,0.16)'; ctx.beginPath(); ctx.arc(0, 0, 17, 0, TAU); ctx.fill(); }
+    ctx.rotate(clock * 20 + a.id); drawBoomBlade(1.45, a.c);
     ctx.restore(); return;
   }
   const alpha = a.s > 0 && a.s < 1 ? a.s : 1;
@@ -8562,6 +8621,15 @@ function drawZone(z, me) {
         const t = (z.id * 37 + i * 91) % 360 / 360 * TAU, rr = z.r * Math.sqrt(((z.id * 13 + i * 53) % 100) / 100), x = z.x + Math.cos(t) * rr, y = z.y + Math.sin(t) * rr;
         ctx.beginPath(); for (let k = 0; k < 6; k++) { const q = k / 6 * TAU + i, r2 = k % 2 ? 1.2 : 4; k ? ctx.lineTo(x + Math.cos(q) * r2, y + Math.sin(q) * r2) : ctx.moveTo(x + Math.cos(q) * r2, y + Math.sin(q) * r2); } ctx.closePath(); ctx.fill(); ctx.stroke();
       }
+      ctx.restore();
+    } else if (z.ty === 'eclipse') {
+      const a = Math.min(1, z.t / 0.5, (4 - z.t) / 0.3 + 0.2);
+      ctx.save(); ctx.globalAlpha = Math.max(0, a);
+      const g = ctx.createRadialGradient(z.x, z.y, z.r * 0.2, z.x, z.y, z.r);
+      g.addColorStop(0, 'rgba(8,6,20,0.62)'); g.addColorStop(0.75, 'rgba(18,14,40,0.45)'); g.addColorStop(1, 'rgba(30,26,60,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(z.x, z.y, z.r, 0, TAU); ctx.fill();
+      ctx.strokeStyle = 'rgba(142,149,201,0.5)'; ctx.lineWidth = 2;
+      for (let i = 0; i < 5; i++) { const a0 = -clock * 0.9 + i * TAU / 5; ctx.beginPath(); ctx.arc(z.x, z.y, z.r * 0.96, a0, a0 + 0.7); ctx.stroke(); }
       ctx.restore();
     } else if (z.ty === 'totem') {
       const a = Math.min(1, z.t / 0.5), pulse = 0.5 + 0.5 * Math.sin(clock * 4);
