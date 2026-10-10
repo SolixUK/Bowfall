@@ -776,6 +776,10 @@
   table.rank tr.me td { background: rgba(255,255,255,.04); }
   table.rank td small.sub { display: block; font: 500 11px 'Titillium Web', 'Segoe UI', sans-serif; color: var(--muted); }
   .arch { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 2px; background: rgba(255,255,255,.03); border: 1px solid var(--line); }
+  .mutbox { border: 1px solid var(--mc, #ffcf5a); background: color-mix(in srgb, var(--mc, #ffcf5a) 12%, transparent); border-radius: 10px; padding: 8px 12px; margin: 0 0 10px; font-size: 14px; line-height: 1.35; }
+  .mutbox b { color: var(--mc, #ffcf5a); letter-spacing: .02em; }
+  .mutbox .mutl { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; opacity: .7; display: block; }
+  .mutchip { display: block; font-size: 11px; font-weight: 700; letter-spacing: .06em; color: var(--mc, #ffcf5a); opacity: .9; white-space: nowrap; }
   .archhead { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
   .archname { font: 700 20px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .01em; color: var(--gold); }
   .archrow { display: grid; grid-template-columns: 70px 1fr; gap: 10px; align-items: center; }
@@ -1127,7 +1131,7 @@
     </div>
     <div class="score">
       <div class="tside"><span class="tscore red" id="scR">0</span><div class="gdots" id="gdR"></div></div>
-      <div class="stat center-stat"><span class="lbl" id="rdText">Round 1</span><span class="num" id="timer">2:00</span><div class="pips" id="pips"></div></div>
+      <div class="stat center-stat"><span class="lbl" id="rdText">Round 1</span><span class="mutchip" id="mutChip" hidden></span><span class="num" id="timer">2:00</span><div class="pips" id="pips"></div></div>
       <div class="tside"><span class="tscore blue" id="scB">0</span><div class="gdots" id="gdB"></div></div>
     </div>
     <div class="hud-r">
@@ -1259,6 +1263,7 @@
         <canvas id="dfThumb" width="320" height="200"></canvas>
         <div class="dfteams" id="dfTeams"></div>
       </div>
+      <div class="mutbox" id="dfMut" hidden></div>
       <div class="arch" data-navsec>
         <div class="archhead"><h3>Your archetype</h3><span class="archname" id="dfArch"></span></div>
         <div class="archrow"><span class="lbl">Element</span><div class="chips" id="dfEl"></div></div>
@@ -1473,6 +1478,7 @@
         </div>
         <div class="lbcol">
           <div class="arch" data-navsec data-ms="arch" data-mst="Your archetype">
+            <div class="mutbox" id="lbMut" hidden></div>
             <div class="archhead"><div style="display:flex;align-items:center;gap:12px"><canvas id="archPrev" width="128" height="128" style="width:52px;height:52px;border-radius:10px;background:rgba(255,255,255,.05)"></canvas><div class="stat"><h3>Your archetype</h3><span class="archname" id="archName"></span></div></div></div>
             <div class="archrow"><span class="lbl">Element</span><div class="chips" id="elChips"></div></div>
             <div class="archrow"><span class="lbl">Role</span><div class="chips" id="roChips"></div></div>
@@ -1682,7 +1688,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.44.0';
+const VERSION = '0.45.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1809,6 +1815,19 @@ MAPS.mill = buildMap({
     saws: [{ x0: 330, x1: 870, y: 250, r: 26, per: 6, ph: 0 }],
     power: [{ x: 600, y: 400 }], amberY: [80, 200],
   });
+// Sideline Sawmill: one huge boulder in the middle, saw blades racing up and down both sidelines
+MAPS.sideline = buildMap({
+    name: 'Sideline Sawmill', theme: 'mill',
+    desc: 'One huge boulder in the middle to fight round, and saw blades racing along both sidelines. Get knocked wide and you meet a blade.',
+    haz: [
+      { type: 'pit', water: true, shape: 'circle', x: 250, y: 170, r: 46 },
+      { type: 'tar', shape: 'circle', x: 300, y: 625, r: 54 },
+    ],
+    pillars: [{ x: 600, y: 400, r: 82, centre: true }],
+    spikes: [{ side: 'left', a: 300, b: 500 }],
+    saws: [{ x0: 170, x1: 1030, y: WALL + 34, r: 26, per: 7, ph: 0 }],
+    power: [{ x: 600, y: 215 }, { x: 600, y: 585 }], amberY: [150, 300],
+  });
 MAPS.ruins = buildMap({
     name: 'Portal Ruins', theme: 'ruins', hidden: true, retired: true, // out of the rotation for now (Frozen Lake replaced it)
     desc: 'Ancient gates link the corners. Step in one and you, or your arrow, come out of its twin on the far side, still moving.',
@@ -1906,8 +1925,10 @@ const OPTIONS = {
   move:   { label: 'Movement feel', def: 'snappy', values: { puck: 1, snappy: 2, drift: 3, direct: 4 } },
   // upgrades off: no picks between rounds (and no chests in Strongholds), everyone plays their plain element and role
   upg:    { label: 'Upgrades',     def: 'on', values: { on: 1, off: 2 } },
+  // map effect: a random one each match (the standard), none, or a set one (MUTATORS)
+  effect: { label: 'Map effect',   def: 'random', values: { random: 1, none: 2, vigil: 3, gale: 4, hide: 5, bounty: 6 } },
 };
-const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', bullet: 'Bullet', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', puck: 'Glide (air hockey)', snappy: 'Snappy', drift: 'Drifty', direct: 'Direct (no glide)', none: 'None', tiny: 'Tiny', heavy: 'Heavy', extreme: 'Extreme' };
+const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', bullet: 'Bullet', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', random: 'Random', vigil: "Warden's Vigil", gale: 'Gale Winds', hide: "Juggernaut's Hide", bounty: 'Bounty Hunt', puck: 'Glide (air hockey)', snappy: 'Snappy', drift: 'Drifty', direct: 'Direct (no glide)', none: 'None', tiny: 'Tiny', heavy: 'Heavy', extreme: 'Extreme' };
 const optDefaults = () => Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.slider ? o.def : o.def || Object.keys(o.values)[0]]));
 // a slider setting as a percentage (old named settings and anything out of range are mapped and clamped)
 function optPct(k, v) {
@@ -1919,7 +1940,23 @@ function optPct(k, v) {
 // what a setting comes to as a multiplier, for any rules object (records, the page's own display)
 function optValue(opt, k) { const o = OPTIONS[k], v = (opt || {})[k]; if (o.slider) return o.base * optPct(k, v) / 100; return o.values[v] || o.values[o.def] || 1; }
 let CFG = { opt: optDefaults() };
-const OPT = k => optValue(CFG.opt, k);
+// Map effects: each match can roll one, shown in the lobby before anyone picks, so archetypes can be chosen round it.
+// mul: how it changes a rule (the same names as OPTIONS); regen: health a second for everyone; bounty: more power-ups
+const MUTATORS = {
+  vigil:  { name: "Warden's Vigil",   color: '#7dff8a', desc: 'Every archer slowly heals: 2.5 health a second, all the time. Burst them down, or dig in and outlast.', regen: 2.5 },
+  gale:   { name: 'Gale Winds',       color: '#a8e6ff', desc: 'Everyone moves 20% faster and every shot flies 20% faster.', mul: { mspeed: 1.2, aspeed: 1.2 } },
+  hide:   { name: "Juggernaut's Hide", color: '#c9a878', desc: 'Every archer takes 30% less damage from arrows. Knockback is what wins here.', mul: { dmg: 0.7 } },
+  bounty: { name: 'Bounty Hunt',      color: '#ffcf5a', desc: 'Power-ups appear about twice as often, up to three at once, all over the arena.', bounty: true },
+};
+const MUT_KEYS = Object.keys(MUTATORS);
+// what a map effect does to a rule (1 when there's none)
+const mutMul = (mut, k) => (MUTATORS[mut] && MUTATORS[mut].mul && MUTATORS[mut].mul[k]) || 1;
+// the effect for the next match: a fixed choice, none, or (the standard) a random one, with a 1 in 5 chance of a calm match
+function rollMut(w) {
+  const v = (w.cfg.opt || {}).effect || 'random';
+  w.cfg.mut = v === 'none' ? null : MUTATORS[v] ? v : Math.random() < 0.2 ? null : MUT_KEYS[Math.floor(Math.random() * MUT_KEYS.length)];
+}
+const OPT = k => optValue(CFG.opt, k) * mutMul(CFG.mut, k);
 // Handicap: the host can give any archer a percentage, e.g. +50% for a lone player in a 1v2.
 // It scales their health and arrow damage by that much, and their knockback resistance by half as much.
 const HANDICAPS = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
@@ -2584,8 +2621,8 @@ const TREE = {
   harpoon:   { tree: 'trapper', active: { cd: 9 }, name: 'Harpoon', desc: 'Fire a barbed line along your aim (up to 420px). The first enemy it catches is yanked toward you and briefly stuck.' },
   snare:     { tree: 'trapper', also: ['crossbow'], active: { cd: 5 }, name: 'Snare Arrow', desc: 'Your next shot roots whoever it hits for 1.8 seconds.' },
   trap:      { tree: 'trapper', active: { cd: 8.5 }, name: 'Bramble Trap', desc: 'Weave a bramble trap at the spot under your cursor (up to 450px away, never over a hole or water); it takes half a second to set, and you move at half speed meanwhile. An enemy who steps on it is rooted for 2.5 seconds and hurt. Up to 2 at once.' },
-  briar:     { tree: 'trapper', active: { cd: 9 }, name: 'Bramble Line', desc: 'Your next shot throws a spinning bramble ball instead of an arrow. It rolls straight along your aim, further and faster the longer you draw (up to 560px), roots every enemy it rolls through for 1.8 seconds and hurts them, and stops at walls and boulders.' },
-  rip:       { tree: 'trapper', active: { cd: 8 }, name: 'Rip', desc: 'Your arrow hits leave a thorn in the target (up to 5, for 10 seconds). Use Rip to tear them all out: 5 damage per thorn, and anyone with 2 or more is rooted for 1 second.' },
+  briar:     { tree: 'trapper', active: { cd: 9 }, name: 'Bramble Toss', desc: 'Your next shot tosses a spinning bramble trap instead of an arrow. It flies straight along your aim, slowly (further and a little faster the longer you draw, up to 760px), roots every enemy it passes through for 1.8 seconds and hurts them, and stops at walls and boulders.' },
+  rip:       { tree: 'trapper', active: { cd: 8 }, name: 'Rip', desc: 'Your arrow hits leave a thorn in the target (up to 5, for 10 seconds). Use Rip and a second later the thorns tear out: 5 damage per thorn, and anyone with 2 or more is rooted for 1 second.' },
   deeproots: { tree: 'trapper', cap: true, name: 'Deep Roots', desc: 'Your roots last twice as long, and rooted enemies take 25% more damage from you.' },
 };
 // Filler cards when a tree runs dry. These stack.
@@ -2665,7 +2702,7 @@ function createWorld(cfg = {}) {
     cfg: {
       pointsToWin: cfg.pointsToWin === 5 ? 5 : 3, gamesToWin: 2, // each round is best of three games
       diff: DIFF[cfg.diff] ? cfg.diff : 'normal', map: MAPS[cfg.map] ? cfg.map : 'meadow',
-      opt: Object.assign(optDefaults(), cfg.opt || {}),
+      opt: Object.assign(optDefaults(), cfg.opt || {}), mut: null,
     },
     // a match is won on points; each round (1 point) is won by the first team to win 2 games (best of three)
     match: { ph: 'lobby', rd: 1, gm: 1, T: 0, wins: { red: 0, blue: 0 }, gw: { red: 0, blue: 0 }, picks: 0, opening: false, rw: null, mw: null },
@@ -2673,6 +2710,7 @@ function createWorld(cfg = {}) {
     // finished games and matches for balance stats; the server or the page drains this
     records: [], matchId: null, later: [],
   };
+  rollMut(w);
   return w;
 }
 function ev(w, o) { w.events.push(o); }
@@ -2832,6 +2870,7 @@ function setOption(w, key, val) {
   if (w.match.ph !== 'lobby' || !o || (!o.slider && !(val in o.values))) return false;
   useMap(w);
   w.cfg.opt[key] = o.slider ? optPct(key, val) : val;
+  if (key === 'effect') rollMut(w);
   for (const p of w.players) { applyStats(p); p.hp = p.maxHp; }
   return true;
 }
@@ -2848,7 +2887,7 @@ function toLobby(w) {
   const M = w.match;
   M.ph = 'lobby'; M.T = 0; M.rd = 1; M.gm = 1; M.wins = { red: 0, blue: 0 }; M.gw = { red: 0, blue: 0 }; M.picks = 0; M.opening = false; M.rw = null; M.mw = null;
   w.arrows = []; w.pickups = []; w.zones = []; w.cracks = []; useMap(w);
-  w.players = w.players.filter(p => !p.npc); w.cq = null;
+  w.players = w.players.filter(p => !p.npc); w.cq = null; rollMut(w);
   for (const p of w.players) { p.kills = 0; p.deaths = 0; p.amber = 0; p.earned = 0; p.up = []; p.hones = {}; p.offer = null; p.ready = false; p.streak = 0; p.emp = false; p.empPts = 0; placeForRound(w, p); }
   ev(w, { e: 'phase', ph: 'lobby' });
 }
@@ -3052,6 +3091,7 @@ function placeForRound(w, p) {
   const s = SPAWNS[p.team][Math.max(0, team.indexOf(p)) % 4];
   applyStats(p);
   freshBody(p, s.x, s.y);
+  p.shade = null; p.thornN = 0; p.thornT = 0; p.thornBy = null; // shades and thorns don't carry over
 }
 // a clean start at (x, y): full health, no effects, nothing armed
 function freshBody(p, x, y) {
@@ -3114,7 +3154,7 @@ function gameRecord(w, winner, timedOut) {
   const M = w.match, r = v => Math.round(v * 10) / 10;
   const played = w.players.filter(p => p.lastCause !== 'join' && p.lastCause !== 'switch');
   return {
-    type: 'game', v: 1, gv: VERSION, t: Date.now(), mid: w.matchId, map: w.cfg.map, df: w.cfg.diff, opt: Object.assign({}, w.cfg.opt), rd: M.rd, gm: M.gm,
+    type: 'game', v: 1, gv: VERSION, t: Date.now(), mid: w.matchId, map: w.cfg.map, df: w.cfg.diff, opt: Object.assign({}, w.cfg.opt), mut: w.cfg.mut || undefined, rd: M.rd, gm: M.gm,
     dur: r(w.t - (M.gStart || w.t)), to: timedOut ? 1 : 0, win: winner || null,
     size: [members(w, 'red').length, members(w, 'blue').length],
     p: played.map(p => {
@@ -3380,8 +3420,8 @@ function fire(w, p, ang, c, burst, vol, x3) { // burst: 1-2 a Volley's shots, 4 
   if (p.momT > 0 && has(p, 'momentum')) { speed *= 1.3; dmg *= 1.2; } // Momentum
   const take = k => { const v = !burst && p[k]; if (v) p[k] = false; return v; };
   const recoil = take('recoilArmed'), rocket = take('rocketArmed'), seek = take('seekArmed') || rocket, swap = false, trick = take('trickArmed'), boom = take('boomArmed'), exec = take('execArmed'), bri = take('briarArmed');
-  if (boom) { speed = (420 + 480 * c) * OPT('aspeed'); dmg *= 0.85; } // slower than an arrow, faster the longer it's drawn
-  if (bri) { speed = BRIAR.speed * (0.55 + 0.45 * c) * OPT('aspeed'); }
+  if (boom) { speed = (340 + 380 * c) * OPT('aspeed'); dmg *= 0.75; kb *= 0.85; } // slower than an arrow, faster the longer it's drawn
+  if (bri) { speed = BRIAR.speed * (0.75 + 0.25 * c) * OPT('aspeed'); }
   if (rocket) { dmg *= 0.35; kb *= 0.35; speed = ROCKET.speed; } // a set, slow speed whatever the draw or the arrow speed rule; the burst does the work
   if (recoil) kb *= 1.6;
   if (full && has(p, 'boulder')) kb *= 1.3;
@@ -3401,7 +3441,7 @@ function fire(w, p, ang, c, burst, vol, x3) { // burst: 1-2 a Volley's shots, 4 
       dmg, kb, full, crit: false, heavy, el, bolt, snare, rail, big: has(p, 'colossus') || rocket, seek, rocket, swap, boom, exec, bri, drag: rail || rocket || boom || bri ? 0 : has(p, 'longbow') ? 0.2 : 0.45,
       burst: false, pierce: rail || boom || bri ? 99 : full && has(p, 'pierce') ? 1 : 0, hit: [],
       split: full && !boom && !bri && has(p, 'split'),
-      bounces: boom || bri ? 0 : (p.pw.ricochet > 0 ? 2 : 0) + (has(p, 'ricochet') ? 1 : 0) + (has(p, 'bankshot') ? 1 : 0) + (trick ? 3 : 0), trick, explosive: p.pw.explosive > 0 || rocket, life: rocket ? ROCKET.life : boom ? 6 : bri ? BRIAR.range * (0.6 + 0.4 * c) / Math.max(1, speed) : p.role === 'ninja' ? 0.5 : 2.4, stuck: 0,
+      bounces: boom || bri ? 0 : (p.pw.ricochet > 0 ? 2 : 0) + (has(p, 'ricochet') ? 1 : 0) + (has(p, 'bankshot') ? 1 : 0) + (trick ? 3 : 0), trick, explosive: p.pw.explosive > 0 || rocket, life: rocket ? ROCKET.life : boom ? 6 : bri ? BRIAR.range * (0.55 + 0.45 * c) / Math.max(1, speed) : p.role === 'ninja' ? 0.5 : 2.4, stuck: 0,
       vol: vol || null, sneak, xb, maxDist: xb && !rail && !bri && !boom ? p.xbowRange : 0,
     });
     if (xb) { const A = w.arrows[w.arrows.length - 1]; A.drag = 0.12; }
@@ -3604,6 +3644,8 @@ function stepBody(w, f, mx, my, dt) {
   else if (f.burn > 0) { f.burn -= dt; hurt(w, f, (f.burnDps || 5) * dt, 0, 0, 'burn', null, true); if (f.burn <= 0) f.burnDps = 5; }
   if (!f.dead && f.bleedT > 0) { f.bleedT -= dt; hurt(w, f, 2 * dt, 0, 0, 'bleed', f.bleedBy, true); } // Hemorrhage
   if (!f.dead && f.shade) shadeTick(w, f, dt);
+  const vig = MUTATORS[CFG.mut] && MUTATORS[CFG.mut].regen; // Warden's Vigil
+  if (vig && !f.dead && !f.npc && w.match.ph === 'play' && f.hp < f.maxHp) f.hp = Math.min(f.maxHp, f.hp + vig * dt * (f.poisonT > 0 ? 0.5 : 1));
   if (f.thornT > 0) { f.thornT -= dt; if (f.thornT <= 0) f.thornN = 0; }
   if (!f.dead && f.poisonT > 0) { f.poisonT -= dt; hurt(w, f, f.poisonN * 1.6 * f.poisonMul * dt, 0, 0, 'poison', null, true); if (f.poisonT <= 0) f.poisonN = 0; }
   if (f.dead) return;
@@ -3931,12 +3973,9 @@ function useAbility(w, p, id) {
     case 'rip': { // tear out every thorn you've left in anyone
       const hit = w.players.filter(q => q.team !== p.team && !q.dead && q.thornBy === p.id && q.thornN > 0);
       if (!hit.length) { if (!p.bot) ev(w, { e: 'abFail', id: p.id, why: 'No one has your thorns in them' }); return false; }
-      for (const q of hit) {
-        const n = q.thornN; q.thornN = 0; q.thornT = 0;
-        ev(w, { e: 'rip', id: q.id, by: p.id, x: r1(q.x), y: r1(q.y), n });
-        if (n >= 2) root(q, 1, p);
-        hurt(w, q, 5 * n, 0, 0, 'rip', p.id);
-      }
+      // the vines take hold now and tear a second later (thorns added meanwhile count too)
+      for (const q of hit) { q.thornT = Math.max(q.thornT, RIP_DELAY + 0.5); ev(w, { e: 'ripCast', id: q.id, by: p.id, n: q.thornN }); }
+      w.later.push({ t: RIP_DELAY, ty: 'rip', owner: p.id });
       return true;
     }
     case 'mend': { // the most hurt teammate in reach (by share of health), or yourself
@@ -4368,7 +4407,7 @@ function shadeTick(w, f, dt) {
   ev(w, { e: 'shadeBurst', id: f.id, x: r1(f.x), y: r1(f.y), n: s.n });
   hurt(w, f, shadeDmg(s.n) * big, kx, ky, 'shade', s.by);
 }
-const SHROUD_R = 140, ECLIPSE_R = 150, MEND_RANGE = 350, BRIAR = { speed: 600, range: 560, r: 17, root: 1.8, dmg: 8 };
+const RIP_DELAY = 1, SHROUD_R = 140, ECLIPSE_R = 150, MEND_RANGE = 350, BRIAR = { speed: 430, range: 760, r: 22, root: 1.8, dmg: 8 }; // r: the same size as a Bramble Trap
 function root(f, t, by) { if (by && has(by, 'deeproots')) t *= 2; f.stuck = Math.max(f.stuck, f.sure ? t * 0.4 : t); }
 // elemental and trapper effects when an arrow lands
 function onArrowEffects(w, a, f, primary) {
@@ -4488,7 +4527,7 @@ const XB3 = { n: 3, gap: 0.08, dmg: 0.45, kb: 0.5, spread: 0.035, reload: 1.5 };
 // how far a player's shots reach before dropping, for roles with a short range (null: the whole arena)
 // (shuriken: 1050px/s slowed by drag 2.4 over their 0.45s life, about 0.275s worth of full speed)
 const rangeOf = (w, p) => p.role === 'crossbow' ? Math.round(p.xbowRange || XBOW_RANGE)
-  : p.role === 'ninja' ? Math.round(1050 * optValue((w.cfg || {}).opt, 'aspeed') * 0.275) : null;
+  : p.role === 'ninja' ? Math.round(1050 * optValue((w.cfg || {}).opt, 'aspeed') * mutMul((w.cfg || {}).mut, 'aspeed') * 0.275) : null;
 const SNIPE_FULL = Math.hypot(AW - 2 * WALL, AH - 2 * WALL); // corner to corner
 const VOLLEY_GAP = 0.12, BLINK_RANGE = 300, HARPOON_RANGE = 420, NINJA_BLINK = 150, FLASH_RANGE = 240;
 // is this archer hidden inside smoke from someone standing at (x, y)?
@@ -4664,7 +4703,7 @@ function updateArrows(w, dt) {
       if (a.back) {
         if (!o || o.dead || o.falling > 0) a.life = 0;
         else {
-          const dx = o.x - a.x, dy = o.y - a.y, d = Math.hypot(dx, dy) || 1, sp = Math.max(760 * OPT('aspeed'), Math.hypot(a.vx, a.vy));
+          const dx = o.x - a.x, dy = o.y - a.y, d = Math.hypot(dx, dy) || 1, sp = Math.max(620 * OPT('aspeed'), Math.hypot(a.vx, a.vy));
           a.vx = dx / d * sp; a.vy = dy / d * sp;
           if (d < o.r + 16) {
             w.arrows.splice(i, 1); ev(w, { e: 'catch', id: o.id, x: r1(o.x), y: r1(o.y) });
@@ -4742,7 +4781,7 @@ function updateArrows(w, dt) {
       }
       for (const f of w.players) {
         if (f.team === a.team || f.dead || f.falling > 0 || a.hit.includes(f.id) || f.phaseT > 0) continue;
-        if (Math.hypot(f.x - a.x, f.y - a.y) < f.r + (a.bri ? BRIAR.r : a.boom ? 14 : a.big ? 10 : 4)) {
+        if (Math.hypot(f.x - a.x, f.y - a.y) < f.r + (a.bri ? BRIAR.r : a.boom ? 18 : a.big ? 10 : 4)) {
           if (a.bri) { // a rolling bramble: everyone it rolls through is rooted, then it rolls on
             a.hit.push(f.id); root(f, BRIAR.root, a.own); hurt(w, f, BRIAR.dmg, 0, 0, 'briar', a.owner);
             if (a.own && !a.counted) { a.counted = true; a.own.stats.hits++; }
@@ -4832,9 +4871,18 @@ function spawnAmberPair(w) {
   }
 }
 // powerups appear at the arena's power spots, taking turns so no side is favoured
-function spawnCenterPower(w) {
-  if (w.pickups.some(u => u.type !== 'amber')) return;
-  const spot = MAP.power[w.powerIdx++ % MAP.power.length];
+function spawnCenterPower(w, bounty) {
+  const out = w.pickups.filter(u => u.type !== 'amber');
+  if (out.length >= (bounty ? 3 : 1)) return;
+  let spot = MAP.power[w.powerIdx++ % MAP.power.length];
+  if (out.length) { // Bounty Hunt: the extras land anywhere safe and open, away from the others
+    spot = null;
+    for (let i = 0; i < 40 && !spot; i++) {
+      const x = rand(AW * 0.2, AW * 0.8), y = rand(WALL + 60, AH - WALL - 60);
+      if (lethalDist(x, y) > 60 && !PILLARS.some(q => Math.hypot(x - q.x, y - q.y) < q.r + 30) && !w.pickups.some(u => Math.hypot(u.x - x, u.y - y) < 120)) spot = { x, y };
+    }
+    if (!spot) return;
+  }
   const type = Math.random() < 0.2 ? 'heal' : pick(PU_TIMED);
   w.pickups.push({ id: w.nid++, x: spot.x, y: spot.y, type, life: 16, age: 0 });
   ev(w, { e: 'puSpawn', x: spot.x, y: spot.y, ty: type });
@@ -4883,7 +4931,8 @@ function updatePickups(w, dt) {
   w.chT = (w.chT == null ? 20 : w.chT) - dt;
   if (w.chT <= 0) { w.chT = rand(30, 40); spawnChannel(w); }
   if (w.amberT <= 0 && !w.cq) { w.amberT = rand(3.5, 5); if (w.pickups.filter(u => u.type === 'amber').length < 6) spawnAmberPair(w); }
-  if (w.puT <= 0) { w.puT = rand(12, 16); spawnCenterPower(w); }
+  const bounty = MUTATORS[CFG.mut] && MUTATORS[CFG.mut].bounty;
+  if (w.puT <= 0) { w.puT = bounty ? rand(5, 7.5) : rand(12, 16); spawnCenterPower(w, bounty); }
   for (let i = w.pickups.length - 1; i >= 0; i--) {
     const u = w.pickups[i];
     u.age += dt;
@@ -6069,6 +6118,17 @@ function step(w, dt) {
       if (p) fire(w, p, p.aim + (Math.random() - 0.5) * 2 * XB3.spread, 1, 4);
       continue;
     }
+    if (L.ty === 'rip') { // Rip: tear out every thorn this trapper has left in anyone
+      const p = w.players.find(q => q.id === L.owner);
+      if (p) for (const q of w.players) {
+        if (q.team === p.team || q.dead || q.falling > 0 || q.thornBy !== p.id || !(q.thornN > 0)) continue;
+        const n = q.thornN; q.thornN = 0; q.thornT = 0;
+        ev(w, { e: 'rip', id: q.id, by: p.id, x: r1(q.x), y: r1(q.y), bx: r1(p.x), by2: r1(p.y), n });
+        if (n >= 2) root(q, 1, p);
+        hurt(w, q, 5 * n, 0, 0, 'rip', p.id);
+      }
+      continue;
+    }
     if (L.ty === 'volley') {
       // the rest of the burst follows your aim as it is now
       const p = w.players.find(q => q.id === L.owner && !q.dead && q.falling <= 0 && q.disarm <= 0);
@@ -6108,7 +6168,7 @@ function snapshot(w) {
   return {
     t: r3(w.t),
     m: { ph: M.ph, rd: M.rd, gm: M.gm, T: Math.max(0, Math.ceil(M.T)), wr: M.wins.red, wb: M.wins.blue, gr: M.gw.red, gb: M.gw.blue, rw: M.rw, mw: M.mw,
-      op: M.opening ? 1 : 0, opt: Object.assign({}, w.cfg.opt), ptw: w.cfg.pointsToWin, gtw: w.cfg.gamesToWin, df: w.cfg.diff, map: w.cfg.map, cs: canStart(w) ? 1 : 0,
+      op: M.opening ? 1 : 0, opt: Object.assign({}, w.cfg.opt), mut: w.cfg.mut || undefined, ptw: w.cfg.pointsToWin, gtw: w.cfg.gamesToWin, df: w.cfg.diff, map: w.cfg.map, cs: canStart(w) ? 1 : 0,
       cr: w.cracks && w.cracks.length ? w.cracks.join('') : '', gt: r2(gameTime(w)), pw: powerWarn(w), cq: cqSnap(w), ban: w.cfg.ban && w.cfg.ban.length ? w.cfg.ban.slice() : undefined },
     p: w.players.map(p => {
       const pw = {};
@@ -6294,7 +6354,7 @@ return {
   MASTERY, masteryOf, takeCard, applyStats,
   AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
-  plagueR, BRIAR, SHADE, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
+  plagueR, BRIAR, SHADE, MUTATORS, mutMul, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, BANNER_FRAME, frameAllowed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
@@ -6310,7 +6370,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.44.0';
+const PAGE_VERSION = '0.45.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -6436,7 +6496,7 @@ function predictShot() {
   if (!me || me.d || me.f || me.ro !== 'crossbow' || me.dz || me.su || !((me.xn || 0) > 0 || me.au)) return;
   sfx.xbShot(1, !!me.au); xbPredict = performance.now();
 }
-const fx = { parts: [], floaters: [], rings: [], bolts: [], cones: [], ropes: [], ghosts: [], shake: 0, stop: 0, slow: 0, flash: null };
+const fx = { parts: [], floaters: [], rings: [], bolts: [], cones: [], ropes: [], vines: [], ghosts: [], shake: 0, stop: 0, slow: 0, flash: null };
 const TRAIL = new Map(); // player id -> recent positions while flying fast (knockback streaks)
 let feed = [];
 let resultsFor = null;
@@ -6523,8 +6583,9 @@ const elSfx = {
   frost: (v = 1) => { os('sine', 1900, 2700, 0.12, 0.04 * v); os('sine', 2700, 1500, 0.18, 0.03 * v, 0.05); nz(0.2, 0.06 * v, 'highpass', 5000, 8000); },
   flame: (v = 1) => { nz(0.4, 0.12 * v, 'bandpass', 350, 1800, 0.8); os('sawtooth', 110, 50, 0.3, 0.025 * v); nz(0.05, 0.05 * v, 'highpass', 3000, 3000, 1, 0.12); },
   storm: (v = 1) => {
-    for (let i = 0; i < 6; i++) os('sawtooth', rand(200, 1100), rand(70, 400), 0.035, 0.04 * v, i * 0.022);
-    nz(0.22, 0.09 * v, 'bandpass', 4000, 1800, 4); os('square', 60, 50, 0.18, 0.025 * v);
+    // a short, bright crackle (quick and high, so it doesn't grate when you hear it all game)
+    for (let i = 0; i < 4; i++) os('sawtooth', rand(500, 1700), rand(220, 650), 0.025, 0.032 * v, i * 0.016);
+    nz(0.11, 0.07 * v, 'bandpass', 5200, 2600, 4); os('square', 120, 95, 0.08, 0.016 * v);
   },
   stone: (v = 1) => { nz(0.16, 0.14 * v, 'lowpass', 900, 180, 1); os('square', 95, 55, 0.14, 0.03 * v); nz(0.06, 0.07 * v, 'bandpass', 2400, 1200, 3, 0.03); },
   // blood: a wet, heavy thud and a heartbeat
@@ -6537,10 +6598,10 @@ const elSfx = {
 function buzz(dur = 0.8, v = 1) {
   if (muted || !AC) return;
   const t0 = AC.currentTime, o1 = AC.createOscillator(), o2 = AC.createOscillator(), f = AC.createBiquadFilter(), g = AC.createGain(), lfo = AC.createOscillator(), lg = AC.createGain();
-  o1.type = 'sawtooth'; o1.frequency.setValueAtTime(118, t0); o1.frequency.linearRampToValueAtTime(104, t0 + dur);
-  o2.type = 'sawtooth'; o2.frequency.setValueAtTime(120.5, t0); o2.frequency.linearRampToValueAtTime(106, t0 + dur);
+  o1.type = 'sawtooth'; o1.frequency.setValueAtTime(118, t0); // a steady pitch: no slide
+  o2.type = 'sawtooth'; o2.frequency.setValueAtTime(120.5, t0);
   f.type = 'lowpass'; f.frequency.value = 2600; f.Q.value = 1.5;
-  const pk = 0.05 * v;
+  const pk = 0.028 * v;
   g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(pk, t0 + 0.03); g.gain.setValueAtTime(pk, t0 + dur * 0.55); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
   lfo.frequency.value = 31; lg.gain.value = pk * 0.3; lfo.connect(lg).connect(g.gain); // the flutter that makes it buzz
   o1.connect(f); o2.connect(f); f.connect(g).connect(outNode());
@@ -6617,7 +6678,7 @@ const sfx = {
   kill: () => { tone(520, 0.12, 'triangle', 0.07); setTimeout(() => tone(780, 0.18, 'triangle', 0.07), 90); },
   win: () => { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.25, 'triangle', 0.06), i * 120)); },
   splat: () => noise(0.2, 0.16, 400),
-  zap: (v = 1) => { elSfx.storm(v * 1.2); nz(0.1, 0.12 * v, 'highpass', 7000, 3000); os('sawtooth', 1800, 200, 0.12, 0.03 * v); },
+  zap: (v = 1) => { elSfx.storm(v); nz(0.06, 0.08 * v, 'highpass', 7500, 4000); os('sawtooth', 2200, 600, 0.07, 0.022 * v); },
   freeze: () => { nz(0.5, 0.15, 'highpass', 2500, 7000); os('triangle', 1500, 280, 0.5, 0.05); os('sine', 2900, 2900, 0.35, 0.02, 0.12); nz(0.08, 0.12, 'bandpass', 6000, 2000, 3, 0.02); },
   disarm: () => { os('sine', 1800, 900, 0.3, 0.045); os('sine', 2250, 1100, 0.3, 0.035, 0.06); },
   whip: () => { nz(0.14, 0.13, 'bandpass', 700, 3500, 2); os('triangle', 320, 110, 0.22, 0.045); },
@@ -6703,7 +6764,7 @@ function padAssistTarget(aim, meP) {
   const me = meP || (view && view.p.find(q => q.id === myId));
   if (!me || me.d || !view.m || view.m.ph !== 'play') return null;
   const opt = view.m.opt || {}, aspeed = Sim.optValue(opt, 'aspeed');
-  const shot = (me.ro === 'ninja' ? 1050 : 1300 * (me.ro === 'sniper' ? 1.25 : 1)) * aspeed;
+  const shot = (me.ro === 'ninja' ? 1050 : 1300 * (me.ro === 'sniper' ? 1.25 : 1)) * aspeed * Sim.mutMul(view.m.mut, 'aspeed');
   let best = null;
   for (const q of view.p) {
     if (q.tm === me.tm || q.d || q.f || q.sth) continue;
@@ -7376,7 +7437,7 @@ function tutSpot() {
 }
 function startTutorial() {
   initAudio(); closeSubs();
-  world = Sim.createWorld({ map: 'meadow', diff: 'easy' });
+  world = Sim.createWorld({ map: 'meadow', diff: 'easy', opt: { effect: 'none' } });
   const me = Sim.join(world, { name: playerName(), team: 'red', element: TUT_LOADOUT.el, role: TUT_LOADOUT.ro });
   const dummy = Sim.addBot(world, 'blue'); dummy.name = 'Dummy'; Sim.setLoadout(world, dummy.id, 'stone', 'sniper');
   Sim.startMatch(world);
@@ -7424,7 +7485,7 @@ function tutNext() {
 }
 function tutSkipToMatch() { TUT.step = tutIdx('pick') - 1; tutNext(); }
 function startTutFight() {
-  world = Sim.createWorld({ map: 'meadow', diff: 'easy' });
+  world = Sim.createWorld({ map: 'meadow', diff: 'easy', opt: { effect: 'none' } });
   const me = Sim.join(world, { name: playerName(), team: 'red', element: TUT_LOADOUT.el, role: TUT_LOADOUT.ro });
   const bot = Sim.addBot(world, 'blue'); Sim.setLoadout(world, bot.id, 'flame', 'juggernaut');
   Sim.startMatch(world);
@@ -7989,7 +8050,7 @@ function startDrill(kind) {
   const D = DRILLS[kind];
   if (kind === 'dodge') { const M = MAPS.chasm; M.base = M.base || M.haz.slice(); M.haz.length = 0; M.haz.push(...M.base); floorKey = null; }
   if (kind === 'sink') { MAPS.holes.haz.length = 0; floorKey = null; }
-  world = Sim.createWorld({ map: D.map, diff: 'normal', opt: { upg: 'off' } }); // standard rules, and no upgrade picks
+  world = Sim.createWorld({ map: D.map, diff: 'normal', opt: { upg: 'off', effect: 'none' } }); // standard rules, and no upgrade picks
   setArena(D.map);
   // every drill is played as a plain Frost Trapper, so scores compare fairly: a role whose trait doesn't change how you
   // move or draw (the Ranger moves faster), with no opening upgrade
@@ -8520,7 +8581,11 @@ function connect(joinMsg) {
 
 // ================= ranked: the draft before a matchmade game =================
 // The map is already drawn; everyone picks an element and role before the timer runs out, then the match starts.
+// this match's map effect, in the lobby and the ranked draft (so archetypes can be picked round it), and as a chip in play
+function mutHtml(k) { const M = Sim.MUTATORS[k]; return M ? `<span class="mutl">Map effect this match</span><b>${esc(M.name)}</b> · ${esc(M.desc)}` : ''; }
+function showMut(el, k) { const M = Sim.MUTATORS[k]; el.hidden = !M; if (M) { el.style.setProperty('--mc', M.color); el.innerHTML = mutHtml(k); } }
 function renderDraft(v) {
+  setC('dfMut', v.m.mut || '', () => showMut($('dfMut'), v.m.mut));
   const me = v.p.find(p => p.id === myId), R = roomInfo || {};
   setC('df', v.m.map + ':' + R.ranked + ':' + !!MAPS[v.m.map], () => {
     $('dfMode').textContent = `Ranked ${R.ranked || ''} · match found`;
@@ -10025,6 +10090,7 @@ function renderLobby(v) {
   setC('lbLp', JSON.stringify(LP.list.map(l => [l.n, l.name, l.el, l.ro, l.pid, l.picker, (v.p.find(p => p.id === l.pid) || {}).tm])), () => { $('lbLocals').innerHTML = lpPanel('lobby'); });
   const meL = v.p.find(p => p.id === myId);
   setC('arch', meL ? meL.el + meL.ro : '', () => syncArch(meL));
+  setC('lbMut', v.m.mut || '', () => showMut($('lbMut'), v.m.mut));
   setC('lbMap', v.m.map + host, () => {
     $('lbMaps').querySelectorAll('.mapcard').forEach(el => { el.classList.toggle('sel', el.dataset.map === v.m.map); el.disabled = !host; });
     $('lbMapDesc').innerHTML = MAPS[v.m.map] ? `<b>${esc(MAPS[v.m.map].name)}:</b> ${esc(MAPS[v.m.map].desc)}${MAPS[v.m.map].custom && roomInfo && roomInfo.arena ? ` Code <b class="code">${esc(roomInfo.arena.code)}</b>.` : ''}` : '';
@@ -10811,10 +10877,17 @@ function handleEvents(evs) {
         nz(0.2, 0.08, 'bandpass', 1600, 700, 2); if (e.n) tone(170, 0.12, 'square', 0.035, -50);
         break;
       }
-      case 'rip': { // the thorns tear out and fly off, trailing blood
+      case 'ripCast': { // vines reach from the trapper to everyone carrying their thorns, and pull taut
+        fx.vines.push({ tid: e.id, cid: e.by, t0: clock, max: 1.05, n: e.n || 1 });
+        if (e.by === myId || e.id === myId) { nz(0.9, 0.05, 'bandpass', 300, 900, 4); os('sawtooth', 70, 140, 0.9, 0.025); tone(180, 0.08, 'square', 0.03, -40); }
+        break;
+      }
+      case 'rip': { // the thorns tear out and fly back toward the trapper, trailing blood
+        fx.vines = fx.vines.filter(v => v.tid !== e.id);
+        const bx = e.bx != null ? e.bx : e.x, by = e.by2 != null ? e.by2 : e.y - 1, ba = Math.atan2(by - e.y, bx - e.x), dist = Math.hypot(bx - e.x, by - e.y);
         for (let i = 0; i < e.n; i++) {
-          const a0 = -Math.PI / 2 + i * TAU / 5 + rand(-0.2, 0.2), sp = rand(260, 380);
-          for (let k = 0; k < 5; k++) fx.parts.push({ x: e.x + Math.cos(a0) * 16, y: e.y + Math.sin(a0) * 16, vx: Math.cos(a0) * sp * (1 - k * 0.12), vy: Math.sin(a0) * sp * (1 - k * 0.12), life: -k * 0.02, max: 0.45, color: k ? '#c8243a' : '#9bd46a', r: k ? 2.2 : 3.4 });
+          const a0 = ba + (i - (e.n - 1) / 2) * 0.22, sp = Math.min(900, 300 + dist * 1.4) * rand(0.85, 1.1);
+          for (let k = 0; k < 6; k++) fx.parts.push({ x: e.x + Math.cos(a0) * 14, y: e.y + Math.sin(a0) * 14, vx: Math.cos(a0) * sp * (1 - k * 0.1), vy: Math.sin(a0) * sp * (1 - k * 0.1), life: -k * 0.025, max: Math.min(0.8, dist / sp + 0.1), color: k ? '#c8243a' : '#9bd46a', r: k ? 2.2 : 3.6 });
         }
         burst(e.x, e.y, '#c8243a', 6 + e.n * 3, 140, 2.4);
         fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '200,36,58', max: 30 + e.n * 10 });
@@ -12406,7 +12479,7 @@ function iceShatter(x, y) {
 // effects for the arena machinery and the newer abilities, live and in the kill cam
 function mechFx(e) {
   switch (e.e) {
-    case 'stun': burst(e.x, e.y, '#fff27a', 14, 150, 2); floater(e.x, e.y - 30, 'Stunned!', '#fff27a', 16); buzz(0.8, e.id === myId ? 1.2 : 0.7); if (e.id === myId) shake(4); return true;
+    case 'stun': burst(e.x, e.y, '#fff27a', 14, 150, 2); floater(e.x, e.y - 30, 'Stunned!', '#fff27a', 16); buzz(0.7, e.id === myId ? 1 : 0.55); if (e.id === myId) shake(4); return true;
     case 'ambushHit': floater(e.x, e.y - 50, 'Ambush!', '#c7b3ff', 18); tone(180, 0.2, 'sawtooth', 0.05, -80); nz(0.12, 0.08, 'highpass', 3000, 6000, 1); return true;
     case 'saw': burst(e.x, e.y, '#ffe9a8', 18, 280, 2); burst(e.x, e.y, '#ff4d5e', 8, 160, 3); nz(0.3, 0.1, 'bandpass', 3400, 1800, 4); os('sawtooth', 1500, 700, 0.22, 0.03); if (e.id === myId) shake(8); return true;
     case 'ballShot': burst(e.x, e.y, '#ffffff', 6 + Math.round(8 * (e.s || 0)), 160, 1.6); os('sine', 240, 420, 0.08, 0.05 * (0.4 + (e.s || 0))); nz(0.05, 0.05, 'bandpass', 1400, 900, 2); return true;
@@ -12655,6 +12728,24 @@ function drawPreview(cvs, el, ro, color) {
   finally { ctx = keep; }
 }
 let MATE_DIM = 1;
+// eyes: they blink now and then (each archer on their own rhythm) and screw shut for a moment when hurt
+const EYE = { hp: {}, hurt: {} };
+function drawEyes(p, R) {
+  const id = String(p.id), last = EYE.hp[id];
+  if (last != null && p.hp < last - 0.5) EYE.hurt[id] = clock;
+  EYE.hp[id] = p.hp;
+  let h = 0; for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 997;
+  const per = 2.6 + (h % 23) / 10, ph = ((clock + h * 0.37) % per), blink = ph < 0.13 ? 1 - Math.abs(ph - 0.065) / 0.065 : 0;
+  const hurtK = EYE.hurt[id] != null ? Math.max(0, 1 - (clock - EYE.hurt[id]) / 0.38) : 0;
+  const x = R * 0.45, ys = [-R * 0.28, R * 0.28];
+  if (hurtK > 0 || p.su || p.fz) { // scrunched: little chevrons (> <) pointing in, squeezed shut
+    ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1.8; ctx.lineCap = 'round';
+    for (const y of ys) { const s = y < 0 ? 1 : -1; ctx.beginPath(); ctx.moveTo(x - 2.6, y - 2.2 * s); ctx.lineTo(x + 1.6, y + 0.4 * s); ctx.lineTo(x - 2.6, y + 2.4 * s); ctx.stroke(); }
+    return;
+  }
+  const sq = 1 - 0.85 * blink; // a blink squashes the eye flat across the line of sight
+  for (const y of ys) { ctx.beginPath(); ctx.ellipse(x, y, 2.2 * sq + 0.4 * blink, 2.2, 0, 0, TAU); ctx.fill(); }
+}
 function drawPlayer(p, isMe, bare) {
   if (p.d) return;
   if (p.nk) return drawNpc(p); // a stronghold's NPC
@@ -12767,7 +12858,7 @@ function drawPlayer(p, isMe, bare) {
   drawGear(p, R, true); // role gear on top
   drawEmblem(p.el, -R * 0.22, 0, R * 0.4);
   ctx.fillStyle = p.ro === 'assassin' ? '#ff4d5e' : dark(p.c);
-  ctx.beginPath(); ctx.arc(R * 0.45, -R * 0.28, 2.2, 0, TAU); ctx.arc(R * 0.45, R * 0.28, 2.2, 0, TAU); ctx.fill();
+  drawEyes(p, R);
   if ((p.up || []).includes('riot') || p.dfl) {
     // riot shield: a plate in front; bright while Deflect is up
     ctx.strokeStyle = p.dfl ? `rgba(235,245,255,${0.75 + 0.25 * Math.sin(clock * 30)})` : 'rgba(170,180,195,0.9)'; ctx.lineWidth = p.dfl ? 5 : 3.5;
@@ -12956,18 +13047,16 @@ function drawArrow(a) {
     starPath(a.sh === 2 ? 8.5 : 7, 2); ctx.fill(); ctx.stroke();
     ctx.restore(); return;
   }
-  if (a.br) { // a rolling bramble ball: a thorny ring, spinning as it rolls
-    ctx.save(); ctx.globalAlpha = a.s > 0 && a.s < 1 ? a.s / 0.6 : 1; ctx.translate(a.x, a.y); ctx.rotate(a.s ? 0 : clock * 14 + a.id);
-    ctx.fillStyle = 'rgba(60,44,22,0.85)'; ctx.beginPath(); ctx.arc(0, 0, 13, 0, TAU); ctx.fill();
-    ctx.strokeStyle = '#6f8f3c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, 11, 0, TAU); ctx.stroke();
-    ctx.strokeStyle = '#4c3a22'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 6, 0.4, 5.2); ctx.stroke();
-    ctx.fillStyle = '#9bd46a'; for (let i = 0; i < 8; i++) { const q = i * TAU / 8; ctx.beginPath(); ctx.moveTo(Math.cos(q - 0.18) * 12, Math.sin(q - 0.18) * 12); ctx.lineTo(Math.cos(q) * 18, Math.sin(q) * 18); ctx.lineTo(Math.cos(q + 0.18) * 12, Math.sin(q + 0.18) * 12); ctx.fill(); }
-    ctx.restore(); return;
+  if (a.br) { // Bramble Toss: a bramble trap spinning through the air (a little shadow under it shows it's flying)
+    const al = a.s > 0 && a.s < 1 ? a.s / 0.6 : 1;
+    ctx.save(); ctx.globalAlpha = 0.25 * al; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(a.x + 4, a.y + 10, 20, 9, 0, 0, TAU); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.globalAlpha = al; drawTrapArt(a.x, a.y, 22, a.s ? a.id : clock * 12 + a.id); ctx.restore();
+    return;
   }
   if (a.bm && !a.s) { // boomerang: a big spinning bent blade, with a blur of its sweep
     ctx.save(); ctx.translate(a.x, a.y);
-    if (!lightFx()) { ctx.fillStyle = 'rgba(217,160,102,0.16)'; ctx.beginPath(); ctx.arc(0, 0, 17, 0, TAU); ctx.fill(); }
-    ctx.rotate(clock * 34 + a.id); drawBoomBlade(1.45, a.c);
+    if (!lightFx()) { ctx.fillStyle = 'rgba(217,160,102,0.16)'; ctx.beginPath(); ctx.arc(0, 0, 20, 0, TAU); ctx.fill(); }
+    ctx.rotate(clock * 46 + a.id); drawBoomBlade(1.6, a.c);
     ctx.restore(); return;
   }
   const alpha = a.s > 0 && a.s < 1 ? a.s : 1;
@@ -13170,6 +13259,14 @@ function drawZones(v, me) {
     allyRing(z, me);
   }
 }
+// a bramble trap: a woven ring with pale thorns pointing out (rot turns it, for one being tossed)
+function drawTrapArt(x, y, r, rot) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  ctx.strokeStyle = '#6b4526'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, r - 4, 0, TAU); ctx.stroke();
+  ctx.fillStyle = '#d8cfc0';
+  for (let i = 0; i < 10; i++) { const a = i / 10 * TAU; ctx.beginPath(); ctx.moveTo(Math.cos(a) * (r - 6), Math.sin(a) * (r - 6)); ctx.lineTo(Math.cos(a + 0.12) * (r + 4), Math.sin(a + 0.12) * (r + 4)); ctx.lineTo(Math.cos(a + 0.3) * (r - 6), Math.sin(a + 0.3) * (r - 6)); ctx.fill(); }
+  ctx.restore();
+}
 function drawZone(z, me) {
   {
     if (z.ty === 'hole') {
@@ -13231,12 +13328,8 @@ function drawZone(z, me) {
       if (Math.random() < 0.3) fx.parts.push({ x: z.x + rand(-z.r, z.r) * 0.6, y: z.y + rand(-z.r, z.r) * 0.6, vx: 0, vy: rand(-20, -6), life: 0, max: 0.8, color: '#b6ee7a', r: rand(1.5, 3) });
     } else if (z.ty === 'trap') {
       const mine = me && z.tm === me.tm;
-      ctx.save(); ctx.globalAlpha = mine ? 0.8 : 0.95;
-      ctx.strokeStyle = '#6b4526'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(z.x, z.y, z.r - 4, 0, TAU); ctx.stroke();
-      ctx.fillStyle = '#d8cfc0';
-      for (let i = 0; i < 10; i++) { const a = i / 10 * TAU; ctx.beginPath(); ctx.moveTo(z.x + Math.cos(a) * (z.r - 6), z.y + Math.sin(a) * (z.r - 6)); ctx.lineTo(z.x + Math.cos(a + 0.12) * (z.r + 4), z.y + Math.sin(a + 0.12) * (z.r + 4)); ctx.lineTo(z.x + Math.cos(a + 0.3) * (z.r - 6), z.y + Math.sin(a + 0.3) * (z.r - 6)); ctx.fill(); }
-      ctx.strokeStyle = TEAM_COL[z.tm]; ctx.lineWidth = 1.5; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.arc(z.x, z.y, z.r + 7, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
-      ctx.restore();
+      ctx.save(); ctx.globalAlpha = mine ? 0.8 : 0.95; drawTrapArt(z.x, z.y, z.r, 0); ctx.restore();
+      ctx.save(); ctx.globalAlpha = mine ? 0.8 : 0.95; ctx.strokeStyle = TEAM_COL[z.tm]; ctx.lineWidth = 1.5; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.arc(z.x, z.y, z.r + 7, 0, TAU); ctx.stroke(); ctx.setLineDash([]); ctx.restore();
     } else if (z.ty === 'clone') {
       // a shadowy copy of its owner, facing the nearest enemy
       const o = view && view.p.find(q => q.id === z.o); if (!o) return;
@@ -13339,6 +13432,20 @@ function drawAbilityFx(v) {
     ctx.fillStyle = `rgba(220,240,255,${0.3 * (1 - k)})`;
     ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.arc(c.x, c.y, 60 + 190 * k, c.a - 0.7, c.a + 0.7); ctx.closePath(); ctx.fill();
   }
+  fx.vines = fx.vines.filter(vn => clock - vn.t0 < vn.max);
+  for (const vn of fx.vines) { // Rip's vines: wriggling, then pulled tight just before they tear
+    const T = v.p.find(q => q.id === vn.tid), C = v.p.find(q => q.id === vn.cid); if (!T || !C || T.d) continue;
+    const k = (clock - vn.t0) / vn.max, dx = T.x - C.x, dy = T.y - C.y, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L, amp = 10 * (1 - k) + 1.5 * Math.sin(clock * 40) * k;
+    ctx.save(); ctx.lineCap = 'round';
+    for (const [col, wd] of [['#3f2a14', 5], ['#6f8f3c', 2.8]]) {
+      ctx.strokeStyle = col; ctx.lineWidth = wd; ctx.beginPath();
+      for (let i = 0; i <= 24; i++) { const f = i / 24, w2 = Math.sin(f * Math.PI * 5 - clock * 12) * amp * Math.sin(f * Math.PI), x = C.x + dx * f + nx * w2, y = C.y + dy * f + ny * w2; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#9bd46a'; for (let i = 1; i < 6; i++) { const f = i / 6, w2 = Math.sin(f * Math.PI * 5 - clock * 12) * amp * Math.sin(f * Math.PI); ctx.beginPath(); ctx.arc(C.x + dx * f + nx * w2, C.y + dy * f + ny * w2, 2.2, 0, TAU); ctx.fill(); }
+    ctx.strokeStyle = `rgba(200,36,58,${0.3 + 0.5 * k})`; ctx.lineWidth = 2 + 2 * k; ctx.beginPath(); ctx.arc(T.x, T.y, (T.rz || 16) + 4 + 6 * (1 - k), 0, TAU); ctx.stroke();
+    ctx.restore();
+  }
   for (const r of fx.ropes) {
     const p = v.p.find(q => q.id === r.id), live = p && p.gr;
     const x1 = live ? p.x : r.x1, y1 = live ? p.y : r.y1, x2 = live ? p.gr[0] : r.x2, y2 = live ? p.gr[1] : r.y2;
@@ -13385,9 +13492,9 @@ function shotReach(p, charge) {
 }
 const AIM_WALL_X = 240; // the arena wall gets the red X only when it's this close to the archer
 function drawAimGuide(me, ang, charge) {
-  if (me.arm === 'briar') { // Bramble Line: a faint band as wide as the ball, out to where it will roll
-    const ax = Math.cos(ang), ay = Math.sin(ang), nx = -ay, ny = ax, BR = Sim.BRIAR || { range: 560, r: 17 }, half = BR.r;
-    const len = BR.range * (0.6 + 0.4 * charge) * (0.9 + 0.1 * charge);
+  if (me.arm === 'briar') { // Bramble Toss: a faint band as wide as the trap, out to where it will land
+    const ax = Math.cos(ang), ay = Math.sin(ang), nx = -ay, ny = ax, BR = Sim.BRIAR || { range: 760, r: 22 }, half = BR.r;
+    const len = BR.range * (0.55 + 0.45 * charge);
     let end = 30 + len;
     for (let t = 30; t <= 30 + len; t += 6) { const px = me.x + ax * t, py = me.y + ay * t; if (PILLARS.some(q => !q.tower && Math.hypot(px - q.x, py - q.y) < q.r + 4) || px < WALL || px > AW - WALL || py < WALL || py > AH - WALL) { end = t; break; } }
     const x0 = me.x + ax * 26, y0 = me.y + ay * 26, x1 = me.x + ax * end, y1 = me.y + ay * end;
@@ -14230,7 +14337,7 @@ function startStrongholds() {
   setTimeout(startStrongholdsNow, 40);
 }
 function startStrongholdsNow() {
-  world = Sim.createWorld({ map: 'strongholds', diff: 'normal', opt: { mspeed: 100 } });
+  world = Sim.createWorld({ map: 'strongholds', diff: 'normal', opt: { mspeed: 100, effect: 'none' } });
   setArena('strongholds');
   try { buildFloor(); } catch (e) { clientError(e, 'paint'); }
   const me = Sim.join(world, { name: playerName(), team: 'red', element: myLoadout().el, role: myLoadout().ro });
@@ -14339,6 +14446,7 @@ function updateHud() {
     const dots = (n, col) => Array.from({ length: m.gtw || 3 }, (_, i) => `<i class="${i < n ? 'on' : ''}" style="${i < n ? 'background:' + col : ''}"></i>`).join('');
     $('gdR').innerHTML = dots(m.gr, TEAM_COL.red); $('gdB').innerHTML = dots(m.gb, TEAM_COL.blue);
   });
+  setC('mutChip', m.mut || '', () => { const M = Sim.MUTATORS[m.mut], c = $('mutChip'); c.hidden = !M; if (M) { c.textContent = M.name; c.title = M.desc; c.style.setProperty('--mc', M.color); } });
   if (m.cq) setC('rd', 'cq' + m.ph, () => { $('rdText').textContent = m.ph === 'over' ? 'Match over' : `Strongholds · first to ${m.cq.tg}`; $('rdText').title = `Each stronghold you hold scores a point a second. First to ${m.cq.tg}, or hold all four at once, wins.`; });
   else setC('rd', m.ph === 'pick' ? (m.op ? 'Opening pick' : 'Choosing upgrades') : m.ph === 'over' ? 'Match over' : (m.ptw > 1 && m.wr === m.ptw - 1 && m.wb === m.ptw - 1 ? (m.gr === m.gtw - 1 && m.gb === m.gtw - 1 ? 'Last Arrow' : `Deciding round · Game ${m.gm}`) : `Round ${m.rd} · Game ${m.gm}`), v => { $('rdText').textContent = v; $('rdText').title = `First to ${m.gtw} games wins a round. First to ${m.ptw} points wins the match.`; });
   setC('timer', m.cq ? m.cq.el : m.T, v => { $('timer').textContent = fmtT(v); });

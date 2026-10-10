@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.44.0';
+const VERSION = '0.45.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -136,6 +136,19 @@ MAPS.mill = buildMap({
     saws: [{ x0: 330, x1: 870, y: 250, r: 26, per: 6, ph: 0 }],
     power: [{ x: 600, y: 400 }], amberY: [80, 200],
   });
+// Sideline Sawmill: one huge boulder in the middle, saw blades racing up and down both sidelines
+MAPS.sideline = buildMap({
+    name: 'Sideline Sawmill', theme: 'mill',
+    desc: 'One huge boulder in the middle to fight round, and saw blades racing along both sidelines. Get knocked wide and you meet a blade.',
+    haz: [
+      { type: 'pit', water: true, shape: 'circle', x: 250, y: 170, r: 46 },
+      { type: 'tar', shape: 'circle', x: 300, y: 625, r: 54 },
+    ],
+    pillars: [{ x: 600, y: 400, r: 82, centre: true }],
+    spikes: [{ side: 'left', a: 300, b: 500 }],
+    saws: [{ x0: 170, x1: 1030, y: WALL + 34, r: 26, per: 7, ph: 0 }],
+    power: [{ x: 600, y: 215 }, { x: 600, y: 585 }], amberY: [150, 300],
+  });
 MAPS.ruins = buildMap({
     name: 'Portal Ruins', theme: 'ruins', hidden: true, retired: true, // out of the rotation for now (Frozen Lake replaced it)
     desc: 'Ancient gates link the corners. Step in one and you, or your arrow, come out of its twin on the far side, still moving.',
@@ -233,8 +246,10 @@ const OPTIONS = {
   move:   { label: 'Movement feel', def: 'snappy', values: { puck: 1, snappy: 2, drift: 3, direct: 4 } },
   // upgrades off: no picks between rounds (and no chests in Strongholds), everyone plays their plain element and role
   upg:    { label: 'Upgrades',     def: 'on', values: { on: 1, off: 2 } },
+  // map effect: a random one each match (the standard), none, or a set one (MUTATORS)
+  effect: { label: 'Map effect',   def: 'random', values: { random: 1, none: 2, vigil: 3, gale: 4, hide: 5, bounty: 6 } },
 };
-const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', bullet: 'Bullet', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', puck: 'Glide (air hockey)', snappy: 'Snappy', drift: 'Drifty', direct: 'Direct (no glide)', none: 'None', tiny: 'Tiny', heavy: 'Heavy', extreme: 'Extreme' };
+const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', bullet: 'Bullet', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', random: 'Random', vigil: "Warden's Vigil", gale: 'Gale Winds', hide: "Juggernaut's Hide", bounty: 'Bounty Hunt', puck: 'Glide (air hockey)', snappy: 'Snappy', drift: 'Drifty', direct: 'Direct (no glide)', none: 'None', tiny: 'Tiny', heavy: 'Heavy', extreme: 'Extreme' };
 const optDefaults = () => Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.slider ? o.def : o.def || Object.keys(o.values)[0]]));
 // a slider setting as a percentage (old named settings and anything out of range are mapped and clamped)
 function optPct(k, v) {
@@ -246,7 +261,23 @@ function optPct(k, v) {
 // what a setting comes to as a multiplier, for any rules object (records, the page's own display)
 function optValue(opt, k) { const o = OPTIONS[k], v = (opt || {})[k]; if (o.slider) return o.base * optPct(k, v) / 100; return o.values[v] || o.values[o.def] || 1; }
 let CFG = { opt: optDefaults() };
-const OPT = k => optValue(CFG.opt, k);
+// Map effects: each match can roll one, shown in the lobby before anyone picks, so archetypes can be chosen round it.
+// mul: how it changes a rule (the same names as OPTIONS); regen: health a second for everyone; bounty: more power-ups
+const MUTATORS = {
+  vigil:  { name: "Warden's Vigil",   color: '#7dff8a', desc: 'Every archer slowly heals: 2.5 health a second, all the time. Burst them down, or dig in and outlast.', regen: 2.5 },
+  gale:   { name: 'Gale Winds',       color: '#a8e6ff', desc: 'Everyone moves 20% faster and every shot flies 20% faster.', mul: { mspeed: 1.2, aspeed: 1.2 } },
+  hide:   { name: "Juggernaut's Hide", color: '#c9a878', desc: 'Every archer takes 30% less damage from arrows. Knockback is what wins here.', mul: { dmg: 0.7 } },
+  bounty: { name: 'Bounty Hunt',      color: '#ffcf5a', desc: 'Power-ups appear about twice as often, up to three at once, all over the arena.', bounty: true },
+};
+const MUT_KEYS = Object.keys(MUTATORS);
+// what a map effect does to a rule (1 when there's none)
+const mutMul = (mut, k) => (MUTATORS[mut] && MUTATORS[mut].mul && MUTATORS[mut].mul[k]) || 1;
+// the effect for the next match: a fixed choice, none, or (the standard) a random one, with a 1 in 5 chance of a calm match
+function rollMut(w) {
+  const v = (w.cfg.opt || {}).effect || 'random';
+  w.cfg.mut = v === 'none' ? null : MUTATORS[v] ? v : Math.random() < 0.2 ? null : MUT_KEYS[Math.floor(Math.random() * MUT_KEYS.length)];
+}
+const OPT = k => optValue(CFG.opt, k) * mutMul(CFG.mut, k);
 // Handicap: the host can give any archer a percentage, e.g. +50% for a lone player in a 1v2.
 // It scales their health and arrow damage by that much, and their knockback resistance by half as much.
 const HANDICAPS = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
@@ -911,8 +942,8 @@ const TREE = {
   harpoon:   { tree: 'trapper', active: { cd: 9 }, name: 'Harpoon', desc: 'Fire a barbed line along your aim (up to 420px). The first enemy it catches is yanked toward you and briefly stuck.' },
   snare:     { tree: 'trapper', also: ['crossbow'], active: { cd: 5 }, name: 'Snare Arrow', desc: 'Your next shot roots whoever it hits for 1.8 seconds.' },
   trap:      { tree: 'trapper', active: { cd: 8.5 }, name: 'Bramble Trap', desc: 'Weave a bramble trap at the spot under your cursor (up to 450px away, never over a hole or water); it takes half a second to set, and you move at half speed meanwhile. An enemy who steps on it is rooted for 2.5 seconds and hurt. Up to 2 at once.' },
-  briar:     { tree: 'trapper', active: { cd: 9 }, name: 'Bramble Line', desc: 'Your next shot throws a spinning bramble ball instead of an arrow. It rolls straight along your aim, further and faster the longer you draw (up to 560px), roots every enemy it rolls through for 1.8 seconds and hurts them, and stops at walls and boulders.' },
-  rip:       { tree: 'trapper', active: { cd: 8 }, name: 'Rip', desc: 'Your arrow hits leave a thorn in the target (up to 5, for 10 seconds). Use Rip to tear them all out: 5 damage per thorn, and anyone with 2 or more is rooted for 1 second.' },
+  briar:     { tree: 'trapper', active: { cd: 9 }, name: 'Bramble Toss', desc: 'Your next shot tosses a spinning bramble trap instead of an arrow. It flies straight along your aim, slowly (further and a little faster the longer you draw, up to 760px), roots every enemy it passes through for 1.8 seconds and hurts them, and stops at walls and boulders.' },
+  rip:       { tree: 'trapper', active: { cd: 8 }, name: 'Rip', desc: 'Your arrow hits leave a thorn in the target (up to 5, for 10 seconds). Use Rip and a second later the thorns tear out: 5 damage per thorn, and anyone with 2 or more is rooted for 1 second.' },
   deeproots: { tree: 'trapper', cap: true, name: 'Deep Roots', desc: 'Your roots last twice as long, and rooted enemies take 25% more damage from you.' },
 };
 // Filler cards when a tree runs dry. These stack.
@@ -992,7 +1023,7 @@ function createWorld(cfg = {}) {
     cfg: {
       pointsToWin: cfg.pointsToWin === 5 ? 5 : 3, gamesToWin: 2, // each round is best of three games
       diff: DIFF[cfg.diff] ? cfg.diff : 'normal', map: MAPS[cfg.map] ? cfg.map : 'meadow',
-      opt: Object.assign(optDefaults(), cfg.opt || {}),
+      opt: Object.assign(optDefaults(), cfg.opt || {}), mut: null,
     },
     // a match is won on points; each round (1 point) is won by the first team to win 2 games (best of three)
     match: { ph: 'lobby', rd: 1, gm: 1, T: 0, wins: { red: 0, blue: 0 }, gw: { red: 0, blue: 0 }, picks: 0, opening: false, rw: null, mw: null },
@@ -1000,6 +1031,7 @@ function createWorld(cfg = {}) {
     // finished games and matches for balance stats; the server or the page drains this
     records: [], matchId: null, later: [],
   };
+  rollMut(w);
   return w;
 }
 function ev(w, o) { w.events.push(o); }
@@ -1159,6 +1191,7 @@ function setOption(w, key, val) {
   if (w.match.ph !== 'lobby' || !o || (!o.slider && !(val in o.values))) return false;
   useMap(w);
   w.cfg.opt[key] = o.slider ? optPct(key, val) : val;
+  if (key === 'effect') rollMut(w);
   for (const p of w.players) { applyStats(p); p.hp = p.maxHp; }
   return true;
 }
@@ -1175,7 +1208,7 @@ function toLobby(w) {
   const M = w.match;
   M.ph = 'lobby'; M.T = 0; M.rd = 1; M.gm = 1; M.wins = { red: 0, blue: 0 }; M.gw = { red: 0, blue: 0 }; M.picks = 0; M.opening = false; M.rw = null; M.mw = null;
   w.arrows = []; w.pickups = []; w.zones = []; w.cracks = []; useMap(w);
-  w.players = w.players.filter(p => !p.npc); w.cq = null;
+  w.players = w.players.filter(p => !p.npc); w.cq = null; rollMut(w);
   for (const p of w.players) { p.kills = 0; p.deaths = 0; p.amber = 0; p.earned = 0; p.up = []; p.hones = {}; p.offer = null; p.ready = false; p.streak = 0; p.emp = false; p.empPts = 0; placeForRound(w, p); }
   ev(w, { e: 'phase', ph: 'lobby' });
 }
@@ -1379,6 +1412,7 @@ function placeForRound(w, p) {
   const s = SPAWNS[p.team][Math.max(0, team.indexOf(p)) % 4];
   applyStats(p);
   freshBody(p, s.x, s.y);
+  p.shade = null; p.thornN = 0; p.thornT = 0; p.thornBy = null; // shades and thorns don't carry over
 }
 // a clean start at (x, y): full health, no effects, nothing armed
 function freshBody(p, x, y) {
@@ -1441,7 +1475,7 @@ function gameRecord(w, winner, timedOut) {
   const M = w.match, r = v => Math.round(v * 10) / 10;
   const played = w.players.filter(p => p.lastCause !== 'join' && p.lastCause !== 'switch');
   return {
-    type: 'game', v: 1, gv: VERSION, t: Date.now(), mid: w.matchId, map: w.cfg.map, df: w.cfg.diff, opt: Object.assign({}, w.cfg.opt), rd: M.rd, gm: M.gm,
+    type: 'game', v: 1, gv: VERSION, t: Date.now(), mid: w.matchId, map: w.cfg.map, df: w.cfg.diff, opt: Object.assign({}, w.cfg.opt), mut: w.cfg.mut || undefined, rd: M.rd, gm: M.gm,
     dur: r(w.t - (M.gStart || w.t)), to: timedOut ? 1 : 0, win: winner || null,
     size: [members(w, 'red').length, members(w, 'blue').length],
     p: played.map(p => {
@@ -1707,8 +1741,8 @@ function fire(w, p, ang, c, burst, vol, x3) { // burst: 1-2 a Volley's shots, 4 
   if (p.momT > 0 && has(p, 'momentum')) { speed *= 1.3; dmg *= 1.2; } // Momentum
   const take = k => { const v = !burst && p[k]; if (v) p[k] = false; return v; };
   const recoil = take('recoilArmed'), rocket = take('rocketArmed'), seek = take('seekArmed') || rocket, swap = false, trick = take('trickArmed'), boom = take('boomArmed'), exec = take('execArmed'), bri = take('briarArmed');
-  if (boom) { speed = (420 + 480 * c) * OPT('aspeed'); dmg *= 0.85; } // slower than an arrow, faster the longer it's drawn
-  if (bri) { speed = BRIAR.speed * (0.55 + 0.45 * c) * OPT('aspeed'); }
+  if (boom) { speed = (340 + 380 * c) * OPT('aspeed'); dmg *= 0.75; kb *= 0.85; } // slower than an arrow, faster the longer it's drawn
+  if (bri) { speed = BRIAR.speed * (0.75 + 0.25 * c) * OPT('aspeed'); }
   if (rocket) { dmg *= 0.35; kb *= 0.35; speed = ROCKET.speed; } // a set, slow speed whatever the draw or the arrow speed rule; the burst does the work
   if (recoil) kb *= 1.6;
   if (full && has(p, 'boulder')) kb *= 1.3;
@@ -1728,7 +1762,7 @@ function fire(w, p, ang, c, burst, vol, x3) { // burst: 1-2 a Volley's shots, 4 
       dmg, kb, full, crit: false, heavy, el, bolt, snare, rail, big: has(p, 'colossus') || rocket, seek, rocket, swap, boom, exec, bri, drag: rail || rocket || boom || bri ? 0 : has(p, 'longbow') ? 0.2 : 0.45,
       burst: false, pierce: rail || boom || bri ? 99 : full && has(p, 'pierce') ? 1 : 0, hit: [],
       split: full && !boom && !bri && has(p, 'split'),
-      bounces: boom || bri ? 0 : (p.pw.ricochet > 0 ? 2 : 0) + (has(p, 'ricochet') ? 1 : 0) + (has(p, 'bankshot') ? 1 : 0) + (trick ? 3 : 0), trick, explosive: p.pw.explosive > 0 || rocket, life: rocket ? ROCKET.life : boom ? 6 : bri ? BRIAR.range * (0.6 + 0.4 * c) / Math.max(1, speed) : p.role === 'ninja' ? 0.5 : 2.4, stuck: 0,
+      bounces: boom || bri ? 0 : (p.pw.ricochet > 0 ? 2 : 0) + (has(p, 'ricochet') ? 1 : 0) + (has(p, 'bankshot') ? 1 : 0) + (trick ? 3 : 0), trick, explosive: p.pw.explosive > 0 || rocket, life: rocket ? ROCKET.life : boom ? 6 : bri ? BRIAR.range * (0.55 + 0.45 * c) / Math.max(1, speed) : p.role === 'ninja' ? 0.5 : 2.4, stuck: 0,
       vol: vol || null, sneak, xb, maxDist: xb && !rail && !bri && !boom ? p.xbowRange : 0,
     });
     if (xb) { const A = w.arrows[w.arrows.length - 1]; A.drag = 0.12; }
@@ -1931,6 +1965,8 @@ function stepBody(w, f, mx, my, dt) {
   else if (f.burn > 0) { f.burn -= dt; hurt(w, f, (f.burnDps || 5) * dt, 0, 0, 'burn', null, true); if (f.burn <= 0) f.burnDps = 5; }
   if (!f.dead && f.bleedT > 0) { f.bleedT -= dt; hurt(w, f, 2 * dt, 0, 0, 'bleed', f.bleedBy, true); } // Hemorrhage
   if (!f.dead && f.shade) shadeTick(w, f, dt);
+  const vig = MUTATORS[CFG.mut] && MUTATORS[CFG.mut].regen; // Warden's Vigil
+  if (vig && !f.dead && !f.npc && w.match.ph === 'play' && f.hp < f.maxHp) f.hp = Math.min(f.maxHp, f.hp + vig * dt * (f.poisonT > 0 ? 0.5 : 1));
   if (f.thornT > 0) { f.thornT -= dt; if (f.thornT <= 0) f.thornN = 0; }
   if (!f.dead && f.poisonT > 0) { f.poisonT -= dt; hurt(w, f, f.poisonN * 1.6 * f.poisonMul * dt, 0, 0, 'poison', null, true); if (f.poisonT <= 0) f.poisonN = 0; }
   if (f.dead) return;
@@ -2258,12 +2294,9 @@ function useAbility(w, p, id) {
     case 'rip': { // tear out every thorn you've left in anyone
       const hit = w.players.filter(q => q.team !== p.team && !q.dead && q.thornBy === p.id && q.thornN > 0);
       if (!hit.length) { if (!p.bot) ev(w, { e: 'abFail', id: p.id, why: 'No one has your thorns in them' }); return false; }
-      for (const q of hit) {
-        const n = q.thornN; q.thornN = 0; q.thornT = 0;
-        ev(w, { e: 'rip', id: q.id, by: p.id, x: r1(q.x), y: r1(q.y), n });
-        if (n >= 2) root(q, 1, p);
-        hurt(w, q, 5 * n, 0, 0, 'rip', p.id);
-      }
+      // the vines take hold now and tear a second later (thorns added meanwhile count too)
+      for (const q of hit) { q.thornT = Math.max(q.thornT, RIP_DELAY + 0.5); ev(w, { e: 'ripCast', id: q.id, by: p.id, n: q.thornN }); }
+      w.later.push({ t: RIP_DELAY, ty: 'rip', owner: p.id });
       return true;
     }
     case 'mend': { // the most hurt teammate in reach (by share of health), or yourself
@@ -2695,7 +2728,7 @@ function shadeTick(w, f, dt) {
   ev(w, { e: 'shadeBurst', id: f.id, x: r1(f.x), y: r1(f.y), n: s.n });
   hurt(w, f, shadeDmg(s.n) * big, kx, ky, 'shade', s.by);
 }
-const SHROUD_R = 140, ECLIPSE_R = 150, MEND_RANGE = 350, BRIAR = { speed: 600, range: 560, r: 17, root: 1.8, dmg: 8 };
+const RIP_DELAY = 1, SHROUD_R = 140, ECLIPSE_R = 150, MEND_RANGE = 350, BRIAR = { speed: 430, range: 760, r: 22, root: 1.8, dmg: 8 }; // r: the same size as a Bramble Trap
 function root(f, t, by) { if (by && has(by, 'deeproots')) t *= 2; f.stuck = Math.max(f.stuck, f.sure ? t * 0.4 : t); }
 // elemental and trapper effects when an arrow lands
 function onArrowEffects(w, a, f, primary) {
@@ -2815,7 +2848,7 @@ const XB3 = { n: 3, gap: 0.08, dmg: 0.45, kb: 0.5, spread: 0.035, reload: 1.5 };
 // how far a player's shots reach before dropping, for roles with a short range (null: the whole arena)
 // (shuriken: 1050px/s slowed by drag 2.4 over their 0.45s life, about 0.275s worth of full speed)
 const rangeOf = (w, p) => p.role === 'crossbow' ? Math.round(p.xbowRange || XBOW_RANGE)
-  : p.role === 'ninja' ? Math.round(1050 * optValue((w.cfg || {}).opt, 'aspeed') * 0.275) : null;
+  : p.role === 'ninja' ? Math.round(1050 * optValue((w.cfg || {}).opt, 'aspeed') * mutMul((w.cfg || {}).mut, 'aspeed') * 0.275) : null;
 const SNIPE_FULL = Math.hypot(AW - 2 * WALL, AH - 2 * WALL); // corner to corner
 const VOLLEY_GAP = 0.12, BLINK_RANGE = 300, HARPOON_RANGE = 420, NINJA_BLINK = 150, FLASH_RANGE = 240;
 // is this archer hidden inside smoke from someone standing at (x, y)?
@@ -2991,7 +3024,7 @@ function updateArrows(w, dt) {
       if (a.back) {
         if (!o || o.dead || o.falling > 0) a.life = 0;
         else {
-          const dx = o.x - a.x, dy = o.y - a.y, d = Math.hypot(dx, dy) || 1, sp = Math.max(760 * OPT('aspeed'), Math.hypot(a.vx, a.vy));
+          const dx = o.x - a.x, dy = o.y - a.y, d = Math.hypot(dx, dy) || 1, sp = Math.max(620 * OPT('aspeed'), Math.hypot(a.vx, a.vy));
           a.vx = dx / d * sp; a.vy = dy / d * sp;
           if (d < o.r + 16) {
             w.arrows.splice(i, 1); ev(w, { e: 'catch', id: o.id, x: r1(o.x), y: r1(o.y) });
@@ -3069,7 +3102,7 @@ function updateArrows(w, dt) {
       }
       for (const f of w.players) {
         if (f.team === a.team || f.dead || f.falling > 0 || a.hit.includes(f.id) || f.phaseT > 0) continue;
-        if (Math.hypot(f.x - a.x, f.y - a.y) < f.r + (a.bri ? BRIAR.r : a.boom ? 14 : a.big ? 10 : 4)) {
+        if (Math.hypot(f.x - a.x, f.y - a.y) < f.r + (a.bri ? BRIAR.r : a.boom ? 18 : a.big ? 10 : 4)) {
           if (a.bri) { // a rolling bramble: everyone it rolls through is rooted, then it rolls on
             a.hit.push(f.id); root(f, BRIAR.root, a.own); hurt(w, f, BRIAR.dmg, 0, 0, 'briar', a.owner);
             if (a.own && !a.counted) { a.counted = true; a.own.stats.hits++; }
@@ -3159,9 +3192,18 @@ function spawnAmberPair(w) {
   }
 }
 // powerups appear at the arena's power spots, taking turns so no side is favoured
-function spawnCenterPower(w) {
-  if (w.pickups.some(u => u.type !== 'amber')) return;
-  const spot = MAP.power[w.powerIdx++ % MAP.power.length];
+function spawnCenterPower(w, bounty) {
+  const out = w.pickups.filter(u => u.type !== 'amber');
+  if (out.length >= (bounty ? 3 : 1)) return;
+  let spot = MAP.power[w.powerIdx++ % MAP.power.length];
+  if (out.length) { // Bounty Hunt: the extras land anywhere safe and open, away from the others
+    spot = null;
+    for (let i = 0; i < 40 && !spot; i++) {
+      const x = rand(AW * 0.2, AW * 0.8), y = rand(WALL + 60, AH - WALL - 60);
+      if (lethalDist(x, y) > 60 && !PILLARS.some(q => Math.hypot(x - q.x, y - q.y) < q.r + 30) && !w.pickups.some(u => Math.hypot(u.x - x, u.y - y) < 120)) spot = { x, y };
+    }
+    if (!spot) return;
+  }
   const type = Math.random() < 0.2 ? 'heal' : pick(PU_TIMED);
   w.pickups.push({ id: w.nid++, x: spot.x, y: spot.y, type, life: 16, age: 0 });
   ev(w, { e: 'puSpawn', x: spot.x, y: spot.y, ty: type });
@@ -3210,7 +3252,8 @@ function updatePickups(w, dt) {
   w.chT = (w.chT == null ? 20 : w.chT) - dt;
   if (w.chT <= 0) { w.chT = rand(30, 40); spawnChannel(w); }
   if (w.amberT <= 0 && !w.cq) { w.amberT = rand(3.5, 5); if (w.pickups.filter(u => u.type === 'amber').length < 6) spawnAmberPair(w); }
-  if (w.puT <= 0) { w.puT = rand(12, 16); spawnCenterPower(w); }
+  const bounty = MUTATORS[CFG.mut] && MUTATORS[CFG.mut].bounty;
+  if (w.puT <= 0) { w.puT = bounty ? rand(5, 7.5) : rand(12, 16); spawnCenterPower(w, bounty); }
   for (let i = w.pickups.length - 1; i >= 0; i--) {
     const u = w.pickups[i];
     u.age += dt;
@@ -4396,6 +4439,17 @@ function step(w, dt) {
       if (p) fire(w, p, p.aim + (Math.random() - 0.5) * 2 * XB3.spread, 1, 4);
       continue;
     }
+    if (L.ty === 'rip') { // Rip: tear out every thorn this trapper has left in anyone
+      const p = w.players.find(q => q.id === L.owner);
+      if (p) for (const q of w.players) {
+        if (q.team === p.team || q.dead || q.falling > 0 || q.thornBy !== p.id || !(q.thornN > 0)) continue;
+        const n = q.thornN; q.thornN = 0; q.thornT = 0;
+        ev(w, { e: 'rip', id: q.id, by: p.id, x: r1(q.x), y: r1(q.y), bx: r1(p.x), by2: r1(p.y), n });
+        if (n >= 2) root(q, 1, p);
+        hurt(w, q, 5 * n, 0, 0, 'rip', p.id);
+      }
+      continue;
+    }
     if (L.ty === 'volley') {
       // the rest of the burst follows your aim as it is now
       const p = w.players.find(q => q.id === L.owner && !q.dead && q.falling <= 0 && q.disarm <= 0);
@@ -4435,7 +4489,7 @@ function snapshot(w) {
   return {
     t: r3(w.t),
     m: { ph: M.ph, rd: M.rd, gm: M.gm, T: Math.max(0, Math.ceil(M.T)), wr: M.wins.red, wb: M.wins.blue, gr: M.gw.red, gb: M.gw.blue, rw: M.rw, mw: M.mw,
-      op: M.opening ? 1 : 0, opt: Object.assign({}, w.cfg.opt), ptw: w.cfg.pointsToWin, gtw: w.cfg.gamesToWin, df: w.cfg.diff, map: w.cfg.map, cs: canStart(w) ? 1 : 0,
+      op: M.opening ? 1 : 0, opt: Object.assign({}, w.cfg.opt), mut: w.cfg.mut || undefined, ptw: w.cfg.pointsToWin, gtw: w.cfg.gamesToWin, df: w.cfg.diff, map: w.cfg.map, cs: canStart(w) ? 1 : 0,
       cr: w.cracks && w.cracks.length ? w.cracks.join('') : '', gt: r2(gameTime(w)), pw: powerWarn(w), cq: cqSnap(w), ban: w.cfg.ban && w.cfg.ban.length ? w.cfg.ban.slice() : undefined },
     p: w.players.map(p => {
       const pw = {};
@@ -4621,7 +4675,7 @@ return {
   MASTERY, masteryOf, takeCard, applyStats,
   AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
-  plagueR, BRIAR, SHADE, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
+  plagueR, BRIAR, SHADE, MUTATORS, mutMul, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, BANNER_FRAME, frameAllowed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades

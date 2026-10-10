@@ -2,6 +2,22 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.45.0
+
+- **Map effects:** each match can roll an effect, shown in the lobby (and the ranked draft) before anyone picks, so you can choose your archetype round it, and as a small chip under the round during play:
+  - **Warden's Vigil:** every archer heals 2.5 health a second, all the time. Burst them down, or dig in and outlast.
+  - **Gale Winds:** everyone moves 20% faster and every shot flies 20% faster.
+  - **Juggernaut's Hide:** every archer takes 30% less damage from arrows. Knockback wins.
+  - **Bounty Hunt:** power-ups about twice as often, up to three at once, all over the arena.
+  - About one match in five is calm, with no effect. Hosts can pick one, or none, under Custom rules. Tutorial, training and Strongholds never have one.
+- **New arena: Sideline Sawmill.** One huge boulder in the middle to fight round, with saw blades racing along both sidelines.
+- **Bramble Toss** (was Bramble Line): your next shot tosses an actual bramble trap, the same look and size as a Bramble Trap, spinning as it flies. It's slower, with more reach (up to 760px), and the aim band is as wide as the trap.
+- **Rip:** vines now reach from you to everyone carrying your thorns and pull taut for a second (with a creak), then the thorns tear out and fly back toward you. Thorns no longer carry over between games.
+- **Shadow:** shades no longer carry over between games.
+- **Boomerang:** flies slower and spins faster, a little wider, with a little less damage and knockback to make up for it.
+- **Eyes:** archers blink now and then, each on their own rhythm, and screw their eyes shut for a moment when they're hurt (and while stunned or frozen).
+- **Sounds:** the storm crackle is shorter and higher (it was grating when heard all game), and the stun buzz is much quieter and holds a steady pitch instead of sliding down.
+
 ## 0.44.0
 
 - **Bramble Line, redone for touch screens:** pressing it now arms your next shot instead of firing straight away, so on a phone you press the button, then aim and draw with the other thumb as usual. Your shot becomes a spinning bramble ball that rolls straight along your aim, slower than an arrow (further and faster the longer you draw, up to 560px). It roots everyone it rolls through for 1.8 seconds (8 damage) and stops at walls and boulders. While it's armed, a faint band as wide as the ball shows where it will roll.
