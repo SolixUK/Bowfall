@@ -2,6 +2,19 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.44.0
+
+- **Bramble Line, redone for touch screens:** pressing it now arms your next shot instead of firing straight away, so on a phone you press the button, then aim and draw with the other thumb as usual. Your shot becomes a spinning bramble ball that rolls straight along your aim, slower than an arrow (further and faster the longer you draw, up to 560px). It roots everyone it rolls through for 1.8 seconds (8 damage) and stops at walls and boulders. While it's armed, a faint band as wide as the ball shows where it will roll.
+- **Shadow, stacking:** every hit adds a shade (up to 5) and restarts a 3-second fuse. When the fuse runs out it bursts: barely at one shade (2 damage), hard at five (31). The target gets darker with every shade, and a ring shows the fuse running down. Creeping Dark slows 6% per shade, Night Terror throws harder the more shades there were, Deep Shade is +50%, and Nightfall adds two shades a hit.
+- **Ninja draws its shuriken:** hold to wind up, let go to throw. A full wind-up takes 0.42 seconds and throws faster, further and harder (up to 8.5 damage); a quick flick is weaker. No more click-spam. Flurry winds up 30% faster. Blade Guard's full auto is unchanged.
+- **Boomerang:** it now flies all the way across the arena until it touches a wall or boulder, then comes back. It's slower than an arrow, faster the longer you draw, and spins much faster. It carries your element (frost, fire, poison and the rest), as before.
+- **Smoke Bomb** drops on yourself, not at your cursor, and is bigger (120px).
+- **Sniper:** arrows fly 25% faster (was 10%), and the 10% slower draw is gone; the longer pause between shots stays. In bot tests Snipers were losing because they shot less often, not because they missed.
+- **Rip's thorns are easy to see:** fat barbed spikes round the target with a count, a red ring at 3 or more, and a proper tear-out when you rip them.
+- **Seeker Arrow** (and Firework) now swerve round boulders in their path, and no longer lead a target into a spot behind cover.
+- **Custom games:** a new **Arrow damage** slider (50–200%).
+- **Balance:** checked over about 9,800 bot games. Roles now sit between 47% and 56% (Ninja was 63%, Sniper 42%). Bots' upgrade picks were re-learned, and they arm Bramble Line when a target is in its path and drop Smoke Bomb when hurt or outnumbered.
+
 ## 0.43.0
 
 **Upgrades reworked.** A big pass over the upgrades that felt clunky, gimmicky or invisible. Bots know how to use every new ability.
