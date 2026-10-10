@@ -1689,7 +1689,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.45.0"></script>
+<script src="sim.js?v=0.45.1"></script>
 <script>
 (() => {
 'use strict';
@@ -1697,7 +1697,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.45.0';
+const PAGE_VERSION = '0.45.1';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -1823,7 +1823,7 @@ function predictShot() {
   if (!me || me.d || me.f || me.ro !== 'crossbow' || me.dz || me.su || !((me.xn || 0) > 0 || me.au)) return;
   sfx.xbShot(1, !!me.au); xbPredict = performance.now();
 }
-const fx = { parts: [], floaters: [], rings: [], bolts: [], cones: [], ropes: [], vines: [], ghosts: [], shake: 0, stop: 0, slow: 0, flash: null };
+const fx = { parts: [], floaters: [], rings: [], bolts: [], cones: [], ropes: [], vines: [], thorns: [], ghosts: [], shake: 0, stop: 0, slow: 0, flash: null };
 const TRAIL = new Map(); // player id -> recent positions while flying fast (knockback streaks)
 let feed = [];
 let resultsFor = null;
@@ -6209,15 +6209,14 @@ function handleEvents(evs) {
         if (e.by === myId || e.id === myId) { nz(0.9, 0.05, 'bandpass', 300, 900, 4); os('sawtooth', 70, 140, 0.9, 0.025); tone(180, 0.08, 'square', 0.03, -40); }
         break;
       }
-      case 'rip': { // the thorns tear out and fly back toward the trapper, trailing blood
+      case 'rip': { // the thorns snap out of the victim and whip back into the trapper, one after another, fast
         fx.vines = fx.vines.filter(v => v.tid !== e.id);
-        const bx = e.bx != null ? e.bx : e.x, by = e.by2 != null ? e.by2 : e.y - 1, ba = Math.atan2(by - e.y, bx - e.x), dist = Math.hypot(bx - e.x, by - e.y);
+        const bx = e.bx != null ? e.bx : e.x, by = e.by2 != null ? e.by2 : e.y - 1, ba = Math.atan2(by - e.y, bx - e.x), nx = -Math.sin(ba), ny = Math.cos(ba), dist = Math.hypot(bx - e.x, by - e.y);
         for (let i = 0; i < e.n; i++) {
-          const a0 = ba + (i - (e.n - 1) / 2) * 0.22, sp = Math.min(900, 300 + dist * 1.4) * rand(0.85, 1.1);
-          for (let k = 0; k < 6; k++) fx.parts.push({ x: e.x + Math.cos(a0) * 14, y: e.y + Math.sin(a0) * 14, vx: Math.cos(a0) * sp * (1 - k * 0.1), vy: Math.sin(a0) * sp * (1 - k * 0.1), life: -k * 0.025, max: Math.min(0.8, dist / sp + 0.1), color: k ? '#c8243a' : '#9bd46a', r: k ? 2.2 : 3.6 });
+          const sp = (i - (e.n - 1) / 2) * 0.35;
+          fx.thorns.push({ cid: e.by, cx: bx, cy: by, x0: e.x + Math.cos(ba + sp) * 14, y0: e.y + Math.sin(ba + sp) * 14, nx, ny, bow: (i - (e.n - 1) / 2) * 18, t0: clock + i * 0.035, dur: Math.min(0.22, 0.08 + dist / 3000) });
         }
-        burst(e.x, e.y, '#c8243a', 6 + e.n * 3, 140, 2.4);
-        fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '200,36,58', max: 30 + e.n * 10 });
+        burst(e.x, e.y, '#c8243a', 3 + e.n * 2, 110, 2);
         if (e.id === myId) shake(2 + e.n); if (e.by === myId) shake(1 + e.n * 0.5);
         floater(e.x, e.y - 34, `Rip ×${e.n}`, '#9bd46a', 15 + e.n * 2);
         for (let i = 0; i < Math.min(5, e.n); i++) nz(0.06, 0.06, 'highpass', 2600, 1200, 2, i * 0.04);
@@ -8377,7 +8376,7 @@ function drawArrow(a) {
   if (a.br) { // Bramble Toss: a bramble trap spinning through the air (a little shadow under it shows it's flying)
     const al = a.s > 0 && a.s < 1 ? a.s / 0.6 : 1;
     ctx.save(); ctx.globalAlpha = 0.25 * al; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(a.x + 4, a.y + 10, 20, 9, 0, 0, TAU); ctx.fill(); ctx.restore();
-    ctx.save(); ctx.globalAlpha = al; drawTrapArt(a.x, a.y, 22, a.s ? a.id : clock * 12 + a.id); ctx.restore();
+    ctx.save(); ctx.globalAlpha = al; drawTrapArt(a.x, a.y, 22, a.s ? a.id : clock * 32 + a.id); ctx.restore();
     return;
   }
   if (a.bm && !a.s) { // boomerang: a big spinning bent blade, with a blur of its sweep
@@ -8387,7 +8386,7 @@ function drawArrow(a) {
     ctx.restore(); return;
   }
   const alpha = a.s > 0 && a.s < 1 ? a.s : 1;
-  if (a.xb) { // a crossbow bolt: short, thick, with stiff square vanes
+  if (a.xb && !a.rk) { // a crossbow bolt (a Firework from a crossbow is drawn as a firework, below): short, thick, with stiff square vanes
     ctx.save(); ctx.globalAlpha = alpha; ctx.translate(a.x, a.y); ctx.rotate(a.g);
     if (!a.s) {
       const col = a.sn ? '155,229,100' : EL_RGB[a.el] || '230,230,240';
@@ -8760,18 +8759,23 @@ function drawAbilityFx(v) {
     ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.arc(c.x, c.y, 60 + 190 * k, c.a - 0.7, c.a + 0.7); ctx.closePath(); ctx.fill();
   }
   fx.vines = fx.vines.filter(vn => clock - vn.t0 < vn.max);
-  for (const vn of fx.vines) { // Rip's vines: wriggling, then pulled tight just before they tear
+  for (const vn of fx.vines) { // Rip winding up: the victim's thorns strain toward the trapper, with a faint red pulse
     const T = v.p.find(q => q.id === vn.tid), C = v.p.find(q => q.id === vn.cid); if (!T || !C || T.d) continue;
-    const k = (clock - vn.t0) / vn.max, dx = T.x - C.x, dy = T.y - C.y, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L, amp = 10 * (1 - k) + 1.5 * Math.sin(clock * 40) * k;
-    ctx.save(); ctx.lineCap = 'round';
-    for (const [col, wd] of [['#3f2a14', 5], ['#6f8f3c', 2.8]]) {
-      ctx.strokeStyle = col; ctx.lineWidth = wd; ctx.beginPath();
-      for (let i = 0; i <= 24; i++) { const f = i / 24, w2 = Math.sin(f * Math.PI * 5 - clock * 12) * amp * Math.sin(f * Math.PI), x = C.x + dx * f + nx * w2, y = C.y + dy * f + ny * w2; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
-      ctx.stroke();
-    }
-    ctx.fillStyle = '#9bd46a'; for (let i = 1; i < 6; i++) { const f = i / 6, w2 = Math.sin(f * Math.PI * 5 - clock * 12) * amp * Math.sin(f * Math.PI); ctx.beginPath(); ctx.arc(C.x + dx * f + nx * w2, C.y + dy * f + ny * w2, 2.2, 0, TAU); ctx.fill(); }
-    ctx.strokeStyle = `rgba(200,36,58,${0.3 + 0.5 * k})`; ctx.lineWidth = 2 + 2 * k; ctx.beginPath(); ctx.arc(T.x, T.y, (T.rz || 16) + 4 + 6 * (1 - k), 0, TAU); ctx.stroke();
+    const k = (clock - vn.t0) / vn.max, a = Math.atan2(C.y - T.y, C.x - T.x), R = T.rz || 16, j = 1.5 * k * Math.sin(clock * 60);
+    ctx.save(); ctx.translate(T.x + Math.cos(a) * j, T.y + Math.sin(a) * j);
+    ctx.strokeStyle = `rgba(200,36,58,${0.15 + 0.35 * k})`; ctx.lineWidth = 1.5 + 1.5 * k; ctx.beginPath(); ctx.arc(0, 0, R + 3, a - 1.1, a + 1.1); ctx.stroke();
     ctx.restore();
+  }
+  fx.thorns = fx.thorns.filter(t => clock - t.t0 < t.dur);
+  for (const t of fx.thorns) { // Rip: each thorn snaps out of the victim and whips into the trapper
+    const k = (clock - t.t0) / t.dur; if (k < 0) continue;
+    const C = v.p.find(q => q.id === t.cid), cx = C ? C.x : t.cx, cy = C ? C.y : t.cy, e = k * k * (3 - 2 * k);
+    const x = lerp(t.x0, cx, e) + t.nx * Math.sin(k * Math.PI) * t.bow, y = lerp(t.y0, cy, e) + t.ny * Math.sin(k * Math.PI) * t.bow, a = Math.atan2(cy - t.y0, cx - t.x0);
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a + Math.PI); // point back at where it came from, barb first
+    ctx.fillStyle = '#3f2a14'; ctx.beginPath(); ctx.moveTo(-6, -3.4); ctx.lineTo(9, 0); ctx.lineTo(-6, 3.4); ctx.fill();
+    ctx.fillStyle = '#9bd46a'; ctx.beginPath(); ctx.moveTo(-4, -2); ctx.lineTo(7, 0); ctx.lineTo(-4, 2); ctx.fill();
+    ctx.restore();
+    if (Math.random() < 0.6) fx.parts.push({ x, y, vx: rand(-20, 20), vy: rand(-20, 20), life: 0, max: 0.25, color: '#c8243a', r: rand(1.2, 2) });
   }
   for (const r of fx.ropes) {
     const p = v.p.find(q => q.id === r.id), live = p && p.gr;

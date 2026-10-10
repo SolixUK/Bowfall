@@ -2,6 +2,12 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.45.1
+
+- **Bramble Toss** spins much faster and flies a bit slower.
+- **Crossbow Fireworks** now look like fireworks (they were drawn as bolts), and they no longer slow down and drop at bolt range like a bolt did.
+- **Rip:** the green vine tether is gone. While Rip winds up, the victim's thorns strain toward you under a faint red glow; then the thorns snap out and whip across into you one after another, very fast, trailing a little blood.
+
 ## 0.45.0
 
 - **Map effects:** each match can roll an effect, shown in the lobby (and the ranked draft) before anyone picks, so you can choose your archetype round it, and as a small chip under the round during play:

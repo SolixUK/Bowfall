@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.45.0';
+const VERSION = '0.45.1';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1763,9 +1763,9 @@ function fire(w, p, ang, c, burst, vol, x3) { // burst: 1-2 a Volley's shots, 4 
       burst: false, pierce: rail || boom || bri ? 99 : full && has(p, 'pierce') ? 1 : 0, hit: [],
       split: full && !boom && !bri && has(p, 'split'),
       bounces: boom || bri ? 0 : (p.pw.ricochet > 0 ? 2 : 0) + (has(p, 'ricochet') ? 1 : 0) + (has(p, 'bankshot') ? 1 : 0) + (trick ? 3 : 0), trick, explosive: p.pw.explosive > 0 || rocket, life: rocket ? ROCKET.life : boom ? 6 : bri ? BRIAR.range * (0.55 + 0.45 * c) / Math.max(1, speed) : p.role === 'ninja' ? 0.5 : 2.4, stuck: 0,
-      vol: vol || null, sneak, xb, maxDist: xb && !rail && !bri && !boom ? p.xbowRange : 0,
+      vol: vol || null, sneak, xb, maxDist: xb && !rail && !bri && !boom && !rocket ? p.xbowRange : 0,
     });
-    if (xb) { const A = w.arrows[w.arrows.length - 1]; A.drag = 0.12; }
+    if (xb && !rocket && !boom && !bri) { const A = w.arrows[w.arrows.length - 1]; A.drag = 0.12; }
   }
   p.over = 0;
   if (recoil) { p.vx -= Math.cos(ang) * 640; p.vy -= Math.sin(ang) * 640; p.knock = Math.max(p.knock, 0.3); ev(w, { e: 'recoil', id: p.id, x: r1(p.x), y: r1(p.y) }); }
@@ -2728,7 +2728,7 @@ function shadeTick(w, f, dt) {
   ev(w, { e: 'shadeBurst', id: f.id, x: r1(f.x), y: r1(f.y), n: s.n });
   hurt(w, f, shadeDmg(s.n) * big, kx, ky, 'shade', s.by);
 }
-const RIP_DELAY = 1, SHROUD_R = 140, ECLIPSE_R = 150, MEND_RANGE = 350, BRIAR = { speed: 430, range: 760, r: 22, root: 1.8, dmg: 8 }; // r: the same size as a Bramble Trap
+const RIP_DELAY = 1, SHROUD_R = 140, ECLIPSE_R = 150, MEND_RANGE = 350, BRIAR = { speed: 350, range: 760, r: 22, root: 1.8, dmg: 8 }; // r: the same size as a Bramble Trap
 function root(f, t, by) { if (by && has(by, 'deeproots')) t *= 2; f.stuck = Math.max(f.stuck, f.sure ? t * 0.4 : t); }
 // elemental and trapper effects when an arrow lands
 function onArrowEffects(w, a, f, primary) {
