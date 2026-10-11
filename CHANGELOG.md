@@ -2,6 +2,30 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.52.1
+
+- **No endless upgrades in the tutorial's practice:** after a normal match's worth of picks (the opening and three more) the rounds just carry on, so the fight stays realistic however long you keep playing. Custom games can use the same limit (`cfg.maxPicks`).
+- **A better rating guess from the tutorial:**
+  - The early easy wins no longer count: only the games from the first time the bot overshoots you (a loss after wins, or a win after losses) are used. Until then the guess is simply the rating of the bot it has climbed to.
+  - The guess is now the rating that best explains those results against bots of known rating (solved properly, with a little prior so a run of wins can't run away).
+  - It's saved on your account (or guest record), so it counts whichever device you play on next, and a guess from more games replaces an older one.
+  - Its weight in your starting rating goes from 15% (one game past the overshoot) to 60% (four or more), and with it the starting range widens to 450–1150.
+- **Measured bot ratings:** the bot's rating at each skill level is now measured, not assumed. The tutorial's Flame Ranger played 240 games at each of ten skill levels against matchmaking's AI players: from about 470 at the easiest to about 1,850 at the top, on the AI players' rating scale (so a new player's guess lines up with the AI players they'll be matched against). `tools/calibrate-tutorial-bot.js` re-runs it.
+
+## 0.52.0
+
+**Tutorial**
+- **Time to see what you did:** the steps wait a moment after you've done the thing (about a second after a dash, or after an arrow lands) before moving on.
+- **The dodge dummy aims like a person:** it sees where you were about a quarter of a second ago, turns its bow at a human pace and stops adjusting just before it lets go, so a well-timed dash gets you clear.
+- **The ability step** moves on once your arrow hits the dummy, not the moment you shoot.
+- **Words for your controls:** on a controller it names the controller's buttons; on a phone it says what to tap, and the Q or Dash button lights up when a step needs it. The dash step says "where you're aiming" if that's how you've set your dash, and the dodge step mentions the Dash direction setting (not on touch screens).
+- **Your archer:** the step now just says you pick one element and one role, and what each gives you, instead of listing them all.
+- **Easier to read:** about 12 words a line, bigger, brighter text; smaller on phones, and it stays on screen.
+- **An adaptive final fight:** against a Flame Ranger that starts easy, gets a bit better after each game you win and a bit easier after each you lose, with smaller steps once it overshoots. The match never ends, so you can keep practising as long as you like; the note shrinks into the corner, says the bot adjusts to you, and offers **Find a match** or **Main menu**. Where the bot settles becomes a first guess at your rating (blended into your starting rating once you've played two or more games against it).
+
+**Other**
+- **Subtler frost:** the cold haze round chilled archers is thinner, with far fewer, fainter specks in its trail.
+
 ## 0.51.0
 
 - **Void reworked around marks:** every Void hit puts a void mark on the target (up to 5), shown as violet motes circling them, brighter for the archer who placed them. Marks fade 2.5 seconds after your last hit. From the second mark on, your own arrows curve toward that archer, only a touch at first and more with every mark, and only on shots already heading their way. In a test at 500px, an unmarked target needed aim within about 3°; at 2 marks about 4°, 3 marks 6°, 4 marks 8° and 5 marks 9°.

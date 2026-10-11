@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.51.0';
+const VERSION = '0.52.1';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1397,7 +1397,7 @@ function botPickIndex(p, w) {
 }
 function startPick(w) {
   const M = w.match;
-  if (OPT('upg') === 2) { // upgrades off: straight on to the next round
+  if (OPT('upg') === 2 || (w.cfg.maxPicks != null && M.picks >= w.cfg.maxPicks)) { // upgrades off (or a practice that's had a full match's worth): straight on
     for (const p of w.players) { p.offer = null; p.picked = true; }
     return finishPick(w);
   }

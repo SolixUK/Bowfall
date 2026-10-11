@@ -404,13 +404,14 @@
   .scrow .n { color: var(--muted); }
   .scrow b { font: 700 16px 'Rajdhani', 'Arial Narrow', sans-serif; font-variant-numeric: tabular-nums; }
   /* tutorial coach */
-  .coach { position: absolute; z-index: 4; transform: translate(-50%, -100%); width: min(520px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 6px; padding: 12px 16px; background: rgba(9,18,11,.9); border: 1px solid var(--gold); pointer-events: auto; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%); }
-  .coach .eyebrow { font-size: 12px; }
-  .coach b { font: 700 20px/1.2 'Rajdhani', 'Arial Narrow', sans-serif; }
-  .coach small { color: var(--muted); font-size: 13px; }
+  .coach { position: absolute; z-index: 4; transform: translate(-50%, -100%); width: min(470px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 7px; padding: 14px 18px; background: rgba(9,18,11,.9); border: 1px solid var(--gold); pointer-events: auto; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%); }
+  .coach .eyebrow { font-size: 13px; }
+  .coach b { font: 700 20px/1.25 'Rajdhani', 'Arial Narrow', sans-serif; }
+  .coach small { color: #c9d4c6; font-size: 15px; line-height: 1.45; }
   .coachbar { height: 3px; background: rgba(255,255,255,.1); }
   .coachbar i { display: block; height: 100%; background: var(--gold); transition: width .3s; }
   .coach .btnrow { justify-content: flex-end; }
+  .tb.tuthl { box-shadow: 0 0 0 3px var(--gold), 0 0 22px rgba(255,207,90,.7); animation: tuthl 1s ease-in-out infinite; } @keyframes tuthl { 50% { box-shadow: 0 0 0 5px var(--gold), 0 0 30px rgba(255,207,90,.9); } }
   .coach.done { border-color: #7dff8a; }
   .coach .coachesc { font-size: 12px; opacity: .8; }
   .coach { transition: opacity .2s; }
@@ -419,6 +420,8 @@
   .coach.mini #coachHint, .coach.mini .coachesc { display: none; }
   .coach.mini.done #coachHint { display: block; }
   .coach.faded { opacity: .15; pointer-events: none; }
+  body.touchmode .coach { width: min(380px, 46vw); padding: 8px 12px; gap: 4px; } body.touchmode .coach b { font-size: 15px; line-height: 1.25; } body.touchmode .coach small { font-size: 12px; line-height: 1.35; } body.touchmode .coach .eyebrow { font-size: 11px; } body.touchmode .coach .coachesc { display: none; } body.touchmode .coach .btnrow button { padding: 5px 9px; font-size: 12px; }
+  body.touchmode .coach.mini { width: min(260px, 36vw); }
   @media (max-width: 720px) { .profgrid { grid-template-columns: 1fr; } .mm b { font-size: 21px; } }
   .card.gate { max-width: 760px; }
   .gatecols { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
@@ -1879,7 +1882,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.51.0"></script>
+<script src="sim.js?v=0.52.1"></script>
 <script>
 (() => {
 'use strict';
@@ -1887,7 +1890,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.51.0';
+const PAGE_VERSION = '0.52.1';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -2652,6 +2655,18 @@ let ABSWAP = store.get('bowfall-abswap', '0') === '1';
 const abSwapped = () => ABSWAP && !TOUCH.on;
 const abKey = i => (usingPad() ? padBtn(i ? 'e' : 'q') : keyName(BINDS[i ? 'ab2' : 'ab1'][0]) || 'QE'[i]);
 // tutorial and hint lines written for the keyboard, said the controller's way when you're on one
+// the tutorial's words for touch screens (the buttons it means also light up)
+function touchify(t) {
+  if (!TOUCH.on || !t) return t;
+  return t.replace('Move with W A S D, or the left stick.', 'Move with your left thumb: touch anywhere on the left of the screen and slide.')
+    .replace('Aim with the mouse. Hold the left button to draw, then let go to shoot the dummy.', 'Put your right thumb down on the right of the screen and slide to aim. It draws while held: let go to shoot the dummy.')
+    .replace('Hold until the ring round your cursor turns white', 'Hold until the ring round your aim turns white')
+    .replace(/Press Space to dash[^.]*\./, 'Tap the Dash button to dash the way you\'re moving.').replace('Press Space to dash out of the way.', 'Tap Dash to get out of the way.')
+    .replace('Press Q to use', 'Tap the Q button to use').replace('press 1, 2 or 3', 'tap a card');
+}
+function tutHighlight(k) {
+  for (const id of ['tbQ', 'tbDash']) { const b = $(id); if (b) b.classList.toggle('tuthl', TUT.on && TOUCH.on && ((id === 'tbQ' && k === 'ability') || (id === 'tbDash' && (k === 'dash' || k === 'dodge')))); }
+}
 function padify(t) {
   if (!usingPad() || !t) return t;
   const P = n => padBtn(n);
@@ -3281,13 +3296,13 @@ const TUT_STEPS = [
   { k: 'move', title: 'Move', text: 'Move with W A S D, or the left stick.', hint: 'You take a moment to get up to speed and slide a little when you let go. Momentum matters: plan your stops.' },
   { k: 'shoot', title: 'Shoot', text: 'Aim with the mouse. Hold the left button to draw, then let go to shoot the dummy.', hint: 'The longer you hold, the faster and harder the arrow flies. You move slower while drawing.' },
   { k: 'full', title: 'Full draw', text: 'Hold until the ring round your cursor turns white, then hit the dummy with a full draw.', hint: 'Full draws hit hardest and knock back furthest. An arrow through the middle of a target is a bullseye: 1.5× damage.' },
-  { k: 'dash', title: 'Dash', text: 'Press Space to dash the way you\'re moving.', hint: 'Dashing jumps pits, lava and water, and shoves anyone you run into. It recharges in about a second.' },
-  { k: 'dodge', title: 'Dodge', text: 'The dummy shoots back now. Watch its bow: a white spark means a full-power shot. Press Space to dash out of the way. Dodge 2 shots.', hint: 'Dash sideways just as it lets go. Reading the spark is how good players never get caught.' },
+  { k: 'dash', title: 'Dash', text: 'Press Space to dash {dashdir}.', hint: 'Dashing jumps pits, lava and water, and shoves anyone you run into. It recharges in about a second.' },
+  { k: 'dodge', title: 'Dodge', text: 'The dummy shoots back now. A white spark on its bow means a full-power shot. Press Space to dash out of the way. Dodge 2 shots.', hint: 'Dash sideways just as it lets go.{dodgeopt}' },
   { k: 'ability', title: 'Ability', text: 'Press Q to use your ability, {ab}, then shoot the dummy.', hint: 'Abilities come from your role. You pick your first before round 1, and can earn a second one later.' },
   { k: 'knock', title: 'Knockback', text: 'Knockback is your real weapon. Shoot the dummy into the pit.', hint: 'Anything that falls in a pit or water is out at once, whatever its health. Walls hurt when you\'re thrown into them, and lava burns.' },
-  { k: 'build', title: 'Your archer', info: true, text: 'Every archer is an element plus a role. You\'re a {arch}.', hint: '{els} Roles set your health, speed, a built-in trait and your abilities: {ros}. Mix any two in a lobby.' },
-  { k: 'pick', title: 'Your first pick', text: 'Now a real game against an easy bot. Choose your opening ability: press 1, 2 or 3.', hint: 'After every round you pick one of three upgrades, and they build on each other. That\'s where your archer becomes yours.' },
-  { k: 'fight', title: 'Fight', text: 'Win a game: knock the bot out.', hint: 'Keep moving so it can\'t line up a shot, and back it towards a pit or a wall before you let a full draw go.' },
+  { k: 'build', title: 'Your archer', info: true, text: 'Every archer is one element plus one role. You\'re a {arch}.', hint: 'Your element adds an effect to every arrow. Your role sets your health, speed and abilities. Each has its own upgrades, and you can pick any pair before a game.' },
+  { k: 'pick', title: 'Your first pick', text: 'Now a real game against a bot. Choose your opening ability: press 1, 2 or 3.', hint: 'After every round you pick one of three upgrades, and they build on each other.' },
+  { k: 'fight', title: 'Fight', text: 'Win a game: knock the bot out.', hint: 'Keep moving, and back it towards a pit or a wall before a full draw.' },
 ];
 const EL_VERB = { frost: 'slows', flame: 'burns', storm: 'chains lightning', poison: 'stacks poison', stone: 'staggers', void: 'pulls enemies together', shadow: 'blinds', blood: 'heals you' };
 const tutIdx = k => TUT_STEPS.findIndex(s => s.k === k);
@@ -3333,14 +3348,21 @@ function tutGuard() {
   d.hp = d.maxHp; if (d.falling > 0) Object.assign(d, { falling: 0 }); placeTutDummy(false);
   if (k === 'dodge' && me) {
     // a slow, readable rhythm: a pause, a full draw aimed straight at you (no leading), the release
-    d.input.aim = Math.atan2(me.y - d.y, me.x - d.x); d.input.tx = me.x; d.input.ty = me.y;
-    const D = TUT.dg || (TUT.dg = { t: 1.4, draw: false });
+    // it sees where you were about a quarter of a second ago, turns its bow at a human pace, and stops adjusting just
+    // before it lets go, so a well-timed dash really gets you out of the way
+    const D = TUT.dg || (TUT.dg = { t: 1.4, draw: false, hist: [], aim: Math.atan2(me.y - d.y, me.x - d.x) });
+    D.hist.push({ x: me.x, y: me.y }); if (D.hist.length > 16) D.hist.shift();
+    const seen = D.hist[0], want = Math.atan2(seen.y - d.y, seen.x - d.x), diff = ((want - D.aim + Math.PI) % TAU + TAU) % TAU - Math.PI;
+    if (!(D.draw && D.t < 0.18)) D.aim += clamp(diff, -2.6 * STEP, 2.6 * STEP);
+    d.input.aim = D.aim; d.input.tx = d.x + Math.cos(D.aim) * 300; d.input.ty = d.y + Math.sin(D.aim) * 300;
     D.t -= STEP;
     if (!D.draw) { if (D.t <= 0) { D.draw = true; D.t = 1.35; } }
     else { d.input.draw = D.t > 0; if (D.t <= 0) { D.draw = false; D.t = 1.6; } }
   }
 }
+function tutLater(t) { TUT.nextAt = clock + t; }
 function tutNext() {
+  TUT.nextAt = null;
   TUT.step++; TUT.full = false; TUT.abUsed = false; TUT.shots = []; TUT.dodged = 0; TUT.dg = null;
   play('tutStep');
   const k = tutStep();
@@ -3352,7 +3374,11 @@ function tutSkipToMatch() { TUT.step = tutIdx('pick') - 1; tutNext(); }
 function startTutFight() {
   world = Sim.createWorld({ map: 'meadow', diff: 'easy', opt: { effect: 'none' } });
   const me = Sim.join(world, { name: playerName(), team: 'red', element: TUT_LOADOUT.el, role: TUT_LOADOUT.ro });
-  const bot = Sim.addBot(world, 'blue'); Sim.setLoadout(world, bot.id, 'flame', 'juggernaut');
+  const bot = Sim.addBot(world, 'blue'); Sim.setLoadout(world, bot.id, 'flame', 'ranger'); bot.name = 'Bot';
+  // an adaptive bot: it starts easy and gets better or worse after each game, so it settles near your level (and that
+  // gives a first guess at your rating); the match never ends, so you can keep practising as long as you like
+  world.cfg.pointsToWin = 99; world.cfg.maxPicks = 4; // and after a normal match's worth of picks (the opening and three more), no more upgrades
+  TUT.ad = { w: world, bot: bot.id, s: 0.04, step: 0.14, last: 0, games: [] }; bot.dparams = Sim.skillParams(TUT.ad.s);
   Sim.startMatch(world);
   world.events.length = 0; world.records.length = 0;
   myId = me.id; prevPos = null; hc = {}; acc = 0; RP.buf = []; RP.evs = []; RP.on = null; pendingSummary = null;
@@ -3362,47 +3388,84 @@ function tutDone() {
   TUT.step = TUT_STEPS.length; store.set('bowfall-tut', 'done'); drawTutBadge();
   renderCoach(); play('tutDone');
 }
+// a bot skill (0 easy … 1 master) as a rating, between the bot levels' ratings
+// (measured: 2,400 games of this Flame Ranger at each skill against matchmaking's AI players, on their rating scale)
+const SKILL_ELO = [[0, 470], [0.1, 555], [0.2, 630], [0.3, 675], [0.42, 865], [0.55, 1140], [0.66, 1360], [0.78, 1545], [0.9, 1800], [1, 1850]];
+function skillElo(s) { let i = 0; while (i < SKILL_ELO.length - 2 && s > SKILL_ELO[i + 1][0]) i++; const [a, ea] = SKILL_ELO[i], [b, eb] = SKILL_ELO[i + 1]; return ea + (eb - ea) * (s - a) / (b - a); }
+const SKILL_NAME = s => s < 0.15 ? 'Easy' : s < 0.42 ? 'Normal' : s < 0.66 ? 'Hard' : s < 0.9 ? 'Extreme' : 'Master';
+function tutAdapt(evs) {
+  const A = TUT.ad; if (!A || A.w !== world || mode !== 'local') return;
+  for (const e of evs) {
+    if (e.e !== 'gameEnd' || e.rw === 'draw') continue;
+    const won = e.rw === 'red';
+    A.games.push({ s: A.s, w: won ? 1 : 0 });
+    const dir = won ? 1 : -1;
+    if (A.last && dir !== A.last) A.step = Math.max(0.04, A.step * 0.6); // overshot: smaller steps from here
+    A.last = dir; A.s = clamp(A.s + dir * A.step, 0, 1);
+    const b = world.players.find(q => q.id === A.bot); if (b) b.dparams = Sim.skillParams(A.s);
+    // a first guess at a rating. The easy early games say little (everyone wins them), so only the games from the first
+    // time the bot overshoots count: the rating that best explains those results against bots of those ratings (Elo,
+    // solved numerically). Until it has overshot, all we know is you're at least as good as the bot it's climbed to.
+    if (A.flip == null && A.games.length >= 2 && A.games[A.games.length - 1].w !== A.games[A.games.length - 2].w) A.flip = A.games.length - 2;
+    const G = A.flip == null ? [] : A.games.slice(A.flip);
+    let est;
+    if (!G.length) est = Math.round(skillElo(A.s));
+    else {
+      const W = G.reduce((t, g) => t + g.w, 0) + 0.5, L = G.length - W + 1; // half a win and half a loss of prior, so all-wins doesn't run off to infinity
+      let lo = 200, hi = 2200;
+      for (let k = 0; k < 30; k++) { const R = (lo + hi) / 2, exp = G.reduce((t, g) => t + 1 / (1 + Math.pow(10, (skillElo(g.s) - R) / 400)), 0) + 0.5 / (1 + Math.pow(10, (skillElo(A.s) - R) / 400)); if (exp < W) lo = R; else hi = R; }
+      est = Math.round(lo); void L;
+    }
+    store.set('bowfall-tutest', JSON.stringify({ est, n: G.length, all: A.games.length }));
+    if (!OFFLINE && G.length >= 2 && SOC.ws && SOC.ws.readyState === 1) socialHello(); // so a first rating can use it
+    if (TUT.step >= TUT_STEPS.length) renderCoach();
+  }
+}
 function tutEvents(evs) {
+  tutAdapt(evs);
   if (!TUT.on) return;
   const k = tutStep();
   for (const e of evs) {
-    if (k === 'shoot' && e.e === 'hit' && e.by === myId) return tutNext();
+    if (TUT.nextAt) continue; // already done: waiting a moment so you can see it
+    if (k === 'shoot' && e.e === 'hit' && e.by === myId) return tutLater(0.9);
     if (k === 'full' && e.e === 'fire' && e.id === myId) TUT.full = e.c >= 0.99;
-    if (k === 'full' && e.e === 'hit' && e.by === myId && TUT.full) return tutNext();
+    if (k === 'full' && e.e === 'hit' && e.by === myId && TUT.full) return tutLater(0.9);
     if (k === 'full' && e.e === 'hit' && e.by === myId && !TUT.full) notice('Nearly: hold until the ring turns white.', false);
-    if (k === 'dash' && e.e === 'dash' && e.id === myId) return tutNext();
+    if (k === 'dash' && e.e === 'dash' && e.id === myId) { TUT.dashes = (TUT.dashes || 0) + 1; return tutLater(1.3); }
     if (k === 'dodge' && e.e === 'fire' && e.id === TUT.dummy) TUT.shots.push({ t: clock, hit: false });
     if (k === 'dodge' && e.e === 'hit' && e.id === myId) { const s = TUT.shots[TUT.shots.length - 1]; if (s && !s.hit) { s.hit = true; notice('Hit! Dash sideways just as it lets go.', false); } }
-    if (k === 'ability' && e.e === 'fire' && e.id === myId && TUT.abUsed) return tutNext();
+    if (k === 'ability' && e.e === 'hit' && e.by === myId && TUT.abUsed) return tutLater(1);
     if (k === 'knock' && e.e === 'kill' && e.v === TUT.dummy && !TUT.fightAt) { TUT.fightAt = clock + 1.6; notice('Ring out!', true, '#7dff8a'); }
     if (k === 'pick' && e.e === 'phase' && e.ph === 'play') return tutNext();
     if (k === 'fight' && e.e === 'gameEnd') {
       if (e.rw === 'red') tutDone();
-      else $('coachHint').textContent = 'The bot took that one. The next game starts in a moment: try backing it towards a pit before your full draw.';
+      else { renderCoach(); $('coachHint').textContent = 'The bot took that one, so it eases off a little. Try backing it towards a pit before your full draw.'; }
     }
   }
 }
 function tutTick(dt) {
   if (!TUT.on || !world) return;
   const me = world.players.find(q => q.id === myId), k = tutStep();
-  if (k === 'move' && me && Math.hypot(me.x - TUT.start.x, me.y - TUT.start.y) > 160) tutNext();
+  if (TUT.nextAt && clock >= TUT.nextAt) return tutNext();
+  if (k === 'move' && me && Math.hypot(me.x - TUT.start.x, me.y - TUT.start.y) > 160 && !TUT.nextAt) tutLater(0.4);
   if (k === 'knock' && TUT.fightAt && clock > TUT.fightAt) { TUT.fightAt = null; tutNext(); }
   if (k === 'ability' && me && me.abCd[0] > 0) TUT.abUsed = true;
   if (k === 'dodge') {
     // a shot that's been flying a second without hitting you was dodged
     for (const s of TUT.shots) if (!s.hit && !s.done && clock - s.t > 1) { s.done = true; TUT.dodged++; floater(me ? me.x : 0, me ? me.y - 40 : 0, `Dodged ${TUT.dodged}/2`, '#7dff8a', 17, true); play('tutDodge'); }
-    if (TUT.dodged >= 2) return tutNext();
+    if (TUT.dodged >= 2 && !TUT.nextAt) tutLater(0.8);
   }
   const b = $('coachBar'); if (b) b.style.width = Math.round(Math.min(TUT.step, TUT_STEPS.length) / TUT_STEPS.length * 100) + '%';
 }
 // on the dummy the coach sits big at the bottom middle; in the real game it shrinks into the bottom-left corner
 // and fades almost away whenever an archer is behind it, so it never hides the fight
-const coachMini = () => TUT.on ? TUT.step >= tutIdx('fight') && TUT.step < TUT_STEPS.length : TR.on ? !TR.done : false;
+const coachMini = () => TUT.on ? TUT.step >= tutIdx('fight') : TR.on ? !TR.done : false; // (the finished tutorial keeps playing, so its note stays small too)
 function placeCoach() {
   const c = $('coach'); if (!c) return;
   c.classList.toggle('mini', coachMini());
-  if (coachMini()) { c.style.left = (OX + 10) + 'px'; c.style.top = (OY + AH * VS - 44) + 'px'; } // clear of the Empower meter
-  else { c.style.left = (OX + AW * VS / 2) + 'px'; c.style.top = (OY + AH * VS - 12) + 'px'; }
+  const bottom = Math.min(OY + AH * VS, cv.clientHeight || innerHeight); // on phones the arena can run past the screen's edge
+  if (coachMini()) { c.style.left = (Math.max(0, OX) + 10) + 'px'; c.style.top = (bottom - 44) + 'px'; } // clear of the Empower meter
+  else { c.style.left = (OX + AW * VS / 2) + 'px'; c.style.top = (bottom - 12) + 'px'; }
 }
 function coachFade() {
   const c = $('coach'); if (!c || c.hidden || !view) return;
@@ -3419,23 +3482,25 @@ function renderCoach() {
   placeCoach();
   c.classList.toggle('done', TUT.step >= TUT_STEPS.length);
   if (TUT.step >= TUT_STEPS.length) {
-    $('coachStep').textContent = 'Tutorial complete';
-    $('coachText').textContent = 'You won! That\'s everything you need.';
-    $('coachHint').textContent = 'Play the rest of this match, or jump into a real one. In any lobby you can pick your own element and role.';
-    $('coachBtns').innerHTML = `<button class="ghost sm" type="button" id="coachStay">Keep playing</button>${OFFLINE ? '' : '<button class="cta" type="button" id="coachFind">Find a match</button>'}<button class="${OFFLINE ? 'cta' : 'ghost sm'}" type="button" id="coachCustom">Custom games</button>`;
-    $('coachStay').onclick = () => { c.hidden = true; TUT.on = false; };
+    const A = TUT.ad, n = A ? A.games.length : 0;
+    $('coachStep').textContent = `Tutorial complete${A ? ` · game ${n + 1} · bot: ${SKILL_NAME(A.s)}` : ''}`;
+    $('coachText').textContent = 'You won! Keep practising as long as you like.';
+    $('coachHint').textContent = 'The bot adjusts to how you play after every game. When you\'re ready, find a real match.';
+    $('coachBtns').innerHTML = `${OFFLINE ? '' : '<button class="cta sm" type="button" id="coachFind">Find a match</button>'}<button class="ghost sm" type="button" id="coachQuit">Main menu</button>`;
     if ($('coachFind')) $('coachFind').onclick = () => { toMenu(); openSub('findScr'); };
-    $('coachCustom').onclick = () => { toMenu(); openSub('customScr'); };
+    $('coachQuit').onclick = () => toMenu();
     return;
   }
   const S = TUT_STEPS[TUT.step], me = world && world.players.find(q => q.id === myId);
   const ab = me && me.slots && me.slots[0] ? Sim.TREE[me.slots[0]].name : 'your ability';
   const list = a => a.slice(0, -1).join(', ') + ' or ' + a[a.length - 1];
-  const fill = t => t.replace('{ab}', ab).replace('{arch}', ELEMENTS[TUT_LOADOUT.el].name + ' ' + ROLES[TUT_LOADOUT.ro].name)
+  const fill = t => t.replace('{ab}', ab).replace('{dashdir}', !TOUCH.on && !dashMove() ? 'where you\'re aiming' : 'the way you\'re moving')
+    .replace('{dodgeopt}', TOUCH.on ? '' : ' Dash goes the way you move; you can make it go where you aim in Options › Controls.').replace('{arch}', ELEMENTS[TUT_LOADOUT.el].name + ' ' + ROLES[TUT_LOADOUT.ro].name)
     .replace('{els}', 'Your element adds an effect to every arrow: ' + list(Object.keys(ELEMENTS).map(k => ELEMENTS[k].name + ' ' + (EL_VERB[k] || 'hits'))) + '.')
     .replace('{ros}', list(Object.values(ROLES).map(r => r.name)));
-  $('coachStep').textContent = `Tutorial · step ${TUT.step + 1} of ${TUT_STEPS.length} · ${S.title}`;
-  $('coachText').textContent = fill(padify(S.text));
+  $('coachStep').textContent = `Tutorial · step ${TUT.step + 1} of ${TUT_STEPS.length} · ${S.title}${S.k === 'fight' && TUT.ad ? ` · bot: ${SKILL_NAME(TUT.ad.s)}` : ''}`;
+  $('coachText').textContent = fill(touchify(padify(S.text)));
+  tutHighlight(S.k);
   $('coachHint').textContent = fill(S.hint);
   TUT.pad = usingPad();
   const dummy = TUT.step < tutIdx('pick');
@@ -4881,7 +4946,7 @@ function socialConnect() {
   };
   sock.onclose = () => { if (SOC.ws === sock) { SOC.ws = null; SOC.st = null; renderFind(); setTimeout(socialConnect, Math.min(15000, 1000 * 2 ** SOC.retry++)); } };
 }
-function socialHello() { SOC.elsewhere = false; socialSend({ t: 'hello', hb: 1, hid: document.hidden ? 1 : 0, s: mode === 'local' ? (TUT.on ? 'tutorial' : 'practice') : 'menu', away: AWAY.on ? 1 : 0, name: playerName(), gt: GUEST_TOKEN, el: myLoadout().el, ro: myLoadout().ro, mp: mapPref(), hint: { bot: +store.get('bowfall-bestbot', '0') || 0, tut: tutDoneYet() ? 1 : 0 } }); }
+function socialHello() { SOC.elsewhere = false; socialSend({ t: 'hello', hb: 1, hid: document.hidden ? 1 : 0, s: mode === 'local' ? (TUT.on ? 'tutorial' : 'practice') : 'menu', away: AWAY.on ? 1 : 0, name: playerName(), gt: GUEST_TOKEN, el: myLoadout().el, ro: myLoadout().ro, mp: mapPref(), hint: Object.assign({ bot: +store.get('bowfall-bestbot', '0') || 0, tut: tutDoneYet() ? 1 : 0 }, (() => { try { const t = JSON.parse(store.get('bowfall-tutest', 'null')); return t && (t.n >= 2 || (t.all || 0) >= 3) ? { est: t.est, en: Math.max(t.n, 1) } : {}; } catch (e) { return {}; } })()) }); }
 // Best practice win against bots — a rough skill hint used to seed a new account's first rating.
 const BOT_LV = { easy: 1, normal: 2, hard: 3, extreme: 4, master: 5 };
 function noteBotWin() {
@@ -8969,12 +9034,12 @@ function drawPlayer(p, isMe, bare) {
     // chilled: a cold haze clings to them and trails behind as they move, thicker the slower they are
     const k = p.sw || 0.5, sp = Math.hypot(p.vx || 0, p.vy || 0);
     const g = ctx.createRadialGradient(0, 0, R * 0.6, 0, 0, R + 10);
-    g.addColorStop(0, 'rgba(210,240,255,0)'); g.addColorStop(0.6, `rgba(200,236,255,${0.18 + 0.3 * k})`); g.addColorStop(1, 'rgba(200,236,255,0)');
+    g.addColorStop(0, 'rgba(210,240,255,0)'); g.addColorStop(0.6, `rgba(200,236,255,${0.1 + 0.18 * k})`); g.addColorStop(1, 'rgba(200,236,255,0)');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, R + 10, 0, TAU); ctx.fill();
     ctx.strokeStyle = `rgba(190,232,255,${0.5 + 0.4 * k})`; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(0, 0, R + 3, 0, TAU); ctx.stroke();
     if (fullDetail() || Math.random() < 0.5) {
-      const n = (0.25 + k) * (sp > 30 ? 1.6 : 0.6);
-      for (let i = 0; i < 2; i++) if (Math.random() < n) fx.parts.push({ x: p.x + rand(-R, R) * 0.8 - (p.vx || 0) * 0.04, y: p.y + rand(-R, R) * 0.8 - (p.vy || 0) * 0.04, vx: -(p.vx || 0) * 0.15 + rand(-10, 10), vy: -(p.vy || 0) * 0.15 + rand(-12, 6), life: 0, max: rand(0.5, 0.9), color: Math.random() < 0.6 ? 'rgba(220,244,255,0.55)' : 'rgba(255,255,255,0.8)', r: rand(2, 4.5) * (0.7 + k) });
+      const n = (0.08 + 0.35 * k) * (sp > 30 ? 1 : 0.35);
+      for (let i = 0; i < 1; i++) if (Math.random() < n) fx.parts.push({ x: p.x + rand(-R, R) * 0.8 - (p.vx || 0) * 0.04, y: p.y + rand(-R, R) * 0.8 - (p.vy || 0) * 0.04, vx: -(p.vx || 0) * 0.15 + rand(-10, 10), vy: -(p.vy || 0) * 0.15 + rand(-12, 6), life: 0, max: rand(0.5, 0.9), color: Math.random() < 0.7 ? 'rgba(220,244,255,0.32)' : 'rgba(255,255,255,0.45)', r: rand(1.6, 3.2) * (0.7 + 0.5 * k) });
     }
   }
   if (p.bu && !p.f) {
