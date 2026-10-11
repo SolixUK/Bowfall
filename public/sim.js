@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.45.1';
+const VERSION = '0.45.2';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -3102,7 +3102,7 @@ function updateArrows(w, dt) {
       }
       for (const f of w.players) {
         if (f.team === a.team || f.dead || f.falling > 0 || a.hit.includes(f.id) || f.phaseT > 0) continue;
-        if (Math.hypot(f.x - a.x, f.y - a.y) < f.r + (a.bri ? BRIAR.r : a.boom ? 18 : a.big ? 10 : 4)) {
+        if (Math.hypot(f.x - a.x, f.y - a.y) < f.r + (a.bri ? BRIAR.r : a.boom ? 23 : a.big ? 10 : 4)) {
           if (a.bri) { // a rolling bramble: everyone it rolls through is rooted, then it rolls on
             a.hit.push(f.id); root(f, BRIAR.root, a.own); hurt(w, f, BRIAR.dmg, 0, 0, 'briar', a.owner);
             if (a.own && !a.counted) { a.counted = true; a.own.stats.hits++; }

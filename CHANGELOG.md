@@ -2,6 +2,11 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.45.2
+
+- **Rip, as a spell:** no vine at all now. While it winds up, the thorns in the victim glow green and strain, motes of light drift toward you, and your hands light up, with a rising shimmer. Then each thorn is drawn out of the body in turn (a spurt of blood as it comes free) and flies through the air into your hands on a streak of green light.
+- **Boomerang** is wider again: a bigger blade with a bigger hitbox.
+
 ## 0.45.1
 
 - **Bramble Toss** spins much faster and flies a bit slower.
