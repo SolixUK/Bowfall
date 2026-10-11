@@ -2,6 +2,19 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.45.4
+
+- **Rip:**
+  - The pull is quicker and more violent: thorns wrench free with a harder shake and snap across into you faster, one right after another, with a brighter trail and a little kick on landing.
+  - Each thorn in an enemy slows them 5% (up to 25% with five).
+  - Ripping a full set of five roots them for 2 seconds instead of 1.
+  - (Already the case: thorns you land during the one-second wind-up are torn out too, and Blood heals from rip damage.)
+- **Boomerang** flies about 20% slower, out and back.
+
+## 0.45.3
+
+- **Results screen:** the rating pop-up (rating, change, promotion) no longer appears over the Victory or Defeat headline when a ranked match ends. The rating is shown in its own line on the results, counting up, as intended.
+
 ## 0.45.2
 
 - **Rip, as a spell:** no vine at all now. While it winds up, the thorns in the victim glow green and strain, motes of light drift toward you, and your hands light up, with a rising shimmer. Then each thorn is drawn out of the body in turn (a spurt of blood as it comes free) and flies through the air into your hands on a streak of green light.

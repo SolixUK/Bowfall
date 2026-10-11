@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.45.2';
+const VERSION = '0.45.4';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -943,7 +943,7 @@ const TREE = {
   snare:     { tree: 'trapper', also: ['crossbow'], active: { cd: 5 }, name: 'Snare Arrow', desc: 'Your next shot roots whoever it hits for 1.8 seconds.' },
   trap:      { tree: 'trapper', active: { cd: 8.5 }, name: 'Bramble Trap', desc: 'Weave a bramble trap at the spot under your cursor (up to 450px away, never over a hole or water); it takes half a second to set, and you move at half speed meanwhile. An enemy who steps on it is rooted for 2.5 seconds and hurt. Up to 2 at once.' },
   briar:     { tree: 'trapper', active: { cd: 9 }, name: 'Bramble Toss', desc: 'Your next shot tosses a spinning bramble trap instead of an arrow. It flies straight along your aim, slowly (further and a little faster the longer you draw, up to 760px), roots every enemy it passes through for 1.8 seconds and hurts them, and stops at walls and boulders.' },
-  rip:       { tree: 'trapper', active: { cd: 8 }, name: 'Rip', desc: 'Your arrow hits leave a thorn in the target (up to 5, for 10 seconds). Use Rip and a second later the thorns tear out: 5 damage per thorn, and anyone with 2 or more is rooted for 1 second.' },
+  rip:       { tree: 'trapper', active: { cd: 8 }, name: 'Rip', desc: 'Your arrow hits leave a thorn in the target (up to 5, for 10 seconds), and each thorn slows them 5%. Use Rip and a second later the thorns tear out (any you land meanwhile count too): 5 damage per thorn, anyone with 2 or more is rooted for 1 second, and a full set of 5 roots them for 2.' },
   deeproots: { tree: 'trapper', cap: true, name: 'Deep Roots', desc: 'Your roots last twice as long, and rooted enemies take 25% more damage from you.' },
 };
 // Filler cards when a tree runs dry. These stack.
@@ -1741,7 +1741,7 @@ function fire(w, p, ang, c, burst, vol, x3) { // burst: 1-2 a Volley's shots, 4 
   if (p.momT > 0 && has(p, 'momentum')) { speed *= 1.3; dmg *= 1.2; } // Momentum
   const take = k => { const v = !burst && p[k]; if (v) p[k] = false; return v; };
   const recoil = take('recoilArmed'), rocket = take('rocketArmed'), seek = take('seekArmed') || rocket, swap = false, trick = take('trickArmed'), boom = take('boomArmed'), exec = take('execArmed'), bri = take('briarArmed');
-  if (boom) { speed = (340 + 380 * c) * OPT('aspeed'); dmg *= 0.75; kb *= 0.85; } // slower than an arrow, faster the longer it's drawn
+  if (boom) { speed = (270 + 300 * c) * OPT('aspeed'); dmg *= 0.75; kb *= 0.85; } // slower than an arrow, faster the longer it's drawn
   if (bri) { speed = BRIAR.speed * (0.75 + 0.25 * c) * OPT('aspeed'); }
   if (rocket) { dmg *= 0.35; kb *= 0.35; speed = ROCKET.speed; } // a set, slow speed whatever the draw or the arrow speed rule; the burst does the work
   if (recoil) kb *= 1.6;
@@ -3024,7 +3024,7 @@ function updateArrows(w, dt) {
       if (a.back) {
         if (!o || o.dead || o.falling > 0) a.life = 0;
         else {
-          const dx = o.x - a.x, dy = o.y - a.y, d = Math.hypot(dx, dy) || 1, sp = Math.max(620 * OPT('aspeed'), Math.hypot(a.vx, a.vy));
+          const dx = o.x - a.x, dy = o.y - a.y, d = Math.hypot(dx, dy) || 1, sp = Math.max(500 * OPT('aspeed'), Math.hypot(a.vx, a.vy));
           a.vx = dx / d * sp; a.vy = dy / d * sp;
           if (d < o.r + 16) {
             w.arrows.splice(i, 1); ev(w, { e: 'catch', id: o.id, x: r1(o.x), y: r1(o.y) });
@@ -4410,7 +4410,7 @@ function step(w, dt) {
   for (const p of w.players) {
     if (p.dead) { p.revP = 0; continue; }
     const rallied = w.players.some(q => q.team === p.team && !q.dead && has(q, 'rally') && Math.hypot(q.x - p.x, q.y - p.y) < 170);
-    p.speed = p.baseSpeed * (p.windT > 0 ? 1.4 : 1) * (p.fortT > 0 ? 0.6 : 1) * (p.trapSet ? 0.5 : 1) * (rallied ? 1.2 : 1) * (p.stealthT > 0 ? 1.3 : 1) * (p.shade && p.shade.slow ? 1 - 0.06 * p.shade.n : 1) * (p.bot ? botD(p).speed : 1);
+    p.speed = p.baseSpeed * (p.windT > 0 ? 1.4 : 1) * (p.fortT > 0 ? 0.6 : 1) * (p.trapSet ? 0.5 : 1) * (rallied ? 1.2 : 1) * (p.stealthT > 0 ? 1.3 : 1) * (p.shade && p.shade.slow ? 1 - 0.06 * p.shade.n : 1) * (p.thornN > 0 ? 1 - 0.05 * p.thornN : 1) * (p.bot ? botD(p).speed : 1);
     p.rallied = rallied;
   }
   // what bots perceive lags reality: remember where everyone was over the last half second
@@ -4445,7 +4445,7 @@ function step(w, dt) {
         if (q.team === p.team || q.dead || q.falling > 0 || q.thornBy !== p.id || !(q.thornN > 0)) continue;
         const n = q.thornN; q.thornN = 0; q.thornT = 0;
         ev(w, { e: 'rip', id: q.id, by: p.id, x: r1(q.x), y: r1(q.y), bx: r1(p.x), by2: r1(p.y), n });
-        if (n >= 2) root(q, 1, p);
+        if (n >= 2) root(q, n >= 5 ? 2 : 1, p); // a full set of five holds them twice as long
         hurt(w, q, 5 * n, 0, 0, 'rip', p.id);
       }
       continue;
