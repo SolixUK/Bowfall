@@ -2,6 +2,21 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.49.0
+
+- **Sound desk (owner only):** a mixing desk for every sound in the game, from the main menu (Sound desk) or `/play?desk=1`. Each of the 170 sounds has its own strip: preview (with each version, like the streak tiers or each element's hit), pitch, speed, a 3-band EQ, mute and solo, a fader and a level meter. Groups have their own buses, and there's a master fader. Filter by group, element or role, or search.
+- **Takes:** import your own recording into any strip; it sits in that strip's list next to the built-in sound and any other takes, so you can try several and pick one. Imported takes are levelled to match the original, with a dial to adjust. **Export** saves any sound as a WAV, either on its own to edit or as it sounds in the mix.
+- **Simulate a game** on the desk: bots play a real match while you listen from one of them, to hear the mix in context. Switch between your mix and the original sounds to compare.
+- **Save mix file** downloads the whole mix (with your takes); the game plays a mix placed at `public/sfx/mix.json`. Work in progress is kept in your browser in the meantime.
+- Under the hood every sound now plays through its own channel, so a mix changes the game itself, not just the desk.
+
+## 0.48.5
+
+- **Praises after each game are big callouts now:** instead of a line of text in a box, each one gets a short title with the detail under it, like "Quick one · Over in 12 seconds", "Bot Quill is Dominating · 3 of Red's 3 knockouts", "Sharpshooter", "Close call", "First blood", "Ring out", "Flawless" and "Clutch!", each in its own colour. They pop in on a flat band edged in that colour, with a whoosh and a thump on the bigger ones.
+- **Flatter style for the big announcements:** streaks, shutdowns and empowerment use the same flat look: solid colour, a hard dark outline and a dropped shadow, no gradients, glow or shine.
+- **Map effects are announced once,** as the match starts, not every game, and they clear sooner (about two seconds) so they're gone before the fight.
+- **Ricochet Arena is gone:** with every arrow bouncing there was too much going on to follow the fight. A saved "Ricochet Arena" choice falls back to Random.
+
 ## 0.48.4
 
 - **Big announcements look and sound the part:** streaks, shutdowns and empowerment between rounds now slam in as a large title on a coloured ribbon: a white-to-colour gradient with a dark outline and glow, a shine sweeping across it, the name above and the detail below. Each one has a whoosh, a thump as it lands and a bright ring. Streak titles step up in colour and size: Rampage (3, gold), Dominating (5, orange), Unstoppable (7, red, with a shockwave and a shake) and Legendary (10, pink). Shut down is ice blue. Mid-fight they still go small in the corner so the arena stays clear.

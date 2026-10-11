@@ -218,6 +218,21 @@ Open **Balance data** from the main menu, the in-game menu or the end-of-match s
 
 See `docs/balance-report.md` for the results of the 4v4 bot simulations and the changes they led to.
 
+## Sound desk
+
+Every sound in the game is made in code and plays through its own channel on a mixer (`play('id')` in `public/index.html`; each sound is registered with `defSnd` along with its group, a readable name and any element, role or ability it belongs to). The owner can open **Sound desk** from the main menu (or `/play?desk=1`); the offline copy always has it.
+
+- **A strip per sound** (about 170): preview button (with a picker for sounds that come in versions, like streak tiers or each element), pitch (±12 semitones), speed (0.5× to 2×), a 3-band EQ (low shelf 250 Hz, mid 1.4 kHz, high shelf 4.5 kHz, ±15 dB), mute, solo, reset, a fader and a level meter.
+- **Group buses** (interface, bow and crossbow, hits, movement, abilities, elements, arenas, match, emotes, training) and a master fader.
+- **Filters** by group, element and role, a search box, and "changed only".
+- **Takes:** each strip can hold several imported recordings (WAV, MP3, OGG, FLAC) next to its built-in sound; pick which one plays from its list. An imported take is levelled to match the built-in sound, with a dial to adjust it. On a take, pitch and speed both change its playback rate.
+- **Export** renders a sound offline to a WAV: on its own (no pitch, speed, EQ or volume, brought up to a good level to edit) or as it sounds in the mix.
+- **Simulate a game:** bots play a real match (four archers, a random arena and map effect) and you listen from one of them, so you hear the mix in context. Nothing from it is recorded as balance data.
+- **Your mix / original sounds** switches between the two to compare.
+- Work in progress is kept in the browser automatically. **Save mix file** downloads it as JSON (imported takes included); **Open a mix file** loads one.
+
+To ship a mix, put the saved file at `public/sfx/mix.json`. The game loads it at start (the offline build embeds it).
+
 ## Run it
 
 You need Node.js 18 or newer.
@@ -315,6 +330,7 @@ Friends can join straight from a link, for example `https://your-host/play?room=
 | `lib/geo.js` | Rough country from an IP address, for the starting flag (cached; set `GEO_OFF=1` to turn it off). |
 | `public/site.html` | The website: front page (a live bot match from `/play?showcase=1` behind the hero, an archetype forge, the arenas drawn by the game through `/play?avatar=1`), games list, leaderboard, profiles, forum, sign in. |
 | `public/index.html` | Client: menus, rendering, sound, HUD, pick screen. Online it smooths other players with 100 ms interpolation. |
+| `public/sfx/mix.json` | The shipped sound mix from the sound desk (empty means the built-in sounds as they are). |
 | `build-offline.js` | `npm run build:offline` builds a single-file offline copy at `dist/bowfall-duels.html`: double-click it to play practice games with no server. |
 
 ## Tuning

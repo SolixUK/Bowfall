@@ -118,7 +118,7 @@
   .death .small .dim { color: var(--muted); font-weight: 500; font-size: 14px; }
   .mutann { position: absolute; left: 50%; top: calc(27% + 112px); transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; width: max-content; max-width: min(92vw, 360px); }
   .mutann .mp { display: inline-flex; align-items: center; gap: 9px; padding: 6px 14px 6px 8px; border-radius: 16px; max-width: 100%; box-sizing: border-box; text-align: left; line-height: 1.15; border: 1px solid var(--mc); background: linear-gradient(90deg, color-mix(in srgb, var(--mc) 30%, rgba(10,14,10,.85)), rgba(10,14,10,.75)); color: #fff; font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .03em; box-shadow: 0 0 22px color-mix(in srgb, var(--mc) 45%, transparent); position: relative; overflow: hidden;
-    opacity: 0; transform: translateY(14px) scale(.9); animation: mutin .45s cubic-bezier(.2,1.4,.4,1) forwards, mutout .5s ease-in forwards; animation-delay: var(--d), calc(var(--d) + 3.4s); }
+    opacity: 0; transform: translateY(14px) scale(.9); animation: mutin .45s cubic-bezier(.2,1.4,.4,1) forwards, mutout .5s ease-in forwards; animation-delay: var(--d), calc(var(--d) + 1.7s); }
   .mutann .mp i { font-style: normal; flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--mc); color: #111; font-size: 15px; animation: mutspin .9s ease-out; animation-delay: var(--d); }
   .mutann .mp small { font: 600 11px 'Titillium Web', sans-serif; opacity: .85; letter-spacing: 0; display: block; white-space: normal; }
   .mutann .mp::after { content: ''; position: absolute; top: 0; bottom: 0; width: 40%; left: -50%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent); animation: mutshine .9s ease-out forwards; animation-delay: calc(var(--d) + .2s); }
@@ -136,25 +136,95 @@
   .replay-badge .rec { width: 10px; height: 10px; border-radius: 50%; background: #ff4d5e; animation: recb 1s steps(2) infinite; }
   @keyframes recb { 50% { opacity: .2; } }
   .hurtfx { position: absolute; inset: 0; pointer-events: none; opacity: 0; box-shadow: inset 0 0 140px 30px rgba(255,40,40,.55); }
-  /* big announcements between rounds (streaks, shutdowns, empowerment): a slammed-in title on a coloured ribbon */
+  /* big announcements (streaks, shutdowns, empowerment, and the praises after each game): flat and bold, like the rest of the art.
+     A solid title with a hard dark outline and a dropped shadow, on a flat slanted band edged in its colour */
   .callouts { position: absolute; left: 0; right: 0; top: 9%; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; z-index: 6; }
-  .co { --nc: #ffcf5a; position: relative; display: flex; flex-direction: column; align-items: center; padding: 6px 70px 8px; text-align: center; max-width: 96vw; box-sizing: border-box; animation: coout .45s ease-in forwards; animation-delay: 2.9s; }
-  .co::before { content: ''; position: absolute; inset: 14% 0 10%; z-index: -1; transform: skewX(-14deg) scaleX(0); background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--nc) 34%, rgba(8,12,9,.9)) 22%, rgba(8,12,9,.82) 50%, color-mix(in srgb, var(--nc) 34%, rgba(8,12,9,.9)) 78%, transparent); border-top: 2px solid color-mix(in srgb, var(--nc) 80%, transparent); border-bottom: 2px solid color-mix(in srgb, var(--nc) 80%, transparent); -webkit-mask: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); mask: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); animation: coband .35s cubic-bezier(.2,.9,.3,1) forwards; }
-  .co-k { font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.7), 0 0 12px color-mix(in srgb, var(--nc) 70%, transparent); opacity: 0; animation: cofade .3s ease-out .12s forwards; }
-  .co-t { position: relative; font: 700 50px/1 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .05em; text-transform: uppercase; color: var(--nc); background: linear-gradient(180deg, #fff 8%, color-mix(in srgb, var(--nc) 55%, #fff) 42%, var(--nc) 58%, color-mix(in srgb, var(--nc) 70%, #000) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; -webkit-text-stroke: 1.5px rgba(10,6,0,.85); paint-order: stroke fill; filter: drop-shadow(0 3px 0 rgba(0,0,0,.75)) drop-shadow(0 0 16px color-mix(in srgb, var(--nc) 75%, transparent)); animation: coslam .5s cubic-bezier(.2,1.5,.4,1) both; }
-  .co-t::after { content: attr(data-t); position: absolute; inset: 0; -webkit-text-stroke: 0; background: linear-gradient(100deg, transparent 35%, rgba(255,255,255,.95) 50%, transparent 65%) no-repeat; background-size: 250% 100%; background-position: 160% 0; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: coshine 1s ease-out .45s forwards; }
-  .co-s { margin-top: 3px; font: 600 13px 'Titillium Web', 'Segoe UI', sans-serif; color: #e9efe6; text-shadow: 0 1px 4px rgba(0,0,0,.9); opacity: 0; animation: cofade .35s ease-out .3s forwards; max-width: 520px; }
-  .co.t2 .co-t { font-size: 60px; } .co.t3 .co-t { font-size: 70px; animation: coslam .5s cubic-bezier(.2,1.5,.4,1) both, coshake .35s linear .45s; }
-  .co.t3::after { content: ''; position: absolute; left: 50%; top: 50%; width: 120px; height: 120px; margin: -60px; border-radius: 50%; border: 3px solid var(--nc); z-index: -1; animation: coring .7s ease-out .1s forwards; opacity: 0; }
-  @keyframes coband { to { transform: skewX(-14deg) scaleX(1); } }
-  @keyframes coslam { 0% { opacity: 0; transform: scale(2.4); letter-spacing: .4em; } 55% { opacity: 1; transform: scale(.94); } 100% { opacity: 1; transform: none; } }
-  @keyframes coshine { to { background-position: -60% 0; } }
-  @keyframes cofade { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
-  @keyframes coshake { 0%,100% { transform: none; } 20% { transform: translate(-3px,1px) rotate(-1deg); } 40% { transform: translate(3px,-1px) rotate(1deg); } 60% { transform: translate(-2px,0); } 80% { transform: translate(2px,1px); } }
-  @keyframes coring { 0% { opacity: .9; transform: scale(.3); } 100% { opacity: 0; transform: scale(4.5); } }
-  @keyframes coout { to { opacity: 0; transform: translateY(-10px) scale(.96); } }
-  @media (max-width: 600px) { .co { padding: 4px 30px 6px; } .co-t { font-size: 34px; } .co.t2 .co-t { font-size: 38px; } .co.t3 .co-t { font-size: 42px; } .co-k { font-size: 13px; } .co-s { font-size: 12px; } }
-  @media (prefers-reduced-motion: reduce) { .co, .co::before, .co-t, .co-t::after, .co-k, .co-s { animation-duration: .01s !important; animation-delay: 0s !important; } .co { animation: coout .3s ease-in 2.9s forwards !important; } }
+  .co { --nc: #ffcf5a; --ol: #0c140e; position: relative; display: flex; flex-direction: column; align-items: center; padding: 8px 56px 10px; text-align: center; max-width: 96vw; box-sizing: border-box; }
+  .callouts .co { animation: coout .35s ease-in 2.9s forwards; }
+  .co::before { content: ''; position: absolute; inset: 12% 0 8%; z-index: -1; transform: skewX(-12deg) scaleX(0); background: rgba(12,20,14,.88); border-top: 3px solid var(--nc); border-bottom: 3px solid var(--nc); animation: coband .28s cubic-bezier(.3,.9,.3,1) forwards; }
+  .co-k { font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #f2efe4; opacity: 0; animation: cofade .25s ease-out .12s forwards; }
+  .co-t { font: 700 48px/1.02 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .04em; text-transform: uppercase; color: var(--nc);
+    text-shadow: 2px 0 0 var(--ol), -2px 0 0 var(--ol), 0 2px 0 var(--ol), 0 -2px 0 var(--ol), 2px 2px 0 var(--ol), -2px 2px 0 var(--ol), 2px -2px 0 var(--ol), -2px -2px 0 var(--ol), 0 5px 0 var(--ol);
+    animation: copop .42s cubic-bezier(.2,1.5,.45,1) both; }
+  .co-s { margin-top: 2px; font: 600 14px 'Titillium Web', 'Segoe UI', sans-serif; color: #e6ece2; opacity: 0; animation: cofade .3s ease-out .26s forwards; max-width: 520px; }
+  .co-s b { color: var(--nc); }
+  .co.t2 .co-t { font-size: 56px; } .co.t3 .co-t { font-size: 64px; animation: copop .42s cubic-bezier(.2,1.5,.45,1) both, cothump .3s ease-out .42s; }
+  @keyframes coband { to { transform: skewX(-12deg) scaleX(1); } }
+  @keyframes copop { 0% { opacity: 0; transform: scale(.55) rotate(-3deg); } 60% { opacity: 1; transform: scale(1.06) rotate(1deg); } 100% { opacity: 1; transform: none; } }
+  @keyframes cofade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  @keyframes cothump { 0%,100% { transform: none; } 30% { transform: translateY(3px) scale(1.03, .96); } 65% { transform: translateY(-1px); } }
+  @keyframes coout { to { opacity: 0; transform: translateY(-8px); } }
+  @media (max-width: 600px) { .co { padding: 6px 28px 8px; } .co-t { font-size: 34px; } .co.t2 .co-t { font-size: 38px; } .co.t3 .co-t { font-size: 42px; } .co-k { font-size: 13px; } .co-s { font-size: 12px; } }
+  @media (prefers-reduced-motion: reduce) { .co::before, .co-t, .co-k, .co-s { animation-duration: .01s !important; animation-delay: 0s !important; } }
+  /* the sound desk */
+  #desk { position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; background: #0b120d; color: var(--text); font: 13px 'Titillium Web', 'Segoe UI', sans-serif; }
+  body.desksim #desk { top: 40vh; border-top: 2px solid var(--gold); box-shadow: 0 -10px 30px rgba(0,0,0,.5); }
+  #desk.min { top: auto !important; height: auto; }
+  #desk.min .dk-filters, #desk.min .dk-body { display: none; }
+  .dk-top { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  .dk-title { display: flex; flex-direction: column; min-width: 0; margin-right: auto; }
+  .dk-title b { font: 700 22px/1 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .03em; color: var(--gold); }
+  .dk-title span { color: var(--muted); font-size: 12px; }
+  .dk-title em { font-style: normal; color: #9fdcff; font-size: 12px; }
+  .dk-tools { display: flex; flex-wrap: wrap; gap: 6px; }
+  #desk button { font: 600 12px 'Titillium Web', 'Segoe UI', sans-serif; color: var(--text); background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: 2px; padding: 6px 10px; cursor: pointer; }
+  #desk button:hover { border-color: rgba(255,207,90,.5); }
+  #desk button.cta { background: var(--gold); color: #1a1405; border-color: var(--gold); }
+  #desk button.on, #desk button.arm { border-color: #ff9f5a; color: #ffb36b; }
+  #desk select, #desk input[type=search], #desk input:not([type]) { font: 12px 'Titillium Web', sans-serif; background: rgba(0,0,0,.35); color: var(--text); border: 1px solid var(--line); border-radius: 2px; padding: 5px 6px; }
+  .dk-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 8px 14px; border-bottom: 1px solid var(--line); }
+  .dk-cats { display: flex; flex-wrap: wrap; gap: 4px; }
+  #desk .dk-chip { padding: 4px 8px; border-left: 3px solid var(--cc); }
+  #desk .dk-chip small { color: var(--muted); margin-left: 2px; }
+  #desk .dk-chip.on { background: color-mix(in srgb, var(--cc) 22%, transparent); border-color: var(--cc); }
+  .dk-filters label { display: flex; align-items: center; gap: 5px; color: var(--muted); }
+  .dk-body { flex: 1; min-height: 0; display: flex; }
+  .dk-strips { flex: 1; min-width: 0; display: flex; gap: 4px; overflow-x: auto; overflow-y: auto; padding: 10px; align-items: flex-start; }
+  .dk-buses { display: flex; gap: 3px; overflow-x: auto; padding: 10px 8px; border-left: 2px solid var(--line); background: rgba(255,255,255,.02); max-width: 38vw; align-items: flex-start; }
+  .dk-strip { flex: none; width: 118px; display: flex; flex-direction: column; gap: 6px; padding: 0 0 8px; background: rgba(255,255,255,.035); border: 1px solid var(--line); border-top: 3px solid var(--cc); border-radius: 2px; }
+  .dk-strip.sel { background: rgba(255,207,90,.07); border-color: rgba(255,207,90,.45); border-top-color: var(--cc); }
+  .dk-strip.changed .dk-name b::after { content: ' •'; color: var(--gold); }
+  .dk-strip.muted { opacity: .55; }
+  .dk-bus { width: 60px; } .dk-bus .dk-name { height: 44px; } .dk-bus .dk-name b { font-size: 12px; } .dk-bus .dk-row button { font-size: 11px !important; }
+  .dk-name { padding: 6px 7px 0; height: 60px; overflow: hidden; display: flex; flex-direction: column; gap: 1px; }
+  .dk-name b { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .dk-cat { font: 700 9px 'Rajdhani', sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--cc); }
+  .dk-name b { font: 700 14px/1.1 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .02em; }
+  .dk-name small { color: var(--muted); font-size: 10px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dk-row { display: flex; gap: 4px; padding: 0 6px; align-items: center; height: 28px; }
+  .dk-row select { height: 26px; padding: 2px 4px !important; }
+  .dk-row select { flex: 1; min-width: 0; }
+  .dk-novar { flex: 1; color: var(--muted); font-size: 10px; text-align: center; }
+  #desk .dk-play { width: 30px; padding: 4px 0; color: #7dffb0; border-color: rgba(125,255,176,.4); }
+  .dk-take { margin: 0 6px; }
+  .dk-row button { flex: 1; padding: 4px 0 !important; }
+  #desk .dk-m.on { background: #ff5a5a; color: #fff; border-color: #ff5a5a; } #desk .dk-s.on { background: #ffcf5a; color: #1a1405; border-color: #ffcf5a; }
+  .dk-knobs { display: flex; justify-content: space-around; padding: 0 2px; }
+  .dk-knob { width: 50px; display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: ns-resize; touch-action: none; outline: none; user-select: none; }
+  .dk-knobs.k3 .dk-knob { width: 36px; }
+  .dk-knob i { width: 28px; height: 28px; border-radius: 50%; background: radial-gradient(circle at 50% 40%, #3a4a3e, #1a241c); border: 1px solid rgba(255,255,255,.18); position: relative; transform: rotate(var(--a)); }
+  .dk-knob i::after { content: ''; position: absolute; left: 50%; top: 3px; width: 2px; height: 9px; margin-left: -1px; background: var(--muted); border-radius: 1px; }
+  .dk-knob.off { opacity: .3; cursor: default; }
+  .dk-knob.on i { border-color: var(--cc); } .dk-knob.on i::after { background: var(--cc); }
+  .dk-knob:focus-visible i { box-shadow: 0 0 0 2px var(--gold); }
+  .dk-knob span { font-size: 9px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+  .dk-knob em { font-style: normal; font-size: 10px; font-variant-numeric: tabular-nums; }
+  .dk-fader { display: flex; justify-content: center; gap: 8px; height: 150px; }
+  .dk-fader input[type=range] { writing-mode: vertical-lr; direction: rtl; width: 22px; height: 150px; margin: 0; accent-color: var(--cc); cursor: pointer; }
+  .dk-fader canvas { width: 8px; height: 150px; border-radius: 1px; }
+  .dk-db { text-align: center; font: 600 11px 'Titillium Web', sans-serif; font-variant-numeric: tabular-nums; color: var(--muted); }
+  .dk-empty { color: var(--muted); padding: 30px; }
+  #dkMenu { position: absolute; z-index: 3; width: 260px; display: flex; flex-direction: column; gap: 4px; padding: 10px; background: #121c15; border: 1px solid rgba(255,207,90,.4); box-shadow: 0 8px 30px rgba(0,0,0,.6); }
+  #dkMenu b { font: 700 15px 'Rajdhani', sans-serif; color: var(--gold); }
+  #dkMenu button { text-align: left; }
+  #dkMenu small { color: var(--muted); font-size: 11px; margin: -2px 0 4px; }
+  #dkMenu .dk-ren { display: flex; flex-direction: column; gap: 2px; color: var(--muted); font-size: 11px; margin-top: 4px; }
+  #desk .dk-warn { color: #ff8a8a; }
+  body.desking .hud-btn, body.desking #touchUI { visibility: hidden; }
+  body.desksim .dk-fader, body.desksim .dk-fader input[type=range], body.desksim .dk-fader canvas { height: 100px; }
+  body.desksim .dk-strip { gap: 4px; } body.desksim .dk-name { height: 46px; } body.desksim .dk-name small { display: none; }
+  body.desksim #qHelp { display: none !important; }
+  @media (max-width: 700px) { .dk-buses { display: none; } body.desksim #desk { top: 38vh; } }
   .notices { position: absolute; left: 0; right: 0; top: 11%; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
   .notice { padding: 6px 16px; border-radius: 3px; background: rgba(9,18,11,.72); border: 1px solid var(--line); font: 600 16px 'Titillium Web', 'Segoe UI', sans-serif; text-shadow: 0 2px 10px rgba(0,0,0,.7); animation: note 3s ease-out forwards; text-align: center; max-width: 92vw; }
   .notices.corner { left: 12px; right: auto; top: 72px; align-items: flex-start; gap: 3px; } body.touchmode .notices.corner { top: 50px; }
@@ -176,7 +246,9 @@
   .gamesum li b { font-weight: 700; }
   .gamesum.praising .eyebrow, .gamesum.praising h2, .gamesum.praising .gs-sub { display: none; }
   .gamesum.praising ul { margin: 0; }
-  .gamesum.praising li { background: none; padding: 4px 6px; }
+  .gamesum.praising { background: none; border-color: transparent; padding: 0; animation: none; }
+  .gamesum.praising li { background: none; padding: 0; box-shadow: none; font: inherit; }
+  .gamesum li.co { animation: none; } .gamesum.praising li.co { padding: 8px 56px 12px; } @media (max-width: 600px) { .gamesum.praising li.co { padding: 6px 24px 10px; } } .gamesum li.co.t1 .co-t { font-size: 40px; } @media (max-width: 600px) { .gamesum li.co.t1 .co-t { font-size: 30px; } }
   .gamesum.pop { animation: gsIn .35s ease-out; }
   @keyframes gsIn { from { opacity: 0; transform: translate(-50%, -46%); } to { opacity: 1; transform: translate(-50%, -50%); } }
   @keyframes gsLine { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
@@ -1264,7 +1336,7 @@
         <button class="mm" id="mOpts" type="button"><span class="mmk">07</span><b>Options</b><small>Controls, controller, sound and graphics.</small></button>
       </nav>
       <div class="homefoot">
-        <div class="btnrow"><button class="ghost sm" id="helpBtn" type="button">How to play</button><button class="ghost sm" id="achBtn" type="button">Achievements</button><button class="ghost sm" id="balBtn" type="button">Balance data</button></div>
+        <div class="btnrow"><button class="ghost sm" id="helpBtn" type="button">How to play</button><button class="ghost sm" id="achBtn" type="button">Achievements</button><button class="ghost sm" id="balBtn" type="button">Balance data</button><button class="ghost sm" id="sndBtn" type="button" hidden>Sound desk</button></div>
         <div class="sitelinks" id="siteLinks" hidden><a href="/">Website</a><a href="/#/leaderboard">Leaderboard</a><a href="/#/forum">Forum</a></div>
         <span class="ver" id="verHome"></span>
       </div>
@@ -1706,6 +1778,32 @@
     <p class="status">Each achievement has five tiers, from Bronze to Diamond, and shows how rare your tier is among players. They're earned in ranked games and in custom games without bots. Everyone in your games sees the title you pick next to your name.</p>
   </div>
 </div>
+<div id="desk" hidden role="dialog" aria-label="Sound desk">
+  <div class="dk-top">
+    <div class="dk-title"><b>Sound desk</b><span id="dkStatus"></span><em id="dkListen"></em></div>
+    <div class="dk-tools">
+      <button type="button" id="dkSim" title="Bots play a real game so you can hear your mix in context">Simulate a game</button>
+      <button type="button" id="dkNew" hidden>New game</button>
+      <button type="button" id="dkAB" title="Switch between your mix and the game's original sounds">Hearing: your mix</button>
+      <button type="button" id="dkOpen">Open a mix file…</button>
+      <button type="button" id="dkSave" class="cta">Save mix file</button>
+      <button type="button" id="dkReset">Reset all</button>
+      <button type="button" id="dkMin">Minimise</button>
+      <button type="button" id="dkClose">Close</button>
+    </div>
+  </div>
+  <div class="dk-filters">
+    <div class="dk-cats" id="dkCats"></div>
+    <select id="dkEl" aria-label="Element"></select>
+    <select id="dkRole" aria-label="Role"></select>
+    <input type="search" id="dkFind" placeholder="Search sounds" aria-label="Search sounds">
+    <label><input type="checkbox" id="dkChanged"> Changed only</label>
+  </div>
+  <div class="dk-body"><div class="dk-strips" id="dkStrips"></div><div class="dk-buses" id="dkBuses"></div></div>
+  <div id="dkMenu" hidden></div>
+  <input type="file" id="dkImpF" accept="audio/*,.wav,.mp3,.ogg,.flac" hidden>
+  <input type="file" id="dkOpenF" accept=".json,application/json" hidden>
+</div>
 <div class="overlay" id="balScreen" hidden role="dialog" aria-labelledby="balTitle">
   <div class="card wide bal-card">
     <div class="shopbar"><div class="stat"><span class="eyebrow">Balance data</span><h2 id="balTitle">What's winning</h2></div><button class="cta" id="balClose" type="button">Close</button></div>
@@ -1735,7 +1833,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.48.4"></script>
+<script src="sim.js?v=0.49.0"></script>
 <script>
 (() => {
 'use strict';
@@ -1743,7 +1841,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.48.4';
+const PAGE_VERSION = '0.49.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -1850,10 +1948,8 @@ function callout({ kicker = '', title, sub = '', color = '#ffcf5a', tier = 1, pl
   box.appendChild(d);
   while (box.children.length > 2) box.firstChild.remove();
   setTimeout(() => d.remove(), 3400);
-  // whoosh in, a thump as it lands, a bright ring when it shines
-  nz(0.28, 0.035 + tier * 0.01, 'bandpass', 600, 3800, 2);
-  setTimeout(() => { tone(90 + tier * 8, 0.22, 'sine', 0.09 + tier * 0.02, -40); nz(0.12, 0.05, 'lowpass', 900, 200, 1); }, 230);
-  setTimeout(() => tone(1760 + tier * 220, 0.35, 'triangle', 0.02), 520);
+  // a whoosh in and a thump as it lands
+  play('callout', tier);
   return true;
 }
 let myDeath = null;
@@ -1933,15 +2029,17 @@ function funName() {
 
 // ================= audio =================
 let AC = null, noiseBuf = null, muted = store.get('bowfall-muted', '0') === '1';
+let TOFF = 0, RENDER = false; // rendering a sound offline (the desk's export): timers inside it become time offsets
 function initAudio() {
   try {
     AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume();
-    if (!noiseBuf) { noiseBuf = AC.createBuffer(1, AC.sampleRate * 2, AC.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    if (!noiseBuf) { noiseBuf = AC.createBuffer(1, AC.sampleRate * 2, AC.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; mixDecode(); }
   } catch (e) { AC = null; }
 }
 function tone(freq, dur = 0.1, type = 'sine', vol = 0.06, slide = 0) {
   if (muted || !AC) return;
-  const t0 = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+  { const M = chMod(); freq *= M.f; slide *= M.f; dur /= M.s; }
+  const t0 = AC.currentTime + TOFF, o = AC.createOscillator(), g = AC.createGain();
   o.type = type; o.frequency.setValueAtTime(freq, t0);
   if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq + slide), t0 + dur);
   g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
@@ -1950,7 +2048,8 @@ function tone(freq, dur = 0.1, type = 'sine', vol = 0.06, slide = 0) {
 // filtered noise with a frequency sweep, and an oscillator with a pitch sweep; the building blocks for effect sounds
 function nz(dur, vol, type = 'lowpass', f0 = 800, f1 = f0, q = 1, delay = 0) {
   if (muted || !AC || !noiseBuf) return;
-  const t0 = AC.currentTime + delay, s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+  { const M = chMod(); f0 *= M.f; f1 *= M.f; dur /= M.s; delay /= M.s; }
+  const t0 = AC.currentTime + TOFF + delay, s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
   s.buffer = noiseBuf; f.type = type; f.Q.value = q;
   f.frequency.setValueAtTime(f0, t0); f.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t0 + dur);
   g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(vol, t0 + Math.min(0.015, dur * 0.2)); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
@@ -1959,14 +2058,16 @@ function nz(dur, vol, type = 'lowpass', f0 = 800, f1 = f0, q = 1, delay = 0) {
 // a sine with an instant attack that sweeps down: the weight behind a hit
 function punch(f0, f1, dur, vol, delay = 0) {
   if (muted || !AC) return;
-  const t0 = AC.currentTime + delay, o = AC.createOscillator(), g = AC.createGain();
+  { const M = chMod(); f0 *= M.f; f1 *= M.f; dur /= M.s; delay /= M.s; }
+  const t0 = AC.currentTime + TOFF + delay, o = AC.createOscillator(), g = AC.createGain();
   o.type = 'sine'; o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t0 + dur);
   g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(vol, t0 + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
   o.connect(g).connect(outNode()); o.start(t0); o.stop(t0 + dur + 0.02);
 }
 function os(type, f0, f1, dur, vol, delay = 0) {
   if (muted || !AC) return;
-  const t0 = AC.currentTime + delay, o = AC.createOscillator(), g = AC.createGain();
+  { const M = chMod(); f0 *= M.f; f1 *= M.f; dur /= M.s; delay /= M.s; }
+  const t0 = AC.currentTime + TOFF + delay, o = AC.createOscillator(), g = AC.createGain();
   o.type = type; o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t0 + dur);
   g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(vol, t0 + Math.min(0.01, dur * 0.2)); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
   o.connect(g).connect(outNode()); o.start(t0); o.stop(t0 + dur + 0.02);
@@ -1989,9 +2090,10 @@ const elSfx = {
 // a low electric buzz, for stuns
 function buzz(dur = 0.8, v = 1) {
   if (muted || !AC) return;
-  const t0 = AC.currentTime, o1 = AC.createOscillator(), o2 = AC.createOscillator(), f = AC.createBiquadFilter(), g = AC.createGain(), lfo = AC.createOscillator(), lg = AC.createGain();
-  o1.type = 'sawtooth'; o1.frequency.setValueAtTime(118, t0); // a steady pitch: no slide
-  o2.type = 'sawtooth'; o2.frequency.setValueAtTime(120.5, t0);
+  const M = chMod(); dur /= M.s;
+  const t0 = AC.currentTime + TOFF, o1 = AC.createOscillator(), o2 = AC.createOscillator(), f = AC.createBiquadFilter(), g = AC.createGain(), lfo = AC.createOscillator(), lg = AC.createGain();
+  o1.type = 'sawtooth'; o1.frequency.setValueAtTime(118 * M.f, t0); // a steady pitch: no slide
+  o2.type = 'sawtooth'; o2.frequency.setValueAtTime(120.5 * M.f, t0);
   f.type = 'lowpass'; f.frequency.value = 2600; f.Q.value = 1.5;
   const pk = 0.028 * v;
   g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(pk, t0 + 0.03); g.gain.setValueAtTime(pk, t0 + dur * 0.55); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
@@ -2001,7 +2103,8 @@ function buzz(dur = 0.8, v = 1) {
 }
 function noise(dur = 0.2, vol = 0.12, freq = 800) {
   if (muted || !AC || !noiseBuf) return;
-  const t0 = AC.currentTime, s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+  { const M = chMod(); freq *= M.f; dur /= M.s; }
+  const t0 = AC.currentTime + TOFF, s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
   s.buffer = noiseBuf; f.type = 'lowpass'; f.frequency.value = freq;
   g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
   s.connect(f).connect(g).connect(outNode()); s.start(t0); s.stop(t0 + dur);
@@ -2086,7 +2189,301 @@ const syncMute = () => { $('muteBtn').textContent = muted ? 'Sound off' : 'Sound
 let emoteLatch = null;
 const OPTS = { emo: store.get('bowfall-emo', '0') === '1', vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') !== '0', guideBold: store.get('bowfall-guide', '1') === '2', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), me: store.get('bowfall-me', 'strong'), detail: store.get('bowfall-detail', 'full'), pz: +store.get('bowfall-pz', '1.15') || 1, taim: store.get('bowfall-taim2', 'point'), cb: store.get('bowfall-cb', '') === '1' };
 cbApply();
-const outNode = () => { if (!AC.master) { AC.master = AC.createGain(); AC.master.connect(AC.destination); } AC.master.gain.value = OPTS.vol / 100; return AC.master; };
+// ================= the mixer =================
+// Every named sound plays through its own channel strip: input -> low shelf -> mid peak -> high shelf -> fader -> its
+// group's bus -> master. MIX holds the settings (shipped in /sfx/mix.json, made on the sound desk); a channel can also
+// play a recorded take instead of its built-in sound. CH is the channel of the sound playing right now: the primitives
+// read its pitch and speed, outNode() routes into its strip, and timers started inside a sound keep it.
+const SND = {}, SND_ORDER = [];
+const SND_CATS = {
+  ui: ['Menus and interface', '#9fb0c4', 'Interface'], bow: ['Bow and crossbow', '#ffcf5a', 'Bow'], hit: ['Hits and knockouts', '#ff6b6b', 'Hits'],
+  move: ['Movement', '#7ec8ff'], ability: ['Abilities', '#c58bff', 'Ability'], element: ['Elements', '#7dffb0', 'Element'],
+  map: ['Arenas and hazards', '#d9a066', 'Arena'], match: ['Match and announcements', '#ffb36b', 'Match'], emote: ['Emotes', '#ff8ad8', 'Emote'], train: ['Training and tutorial', '#a8e06a', 'Training'],
+};
+const CH_DEF = { db: 0, lo: 0, mid: 0, hi: 0, semi: 0, speed: 1, take: '', trim: 0, mute: 0, solo: 0 };
+const MOD1 = { f: 1, s: 1 };
+let CH = null, MIX = { v: 1, master: 0, bus: {}, ch: {}, takes: {} }, MIX_ON = true, MIX_RAW = false, SOLO = false, TAKE_PICK = null;
+const STRIP = {}, TAKEBUF = {};
+// a sound: id, its group, a name people recognise, the function that makes it; o.el / o.role / o.ab tag it,
+// o.vars are versions to preview ([label, args]), o.vol gives a recorded take its volume from the same arguments
+function defSnd(id, cat, name, fn, o = {}) {
+  const T = o.ab && Sim.TREE[o.ab], tr = T && T.tree;
+  SND[id] = { id, cat, name, fn, el: o.el || (tr && ELEMENTS[tr] ? tr : null), role: o.role || (tr && ROLES[tr] ? tr : null), ab: o.ab ? (T ? T.name : o.ab) : null, vars: o.vars || null, vol: o.vol || null, desc: o.desc || '' };
+  if (!SND_ORDER.includes(id)) SND_ORDER.push(id);
+  return (...a) => play(id, ...a);
+}
+// wrap a table of sounds (sfx, elSfx…) so every call goes through its channel
+function sndTable(tbl, pre, meta) { for (const k of Object.keys(tbl)) { const m = meta[k] || ['ui', k]; tbl[k] = defSnd(pre + k, m[0], m[1], tbl[k], m[2] || {}); } }
+const chSet = id => MIX.ch[id] || CH_DEF;
+const dbGain = db => db <= -60 ? 0 : Math.pow(10, db / 20);
+function chMod() {
+  if (!CH || MIX_RAW || !MIX_ON) return MOD1;
+  const st = MIX.ch[CH]; if (!st || (!st.semi && (st.speed || 1) === 1)) return MOD1;
+  return { f: Math.pow(2, (st.semi || 0) / 12), s: st.speed || 1 };
+}
+{ // timers set while a sound plays stay on its channel (and run faster or slower with its speed)
+  const st = window.setTimeout.bind(window);
+  window.setTimeout = function (fn, ms, ...a) {
+    if (CH == null || typeof fn !== 'function') return st(fn, ms, ...a);
+    const c = CH, k = chMod().s;
+    if (RENDER) { const t = TOFF; TOFF += (ms || 0) / 1000 / k; try { fn(...a); } finally { TOFF = t; } return 0; }
+    return st(() => { const p = CH; CH = c; try { fn(...a); } finally { CH = p; } }, (ms || 0) / k);
+  };
+}
+function masterNode() {
+  if (!AC.master) { AC.master = AC.createGain(); AC.master.connect(AC.destination); }
+  AC.master.gain.value = RENDER ? (MIX_RAW ? 1 : dbGain(MIX.master || 0)) : OPTS.vol / 100 * (MIX_ON ? dbGain(MIX.master || 0) : 1);
+  return AC.master;
+}
+function busNode(cat) {
+  AC.buses = AC.buses || {};
+  let b = AC.buses[cat]; if (!b) { b = AC.buses[cat] = AC.createGain(); b.connect(masterNode()); }
+  const B = MIX.bus[cat] || {}; b.gain.value = MIX_ON && !MIX_RAW ? (B.mute && !RENDER ? 0 : dbGain(B.db || 0)) : 1;
+  return b;
+}
+function stripOf(id) {
+  let s = STRIP[id];
+  if (s && s.ac === AC) return s;
+  const S = SND[id], inp = AC.createGain(), lo = AC.createBiquadFilter(), mid = AC.createBiquadFilter(), hi = AC.createBiquadFilter(), fad = AC.createGain();
+  lo.type = 'lowshelf'; lo.frequency.value = 250; mid.type = 'peaking'; mid.frequency.value = 1400; mid.Q.value = 0.8; hi.type = 'highshelf'; hi.frequency.value = 4500;
+  inp.connect(lo).connect(mid).connect(hi).connect(fad).connect(busNode(S ? S.cat : 'ui'));
+  s = STRIP[id] = { ac: AC, inp, lo, mid, hi, fad, an: null };
+  stripApply(id);
+  return s;
+}
+function stripApply(id) {
+  const s = STRIP[id]; if (!s || s.ac !== AC) return;
+  const st = chSet(id), on = MIX_ON && !MIX_RAW;
+  s.lo.gain.value = on ? st.lo || 0 : 0; s.mid.gain.value = on ? st.mid || 0 : 0; s.hi.gain.value = on ? st.hi || 0 : 0;
+  s.fad.gain.value = !RENDER && (st.mute || (SOLO && !st.solo)) ? 0 : on ? dbGain(st.db || 0) : 1;
+}
+function mixApplyAll() {
+  SOLO = Object.values(MIX.ch).some(c => c.solo);
+  if (!AC) return;
+  for (const id in STRIP) stripApply(id);
+  for (const c in (AC.buses || {})) busNode(c);
+  masterNode();
+}
+const outNode = () => CH && SND[CH] ? stripOf(CH).inp : masterNode();
+// the take a channel plays instead of its built-in sound, if one is picked and ready
+function takeOf(id) {
+  if (!MIX_ON) return null;
+  const st = MIX.ch[id], k = TAKE_PICK != null ? TAKE_PICK : st && st.take; if (!k) return null;
+  const t = (MIX.takes[id] || []).find(x => x.k === k);
+  return t ? { t, buf: TAKEBUF[id + '|' + t.k] } : null;
+}
+function play(id, ...a) {
+  const S = SND[id]; if (!S || muted || !AC) return;
+  if (CH) return S.fn(...a); // a sound inside another sound stays on that one's channel
+  const st = MIX.ch[id];
+  if (!RENDER && st && (st.mute || (SOLO && !st.solo))) return;
+  CH = id;
+  try {
+    const tk = takeOf(id);
+    if (tk) { if (tk.buf) playBuf(tk.buf, (S.vol ? S.vol(...a) : 1) * dbGain(tk.t.trim || 0)); }
+    else S.fn(...a);
+  } finally { CH = null; }
+}
+// a recorded take: pitch and speed both change its playback rate (as on a tape)
+function playBuf(buf, g = 1) {
+  const M = chMod(), src = AC.createBufferSource(), gn = AC.createGain();
+  src.buffer = buf; src.playbackRate.value = M.f * M.s; gn.gain.value = g;
+  src.connect(gn).connect(outNode()); src.start(AC.currentTime + TOFF);
+  return src;
+}
+const b64buf = b64 => { const bin = atob(b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u.buffer; };
+function bufB64(ab) { const u = new Uint8Array(ab); let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); }
+// takes are kept as their file's bytes and decoded once there's an audio context
+async function mixDecode() {
+  if (!AC) return;
+  for (const id in MIX.takes) for (const t of MIX.takes[id]) {
+    const key = id + '|' + t.k; if (TAKEBUF[key] || t.bad) continue;
+    try { TAKEBUF[key] = await AC.decodeAudioData(b64buf(t.data)); } catch (e) { t.bad = 1; }
+  }
+}
+function mixLoad(m) {
+  if (!m || typeof m !== 'object') return;
+  MIX = { v: 1, master: +m.master || 0, bus: m.bus || {}, ch: m.ch || {}, takes: m.takes || {} };
+  for (const k in TAKEBUF) delete TAKEBUF[k];
+  mixApplyAll(); mixDecode();
+}
+// the shipped mix (if there is one): the game sounds the way it was mixed on the desk
+if (window.BOWFALL_MIX) mixLoad(window.BOWFALL_MIX);
+else if (!OFFLINE) fetch('sfx/mix.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(m => { if (m && !DESK.open) mixLoad(m); }).catch(() => {});
+// every sound in the tables above gets a channel on the mixer
+const v1 = a => a[0] == null ? 1 : a[0];
+sndTable(elSfx, 'el.', Object.fromEntries(Object.keys(elSfx).map(k => [k, ['element', (ELEMENTS[k] ? ELEMENTS[k].name : k) + ' hit', { el: k, vol: v1, vars: [['Your hit', [1]], ["Someone else's hit", [0.45]], ['Big burst', [1.3]]] }]])));
+sndTable(uiSfx, 'ui.', { hover: ['ui', 'Menu hover'], click: ['ui', 'Menu click'] });
+sndTable(sfx, '', {
+  xbShot: ['bow', 'Crossbow shot', { role: 'crossbow', vol: v1, vars: [['Yours', [1]], ["Someone else's", [0.45]], ['Full auto', [1, true]]] }],
+  xbLoad: ['bow', 'Crossbow reload', { role: 'crossbow' }],
+  guardUp: ['ability', 'Hair Trigger guard up', { ab: 'hairtrig' }],
+  autoOn: ['ability', 'Full auto starts', { role: 'crossbow' }],
+  autoOff: ['ability', 'Full auto ends', { role: 'crossbow' }],
+  twang: ['bow', 'Bow release', { vol: a => a[1] == null ? 1 : a[1], vars: [['Full draw', [1]], ['Half draw', [0.5]], ['Quick tap', [0]], ["Someone else's", [1, 0.4]]] }],
+  full: ['bow', 'Fully drawn'],
+  found: ['ui', 'Match found'],
+  draft: ['ui', 'Ranked draft opens'],
+  count: ['match', 'Countdown tick', { vars: [['3', [3]], ['2', [2]], ['1', [1]]] }],
+  rush: ['ability', 'Bull Rush', { ab: 'rush', vol: v1 }],
+  ready: ['ability', 'Ability ready again'],
+  hit: ['hit', 'Arrow hit', { vars: [['Normal', [false]], ['Bullseye', [true]]] }],
+  thunk: ['hit', 'Thud (walls, blocks, shoves)', { vol: v1 }],
+  hurt: ['hit', 'You get knocked out'],
+  fall: ['hit', 'Falling into a pit'],
+  boom: ['hit', 'Explosion'],
+  pick: ['ui', 'Pick up / pick a card'],
+  dash: ['move', 'Dash'],
+  kill: ['hit', 'You knock someone out'],
+  win: ['match', 'Win fanfare'],
+  splat: ['hit', 'Spikes'],
+  zap: ['element', 'Lightning zap', { el: 'storm', vol: v1 }],
+  freeze: ['element', 'Freeze', { el: 'frost' }],
+  disarm: ['ability', 'Disarmed'],
+  whip: ['ability', 'Snare catches', { ab: 'snare' }],
+  snap: ['ability', 'Bramble Trap snaps', { role: 'trapper' }],
+  whoosh: ['element', 'Fire patch', { el: 'flame' }],
+  hiss: ['element', 'Poison cloud', { el: 'poison' }],
+  crackle: ['element', 'Burning crackle', { el: 'flame' }],
+  creak: ['element', 'Ice creak', { el: 'frost' }],
+  splash: ['map', 'Splash'],
+});
+// the rest of the game's sounds, each on its own channel (the events that play them call play('id', …))
+const vMine = a => a[0] == null ? 1 : a[0];
+defSnd('callout', 'match', 'Big announcement (streaks, shutdowns)', (tier = 1) => {
+  nz(0.28, 0.035 + tier * 0.01, 'bandpass', 600, 3800, 2);
+  setTimeout(() => { tone(90 + tier * 8, 0.22, 'sine', 0.09 + tier * 0.02, -40); nz(0.12, 0.05, 'lowpass', 900, 200, 1); }, 230);
+}, { vars: [['Small', [1]], ['Medium', [2]], ['Big', [3]]] });
+defSnd('streak', 'match', 'Streak fanfare', (s = 3) => fanfare(s >= 7 ? [523, 659, 784, 1047, 1319] : s >= 5 ? [523, 659, 784, 1047] : [523, 659, 784], 'triangle', 0.05), { vars: [['Rampage (3)', [3]], ['Dominating (5)', [5]], ['Unstoppable (7+)', [7]]] });
+defSnd('shutdown', 'match', 'Shut down', () => { tone(220, 0.25, 'sawtooth', 0.05, -120); setTimeout(() => tone(440, 0.2, 'triangle', 0.05), 120); });
+defSnd('empowered', 'match', 'Empowered', (el) => { fanfare([392, 523, 659, 784], 'square', 0.035, 70); if (elSfx[el]) setTimeout(() => elSfx[el](1.2), 280); }, { vars: Object.keys(ELEMENTS).map(k => [ELEMENTS[k].name, [k]]) });
+defSnd('clutch', 'match', 'Clutch', (mine = true) => { if (mine) fanfare([659, 784, 988, 1319], 'triangle', 0.06, 90); else tone(200, 0.3, 'sawtooth', 0.04, -80); }, { vars: [['Your team', [true]], ['Their team', [false]]] });
+defSnd('praise', 'match', 'Praise after a game', (t = 1) => {
+  if (t >= 2) { nz(0.18, 0.025, 'bandpass', 700, 3000, 2); setTimeout(() => tone(95 + t * 6, 0.18, 'sine', 0.06 + t * 0.01, -35), 150); }
+  if (t <= 1) tone(660, 0.08, 'triangle', 0.04);
+  else if (t === 2) fanfare([587, 784], 'triangle', 0.045, 90);
+  else if (t === 3) fanfare([523, 659, 880], 'triangle', 0.05, 90);
+  else if (t === 4) fanfare([523, 659, 784, 1047], 'triangle', 0.055, 100);
+  else { fanfare([523, 659, 784, 1047, 1319], 'triangle', 0.06, 110); nz(0.6, 0.05, 'highpass', 5000, 9000, 1, 0.45); }
+}, { vars: [['First blood', [1]], ['Quick one', [2]], ['Sharpshooter', [3]], ['Dominating', [4]], ['Clutch', [5]]] });
+defSnd('mapFx', 'match', 'Map effect announced', (i = 0) => { os('sine', 520, 1040, 0.22, 0.03); setTimeout(() => tone(1320 + i * 220, 0.18, 'triangle', 0.025), 120); nz(0.3, 0.02, 'highpass', 4000, 8000, 1); }, { vars: [['First', [0]], ['Second', [1]]] });
+defSnd('roundStart', 'match', 'Round or game starts', () => tone(330, 0.2, 'triangle', 0.05));
+defSnd('lastArrow', 'match', 'Last Arrow', () => { tone(220, 0.35, 'sawtooth', 0.04); setTimeout(() => tone(440, 0.3, 'triangle', 0.05), 180); });
+defSnd('fight', 'match', 'Fight!', () => tone(660, 0.25, 'triangle', 0.06));
+defSnd('respawn', 'match', 'You respawn', () => tone(660, 0.12, 'triangle', 0.05));
+defSnd('matchEnd', 'match', 'Match result', (won = true) => { if (won) fanfare([523, 659, 784, 1047], 'triangle', 0.05, 110); else fanfare([392, 349, 311], 'sine', 0.035, 160); }, { vars: [['Won', [true]], ['Lost', [false]]] });
+defSnd('killcam', 'match', 'Kill cam starts', () => { os('sine', 300, 90, 0.6, 0.05); nz(0.6, 0.06, 'lowpass', 1200, 200, 1); });
+defSnd('achieve', 'ui', 'Achievement', () => fanfare([523, 659, 784, 1047, 784, 1047], 'triangle', 0.05, 90));
+defSnd('progBar', 'ui', 'Progress bar fills', (n = 0) => os('sine', 700 + n * 120, 1100 + n * 120, 0.12, 0.03), { vars: [['1st bar', [0]], ['2nd bar', [1]], ['3rd bar', [2]]] });
+defSnd('levelUp', 'ui', 'Level up', () => fanfare([659, 880, 1109, 1319], 'triangle', 0.05, 95));
+defSnd('crests', 'ui', 'Crests earned', () => fanfare([988, 1319], 'sine', 0.035, 110));
+defSnd('rankMove', 'ui', 'Rank changes', (up = true) => { tone(up ? 784 : 392, 0.12, 'triangle', 0.04); setTimeout(() => tone(up ? 1047 : 330, 0.16, 'triangle', 0.04), 110); }, { vars: [['Up', [true]], ['Down', [false]]] });
+defSnd('ratedTick', 'ui', 'Rating counts up', (up = true, n = 0) => tone(up ? 880 + 14 * n : 620 - 8 * n, 0.045, 'triangle', 0.03), { vars: [['Up', [true, 4]], ['Down', [false, 4]]] });
+defSnd('ratedEnd', 'ui', 'Rating settles', (up = true) => fanfare(up ? [1047, 1319] : [440, 370], 'triangle', 0.04, 90), { vars: [['Up', [true]], ['Down', [false]]] });
+defSnd('mapPref', 'ui', 'Arena liked or disliked', (fav = true) => tone(fav ? 880 : 520, 0.05, 'triangle', 0.03), { vars: [['Liked', [true]], ['Disliked', [false]]] });
+defSnd('partyReady', 'ui', 'Party member ready', (on = true) => { if (on) { tone(660, 0.07, 'triangle', 0.05); setTimeout(() => tone(990, 0.1, 'triangle', 0.05), 80); } else tone(440, 0.09, 'triangle', 0.04); }, { vars: [['Ready', [true]], ['Not ready', [false]]] });
+defSnd('message', 'ui', 'Message arrives', () => { tone(784, 0.06, 'sine', 0.045); setTimeout(() => tone(1047, 0.09, 'sine', 0.045), 70); });
+defSnd('invite', 'ui', 'Party invite', () => { tone(880, 0.1, 'triangle', 0.05); setTimeout(() => tone(1175, 0.12, 'triangle', 0.05), 110); });
+defSnd('chat', 'ui', 'Chat line', () => tone(1100, 0.05, 'sine', 0.025));
+defSnd('volTest', 'ui', 'Volume test', () => tone(660, 0.12, 'triangle', 0.05));
+defSnd('abFail', 'ui', "Ability can't be used", () => tone(160, 0.1, 'square', 0.03));
+defSnd('armed', 'ability', 'Ability armed', () => { tone(520, 0.06, 'triangle', 0.04); setTimeout(() => tone(780, 0.08, 'triangle', 0.04), 70); });
+// tutorial and training
+defSnd('tutStep', 'train', 'Tutorial step done', () => { tone(880, 0.1, 'triangle', 0.05); setTimeout(() => tone(1175, 0.14, 'triangle', 0.05), 90); });
+defSnd('tutDone', 'train', 'Tutorial finished', () => fanfare([523, 659, 784, 1047], 'triangle', 0.06, 110));
+defSnd('tutDodge', 'train', 'Tutorial dodge', () => tone(988, 0.08, 'triangle', 0.05));
+defSnd('trRound', 'train', 'Training round starts', () => { tone(660, 0.12, 'triangle', 0.05); setTimeout(() => tone(880, 0.16, 'triangle', 0.05), 120); });
+defSnd('trSpawn', 'train', 'Target appears', () => tone(1320, 0.05, 'square', 0.025));
+defSnd('trHit', 'train', 'Target hit', (bull = false) => tone(bull ? 1568 : 1175, 0.09, 'triangle', 0.05), { vars: [['Hit', [false]], ['Bullseye', [true]]] });
+defSnd('trMiss', 'train', 'Target missed', (loud = true) => loud ? tone(220, 0.14, 'sawtooth', 0.03) : tone(220, 0.08, 'square', 0.02), { vars: [['Missed', [true]], ['Ran out', [false]]] });
+defSnd('trKO', 'train', 'Training knockout', () => { tone(1047, 0.1, 'triangle', 0.05); setTimeout(() => tone(1397, 0.12, 'triangle', 0.05), 80); });
+defSnd('trBlock', 'train', 'Training shield ping', () => tone(880, 0.05, 'square', 0.02));
+defSnd('trClear', 'train', 'Training room clear', () => fanfare([659, 784, 1047], 'triangle', 0.05, 90));
+defSnd('trTurret', 'train', 'Turret down', () => tone(1047, 0.12, 'triangle', 0.05));
+defSnd('trGrade', 'train', 'Training grade', (g = 'A') => fanfare(g === 'S' || g === 'A' ? [523, 659, 784, 1047] : g === 'D' ? [330, 262] : [523, 659, 784], 'triangle', 0.06, 110), { vars: [['S or A', ['A']], ['B or C', ['B']], ['D', ['D']]] });
+// bow and hits
+defSnd('enemyFull', 'bow', 'Enemy at full draw nearby', () => tone(1320, 0.04, 'square', 0.012));
+defSnd('drawTick', 'bow', 'Draw creaks', (n = 1) => nz(0.05, 0.05, 'bandpass', 1300 + n * 200, 1000, 6), { vars: [['1', [1]], ['2', [2]], ['3', [3]]] });
+defSnd('heldCreak', 'bow', 'Held at full draw', () => { const f = rand(420, 560); nz(0.18, 0.13, 'bandpass', f * 2, f * 1.6, 7); os('triangle', rand(700, 820), rand(640, 700), 0.16, 0.02); });
+defSnd('autoRattle', 'bow', 'Full auto motor', () => { nz(0.03, 0.05, 'bandpass', 1400 + Math.random() * 300, 900, 4); os('sawtooth', 70, 65, 0.09, 0.018); }, { role: 'crossbow' });
+defSnd('bulls', 'hit', 'Your bullseye', () => tone(1560, 0.07, 'sine', 0.035));
+defSnd('bouncePing', 'bow', 'Arrow bounces', (tk = false) => tone(tk ? 1300 : 900, 0.05, 'square', 0.02), { vars: [['Bounce', [false]], ['Trick Shot bounce', [true]]] });
+defSnd('stuck', 'hit', 'Stuck', () => noise(0.15, 0.07, 300));
+defSnd('fwCrackle', 'ability', 'Firework crackle', () => { for (let n = 0; n < 6; n++) nz(0.03, 0.05, 'highpass', 4000, 6000, 1, 0.12 + n * 0.05 + Math.random() * 0.03); }, { ab: 'rocket' });
+defSnd('npcSwing', 'map', 'Stronghold guard attack', (k = 'slam') => { if (k === 'slam') nz(0.25, 0.08, 'lowpass', 400, 120, 1); else if (k === 'charge') nz(0.15, 0.07, 'lowpass', 600, 200, 1); else nz(0.08, 0.05, 'bandpass', 1800, 700, 1); }, { vars: [['Slam', ['slam']], ['Charge', ['charge']], ['Swing', ['swing']]] });
+defSnd('crack', 'map', 'Ice cracking or tide coming', (beach = false) => { if (beach) { nz(1.2, 0.07, 'lowpass', 700, 250, 1); nz(0.9, 0.04, 'highpass', 3000, 6000, 1, 0.3); } else { sfx.creak(); setTimeout(sfx.creak, 90); nz(0.5, 0.06, 'highpass', 2500, 6000); } }, { vars: [['Ice', [false]], ['Tide', [true]]] });
+defSnd('windWarn', 'map', 'Gale warning whistle', () => { nz(1.4, 0.05, 'bandpass', 500, 1500, 3); os('sine', 700, 1100, 1.2, 0.012); });
+defSnd('windGust', 'map', 'Gale gust', () => { nz(2.4, 0.11, 'lowpass', 1400, 300, 1); nz(1.6, 0.04, 'highpass', 2500, 1200, 1, 0.2); });
+defSnd('saw', 'map', 'Saw blade', () => { nz(0.3, 0.1, 'bandpass', 3400, 1800, 4); os('sawtooth', 1500, 700, 0.22, 0.03); });
+defSnd('ballShot', 'map', 'Ball shot', (sp = 0.5) => { os('sine', 240, 420, 0.08, 0.05 * (0.4 + sp)); nz(0.05, 0.05, 'bandpass', 1400, 900, 2); }, { vol: a => 0.4 + (a[0] == null ? 0.5 : a[0]) });
+defSnd('ballKick', 'map', 'Ball kicked', () => os('sine', 180, 300, 0.07, 0.035));
+defSnd('ballHit', 'map', 'Ball hits an archer', () => { os('triangle', 150, 90, 0.16, 0.06); nz(0.08, 0.06, 'lowpass', 900, 500, 3); });
+defSnd('ballBounce', 'map', 'Ball bounces', () => os('sine', 260, 200, 0.06, 0.025));
+defSnd('ballGoal', 'map', 'Goal', () => fanfare([392, 523, 659], 'triangle', 0.045, 70));
+defSnd('bump', 'map', 'Bumper', (k = 1) => { os('sine', 170, 170 + 350 * k, 0.2, 0.07 * k); os('triangle', 90, 90 + 170 * k, 0.22, 0.04 * k); }, { vol: vMine });
+defSnd('portal', 'map', 'Portal', (v = 1) => { os('sine', 900, 200, 0.2, 0.05 * v); os('sine', 200, 900, 0.2, 0.05 * v, 0.12); }, { vol: vMine });
+defSnd('shrine', 'map', 'Shrine appears', () => fanfare([392, 494, 587], 'triangle', 0.035, 90));
+// elements
+defSnd('iceShatter', 'element', 'Ice shatters', () => { nz(0.3, 0.1, 'highpass', 3000, 6000, 1); tone(1800, 0.12, 'triangle', 0.03, -900); }, { el: 'frost' });
+defSnd('stun', 'element', 'Stunned buzz', (v = 1) => buzz(0.7, v), { el: 'storm', vol: vMine });
+defSnd('stoneHit', 'element', 'Stone crunch', (big = false) => nz(big ? 0.16 : 0.1, big ? 0.1 : 0.06, 'lowpass', 600, 120, 1), { el: 'stone', vars: [['Normal', [false]], ['Full draw', [true]]] });
+defSnd('flashpoint', 'element', 'Flashpoint', () => nz(0.25, 0.09, 'lowpass', 1400, 300, 1), { ab: 'flashpoint' });
+defSnd('shade', 'element', 'Shadow stack', (n = 1, v = 1) => os('sine', 240 - 25 * n, 120, 0.2, 0.05 * v), { el: 'shadow', vars: [['1 stack', [1]], ['3 stacks', [3]]], vol: a => a[1] == null ? 1 : a[1] });
+defSnd('shadeUp', 'element', 'Deep Shade', () => os('sine', 180, 90, 0.2, 0.04), { ab: 'deepshade' });
+defSnd('shadeBurst', 'element', 'Shadow burst', (big = 1) => { nz(0.22, 0.09 * big, 'lowpass', 700, 160, 2); os('sawtooth', 140, 50, 0.22, 0.035 * big); }, { el: 'shadow', vol: vMine, vars: [['Small', [0.72]], ['Big', [1.6]]] });
+defSnd('eclipse', 'element', 'Eclipse', () => { nz(0.6, 0.08, 'lowpass', 500, 120, 1); os('sine', 220, 70, 0.6, 0.05); }, { ab: 'eclipse' });
+defSnd('transfuse', 'element', 'Transfusion', (v = 1) => os('sine', 330, 660, 0.25, 0.035 * v), { ab: 'transfusion', vol: vMine });
+defSnd('orbHeal', 'element', 'Blood orb heals you', () => { tone(784, 0.12, 'sine', 0.035); setTimeout(() => tone(1046, 0.14, 'sine', 0.03), 80); }, { ab: 'transfusion' });
+defSnd('hole', 'element', 'Event Horizon', () => { punch(90, 28, 0.9, 0.32); os('sawtooth', 300, 40, 0.8, 0.04); nz(0.9, 0.12, 'lowpass', 2400, 120, 2); elSfx.void(1); }, { ab: 'horizon' });
+// abilities
+defSnd('loaded', 'ability', 'Bolt loaded', () => tone(300, 0.25, 'sawtooth', 0.05, 200), { role: 'crossbow' });
+defSnd('throw', 'ability', 'Shuriken thrown', (k = 'mine') => { if (k === 'other') nz(0.04, 0.025, 'highpass', 2500, 5000, 1); else { nz(0.05, 0.07, 'highpass', 2500, 5000, 1); tone(k === 'dash' ? 1500 : 2300, 0.03, 'triangle', 0.025); } }, { role: 'ninja', vars: [['Yours', ['mine']], ['Yours, dashing', ['dash']], ["Someone else's", ['other']]] });
+defSnd('sstrike', 'ability', 'Shadow Strike', () => { os('sine', 300, 1400, 0.1, 0.04); nz(0.1, 0.06, 'highpass', 5000, 8000, 1, 0.08); }, { ab: 'sstrike' });
+defSnd('clone', 'ability', 'Shadow Clone', () => { nz(0.3, 0.07, 'lowpass', 1200, 300); os('sine', 700, 200, 0.2, 0.03); }, { ab: 'clone' });
+defSnd('blossom', 'ability', 'Death Blossom', () => { for (let i = 0; i < 4; i++) nz(0.06, 0.06, 'highpass', 2500, 5000, 1, i * 0.025); }, { ab: 'blossom' });
+defSnd('smark', 'ability', 'Shadow Mark set', () => tone(660, 0.08, 'sine', 0.04), { ab: 'recall' });
+defSnd('recall', 'ability', 'Shadow Mark return', (v = 1) => os('sine', 1200, 400, 0.15, 0.05 * v), { ab: 'recall', vol: vMine });
+defSnd('executed', 'ability', 'Executed', () => { tone(90, 0.3, 'sawtooth', 0.06, -30); nz(0.15, 0.1, 'highpass', 3000, 1500, 1); }, { ab: 'execution' });
+defSnd('nblink', 'ability', 'Ninja step', (v = 1) => { nz(0.05, 0.03 * v, 'lowpass', 900, 300, 1); setTimeout(() => { os('sine', 1100, 300, 0.09, 0.045 * v); nz(0.08, 0.05 * v, 'highpass', 3500, 7000, 1); }, 50); }, { role: 'ninja', vol: vMine });
+defSnd('flash', 'ability', 'Flash step', (n = 0) => { nz(0.12, 0.1, 'highpass', 5000, 2000, 1); os('sawtooth', 1800, 400, 0.12, 0.03); if (n) tone(160, 0.1, 'square', 0.04, -60); }, { role: 'ninja', vars: [['Miss', [0]], ['Hits someone', [1]]] });
+defSnd('shuriken', 'ability', 'Shuriken flurry', () => { for (let i = 0; i < 3; i++) nz(0.05, 0.05, 'bandpass', 3500, 2500, 6, i * 0.03); }, { ab: 'flurry' });
+defSnd('caltrops', 'ability', 'Caltrops', () => { for (let i = 0; i < 6; i++) tone(rand(2200, 3400), 0.03, 'triangle', 0.02, 0); }, { role: 'ninja' });
+defSnd('recoil', 'ability', 'Recoil Shot', () => noise(0.18, 0.1, 900), { ab: 'recoil' });
+defSnd('fortify', 'ability', 'Fortify', () => { sfx.thunk(1.2); tone(140, 0.25, 'triangle', 0.05); }, { ab: 'fortify' });
+defSnd('wind', 'ability', 'Wind', () => noise(0.35, 0.08, 2500));
+defSnd('swap', 'ability', 'Swap places', () => { os('sine', 400, 1200, 0.12, 0.04); os('sine', 1200, 400, 0.12, 0.04, 0.1); }, { role: 'trickster' });
+defSnd('boomTurn', 'ability', 'Boomerang turns', () => nz(0.2, 0.04, 'bandpass', 900, 1800, 3), { ab: 'boomerang' });
+defSnd('catch', 'ability', 'Boomerang caught', () => { tone(1200, 0.05, 'triangle', 0.04); setTimeout(() => tone(1600, 0.05, 'triangle', 0.035), 50); }, { ab: 'boomerang' });
+defSnd('briar', 'ability', 'Bramble Toss', (n = 0) => { nz(0.2, 0.08, 'bandpass', 1600, 700, 2); if (n) tone(170, 0.12, 'square', 0.035, -50); }, { role: 'trapper', vars: [['Thrown', [0]], ['Hits someone', [1]]] });
+defSnd('ripCast', 'ability', 'Rip spell', () => { os('sine', 330, 880, 0.95, 0.03); os('triangle', 495, 1320, 0.95, 0.015); for (let i = 0; i < 5; i++) tone(rand(1400, 2400), 0.05, 'sine', 0.012 * (1 + i / 3)); nz(0.9, 0.025, 'bandpass', 2500, 5000, 6); }, { role: 'trapper' });
+defSnd('rip', 'ability', 'Rip tears thorns out', (n = 3) => { for (let i = 0; i < Math.min(5, n); i++) { nz(0.06, 0.06, 'highpass', 2600, 1200, 2, i * 0.05); nz(0.12, 0.04, 'bandpass', 900, 3200, 3, i * 0.05 + 0.1); } }, { role: 'trapper', vars: [['1 thorn', [1]], ['3 thorns', [3]], ['5 thorns', [5]]] });
+defSnd('mend', 'ability', 'Mend', () => fanfare([523, 784], 'sine', 0.04, 60), { ab: 'mend' });
+defSnd('execute', 'ability', 'Coup de grâce', () => tone(110, 0.25, 'sawtooth', 0.05, -40), { ab: 'execute' });
+defSnd('dance', 'ability', 'Shadow Dance', () => fanfare([440, 660, 880], 'sine', 0.04, 60), { ab: 'dance' });
+defSnd('railArmed', 'ability', 'Railshot ready', () => { os('sawtooth', 300, 1200, 0.25, 0.03); os('sine', 1200, 1800, 0.2, 0.03, 0.18); }, { ab: 'railshot' });
+defSnd('blink', 'ability', 'Blink', (v = 1) => { os('sine', 1400, 300, 0.14, 0.05 * v); nz(0.1, 0.05, 'highpass', 3000, 6000, 1); }, { ab: 'blink', vol: vMine });
+defSnd('harpoon', 'ability', 'Harpoon', (hit = false) => { nz(0.15, 0.08, 'bandpass', 1400, 500, 2); if (hit) tone(180, 0.12, 'square', 0.04, -60); }, { ab: 'harpoon', vars: [['Thrown', [false]], ['Hooks someone', [true]]] });
+defSnd('totem', 'ability', 'Mending Totem', () => fanfare([392, 523, 659], 'sine', 0.045, 70), { ab: 'totem' });
+defSnd('smoke', 'ability', 'Smoke Bomb', () => { nz(0.5, 0.12, 'lowpass', 1200, 300); sfx.thunk(0.7); }, { ab: 'smoke' });
+defSnd('volleyArmed', 'ability', 'Volley ready', () => { tone(640, 0.06, 'triangle', 0.04); setTimeout(() => tone(760, 0.06, 'triangle', 0.04), 60); setTimeout(() => tone(880, 0.06, 'triangle', 0.04), 120); }, { ab: 'volley' });
+defSnd('volleyReset', 'ability', 'Volley ready again', () => fanfare([784, 988, 1175], 'triangle', 0.04, 60), { ab: 'volley' });
+defSnd('marked', 'ability', 'Death Mark', () => tone(300, 0.2, 'sawtooth', 0.04, -150), { ab: 'deathmark' });
+defSnd('stealth', 'ability', 'Stealth', (on = true) => nz(0.35, 0.06, 'bandpass', on ? 2000 : 500, on ? 400 : 1800, 2), { ab: 'stealth', vars: [['Vanish', [true]], ['Reappear', [false]]] });
+defSnd('backstab', 'ability', 'Backstab', () => tone(220, 0.12, 'sawtooth', 0.04, -80), { role: 'assassin' });
+defSnd('ambushHit', 'ability', 'Ambush', () => { tone(180, 0.2, 'sawtooth', 0.05, -80); nz(0.12, 0.08, 'highpass', 3000, 6000, 1); }, { ab: 'ambush' });
+defSnd('pinned', 'ability', 'Pinned', () => { sfx.thunk(1.4); nz(0.12, 0.12, 'lowpass', 900, 200); }, { ab: 'pin' });
+defSnd('trapStart', 'ability', 'Setting a trap', () => { nz(0.5, 0.08, 'bandpass', 700, 1600, 2); for (let i = 0; i < 5; i++) nz(0.04, 0.07, 'bandpass', rand(1500, 3000), 1200, 6, 0.08 * i); }, { role: 'trapper' });
+defSnd('trapSet', 'ability', 'Trap set', () => { nz(0.08, 0.12, 'lowpass', 900, 300); tone(240, 0.08, 'triangle', 0.04, -60); }, { role: 'trapper' });
+defSnd('shield', 'ability', 'Shield block', () => { sfx.thunk(0.8); tone(420, 0.06, 'square', 0.025); }, { role: 'juggernaut' });
+defSnd('deflectUp', 'ability', 'Deflect raised', () => tone(300, 0.2, 'triangle', 0.05, 500), { ab: 'deflect' });
+defSnd('deflect', 'ability', 'Deflected', () => tone(1300, 0.12, 'triangle', 0.05, -500), { ab: 'deflect' });
+defSnd('gust', 'ability', 'Gust', () => noise(0.35, 0.12, 1800), { ab: 'gust' });
+defSnd('wallUp', 'ability', 'Shield Wall', () => tone(260, 0.2, 'triangle', 0.05, 120), { ab: 'wall' });
+defSnd('rainMark', 'ability', 'Arrow Rain called', () => tone(880, 0.3, 'sine', 0.04, -300), { ab: 'rain' });
+defSnd('rainHit', 'ability', 'Arrow Rain lands', () => noise(0.3, 0.14, 1400), { ab: 'rain' });
+defSnd('grapple', 'ability', 'Grapple', () => tone(500, 0.15, 'square', 0.03, 400), { ab: 'grapple' });
+defSnd('parryUp', 'ability', 'Parry raised', () => tone(880, 0.08, 'triangle', 0.04), { ab: 'parry' });
+defSnd('parried', 'ability', 'Parried', () => { tone(1320, 0.1, 'triangle', 0.05, -300); tone(1760, 0.14, 'sine', 0.035); }, { ab: 'parry' });
 syncMute();
 $('muteBtn').onclick = () => { muted = !muted; syncMute(); initAudio(); store.set('bowfall-muted', muted ? '1' : '0'); };
 
@@ -2880,7 +3277,7 @@ function tutGuard() {
 }
 function tutNext() {
   TUT.step++; TUT.full = false; TUT.abUsed = false; TUT.shots = []; TUT.dodged = 0; TUT.dg = null;
-  tone(880, 0.1, 'triangle', 0.05); setTimeout(() => tone(1175, 0.14, 'triangle', 0.05), 90);
+  play('tutStep');
   const k = tutStep();
   if (k === 'knock' || k === 'dodge') placeTutDummy(true);
   if (k === 'pick') startTutFight();
@@ -2898,7 +3295,7 @@ function startTutFight() {
 }
 function tutDone() {
   TUT.step = TUT_STEPS.length; store.set('bowfall-tut', 'done'); drawTutBadge();
-  renderCoach(); fanfare([523, 659, 784, 1047], 'triangle', 0.06, 110);
+  renderCoach(); play('tutDone');
 }
 function tutEvents(evs) {
   if (!TUT.on) return;
@@ -2928,7 +3325,7 @@ function tutTick(dt) {
   if (k === 'ability' && me && me.abCd[0] > 0) TUT.abUsed = true;
   if (k === 'dodge') {
     // a shot that's been flying a second without hitting you was dodged
-    for (const s of TUT.shots) if (!s.hit && !s.done && clock - s.t > 1) { s.done = true; TUT.dodged++; floater(me ? me.x : 0, me ? me.y - 40 : 0, `Dodged ${TUT.dodged}/2`, '#7dff8a', 17, true); tone(988, 0.08, 'triangle', 0.05); }
+    for (const s of TUT.shots) if (!s.hit && !s.done && clock - s.t > 1) { s.done = true; TUT.dodged++; floater(me ? me.x : 0, me ? me.y - 40 : 0, `Dodged ${TUT.dodged}/2`, '#7dff8a', 17, true); play('tutDodge'); }
     if (TUT.dodged >= 2) return tutNext();
   }
   const b = $('coachBar'); if (b) b.style.width = Math.round(Math.min(TUT.step, TUT_STEPS.length) / TUT_STEPS.length * 100) + '%';
@@ -3484,7 +3881,7 @@ function trNextRound() {
   if (TR.kind === 'sink') trSinkScene(R);
   else if (TR.kind === 'dodge') { TR.roundT = TR.t; for (const h of R.add) TR.pend.push({ h, at: TR.t + DODGE_WARN }); }
   else { TR.spawned = 0; TR.left = R.n; TR.gap = 2.2; TR.tg = []; }
-  notice(`${TR.kind === 'sink' ? 'Scene' : 'Round'} ${TR.round + 1}: ${R.name}`, true, '#ffcf5a'); tone(660, 0.12, 'triangle', 0.05); setTimeout(() => tone(880, 0.16, 'triangle', 0.05), 120);
+  notice(`${TR.kind === 'sink' ? 'Scene' : 'Round'} ${TR.round + 1}: ${R.name}`, true, '#ffcf5a'); play('trRound');
   if (TR.kind === 'dodge' && R.add.length) setTimeout(() => notice(R.add.some(h => h.type === 'tar') ? 'Bogs are forming: you can only wade out of one' : 'Sinkholes are opening: don\'t dash into one', false), 700);
 }
 function trSpawnTarget() {
@@ -3498,7 +3895,7 @@ function trSpawnTarget() {
   TR.last = { x, y };
   TR.tg.push({ id: free[0], x, y, t0: TR.t, life: R.life });
   TR.spawned++;
-  tone(1320, 0.05, 'square', 0.025);
+  play('trSpawn');
 }
 function trPop(t, hit, bull) {
   TR.tg = TR.tg.filter(o => o !== t); TR.left--;
@@ -3508,8 +3905,8 @@ function trPop(t, hit, bull) {
     TR.score += pts; TR.hits++; if (bull) TR.bulls++;
     floater(t.x, t.y - 30, `+${pts}${bull ? ' bullseye' : ''}`, bull ? '#ffcf5a' : '#ffffff', bull ? 20 : 16, true);
     burst(t.x, t.y, bull ? '#ffcf5a' : '#ffffff', 16, 200);
-    tone(bull ? 1568 : 1175, 0.09, 'triangle', 0.05);
-  } else { floater(t.x, t.y - 30, 'missed', '#ff5a5a', 15, true); tone(220, 0.14, 'sawtooth', 0.03); }
+    play('trHit', !!bull);
+  } else { floater(t.x, t.y - 30, 'missed', '#ff5a5a', 15, true); play('trMiss', true); }
   TR.pop.push({ x: t.x, y: t.y, t: 0, hit });
 }
 // a turret's script: wait, draw for a moment, release at the player (leading a little)
@@ -3575,7 +3972,7 @@ function trSinkScene(R) {
 function trSink(dt, me) {
   const R = Sim.TRAIN_KNOCK[TR.round]; if (!R) return;
   // a shot that hasn't touched a dummy by the time it's done flying is a miss
-  while (TR.shotQ.length && (TR.shotQ[0].hit || TR.t - TR.shotQ[0].t > 2.6)) { if (!TR.shotQ.shift().hit) { TR.miss++; tone(220, 0.08, 'square', 0.02); } }
+  while (TR.shotQ.length && (TR.shotQ[0].hit || TR.t - TR.shotQ[0].t > 2.6)) { if (!TR.shotQ.shift().hit) { TR.miss++; play('trMiss', false); } }
   if (TR.next) { if (TR.t >= TR.next) trNextRound(); }
   for (const id of TR.dum) {
     const d = world.players.find(q => q.id === id); if (!d) continue;
@@ -3585,7 +3982,7 @@ function trSink(dt, me) {
     if (me) { d.input.aim = Math.atan2(me.y - d.y, me.x - d.x); d.input.tx = me.x; d.input.ty = me.y; }
     if (d.falling > 0.45) { // in!
       TR.score += Sim.KNOCK_KO; TR.kos++; TR.inRound++;
-      floater(a.hx, a.hy - 30, `+${Sim.KNOCK_KO}`, '#7dff8a', 17, true); tone(1047, 0.1, 'triangle', 0.05); setTimeout(() => tone(1397, 0.12, 'triangle', 0.05), 80);
+      floater(a.hx, a.hy - 30, `+${Sim.KNOCK_KO}`, '#7dff8a', 17, true); play('trKO');
       TR.act = TR.act.filter(o => o !== a);
       Object.assign(d, { x: TR_PARK.x, y: TR_PARK.y, vx: 0, vy: 0, falling: 0, dead: false }); d.inv = 9;
       if (!TR.act.length) trSinkClear(R);
@@ -3599,7 +3996,7 @@ function trSink(dt, me) {
     if (a.back >= 1) {
       burst(d.x, d.y, '#4fa8ff', 10, 120);
       Object.assign(d, { x: a.hx, y: a.hy, vx: 0, vy: 0, knock: 0 }); a.back = 0; TR.resets++;
-      burst(a.hx, a.hy, '#4fa8ff', 12, 160); tone(880, 0.05, 'square', 0.02);
+      burst(a.hx, a.hy, '#4fa8ff', 12, 160); play('trBlock');
     }
   }
 }
@@ -3608,7 +4005,7 @@ function trSinkClear(R) {
   const bonus = Math.round(Sim.KNOCK_BONUS * k); TR.score += bonus;
   (TR.times = TR.times || []).push(t);
   notice(`${R.name} clear in ${t.toFixed(1)}s · +${bonus}`, true, '#7dff8a');
-  fanfare([659, 784, 1047], 'triangle', 0.05, 90);
+  play('trClear');
   if (TR.round >= Sim.TRAIN_KNOCK.length - 1) setTimeout(() => { if (TR.on && TR.kind === 'sink') trFinish(); }, 600);
   else TR.next = TR.t + 1.2;
 }
@@ -3678,7 +4075,7 @@ function trainEvents(evs) {
       else if (TR.kind === 'peek') {
         const t = TR.tur.find(o => o.id === e.id); if (!t || t.off > 0) continue;
         t.hits++; TR.hits++; TR.score += 50; floater(e.x, e.y - 24, '+50', '#ffffff', 15, true);
-        if (t.hits >= 3) { TR.kos++; TR.score += 300; t.off = 1.6; floater(t.x, t.y - 40, 'Turret down +300', '#7dff8a', 18, true); burst(t.x, t.y, '#7dff8a', 22, 220); tone(1047, 0.12, 'triangle', 0.05); }
+        if (t.hits >= 3) { TR.kos++; TR.score += 300; t.off = 1.6; floater(t.x, t.y - 40, 'Turret down +300', '#7dff8a', 18, true); burst(t.x, t.y, '#7dff8a', 22, 220); play('trTurret'); }
       } else if (TR.kind === 'sink') { TR.hits++; const q = TR.shotQ.find(o => !o.hit); if (q) q.hit = true; }
     }
   }
@@ -3700,7 +4097,7 @@ function trFinish() {
   TR.newBest = !old || TR.score > old.s;
   if (TR.newBest || Sim.gradeBest(TR.grade, old.g) !== old.g) { best[TR.kind] = Object.assign({}, old || {}, { g: old ? Sim.gradeBest(TR.grade, old.g) : TR.grade, s: old ? Math.max(old.s, TR.score) : TR.score }); store.set('bowfall-train', JSON.stringify(best)); }
   notice(`Grade ${TR.grade}`, true, GRADE_COL[TR.grade]);
-  fanfare(TR.grade === 'S' || TR.grade === 'A' ? [523, 659, 784, 1047] : TR.grade === 'D' ? [330, 262] : [523, 659, 784], 'triangle', 0.06, 110);
+  play('trGrade', TR.grade);
   renderTrainCoach();
   // rank it against everyone's bests (and keep it on your account if you're signed in)
   if (!OFFLINE) {
@@ -3874,7 +4271,7 @@ async function progShow() {
   if (cr > 0) rows.push(`<div class="pr"><span>Crests</span><span class="status">${fw ? 'Includes your <b>first win of the day</b> bonus' : firstWinReady() ? 'Win a match today for a first-win bonus' : ''}</span><em>+${cr.toLocaleString()}</em></div>`);
   el.innerHTML = rows.join(''); el.hidden = false;
   const ups = (l1 > l0 ? 1 : 0) + el.querySelectorAll('.lvup').length;
-  requestAnimationFrame(() => requestAnimationFrame(() => { el.querySelectorAll('.bar i').forEach((i, n) => { i.style.width = i.dataset.to + '%'; setTimeout(() => { if (!muted) os('sine', 700 + n * 120, 1100 + n * 120, 0.12, 0.03); }, 150 + n * 180); }); if (ups) setTimeout(() => fanfare([659, 880, 1109, 1319], 'triangle', 0.05, 95), 900); else if (cr > 0) setTimeout(() => fanfare([988, 1319], 'sine', 0.035, 110), 900); }));
+  requestAnimationFrame(() => requestAnimationFrame(() => { el.querySelectorAll('.bar i').forEach((i, n) => { i.style.width = i.dataset.to + '%'; setTimeout(() => play('progBar', n), 150 + n * 180); }); if (ups) setTimeout(() => play('levelUp'), 900); else if (cr > 0) setTimeout(() => play('crests'), 900); }));
   drawMastChips();
 }
 function syncArch(me) {
@@ -4045,7 +4442,7 @@ function showRated(m) {
     (m.guest ? `<a href="/#/register?next=/play" target="_blank" rel="noopener">Make an account to keep it</a>` : '');
   box.classList.remove('show'); void box.offsetWidth; box.classList.add('show'); box.hidden = false;
   clearTimeout(RATED.t); RATED.t = setTimeout(() => { box.classList.remove('show'); }, 6500);
-  tone(up ? 784 : 392, 0.12, 'triangle', 0.04); setTimeout(() => tone(up ? 1047 : 330, 0.16, 'triangle', 0.04), 110);
+  play('rankMove', !!up);
   renderResRated();
 }
 // ranked tiers: a badge, and what a match did to your tier (promoted, dropped, or how far to the next division)
@@ -4072,8 +4469,8 @@ function renderResRated() {
   const run = now => {
     if (!el.isConnected || el.hidden) return;
     const k = Math.max(0, Math.min(1, (now - t0) / dur)), e = 1 - Math.pow(1 - k, 2), n = Math.round(e * steps);
-    if (n > shown) { shown = n; b.textContent = Math.round(RATED.start + d * e); if (!muted) tone(d >= 0 ? 880 + 14 * n : 620 - 8 * n, 0.045, 'triangle', 0.03); }
-    if (k < 1) requestAnimationFrame(run); else { b.textContent = RATED.now; em.style.transition = 'opacity .4s'; em.style.opacity = 1; if (!muted) fanfare(d >= 0 ? [1047, 1319] : [440, 370], 'triangle', 0.04, 90); }
+    if (n > shown) { shown = n; b.textContent = Math.round(RATED.start + d * e); play('ratedTick', d >= 0, n); }
+    if (k < 1) requestAnimationFrame(run); else { b.textContent = RATED.now; em.style.transition = 'opacity .4s'; em.style.opacity = 1; play('ratedEnd', d >= 0); }
   };
   requestAnimationFrame(run);
 }
@@ -4678,7 +5075,7 @@ function setMapPref(k, how) {
   else if (mp.fav === k) { mp.fav = null; mp.hate = k; }
   else if (mp.hate === k) mp.hate = null;
   else mp.fav = k;
-  store.set('bowfall-mappref', JSON.stringify(mp)); socialSend(Object.assign({ t: 'mappref' }, mp)); tone(mp.fav === k ? 880 : 520, 0.05, 'triangle', 0.03); renderFind();
+  store.set('bowfall-mappref', JSON.stringify(mp)); socialSend(Object.assign({ t: 'mappref' }, mp)); play('mapPref', mp.fav === k); renderFind();
 }
 // a picture of the arena when you point at (or move to) its name
 function fgMapPreview(b) {
@@ -4722,8 +5119,7 @@ $('rejoinGo').onclick = () => { const r = SOC.st && SOC.st.rejoin; if (!r) retur
 // a party member readied up (or stopped being ready): a chime and a small pop-up
 function partyReadyNote(m) {
   initAudio();
-  if (m.on) { tone(660, 0.07, 'triangle', 0.05); setTimeout(() => tone(990, 0.1, 'triangle', 0.05), 80); }
-  else tone(440, 0.09, 'triangle', 0.04);
+  play('partyReady', !!m.on);
   notice(`<b>${esc(m.name)}</b> ${m.on ? 'is ready' : 'is no longer ready'}`, false);
 }
 // ---- messages between friends: a panel with your friends down the side and the conversation on the right
@@ -4804,7 +5200,7 @@ function dmGot(m) {
   if (msg.from !== me && !viewing) {
     const short = msg.body.length > 60 ? msg.body.slice(0, 57) + '…' : msg.body;
     notice(`<b>${esc(m.name)}</b>: ${esc(short)}`, false);
-    if (mode === 'menu') { initAudio(); tone(784, 0.06, 'sine', 0.045); setTimeout(() => tone(1047, 0.09, 'sine', 0.045), 70); }
+    if (mode === 'menu') { initAudio(); play('message'); }
   }
 }
 $('dmList').addEventListener('click', e => { const b = e.target.closest('[data-dm]'); if (b) dmSelect(+b.dataset.dm); });
@@ -4822,7 +5218,7 @@ $('dmBlock').onclick = () => { const b = $('dmBlock'); if (!DM.with) return; if 
 $('dmClose').onclick = dmClose; $('dmClose2').onclick = dmClose; $('dmBack').onclick = () => dmSelect(null);
 function showInvite(m) {
   SOC.invite = m; $('inviteText').innerHTML = `<b>${esc(m.from)}</b> invited you to their party.`; $('inviteToast').hidden = false;
-  tone(880, 0.1, 'triangle', 0.05); setTimeout(() => tone(1175, 0.12, 'triangle', 0.05), 110);
+  play('invite');
   clearTimeout(SOC.invT); SOC.invT = setTimeout(() => { $('inviteToast').hidden = true; }, 60000);
 }
 $('inviteYes').onclick = () => { if (SOC.invite) socialSend({ t: 'party', op: 'accept', party: SOC.invite.party }); $('inviteToast').hidden = true; if (mode === 'menu') openSub('findScr'); };
@@ -4849,7 +5245,7 @@ function addChat(m) {
     box.appendChild(el); while (box.children.length > 80) box.firstChild.remove();
     box.scrollTop = box.scrollHeight;
   }
-  if (!d.sys) tone(1100, 0.05, 'sine', 0.025);
+  if (!d.sys) play('chat');
 }
 function clearChat() { chatMsgs = []; $('gChatLog').innerHTML = ''; $('lbChatLog').innerHTML = '<div class="cline sys">Chat with everyone in the room here. In game, press Enter to chat.</div>'; closeGameChat(); }
 function sendChat(inp) { const t = inp.value.trim(); if (t) act({ t: 'chat', m: t }); inp.value = ''; }
@@ -5100,7 +5496,7 @@ function balCsv() {
 }
 // balance data is for the game's owner only (and the offline copy, which is yours anyway)
 // the owner's extras: balance data, and Strongholds (on hold, so only the owner and the offline copy can open it)
-function adminBits() { const on = OFFLINE || !!(account && account.admin); for (const id of ['balBtn', 'gmBalBtn', 'resBalBtn', 'cqBtn']) if ($(id)) $(id).hidden = !on; }
+function adminBits() { const on = OFFLINE || !!(account && account.admin); for (const id of ['balBtn', 'gmBalBtn', 'resBalBtn', 'cqBtn', 'sndBtn']) if ($(id)) $(id).hidden = !on; }
 $('balBtn').onclick = openBalance; $('gmBalBtn').onclick = openBalance; $('resBalBtn').onclick = openBalance;
 $('balClose').onclick = closeBalance;
 ['balWho', 'balMap', 'balSrc', 'balSize', 'balRules', 'balVer'].forEach(id => $(id).addEventListener('change', renderBalance));
@@ -5138,7 +5534,7 @@ const Ach = {
     for (const k of keys) {
       const a = Sim.ACHIEVEMENTS[k], t = (this.d.tier || {})[k] || 1, T = Sim.ACH_TIERS[t - 1]; if (!a || !T) continue;
       notice(`Achievement: <b style="color:${T.col}">${esc(a.title)} ${T.n}</b> <small>${T.name}. ${esc(Sim.achText(k, t))}${t === 1 ? ' You can wear it as a title.' : ''}</small>`, true, T.col);
-      fanfare([523, 659, 784, 1047, 784, 1047], 'triangle', 0.05, 90);
+      play('achieve');
     }
   },
   onEvents() {}, // progress is counted on the server now
@@ -5730,8 +6126,8 @@ function syncOptions() {
 }
 $('oRec').onclick = () => { PR.toggle(); $('oRec').textContent = PR.on ? 'Stop and save' : 'Start recording'; };
 $('oNet').onchange = () => { OPTS.net = $('oNet').value === '1'; store.set('bowfall-net', OPTS.net ? '1' : '0'); };
-$('oVol').oninput = () => { OPTS.vol = +$('oVol').value; store.set('bowfall-vol', OPTS.vol); $('oVolN').textContent = OPTS.vol + '%'; initAudio(); if (AC) outNode(); };
-$('oVol').onchange = () => { initAudio(); tone(660, 0.12, 'triangle', 0.05); };
+$('oVol').oninput = () => { OPTS.vol = +$('oVol').value; store.set('bowfall-vol', OPTS.vol); $('oVolN').textContent = OPTS.vol + '%'; initAudio(); if (AC) masterNode(); };
+$('oVol').onchange = () => { initAudio(); play('volTest'); };
 $('oMute').onchange = () => { muted = $('oMute').value === '1'; store.set('bowfall-muted', muted ? '1' : '0'); syncMute(); };
 $('oRes').onchange = () => { OPTS.res = $('oRes').value; store.set('bowfall-res', OPTS.res); RSCALE = 1; resize(); floorCv = null; };
 $('oFx').onchange = () => { OPTS.fx = $('oFx').value; store.set('bowfall-fx', OPTS.fx); perf.low = false; };
@@ -5989,12 +6385,12 @@ $('resFindBtn').onclick = toMenu;
 $('rematchBtn').onclick = () => act({ t: 'restart' });
 
 // the map effects, announced at the start of each game: a pill each, sliding in with a chime
-const MUT_ICON = { vigil: '✚', gale: '≈', hide: '◆', bounty: '★', force: '➜', quick: '➶', surge: '✦', bounce: '↺' };
+const MUT_ICON = { vigil: '✚', gale: '≈', hide: '◆', bounty: '★', force: '➜', quick: '➶', surge: '✦' };
 function announceMuts(mut) {
   const ks = Sim.mutKeys(mut), box = $('mutAnn'); if (!ks.length) return;
   box.innerHTML = ks.map((k, i) => { const M = Sim.MUTATORS[k]; return `<span class="mp" style="--mc:${M.color};--d:${(i * 0.35).toFixed(2)}s"><i>${MUT_ICON[k] || '✦'}</i><span>${esc(M.name)}<small>${esc(M.desc)}</small></span></span>`; }).join('');
   box.querySelectorAll('.mp').forEach(el => { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; });
-  ks.forEach((k, i) => setTimeout(() => { os('sine', 520, 1040, 0.22, 0.03); setTimeout(() => tone(1320 + i * 220, 0.18, 'triangle', 0.025), 120); nz(0.3, 0.02, 'highpass', 4000, 8000, 1); }, i * 350));
+  ks.forEach((k, i) => setTimeout(() => play('mapFx', i), i * 350));
 }
 function banner(title, sub = '') {
   const b = $('banner');
@@ -6118,7 +6514,7 @@ function eventFx(e) {
         if (e.id === myId) { sfx.full(); if (m) burst(m.x + Math.cos(m.a) * ((m.rz || 16) + 22), m.y + Math.sin(m.a) * ((m.rz || 16) + 22), '#ffe9a8', 6, 100, 1.4); }
         else if (m) { // someone else at full draw: a small pop of sparks at the bow, and a faint tick if it's an enemy near you
           burst(m.x + Math.cos(m.a) * ((m.rz || 16) + 22), m.y + Math.sin(m.a) * ((m.rz || 16) + 22), '#ffffff', 5, 90, 1.3);
-          if (me && m.tm !== me.tm && Math.hypot(m.x - me.x, m.y - me.y) < 520) tone(1320, 0.04, 'square', 0.012);
+          if (me && m.tm !== me.tm && Math.hypot(m.x - me.x, m.y - me.y) < 520) play('enemyFull');
         }
         break;
       }
@@ -6128,7 +6524,7 @@ function eventFx(e) {
         sfx.hit(e.cr);
         if (e.el && elSfx[e.el]) elSfx[e.el](e.id === myId || e.by === myId ? 1 : 0.45);
         if (e.ls) floater(e.x, e.y - 50, 'Long shot!', '#ffcf5a', 15);
-        if (e.cr) { floater(e.x, e.y - 34, 'Bullseye!', '#ffffff', 14); if (e.by === myId) tone(1560, 0.07, 'sine', 0.035); }
+        if (e.cr) { floater(e.x, e.y - 34, 'Bullseye!', '#ffffff', 14); if (e.by === myId) play('bulls'); }
         if (e.id === myId) shake(6); else if (e.cr && e.by === myId) shake(4);
         if ((e.fd || e.cr) && (e.id === myId || e.by === myId)) impact(e.fd && e.cr ? 0.075 : 0.05);
         if (e.el === 'stone') stoneHit(e.x, e.y, e.fd || e.cr, e.by === myId);
@@ -6152,7 +6548,7 @@ function eventFx(e) {
           rgb.forEach((c, n) => fx.rings.push({ x: e.x, y: e.y, r: 10, life: -0.06 * n, col: c, max: 105 - n * 22 }));
           cols.forEach((c, n) => burst(e.x, e.y, c, 12, 200 + n * 30, 2.6));
           burst(e.x, e.y, '#ffffff', 10, 120, 1.6);
-          sfx.boom(); if (!muted) for (let n = 0; n < 6; n++) nz(0.03, 0.05, 'highpass', 4000, 6000, 1, 0.12 + n * 0.05 + Math.random() * 0.03);
+          sfx.boom(); play('fwCrackle');
           shake(4); break;
         }
         fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0 });
@@ -6171,8 +6567,8 @@ function eventFx(e) {
       case 'spike': burst(e.x, e.y, '#c9d1dc', 10, 140); sfx.splat(); if (e.id === myId) shake(6); break;
       case 'thud': burst(e.x, e.y, '#8d97a5', 8, 120); if (fullDetail()) burst(e.x, e.y, 'rgba(200,185,150,0.7)', 8, 70, 4); sfx.thunk(); if (e.id === myId) shake(4); break; // and a puff of wall dust
       case 'thunk': sfx.thunk(0.4); break;
-      case 'ping': tone(e.tk ? 1300 : 900, 0.05, 'square', 0.02); if (e.tk) { burst(e.x, e.y, '#ff78e6', 8, 120, 2); floater(e.x, e.y - 14, '+25%', '#ff78e6', 12); } break;
-      case 'stuck': floater(e.x, e.y, 'Stuck!', '#b99be0', 14); noise(0.15, 0.07, 300); break;
+      case 'ping': play('bouncePing', !!e.tk); if (e.tk) { burst(e.x, e.y, '#ff78e6', 8, 120, 2); floater(e.x, e.y - 14, '+25%', '#ff78e6', 12); } break;
+      case 'stuck': floater(e.x, e.y, 'Stuck!', '#b99be0', 14); play('stuck'); break;
       case 'dash':
         for (let i = 0; i < 6; i++) fx.parts.push({ x: e.x, y: e.y, vx: -e.dx * rand(40, 120), vy: -e.dy * rand(40, 120), life: 0, max: 0.35, color: '#e9edf2', r: rand(2, 4) });
         if (e.id === myId) sfx.dash();
@@ -6188,22 +6584,22 @@ function eventFx(e) {
       }
       case 'npcSwing': {
         const n = view && view.p.find(q => q.id === e.id);
-        if (e.k === 'slam') { fx.rings.push({ x: e.x, y: e.y, r: 20, life: 0, col: '255,200,150', max: 110 }); shake(e.h ? 5 : 2); nz(0.25, 0.08, 'lowpass', 400, 120, 1); }
-        else if (e.k === 'charge') { burst(e.x, e.y, '#ffe0b0', 12, 180, 2.5); nz(0.15, 0.07, 'lowpass', 600, 200, 1); }
-        else { const a = e.a; for (let i = 0; i < 6; i++) { const t = a - 0.8 + i * 0.32; fx.parts.push({ x: e.x + Math.cos(t) * 44, y: e.y + Math.sin(t) * 44, vx: Math.cos(t) * 60, vy: Math.sin(t) * 60, life: 0, max: 0.2, color: '#f2efe6', r: 2 }); } nz(0.08, 0.05, 'bandpass', 1800, 700, 1); }
+        if (e.k === 'slam') { fx.rings.push({ x: e.x, y: e.y, r: 20, life: 0, col: '255,200,150', max: 110 }); shake(e.h ? 5 : 2); play('npcSwing', 'slam'); }
+        else if (e.k === 'charge') { burst(e.x, e.y, '#ffe0b0', 12, 180, 2.5); play('npcSwing', 'charge'); }
+        else { const a = e.a; for (let i = 0; i < 6; i++) { const t = a - 0.8 + i * 0.32; fx.parts.push({ x: e.x + Math.cos(t) * 44, y: e.y + Math.sin(t) * 44, vx: Math.cos(t) * 60, vy: Math.sin(t) * 60, life: 0, max: 0.2, color: '#f2efe6', r: 2 }); } play('npcSwing', 'swing'); }
         if (n && e.h && view.p.some(q => q.id === myId && Math.hypot(q.x - e.x, q.y - e.y) < 140)) shake(4);
         break;
       }
       case 'npcBack': burst(e.x, e.y, '#d9d2bd', 12, 150, 2.5); break;
       case 'chest': burst(e.x, e.y, '#ffe9a8', 22, 220, 3); fx.rings.push({ x: e.x, y: e.y, r: 8, life: 0, col: '255,215,120', max: 70 }); if (e.id === myId) { sfx.pick(); hc['chest' + e.s] = myId; } break;
-      case 'respawn': burst(e.x, e.y, '#ffffff', 18, 180, 3); if (e.id === myId) { tone(660, 0.12, 'triangle', 0.05); CAM.init = false; } break;
+      case 'respawn': burst(e.x, e.y, '#ffffff', 18, 180, 3); if (e.id === myId) { play('respawn'); CAM.init = false; } break;
       case 'streak': case 'shutdown': case 'empowered': case 'unpowered': case 'clutch': onCallout(e); break;
       case 'overload':
         for (let i = 0; i < 2 + e.n * 2; i++) { const a = rand(0, TAU), r = rand(18, 34); fx.bolts.push({ x1: e.x + Math.cos(a) * r, y1: e.y + Math.sin(a) * r, x2: e.x + rand(-6, 6), y2: e.y + rand(-6, 6), life: 0 }); }
         floater(e.x, e.y - 40, e.n > 1 ? `Overload ×${e.n}` : 'Overload', '#fff27a', 14); sfx.zap(0.8);
         break;
       case 'autoPicked': if (e.id === myId) notice(`Time's up. You got <b>${esc(cardInfo(e.card).name)}</b> at random`); break;
-      case 'crackWarn': crackT[e.i] = clock; if (crackT.warned !== view.m.gm) { crackT.warned = view.m.gm; notice(THEME.beach ? 'The tide is coming in!' : 'The ice is cracking!', false); } if (THEME.beach) { nz(1.2, 0.07, 'lowpass', 700, 250, 1); nz(0.9, 0.04, 'highpass', 3000, 6000, 1, 0.3); } else { sfx.creak(); setTimeout(sfx.creak, 90); nz(0.5, 0.06, 'highpass', 2500, 6000); } break;
+      case 'crackWarn': crackT[e.i] = clock; if (crackT.warned !== view.m.gm) { crackT.warned = view.m.gm; notice(THEME.beach ? 'The tide is coming in!' : 'The ice is cracking!', false); } play('crack', !!THEME.beach); break;
       case 'crackOpen': { const h = Sim.MAPS[MAPKEY].cracks[e.i]; if (h) { const [cx, cy] = hazCentre(h); burst(cx, cy, '#e6f7ff', 40, 260, 4); burst(cx, cy, '#5aa9d6', 20, 180, 3); } sfx.splash(); shake(5); break; }
       case 'phase': {
         const m = view && view.m;
@@ -6213,13 +6609,13 @@ function eventFx(e) {
           if (e.gm === 1 && e.rd === 1) { $('resClan').hidden = true; const wp = $('wipe'); wp.classList.remove('go'); void wp.offsetWidth; wp.classList.add('go'); } // the arena is revealed as the first countdown starts
           // both teams one round from the match: the deciding round; and if both are also one game from it, the last arrow
           const decide = m && !m.cq && m.ptw > 1 && m.wr === m.ptw - 1 && m.wb === m.ptw - 1, last = decide && m.gr === m.gtw - 1 && m.gb === m.gtw - 1;
-          if (last) { banner('Last Arrow', 'Whoever wins this game wins the match'); tone(220, 0.35, 'sawtooth', 0.04); setTimeout(() => tone(440, 0.3, 'triangle', 0.05), 180); }
+          if (last) { banner('Last Arrow', 'Whoever wins this game wins the match'); play('lastArrow'); }
           else if (e.gm === 1) banner(decide ? 'Deciding round' : 'Round ' + e.rd, m ? `First to ${m.gtw} game${m.gtw === 1 ? '' : 's'} · ${decide ? 'it wins the match' : `Points ${m.wr}–${m.wb}`}` : '');
           else banner('Game ' + e.gm, m ? `Round ${e.rd} · Games ${m.gr}–${m.gb}` : '');
-          tone(330, 0.2, 'triangle', 0.05);
-          if (m && m.mut && !m.cq) setTimeout(() => announceMuts(m.mut), 450); // this match's map effects, every game
+          play('roundStart');
+          if (m && m.mut && !m.cq && e.gm === 1 && e.rd === 1) setTimeout(() => announceMuts(m.mut), 250); // this match's map effects, once as it starts
         }
-        else if (e.ph === 'play') { banner('Fight!'); tone(660, 0.25, 'triangle', 0.06); }
+        else if (e.ph === 'play') { banner('Fight!'); play('fight'); }
         else if (e.ph === 'pick') { sfx.pick(); }
         break;
       }
@@ -6229,27 +6625,26 @@ function eventFx(e) {
       case 'map': break;
       case 'matchEnd': if (e.mw === myTeam()) { sfx.win(); noteBotWin(); } else sfx.hurt(); break;
       case 'picked': if (e.id === myId) { lastPick = e.card; sfx.kill(); } break;
-      case 'loaded': if (e.id === myId) { tone(300, 0.25, 'sawtooth', 0.05, 200); const m = view && view.p.find(p => p.id === myId); if (m) floater(m.x, m.y - 40, 'Bolt loaded', '#ffcf5a', 14); } break;
+      case 'loaded': if (e.id === myId) { play('loaded'); const m = view && view.p.find(p => p.id === myId); if (m) floater(m.x, m.y - 40, 'Bolt loaded', '#ffcf5a', 14); } break;
       case 'throw':
-        if (e.id === myId) { nz(0.05, 0.07, 'highpass', 2500, 5000, 1); tone(e.d ? 1500 : 2300, 0.03, 'triangle', 0.025); }
-        else nz(0.04, 0.025, 'highpass', 2500, 5000, 1);
+        play('throw', e.id !== myId ? 'other' : e.d ? 'dash' : 'mine');
         break;
       case 'sstrike': {
         burst(e.x1, e.y1, '#1c1a2e', 14, 110, 3); burst(e.x2, e.y2, '#aab0e0', 14, 150, 2.5);
         for (let i = 1; i < 8; i++) fx.parts.push({ x: lerp(e.x1, e.x2, i / 8), y: lerp(e.y1, e.y2, i / 8), vx: 0, vy: 0, life: 0, max: 0.3, color: '#3a3a4e', r: 3 });
-        os('sine', 300, 1400, 0.1, 0.04); nz(0.1, 0.06, 'highpass', 5000, 8000, 1, 0.08);
+        play('sstrike');
         if (e.id === myId) { const m = view && view.p.find(p => p.id === myId); if (m) floater(e.x2, e.y2 - 40, 'Double damage ×3', '#ff4d5e', 13); }
         break;
       }
-      case 'clone': burst(e.x, e.y, '#2a2a3a', 18, 140, 3); nz(0.3, 0.07, 'lowpass', 1200, 300); os('sine', 700, 200, 0.2, 0.03); break;
-      case 'blossom': fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '215,221,229', max: 90 }); for (let i = 0; i < 4; i++) nz(0.06, 0.06, 'highpass', 2500, 5000, 1, i * 0.025); break;
-      case 'smark': if (e.id === myId) { tone(660, 0.08, 'sine', 0.04); } break;
+      case 'clone': burst(e.x, e.y, '#2a2a3a', 18, 140, 3); play('clone'); break;
+      case 'blossom': fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '215,221,229', max: 90 }); play('blossom'); break;
+      case 'smark': if (e.id === myId) play('smark'); break;
       case 'recall': {
         burst(e.x1, e.y1, '#2a2a3a', 12, 110, 2.5); burst(e.x2, e.y2, '#aab0e0', 16, 150, 2.5);
-        os('sine', 1200, 400, 0.15, e.id === myId ? 0.05 : 0.025);
+        play('recall', e.id === myId ? 1 : 0.5);
         break;
       }
-      case 'executed': floater(e.x, e.y - 40, 'Executed!', '#ff4d5e', 20); tone(90, 0.3, 'sawtooth', 0.06, -30); nz(0.15, 0.1, 'highpass', 3000, 1500, 1); shake(5); break;
+      case 'executed': floater(e.x, e.y - 40, 'Executed!', '#ff4d5e', 20); play('executed'); shake(5); break;
       case 'nblink': {
         // a crouch and a puff of smoke, then afterimages trail along the streak as the ninja crosses it
         const q = view && view.p.find(pp => pp.id === e.id), col = q ? q.c : '#aab0e0', R0 = q ? q.rz || 16 : 16;
@@ -6258,47 +6653,47 @@ function eventFx(e) {
         fx.bolts.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, life: -0.05, col: '170,176,224', straight: 1 });
         setTimeout(() => burst(e.x2, e.y2, '#aab0e0', 8, 110, 2), 140);
         const v = e.id === myId ? 1 : 0.4;
-        nz(0.05, 0.03 * v, 'lowpass', 900, 300, 1); setTimeout(() => { os('sine', 1100, 300, 0.09, 0.045 * v); nz(0.08, 0.05 * v, 'highpass', 3500, 7000, 1); }, 50);
+        play('nblink', v);
         break;
       }
       case 'flash': {
         fx.bolts.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, life: 0, col: '235,240,255' });
         for (let i = 0; i < 10; i++) fx.parts.push({ x: lerp(e.x1, e.x2, i / 10), y: lerp(e.y1, e.y2, i / 10), vx: rand(-40, 40), vy: rand(-40, 40), life: 0, max: 0.3, color: '#ffffff', r: 2 });
-        nz(0.12, 0.1, 'highpass', 5000, 2000, 1); os('sawtooth', 1800, 400, 0.12, 0.03);
-        if (e.n) { tone(160, 0.1, 'square', 0.04, -60); if (e.id === myId) shake(4); }
+        play('flash', e.n ? 1 : 0);
+        if (e.n && e.id === myId) shake(4);
         break;
       }
-      case 'shuriken': for (let i = 0; i < 3; i++) nz(0.05, 0.05, 'bandpass', 3500, 2500, 6, i * 0.03); break;
-      case 'caltrops': burst(e.x, e.y, '#c9d1dc', 18, 150, 2); for (let i = 0; i < 6; i++) tone(rand(2200, 3400), 0.03, 'triangle', 0.02, 0); break;
-      case 'armed': if (e.id === myId) { const T2 = Sim.TREE[e.k]; tone(520, 0.06, 'triangle', 0.04); setTimeout(() => tone(780, 0.08, 'triangle', 0.04), 70); const m = view && view.p.find(p => p.id === myId); if (m && T2) floater(m.x, m.y - 40, T2.name + ' ready', '#ffcf5a', 14); } break;
-      case 'recoil': burst(e.x, e.y, '#ffcf5a', 10, 160, 2.5); noise(0.18, 0.1, 900); break;
+      case 'shuriken': play('shuriken'); break;
+      case 'caltrops': burst(e.x, e.y, '#c9d1dc', 18, 150, 2); play('caltrops'); break;
+      case 'armed': if (e.id === myId) { const T2 = Sim.TREE[e.k]; play('armed'); const m = view && view.p.find(p => p.id === myId); if (m && T2) floater(m.x, m.y - 40, T2.name + ' ready', '#ffcf5a', 14); } break;
+      case 'recoil': burst(e.x, e.y, '#ffcf5a', 10, 160, 2.5); play('recoil'); break;
       case 'rush': sfx.rush(e.id === myId ? 1 : 0.6); shake(e.id === myId ? 3 : 0); fx.rings.push({ x: e.x, y: e.y, r: 8, life: 0, col: '255,190,120', max: 50 }); break;
-      case 'fortify': fx.rings.push({ x: e.x, y: e.y, r: 8, life: 0, col: '200,190,170', max: 40 }); sfx.thunk(1.2); tone(140, 0.25, 'triangle', 0.05); break;
-      case 'wind': fx.rings.push({ x: e.x, y: e.y, r: 8, life: 0, col: '159,240,181', max: 60 }); noise(0.35, 0.08, 2500); break;
-      case 'swap': burst(e.x1, e.y1, '#ff78e6', 14, 150, 2.5); burst(e.x2, e.y2, '#ff78e6', 14, 150, 2.5); fx.bolts.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, life: 0, col: '255,120,230' }); os('sine', 400, 1200, 0.12, 0.04); os('sine', 1200, 400, 0.12, 0.04, 0.1); break;
-      case 'boomTurn': nz(0.2, 0.04, 'bandpass', 900, 1800, 3); break;
-      case 'catch': if (e.id === myId) { tone(1200, 0.05, 'triangle', 0.04); setTimeout(() => tone(1600, 0.05, 'triangle', 0.035), 50); } if (e.x != null) fx.rings.push({ x: e.x, y: e.y, r: 6, life: 0, col: '217,160,102', max: 30 }); break;
-      case 'shade': { burst(e.x, e.y, '#2b2747', 4 + 2 * (e.n || 1), 70, 2.5); os('sine', 240 - 25 * (e.n || 1), 120, 0.2, e.id === myId ? 0.05 : 0.03); break; }
-      case 'shadeUp': { const q = view && view.p.find(z => z.id === e.id); if (q) { burst(q.x, q.y, '#8e95c9', 8, 90, 2); floater(q.x, q.y - 34, 'Deepened', '#aab0e0', 13); } os('sine', 180, 90, 0.2, 0.04); break; }
+      case 'fortify': fx.rings.push({ x: e.x, y: e.y, r: 8, life: 0, col: '200,190,170', max: 40 }); play('fortify'); break;
+      case 'wind': fx.rings.push({ x: e.x, y: e.y, r: 8, life: 0, col: '159,240,181', max: 60 }); play('wind'); break;
+      case 'swap': burst(e.x1, e.y1, '#ff78e6', 14, 150, 2.5); burst(e.x2, e.y2, '#ff78e6', 14, 150, 2.5); fx.bolts.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, life: 0, col: '255,120,230' }); play('swap'); break;
+      case 'boomTurn': play('boomTurn'); break;
+      case 'catch': if (e.id === myId) play('catch'); if (e.x != null) fx.rings.push({ x: e.x, y: e.y, r: 6, life: 0, col: '217,160,102', max: 30 }); break;
+      case 'shade': { burst(e.x, e.y, '#2b2747', 4 + 2 * (e.n || 1), 70, 2.5); play('shade', e.n || 1, e.id === myId ? 1 : 0.6); break; }
+      case 'shadeUp': { const q = view && view.p.find(z => z.id === e.id); if (q) { burst(q.x, q.y, '#8e95c9', 8, 90, 2); floater(q.x, q.y - 34, 'Deepened', '#aab0e0', 13); } play('shadeUp'); break; }
       case 'shadeBurst': {
         const big = 0.5 + 0.22 * (e.n || 1);
         burst(e.x, e.y, '#1c1a2e', Math.round(16 * big), 170 * big, 3.2); burst(e.x, e.y, '#8e95c9', Math.round(10 * big), 130 * big, 2.2);
         fx.rings.push({ x: e.x, y: e.y, r: 8, life: 0, col: '142,149,201', max: 48 * big });
-        nz(0.22, 0.09 * big, 'lowpass', 700, 160, 2); os('sawtooth', 140, 50, 0.22, 0.035 * big);
+        play('shadeBurst', big);
         if (e.id === myId) shake(3 * big);
         break;
       }
-      case 'eclipse': burst(e.x, e.y, '#15132a', 26, 160, 4); nz(0.6, 0.08, 'lowpass', 500, 120, 1); os('sine', 220, 70, 0.6, 0.05); break;
+      case 'eclipse': burst(e.x, e.y, '#15132a', 26, 160, 4); play('eclipse'); break;
       case 'briar': {
         fx.bolts.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, life: 0, col: '120,170,70', straight: 1 });
         const L = Math.hypot(e.x2 - e.x1, e.y2 - e.y1), n = Math.max(4, Math.round(L / 22));
         for (let i = 1; i <= n; i++) fx.parts.push({ x: lerp(e.x1, e.x2, i / n) + rand(-5, 5), y: lerp(e.y1, e.y2, i / n) + rand(-5, 5), vx: rand(-25, 25), vy: rand(-25, 25), life: 0, max: 0.6, color: i % 2 ? '#6f8f3c' : '#4c3a22', r: rand(1.6, 2.8) });
-        nz(0.2, 0.08, 'bandpass', 1600, 700, 2); if (e.n) tone(170, 0.12, 'square', 0.035, -50);
+        play('briar', e.n ? 1 : 0);
         break;
       }
       case 'ripCast': { // vines reach from the trapper to everyone carrying their thorns, and pull taut
         fx.vines.push({ tid: e.id, cid: e.by, t0: gclock, max: 1.05, n: e.n || 1 });
-        if (e.by === myId || e.id === myId) { os('sine', 330, 880, 0.95, 0.03); os('triangle', 495, 1320, 0.95, 0.015); for (let i = 0; i < 5; i++) tone(rand(1400, 2400), 0.05, 'sine', 0.012 * (1 + i / 3)); nz(0.9, 0.025, 'bandpass', 2500, 5000, 6); } // a rising, shimmering spell
+        if (e.by === myId || e.id === myId) play('ripCast'); // a rising, shimmering spell
         break;
       }
       case 'rip': { // the spell tears the thorns out one by one and pulls them through the air to the trapper
@@ -6309,36 +6704,36 @@ function eventFx(e) {
         fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '170,235,120', max: 26 + e.n * 8 });
         if (e.id === myId) shake(2 + e.n); if (e.by === myId) shake(1 + e.n * 0.5);
         floater(e.x, e.y - 34, `Rip ×${e.n}`, '#9bd46a', 15 + e.n * 2);
-        for (let i = 0; i < Math.min(5, e.n); i++) { nz(0.06, 0.06, 'highpass', 2600, 1200, 2, i * 0.05); nz(0.12, 0.04, 'bandpass', 900, 3200, 3, i * 0.05 + 0.1); } // tearing out, then whooshing in
+        play('rip', e.n); // tearing out, then whooshing in
         break;
       }
       case 'mend': {
         fx.bolts.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, life: 0, col: '140,240,170', straight: 1 });
         burst(e.x2, e.y2, '#9ff0b5', 14, 120, 2.5); fx.rings.push({ x: e.x2, y: e.y2, r: 8, life: 0, col: '140,240,170', max: 36 });
-        if (e.to === myId || e.id === myId) fanfare([523, 784], 'sine', 0.04, 60);
+        if (e.to === myId || e.id === myId) play('mend');
         break;
       }
-      case 'flashpoint': burst(e.x, e.y, '#ff8a3d', 18, 200, 3); burst(e.x, e.y, '#ffd27a', 10, 140, 2); fx.rings.push({ x: e.x, y: e.y, r: 8, life: 0, col: '255,138,61', max: 110 }); nz(0.25, 0.09, 'lowpass', 1400, 300, 1); break;
-      case 'execute': floater(e.x, e.y - 46, 'Coup de grâce!', '#ff4d5e', 17); tone(110, 0.25, 'sawtooth', 0.05, -40); break;
-      case 'dance': if (e.id === myId) { const m = view && view.p.find(p => p.id === myId); if (m) floater(m.x, m.y - 46, 'Shadow Dance', '#aab0e0', 15); fanfare([440, 660, 880], 'sine', 0.04, 60); } break;
-      case 'railArmed': if (e.id === myId) { os('sawtooth', 300, 1200, 0.25, 0.03); os('sine', 1200, 1800, 0.2, 0.03, 0.18); const m = view && view.p.find(p => p.id === myId); if (m) floater(m.x, m.y - 40, 'Railshot ready', '#8cffff', 14); } break;
+      case 'flashpoint': burst(e.x, e.y, '#ff8a3d', 18, 200, 3); burst(e.x, e.y, '#ffd27a', 10, 140, 2); fx.rings.push({ x: e.x, y: e.y, r: 8, life: 0, col: '255,138,61', max: 110 }); play('flashpoint'); break;
+      case 'execute': floater(e.x, e.y - 46, 'Coup de grâce!', '#ff4d5e', 17); play('execute'); break;
+      case 'dance': if (e.id === myId) { const m = view && view.p.find(p => p.id === myId); if (m) floater(m.x, m.y - 46, 'Shadow Dance', '#aab0e0', 15); play('dance'); } break;
+      case 'railArmed': if (e.id === myId) { play('railArmed'); const m = view && view.p.find(p => p.id === myId); if (m) floater(m.x, m.y - 40, 'Railshot ready', '#8cffff', 14); } break;
       case 'blink': {
         const m = view && view.p.find(p => p.id === myId), foe = m && view.p.find(p => p.id === e.id) && view.p.find(p => p.id === e.id).tm !== m.tm;
         if (e.st && foe) break; // a stealthed enemy blinking gives nothing away
         burst(e.x1, e.y1, '#b48cff', 12, 120, 2.5); burst(e.x2, e.y2, '#e0d0ff', 14, 150, 2.5);
         for (let i = 1; i < 8; i++) fx.parts.push({ x: lerp(e.x1, e.x2, i / 8), y: lerp(e.y1, e.y2, i / 8), vx: 0, vy: 0, life: 0, max: 0.3, color: '#c9b3ff', r: 2.5 });
-        os('sine', 1400, 300, 0.14, e.id === myId ? 0.05 : 0.03); nz(0.1, 0.05, 'highpass', 3000, 6000, 1);
+        play('blink', e.id === myId ? 1 : 0.6);
         break;
       }
       case 'harpoon':
         fx.ropes.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, id: '_h' + e.id, life: 0, max: 0.4 });
-        nz(0.15, 0.08, 'bandpass', 1400, 500, 2); if (e.hit) { tone(180, 0.12, 'square', 0.04, -60); burst(e.x2, e.y2, '#d8c7a0', 10, 120, 2.5); floater(e.x2, e.y2 - 30, 'Hooked!', '#d9a066', 16); }
+        play('harpoon', !!e.hit); if (e.hit) { burst(e.x2, e.y2, '#d8c7a0', 10, 120, 2.5); floater(e.x2, e.y2 - 30, 'Hooked!', '#d9a066', 16); }
         break;
-      case 'totem': burst(e.x, e.y, '#9ff0b5', 16, 140, 2.5); fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '140,240,170', max: 120 }); fanfare([392, 523, 659], 'sine', 0.045, 70); break;
-      case 'smoke': burst(e.x, e.y, '#c4c9d0', 26, 180, 4); nz(0.5, 0.12, 'lowpass', 1200, 300); sfx.thunk(0.7); break;
-      case 'volleyArmed': if (e.id === myId) { tone(640, 0.06, 'triangle', 0.04); setTimeout(() => tone(760, 0.06, 'triangle', 0.04), 60); setTimeout(() => tone(880, 0.06, 'triangle', 0.04), 120); const m = view && view.p.find(p => p.id === myId); if (m) floater(m.x, m.y - 40, 'Volley ready', '#8fdcff', 14); } break;
-      case 'armed': if (e.id === myId) { tone(700, 0.1, 'triangle', 0.05); const m = view && view.p.find(p => p.id === myId); if (m) floater(m.x, m.y - 40, 'Snare ready', '#9be564', 14); } break;
-      case 'abFail': if (e.id === myId) { tone(160, 0.1, 'square', 0.03); const m = view && view.p.find(p => p.id === myId); if (m) floater(m.x, m.y - 40, e.why, '#ff9f9f', 13); } break;
+      case 'totem': burst(e.x, e.y, '#9ff0b5', 16, 140, 2.5); fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '140,240,170', max: 120 }); play('totem'); break;
+      case 'smoke': burst(e.x, e.y, '#c4c9d0', 26, 180, 4); play('smoke'); break;
+      case 'volleyArmed': if (e.id === myId) { play('volleyArmed'); const m = view && view.p.find(p => p.id === myId); if (m) floater(m.x, m.y - 40, 'Volley ready', '#8fdcff', 14); } break;
+      case 'armed': if (e.id === myId) { play('armed'); const m = view && view.p.find(p => p.id === myId); if (m) floater(m.x, m.y - 40, 'Snare ready', '#9be564', 14); } break;
+      case 'abFail': if (e.id === myId) { play('abFail'); const m = view && view.p.find(p => p.id === myId); if (m) floater(m.x, m.y - 40, e.why, '#ff9f9f', 13); } break;
       case 'chain': fx.bolts.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, life: 0 }); sfx.zap(); break;
       case 'disarm': floater(e.x, e.y, 'Disarmed!', '#bfe8ff', 15); sfx.disarm(); break;
       case 'leech': { // Blood: red motes flowing back to whoever healed
@@ -6349,13 +6744,13 @@ function eventFx(e) {
         break;
       }
       case 'emote': onEmote(e); break;
-      case 'transfuse': { const a = view && view.p.find(z => z.id === e.from); if (a) { burst(a.x, a.y, '#8e0b1e', 8, 120, 2.2); HEALFX[a.id] = gclock; } os('sine', 330, 660, 0.25, e.from === myId || e.to === myId ? 0.035 : 0.015); break; }
-      case 'orbHeal': { burst(e.x, e.y, '#8e0b1e', 12, 130, 2.4); fx.rings.push({ x: e.x, y: e.y, r: 6, life: 0, col: '150,10,30', max: 34 }); HEALFX[e.id] = gclock; if (e.id === myId) { floater(e.x + 14, e.y - 30, '+' + e.v, '#ff6b7d', 14); tone(784, 0.12, 'sine', 0.035); setTimeout(() => tone(1046, 0.14, 'sine', 0.03), 80); } break; }
+      case 'transfuse': { const a = view && view.p.find(z => z.id === e.from); if (a) { burst(a.x, a.y, '#8e0b1e', 8, 120, 2.2); HEALFX[a.id] = gclock; } play('transfuse', e.from === myId || e.to === myId ? 1 : 0.43); break; }
+      case 'orbHeal': { burst(e.x, e.y, '#8e0b1e', 12, 130, 2.4); fx.rings.push({ x: e.x, y: e.y, r: 6, life: 0, col: '150,10,30', max: 34 }); HEALFX[e.id] = gclock; if (e.id === myId) { floater(e.x + 14, e.y - 30, '+' + e.v, '#ff6b7d', 14); play('orbHeal'); } break; }
       case 'bleed': burst(e.x, e.y, '#c81d34', 10, 110, 2); elSfx.blood(0.5); break;
       case 'spread': fx.bolts.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, life: 0, col: '155,229,100' }); elSfx.poison(0.6); break;
       case 'zone': if (e.q) { if (Math.random() < 0.5) sfx.crackle(); } else if (e.ty === 'fire') sfx.whoosh(); else if (e.ty === 'rift') elSfx.void(0.8); else sfx.hiss(); break;
       case 'freeze': burst(e.x, e.y, '#dff4ff', 34, 220, 3.5); fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '200,238,255', max: 60 }); floater(e.x, e.y - 30, 'Frozen!', '#bfe8ff', 18); sfx.freeze(); shake(4); break;
-      case 'chanSpawn': { const C = Sim.CHANNEL[e.ty]; notice(`<b style="color:${C.color}">${esc(C.name)}</b> has appeared<small>Stand in it for ${Sim.CHANNEL_TIME} seconds with no enemy inside to capture it. ${esc(C.desc)}</small>`, false); fanfare([392, 494, 587], 'triangle', 0.035, 90); burst(e.x, e.y, C.color, 24, 160, 3); break; }
+      case 'chanSpawn': { const C = Sim.CHANNEL[e.ty]; notice(`<b style="color:${C.color}">${esc(C.name)}</b> has appeared<small>Stand in it for ${Sim.CHANNEL_TIME} seconds with no enemy inside to capture it. ${esc(C.desc)}</small>`, false); play('shrine'); burst(e.x, e.y, C.color, 24, 160, 3); break; }
       case 'chanDone': {
         const C = Sim.CHANNEL[e.ty], mine = e.tm === myTeam();
         notice(`${e.id === myId ? 'You' : esc(e.n)} captured <b style="color:${C.color}">${esc(C.name)}</b>${mine ? '' : '!'}<small>${esc(C.desc)}</small>`, true, C.color);
@@ -6369,37 +6764,37 @@ function eventFx(e) {
       case 'stagger': burst(e.x, e.y, '#b8966a', 10, 140, 3); fx.rings.push({ x: e.x, y: e.y, r: 6, life: 0, col: '155,133,102', max: 30 }); break;
       case 'aftershock': fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '201,168,120', max: 110 }); burst(e.x, e.y, '#a0805a', 18, 220, 3.5); sfx.boom(); shake(4); break;
       case 'collapse': fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '180,140,255', max: e.r * 1.1 }); burst(e.x, e.y, '#c3a2ff', 30, 260, 3.5); elSfx.void(1.3); shake(4); break;
-      case 'marked': floater(e.x, e.y - 34, 'Marked', '#ff6b6b', 15); tone(300, 0.2, 'sawtooth', 0.04, -150); break;
+      case 'marked': floater(e.x, e.y - 34, 'Marked', '#ff6b6b', 15); play('marked'); break;
       case 'stealthOn': case 'stealthOff': {
         for (let i = 0; i < 14; i++) fx.parts.push({ x: e.x + rand(-12, 12), y: e.y + rand(-12, 12), vx: rand(-40, 40), vy: rand(-50, 10), life: 0, max: 0.6, color: 'rgba(120,120,140,0.9)', r: rand(2, 4.5) });
-        if (e.id === myId || e.e === 'stealthOff') nz(0.35, 0.06, 'bandpass', e.e === 'stealthOn' ? 2000 : 500, e.e === 'stealthOn' ? 400 : 1800, 2);
+        if (e.id === myId || e.e === 'stealthOff') play('stealth', e.e === 'stealthOn');
         if (e.e === 'stealthOff' && e.id !== myId) floater(e.x, e.y - 30, 'Ambush!', '#c7b3ff', 14);
         break;
       }
       case 'echo': fx.rings.push({ x: e.x, y: e.y, r: 6, life: 0, col: '255,242,122', max: 36 }); elSfx.storm(0.8); break;
-      case 'backstab': floater(e.x, e.y - 46, 'Backstab!', '#c7b3ff', 15); tone(220, 0.12, 'sawtooth', 0.04, -80); break;
-      case 'pinned': burst(e.x, e.y, '#d8c7a0', 18, 150, 3); floater(e.x, e.y - 30, 'Pinned!', '#ffcf5a', 18); sfx.thunk(1.4); nz(0.12, 0.12, 'lowpass', 900, 200); shake(4); break;
+      case 'backstab': floater(e.x, e.y - 46, 'Backstab!', '#c7b3ff', 15); play('backstab'); break;
+      case 'pinned': burst(e.x, e.y, '#d8c7a0', 18, 150, 3); floater(e.x, e.y - 30, 'Pinned!', '#ffcf5a', 18); play('pinned'); shake(4); break;
       case 'snared': burst(e.x, e.y, '#8a5a2a', 16, 140, 3); floater(e.x, e.y - 30, 'Snared!', '#9be564', 17); sfx.whip(); break;
       case 'split': burst(e.x, e.y, '#ffcf5a', 6, 90); break;
       case 'blocked': burst(e.x, e.y, '#bfe0ff', 8, 120); sfx.thunk(0.6); break;
-      case 'trapStart': { nz(0.5, 0.08, 'bandpass', 700, 1600, 2); for (let i = 0; i < 5; i++) nz(0.04, 0.07, 'bandpass', rand(1500, 3000), 1200, 6, 0.08 * i); } break;
-      case 'trapSet': { burst(e.x, e.y, '#8a5a2a', 14, 110, 2.5); burst(e.x, e.y, '#8fb44a', 8, 90, 2); nz(0.08, 0.12, 'lowpass', 900, 300); tone(240, 0.08, 'triangle', 0.04, -60); } break;
-      case 'shield': burst(e.x, e.y, '#dfe6ee', 8, 120, 2.5); sfx.thunk(0.8); tone(420, 0.06, 'square', 0.025); break;
-      case 'deflectUp': tone(300, 0.2, 'triangle', 0.05, 500); break;
-      case 'deflect': burst(e.x, e.y, '#ffffff', 14, 200, 3); fx.rings.push({ x: e.x, y: e.y, r: 6, life: 0, col: '230,240,255', max: 40 }); tone(1300, 0.12, 'triangle', 0.05, -500); floater(e.x, e.y - 20, 'Deflected!', '#e9edf2', 14); break;
+      case 'trapStart': play('trapStart'); break;
+      case 'trapSet': { burst(e.x, e.y, '#8a5a2a', 14, 110, 2.5); burst(e.x, e.y, '#8fb44a', 8, 90, 2); play('trapSet'); } break;
+      case 'shield': burst(e.x, e.y, '#dfe6ee', 8, 120, 2.5); play('shield'); break;
+      case 'deflectUp': play('deflectUp'); break;
+      case 'deflect': burst(e.x, e.y, '#ffffff', 14, 200, 3); fx.rings.push({ x: e.x, y: e.y, r: 6, life: 0, col: '230,240,255', max: 40 }); play('deflect'); floater(e.x, e.y - 20, 'Deflected!', '#e9edf2', 14); break;
       case 'trapHit': burst(e.x, e.y, '#8a5a2a', 28, 190, 3.5); fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '138,90,42', max: 50 }); floater(e.x, e.y - 30, 'Trapped!', '#d9a066', 18); sfx.snap(); shake(5); break;
-      case 'gust': fx.cones.push({ x: e.x, y: e.y, a: e.a, life: 0 }); noise(0.35, 0.12, 1800); break;
+      case 'gust': fx.cones.push({ x: e.x, y: e.y, a: e.a, life: 0 }); play('gust'); break;
       case 'quake': fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '200,160,110', max: 180 }); burst(e.x, e.y, '#a0805a', 30, 260, 4); sfx.boom(); shake(9); break;
-      case 'wallUp': tone(260, 0.2, 'triangle', 0.05, 120); break;
-      case 'rainMark': tone(880, 0.3, 'sine', 0.04, -300); break;
-      case 'rainHit': for (let i = 0; i < 16; i++) { const a = rand(0, TAU), r = rand(0, 88); fx.parts.push({ x: e.x + Math.cos(a) * r, y: e.y + Math.sin(a) * r, vx: 0, vy: 0, life: 0, max: 0.5, color: '#d8c7a0', r: 2.5 }); } noise(0.3, 0.14, 1400); shake(4); break;
-      case 'grapple': fx.ropes.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, id: e.id, life: 0 }); tone(500, 0.15, 'square', 0.03, 400); break;
+      case 'wallUp': play('wallUp'); break;
+      case 'rainMark': play('rainMark'); break;
+      case 'rainHit': for (let i = 0; i < 16; i++) { const a = rand(0, TAU), r = rand(0, 88); fx.parts.push({ x: e.x + Math.cos(a) * r, y: e.y + Math.sin(a) * r, vx: 0, vy: 0, life: 0, max: 0.5, color: '#d8c7a0', r: 2.5 }); } play('rainHit'); shake(4); break;
+      case 'grapple': fx.ropes.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, id: e.id, life: 0 }); play('grapple'); break;
       case 'revive': burst(e.x, e.y, '#7dff8a', 30, 200, 3); floater(e.x, e.y - 34, 'Revived!', '#7dff8a', 18); feedAdd(`${esc(e.bn)} revived ${esc(e.n)}`, e.id === myId || e.by === myId); sfx.win(); break;
       case 'hcap': feedAdd(`${esc(e.n)} <span class="cause">handicap ${e.v ? hcapLabel(e.v) : 'off'}</span>`, e.id === myId); break;
       case 'join': if (mode === 'online') feedAdd(`${nameTag(e.n, TEAM_COL[e.tm])} joined ${teamName(e.tm)}`); break;
       case 'switch': if (mode === 'online') feedAdd(`${nameTag(e.n, TEAM_COL[e.tm])} moved to ${teamName(e.tm)}`); break;
       case 'leave': if (mode === 'online' || e.sp) feedAdd(e.sp ? `${esc(e.n)} is unassigned` : `${esc(e.n)} left`); break;
-      case 'volleyReset': if (e.id === myId) { floater(e.x, e.y - 44, 'Volley ready!', '#8fdcff', 16); fanfare([784, 988, 1175], 'triangle', 0.04, 60); } break;
+      case 'volleyReset': if (e.id === myId) { floater(e.x, e.y - 44, 'Volley ready!', '#8fdcff', 16); play('volleyReset'); } break;
       default: mechFx(e);
     }
   }
@@ -6445,6 +6840,24 @@ function hlText(h) {
   return '';
 }
 function myName() { const me = view && view.p.find(p => p.id === myId); return me ? me.n : ''; }
+// the same highlights as big flat callouts: a who-line, one word or two, and the detail
+function hlParts(h) {
+  const you = h.id === myId, nm = you ? 'You' : esc(h.n || ''), is = you ? 'You are' : `${nm} is`;
+  const team = t => `<b style="color:${TEAM_COL[t]}">${esc(teamName(t))}</b>`;
+  switch (h.t) {
+    case 'clutch': return { k: nm, t: 'Clutch!', s: `Won a 1v${h.vs} as the last archer standing`, c: '#ffcf5a' };
+    case 'carry': return { k: is, t: 'Dominating', s: `${h.k} of ${team(h.tm)}'s ${h.tk} knockouts`, c: '#ff9f2e' };
+    case 'flawless': return { k: team(h.tm), t: 'Flawless', s: "Didn't lose a single archer", c: '#7dffb0' };
+    case 'close': return { k: nm, t: 'Close call', s: `Survived on ${h.hp} health`, c: '#ff6b6b' };
+    case 'time': return { k: '', t: "Time's up", s: h.tm ? `${team(h.tm)} were ahead` : 'Dead even', c: '#d9d2bd' };
+    case 'quick': return { k: '', t: 'Quick one', s: `Over in ${h.s} seconds`, c: '#8fdcff' };
+    case 'ring': return { k: nm, t: 'Ring out', s: `Threw ${h.r} archers into hazards`, c: '#ff7a3c' };
+    case 'aim': return { k: nm, t: 'Sharpshooter', s: `Hit ${h.h} of ${h.s} shots`, c: '#7ec8ff' };
+    case 'dmg': return { k: nm, t: 'Top damage', s: `Dealt ${h.v} damage`, c: '#ffb36b' };
+    case 'first': return { k: nm, t: 'First blood', s: `On ${h.vn === myName() ? 'you' : esc(h.vn)}`, c: '#ff5a5a' };
+  }
+  return null;
+}
 function showGameSummary(e) {
   const mine = e.rw === myTeam(), draw = e.rw === 'draw';
   $('gameSum').style.setProperty('--tc', draw ? 'var(--muted)' : TEAM_COL[e.rw]);
@@ -6464,7 +6877,9 @@ function showGameSummary(e) {
     if (gs.hidden) return;
     const last = i === list.length - 1, tier = HL_TIER[h.t] || 1;
     gs.classList.add('praising'); gs.classList.remove('pop'); void gs.offsetWidth; gs.classList.add('pop');
-    $('gsList').innerHTML = `<li class="praise t${tier}${last ? ' last' : ''}">${hlText(h)}</li>`;
+    const P = hlParts(h), ct = tier >= 5 ? 3 : tier >= 3 ? 2 : 1;
+    $('gsList').innerHTML = P ? `<li class="praise co t${ct}${last ? ' last' : ''}" style="--nc:${P.c}">${P.k ? `<span class="co-k">${P.k}</span>` : ''}<span class="co-t">${esc(P.t)}</span>${P.s ? `<span class="co-s">${P.s}</span>` : ''}</li>`
+      : `<li class="praise t${tier}${last ? ' last' : ''}">${hlText(h)}</li>`;
     praiseSound(tier);
   }, 1900 + i * gap)));
   resize(); gs.classList.remove('pop'); void gs.offsetWidth; gs.classList.add('pop');
@@ -6472,13 +6887,7 @@ function showGameSummary(e) {
 }
 const HL_TIER = { first: 1, time: 1, quick: 2, dmg: 2, aim: 3, ring: 3, close: 3, flawless: 4, carry: 4, clutch: 5 };
 let praiseTimers = [];
-function praiseSound(t) {
-  if (t <= 1) tone(660, 0.08, 'triangle', 0.04);
-  else if (t === 2) fanfare([587, 784], 'triangle', 0.045, 90);
-  else if (t === 3) fanfare([523, 659, 880], 'triangle', 0.05, 90);
-  else if (t === 4) fanfare([523, 659, 784, 1047], 'triangle', 0.055, 100);
-  else { fanfare([523, 659, 784, 1047, 1319], 'triangle', 0.06, 110); nz(0.6, 0.05, 'highpass', 5000, 9000, 1, 0.45); }
-}
+function praiseSound(t) { play('praise', t); }
 let crackT = {};
 function onCallout(e) {
   const me = e.id === myId || e.k === myId;
@@ -6489,7 +6898,7 @@ function onCallout(e) {
       callout({ kicker: e.id === myId ? 'You are' : `${esc(e.n)} is`, title: STREAK_WORD[e.s] || 'On a streak', sub: `${e.s} knockouts without going down`, color: e.s >= 10 ? '#ff6ad5' : e.s >= 7 ? '#ff5a3c' : e.s >= 5 ? '#ff9f2e' : '#ffcf5a', tier: e.s >= 7 ? 3 : e.s >= 5 ? 2 : 1,
         plain: `${e.id === myId ? 'You are ' + txt : who + ' ' + txt}<small>${e.s} knockouts without going down</small>` });
       feedAdd(`${esc(e.n)} <span class="cause">${e.s} in a row</span>`, e.id === myId);
-      fanfare(e.s >= 7 ? [523, 659, 784, 1047, 1319] : e.s >= 5 ? [523, 659, 784, 1047] : [523, 659, 784], 'triangle', 0.05);
+      play('streak', e.s);
       break;
     }
     case 'shutdown':
@@ -6498,7 +6907,7 @@ function onCallout(e) {
       else callout({ kicker: `${me ? 'You' : esc(e.kn)} ended ${e.v === myId ? 'your' : esc(e.vn) + "'s"} streak`, title: 'Shut down', sub: `${e.n} knockouts in a row, over`, color: '#5ad1ff', tier: e.n >= 5 ? 2 : 1,
         plain: `${me ? 'You' : esc(e.kn)} ended ${e.v === myId ? 'your' : esc(e.vn) + "'s"} ${e.n}-knockout streak<small>Shut down</small>` });
       feedAdd(`${esc(e.kn)} shut down ${esc(e.vn)} <span class="cause">(${e.emp ? 'empowered' : e.n + ' streak'})</span>`, me || e.v === myId);
-      tone(220, 0.25, 'sawtooth', 0.05, -120); setTimeout(() => tone(440, 0.2, 'triangle', 0.05), 120);
+      play('shutdown');
       break;
     case 'empowered': {
       const E = Sim.EMPOWER[e.el] || { name: 'Empowered', desc: '' };
@@ -6509,8 +6918,7 @@ function onCallout(e) {
       feedAdd(`${esc(e.n)} <span class="cause">empowered: ${esc(E.name)}</span>`, e.id === myId);
       const p = view && view.p.find(q => q.id === e.id);
       if (p) { fx.rings.push({ x: p.x, y: p.y, r: 10, life: 0, col: EL_RGB[e.el] || '255,207,90', max: 110 }); burst(p.x, p.y, col, 30, 240, 3.5); }
-      fanfare([392, 523, 659, 784], 'square', 0.035, 70);
-      if (elSfx[e.el]) setTimeout(() => elSfx[e.el](1.2), 280);
+      play('empowered', e.el);
       break;
     }
     case 'unpowered':
@@ -6521,7 +6929,7 @@ function onCallout(e) {
       // the end-of-game summary shows the clutch; this just adds the feed line and a fanfare
       const mineTeam = e.tm === myTeam();
       feedAdd(`${esc(e.n)} <span class="cause">clutched a 1v${e.vs}</span>`, e.id === myId);
-      if (mineTeam) fanfare([659, 784, 988, 1319], 'triangle', 0.06, 90); else tone(200, 0.3, 'sawtooth', 0.04, -80);
+      play('clutch', !!mineTeam);
       break;
     }
   }
@@ -7886,8 +8294,8 @@ function updateMech(dt) {
   // the gale: a rising whistle as a warning, then the gust itself
   const st = windState(MECH.wind, mechT), k = st.warn ? 'w' : st.gust ? 'g' : '';
   if (k !== windWas && !(RP.on && RP.on.started)) {
-    if (k === 'w') { nz(1.4, 0.05, 'bandpass', 500, 1500, 3); os('sine', 700, 1100, 1.2, 0.012); }
-    if (k === 'g') { nz(2.4, 0.11, 'lowpass', 1400, 300, 1); nz(1.6, 0.04, 'highpass', 2500, 1200, 1, 0.2); }
+    if (k === 'w') play('windWarn');
+    if (k === 'g') play('windGust');
   }
   windWas = k;
 }
@@ -7896,35 +8304,35 @@ function gateCol(x, y) { const q = (MECH.portals || []).find(g => Math.hypot(g.x
 function iceShatter(x, y) {
   burst(x, y, '#dff4ff', 30, 260, 3.5); burst(x, y, '#ffffff', 14, 180, 2.5);
   for (let i = 0; i < 10; i++) fx.parts.push({ x: x + rand(-14, 14), y: y + rand(-14, 14), vx: rand(-160, 160), vy: rand(-160, 160), life: 0, max: 0.7, color: 'rgba(190,232,255,0.9)', r: rand(3, 5.5) });
-  nz(0.3, 0.1, 'highpass', 3000, 6000, 1); tone(1800, 0.12, 'triangle', 0.03, -900);
+  play('iceShatter');
 }
 // effects for the arena machinery and the newer abilities, live and in the kill cam
 function mechFx(e) {
   switch (e.e) {
-    case 'stun': burst(e.x, e.y, '#fff27a', 14, 150, 2); floater(e.x, e.y - 30, 'Stunned!', '#fff27a', 16); buzz(0.7, e.id === myId ? 1 : 0.55); if (e.id === myId) shake(4); return true;
-    case 'ambushHit': floater(e.x, e.y - 50, 'Ambush!', '#c7b3ff', 18); tone(180, 0.2, 'sawtooth', 0.05, -80); nz(0.12, 0.08, 'highpass', 3000, 6000, 1); return true;
-    case 'saw': burst(e.x, e.y, '#ffe9a8', 18, 280, 2); burst(e.x, e.y, '#ff4d5e', 8, 160, 3); nz(0.3, 0.1, 'bandpass', 3400, 1800, 4); os('sawtooth', 1500, 700, 0.22, 0.03); if (e.id === myId) shake(8); return true;
-    case 'ballShot': burst(e.x, e.y, '#ffffff', 6 + Math.round(8 * (e.s || 0)), 160, 1.6); os('sine', 240, 420, 0.08, 0.05 * (0.4 + (e.s || 0))); nz(0.05, 0.05, 'bandpass', 1400, 900, 2); return true;
-    case 'ballKick': burst(e.x, e.y, '#dfe8d0', 5, 120, 1.4); os('sine', 180, 300, 0.07, 0.035); return true;
-    case 'ballHit': burst(e.x, e.y, '#ffffff', 10 + Math.round(10 * (e.s || 0)), 240, 2); os('triangle', 150, 90, 0.16, 0.06); nz(0.08, 0.06, 'lowpass', 900, 500, 3); if (e.id === myId) shake(4 + 6 * (e.s || 0)); return true;
-    case 'ballBounce': os('sine', 260, 200, 0.06, 0.025); return true;
-    case 'ballGoal': burst(e.x, e.y, '#ffffff', 22, 300, 2.5); fanfare([392, 523, 659], 'triangle', 0.045, 70); notice('Goal! The ball drops back to the centre.', false); return true;
+    case 'stun': burst(e.x, e.y, '#fff27a', 14, 150, 2); floater(e.x, e.y - 30, 'Stunned!', '#fff27a', 16); play('stun', e.id === myId ? 1 : 0.55); if (e.id === myId) shake(4); return true;
+    case 'ambushHit': floater(e.x, e.y - 50, 'Ambush!', '#c7b3ff', 18); play('ambushHit'); return true;
+    case 'saw': burst(e.x, e.y, '#ffe9a8', 18, 280, 2); burst(e.x, e.y, '#ff4d5e', 8, 160, 3); play('saw'); if (e.id === myId) shake(8); return true;
+    case 'ballShot': burst(e.x, e.y, '#ffffff', 6 + Math.round(8 * (e.s || 0)), 160, 1.6); play('ballShot', e.s || 0); return true;
+    case 'ballKick': burst(e.x, e.y, '#dfe8d0', 5, 120, 1.4); play('ballKick'); return true;
+    case 'ballHit': burst(e.x, e.y, '#ffffff', 10 + Math.round(10 * (e.s || 0)), 240, 2); play('ballHit'); if (e.id === myId) shake(4 + 6 * (e.s || 0)); return true;
+    case 'ballBounce': play('ballBounce'); return true;
+    case 'ballGoal': burst(e.x, e.y, '#ffffff', 22, 300, 2.5); play('ballGoal'); notice('Goal! The ball drops back to the centre.', false); return true;
     case 'ballReset': burst(e.x, e.y, '#ffffff', 10, 140, 1.6); return true;
-    case 'bump': { const k = e.s == null ? 1 : 0.35 + 0.65 * e.s; bumpAt(e.x, e.y); os('sine', 170, 170 + 350 * k, 0.2, 0.07 * k); os('triangle', 90, 90 + 170 * k, 0.22, 0.04 * k); return true; }
+    case 'bump': { const k = e.s == null ? 1 : 0.35 + 0.65 * e.s; bumpAt(e.x, e.y); play('bump', k); return true; }
     case 'portal': {
       const c1 = gateCol(e.x1, e.y1), c2 = gateCol(e.x2, e.y2);
       burst(e.x1, e.y1, c1, 16, 150, 2.5); burst(e.x2, e.y2, c2, 16, 170, 2.5);
       fx.rings.push({ x: e.x2, y: e.y2, r: 8, life: 0, col: '220,210,255', max: 40 });
-      os('sine', 900, 200, 0.2, e.id === myId ? 0.05 : 0.025); os('sine', 200, 900, 0.2, e.id === myId ? 0.05 : 0.025, 0.12);
+      play('portal', e.id === myId ? 1 : 0.5);
       return true;
     }
     case 'parry':
       if (e.k === 'auto') { fx.rings.push({ x: e.x, y: e.y, r: 8, life: 0, col: '255,138,61', max: 40 }); burst(e.x, e.y, '#ffb070', 10, 140, 2); sfx.guardUp(); }
-      else { fx.rings.push({ x: e.x, y: e.y, r: 8, life: 0, col: '255,236,170', max: 34 }); tone(880, 0.08, 'triangle', 0.04); }
+      else { fx.rings.push({ x: e.x, y: e.y, r: 8, life: 0, col: '255,236,170', max: 34 }); play('parryUp'); }
       return true;
     case 'parried': {
       burst(e.x, e.y, '#ffe9a8', 18, 220, 2.5); fx.rings.push({ x: e.x, y: e.y, r: 6, life: 0, col: '255,207,90', max: 50 });
-      floater(e.x, e.y - 24, 'Parried!', '#ffcf5a', 16); tone(1320, 0.1, 'triangle', 0.05, -300); tone(1760, 0.14, 'sine', 0.035);
+      floater(e.x, e.y - 24, 'Parried!', '#ffcf5a', 16); play('parried');
       if (e.id === myId) { const m = view && view.p.find(q => q.id === myId); if (m) floater(m.x, m.y - 50, e.au ? 'Full auto: hold to fire' : 'Focus: draw speed ×2', e.au ? '#ff8a3d' : '#ffcf5a', e.au ? 15 : 13); }
       if (e.au) {
         sfx.autoOn(); if (e.id === myId) shake(5);
@@ -7936,7 +8344,7 @@ function mechFx(e) {
     case 'hole':
       fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '180,140,255', max: 240 }); fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '255,220,170', max: 70 });
       burst(e.x, e.y, '#b48cff', 30, 260, 3); shake(e.id === myId ? 6 : 3);
-      punch(90, 28, 0.9, 0.32); os('sawtooth', 300, 40, 0.8, 0.04); nz(0.9, 0.12, 'lowpass', 2400, 120, 2); elSfx.void(1);
+      play('hole');
       return true;
     case 'riftGone': burst(e.x, e.y, '#c3a2ff', 10, 120, 2); return true;
     case 'warp': {
@@ -8159,7 +8567,7 @@ function stoneHit(x, y, big, mine) {
   for (let i = 0; i < (big ? 10 : 6); i++) { const a = rand(0, TAU), sp = rand(40, 90); fx.parts.push({ x: x + Math.cos(a) * 8, y: y + Math.sin(a) * 8, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0, max: 0.8, color: 'rgba(205,190,160,0.45)', r: rand(5, 9) }); }
   fx.rings.push({ x, y, r: 8, life: 0, col: '184,150,106', max: big ? 64 : 42 });
   if (big && mine) shake(3);
-  nz(big ? 0.16 : 0.1, big ? 0.1 : 0.06, 'lowpass', 600, 120, 1);
+  play('stoneHit', !!big);
 }
 // ---- emotes: an emoji pops up over the archer and bobs there for a couple of seconds, with a little sound
 const EMO = [];
@@ -8174,6 +8582,7 @@ const EMO_SND = {
   wow: () => { os('sine', 400, 900, 0.3, 0.04); },
   heart: () => { tone(880, 0.1, 'sine', 0.03); setTimeout(() => tone(1175, 0.18, 'sine', 0.03), 90); },
 };
+{ const N = { laugh: 'Laugh', angry: 'Angry', thumbs: 'Thumbs up', gg: 'GG', cry: 'Cry', cool: 'Cool', wow: 'Wow', heart: 'Heart' }; sndTable(EMO_SND, 'emo.', Object.fromEntries(Object.keys(EMO_SND).map(k => [k, ['emote', (N[k] || k) + ' ' + (Sim.EMOTES[k] || '')]]))); }
 function onEmote(e) {
   for (let i = EMO.length - 1; i >= 0; i--) if (EMO[i].id === e.id) EMO.splice(i, 1);
   EMO.push({ id: e.id, k: e.k, t0: gclock });
@@ -10042,7 +10451,7 @@ function updateHud() {
       const winners = view.p.filter(p => p.tm === m.mw && !p.nk);
       $('resWinners').innerHTML = winners.map((p, i) => `<div class="wn" style="--i:${i}"><canvas data-wn="${p.id}" width="168" height="168"></canvas><span>${esc(p.n)}${p.id === myId ? ' (you)' : ''}</span><small>${esc(archName(p))}</small></div>`).join('');
       $('resWinners').querySelectorAll('canvas[data-wn]').forEach(c => { const p = winners.find(q => String(q.id) === c.dataset.wn); if (p) try { drawPreview(c, p.el, p.ro, p.c); } catch (e) {} });
-      if (mine) setTimeout(() => { if (won) fanfare([523, 659, 784, 1047], 'triangle', 0.05, 110); else fanfare([392, 349, 311], 'sine', 0.035, 160); }, 250);
+      if (mine) setTimeout(() => play('matchEnd', !!won), 250);
       resultsView = Object.assign({}, view, { p: view.p.filter(p => !p.nk) });
       renderAwards(resultsView); renderRanking();
       $('rematchBtn').hidden = $('resLobbyBtn').hidden = !isHost();
@@ -10189,19 +10598,18 @@ const autoS = { was: 0, t: 0 };
 function bowSounds(dt) {
   const me = view && view.p.find(p => p.id === myId);
   const au = !!(me && !me.d && me.au && view.m.ph === 'play');
-  if (au) { autoS.t -= dt; if (autoS.t <= 0) { autoS.t = 0.09; nz(0.03, 0.05, 'bandpass', 1400 + Math.random() * 300, 900, 4); os('sawtooth', 70, 65, 0.09, 0.018); } } // the motor rattling
+  if (au) { autoS.t -= dt; if (autoS.t <= 0) { autoS.t = 0.09; play('autoRattle'); } } // the motor rattling
   else if (autoS.was) sfx.autoOff();
   autoS.was = au;
   const drawing = !!(me && !me.d && me.dr && view.m.ph === 'play'), ch = drawing ? me.ch : 0;
   if (drawing && !bowS.was) bowS.ticks = 0;
   // small creaks as the draw deepens
-  if (drawing && ch < 1) { const n = Math.floor(ch * 4); if (n > (bowS.ticks || 0)) { bowS.ticks = n; nz(0.05, 0.05, 'bandpass', 1300 + n * 200, 1000, 6); } }
+  if (drawing && ch < 1) { const n = Math.floor(ch * 4); if (n > (bowS.ticks || 0)) { bowS.ticks = n; play('drawTick', n); } }
   if (drawing && ch >= 1) {
     bowS.creakT -= dt;
     if (bowS.creakT <= 0) {
       bowS.creakT = rand(0.55, 0.9);
-      const f = rand(420, 560);
-      nz(0.18, 0.13, 'bandpass', f * 2, f * 1.6, 7); os('triangle', rand(700, 820), rand(640, 700), 0.16, 0.02); // the held creak, a little louder too
+      play('heldCreak'); // the held creak
     }
   } else bowS.creakT = 0.35;
   bowS.was = drawing;
@@ -10335,7 +10743,7 @@ function replayTick(dt) {
     R.started = true; R.cur = Math.max(R.segs[0].t0, R.frames[0].t); RP.cam = null;
     $('replayBadge').innerHTML = `<span class="rec"></span>${R.n > 1 ? `${MULTI_NAME[Math.min(5, R.n)] || R.n + ' kills'}` : 'Kill cam'}`;
     $('replayBadge').hidden = false; $('gameSum').hidden = true; document.body.classList.add('replaying');
-    os('sine', 300, 90, 0.6, 0.05); nz(0.6, 0.06, 'lowpass', 1200, 200, 1);
+    play('killcam');
   }
   let seg = R.segs[R.si];
   // which knockout in this piece we're watching: the first that hasn't happened yet (or just has)
@@ -10572,7 +10980,7 @@ function frame(now) {
         tutGuard(); trainGuard();
         const meW = world.players.find(p => p.id === myId);
         const grp = bigMap() && LP.list.length ? world.players.filter(p => !p.dead && (p.id === myId || LP.list.some(l => l.pid === p.id))) : [];
-        Sim.setInput(world, myId, tether(trainInput(buildInput(meW)), meW, grp));
+        if (!DESK.sim) Sim.setInput(world, myId, tether(trainInput(buildInput(meW)), meW, grp));
         dashLatch = qLatch = eLatch = drawLatch = false; emoteLatch = null;
         for (const l of LP.list) if (l.pid && l.inp) { Sim.setInput(world, l.pid, tether(l.inp, world.players.find(p => p.id === l.pid), grp)); lpClear(l); }
         Sim.step(world, STEP);
@@ -10580,7 +10988,7 @@ function frame(now) {
       }
       PR.lap('sim');
       handleEvents(world.events.splice(0));
-      if (world.records.length) { const recs = world.records.splice(0); if (!TUT.on && !TR.on) for (const r of recs) Balance.record(r); }
+      if (world.records.length) { const recs = world.records.splice(0); if (!TUT.on && !TR.on && !DESK.sim) for (const r of recs) Balance.record(r); }
       tutTick(dt); trainTick(dt);
     }
     view = blendView(Sim.snapshot(world), prevPos, paused ? 1 : acc / STEP);
@@ -10654,6 +11062,284 @@ if (params.get('clip') && /^[a-f0-9]{12}$/.test(params.get('clip'))) {
   $('gate').hidden = true;
   setTimeout(() => playClip(params.get('clip'), embed), 300);
 }
+// ================= the sound desk (the owner's): a strip per sound, buses, takes, and a game to hear it all in =================
+const DESK = { open: false, sim: false, min: false, cat: 'all', el: '', role: '', find: '', changed: false, sel: null, keepMuted: false, saveT: 0, menu: null, raf: 0, simWorld: null };
+const DESK_CAT_ORDER = ['ui', 'bow', 'hit', 'move', 'ability', 'element', 'map', 'match', 'emote', 'train'];
+// render one sound offline (no timers, nothing heard): raw = the sound itself, no pitch, speed, EQ or volume
+async function renderSnd(id, args = [], raw = false, take) {
+  const sr = 44100, OAC = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, sr * 6, sr);
+  const keep = { AC, muted, strip: STRIP[id] }, real = AC;
+  if (!noiseBuf) initAudio();
+  AC = OAC; RENDER = true; MIX_RAW = raw; muted = false; TAKE_PICK = take === undefined ? null : take;
+  try { play(id, ...args); } finally { AC = real; RENDER = false; MIX_RAW = false; muted = keep.muted; TAKE_PICK = null; if (keep.strip) STRIP[id] = keep.strip; else delete STRIP[id]; }
+  const buf = await OAC.startRendering(), d = buf.getChannelData(0);
+  let end = d.length - 1; while (end > 0 && Math.abs(d[end]) < 0.0004) end--;
+  let peak = 0; for (let i = 0; i <= end; i++) peak = Math.max(peak, Math.abs(d[i]));
+  return { data: d.subarray(0, Math.min(d.length, end + Math.round(sr * 0.05))), sr, peak };
+}
+function wavBytes(data, sr, gain = 1) {
+  const n = data.length, b = new ArrayBuffer(44 + n * 2), v = new DataView(b), w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, data[i] * gain)) * 32767, true);
+  return b;
+}
+const deskSlug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const chEdit = id => MIX.ch[id] || (MIX.ch[id] = Object.assign({}, CH_DEF));
+const chChanged = id => { const c = MIX.ch[id]; return !!c && ['db', 'lo', 'mid', 'hi', 'semi', 'trim'].some(k => (c[k] || 0) !== 0) || !!(c && ((c.speed || 1) !== 1 || c.take || c.mute || c.solo)); };
+function deskPrune() { for (const id in MIX.ch) if (!chChanged(id) && !MIX.ch[id].refPeak) delete MIX.ch[id]; }
+// a dial: drag up or down (or scroll, or arrow keys), double-click to reset
+function knobHtml(k, label, v, min, max, step, def, fmt) {
+  const a = -135 + 270 * (v - min) / (max - min);
+  return `<div class="dk-knob${v !== def ? ' on' : ''}" tabindex="0" role="slider" aria-label="${label}" aria-valuemin="${min}" aria-valuemax="${max}" aria-valuenow="${v}" data-k="${k}" data-min="${min}" data-max="${max}" data-step="${step}" data-def="${def}" data-fmt="${fmt}" style="--a:${a}deg"><i></i><span>${label}</span><em>${knobFmt(v, fmt)}</em></div>`;
+}
+function knobFmt(v, f) { return f === 'x' ? v.toFixed(2) + '×' : f === 'st' ? (v > 0 ? '+' : '') + v + ' st' : (v > 0 ? '+' : '') + (+v).toFixed(1); }
+const dbTxt = db => db <= -40 ? '−∞' : (db > 0 ? '+' : '') + db.toFixed(1) + ' dB';
+function deskList() {
+  const q = DESK.find.trim().toLowerCase();
+  return SND_ORDER.filter(id => { const S = SND[id];
+    if (DESK.cat !== 'all' && S.cat !== DESK.cat) return false;
+    if (DESK.el && S.el !== DESK.el) return false;
+    if (DESK.role && S.role !== DESK.role) return false;
+    if (DESK.changed && !chChanged(id)) return false;
+    if (q && !(S.name + ' ' + (S.ab || '') + ' ' + id + ' ' + (SND_CATS[S.cat] || [''])[0]).toLowerCase().includes(q)) return false;
+    return true; }).sort((a, b) => DESK_CAT_ORDER.indexOf(SND[a].cat) - DESK_CAT_ORDER.indexOf(SND[b].cat));
+}
+function stripHtml(id) {
+  const S = SND[id], c = chSet(id), C = SND_CATS[S.cat], takes = MIX.takes[id] || [], tk = takes.find(t => t.k === c.take);
+  const tags = [S.ab, S.el && ELEMENTS[S.el] ? ELEMENTS[S.el].name : '', S.role && ROLES[S.role] ? ROLES[S.role].name : ''].filter(Boolean).filter((x, i, a) => a.indexOf(x) === i).join(' · ');
+  return `<div class="dk-strip${chChanged(id) ? ' changed' : ''}${DESK.sel === id ? ' sel' : ''}${c.mute ? ' muted' : ''}" data-id="${id}" style="--cc:${C[1]}">
+    <div class="dk-name" title="${esc(S.name)}${tags ? ' (' + esc(tags) + ')' : ''}"><span class="dk-cat">${esc(C[2] || C[0])}</span><b>${esc(S.name)}</b><small>${esc(tags) || '&nbsp;'}</small></div>
+    <div class="dk-row"><button class="dk-play" data-act="play" title="Preview (space)" aria-label="Preview ${esc(S.name)}">▶</button>${S.vars ? `<select data-act="var" aria-label="Version">${S.vars.map((v, i) => `<option value="${i}">${esc(v[0])}</option>`).join('')}</select>` : '<span class="dk-novar">One version</span>'}</div>
+    <select class="dk-take" data-act="take" aria-label="Sound to play"><option value="">Built-in sound</option>${takes.map(t => `<option value="${esc(t.k)}"${t.k === c.take ? ' selected' : ''}>${esc(t.name)}${t.bad ? ' (unreadable)' : ''}</option>`).join('')}<option value="+">Import a file…</option></select>
+    <div class="dk-row"><button data-act="exp" title="Save this sound as a WAV file to edit">Export</button><button data-act="more" title="More" aria-label="More options">⋯</button></div>
+    <div class="dk-knobs k3">${knobHtml('semi', 'Pitch', c.semi || 0, -12, 12, 1, 0, 'st')}${knobHtml('speed', 'Speed', c.speed || 1, 0.5, 2, 0.05, 1, 'x')}${tk ? knobHtml('trim', 'Take', tk.trim || 0, -40, 24, 0.5, 0, 'db') : '<div class="dk-knob off" title="Volume of an imported take"><i></i><span>Take</span><em>–</em></div>'}</div>
+    <div class="dk-knobs k3">${knobHtml('lo', 'Low', c.lo || 0, -15, 15, 0.5, 0, 'db')}${knobHtml('mid', 'Mid', c.mid || 0, -15, 15, 0.5, 0, 'db')}${knobHtml('hi', 'High', c.hi || 0, -15, 15, 0.5, 0, 'db')}</div>
+    <div class="dk-row"><button class="dk-m${c.mute ? ' on' : ''}" data-act="mute" title="Mute">M</button><button class="dk-s${c.solo ? ' on' : ''}" data-act="solo" title="Solo">S</button><button class="dk-r" data-act="reset" title="Reset this strip">↺</button></div>
+    <div class="dk-fader"><input type="range" data-k="db" min="-40" max="12" step="0.5" value="${c.db || 0}" aria-label="Volume"><canvas width="8" height="150" data-meter="${id}"></canvas></div>
+    <div class="dk-db">${dbTxt(c.db || 0)}</div></div>`;
+}
+function busHtml(cat) {
+  const B = cat === 'master' ? { db: MIX.master || 0 } : MIX.bus[cat] || {}, C = cat === 'master' ? ['Master', '#ffffff', 'Master'] : SND_CATS[cat];
+  return `<div class="dk-strip dk-bus${B.mute ? ' muted' : ''}" data-bus="${cat}" style="--cc:${C[1]}"><div class="dk-name"><span class="dk-cat">${cat === 'master' ? 'All' : 'Group'}</span><b title="${esc(C[0])}">${esc(C[2] || C[0])}</b></div>
+    ${cat === 'master' ? '<div class="dk-row"></div>' : `<div class="dk-row"><button class="dk-m${B.mute ? ' on' : ''}" data-act="bmute">M</button></div>`}
+    <div class="dk-fader"><input type="range" data-k="bus" min="-40" max="12" step="0.5" value="${B.db || 0}" aria-label="${esc(C[0])} volume"><canvas width="8" height="150" data-meter="bus:${cat}"></canvas></div><div class="dk-db">${dbTxt(B.db || 0)}</div></div>`;
+}
+function deskRender() {
+  const list = deskList();
+  $('dkStrips').innerHTML = list.length ? list.map(stripHtml).join('') : '<div class="dk-empty">No sounds match. Try another filter.</div>';
+  $('dkBuses').innerHTML = DESK_CAT_ORDER.map(busHtml).join('') + busHtml('master');
+  const counts = {}; for (const id of SND_ORDER) counts[SND[id].cat] = (counts[SND[id].cat] || 0) + 1;
+  $('dkCats').innerHTML = [['all', 'All', SND_ORDER.length, '#ffcf5a']].concat(DESK_CAT_ORDER.map(c => [c, SND_CATS[c][0], counts[c] || 0, SND_CATS[c][1]])).map(([k, n, ct, col]) => `<button class="dk-chip${DESK.cat === k ? ' on' : ''}" data-cat="${k}" style="--cc:${col}">${esc(n)} <small>${ct}</small></button>`).join('');
+  deskStatus();
+}
+function deskStatus(msg) {
+  const nCh = SND_ORDER.filter(chChanged).length, nT = Object.values(MIX.takes).reduce((a, t) => a + t.length, 0);
+  $('dkStatus').textContent = msg || `${SND_ORDER.length} sounds · ${nCh} changed · ${nT} imported take${nT === 1 ? '' : 's'}${MIX_ON ? '' : ' · hearing the original sounds'}`;
+}
+function deskRefreshStrip(id) { const el = $('dkStrips').querySelector(`[data-id="${CSS.escape(id)}"]`); if (el) { const t = document.createElement('div'); t.innerHTML = stripHtml(id); el.replaceWith(t.firstElementChild); } }
+function deskChanged(id) { if (id) stripApply(id); mixApplyAll(); deskStatus(); clearTimeout(DESK.saveT); DESK.saveT = setTimeout(deskAutosave, 700); }
+// work in progress is kept in this browser (IndexedDB), so closing the desk loses nothing
+function deskDb() { return new Promise((res, rej) => { try { const r = indexedDB.open('bowfall-desk', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch (e) { rej(e); } }); }
+async function deskAutosave() { try { deskPrune(); const db = await deskDb(); db.transaction('kv', 'readwrite').objectStore('kv').put(JSON.stringify(mixExport()), 'mix'); } catch (e) {} }
+async function deskLoadSaved() { try { const db = await deskDb(); return await new Promise(res => { const r = db.transaction('kv').objectStore('kv').get('mix'); r.onsuccess = () => res(r.result ? JSON.parse(r.result) : null); r.onerror = () => res(null); }); } catch (e) { return null; } }
+function mixExport() {
+  const takes = {}; for (const id in MIX.takes) if (MIX.takes[id].length) takes[id] = MIX.takes[id].map(t => ({ k: t.k, name: t.name, data: t.data, trim: t.trim || 0 }));
+  return { v: 1, game: Sim.VERSION, saved: new Date().toISOString(), master: MIX.master || 0, bus: MIX.bus, ch: MIX.ch, takes };
+}
+async function openDesk() {
+  if (!(OFFLINE || (account && account.admin))) return;
+  initAudio(); DESK.open = true; DESK.keepMuted = muted; muted = false; syncMute();
+  const saved = await deskLoadSaved(); if (saved) mixLoad(saved);
+  $('desk').hidden = false; document.body.classList.add('desking'); deskRender();
+  DESK.raf = requestAnimationFrame(deskMeters);
+}
+function closeDesk() {
+  deskStopSim(); DESK.open = false; $('desk').hidden = true; document.body.classList.remove('desking'); deskMenu(null);
+  cancelAnimationFrame(DESK.raf); muted = DESK.keepMuted; syncMute(); MIX_ON = true; mixApplyAll(); deskAutosave();
+}
+// meters: each visible strip's level, from an analyser tapped off its fader
+function deskMeters() {
+  if (!DESK.open) return;
+  DESK.raf = requestAnimationFrame(deskMeters);
+  if (!AC) return;
+  const box = $('dkStrips').getBoundingClientRect(), buf = deskMeters.buf || (deskMeters.buf = new Float32Array(512));
+  for (const cv of $('desk').querySelectorAll('canvas[data-meter]')) {
+    const r = cv.getBoundingClientRect(); if (r.right < box.left - 200 || r.left > innerWidth || r.width === 0) continue;
+    const k = cv.dataset.meter; let an;
+    if (k.startsWith('bus:')) { const c = k.slice(4), n = c === 'master' ? masterNode() : busNode(c); an = n._an || (n._an = AC.createAnalyser()); if (!n._anOn) { n.connect(an); n._anOn = 1; } }
+    else { const s = stripOf(k); an = s.an || (s.an = AC.createAnalyser()); if (!s.anOn) { s.fad.connect(an); s.anOn = 1; } }
+    an.fftSize = 512; an.getFloatTimeDomainData(buf);
+    let pk = 0; for (let i = 0; i < buf.length; i++) pk = Math.max(pk, Math.abs(buf[i]));
+    const lv = Math.max(0, Math.min(1, (20 * Math.log10(pk + 1e-6) + 48) / 48)), hold = cv._h = Math.max(lv, (cv._h || 0) - 0.02);
+    const g = cv.getContext('2d'), H = cv.height; g.clearRect(0, 0, 8, H);
+    g.fillStyle = 'rgba(255,255,255,.07)'; g.fillRect(0, 0, 8, H);
+    g.fillStyle = hold > 0.92 ? '#ff5a5a' : hold > 0.75 ? '#ffcf5a' : '#7dffb0'; g.fillRect(0, H * (1 - hold), 8, H * hold);
+  }
+}
+function deskPreview(id) {
+  const S = SND[id]; if (!S) return; initAudio();
+  const el = $('dkStrips').querySelector(`[data-id="${CSS.escape(id)}"]`), vs = el && el.querySelector('[data-act="var"]');
+  const args = S.vars ? S.vars[vs ? +vs.value : 0][1] : [];
+  const keep = SOLO; play(id, ...args); SOLO = keep;
+  DESK.sel = id; $('dkStrips').querySelectorAll('.dk-strip.sel').forEach(x => x.classList.remove('sel')); if (el) el.classList.add('sel');
+}
+async function deskExport(id, raw = true) {
+  const S = SND[id], el = $('dkStrips').querySelector(`[data-id="${CSS.escape(id)}"]`), vs = el && el.querySelector('[data-act="var"]');
+  const args = S.vars ? S.vars[vs ? +vs.value : 0][1] : [], vname = S.vars ? ' ' + S.vars[vs ? +vs.value : 0][0] : '';
+  deskStatus('Rendering ' + S.name + '…');
+  const r = await renderSnd(id, args, raw);
+  if (!r.peak) { deskStatus(S.name + ' made no sound to export (a take that is still loading, or a muted strip).'); return; }
+  // raw exports are brought up to a healthy level; remember the original peak so a file brought back in sits at the same loudness
+  const norm = raw ? 0.89 / r.peak : 1;
+  if (raw) { const c = chEdit(id); c.refPeak = r.peak; deskChanged(); }
+  await offerFile(`bowfall-${deskSlug(S.name + vname)}${raw ? '' : '-mixed'}.wav`, wavBytes(r.data, r.sr, norm), 'audio/wav');
+  deskStatus();
+}
+async function deskImport(id, file) {
+  if (!file) return;
+  if (file.size > 8 * 1024 * 1024) { deskStatus('That file is over 8 MB. Trim it down (a sound effect is usually under a few seconds).'); return; }
+  try {
+    const ab = await file.arrayBuffer(), buf = await AC.decodeAudioData(ab.slice(0));
+    let pk = 0; for (let c = 0; c < buf.numberOfChannels; c++) { const d = buf.getChannelData(c); for (let i = 0; i < d.length; i++) pk = Math.max(pk, Math.abs(d[i])); }
+    // match the built-in sound's loudness, so swapping in a take doesn't jump in volume (the trim dial changes it after)
+    let ref = chSet(id).refPeak; if (!ref) { const r = await renderSnd(id, SND[id].vars ? SND[id].vars[0][1] : [], true, ''); ref = r.peak || 0.1; }
+    const trim = pk ? Math.max(-40, Math.min(24, Math.round(20 * Math.log10(ref / pk) * 2) / 2)) : 0;
+    const t = { k: 't' + Date.now().toString(36), name: file.name.replace(/\.[^.]+$/, '').slice(0, 40) || 'Take', data: bufB64(ab), trim };
+    (MIX.takes[id] = MIX.takes[id] || []).push(t); TAKEBUF[id + '|' + t.k] = buf;
+    chEdit(id).take = t.k; deskChanged(id); deskRefreshStrip(id); deskPreview(id);
+    deskStatus(`Added “${t.name}” to ${SND[id].name}${buf.duration > 3 ? ` (${buf.duration.toFixed(1)} s long, quite long for an effect)` : ''}.`);
+  } catch (e) { deskStatus("Couldn't read that file. WAV, MP3, OGG and FLAC work."); }
+}
+function deskMenu(id, anchor) {
+  const m = $('dkMenu'); DESK.menu = id;
+  if (!id) { m.hidden = true; return; }
+  const c = chSet(id), tk = (MIX.takes[id] || []).find(t => t.k === c.take);
+  m.innerHTML = `<b>${esc(SND[id].name)}</b>
+    <button data-m="raw">Export the sound on its own (WAV)</button><small>No pitch, speed, EQ or volume, brought up to a good level to edit.</small>
+    <button data-m="mixed">Export as it sounds in the mix (WAV)</button>
+    <button data-m="imp">Import a file as a new take…</button>
+    ${tk ? `<label class="dk-ren">Take name<input id="dkRen" value="${esc(tk.name)}" maxlength="40"></label><button data-m="del" class="dk-warn">Delete this take</button>` : ''}
+    <button data-m="reset">Reset this strip</button>`;
+  m.hidden = false;
+  const r = anchor.getBoundingClientRect(), d = $('desk').getBoundingClientRect();
+  m.style.left = Math.max(8, Math.min(r.left - d.left, d.width - 270)) + 'px'; m.style.top = Math.max(8, Math.min(r.bottom - d.top + 4, d.height - m.offsetHeight - 8)) + 'px';
+  const ren = $('dkRen'); if (ren) ren.oninput = () => { tk.name = ren.value.trim().slice(0, 40) || 'Take'; deskChanged(); clearTimeout(ren._t); ren._t = setTimeout(() => deskRefreshStrip(id), 500); };
+}
+// ---- the simulation: bots playing a real game, with you listening from one of them
+function deskStartSim() {
+  const pool = MAP_KEYS.filter(k => k !== 'reach' && !(MAPS[k] && MAPS[k].big)), ELS = Object.keys(ELEMENTS), ROS = Object.keys(ROLES);
+  const map = pool[Math.floor(Math.random() * pool.length)];
+  world = Sim.createWorld({ map, diff: 'extreme', opt: { effect: 'random' }, pointsToWin: 3 });
+  for (const t of ['red', 'blue', 'red', 'blue']) { const b = Sim.addBot(world, t); Sim.setLoadout(world, b.id, ELS[Math.floor(Math.random() * ELS.length)], ROS[Math.floor(Math.random() * ROS.length)]); }
+  Sim.startMatch(world); world.events.length = 0;
+  const me = world.players[0];
+  myId = me.id; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {};
+  DESK.sim = true; DESK.simAt = 0; document.body.classList.add('desksim');
+  setScreens(); $('dkSim').textContent = 'Stop the game'; $('dkNew').hidden = false;
+  $('dkListen').textContent = `Listening as ${me.name} (${archName({ el: me.element, ro: me.role })}) on ${MAPS[map].name}`;
+}
+function deskStopSim() {
+  if (!DESK.sim) return;
+  DESK.sim = false; document.body.classList.remove('desksim'); $('dkSim').textContent = 'Simulate a game'; $('dkNew').hidden = true; $('dkListen').textContent = '';
+  toMenu();
+}
+setInterval(() => { // a finished game starts the next
+  if (!DESK.sim || !world) return;
+  if (world.match.ph === 'over') { DESK.simAt = (DESK.simAt || 0) + 1; if (DESK.simAt > 3) deskStartSim(); }
+}, 1000);
+// ---- wiring
+(function deskWire() {
+  const D = $('desk'); if (!D) return;
+  $('dkClose').onclick = closeDesk;
+  $('dkMin').onclick = () => { DESK.min = !DESK.min; D.classList.toggle('min', DESK.min); $('dkMin').textContent = DESK.min ? 'Show the desk' : 'Minimise'; };
+  $('dkSim').onclick = () => DESK.sim ? deskStopSim() : deskStartSim();
+  $('dkNew').onclick = deskStartSim;
+  $('dkAB').onclick = () => { MIX_ON = !MIX_ON; $('dkAB').textContent = MIX_ON ? 'Hearing: your mix' : 'Hearing: original sounds'; $('dkAB').classList.toggle('on', !MIX_ON); mixApplyAll(); deskStatus(); };
+  $('dkSave').onclick = () => { deskPrune(); offerFile(`bowfall-mix-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(mixExport()), 'application/json'); deskStatus('Mix saved. Send that file over to have it put in the game.'); };
+  $('dkOpen').onclick = () => $('dkOpenF').click();
+  $('dkOpenF').onchange = async () => { const f = $('dkOpenF').files[0]; $('dkOpenF').value = ''; if (!f) return; try { const m = JSON.parse(await f.text()); if (!m || !m.ch) throw 0; mixLoad(m); deskRender(); deskAutosave(); deskStatus('Opened ' + f.name + '.'); } catch (e) { deskStatus("That isn't a Bowfall mix file."); } };
+  $('dkReset').onclick = () => {
+    const b = $('dkReset');
+    if (!b.classList.contains('arm')) { b.classList.add('arm'); b.textContent = 'Click again to reset everything'; setTimeout(() => { b.classList.remove('arm'); b.textContent = 'Reset all'; }, 3000); return; }
+    b.classList.remove('arm'); b.textContent = 'Reset all';
+    MIX.master = 0; MIX.bus = {}; for (const id in MIX.ch) { const r = MIX.ch[id].refPeak; MIX.ch[id] = Object.assign({}, CH_DEF); if (r) MIX.ch[id].refPeak = r; }
+    deskPrune(); deskChanged(); deskRender(); deskStatus('Everything is back to the built-in sounds. Your imported takes are still in each strip’s list.');
+  };
+  $('dkCats').onclick = e => { const b = e.target.closest('[data-cat]'); if (b) { DESK.cat = b.dataset.cat; deskRender(); } };
+  $('dkEl').innerHTML = '<option value="">Every element</option>' + Object.keys(ELEMENTS).map(k => `<option value="${k}">${esc(ELEMENTS[k].name)}</option>`).join('');
+  $('dkRole').innerHTML = '<option value="">Every role</option>' + Object.keys(ROLES).map(k => `<option value="${k}">${esc(ROLES[k].name)}</option>`).join('');
+  $('dkEl').onchange = () => { DESK.el = $('dkEl').value; deskRender(); };
+  $('dkRole').onchange = () => { DESK.role = $('dkRole').value; deskRender(); };
+  $('dkFind').oninput = () => { DESK.find = $('dkFind').value; deskRender(); };
+  $('dkChanged').onchange = () => { DESK.changed = $('dkChanged').checked; deskRender(); };
+  const S = $('dkStrips'), B = $('dkBuses');
+  S.addEventListener('click', e => {
+    const st = e.target.closest('.dk-strip'); if (!st) return; const id = st.dataset.id, b = e.target.closest('[data-act]'), act = b && b.dataset.act;
+    DESK.sel = id; S.querySelectorAll('.dk-strip.sel').forEach(x => x.classList.toggle('sel', x === st)); st.classList.add('sel');
+    if (act === 'play') deskPreview(id);
+    else if (act === 'exp') deskExport(id, true);
+    else if (act === 'more') deskMenu(DESK.menu === id ? null : id, b);
+    else if (act === 'mute' || act === 'solo') { const c = chEdit(id); c[act] = c[act] ? 0 : 1; deskChanged(id); deskRefreshStrip(id); if (act === 'solo') for (const k in STRIP) stripApply(k); }
+    else if (act === 'reset') { const r = chSet(id).refPeak; MIX.ch[id] = Object.assign({}, CH_DEF); if (r) MIX.ch[id].refPeak = r; deskPrune(); deskChanged(id); deskRefreshStrip(id); }
+  });
+  S.addEventListener('change', e => {
+    const st = e.target.closest('.dk-strip'); if (!st) return; const id = st.dataset.id;
+    if (e.target.dataset.act === 'take') { const v = e.target.value; if (v === '+') { e.target.value = chSet(id).take || ''; DESK.impFor = id; $('dkImpF').click(); return; } chEdit(id).take = v; deskChanged(id); deskRefreshStrip(id); deskPreview(id); }
+    if (e.target.dataset.act === 'var') deskPreview(id);
+  });
+  S.addEventListener('input', e => {
+    if (e.target.dataset.k !== 'db') return; const st = e.target.closest('.dk-strip'), id = st.dataset.id, c = chEdit(id);
+    c.db = +e.target.value; if (c.db <= -40) c.db = -60; st.querySelector('.dk-db').textContent = dbTxt(c.db); st.classList.toggle('changed', chChanged(id)); deskChanged(id);
+  });
+  S.addEventListener('dblclick', e => { if (e.target.dataset.k === 'db') { const st = e.target.closest('.dk-strip'); e.target.value = 0; e.target.dispatchEvent(new Event('input', { bubbles: true })); } });
+  B.addEventListener('input', e => {
+    const st = e.target.closest('[data-bus]'); if (!st) return; const k = st.dataset.bus, v = +e.target.value <= -40 ? -60 : +e.target.value;
+    if (k === 'master') MIX.master = v; else (MIX.bus[k] = MIX.bus[k] || {}).db = v;
+    st.querySelector('.dk-db').textContent = dbTxt(v); deskChanged();
+  });
+  B.addEventListener('click', e => { const b = e.target.closest('[data-act="bmute"]'); if (!b) return; const k = b.closest('[data-bus]').dataset.bus, x = MIX.bus[k] = MIX.bus[k] || {}; x.mute = x.mute ? 0 : 1; deskChanged(); B.innerHTML = DESK_CAT_ORDER.map(busHtml).join('') + busHtml('master'); });
+  $('dkImpF').onchange = () => { const f = $('dkImpF').files[0]; $('dkImpF').value = ''; deskImport(DESK.impFor, f); };
+  $('dkMenu').addEventListener('click', e => {
+    const b = e.target.closest('[data-m]'); if (!b) return; const id = DESK.menu, m = b.dataset.m;
+    if (m === 'raw') deskExport(id, true); else if (m === 'mixed') deskExport(id, false);
+    else if (m === 'imp') { DESK.impFor = id; $('dkImpF').click(); }
+    else if (m === 'del') { const c = chEdit(id), L = MIX.takes[id] || []; MIX.takes[id] = L.filter(t => t.k !== c.take); delete TAKEBUF[id + '|' + c.take]; c.take = ''; deskPrune(); deskChanged(id); deskRefreshStrip(id); }
+    else if (m === 'reset') { const r = chSet(id).refPeak; MIX.ch[id] = Object.assign({}, CH_DEF); if (r) MIX.ch[id].refPeak = r; deskPrune(); deskChanged(id); deskRefreshStrip(id); }
+    if (m !== 'ren') deskMenu(null);
+  });
+  D.addEventListener('pointerdown', e => { if (DESK.menu && !e.target.closest('#dkMenu') && !e.target.closest('[data-act="more"]')) deskMenu(null); });
+  // dials
+  const setKnob = (kn, v) => {
+    const min = +kn.dataset.min, max = +kn.dataset.max, step = +kn.dataset.step; v = Math.max(min, Math.min(max, Math.round(v / step) * step)); v = +v.toFixed(3);
+    const st = kn.closest('.dk-strip'), id = st.dataset.id, k = kn.dataset.k;
+    if (k === 'trim') { const c = chSet(id), tk = (MIX.takes[id] || []).find(t => t.k === c.take); if (tk) tk.trim = v; } else chEdit(id)[k] = v;
+    kn.style.setProperty('--a', (-135 + 270 * (v - min) / (max - min)) + 'deg'); kn.querySelector('em').textContent = knobFmt(v, kn.dataset.fmt);
+    kn.classList.toggle('on', v !== +kn.dataset.def); kn.setAttribute('aria-valuenow', v); st.classList.toggle('changed', chChanged(id)); deskChanged(id);
+  };
+  const knobVal = kn => { const st = kn.closest('.dk-strip'), id = st.dataset.id, k = kn.dataset.k; if (k === 'trim') { const c = chSet(id), tk = (MIX.takes[id] || []).find(t => t.k === c.take); return tk ? tk.trim || 0 : 0; } const v = chSet(id)[k]; return v == null ? +kn.dataset.def : v; };
+  S.addEventListener('pointerdown', e => {
+    const kn = e.target.closest('.dk-knob'); if (!kn || kn.classList.contains('off')) return; e.preventDefault(); kn.focus();
+    const y0 = e.clientY, v0 = knobVal(kn), range = +kn.dataset.max - +kn.dataset.min;
+    const mv = ev => setKnob(kn, v0 + (y0 - ev.clientY) / (ev.shiftKey ? 600 : 150) * range);
+    const up = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', up); if (kn.dataset.k === 'semi' || kn.dataset.k === 'speed') deskPreview(kn.closest('.dk-strip').dataset.id); };
+    addEventListener('pointermove', mv); addEventListener('pointerup', up);
+  });
+  S.addEventListener('dblclick', e => { const kn = e.target.closest('.dk-knob:not(.off)'); if (kn) setKnob(kn, +kn.dataset.def); });
+  S.addEventListener('wheel', e => { const kn = e.target.closest('.dk-knob:not(.off)'); if (!kn) return; e.preventDefault(); setKnob(kn, knobVal(kn) + (e.deltaY < 0 ? 1 : -1) * +kn.dataset.step); }, { passive: false });
+  S.addEventListener('keydown', e => { const kn = e.target.closest('.dk-knob:not(.off)'); if (!kn) return; const d = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[e.key]; if (d) { e.preventDefault(); setKnob(kn, knobVal(kn) + d * +kn.dataset.step); } });
+  // the game doesn't see keys while the desk is open; space previews the strip you picked
+  addEventListener('keydown', e => {
+    if (!DESK.open) return;
+    const typing = /INPUT|SELECT|TEXTAREA/.test(e.target.tagName) && e.target.type !== 'range';
+    if (e.key === 'Escape') { if (DESK.menu) deskMenu(null); e.stopImmediatePropagation(); return; }
+    if (e.code === 'Space' && !typing && DESK.sel) { e.preventDefault(); deskPreview(DESK.sel); }
+    if (!e.target.closest || !e.target.closest('.dk-knob')) e.stopImmediatePropagation();
+  }, true);
+  addEventListener('keyup', e => { if (DESK.open) e.stopImmediatePropagation(); }, true);
+})();
+$('sndBtn').onclick = openDesk;
+if (params.get('desk') === '1') { if (OFFLINE) setTimeout(openDesk, 300); else { const t = setInterval(() => { if (account) { clearInterval(t); if (account.admin) openDesk(); } }, 500); setTimeout(() => clearInterval(t), 15000); } }
 buildMapCards();
 buildArchChips();
 syncArch();
