@@ -210,7 +210,10 @@
   .pcliph { display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px; } .pcliph h2 { margin: 0; font-size: 26px; }
   .pclipb { display: flex; align-items: center; justify-content: center; gap: 14px; width: 100%; aspect-ratio: 16 / 9; max-height: 420px; border: 0; cursor: pointer; color: #fff; font: 700 22px 'Rajdhani', 'Arial Narrow', sans-serif; background: radial-gradient(circle, color-mix(in srgb, var(--pa) 25%, #0b120c), #070b08); }
   .pclipb i { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: var(--pa); color: #111; font-style: normal; font-size: 28px; box-shadow: 0 0 40px color-mix(in srgb, var(--pa) 60%, transparent); }
-  .pclipf { width: 100%; aspect-ratio: 16 / 9; max-height: 560px; border: 0; display: block; background: #000; }
+  .pclipf { width: 100%; aspect-ratio: 16 / 9; max-height: 560px; border: 0; display: block; background: #000; pointer-events: none; }
+  .pclipw { position: relative; } .pclipw:fullscreen { background: #000; display: grid; place-items: center; } .pclipw:fullscreen .pclipf { max-height: none; height: 100%; aspect-ratio: auto; }
+  .pclipfs { position: absolute; right: 10px; bottom: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid rgba(255,255,255,.35); background: rgba(0,0,0,.55); color: #fff; font: 600 14px var(--display); cursor: pointer; backdrop-filter: blur(4px); }
+  .pclipfs svg { width: 16px; height: 16px; } .pclipfs:hover { background: rgba(0,0,0,.75); }
   .pseasons { display: flex; flex-wrap: wrap; gap: 10px; } .pseasons > div { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid color-mix(in srgb, var(--sc) 40%, transparent); border-left: 3px solid var(--sc); } .pseasons b { display: block; } .pseasons small { opacity: .75; }
   @media (max-width: 760px) { .phero { grid-template-columns: 1fr; padding: 22px 18px; } .phero canvas { width: 120px; height: 120px; } .ppins { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pflag { width: 360px; } }
   .pform { display: grid; gap: 12px; max-width: 640px; } .pform label { display: grid; gap: 6px; font-size: 14px; } .pform .pchk { display: flex; align-items: center; gap: 8px; }
@@ -448,7 +451,7 @@ function profHero(u, mine) {
     </section>
     ${sig.length ? `<div class="psig">${sig.map(x => `<div style="--sc:${x.col || acc}"><span>${esc(x.k)}</span>${x.badge ? Sim.tierSvg(x.badge, 26) : ''}<b>${esc(String(x.big))}</b><small>${esc(x.sub)}</small></div>`).join('')}</div>` : ''}
     <div class="ppins" style="--pa:${acc}">${pins.map(k => `<div><b>${PSTAT[k][1](c, u)}</b><span>${PSTAT[k][0]}</span></div>`).join('')}</div>
-    ${u.clip ? `<div class="pclip" style="--pa:${acc}"><div class="pcliph"><h2>${esc(u.clip.label || 'Kill cam')}</h2><span class="muted">Featured kill cam</span></div><button class="pclipb" id="pClipBtn" type="button"><i>▶</i><span>Watch it</span></button></div>` : ''}
+    ${u.clip ? `<div class="pclip" style="--pa:${acc}"><div class="pcliph"><h2>${esc(u.clip.label || 'Kill cam')}</h2><span class="muted">Featured kill cam</span></div><div class="pclipw"><iframe class="pclipf" id="pClipF" src="/play?clip=${encodeURIComponent(u.clip.id)}&embed=1" title="Featured kill cam" loading="lazy" tabindex="-1"></iframe><button class="pclipfs" id="pClipFs" type="button" title="Watch full screen" aria-label="Watch full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span>Full screen</span></button></div></div>` : ''}
     <div class="stats" style="margin-top:16px">${['matches', 'matchWins', 'rate', 'wins', 'kills', 'kd', 'acc', 'ring', 'bulls', 'best'].filter(k => !pins.includes(k)).map(k => `<div class="stat"><b>${PSTAT[k][1](c, u)}</b><span>${PSTAT[k][0]}</span></div>`).join('')}</div>`;
 }
 function seasonsCard(list) {
@@ -671,7 +674,8 @@ const pages = {
       };
     }
     profAvatar($('pAv'), u.avatar);
-    const cb = $('pClipBtn'); if (cb) cb.onclick = () => { cb.outerHTML = `<iframe class="pclipf" src="/play?clip=${encodeURIComponent(u.clip.id)}&embed=1" title="Featured kill cam" allow="autoplay"></iframe>`; };
+    // the featured kill cam plays on its own, on a loop; full screen on request (or a new tab where full screen isn't allowed)
+    const fs = $('pClipFs'); if (fs) fs.onclick = () => { const f = $('pClipF'), w = $('pClipF').parentElement; const go = w.requestFullscreen || w.webkitRequestFullscreen; if (go) go.call(w).catch(() => window.open(f.src.replace('&embed=1', ''), '_blank')); else window.open(f.src.replace('&embed=1', ''), '_blank'); };
     if (mine) $('ccSave').onclick = async () => { try { await api('/country', { country: $('ccSel').value }); await loadMe(); pages.user(name); } catch (e) { $('ccErr').textContent = e.message; } };
     if (mine) $('titleSave').onclick = async () => { try { await api('/title', { title: $('titleSel').value || null }); await loadMe(); pages.user(name); } catch (e) { $('titleErr').textContent = e.message; } };
   },

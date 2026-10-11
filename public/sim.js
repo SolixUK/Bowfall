@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.47.0';
+const VERSION = '0.48.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -247,9 +247,9 @@ const OPTIONS = {
   // upgrades off: no picks between rounds (and no chests in Strongholds), everyone plays their plain element and role
   upg:    { label: 'Upgrades',     def: 'on', values: { on: 1, off: 2 } },
   // map effect: a random one each match (the standard), none, or a set one (MUTATORS)
-  effect: { label: 'Map effect',   def: 'random', values: { random: 1, none: 2, vigil: 3, gale: 4, hide: 5, bounty: 6 } },
+  effect: { label: 'Map effect',   def: 'random', values: { random: 1, none: 2, vigil: 3, gale: 4, hide: 5, bounty: 6, force: 7, quick: 8, surge: 9, bounce: 10 } },
 };
-const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', bullet: 'Bullet', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', random: 'Random', vigil: "Warden's Vigil", gale: 'Gale Winds', hide: "Juggernaut's Hide", bounty: 'Bounty Hunt', puck: 'Glide (air hockey)', snappy: 'Snappy', drift: 'Drifty', direct: 'Direct (no glide)', none: 'None', tiny: 'Tiny', heavy: 'Heavy', extreme: 'Extreme' };
+const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', bullet: 'Bullet', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', random: 'Random', vigil: "Warden's Vigil", gale: 'Gale Winds', hide: "Juggernaut's Hide", bounty: 'Bounty Hunt', force: 'Heavy Blows', quick: 'Quickdraw', surge: 'Arcane Surge', bounce: 'Ricochet Arena', puck: 'Glide (air hockey)', snappy: 'Snappy', drift: 'Drifty', direct: 'Direct (no glide)', none: 'None', tiny: 'Tiny', heavy: 'Heavy', extreme: 'Extreme' };
 const optDefaults = () => Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.slider ? o.def : o.def || Object.keys(o.values)[0]]));
 // a slider setting as a percentage (old named settings and anything out of range are mapped and clamped)
 function optPct(k, v) {
@@ -268,14 +268,28 @@ const MUTATORS = {
   gale:   { name: 'Gale Winds',       color: '#a8e6ff', desc: 'Everyone moves 20% faster and every shot flies 20% faster.', mul: { mspeed: 1.2, aspeed: 1.2 } },
   hide:   { name: "Juggernaut's Hide", color: '#c9a878', desc: 'Every archer takes 30% less damage from arrows. Knockback is what wins here.', mul: { dmg: 0.7 } },
   bounty: { name: 'Bounty Hunt',      color: '#ffcf5a', desc: 'Power-ups appear about twice as often, up to three at once, all over the arena.', bounty: true },
+  force:  { name: 'Heavy Blows',      color: '#ff8a3d', desc: 'Everything knocks back 35% harder. Mind the edges.', mul: { kb: 1.35 } },
+  quick:  { name: 'Quickdraw',        color: '#fff27a', desc: 'Every bow draws 30% faster and crossbows reload 30% faster.', mul: { draw: 1.3 } },
+  surge:  { name: 'Arcane Surge',     color: '#c7b3ff', desc: 'Abilities recharge 40% faster.', mul: { abcd: 0.6 } },
+  bounce: { name: 'Ricochet Arena',   color: '#8affc1', desc: 'Every arrow bounces once off walls and boulders.', bounce: true },
 };
 const MUT_KEYS = Object.keys(MUTATORS);
+// emotes: shown over the archer, with a sound, for everyone in the game (one every EMOTE_GAP seconds at most)
+const EMOTES = { laugh: '😂', angry: '😠', thumbs: '👍', gg: '🤝', cry: '😭', cool: '😎', wow: '😮', heart: '❤️' }, EMOTE_GAP = 1.5;
 // what a map effect does to a rule (1 when there's none)
-const mutMul = (mut, k) => (MUTATORS[mut] && MUTATORS[mut].mul && MUTATORS[mut].mul[k]) || 1;
-// the effect for the next match: a fixed choice, none, or (the standard) a random one, with a 1 in 5 chance of a calm match
+// a match can have two at once, written 'gale+force'
+const mutKeys = mut => (mut ? String(mut).split('+').filter(k => MUTATORS[k]) : []);
+const mutMul = (mut, k) => mutKeys(mut).reduce((m, x) => m * ((MUTATORS[x].mul && MUTATORS[x].mul[k]) || 1), 1);
+const mutHas = (mut, flag) => mutKeys(mut).some(x => MUTATORS[x][flag]);
+// the effect for the next match: a fixed choice, none, or (the standard) random: 1 in 5 calm, 1 in 5 a pair of effects
 function rollMut(w) {
-  const v = (w.cfg.opt || {}).effect || 'random';
-  w.cfg.mut = v === 'none' ? null : MUTATORS[v] ? v : Math.random() < 0.2 ? null : MUT_KEYS[Math.floor(Math.random() * MUT_KEYS.length)];
+  const v = (w.cfg.opt || {}).effect || 'random', r = Math.random();
+  if (v === 'none') { w.cfg.mut = null; return; }
+  if (MUTATORS[v]) { w.cfg.mut = v; return; }
+  if (r < 0.2) { w.cfg.mut = null; return; }
+  const a = MUT_KEYS[Math.floor(Math.random() * MUT_KEYS.length)];
+  let b = null; if (r > 0.8) { const rest = MUT_KEYS.filter(k => k !== a); b = rest[Math.floor(Math.random() * rest.length)]; }
+  w.cfg.mut = b ? a + '+' + b : a;
 }
 const OPT = k => optValue(CFG.opt, k) * mutMul(CFG.mut, k);
 // Handicap: the host can give any archer a percentage, e.g. +50% for a lone player in a 1v2.
@@ -1060,10 +1074,10 @@ function applyStats(p) {
     : 0.85 * is(has(p, 'dash'), 0.65) * is(R === 'ranger', 0.85) * is(has(p, 'overload'), 1.3);
   p.dashMaxN = 1;
   p.dashN = Math.min(p.dashN == null ? p.dashMaxN : p.dashN, p.dashMaxN);
-  p.drawMul = (has(p, 'steady') ? 1.25 : 1) * (1 + 0.08 * h('hone_draw')) * is(R === 'trickster', 1.12) * is(R === 'ranger', 1.12) * is(R === 'sniper', 1) * is(has(p, 'permafrost'), 0.95);
+  p.drawMul = (has(p, 'steady') ? 1.25 : 1) * (1 + 0.08 * h('hone_draw')) * is(R === 'trickster', 1.12) * is(R === 'ranger', 1.12) * is(R === 'sniper', 1) * is(has(p, 'permafrost'), 0.95) * mutMul(CFG.mut, 'draw');
   p.kbMul = (1 + 0.08 * h('hone_kb')) * is(R === 'trickster', 0.9) * is(has(p, 'obsidian'), 1.3) * is(has(p, 'deepshade'), 0.85);
   p.dmgMul = hc * is(has(p, 'glass'), 1.3) * is(has(p, 'potent'), 0.85) * is(R === 'juggernaut', 0.8) * is(has(p, 'unstable'), 0.92) * is(has(p, 'rip'), 0.92);
-  p.abCdMul = is(R === 'trapper', 0.6);
+  p.abCdMul = is(R === 'trapper', 0.6) * mutMul(CFG.mut, 'abcd');
   // Crossbowman: reload time, reach and how many bolts they hold
   p.xbowReload = XBOW_RELOAD * is(has(p, 'windlass'), 0.75) * is(has(p, 'longstock'), 1.15) * is(has(p, 'tribolt'), XB3.reload) / p.drawMul;
   p.xbowRange = XBOW_RANGE * is(has(p, 'longstock'), 1.4);
@@ -1226,6 +1240,7 @@ function setInput(w, id, inp) {
   if (inp.dp && w.match.ph === 'play') p.wantThrow = true;
   if (inp.dash) p.wantDash = true;
   if ('dmv' in inp) p.dashMove = !!inp.dmv; // dash the way you're moving (the default) or the way you're aiming
+  if (typeof inp.em === 'string' && Object.prototype.hasOwnProperty.call(EMOTES, inp.em) && !(p.emoteAt > w.t - EMOTE_GAP)) { p.emoteAt = w.t; ev(w, { e: 'emote', id: p.id, k: inp.em }); }
   if (inp.q) p.wantAb[0] = true;
   if (inp.e) p.wantAb[1] = true;
 }
@@ -1608,8 +1623,8 @@ function bloodHeal(w, p, dealt) {
     const mate = w.players.filter(q => q !== p && q.team === p.team && !q.dead && q.hp < q.maxHp && Math.hypot(q.x - p.x, q.y - p.y) < 300).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
     p.transAcc = Math.min(30, (p.transAcc || 0) + spare);
     if (mate && p.transAcc >= 3) {
-      const a = Math.atan2(mate.y - p.y, mate.x - p.x) + (Math.random() < 0.5 ? 1 : -1) * 1.1; // it leaves at an angle and curls in
-      w.zones.push({ id: w.nid++, ty: 'orb', x: p.x, y: p.y, vx: Math.cos(a) * 260, vy: Math.sin(a) * 260, r: 7, t: 3, team: p.team, owner: p.id, to: mate.id, amt: p.transAcc });
+      const a = Math.atan2(mate.y - p.y, mate.x - p.x) + (Math.random() < 0.5 ? 1 : -1) * 0.25; // a slight arc, then straight in
+      w.zones.push({ id: w.nid++, ty: 'orb', x: p.x, y: p.y, vx: Math.cos(a) * 380, vy: Math.sin(a) * 380, r: 7, t: 3, team: p.team, owner: p.id, to: mate.id, amt: p.transAcc });
       ev(w, { e: 'transfuse', from: p.id, to: mate.id }); p.transAcc = 0;
     }
   }
@@ -1767,7 +1782,7 @@ function fire(w, p, ang, c, burst, vol, x3) { // burst: 1-2 a Volley's shots, 4 
       dmg, kb, full, crit: false, heavy, el, bolt, snare, rail, big: has(p, 'colossus') || rocket, seek, rocket, swap, boom, exec, bri, drag: rail || rocket || boom || bri ? 0 : has(p, 'longbow') ? 0.2 : 0.45,
       burst: false, pierce: rail || boom || bri ? 99 : full && has(p, 'pierce') ? 1 : 0, hit: [],
       split: full && !boom && !bri && has(p, 'split'),
-      bounces: boom || bri ? 0 : (p.pw.ricochet > 0 ? 2 : 0) + (has(p, 'ricochet') ? 1 : 0) + (has(p, 'bankshot') ? 1 : 0) + (trick ? 3 : 0), trick, explosive: p.pw.explosive > 0 || rocket, life: rocket ? ROCKET.life : boom ? 6 : bri ? BRIAR.range * (0.55 + 0.45 * c) / Math.max(1, speed) : p.role === 'ninja' ? 0.5 : 2.4, stuck: 0,
+      bounces: boom || bri ? 0 : (p.pw.ricochet > 0 ? 2 : 0) + (has(p, 'ricochet') ? 1 : 0) + (has(p, 'bankshot') ? 1 : 0) + (mutHas(CFG.mut, 'bounce') ? 1 : 0) + (trick ? 3 : 0), trick, explosive: p.pw.explosive > 0 || rocket, life: rocket ? ROCKET.life : boom ? 6 : bri ? BRIAR.range * (0.55 + 0.45 * c) / Math.max(1, speed) : p.role === 'ninja' ? 0.5 : 2.4, stuck: 0,
       vol: vol || null, sneak, xb, maxDist: xb && !rail && !bri && !boom && !rocket ? p.xbowRange : 0,
     });
     if (xb && !rocket && !boom && !bri) { const A = w.arrows[w.arrows.length - 1]; A.drag = 0.12; }
@@ -1970,7 +1985,7 @@ function stepBody(w, f, mx, my, dt) {
   else if (f.burn > 0) { f.burn -= dt; hurt(w, f, (f.burnDps || 5) * dt, 0, 0, 'burn', null, true); if (f.burn <= 0) f.burnDps = 5; }
   if (!f.dead && f.bleedT > 0) { f.bleedT -= dt; hurt(w, f, 2 * dt, 0, 0, 'bleed', f.bleedBy, true); } // Hemorrhage
   if (!f.dead && f.shade) shadeTick(w, f, dt);
-  const vig = MUTATORS[CFG.mut] && MUTATORS[CFG.mut].regen; // Warden's Vigil
+  const vig = mutKeys(CFG.mut).reduce((a, k) => a + (MUTATORS[k].regen || 0), 0); // Warden's Vigil
   if (vig && !f.dead && !f.npc && w.match.ph === 'play' && f.hp < f.maxHp) f.hp = Math.min(f.maxHp, f.hp + vig * dt * (f.poisonT > 0 ? 0.5 : 1));
   if (f.thornT > 0) { f.thornT -= dt; if (f.thornT <= 0) f.thornN = 0; }
   if (!f.dead && f.poisonT > 0) { f.poisonT -= dt; hurt(w, f, f.poisonN * 1.6 * f.poisonMul * dt, 0, 0, 'poison', null, true); if (f.poisonT <= 0) f.poisonN = 0; }
@@ -2069,7 +2084,7 @@ function updatePlayer(w, p, dt) {
       if (inp.draw && p.throwCd <= 0 && p.falling <= 0 && p.disarm <= 0) { p.throwCd = AUTO_GAP; throwStar(w, p, p.aim, true); }
     } else if (inp.draw && p.falling <= 0 && p.disarm <= 0 && p.throwCd <= 0) {
       const prev = p.charge; p.drawing = true;
-      p.charge = Math.min(1, p.charge + dt / STAR_DRAW * (has(p, 'flurry') ? 1.3 : 1) * (1 + 0.08 * ((p.hones && p.hones.hone_draw) || 0)) * (p.pw.quick > 0 ? 1.8 : 1) * frenzyDraw(p) * (p.quickT > 0 ? 2 : 1));
+      p.charge = Math.min(1, p.charge + dt / STAR_DRAW * mutMul(CFG.mut, 'draw') * (has(p, 'flurry') ? 1.3 : 1) * (1 + 0.08 * ((p.hones && p.hones.hone_draw) || 0)) * (p.pw.quick > 0 ? 1.8 : 1) * frenzyDraw(p) * (p.quickT > 0 ? 2 : 1));
       if (prev < 1 && p.charge >= 1) ev(w, { e: 'full', id: p.id });
     } else if (p.drawing) {
       if (p.charge >= MIN_DRAW && p.falling <= 0) { throwStar(w, p, p.aim, false, p.charge); p.throwCd = STAR_GAP; }
@@ -2549,7 +2564,7 @@ function updateZones(w, dt) {
       const q = w.players.find(o => o.id === z.to && !o.dead);
       const dx = q ? q.x - z.x : 0, dy = q ? q.y - z.y : 0, d = Math.hypot(dx, dy) || 1;
       if (!q) z.t = 0;
-      else { z.vx += dx / d * 1900 * dt; z.vy += dy / d * 1900 * dt; const sp = Math.hypot(z.vx, z.vy), mx = 480; if (sp > mx) { z.vx *= mx / sp; z.vy *= mx / sp; } z.x += z.vx * dt; z.y += z.vy * dt; }
+      else { z.vx += dx / d * 3200 * dt; z.vy += dy / d * 3200 * dt; const sp = Math.hypot(z.vx, z.vy), mx = 520; if (sp > mx) { z.vx *= mx / sp; z.vy *= mx / sp; } z.x += z.vx * dt; z.y += z.vy * dt; }
       if (q && d < q.r + 8) { q.hp = Math.min(q.maxHp, q.hp + z.amt * (q.poisonT > 0 ? 0.5 : 1)); ev(w, { e: 'orbHeal', id: q.id, x: r1(q.x), y: r1(q.y), v: Math.round(z.amt) }); z.t = 0; }
     } else if (z.ty === 'eclipse') {
       for (const q of w.players) {
@@ -3263,7 +3278,7 @@ function updatePickups(w, dt) {
   w.chT = (w.chT == null ? 20 : w.chT) - dt;
   if (w.chT <= 0) { w.chT = rand(30, 40); spawnChannel(w); }
   if (w.amberT <= 0 && !w.cq) { w.amberT = rand(3.5, 5); if (w.pickups.filter(u => u.type === 'amber').length < 6) spawnAmberPair(w); }
-  const bounty = MUTATORS[CFG.mut] && MUTATORS[CFG.mut].bounty;
+  const bounty = mutHas(CFG.mut, 'bounty');
   if (w.puT <= 0) { w.puT = bounty ? rand(5, 7.5) : rand(12, 16); spawnCenterPower(w, bounty); }
   for (let i = w.pickups.length - 1; i >= 0; i--) {
     const u = w.pickups[i];
@@ -4686,7 +4701,7 @@ return {
   MASTERY, masteryOf, takeCard, applyStats,
   AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
-  plagueR, BRIAR, SHADE, MUTATORS, mutMul, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
+  plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, BANNER_FRAME, frameAllowed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades

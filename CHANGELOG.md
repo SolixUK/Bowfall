@@ -2,6 +2,15 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.48.0
+
+- **Emotes:** press 1 to 8 while playing for laugh, angry, thumbs up, GG, cry, cool, wow and heart. Each one pops up over your archer for everyone in the game, with its own little animation (the laugh shakes, the angry one seethes, the cry drips tears, the heart beats) and sound. One every second and a half. On phones and tablets there's no button unless you switch it on in Options; then a small see-through button by the camera button opens a row of them.
+- **Kill cam shows the whole play:** when your knockout came at the end of a run of hits on that archer (gaps under about a second and a half, up to four and a half seconds back), the kill cam starts at the first hit, framing you both, plays the run near real speed, then slows right down for the final arrow. One-shot knockouts still play as before.
+- **More map effects:** Heavy Blows (35% more knockback), Quickdraw (draw and reload 30% faster), Arcane Surge (abilities recharge 40% faster) and Ricochet Arena (every arrow bounces once off walls and boulders). About one match in five now rolls two effects at once (they show together in the lobby and in play); one in five is still calm.
+- **Profile kill cam** plays by itself in a box on the profile, on a loop, with a Full screen button.
+- **AI players don't type mid-fight:** anything they'd say during a game now waits until a few seconds into the kill cam (and is dropped if it's gone stale); their hello comes while everyone's making their opening pick.
+- **Blood looks like blood:** Transfusion's orb is a dark, glossy drop of blood with a dark trail, flying almost straight to your teammate. The heal pulse on your archer is a deep red through the body with a dark red glow swelling out round it (no white). The healing motes are darker too.
+
 ## 0.47.0
 
 - **Kill cam:**

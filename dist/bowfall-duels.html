@@ -458,7 +458,10 @@
   .tstick.aim { border-color: rgba(255,207,90,.6); } .tstick.aim i { background: rgba(255,207,90,.6); }
   .tbfs { position: absolute; right: calc(max(14px, env(safe-area-inset-right)) + 80px); top: 9px; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgba(255,255,255,.3); background: rgba(255,255,255,.07); color: rgba(255,255,255,.9); pointer-events: auto; } .tbfs svg { width: 16px; height: 16px; }
   :fullscreen .tbfs:not(.tbcam), body.standalone .tbfs:not(.tbcam) { display: none; }
-  .tbcam { right: calc(max(14px, env(safe-area-inset-right)) + 116px); } :fullscreen .tbcam, body.standalone .tbcam { right: calc(max(14px, env(safe-area-inset-right)) + 80px); }
+  .tbcam { right: calc(max(14px, env(safe-area-inset-right)) + 116px); }
+  .tbemo { right: calc(max(14px, env(safe-area-inset-right)) + 152px); font-size: 17px; line-height: 1; opacity: .75; } :fullscreen .tbemo, body.standalone .tbemo { right: calc(max(14px, env(safe-area-inset-right)) + 116px); }
+  .emopanel { position: absolute; top: 44px; right: calc(max(14px, env(safe-area-inset-right)) + 80px); display: flex; gap: 4px; padding: 4px; border-radius: 22px; background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.18); pointer-events: auto; }
+  .emopanel button { width: 36px; height: 36px; border: 0; border-radius: 50%; background: rgba(255,255,255,.08); font-size: 20px; line-height: 1; padding: 0; } :fullscreen .tbcam, body.standalone .tbcam { right: calc(max(14px, env(safe-area-inset-right)) + 80px); }
   .tbcam i { position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); font: 700 10px 'Rajdhani', sans-serif; font-style: normal; white-space: nowrap; color: rgba(255,255,255,.8); text-shadow: 0 1px 2px #000; }
   .tbtns { position: absolute; right: max(14px, env(safe-area-inset-right)); bottom: max(14px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: auto auto; gap: 20px 12px; align-items: end; pointer-events: auto; }
   .tb { width: 76px; height: 76px; border-radius: 50%; border: 2px solid rgba(255,255,255,.4); background: rgba(10,18,12,.55); color: #fff; font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .06em; text-transform: uppercase; touch-action: none; -webkit-user-select: none; user-select: none; }
@@ -1294,7 +1297,7 @@
   </div>
   <div class="pcwrap" id="pcWrap" hidden><div class="pfcard" id="pcCard" role="dialog" aria-label="Player profile"></div></div>
   <div class="touchui" id="touchUI" hidden><div class="tstick" id="tsMove" hidden><i></i></div><div class="tstick aim" id="tsAim" hidden><i></i></div>
-    <button type="button" class="tbfs" id="tbFs" aria-label="Full screen" title="Full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button><button type="button" class="tbfs tbcam" id="tbCam" aria-label="Camera" title="Camera: fixed or following"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M15.5 15.5 20 20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><i id="tbCamT"></i></button><div class="taphint" id="tapHint" hidden></div><div class="tbtns"><button type="button" id="tbQ" class="tb sm">Q</button><button type="button" id="tbE" class="tb sm">E</button><button type="button" id="tbDash" class="tb">Dash</button></div></div>
+    <button type="button" class="tbfs" id="tbFs" aria-label="Full screen" title="Full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button><button type="button" class="tbfs tbcam" id="tbCam" aria-label="Camera" title="Camera: fixed or following"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M15.5 15.5 20 20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><i id="tbCamT"></i></button><button type="button" class="tbfs tbemo" id="tbEmo" aria-label="Emotes" title="Emotes" hidden>☺</button><div class="emopanel" id="emoPanel" hidden></div><div class="taphint" id="tapHint" hidden></div><div class="tbtns"><button type="button" id="tbQ" class="tb sm">Q</button><button type="button" id="tbE" class="tb sm">E</button><button type="button" id="tbDash" class="tb">Dash</button></div></div>
   <div class="msheet" id="msSheet" hidden><div class="mshead"><b id="msTitle"></b><button type="button" class="cta sm" id="msDone">Done</button></div><div class="msbody" id="msBody"></div></div>
   <div class="rotatehint" id="rotateHint" hidden>Turn your phone sideways to play</div>
   <div class="clipbar" id="clipBar" hidden><span id="clipTxt">Your kill cam</span><button class="ghost sm" type="button" id="clipSave">Save video</button><button class="ghost sm" type="button" id="clipFeat">Show on my profile</button><button class="ghost sm" type="button" id="clipX" aria-label="Close">×</button></div>
@@ -1432,6 +1435,7 @@
           <div class="field"><label for="oGuide">Aim guide line</label><select id="oGuide"><option value="1">On</option><option value="2">Bold (easier to see)</option><option value="0">Off</option></select></div>
           <div class="field"><label for="oMe">Your own archer</label><select id="oMe"><option value="strong">Strongly marked (gold halo, ring and arrow; teammates a little dimmer)</option><option value="soft">Lightly marked (white ring)</option></select></div>
           <div class="field"><label for="oPz">Phone camera</label><select id="oPz"><option value="1">Fixed: the whole arena</option><option value="1.15">Follow: closer</option><option value="1.3">Follow: close</option><option value="1.45">Follow: closest</option></select></div>
+          <div class="field"><label for="oEmo">Emote button (touch)</label><select id="oEmo"><option value="0">Off</option><option value="1">On: a small button by the camera button</option></select></div>
           <div class="field"><label for="oTaim">Touch aiming</label><select id="oTaim"><option value="point">Point the way you shoot</option><option value="pull">Pull back, like drawing a bow</option></select></div>
         </section>
       </div>
@@ -1698,7 +1702,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.47.0';
+const VERSION = '0.48.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1936,9 +1940,9 @@ const OPTIONS = {
   // upgrades off: no picks between rounds (and no chests in Strongholds), everyone plays their plain element and role
   upg:    { label: 'Upgrades',     def: 'on', values: { on: 1, off: 2 } },
   // map effect: a random one each match (the standard), none, or a set one (MUTATORS)
-  effect: { label: 'Map effect',   def: 'random', values: { random: 1, none: 2, vigil: 3, gale: 4, hide: 5, bounty: 6 } },
+  effect: { label: 'Map effect',   def: 'random', values: { random: 1, none: 2, vigil: 3, gale: 4, hide: 5, bounty: 6, force: 7, quick: 8, surge: 9, bounce: 10 } },
 };
-const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', bullet: 'Bullet', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', random: 'Random', vigil: "Warden's Vigil", gale: 'Gale Winds', hide: "Juggernaut's Hide", bounty: 'Bounty Hunt', puck: 'Glide (air hockey)', snappy: 'Snappy', drift: 'Drifty', direct: 'Direct (no glide)', none: 'None', tiny: 'Tiny', heavy: 'Heavy', extreme: 'Extreme' };
+const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', bullet: 'Bullet', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', random: 'Random', vigil: "Warden's Vigil", gale: 'Gale Winds', hide: "Juggernaut's Hide", bounty: 'Bounty Hunt', force: 'Heavy Blows', quick: 'Quickdraw', surge: 'Arcane Surge', bounce: 'Ricochet Arena', puck: 'Glide (air hockey)', snappy: 'Snappy', drift: 'Drifty', direct: 'Direct (no glide)', none: 'None', tiny: 'Tiny', heavy: 'Heavy', extreme: 'Extreme' };
 const optDefaults = () => Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.slider ? o.def : o.def || Object.keys(o.values)[0]]));
 // a slider setting as a percentage (old named settings and anything out of range are mapped and clamped)
 function optPct(k, v) {
@@ -1957,14 +1961,28 @@ const MUTATORS = {
   gale:   { name: 'Gale Winds',       color: '#a8e6ff', desc: 'Everyone moves 20% faster and every shot flies 20% faster.', mul: { mspeed: 1.2, aspeed: 1.2 } },
   hide:   { name: "Juggernaut's Hide", color: '#c9a878', desc: 'Every archer takes 30% less damage from arrows. Knockback is what wins here.', mul: { dmg: 0.7 } },
   bounty: { name: 'Bounty Hunt',      color: '#ffcf5a', desc: 'Power-ups appear about twice as often, up to three at once, all over the arena.', bounty: true },
+  force:  { name: 'Heavy Blows',      color: '#ff8a3d', desc: 'Everything knocks back 35% harder. Mind the edges.', mul: { kb: 1.35 } },
+  quick:  { name: 'Quickdraw',        color: '#fff27a', desc: 'Every bow draws 30% faster and crossbows reload 30% faster.', mul: { draw: 1.3 } },
+  surge:  { name: 'Arcane Surge',     color: '#c7b3ff', desc: 'Abilities recharge 40% faster.', mul: { abcd: 0.6 } },
+  bounce: { name: 'Ricochet Arena',   color: '#8affc1', desc: 'Every arrow bounces once off walls and boulders.', bounce: true },
 };
 const MUT_KEYS = Object.keys(MUTATORS);
+// emotes: shown over the archer, with a sound, for everyone in the game (one every EMOTE_GAP seconds at most)
+const EMOTES = { laugh: '😂', angry: '😠', thumbs: '👍', gg: '🤝', cry: '😭', cool: '😎', wow: '😮', heart: '❤️' }, EMOTE_GAP = 1.5;
 // what a map effect does to a rule (1 when there's none)
-const mutMul = (mut, k) => (MUTATORS[mut] && MUTATORS[mut].mul && MUTATORS[mut].mul[k]) || 1;
-// the effect for the next match: a fixed choice, none, or (the standard) a random one, with a 1 in 5 chance of a calm match
+// a match can have two at once, written 'gale+force'
+const mutKeys = mut => (mut ? String(mut).split('+').filter(k => MUTATORS[k]) : []);
+const mutMul = (mut, k) => mutKeys(mut).reduce((m, x) => m * ((MUTATORS[x].mul && MUTATORS[x].mul[k]) || 1), 1);
+const mutHas = (mut, flag) => mutKeys(mut).some(x => MUTATORS[x][flag]);
+// the effect for the next match: a fixed choice, none, or (the standard) random: 1 in 5 calm, 1 in 5 a pair of effects
 function rollMut(w) {
-  const v = (w.cfg.opt || {}).effect || 'random';
-  w.cfg.mut = v === 'none' ? null : MUTATORS[v] ? v : Math.random() < 0.2 ? null : MUT_KEYS[Math.floor(Math.random() * MUT_KEYS.length)];
+  const v = (w.cfg.opt || {}).effect || 'random', r = Math.random();
+  if (v === 'none') { w.cfg.mut = null; return; }
+  if (MUTATORS[v]) { w.cfg.mut = v; return; }
+  if (r < 0.2) { w.cfg.mut = null; return; }
+  const a = MUT_KEYS[Math.floor(Math.random() * MUT_KEYS.length)];
+  let b = null; if (r > 0.8) { const rest = MUT_KEYS.filter(k => k !== a); b = rest[Math.floor(Math.random() * rest.length)]; }
+  w.cfg.mut = b ? a + '+' + b : a;
 }
 const OPT = k => optValue(CFG.opt, k) * mutMul(CFG.mut, k);
 // Handicap: the host can give any archer a percentage, e.g. +50% for a lone player in a 1v2.
@@ -2749,10 +2767,10 @@ function applyStats(p) {
     : 0.85 * is(has(p, 'dash'), 0.65) * is(R === 'ranger', 0.85) * is(has(p, 'overload'), 1.3);
   p.dashMaxN = 1;
   p.dashN = Math.min(p.dashN == null ? p.dashMaxN : p.dashN, p.dashMaxN);
-  p.drawMul = (has(p, 'steady') ? 1.25 : 1) * (1 + 0.08 * h('hone_draw')) * is(R === 'trickster', 1.12) * is(R === 'ranger', 1.12) * is(R === 'sniper', 1) * is(has(p, 'permafrost'), 0.95);
+  p.drawMul = (has(p, 'steady') ? 1.25 : 1) * (1 + 0.08 * h('hone_draw')) * is(R === 'trickster', 1.12) * is(R === 'ranger', 1.12) * is(R === 'sniper', 1) * is(has(p, 'permafrost'), 0.95) * mutMul(CFG.mut, 'draw');
   p.kbMul = (1 + 0.08 * h('hone_kb')) * is(R === 'trickster', 0.9) * is(has(p, 'obsidian'), 1.3) * is(has(p, 'deepshade'), 0.85);
   p.dmgMul = hc * is(has(p, 'glass'), 1.3) * is(has(p, 'potent'), 0.85) * is(R === 'juggernaut', 0.8) * is(has(p, 'unstable'), 0.92) * is(has(p, 'rip'), 0.92);
-  p.abCdMul = is(R === 'trapper', 0.6);
+  p.abCdMul = is(R === 'trapper', 0.6) * mutMul(CFG.mut, 'abcd');
   // Crossbowman: reload time, reach and how many bolts they hold
   p.xbowReload = XBOW_RELOAD * is(has(p, 'windlass'), 0.75) * is(has(p, 'longstock'), 1.15) * is(has(p, 'tribolt'), XB3.reload) / p.drawMul;
   p.xbowRange = XBOW_RANGE * is(has(p, 'longstock'), 1.4);
@@ -2915,6 +2933,7 @@ function setInput(w, id, inp) {
   if (inp.dp && w.match.ph === 'play') p.wantThrow = true;
   if (inp.dash) p.wantDash = true;
   if ('dmv' in inp) p.dashMove = !!inp.dmv; // dash the way you're moving (the default) or the way you're aiming
+  if (typeof inp.em === 'string' && Object.prototype.hasOwnProperty.call(EMOTES, inp.em) && !(p.emoteAt > w.t - EMOTE_GAP)) { p.emoteAt = w.t; ev(w, { e: 'emote', id: p.id, k: inp.em }); }
   if (inp.q) p.wantAb[0] = true;
   if (inp.e) p.wantAb[1] = true;
 }
@@ -3297,8 +3316,8 @@ function bloodHeal(w, p, dealt) {
     const mate = w.players.filter(q => q !== p && q.team === p.team && !q.dead && q.hp < q.maxHp && Math.hypot(q.x - p.x, q.y - p.y) < 300).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
     p.transAcc = Math.min(30, (p.transAcc || 0) + spare);
     if (mate && p.transAcc >= 3) {
-      const a = Math.atan2(mate.y - p.y, mate.x - p.x) + (Math.random() < 0.5 ? 1 : -1) * 1.1; // it leaves at an angle and curls in
-      w.zones.push({ id: w.nid++, ty: 'orb', x: p.x, y: p.y, vx: Math.cos(a) * 260, vy: Math.sin(a) * 260, r: 7, t: 3, team: p.team, owner: p.id, to: mate.id, amt: p.transAcc });
+      const a = Math.atan2(mate.y - p.y, mate.x - p.x) + (Math.random() < 0.5 ? 1 : -1) * 0.25; // a slight arc, then straight in
+      w.zones.push({ id: w.nid++, ty: 'orb', x: p.x, y: p.y, vx: Math.cos(a) * 380, vy: Math.sin(a) * 380, r: 7, t: 3, team: p.team, owner: p.id, to: mate.id, amt: p.transAcc });
       ev(w, { e: 'transfuse', from: p.id, to: mate.id }); p.transAcc = 0;
     }
   }
@@ -3456,7 +3475,7 @@ function fire(w, p, ang, c, burst, vol, x3) { // burst: 1-2 a Volley's shots, 4 
       dmg, kb, full, crit: false, heavy, el, bolt, snare, rail, big: has(p, 'colossus') || rocket, seek, rocket, swap, boom, exec, bri, drag: rail || rocket || boom || bri ? 0 : has(p, 'longbow') ? 0.2 : 0.45,
       burst: false, pierce: rail || boom || bri ? 99 : full && has(p, 'pierce') ? 1 : 0, hit: [],
       split: full && !boom && !bri && has(p, 'split'),
-      bounces: boom || bri ? 0 : (p.pw.ricochet > 0 ? 2 : 0) + (has(p, 'ricochet') ? 1 : 0) + (has(p, 'bankshot') ? 1 : 0) + (trick ? 3 : 0), trick, explosive: p.pw.explosive > 0 || rocket, life: rocket ? ROCKET.life : boom ? 6 : bri ? BRIAR.range * (0.55 + 0.45 * c) / Math.max(1, speed) : p.role === 'ninja' ? 0.5 : 2.4, stuck: 0,
+      bounces: boom || bri ? 0 : (p.pw.ricochet > 0 ? 2 : 0) + (has(p, 'ricochet') ? 1 : 0) + (has(p, 'bankshot') ? 1 : 0) + (mutHas(CFG.mut, 'bounce') ? 1 : 0) + (trick ? 3 : 0), trick, explosive: p.pw.explosive > 0 || rocket, life: rocket ? ROCKET.life : boom ? 6 : bri ? BRIAR.range * (0.55 + 0.45 * c) / Math.max(1, speed) : p.role === 'ninja' ? 0.5 : 2.4, stuck: 0,
       vol: vol || null, sneak, xb, maxDist: xb && !rail && !bri && !boom && !rocket ? p.xbowRange : 0,
     });
     if (xb && !rocket && !boom && !bri) { const A = w.arrows[w.arrows.length - 1]; A.drag = 0.12; }
@@ -3659,7 +3678,7 @@ function stepBody(w, f, mx, my, dt) {
   else if (f.burn > 0) { f.burn -= dt; hurt(w, f, (f.burnDps || 5) * dt, 0, 0, 'burn', null, true); if (f.burn <= 0) f.burnDps = 5; }
   if (!f.dead && f.bleedT > 0) { f.bleedT -= dt; hurt(w, f, 2 * dt, 0, 0, 'bleed', f.bleedBy, true); } // Hemorrhage
   if (!f.dead && f.shade) shadeTick(w, f, dt);
-  const vig = MUTATORS[CFG.mut] && MUTATORS[CFG.mut].regen; // Warden's Vigil
+  const vig = mutKeys(CFG.mut).reduce((a, k) => a + (MUTATORS[k].regen || 0), 0); // Warden's Vigil
   if (vig && !f.dead && !f.npc && w.match.ph === 'play' && f.hp < f.maxHp) f.hp = Math.min(f.maxHp, f.hp + vig * dt * (f.poisonT > 0 ? 0.5 : 1));
   if (f.thornT > 0) { f.thornT -= dt; if (f.thornT <= 0) f.thornN = 0; }
   if (!f.dead && f.poisonT > 0) { f.poisonT -= dt; hurt(w, f, f.poisonN * 1.6 * f.poisonMul * dt, 0, 0, 'poison', null, true); if (f.poisonT <= 0) f.poisonN = 0; }
@@ -3758,7 +3777,7 @@ function updatePlayer(w, p, dt) {
       if (inp.draw && p.throwCd <= 0 && p.falling <= 0 && p.disarm <= 0) { p.throwCd = AUTO_GAP; throwStar(w, p, p.aim, true); }
     } else if (inp.draw && p.falling <= 0 && p.disarm <= 0 && p.throwCd <= 0) {
       const prev = p.charge; p.drawing = true;
-      p.charge = Math.min(1, p.charge + dt / STAR_DRAW * (has(p, 'flurry') ? 1.3 : 1) * (1 + 0.08 * ((p.hones && p.hones.hone_draw) || 0)) * (p.pw.quick > 0 ? 1.8 : 1) * frenzyDraw(p) * (p.quickT > 0 ? 2 : 1));
+      p.charge = Math.min(1, p.charge + dt / STAR_DRAW * mutMul(CFG.mut, 'draw') * (has(p, 'flurry') ? 1.3 : 1) * (1 + 0.08 * ((p.hones && p.hones.hone_draw) || 0)) * (p.pw.quick > 0 ? 1.8 : 1) * frenzyDraw(p) * (p.quickT > 0 ? 2 : 1));
       if (prev < 1 && p.charge >= 1) ev(w, { e: 'full', id: p.id });
     } else if (p.drawing) {
       if (p.charge >= MIN_DRAW && p.falling <= 0) { throwStar(w, p, p.aim, false, p.charge); p.throwCd = STAR_GAP; }
@@ -4238,7 +4257,7 @@ function updateZones(w, dt) {
       const q = w.players.find(o => o.id === z.to && !o.dead);
       const dx = q ? q.x - z.x : 0, dy = q ? q.y - z.y : 0, d = Math.hypot(dx, dy) || 1;
       if (!q) z.t = 0;
-      else { z.vx += dx / d * 1900 * dt; z.vy += dy / d * 1900 * dt; const sp = Math.hypot(z.vx, z.vy), mx = 480; if (sp > mx) { z.vx *= mx / sp; z.vy *= mx / sp; } z.x += z.vx * dt; z.y += z.vy * dt; }
+      else { z.vx += dx / d * 3200 * dt; z.vy += dy / d * 3200 * dt; const sp = Math.hypot(z.vx, z.vy), mx = 520; if (sp > mx) { z.vx *= mx / sp; z.vy *= mx / sp; } z.x += z.vx * dt; z.y += z.vy * dt; }
       if (q && d < q.r + 8) { q.hp = Math.min(q.maxHp, q.hp + z.amt * (q.poisonT > 0 ? 0.5 : 1)); ev(w, { e: 'orbHeal', id: q.id, x: r1(q.x), y: r1(q.y), v: Math.round(z.amt) }); z.t = 0; }
     } else if (z.ty === 'eclipse') {
       for (const q of w.players) {
@@ -4952,7 +4971,7 @@ function updatePickups(w, dt) {
   w.chT = (w.chT == null ? 20 : w.chT) - dt;
   if (w.chT <= 0) { w.chT = rand(30, 40); spawnChannel(w); }
   if (w.amberT <= 0 && !w.cq) { w.amberT = rand(3.5, 5); if (w.pickups.filter(u => u.type === 'amber').length < 6) spawnAmberPair(w); }
-  const bounty = MUTATORS[CFG.mut] && MUTATORS[CFG.mut].bounty;
+  const bounty = mutHas(CFG.mut, 'bounty');
   if (w.puT <= 0) { w.puT = bounty ? rand(5, 7.5) : rand(12, 16); spawnCenterPower(w, bounty); }
   for (let i = w.pickups.length - 1; i >= 0; i--) {
     const u = w.pickups[i];
@@ -6375,7 +6394,7 @@ return {
   MASTERY, masteryOf, takeCard, applyStats,
   AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
-  plagueR, BRIAR, SHADE, MUTATORS, mutMul, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
+  plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, BANNER_FRAME, frameAllowed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
@@ -6391,7 +6410,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.47.0';
+const PAGE_VERSION = '0.48.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -6528,6 +6547,7 @@ $('verMenu').textContent = 'Version ' + Sim.VERSION + '.';
 $('nameIn').addEventListener('change', () => store.set('bowfall-name', $('nameIn').value.trim().slice(0, 16)));
 if (OFFLINE) { $('onlineOn').hidden = true; $('onlineOff').hidden = false; }
 const params = new URLSearchParams(location.search);
+const EMOTE_KEYS = Object.keys(Sim.EMOTES); // 1 to 8 on the keyboard
 const SHOWCASE = params.get('showcase') === '1'; // the website's hero: bots playing on the real renderer
 if (params.get('room')) $('codeIn').value = params.get('room').toUpperCase().slice(0, 4);
 // a friend's invite link (?room=CODE): no welcome screen, no menus, straight into their game with a name picked for you
@@ -6713,7 +6733,8 @@ const sfx = {
 };
 const syncMute = () => { $('muteBtn').textContent = muted ? 'Sound off' : 'Sound on'; $('muteBtn').classList.toggle('muted', muted); const m = $('oMute'); if (m) m.value = muted ? '1' : '0'; };
 // options, kept in this browser
-const OPTS = { vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') !== '0', guideBold: store.get('bowfall-guide', '1') === '2', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), me: store.get('bowfall-me', 'strong'), detail: store.get('bowfall-detail', 'full'), pz: +store.get('bowfall-pz', '1.15') || 1, taim: store.get('bowfall-taim2', 'point'), cb: store.get('bowfall-cb', '') === '1' };
+let emoteLatch = null;
+const OPTS = { emo: store.get('bowfall-emo', '0') === '1', vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') !== '0', guideBold: store.get('bowfall-guide', '1') === '2', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), me: store.get('bowfall-me', 'strong'), detail: store.get('bowfall-detail', 'full'), pz: +store.get('bowfall-pz', '1.15') || 1, taim: store.get('bowfall-taim2', 'point'), cb: store.get('bowfall-cb', '') === '1' };
 cbApply();
 const outNode = () => { if (!AC.master) { AC.master = AC.createGain(); AC.master.connect(AC.destination); } AC.master.gain.value = OPTS.vol / 100; return AC.master; };
 syncMute();
@@ -7069,6 +7090,8 @@ addEventListener('keydown', e => {
     if (['Digit1', 'Digit2', 'Digit3'].includes(e.code)) { choosePick(+e.code.slice(5) - 1); return; }
   }
   if (isKey('menu', e.code)) { if (mode !== 'menu') { menuOpen ? closeMenu() : openMenu(); } return; }
+  // emotes: 1 to 8 while playing (not while picking, and not if a control is bound to that key)
+  if (/^Digit[1-8]$/.test(e.code) && !e.repeat && mode !== 'menu' && !menuOpen && view && view.m.ph !== 'lobby' && view.m.ph !== 'pick' && !Object.values(BINDS).some(b => b.includes(e.code))) { sendEmote(EMOTE_KEYS[+e.code.slice(5) - 1]); return; }
   if (isKey('dash', e.code) && !e.repeat) dashLatch = true;
   if (isKey('draw', e.code) && !e.repeat) { drawLatch = true; predictShot(); }
   if (isKey('ab1', e.code) && !e.repeat) qLatch = true;
@@ -7188,7 +7211,15 @@ try {
   new MutationObserver(ms => { if (ms.some(m => m.target.classList && m.target.classList.contains('overlay'))) requestAnimationFrame(fitCards); }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['hidden'] });
 } catch (e) {}
 addEventListener('resize', () => requestAnimationFrame(fitCards));
+// the touch emote button (off unless switched on in Options): opens a row of emotes
+$('emoPanel').innerHTML = EMOTE_KEYS.map(k => `<button type="button" data-emo="${k}" aria-label="${k}">${Sim.EMOTES[k]}</button>`).join('');
+const emoTap = (e, f) => { e.preventDefault(); e.stopPropagation(); f(); };
+$('tbEmo').addEventListener('touchstart', e => emoTap(e, () => { $('emoPanel').hidden = !$('emoPanel').hidden; }), { passive: false });
+$('tbEmo').onclick = () => { $('emoPanel').hidden = !$('emoPanel').hidden; };
+$('emoPanel').addEventListener('touchstart', e => { const b = e.target.closest('[data-emo]'); if (b) emoTap(e, () => { sendEmote(b.dataset.emo); $('emoPanel').hidden = true; }); }, { passive: false });
+$('emoPanel').onclick = e => { const b = e.target.closest('[data-emo]'); if (b) { sendEmote(b.dataset.emo); $('emoPanel').hidden = true; } };
 function touchUI() {
+  { const on = OPTS.emo && mode !== 'menu'; if ($('tbEmo').hidden === on) $('tbEmo').hidden = !on; if (!on && !$('emoPanel').hidden) $('emoPanel').hidden = true; }
   document.body.classList.toggle('touchmode', TOUCH.on);
   const show = TOUCH.on && mode !== 'menu' && !menuOpen && view && view.m.ph !== 'lobby' && !RP.on && $('pickScreen').hidden;
   $('touchUI').hidden = !show;
@@ -7331,7 +7362,7 @@ function buildInput(me) {
   if (TOUCH.mv) { mx = TOUCH.mx; my = TOUCH.my; }
   // a controller aims along the stick's line (with its aim assist), not at the crosshair, so moving doesn't knock it off
   const aim = pad.on && pad.aim != null ? pad.aim : me ? Math.atan2(mouse.wy - me.y, mouse.wx - me.x) : 0;
-  return { mx, my, aim, draw: (mouse.down || held('draw') || (pad.on && pad.draw) || TOUCH.draw) && !menuOpen, dash: dashLatch && !menuOpen, q: qLatch && !menuOpen, e: eLatch && !menuOpen, dp: drawLatch && !menuOpen, tx: Math.round(mouse.wx), ty: Math.round(mouse.wy), dmv: dashMove() ? 1 : 0 };
+  return { mx, my, aim, draw: (mouse.down || held('draw') || (pad.on && pad.draw) || TOUCH.draw) && !menuOpen, dash: dashLatch && !menuOpen, q: qLatch && !menuOpen, e: eLatch && !menuOpen, dp: drawLatch && !menuOpen, tx: Math.round(mouse.wx), ty: Math.round(mouse.wy), dmv: dashMove() ? 1 : 0, em: emoteLatch || undefined };
 }
 
 // ================= view sizing =================
@@ -9859,6 +9890,7 @@ function helpHtml() {
         <li><b>Move</b> with <kbd>WASD</kbd>. You take about a second to reach full speed and slide a little when you let go, so momentum matters.</li>
         <li><b>Aim</b> with the mouse. <b>Hold click</b> to draw, release to shoot. A longer draw flies faster, hits harder and knocks back further. Some upgrades trigger on a <b>full draw</b>.</li>
         <li><b>Critical hits</b> aren't random: an arrow whose path runs through the middle of the target (the centre ${Math.round(Sim.BULLSEYE * 100)}% of its body) is a <b>bullseye</b> and deals ${Sim.CRIT_MUL}× damage.</li>
+        <li><b>Emotes</b> with <kbd>1</kbd> to <kbd>8</kbd> while you play: laugh, angry, thumbs up, GG, cry, cool, wow and heart pop up over your archer for everyone to see (one every second and a half). On a touch screen, switch on the emote button in Options.</li>
         <li><b>Dash</b> with <kbd>Space</kbd> or <kbd>Shift</kbd>. It goes the way you're moving (or where you're aiming, if you choose that in Controls; standing still, it always goes where you aim), jumps pits, lava and water, and shoves enemies you hit. It recharges in under a second. Ninjas blink instead: a near-instant hop toward your cursor. Ninjas also throw shuriken instead of drawing a bow: hold to wind up, let go to throw (a longer wind-up throws faster and harder).</li>
         <li><b>Abilities</b> go on <kbd>Q</kbd> and <kbd>E</kbd> once you pick them. <kbd>Esc</kbd> opens the menu.</li>
         <li><b>Controls</b> can be changed in <b>Controls</b> on the main screen or in the menu. A <b>controller</b> works too: left stick moves, right stick aims, right trigger draws, A or left trigger dashes, LB and RB are your abilities.</li>
@@ -10343,7 +10375,7 @@ $('scTabs').addEventListener('click', e => { const b = e.target.closest('[data-s
 $('scBody').addEventListener('click', e => { const b = e.target.closest('[data-scr]'); if (b) { SC.role = b.dataset.scr; renderScores(); } });
 function syncOptions() {
   $('oVol').value = OPTS.vol; $('oVolN').textContent = OPTS.vol + '%'; $('oMute').value = muted ? '1' : '0';
-  $('oRes').value = OPTS.res; $('oFx').value = OPTS.fx; $('oShadow').value = OPTS.shadow; $('oGlow').value = OPTS.glow; $('oMe').value = OPTS.me; $('oCb').value = OPTS.cb ? '1' : ''; $('oDetail').value = OPTS.detail; $('oPz').value = String(OPTS.pz); $('oTaim').value = OPTS.taim; $('oPart').value = String(OPTS.part); $('oShake').value = OPTS.shake ? '1' : '0';
+  $('oRes').value = OPTS.res; $('oFx').value = OPTS.fx; $('oShadow').value = OPTS.shadow; $('oGlow').value = OPTS.glow; $('oMe').value = OPTS.me; $('oCb').value = OPTS.cb ? '1' : ''; $('oDetail').value = OPTS.detail; $('oPz').value = String(OPTS.pz); $('oTaim').value = OPTS.taim; $('oEmo').value = OPTS.emo ? '1' : '0'; $('oPart').value = String(OPTS.part); $('oShake').value = OPTS.shake ? '1' : '0';
   $('oDmg').value = OPTS.dmg; $('oGuide').value = !OPTS.guide ? '0' : OPTS.guideBold ? '2' : '1'; $('oNet').value = OPTS.net ? '1' : '0';
 }
 $('oRec').onclick = () => { PR.toggle(); $('oRec').textContent = PR.on ? 'Stop and save' : 'Start recording'; };
@@ -10358,6 +10390,7 @@ $('oGlow').onchange = () => { OPTS.glow = $('oGlow').value; store.set('bowfall-g
 $('oMe').onchange = () => { OPTS.me = $('oMe').value; store.set('bowfall-me', OPTS.me); };
 $('oCb').onchange = () => { OPTS.cb = $('oCb').value === '1'; store.set('bowfall-cb', OPTS.cb ? '1' : ''); cbApply(); hc = {}; };
 $('oPz').onchange = () => { OPTS.pz = +$('oPz').value || 1; store.set('bowfall-pz', String(OPTS.pz)); PCAM.init = false; resize(); camLabel(); };
+$('oEmo').onchange = () => { OPTS.emo = $('oEmo').value === '1'; store.set('bowfall-emo', OPTS.emo ? '1' : '0'); if (!OPTS.emo) $('emoPanel').hidden = true; };
 $('oTaim').onchange = () => { OPTS.taim = $('oTaim').value; store.set('bowfall-taim2', OPTS.taim); };
 $('oDetail').onchange = () => { OPTS.detail = $('oDetail').value; store.set('bowfall-detail', OPTS.detail); floorCv = null; };
 $('oPart').onchange = () => { OPTS.part = +$('oPart').value; store.set('bowfall-part', OPTS.part); };
@@ -10951,13 +10984,14 @@ function eventFx(e) {
       case 'disarm': floater(e.x, e.y, 'Disarmed!', '#bfe8ff', 15); sfx.disarm(); break;
       case 'leech': { // Blood: red motes flowing back to whoever healed
         const q = view && view.p.find(z => z.id === e.id); if (!q) break;
-        for (let i = 0; i < Math.min(8, 2 + e.v); i++) { const a = rand(0, TAU), r = rand(26, 46); fx.parts.push({ x: q.x + Math.cos(a) * r, y: q.y + Math.sin(a) * r, vx: -Math.cos(a) * r * 3, vy: -Math.sin(a) * r * 3, life: 0, max: 0.3, color: '#ff4d63', r: rand(1.4, 2.4) }); }
+        for (let i = 0; i < Math.min(8, 2 + e.v); i++) { const a = rand(0, TAU), r = rand(26, 46); fx.parts.push({ x: q.x + Math.cos(a) * r, y: q.y + Math.sin(a) * r, vx: -Math.cos(a) * r * 3, vy: -Math.sin(a) * r * 3, life: 0, max: 0.3, color: Math.random() < 0.5 ? '#9e0f24' : '#c41d36', r: rand(1.4, 2.4) }); }
         if (e.id === myId && e.v >= 2) floater(q.x + 14, q.y - 30, '+' + e.v, '#ff6b7d', 13);
-        if (HEALFX[q.id] == null || gclock - HEALFX[q.id] > 0.25) { HEALFX[q.id] = gclock; fx.rings.push({ x: q.x, y: q.y, r: 6, life: 0, col: '255,60,90', max: 26 + Math.min(14, e.v * 2) }); }
+        if (HEALFX[q.id] == null || gclock - HEALFX[q.id] > 0.25) { HEALFX[q.id] = gclock; fx.rings.push({ x: q.x, y: q.y, r: 6, life: 0, col: '150,10,30', max: 26 + Math.min(14, e.v * 2) }); }
         break;
       }
-      case 'transfuse': { const a = view && view.p.find(z => z.id === e.from); if (a) { burst(a.x, a.y, '#ff4d6a', 8, 120, 2.2); HEALFX[a.id] = gclock; } os('sine', 330, 660, 0.25, e.from === myId || e.to === myId ? 0.035 : 0.015); break; }
-      case 'orbHeal': { burst(e.x, e.y, '#ff6b7d', 12, 130, 2.4); fx.rings.push({ x: e.x, y: e.y, r: 6, life: 0, col: '255,77,106', max: 34 }); HEALFX[e.id] = gclock; if (e.id === myId) { floater(e.x + 14, e.y - 30, '+' + e.v, '#ff6b7d', 14); tone(784, 0.12, 'sine', 0.035); setTimeout(() => tone(1046, 0.14, 'sine', 0.03), 80); } break; }
+      case 'emote': onEmote(e); break;
+      case 'transfuse': { const a = view && view.p.find(z => z.id === e.from); if (a) { burst(a.x, a.y, '#8e0b1e', 8, 120, 2.2); HEALFX[a.id] = gclock; } os('sine', 330, 660, 0.25, e.from === myId || e.to === myId ? 0.035 : 0.015); break; }
+      case 'orbHeal': { burst(e.x, e.y, '#8e0b1e', 12, 130, 2.4); fx.rings.push({ x: e.x, y: e.y, r: 6, life: 0, col: '150,10,30', max: 34 }); HEALFX[e.id] = gclock; if (e.id === myId) { floater(e.x + 14, e.y - 30, '+' + e.v, '#ff6b7d', 14); tone(784, 0.12, 'sine', 0.035); setTimeout(() => tone(1046, 0.14, 'sine', 0.03), 80); } break; }
       case 'bleed': burst(e.x, e.y, '#c81d34', 10, 110, 2); elSfx.blood(0.5); break;
       case 'spread': fx.bolts.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, life: 0, col: '155,229,100' }); elSfx.poison(0.6); break;
       case 'zone': if (e.q) { if (Math.random() < 0.5) sfx.crackle(); } else if (e.ty === 'fire') sfx.whoosh(); else if (e.ty === 'rift') elSfx.void(0.8); else sfx.hiss(); break;
@@ -12764,6 +12798,48 @@ function stoneHit(x, y, big, mine) {
   if (big && mine) shake(3);
   nz(big ? 0.16 : 0.1, big ? 0.1 : 0.06, 'lowpass', 600, 120, 1);
 }
+// ---- emotes: an emoji pops up over the archer and bobs there for a couple of seconds, with a little sound
+const EMO = [];
+function sendEmote(k) { if (!k || !view) return; const me = view.p.find(q => q.id === myId); if (!me || me.d) return; emoteLatch = k; } // goes out with the next input
+const EMO_SND = {
+  laugh: () => { for (let i = 0; i < 4; i++) setTimeout(() => { os('triangle', 520 - i * 40, 380 - i * 40, 0.09, 0.035); nz(0.06, 0.02, 'bandpass', 1800, 1400, 3); }, i * 110); },
+  angry: () => { os('sawtooth', 110, 80, 0.45, 0.04); os('square', 82, 70, 0.45, 0.02); },
+  thumbs: () => { tone(660, 0.08, 'sine', 0.04); setTimeout(() => tone(990, 0.12, 'sine', 0.04), 80); },
+  gg: () => { tone(523, 0.1, 'triangle', 0.035); setTimeout(() => tone(784, 0.16, 'triangle', 0.035), 110); },
+  cry: () => { os('sine', 700, 380, 0.55, 0.035); setTimeout(() => os('sine', 600, 330, 0.5, 0.03), 300); },
+  cool: () => { os('sine', 900, 1400, 0.12, 0.03); setTimeout(() => os('sine', 1400, 700, 0.2, 0.03), 130); },
+  wow: () => { os('sine', 400, 900, 0.3, 0.04); },
+  heart: () => { tone(880, 0.1, 'sine', 0.03); setTimeout(() => tone(1175, 0.18, 'sine', 0.03), 90); },
+};
+function onEmote(e) {
+  for (let i = EMO.length - 1; i >= 0; i--) if (EMO[i].id === e.id) EMO.splice(i, 1);
+  EMO.push({ id: e.id, k: e.k, t0: gclock });
+  const q = view && view.p.find(p => p.id === e.id), me = view && view.p.find(p => p.id === myId);
+  const near = !q || !me || q.id === myId || Math.hypot(q.x - me.x, q.y - me.y) < 700;
+  if (near && EMO_SND[e.k]) EMO_SND[e.k]();
+}
+function drawEmotes(v) {
+  for (let i = EMO.length - 1; i >= 0; i--) { if (gclock - EMO[i].t0 > 2.4) EMO.splice(i, 1); }
+  if (!EMO.length) return;
+  ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const m of EMO) {
+    const p = v.p.find(q => q.id === m.id); if (!p || p.d) continue;
+    const t = gclock - m.t0, R = p.rz || 16, pop = t < 0.18 ? t / 0.18 * 1.25 : t < 0.3 ? 1.25 - (t - 0.18) / 0.12 * 0.25 : 1;
+    const a = t > 1.9 ? Math.max(0, 1 - (t - 1.9) / 0.5) : 1;
+    let dx = 0, dy = -R - 46 - Math.min(8, t * 10), rot = 0, sc = pop;
+    if (m.k === 'laugh') { rot = Math.sin(t * 22) * 0.18; dy += Math.abs(Math.sin(t * 14)) * -4; }
+    else if (m.k === 'angry') { dx = Math.sin(t * 60) * 2; dy += Math.cos(t * 53) * 1.5; }
+    else if (m.k === 'heart') sc *= 1 + 0.12 * Math.max(0, Math.sin(t * 10));
+    else if (m.k === 'thumbs' || m.k === 'gg') rot = Math.sin(Math.min(1, t * 3) * Math.PI) * -0.25;
+    else if (m.k === 'cry') { if (Math.random() < 0.3) fx.parts.push({ x: p.x + rand(-8, 8), y: p.y + dy + 8, vx: rand(-20, 20), vy: rand(40, 90), life: 0, max: 0.4, color: '#7fd1ff', r: 1.8 }); }
+    else if (m.k === 'wow') sc *= 1 + 0.06 * Math.sin(t * 8);
+    ctx.save(); ctx.globalAlpha = a; ctx.translate(p.x + dx, p.y + dy); ctx.rotate(rot); ctx.scale(sc, sc);
+    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(0, 16, 12, 3.5, 0, 0, TAU); ctx.fill();
+    ctx.font = "26px 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif"; ctx.fillStyle = '#fff'; ctx.fillText(Sim.EMOTES[m.k], 0, 0);
+    ctx.restore();
+  }
+  ctx.restore();
+}
 const ORB_TRAIL = new Map(), HEALFX = {}; // Transfusion orb trails; when each archer last felt a blood heal
 setInterval(() => { if (ORB_TRAIL.size > 30) ORB_TRAIL.clear(); }, 5000);
 function drawEyes(p, R) {
@@ -12896,7 +12972,10 @@ function drawPlayer(p, isMe, bare) {
   ctx.fillStyle = p.ro === 'assassin' ? '#ff4d5e' : dark(p.c);
   drawEyes(p, R);
   { const hk = HEALFX[p.id] != null ? 1 - (gclock - HEALFX[p.id]) / 0.45 : 0; // a blood heal: a red pulse through the body
-    if (hk > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; const hg = ctx.createRadialGradient(0, 0, R * 0.2, 0, 0, R + 10 * (1 - hk)); hg.addColorStop(0, `rgba(255,60,90,${0.45 * hk})`); hg.addColorStop(1, 'rgba(255,40,70,0)'); ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(0, 0, R + 10, 0, TAU); ctx.fill(); ctx.restore(); } }
+    if (hk > 0) { // a dark red pulse through the body and a deep red glow round it, swelling out
+      ctx.save(); ctx.fillStyle = `rgba(140,6,24,${0.42 * hk})`; ctx.beginPath(); ctx.arc(0, 0, R - 1, 0, TAU); ctx.fill();
+      const rr = R + 3 + 12 * (1 - hk), hg = ctx.createRadialGradient(0, 0, R * 0.9, 0, 0, rr + 6); hg.addColorStop(0, `rgba(170,12,32,${0.5 * hk})`); hg.addColorStop(1, 'rgba(120,0,20,0)');
+      ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(0, 0, rr + 6, 0, TAU); ctx.fill(); ctx.restore(); } }
   if ((p.up || []).includes('riot') || p.dfl) {
     // riot shield: a plate in front; bright while Deflect is up
     ctx.strokeStyle = p.dfl ? `rgba(235,245,255,${0.75 + 0.25 * Math.sin(gclock * 30)})` : 'rgba(170,180,195,0.9)'; ctx.lineWidth = p.dfl ? 5 : 3.5;
@@ -13404,12 +13483,14 @@ function drawZone(z, me) {
       ctx.restore();
     } else if (z.ty === 'orb') { // Transfusion: a glowing blood orb with a trail, curling in on its teammate
       const tr = ORB_TRAIL.get(z.id) || []; const L = tr[tr.length - 1]; if (!L || Math.hypot(L[0] - z.x, L[1] - z.y) > 3) tr.push([z.x, z.y]); if (tr.length > 14) tr.shift(); ORB_TRAIL.set(z.id, tr); ORB_TRAIL.seen = gclock;
-      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
-      for (let i = 1; i < tr.length; i++) { const k = i / tr.length; ctx.strokeStyle = `rgba(255,60,85,${0.55 * k})`; ctx.lineWidth = 2 + 7 * k; ctx.beginPath(); ctx.moveTo(tr[i - 1][0], tr[i - 1][1]); ctx.lineTo(tr[i][0], tr[i][1]); ctx.stroke(); }
-      const g = ctx.createRadialGradient(z.x, z.y, 1, z.x, z.y, 18); g.addColorStop(0, 'rgba(255,220,225,0.95)'); g.addColorStop(0.35, 'rgba(255,60,85,0.85)'); g.addColorStop(1, 'rgba(180,10,40,0)');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(z.x, z.y, 18 + 2 * Math.sin(gclock * 20), 0, TAU); ctx.fill();
+      ctx.save(); ctx.lineCap = 'round'; // dark, thick blood: a drip of a trail and a glossy drop
+      for (let i = 1; i < tr.length; i++) { const k = i / tr.length; ctx.strokeStyle = `rgba(110,4,16,${0.75 * k})`; ctx.lineWidth = 1.5 + 6 * k; ctx.beginPath(); ctx.moveTo(tr[i - 1][0], tr[i - 1][1]); ctx.lineTo(tr[i][0], tr[i][1]); ctx.stroke(); }
+      const wob = 1 + 0.08 * Math.sin(gclock * 18);
+      ctx.fillStyle = 'rgba(60,0,8,0.9)'; ctx.beginPath(); ctx.arc(z.x, z.y, 8.5 * wob, 0, TAU); ctx.fill();
+      ctx.fillStyle = '#8e0b1e'; ctx.beginPath(); ctx.arc(z.x, z.y, 7 * wob, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(255,140,150,0.45)'; ctx.beginPath(); ctx.arc(z.x - 2.4, z.y - 2.6, 2, 0, TAU); ctx.fill();
       ctx.restore();
-      if (Math.random() < 0.5) fx.parts.push({ x: z.x, y: z.y, vx: rand(-25, 25), vy: rand(-25, 25), life: 0, max: 0.35, color: '#ff4d6a', r: rand(1.2, 2.4) });
+      if (Math.random() < 0.35) fx.parts.push({ x: z.x, y: z.y, vx: rand(-15, 15), vy: rand(10, 40), life: 0, max: 0.4, color: '#6e0410', r: rand(1.2, 2.2) });
     } else if (z.ty === 'eclipse') {
       const a = Math.min(1, z.t / 0.5, (4 - z.t) / 0.3 + 0.2);
       ctx.save(); ctx.globalAlpha = Math.max(0, a);
@@ -13764,6 +13845,7 @@ function render(replaying) {
     ctx.fillStyle = f.color; ctx.fillText(f.text, f.x, f.y);
   }
   ctx.globalAlpha = 1;
+  drawEmotes(view);
   PR.lap('particles');
   if (fx.flash && !replaying) drawEdgeFlash();
   if (!replaying && LP.list.length && view.m.ph !== 'lobby') drawLocalMarks(view);
@@ -14824,8 +14906,21 @@ function replaySeg(K, last) {
     for (let i = RP.evs.length - 1; i >= 0; i--) { const x = RP.evs[i]; if (x.t > K.t + 0.02) continue; if (ripT == null && x.e.e === 'rip' && x.e.id === K.v && x.e.by === K.k) ripT = x.t; if (x.e.e === 'ripCast' && x.e.id === K.v && x.e.by === K.k) { castT = x.t; break; } }
     if (ripT != null) hitT = ripT;
   }
-  const t0 = Math.max(RP.buf.length ? RP.buf[0].t : K.t - 1.5, castT != null ? castT - 0.5 : shotT != null ? shotT - 0.7 : K.t - 1.5);
-  return { t0, t1: K.t + (last ? 0.9 : 0.55), subs: [{ kt: K.t, hitT, shotT, aid, castT, ripT, v: K.v }] };
+  // the damage that set it up: the killer's hits on the victim just before, in an unbroken run (gaps under 1.6s, at most 4.5s back)
+  let comboT = null, combo = 0;
+  if (hitT != null) {
+    let last = hitT;
+    for (let i = RP.evs.length - 1; i >= 0; i--) {
+      const x = RP.evs[i]; if (x.t >= hitT - 0.01) continue;
+      if (last - x.t > 1.6 || hitT - x.t > 4.5) break;
+      if ((x.e.e === 'hit' || x.e.e === 'rip') && x.e.id === K.v && x.e.by === K.k) { last = x.t; comboT = x.t; combo++; }
+    }
+  }
+  let from = castT != null ? castT - 0.5 : shotT != null ? shotT - 0.7 : K.t - 1.5;
+  if (comboT != null && combo >= 1) from = Math.min(from, comboT - 0.65);
+  else comboT = null;
+  const t0 = Math.max(RP.buf.length ? RP.buf[0].t : K.t - 1.5, from);
+  return { t0, t1: K.t + (last ? 0.9 : 0.55), subs: [{ kt: K.t, hitT, shotT, aid, castT, ripT, comboT, v: K.v }] };
 }
 function replayQueue(ge) {
   const K = RP.lastKill;
@@ -14842,7 +14937,9 @@ function replayQueue(ge) {
   const n = kills.length + 1, len = segs.reduce((a, g) => a + g.t1 - g.t0, 0);
   // slow motion: about 4.6 seconds for a single knockout; a multi-kill plays a little quicker so it doesn't drag
   // (it has to finish inside the 10 seconds between games, so a long one plays faster)
-  const speed = n > 1 ? Math.max(0.32, len / 7.4) : clamp(len / 4.6, 0.28, 0.6);
+  // a run of hits plays nearer real time (it slows right down for the last one), so the clip stays short
+  const combo = segs.some(g => g.subs.some(q => q.comboT != null));
+  const speed = combo ? clamp(len / 5, 0.5, 1) : n > 1 ? Math.max(0.32, len / 7.4) : clamp(len / 4.6, 0.28, 0.6);
   RP.on = { wait: segs[segs.length - 1].t1, segs, si: 0, cur: segs[0].t0, k: K.k, n, fired: 0, started: false, frames: null, evs: null, speed, rate: speed };
   return true;
 }
@@ -14899,7 +14996,9 @@ function replayTick(dt) {
   // camera: on the shooter as they loose the arrow, riding the arrow in, then on the victim as they go down
   const vic = v.p.find(p => p.id === now.v), kil = v.p.find(p => p.id === R.k), arrow = now.aid != null ? v.a.find(a => a.id === now.aid) : null;
   let fx0 = vic ? vic.x : AW / 2, fy0 = vic ? vic.y : AH / 2, zoom = 1.9;
-  if (now.castT != null && now.ripT != null && R.cur < now.ripT + 0.05 && kil) { fx0 = kil.x; fy0 = kil.y; zoom = 2.0; } // Rip: on the caster until the thorns tear
+  if (now.comboT != null && kil && vic && R.cur < (now.shotT != null ? now.shotT : now.hitT != null ? now.hitT - 0.25 : now.kt)) { // the run of hits: frame both archers
+    fx0 = (kil.x + vic.x) / 2; fy0 = (kil.y + vic.y) / 2; zoom = clamp(Math.min(AW / (Math.abs(kil.x - vic.x) + 420), AH / (Math.abs(kil.y - vic.y) + 320)), 1.15, 1.9);
+  } else if (now.castT != null && now.ripT != null && R.cur < now.ripT + 0.05 && kil) { fx0 = kil.x; fy0 = kil.y; zoom = 2.0; } // Rip: on the caster until the thorns tear
   else if (now.shotT != null && R.cur < now.shotT + 0.05 && kil) { fx0 = kil.x; fy0 = kil.y; zoom = 2.2; }
   else if (arrow && !arrow.s && (now.hitT == null || R.cur < now.hitT)) { fx0 = arrow.x; fy0 = arrow.y; zoom = 2.0; }
   else if (!vic && RP.cam) { fx0 = RP.cam.x; fy0 = RP.cam.y; }
@@ -15103,7 +15202,7 @@ function frame(now) {
         const meW = world.players.find(p => p.id === myId);
         const grp = bigMap() && LP.list.length ? world.players.filter(p => !p.dead && (p.id === myId || LP.list.some(l => l.pid === p.id))) : [];
         Sim.setInput(world, myId, tether(trainInput(buildInput(meW)), meW, grp));
-        dashLatch = qLatch = eLatch = drawLatch = false;
+        dashLatch = qLatch = eLatch = drawLatch = false; emoteLatch = null;
         for (const l of LP.list) if (l.pid && l.inp) { Sim.setInput(world, l.pid, tether(l.inp, world.players.find(p => p.id === l.pid), grp)); lpClear(l); }
         Sim.step(world, STEP);
         acc -= STEP;
@@ -15127,9 +15226,9 @@ function frame(now) {
       if (sendT <= 0 && me) {
         // up to 30 a second, but only when something changed (the server keeps the last input), plus a heartbeat
         const inp = buildInput(me), L = lastSent, now2 = performance.now();
-        const same = L && !inp.dash && !inp.q && !inp.e && !inp.dp && inp.draw === L.draw && inp.dmv === L.dmv && Math.abs(inp.mx - L.mx) < 0.02 && Math.abs(inp.my - L.my) < 0.02
+        const same = L && !inp.dash && !inp.q && !inp.e && !inp.dp && !inp.em && inp.draw === L.draw && inp.dmv === L.dmv && Math.abs(inp.mx - L.mx) < 0.02 && Math.abs(inp.my - L.my) < 0.02
           && Math.abs(inp.aim - L.aim) < 0.002 && Math.abs(inp.tx - L.tx) < 2 && Math.abs(inp.ty - L.ty) < 2 && now2 - L.at < 250;
-        if (!same) { ws.send(JSON.stringify(Object.assign({ t: 'in' }, inp))); lastSent = Object.assign({ at: now2 }, inp); dashLatch = qLatch = eLatch = drawLatch = false; }
+        if (!same) { ws.send(JSON.stringify(Object.assign({ t: 'in' }, inp))); lastSent = Object.assign({ at: now2 }, inp); dashLatch = qLatch = eLatch = drawLatch = false; emoteLatch = null; }
         sendT = 1 / 30;
       }
       if (pingT <= 0) { ws.send(JSON.stringify({ t: 'ping', c: performance.now() })); pingT = 1; }
