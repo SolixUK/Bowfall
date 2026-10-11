@@ -2,6 +2,22 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.47.0
+
+- **Kill cam:**
+  - Knockouts close together (within about three seconds) now play straight through as one continuous clip instead of cutting between them.
+  - A Rip knockout starts on the caster as they cast, then pans to the victim as the thorns tear out.
+- **Your kill cams at the end of the match:** no more pop-up asking to save mid-game. Every kill cam of yours from the match is listed on the results screen, where you can watch each again (tap to play), save any as a video, and put one on your profile.
+- **Bramble Trap** recharges faster (6.5s, was 8.5s), to hold its own next to Bramble Toss.
+- **Rip is a trade-off now:** taking it makes your arrows deal 8% less damage.
+- **Blood you can feel:**
+  - Every heal sends a red pulse through your archer.
+  - Transfusion's spare healing now gathers into a glowing blood orb that leaves you at an angle, curls through the air to your teammate with a trail, and heals them when it lands (with a pulse on them too).
+- **Stone you can feel:**
+  - Stone arrows carry a rock head and shed dust.
+  - Hits crack off rock chunks and a ring of dust, heavier on full draws.
+  - Staggered archers get a cracked stone crust, pebbles drifting round them and dust falling off.
+
 ## 0.46.0
 
 - **A new front page for the website.**

@@ -766,6 +766,14 @@
   .winners .wn small { color: var(--muted); font-size: 12px; }
   @keyframes winpop { 0% { transform: translateY(14px) scale(.6); opacity: 0; } 100% { transform: none; opacity: 1; } }
   .resrated b.ticking { color: var(--gold); }
+  .resclips { display: flex; flex-direction: column; gap: 8px; }
+  .rclips { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+  .rclip { display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 1px solid var(--line); background: rgba(255,255,255,.03); }
+  .rclip b { font-size: 14px; } .rcb { display: flex; gap: 6px; flex-wrap: wrap; }
+  .rcv { position: relative; aspect-ratio: 16 / 9; background: #000; display: grid; place-items: center; cursor: pointer; overflow: hidden; }
+  .rcv video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .rcv i { position: absolute; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,207,90,.9); color: #1a1408; font-style: normal; pointer-events: none; }
+  .rcv.on i { display: none; }
   @media (prefers-reduced-motion: reduce) { .restitle, .ressub, .winners .wn { animation: none; } }
   .awards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
   .award { display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border-radius: 2px; background: rgba(255,255,255,.04); border: 1px solid var(--line); border-top: 3px solid var(--gold); }
@@ -1594,6 +1602,7 @@
         <div class="shopbar"><h3>Rankings</h3><span class="status">Click a column to rank by it.</span></div>
         <div class="tablewrap"><table class="rank" id="resTable"></table></div>
       </div>
+      <div class="resclips" id="resClips" hidden></div>
       <div class="resrated" id="resRated" hidden></div>
       <div class="resclan" id="resClan" hidden></div>
       <div class="resprog" id="resProg" hidden></div>
@@ -1691,7 +1700,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.46.0"></script>
+<script src="sim.js?v=0.47.0"></script>
 <script>
 (() => {
 'use strict';
@@ -1699,7 +1708,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.46.0';
+const PAGE_VERSION = '0.47.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -6048,6 +6057,7 @@ function eventFx(e) {
         if (e.cr) { floater(e.x, e.y - 34, 'Bullseye!', '#ffffff', 14); if (e.by === myId) tone(1560, 0.07, 'sine', 0.035); }
         if (e.id === myId) shake(6); else if (e.cr && e.by === myId) shake(4);
         if ((e.fd || e.cr) && (e.id === myId || e.by === myId)) impact(e.fd && e.cr ? 0.075 : 0.05);
+        if (e.el === 'stone') stoneHit(e.x, e.y, e.fd || e.cr, e.by === myId);
         break;
       }
       case 'burst':
@@ -6140,7 +6150,7 @@ function eventFx(e) {
       }
       case 'gameEnd': if (tutOnDummy() || TR.on) break; if (replayQueue(e)) pendingSummary = e; else showGameSummary(e); if (!e.rwon) { if (e.rw === myTeam()) sfx.kill(); else if (e.rw !== 'draw') sfx.hurt(); } break;
       case 'roundEnd': if (e.rw === myTeam()) sfx.win(); else sfx.hurt(); break;
-      case 'matchStart': $('gameSum').hidden = true; $('resultsScreen').hidden = true; resultsFor = null; hc = {}; progSnap(); break;
+      case 'matchStart': $('gameSum').hidden = true; $('resultsScreen').hidden = true; resultsFor = null; hc = {}; progSnap(); for (const c of CLIP.list) if (c.url) URL.revokeObjectURL(c.url); CLIP.list = []; break;
       case 'map': break;
       case 'matchEnd': if (e.mw === myTeam()) { sfx.win(); noteBotWin(); } else sfx.hurt(); break;
       case 'picked': if (e.id === myId) { lastPick = e.card; sfx.kill(); } break;
@@ -6260,9 +6270,11 @@ function eventFx(e) {
         const q = view && view.p.find(z => z.id === e.id); if (!q) break;
         for (let i = 0; i < Math.min(8, 2 + e.v); i++) { const a = rand(0, TAU), r = rand(26, 46); fx.parts.push({ x: q.x + Math.cos(a) * r, y: q.y + Math.sin(a) * r, vx: -Math.cos(a) * r * 3, vy: -Math.sin(a) * r * 3, life: 0, max: 0.3, color: '#ff4d63', r: rand(1.4, 2.4) }); }
         if (e.id === myId && e.v >= 2) floater(q.x + 14, q.y - 30, '+' + e.v, '#ff6b7d', 13);
+        if (HEALFX[q.id] == null || gclock - HEALFX[q.id] > 0.25) { HEALFX[q.id] = gclock; fx.rings.push({ x: q.x, y: q.y, r: 6, life: 0, col: '255,60,90', max: 26 + Math.min(14, e.v * 2) }); }
         break;
       }
-      case 'transfuse': { const a = view && view.p.find(z => z.id === e.from), b = view && view.p.find(z => z.id === e.to); if (a && b) fx.bolts.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, life: 0, col: '255,77,99' }); break; }
+      case 'transfuse': { const a = view && view.p.find(z => z.id === e.from); if (a) { burst(a.x, a.y, '#ff4d6a', 8, 120, 2.2); HEALFX[a.id] = gclock; } os('sine', 330, 660, 0.25, e.from === myId || e.to === myId ? 0.035 : 0.015); break; }
+      case 'orbHeal': { burst(e.x, e.y, '#ff6b7d', 12, 130, 2.4); fx.rings.push({ x: e.x, y: e.y, r: 6, life: 0, col: '255,77,106', max: 34 }); HEALFX[e.id] = gclock; if (e.id === myId) { floater(e.x + 14, e.y - 30, '+' + e.v, '#ff6b7d', 14); tone(784, 0.12, 'sine', 0.035); setTimeout(() => tone(1046, 0.14, 'sine', 0.03), 80); } break; }
       case 'bleed': burst(e.x, e.y, '#c81d34', 10, 110, 2); elSfx.blood(0.5); break;
       case 'spread': fx.bolts.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, life: 0, col: '155,229,100' }); elSfx.poison(0.6); break;
       case 'zone': if (e.q) { if (Math.random() < 0.5) sfx.crackle(); } else if (e.ty === 'fire') sfx.whoosh(); else if (e.ty === 'rift') elSfx.void(0.8); else sfx.hiss(); break;
@@ -6278,7 +6290,7 @@ function eventFx(e) {
         shake(6); break;
       }
       case 'thunder': fx.bolts.push({ x1: e.x + rand(-40, 40), y1: e.y - 420, x2: e.x, y2: e.y, life: 0 }); burst(e.x, e.y, '#fff27a', 20, 220, 3); sfx.zap(1.2); shake(5); break;
-      case 'stagger': burst(e.x, e.y, '#b8966a', 10, 140, 3); break;
+      case 'stagger': burst(e.x, e.y, '#b8966a', 10, 140, 3); fx.rings.push({ x: e.x, y: e.y, r: 6, life: 0, col: '155,133,102', max: 30 }); break;
       case 'aftershock': fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '201,168,120', max: 110 }); burst(e.x, e.y, '#a0805a', 18, 220, 3.5); sfx.boom(); shake(4); break;
       case 'collapse': fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '180,140,255', max: e.r * 1.1 }); burst(e.x, e.y, '#c3a2ff', 30, 260, 3.5); elSfx.void(1.3); shake(4); break;
       case 'marked': floater(e.x, e.y - 34, 'Marked', '#ff6b6b', 15); tone(300, 0.2, 'sawtooth', 0.04, -150); break;
@@ -8060,6 +8072,17 @@ function drawPreview(cvs, el, ro, color) {
 let MATE_DIM = 1;
 // eyes: they blink now and then (each archer on their own rhythm) and screw shut for a moment when hurt
 const EYE = { hp: {}, hurt: {} };
+// Stone: a hit cracks off rock chunks and kicks up a ring of dust (heavier on a full draw)
+function stoneHit(x, y, big, mine) {
+  const n = big ? 12 : 7;
+  for (let i = 0; i < n; i++) { const a = rand(0, TAU), sp = rand(120, big ? 330 : 240); fx.parts.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0, max: rand(0.35, 0.6), color: ['#8a7356', '#b8966a', '#6b5a44', '#cdb48c'][i % 4], r: rand(2.2, big ? 4.6 : 3.4) }); }
+  for (let i = 0; i < (big ? 10 : 6); i++) { const a = rand(0, TAU), sp = rand(40, 90); fx.parts.push({ x: x + Math.cos(a) * 8, y: y + Math.sin(a) * 8, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0, max: 0.8, color: 'rgba(205,190,160,0.45)', r: rand(5, 9) }); }
+  fx.rings.push({ x, y, r: 8, life: 0, col: '184,150,106', max: big ? 64 : 42 });
+  if (big && mine) shake(3);
+  nz(big ? 0.16 : 0.1, big ? 0.1 : 0.06, 'lowpass', 600, 120, 1);
+}
+const ORB_TRAIL = new Map(), HEALFX = {}; // Transfusion orb trails; when each archer last felt a blood heal
+setInterval(() => { if (ORB_TRAIL.size > 30) ORB_TRAIL.clear(); }, 5000);
 function drawEyes(p, R) {
   const id = String(p.id), last = EYE.hp[id];
   if (last != null && p.hp < last - 0.5) EYE.hurt[id] = gclock;
@@ -8189,6 +8212,8 @@ function drawPlayer(p, isMe, bare) {
   drawEmblem(p.el, -R * 0.22, 0, R * 0.4);
   ctx.fillStyle = p.ro === 'assassin' ? '#ff4d5e' : dark(p.c);
   drawEyes(p, R);
+  { const hk = HEALFX[p.id] != null ? 1 - (gclock - HEALFX[p.id]) / 0.45 : 0; // a blood heal: a red pulse through the body
+    if (hk > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; const hg = ctx.createRadialGradient(0, 0, R * 0.2, 0, 0, R + 10 * (1 - hk)); hg.addColorStop(0, `rgba(255,60,90,${0.45 * hk})`); hg.addColorStop(1, 'rgba(255,40,70,0)'); ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(0, 0, R + 10, 0, TAU); ctx.fill(); ctx.restore(); } }
   if ((p.up || []).includes('riot') || p.dfl) {
     // riot shield: a plate in front; bright while Deflect is up
     ctx.strokeStyle = p.dfl ? `rgba(235,245,255,${0.75 + 0.25 * Math.sin(gclock * 30)})` : 'rgba(170,180,195,0.9)'; ctx.lineWidth = p.dfl ? 5 : 3.5;
@@ -8263,9 +8288,14 @@ function drawPlayer(p, isMe, bare) {
     for (let i = 0; i < 3; i++) { const a = gclock * 5 + i * TAU / 3; ctx.save(); ctx.translate(Math.cos(a) * (R * 0.8), -R - 4 + Math.sin(a) * 4); ctx.fillStyle = '#fff27a'; starPath(4.5, 1.8); ctx.fill(); ctx.restore(); }
   }
   if (p.sg && !p.f) {
-    // staggered: a cracked stone ring
+    // staggered: a cracked stone crust over the body, a cracked stone ring and pebbles drifting round, dust falling off
+    ctx.save(); ctx.globalAlpha = 0.35; ctx.fillStyle = '#9b8566'; ctx.beginPath(); ctx.arc(0, 0, R - 1, 0, TAU); ctx.fill(); ctx.restore();
+    ctx.strokeStyle = 'rgba(60,45,30,0.75)'; ctx.lineWidth = 1.4; ctx.beginPath();
+    ctx.moveTo(-R * 0.6, -R * 0.2); ctx.lineTo(-R * 0.15, -R * 0.05); ctx.lineTo(R * 0.1, -R * 0.45); ctx.moveTo(-R * 0.15, -R * 0.05); ctx.lineTo(R * 0.05, R * 0.5); ctx.lineTo(R * 0.45, R * 0.35); ctx.stroke();
     ctx.strokeStyle = 'rgba(184,150,106,0.9)'; ctx.lineWidth = 2.5;
     for (let k = 0; k < 5; k++) { const a0 = k / 5 * TAU + 0.2; ctx.beginPath(); ctx.arc(0, 0, R + 4, a0, a0 + 0.9); ctx.stroke(); }
+    ctx.fillStyle = '#8a7356'; for (let k = 0; k < 3; k++) { const a0 = gclock * 1.6 + k * TAU / 3; ctx.beginPath(); ctx.arc(Math.cos(a0) * (R + 9), Math.sin(a0) * (R + 9), 2.6, 0, TAU); ctx.fill(); }
+    if (Math.random() < 0.25) fx.parts.push({ x: p.x + rand(-R, R), y: p.y + rand(-R * 0.5, R * 0.5), vx: rand(-8, 8), vy: rand(20, 45), life: 0, max: 0.5, color: 'rgba(205,190,160,0.6)', r: rand(1.2, 2.2) });
   }
   if (p.mk && !p.f) {
     // death-marked: a red target over them
@@ -8418,6 +8448,7 @@ function drawArrow(a) {
   ctx.strokeStyle = 'rgba(20,14,8,0.75)'; ctx.lineWidth = 4; ctx.lineCap = 'butt'; ctx.beginPath(); ctx.moveTo(-21, 0); ctx.lineTo(2, 0); ctx.stroke(); // dark edge for contrast (stops at the head, so the tip stays sharp)
   ctx.strokeStyle = '#d8c7a0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(4, 0); ctx.stroke();
   ctx.fillStyle = a.el === 'blood' ? '#e0344a' : a.el === 'shadow' ? '#8e95c9' : a.el === 'poison' ? '#7fcf4a' : a.sn ? '#9be564' : a.el === 'storm' ? '#fff27a' : a.el === 'frost' ? '#bfe8ff' : a.el === 'flame' ? '#ff7a2b' : a.el === 'stone' ? '#b8966a' : a.el === 'void' ? '#b48cff' : a.ex ? '#ff5a7a' : a.hv ? '#ff8a3d' : '#c9d1dc';
+  if (a.el === 'stone' && !a.s) { ctx.save(); ctx.fillStyle = '#9b8566'; ctx.strokeStyle = 'rgba(40,30,20,0.8)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(5, -4.6); ctx.lineTo(-0.5, -3.6); ctx.lineTo(-1.5, 2.8); ctx.lineTo(4.5, 4.6); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); if (Math.random() < 0.3) fx.parts.push({ x: a.x, y: a.y, vx: rand(-15, 15), vy: rand(-15, 15), life: 0, max: 0.4, color: 'rgba(205,190,160,0.5)', r: rand(1.5, 3) }); }
   ctx.beginPath(); ctx.moveTo(8, 0); ctx.lineTo(1, -3.5); ctx.lineTo(1, 3.5); ctx.closePath(); ctx.strokeStyle = 'rgba(20,14,8,0.7)'; ctx.lineWidth = 1.4; ctx.lineJoin = 'miter'; ctx.miterLimit = 10; ctx.stroke(); ctx.fill();
   ctx.fillStyle = a.c; ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(-25, -4); ctx.lineTo(-17, 0); ctx.lineTo(-25, 4); ctx.fill();
   ctx.restore();
@@ -8530,7 +8561,7 @@ function drawPickup(u) {
 // ---------- ability visuals ----------
 // your team's zones are faint with a dashed ring in your team colour; the enemy's are full strength
 function allyRing(z, me) {
-  if (!me || z.tm !== me.tm || z.ty === 'trap' || z.ty === 'wall' || z.ty === 'rain' || z.ty === 'totem' || z.ty === 'clone' || z.ty === 'smark') return;
+  if (!me || z.tm !== me.tm || z.ty === 'trap' || z.ty === 'wall' || z.ty === 'rain' || z.ty === 'totem' || z.ty === 'clone' || z.ty === 'smark' || z.ty === 'orb') return;
   ctx.save(); ctx.globalAlpha = 0.7; ctx.strokeStyle = TEAM_COL[z.tm]; ctx.lineWidth = 1.5; ctx.setLineDash([5, 6]);
   ctx.beginPath(); ctx.arc(z.x, z.y, z.r, clock * 0.4, clock * 0.4 + TAU); ctx.stroke(); ctx.restore();
 }
@@ -8583,7 +8614,7 @@ function drawZones(v, me) {
   for (const z of v.z || []) {
     const ally = !!(me && z.tm === me.tm);
     if (z.ty === 'smoke') continue;
-    ctx.save(); if (ally && z.ty !== 'trap' && z.ty !== 'wall' && z.ty !== 'totem' && z.ty !== 'clone' && z.ty !== 'smark') ctx.globalAlpha = z.ty === 'hole' ? 0.8 : 0.38; // your own black hole stays easy to see
+    ctx.save(); if (ally && z.ty !== 'trap' && z.ty !== 'wall' && z.ty !== 'totem' && z.ty !== 'clone' && z.ty !== 'smark' && z.ty !== 'orb') ctx.globalAlpha = z.ty === 'hole' ? 0.8 : 0.38; // your own black hole stays easy to see
     drawZone(z, me);
     ctx.restore();
     allyRing(z, me);
@@ -8688,6 +8719,14 @@ function drawZone(z, me) {
         ctx.beginPath(); for (let k = 0; k < 6; k++) { const q = k / 6 * TAU + i, r2 = k % 2 ? 1.2 : 4; k ? ctx.lineTo(x + Math.cos(q) * r2, y + Math.sin(q) * r2) : ctx.moveTo(x + Math.cos(q) * r2, y + Math.sin(q) * r2); } ctx.closePath(); ctx.fill(); ctx.stroke();
       }
       ctx.restore();
+    } else if (z.ty === 'orb') { // Transfusion: a glowing blood orb with a trail, curling in on its teammate
+      const tr = ORB_TRAIL.get(z.id) || []; const L = tr[tr.length - 1]; if (!L || Math.hypot(L[0] - z.x, L[1] - z.y) > 3) tr.push([z.x, z.y]); if (tr.length > 14) tr.shift(); ORB_TRAIL.set(z.id, tr); ORB_TRAIL.seen = gclock;
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+      for (let i = 1; i < tr.length; i++) { const k = i / tr.length; ctx.strokeStyle = `rgba(255,60,85,${0.55 * k})`; ctx.lineWidth = 2 + 7 * k; ctx.beginPath(); ctx.moveTo(tr[i - 1][0], tr[i - 1][1]); ctx.lineTo(tr[i][0], tr[i][1]); ctx.stroke(); }
+      const g = ctx.createRadialGradient(z.x, z.y, 1, z.x, z.y, 18); g.addColorStop(0, 'rgba(255,220,225,0.95)'); g.addColorStop(0.35, 'rgba(255,60,85,0.85)'); g.addColorStop(1, 'rgba(180,10,40,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(z.x, z.y, 18 + 2 * Math.sin(gclock * 20), 0, TAU); ctx.fill();
+      ctx.restore();
+      if (Math.random() < 0.5) fx.parts.push({ x: z.x, y: z.y, vx: rand(-25, 25), vy: rand(-25, 25), life: 0, max: 0.35, color: '#ff4d6a', r: rand(1.2, 2.4) });
     } else if (z.ty === 'eclipse') {
       const a = Math.min(1, z.t / 0.5, (4 - z.t) / 0.3 + 0.2);
       ctx.save(); ctx.globalAlpha = Math.max(0, a);
@@ -9879,7 +9918,7 @@ function updateHud() {
       resultsView = Object.assign({}, view, { p: view.p.filter(p => !p.nk) });
       renderAwards(resultsView); renderRanking();
       $('rematchBtn').hidden = $('resLobbyBtn').hidden = !isHost();
-      $('resultsScreen').hidden = false; progShow();
+      $('resultsScreen').hidden = false; progShow(); renderResClips();
       { const rb = $('ratedBox'); clearTimeout(RATED.t); rb.classList.remove('show'); rb.hidden = true; renderResRated(); } // the results show the rating themselves: no pop-up over the headline
       $('gameMenu').hidden = true; menuOpen = false; paused = false;
     }
@@ -10054,7 +10093,8 @@ let last = performance.now(), sendT = 0, pingT = 0;
 // The last few seconds of play are kept; when a knockout ends a game, it's replayed zoomed in and in slow motion,
 // following the killer's arrow, then the summary appears. It can't be skipped.
 const RP_KEEP = 12; // seconds of play kept: enough for a multi-kill
-const RP_MULTI = 8;  // the winning killer's other knockouts this many seconds before the last one are shown too
+const RP_MULTI = 8, RP_JOIN = 3; // RP_JOIN: knockouts with less than this many seconds between their pieces play straight through
+const _RPM = RP_MULTI;  // the winning killer's other knockouts this many seconds before the last one are shown too
 const RP = { buf: [], evs: [], lastKill: null, on: null, cam: null, enabled: true }; // always on: the game-winning knockout is always replayed
 // online, the replay keeps the server's own updates, timed by the server's tick (60 a second), not the screen frames:
 // those are spaced however the network delivered them, which slow motion turned into visible stutter
@@ -10074,7 +10114,7 @@ function replayRecord() {
   while (RP.evs.length && RP.evs[0].t < clock - RP_KEEP) RP.evs.shift();
 }
 // events the kill cam keeps; those in REPLAY_LIVE are played exactly as they looked live
-const REPLAY_LIVE = new Set(['shade', 'shadeUp', 'shadeBurst', 'ripCast', 'rip', 'boomTurn', 'catch', 'eclipse', 'mend', 'flashpoint', 'smoke', 'totem', 'harpoon', 'blink', 'recoil', 'rush', 'wind', 'gust', 'deflect', 'deflectUp', 'blocked', 'snared', 'stagger', 'execute', 'backstab', 'volleyReset', 'echo', 'disarm', 'blossom', 'clone', 'grapple', 'leech', 'bleed', 'split', 'drop', 'thunk', 'shield', 'rainMark', 'rainHit', 'trapSet', 'wallUp', 'marked', 'fortify', 'shove', 'stuck', 'zone', 'thunder', 'caltrops', 'stealthOn', 'stealthOff', 'smark', 'shuriken', 'transfuse', 'revive', 'overload', 'sstrike', 'recall', 'nblink', 'flash', 'swap', 'quake', 'collapse', 'aftershock', 'trapHit', 'chain', 'burst', 'pinned', 'freeze', 'spike', 'thud']);
+const REPLAY_LIVE = new Set(['orbHeal', 'transfuse', 'stagger', 'shade', 'shadeUp', 'shadeBurst', 'ripCast', 'rip', 'boomTurn', 'catch', 'eclipse', 'mend', 'flashpoint', 'smoke', 'totem', 'harpoon', 'blink', 'recoil', 'rush', 'wind', 'gust', 'deflect', 'deflectUp', 'blocked', 'snared', 'stagger', 'execute', 'backstab', 'volleyReset', 'echo', 'disarm', 'blossom', 'clone', 'grapple', 'leech', 'bleed', 'split', 'drop', 'thunk', 'shield', 'rainMark', 'rainHit', 'trapSet', 'wallUp', 'marked', 'fortify', 'shove', 'stuck', 'zone', 'thunder', 'caltrops', 'stealthOn', 'stealthOff', 'smark', 'shuriken', 'transfuse', 'revive', 'overload', 'sstrike', 'recall', 'nblink', 'flash', 'swap', 'quake', 'collapse', 'aftershock', 'trapHit', 'chain', 'burst', 'pinned', 'freeze', 'spike', 'thud']);
 const REPLAY_FX = { throw: 1, sstrike: 1, recall: 1, nblink: 1, flash: 1, swap: 1, fire: 1, hit: 1, dmg: 1, fall: 1, boom: 1, freeze: 1, spike: 1, thud: 1, pinned: 1, chain: 1, burst: 1, trapHit: 1, quake: 1, collapse: 1, aftershock: 1, dash: 1, saw: 1, bump: 1, portal: 1, parry: 1, parried: 1, warp: 1, stun: 1, ambushHit: 1 };
 function replayNote(evs) {
   const t = RP.evT != null ? RP.evT : clock; RP.evT = null;
@@ -10095,19 +10135,25 @@ function replaySeg(K, last) {
       shotT = first ? first.t : null;
     }
   }
-  const t0 = Math.max(RP.buf.length ? RP.buf[0].t : K.t - 1.5, shotT != null ? shotT - 0.7 : K.t - 1.5);
-  return { t0, t1: K.t + (last ? 0.9 : 0.55), subs: [{ kt: K.t, hitT, shotT, aid, v: K.v }] };
+  // an ability kill with a wind-up (Rip): from just before the cast, on the caster, to the rip itself on the victim
+  let castT = null, ripT = null;
+  if (K.how === 'rip') {
+    for (let i = RP.evs.length - 1; i >= 0; i--) { const x = RP.evs[i]; if (x.t > K.t + 0.02) continue; if (ripT == null && x.e.e === 'rip' && x.e.id === K.v && x.e.by === K.k) ripT = x.t; if (x.e.e === 'ripCast' && x.e.id === K.v && x.e.by === K.k) { castT = x.t; break; } }
+    if (ripT != null) hitT = ripT;
+  }
+  const t0 = Math.max(RP.buf.length ? RP.buf[0].t : K.t - 1.5, castT != null ? castT - 0.5 : shotT != null ? shotT - 0.7 : K.t - 1.5);
+  return { t0, t1: K.t + (last ? 0.9 : 0.55), subs: [{ kt: K.t, hitT, shotT, aid, castT, ripT, v: K.v }] };
 }
 function replayQueue(ge) {
   const K = RP.lastKill;
   if (tutOnDummy() || TR.on) return false; // no kill cam for the practice dummy or training targets
   if (!RP.enabled || reduceMotion || ge.rw === 'draw' || !K || clock - K.t > 1.2) return false;
   // the same archer's other knockouts shortly before (a clutch, a double or triple kill) are shown first, in order
-  const kills = K.k ? RP.evs.filter(x => x.e.e === 'kill' && x.e.k === K.k && x.t >= K.t - RP_MULTI && x.t < K.t - 0.02).map(x => ({ t: x.t, k: x.e.k, v: x.e.v })) : [];
+  const kills = K.k ? RP.evs.filter(x => x.e.e === 'kill' && x.e.k === K.k && x.t >= K.t - RP_MULTI && x.t <= K.t && x.e.v !== K.v).map(x => ({ t: x.t, k: x.e.k, v: x.e.v, how: x.e.how })) : [];
   const segs = [];
   for (const k of kills.concat([K])) {
     const sg = replaySeg(k, k === K), prev = segs[segs.length - 1];
-    if (prev && sg.t0 <= prev.t1 + 0.4) { prev.t1 = Math.max(prev.t1, sg.t1); prev.subs.push(...sg.subs); } // close together: one piece
+    if (prev && sg.t0 <= prev.t1 + RP_JOIN) { prev.t1 = Math.max(prev.t1, sg.t1); prev.subs.push(...sg.subs); } // close together: one continuous piece, no cut
     else segs.push(sg);
   }
   const n = kills.length + 1, len = segs.reduce((a, g) => a + g.t1 - g.t0, 0);
@@ -10141,7 +10187,7 @@ function replayTick(dt) {
     R.evs = R.evs || RP.evs.filter(x => x.t >= a && x.t <= b);
     if (R.frames.length < 10) { RP.on = null; showPendingSummary(); return null; }
     // kept so it can be saved as a video or put on your profile (your own knockouts), and recorded as it plays
-    if (!CLIP.playing) CLIP.last = R.k === myId && myId != null ? { map: MAPKEY, me: myId, k: R.k, n: R.n, segs: R.segs, frames: R.frames, evs: R.evs, at: Date.now() } : null;
+    if (!CLIP.playing) { CLIP.last = R.k === myId && myId != null ? { map: MAPKEY, me: myId, k: R.k, n: R.n, segs: R.segs, frames: R.frames, evs: R.evs, at: Date.now() } : null; if (CLIP.last) { CLIP.list.push(CLIP.last); if (CLIP.list.length > 8) CLIP.list.shift(); } }
     if (CLIP.playing || CLIP.last) clipRecStart(); else CLIP.video = null;
     R.started = true; R.cur = Math.max(R.segs[0].t0, R.frames[0].t); RP.cam = null;
     $('replayBadge').innerHTML = `<span class="rec"></span>${R.n > 1 ? `${MULTI_NAME[Math.min(5, R.n)] || R.n + ' kills'}` : 'Kill cam'}`;
@@ -10170,7 +10216,8 @@ function replayTick(dt) {
   // camera: on the shooter as they loose the arrow, riding the arrow in, then on the victim as they go down
   const vic = v.p.find(p => p.id === now.v), kil = v.p.find(p => p.id === R.k), arrow = now.aid != null ? v.a.find(a => a.id === now.aid) : null;
   let fx0 = vic ? vic.x : AW / 2, fy0 = vic ? vic.y : AH / 2, zoom = 1.9;
-  if (now.shotT != null && R.cur < now.shotT + 0.05 && kil) { fx0 = kil.x; fy0 = kil.y; zoom = 2.2; }
+  if (now.castT != null && now.ripT != null && R.cur < now.ripT + 0.05 && kil) { fx0 = kil.x; fy0 = kil.y; zoom = 2.0; } // Rip: on the caster until the thorns tear
+  else if (now.shotT != null && R.cur < now.shotT + 0.05 && kil) { fx0 = kil.x; fy0 = kil.y; zoom = 2.2; }
   else if (arrow && !arrow.s && (now.hitT == null || R.cur < now.hitT)) { fx0 = arrow.x; fy0 = arrow.y; zoom = 2.0; }
   else if (!vic && RP.cam) { fx0 = RP.cam.x; fy0 = RP.cam.y; }
   if (!RP.cam || RP.cut) { RP.cam = { x: fx0, y: fy0, z: RP.cam ? RP.cam.z : 1.2 }; RP.cut = 0; }
@@ -10186,7 +10233,7 @@ function replayFx(e) {
   if (mechFx(e)) return;
   if (REPLAY_LIVE.has(e.e)) { try { eventFx(e); } catch (err) {} return; }
   switch (e.e) {
-    case 'hit': burst(e.x, e.y, EL_COL[e.el] || '#ffcf5a', e.cr ? 16 : 10, 170); sfx.hit(e.cr); if (e.cr) floater(e.x, e.y - 34, 'Bullseye!', '#ffffff', 14); break;
+    case 'hit': burst(e.x, e.y, EL_COL[e.el] || '#ffcf5a', e.cr ? 16 : 10, 170); sfx.hit(e.cr); if (e.cr) floater(e.x, e.y - 34, 'Bullseye!', '#ffffff', 14); if (e.el === 'stone') stoneHit(e.x, e.y, e.fd || e.cr, false); break;
     case 'dmg': floater(e.x, e.y, String(e.v), '#ffffff', 16); break;
     case 'kill':
       burst(e.x, e.y, e.vc, 40, 280, 4.5); burst(e.x, e.y, '#ffffff', 16, 200, 3);
@@ -10211,10 +10258,9 @@ function endReplay() {
   clipRecStop();
   if (CLIP.playing) { $('cvAgain').hidden = false; if (CLIP.playing.embed) setTimeout(() => { if (CLIP.playing && !RP.on) clipReplay(); }, 2500); return; }
   showPendingSummary();
-  if (CLIP.last) { CLIP.barT = Date.now(); renderClipBar(); }
 }
 // ---- kill cam clips: your own kill cams can be saved as a video, or featured on your profile (anyone can watch it there)
-const CLIP = { last: null, rec: null, chunks: null, video: null, playing: null, barT: 0 };
+const CLIP = { last: null, list: [], rec: null, chunks: null, video: null, playing: null, barT: 0 }; // list: this match's kill cams, offered on the results screen
 function clipRecStart() {
   CLIP.video = null;
   if (typeof MediaRecorder === 'undefined' || !cv.captureStream) return;
@@ -10222,14 +10268,15 @@ function clipRecStart() {
     const type = ['video/mp4;codecs=avc1', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'].find(t => MediaRecorder.isTypeSupported(t)); if (!type) return;
     const rec = new MediaRecorder(cv.captureStream(30), { mimeType: type, videoBitsPerSecond: 6e6 });
     const chunks = []; rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
-    rec.onstop = () => { CLIP.video = chunks.length ? new Blob(chunks, { type: type.split(';')[0] }) : null; renderClipBar(); };
+    const forClip = CLIP.playing ? null : CLIP.last;
+    rec.onstop = () => { CLIP.video = chunks.length ? new Blob(chunks, { type: type.split(';')[0] }) : null; if (forClip) forClip.video = CLIP.video; renderClipBar(); if (!$('resultsScreen').hidden) renderResClips(); };
     rec.start(250); CLIP.rec = rec;
   } catch (e) { CLIP.rec = null; }
 }
 function clipRecStop() { try { if (CLIP.rec && CLIP.rec.state !== 'inactive') CLIP.rec.stop(); } catch (e) {} CLIP.rec = null; }
 const clipLabel = c => `${c.n > 1 ? (MULTI_NAME[Math.min(5, c.n)] || c.n + ' kills') : 'Knockout'} on ${(MAPS[c.map] || {}).name || 'an arena'}`;
 function renderClipBar() {
-  const c = CLIP.last, show = !!c && !CLIP.playing && Date.now() - CLIP.barT < 16000 && mode !== 'menu';
+  const c = CLIP.last, show = false; // (kill cams are offered on the results screen now)
   $('clipBar').hidden = !show; $('cvSave').hidden = !(CLIP.playing && CLIP.video);
   if (!show) return;
   $('clipTxt').textContent = 'Your ' + clipLabel(c).replace(/^Knockout/, 'knockout').replace(/^(\w+ kill)/, m => m.toLowerCase());
@@ -10238,8 +10285,8 @@ function renderClipBar() {
   $('clipFeat').disabled = !!c.feat; $('clipFeat').textContent = c.feat === 'saving' ? 'Saving…' : c.feat ? 'On your profile ✓' : 'Show on my profile';
 }
 setInterval(() => { if (!$('clipBar').hidden) renderClipBar(); }, 1000);
-async function clipSaveVideo() {
-  const b = CLIP.video; if (!b) return;
+async function clipSaveVideo(blob) {
+  const b = blob instanceof Blob ? blob : CLIP.video; if (!b) return;
   const ext = /mp4/.test(b.type) ? 'mp4' : 'webm', name = `bowfall-${(CLIP.playing ? 'highlight' : 'killcam')}-${new Date().toISOString().slice(0, 10)}.${ext}`;
   const file = new File([b], name, { type: b.type });
   try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Bowfall kill cam' }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
@@ -10258,17 +10305,34 @@ function clipPack(c) {
   return { v: 1, map: c.map, me: c.me, k: c.k, n: c.n, segs: c.segs, f, ev: c.evs.map(x => ({ t: x.t, e: x.e })) };
 }
 function clipUnpack(o) { const frames = []; let prev = null; for (const x of o.f) { const v = x.s || Sim.applyDelta(prev, x.d); frames.push({ t: x.t, v }); prev = v; } return { map: o.map, me: o.me, k: o.k, n: o.n, segs: o.segs, frames, evs: o.ev || [] }; }
-async function clipFeature() {
-  const c = CLIP.last, b = $('clipFeat'); if (!c || !account) return;
+async function clipFeature(clip, btn) {
+  const c = clip && clip.frames ? clip : CLIP.last, b = btn || $('clipFeat'); if (!c || !account) return;
   b.disabled = true; b.textContent = 'Saving…'; c.feat = 'saving';
   try {
     const data = await gzipB64(JSON.stringify(clipPack(c)));
     const r = await fetch('/api/clip', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data, meta: { label: clipLabel(c) } }) });
     const d = await r.json(); if (!r.ok) throw new Error(d.error || 'Could not save it');
-    b.textContent = 'On your profile ✓'; c.feat = true; if (account.ach) account.ach.clip = d.clip;
+    b.textContent = 'On your profile ✓'; for (const o of CLIP.list) if (o !== c && o.feat === true) o.feat = false; c.feat = true; if (account.ach) account.ach.clip = d.clip; if (!$('resultsScreen').hidden) renderResClips();
   } catch (e) { c.feat = false; b.disabled = false; b.textContent = 'Show on my profile'; notice(esc(e.message || 'Could not save it'), false); }
 }
-$('clipSave').onclick = clipSaveVideo; $('cvSave').onclick = clipSaveVideo; $('clipFeat').onclick = clipFeature;
+$('clipSave').onclick = () => clipSaveVideo(); $('cvSave').onclick = () => clipSaveVideo(); $('clipFeat').onclick = () => clipFeature();
+// the results screen: this match's kill cams, to watch again, save as a video or put on your profile
+function renderResClips() {
+  const box = $('resClips'); if (!box) return;
+  const L = CLIP.list; box.hidden = !L.length; if (!L.length) { box.innerHTML = ''; return; }
+  const feat = account && !OFFLINE;
+  box.innerHTML = `<div class="shopbar"><h3>Your kill cams</h3><span class="status">Pick the ones to keep. ${feat ? 'One can go on your profile.' : ''}</span></div><div class="rclips">` + L.map((c, i) => {
+    const okMap = MAPS[c.map] && !/^a\d/.test(c.map) && c.map !== 'edit' && c.map !== 'pv';
+    return `<div class="rclip"><div class="rcv" data-i="${i}">${c.video ? `<video muted playsinline preload="metadata" src="${c.url || (c.url = URL.createObjectURL(c.video))}#t=0.4"></video><i>▶</i>` : '<span class="status">No video in this browser</span>'}</div>
+      <b>${esc(clipLabel(c))}</b><div class="rcb">${c.video ? `<button type="button" class="ghost sm" data-csave="${i}">Save video</button>` : ''}${feat && okMap ? `<button type="button" class="ghost sm" data-cfeat="${i}"${c.feat ? ' disabled' : ''}>${c.feat === 'saving' ? 'Saving…' : c.feat ? 'On your profile ✓' : 'Show on my profile'}</button>` : ''}</div></div>`;
+  }).join('') + '</div>';
+}
+$('resClips').onclick = ev => {
+  const t = ev.target.closest('[data-csave],[data-cfeat],.rcv'); if (!t) return;
+  if (t.dataset.csave != null) clipSaveVideo(CLIP.list[+t.dataset.csave].video);
+  else if (t.dataset.cfeat != null) clipFeature(CLIP.list[+t.dataset.cfeat], t);
+  else { const v = t.querySelector('video'); if (v) { if (v.paused) { v.currentTime = 0; v.play(); t.classList.add('on'); v.onended = () => t.classList.remove('on'); } else { v.pause(); t.classList.remove('on'); } } }
+};
 $('clipX').onclick = () => { CLIP.barT = 0; renderClipBar(); };
 // watching a featured kill cam (from a profile, or a link): played on the game's own canvas
 async function playClip(id, embed) {

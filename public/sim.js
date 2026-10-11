@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.46.0';
+const VERSION = '0.47.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -941,9 +941,9 @@ const TREE = {
   twinload:  { tree: 'crossbow', cap: true, name: 'Double Crank', desc: 'Hold two bolts: fire them back to back, and each one reloads on its own.' },
   harpoon:   { tree: 'trapper', active: { cd: 9 }, name: 'Harpoon', desc: 'Fire a barbed line along your aim (up to 420px). The first enemy it catches is yanked toward you and briefly stuck.' },
   snare:     { tree: 'trapper', also: ['crossbow'], active: { cd: 5 }, name: 'Snare Arrow', desc: 'Your next shot roots whoever it hits for 1.8 seconds.' },
-  trap:      { tree: 'trapper', active: { cd: 8.5 }, name: 'Bramble Trap', desc: 'Weave a bramble trap at the spot under your cursor (up to 450px away, never over a hole or water); it takes half a second to set, and you move at half speed meanwhile. An enemy who steps on it is rooted for 2.5 seconds and hurt. Up to 2 at once.' },
+  trap:      { tree: 'trapper', active: { cd: 6.5 }, name: 'Bramble Trap', desc: 'Weave a bramble trap at the spot under your cursor (up to 450px away, never over a hole or water); it takes half a second to set, and you move at half speed meanwhile. An enemy who steps on it is rooted for 2.5 seconds and hurt. Up to 2 at once.' },
   briar:     { tree: 'trapper', active: { cd: 9 }, name: 'Bramble Toss', desc: 'Your next shot tosses a spinning bramble trap instead of an arrow. It flies straight along your aim, slowly (further and a little faster the longer you draw, up to 760px), roots every enemy it passes through for 1.8 seconds and hurts them, and stops at walls and boulders.' },
-  rip:       { tree: 'trapper', active: { cd: 8 }, name: 'Rip', desc: 'Your arrow hits leave a thorn in the target (up to 5, for 10 seconds), and each thorn slows them 5%. Use Rip and a second later the thorns tear out (any you land meanwhile count too): 5 damage per thorn, anyone with 2 or more is rooted for 1 second, and a full set of 5 roots them for 2.' },
+  rip:       { tree: 'trapper', trade: true, active: { cd: 8 }, name: 'Rip', desc: 'Your arrow hits leave a thorn in the target (up to 5, for 10 seconds), and each thorn slows them 5%. Use Rip and a second later the thorns tear out (any you land meanwhile count too): 5 damage per thorn, anyone with 2 or more is rooted for 1 second, and a full set of 5 roots them for 2. But your arrows deal 8% less damage.' },
   deeproots: { tree: 'trapper', cap: true, name: 'Deep Roots', desc: 'Your roots last twice as long, and rooted enemies take 25% more damage from you.' },
 };
 // Filler cards when a tree runs dry. These stack.
@@ -1062,7 +1062,7 @@ function applyStats(p) {
   p.dashN = Math.min(p.dashN == null ? p.dashMaxN : p.dashN, p.dashMaxN);
   p.drawMul = (has(p, 'steady') ? 1.25 : 1) * (1 + 0.08 * h('hone_draw')) * is(R === 'trickster', 1.12) * is(R === 'ranger', 1.12) * is(R === 'sniper', 1) * is(has(p, 'permafrost'), 0.95);
   p.kbMul = (1 + 0.08 * h('hone_kb')) * is(R === 'trickster', 0.9) * is(has(p, 'obsidian'), 1.3) * is(has(p, 'deepshade'), 0.85);
-  p.dmgMul = hc * is(has(p, 'glass'), 1.3) * is(has(p, 'potent'), 0.85) * is(R === 'juggernaut', 0.8) * is(has(p, 'unstable'), 0.92);
+  p.dmgMul = hc * is(has(p, 'glass'), 1.3) * is(has(p, 'potent'), 0.85) * is(R === 'juggernaut', 0.8) * is(has(p, 'unstable'), 0.92) * is(has(p, 'rip'), 0.92);
   p.abCdMul = is(R === 'trapper', 0.6);
   // Crossbowman: reload time, reach and how many bolts they hold
   p.xbowReload = XBOW_RELOAD * is(has(p, 'windlass'), 0.75) * is(has(p, 'longstock'), 1.15) * is(has(p, 'tribolt'), XB3.reload) / p.drawMul;
@@ -1606,7 +1606,12 @@ function bloodHeal(w, p, dealt) {
   const spare = heal - used;
   if (spare > 0.05 && has(p, 'transfusion')) {
     const mate = w.players.filter(q => q !== p && q.team === p.team && !q.dead && q.hp < q.maxHp && Math.hypot(q.x - p.x, q.y - p.y) < 300).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
-    if (mate) { mate.hp = Math.min(mate.maxHp, mate.hp + spare); ev(w, { e: 'transfuse', from: p.id, to: mate.id }); }
+    p.transAcc = Math.min(30, (p.transAcc || 0) + spare);
+    if (mate && p.transAcc >= 3) {
+      const a = Math.atan2(mate.y - p.y, mate.x - p.x) + (Math.random() < 0.5 ? 1 : -1) * 1.1; // it leaves at an angle and curls in
+      w.zones.push({ id: w.nid++, ty: 'orb', x: p.x, y: p.y, vx: Math.cos(a) * 260, vy: Math.sin(a) * 260, r: 7, t: 3, team: p.team, owner: p.id, to: mate.id, amt: p.transAcc });
+      ev(w, { e: 'transfuse', from: p.id, to: mate.id }); p.transAcc = 0;
+    }
   }
   if (emp) for (const q of w.players) if (q !== p && q.team === p.team && !q.dead && Math.hypot(q.x - p.x, q.y - p.y) < 220) q.hp = Math.min(q.maxHp, q.hp + dealt * 0.2);
 }
@@ -2540,6 +2545,12 @@ function updateZones(w, dt) {
         if (q.team === z.team || q.dead || q.falling > 0 || q.dashT > 0 || Math.hypot(q.x - z.x, q.y - z.y) > z.r + q.r * 0.5) continue;
         q.caltT = 0.15; hurt(w, q, 5 * dt, 0, 0, 'caltrops', z.owner, true);
       }
+    } else if (z.ty === 'orb') { // Transfusion's blood orb: homes in on its teammate, heals them on arrival
+      const q = w.players.find(o => o.id === z.to && !o.dead);
+      const dx = q ? q.x - z.x : 0, dy = q ? q.y - z.y : 0, d = Math.hypot(dx, dy) || 1;
+      if (!q) z.t = 0;
+      else { z.vx += dx / d * 1900 * dt; z.vy += dy / d * 1900 * dt; const sp = Math.hypot(z.vx, z.vy), mx = 480; if (sp > mx) { z.vx *= mx / sp; z.vy *= mx / sp; } z.x += z.vx * dt; z.y += z.vy * dt; }
+      if (q && d < q.r + 8) { q.hp = Math.min(q.maxHp, q.hp + z.amt * (q.poisonT > 0 ? 0.5 : 1)); ev(w, { e: 'orbHeal', id: q.id, x: r1(q.x), y: r1(q.y), v: Math.round(z.amt) }); z.t = 0; }
     } else if (z.ty === 'eclipse') {
       for (const q of w.players) {
         if (q.team === z.team || q.dead || q.falling > 0 || Math.hypot(q.x - z.x, q.y - z.y) > z.r + q.r * 0.5) continue;
