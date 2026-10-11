@@ -958,6 +958,9 @@ async function oauth(req, res, url) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   if (url.pathname === '/health') { res.writeHead(200); return res.end('ok'); }
+  // country flags for the game canvas, served from here so the canvas stays same-origin (a picture from another site
+  // would stop the kill cam being recorded as a video); fetched once from flagcdn and kept in memory
+  { const fm = url.pathname.match(/^\/flag\/([a-z]{2})\.png$/); if (fm) { serveFlag(fm[1], res); return; } }
   // with PUBLIC_URL set (e.g. https://bowfall.com), anyone arriving at another address (the onrender.com one, www.) is sent there,
   // so sign-ins and links always use one address
   const pub = process.env.PUBLIC_URL && new URL(process.env.PUBLIC_URL);
@@ -1026,6 +1029,14 @@ async function clanView(c, me) {
   const v = CLANS.view(c, me), us = await store.usersByIds(v.members.map(m => m.id)).catch(() => []);
   for (const m of v.members) { const u = live.get(m.id) || us.find(x => x.id === m.id); if (u) { const k = u.career || {}; m.elo = Math.round(k.elo || ELO_START); m.eloT = Math.round(k.eloT != null ? k.eloT : k.elo || ELO_START); m.lv = levelOf(k).lv; m.cc = flagOf(u); m.on = social.isOnline(m.id) ? 1 : 0; } }
   return v;
+}
+const FLAGS = new Map(); // cc -> Buffer (or a pending Promise)
+function serveFlag(cc, res) {
+  const send = buf => { if (!buf) { res.writeHead(404); return res.end(); } res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=2592000, immutable' }); res.end(buf); };
+  const have = FLAGS.get(cc); if (Buffer.isBuffer(have)) return send(have);
+  const job = have || fetch(`https://flagcdn.com/20x15/${cc}.png`).then(r => (r.ok ? r.arrayBuffer() : null)).then(b => { const buf = b ? Buffer.from(b) : null; if (buf) FLAGS.set(cc, buf); else FLAGS.delete(cc); return buf; }).catch(() => { FLAGS.delete(cc); return null; });
+  if (!have) FLAGS.set(cc, job);
+  job.then(send);
 }
 const social = require('./lib/social')({ season: () => SEASON.info(), rejoinFor: ws => { const r = awayRoomOf(ws); return r ? { code: r.code, mode: r.ranked.mode } : null; }, lookOf, seedRating: (u, h) => { if (seedRating(u, h)) markDirty(u); }, rankedMaps: () => rankedMaps(), statusOf: u => E.statusOf(u), store, track, markDirty, send, Sim, levelOf, flagOf, ELO_START, ratingOf, keyFor, rooms, createRoom, sendRoom, sysChat, broadcast, live, loadGuest });
 

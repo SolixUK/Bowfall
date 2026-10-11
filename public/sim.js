@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.48.0';
+const VERSION = '0.48.4';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -264,11 +264,11 @@ let CFG = { opt: optDefaults() };
 // Map effects: each match can roll one, shown in the lobby before anyone picks, so archetypes can be chosen round it.
 // mul: how it changes a rule (the same names as OPTIONS); regen: health a second for everyone; bounty: more power-ups
 const MUTATORS = {
-  vigil:  { name: "Warden's Vigil",   color: '#7dff8a', desc: 'Every archer slowly heals: 2.5 health a second, all the time. Burst them down, or dig in and outlast.', regen: 2.5 },
+  vigil:  { name: "Warden's Vigil",   color: '#7dff8a', desc: 'Every archer heals 2.5 health a second, all the time.', regen: 2.5 },
   gale:   { name: 'Gale Winds',       color: '#a8e6ff', desc: 'Everyone moves 20% faster and every shot flies 20% faster.', mul: { mspeed: 1.2, aspeed: 1.2 } },
-  hide:   { name: "Juggernaut's Hide", color: '#c9a878', desc: 'Every archer takes 30% less damage from arrows. Knockback is what wins here.', mul: { dmg: 0.7 } },
+  hide:   { name: "Juggernaut's Hide", color: '#c9a878', desc: 'Every archer takes 30% less damage from arrows.', mul: { dmg: 0.7 } },
   bounty: { name: 'Bounty Hunt',      color: '#ffcf5a', desc: 'Power-ups appear about twice as often, up to three at once, all over the arena.', bounty: true },
-  force:  { name: 'Heavy Blows',      color: '#ff8a3d', desc: 'Everything knocks back 35% harder. Mind the edges.', mul: { kb: 1.35 } },
+  force:  { name: 'Heavy Blows',      color: '#ff8a3d', desc: 'Everything knocks back 35% harder.', mul: { kb: 1.35 } },
   quick:  { name: 'Quickdraw',        color: '#fff27a', desc: 'Every bow draws 30% faster and crossbows reload 30% faster.', mul: { draw: 1.3 } },
   surge:  { name: 'Arcane Surge',     color: '#c7b3ff', desc: 'Abilities recharge 40% faster.', mul: { abcd: 0.6 } },
   bounce: { name: 'Ricochet Arena',   color: '#8affc1', desc: 'Every arrow bounces once off walls and boulders.', bounce: true },
@@ -3404,6 +3404,26 @@ function shotSpeed(p, c) {
 const shotDrag = p => p.railArmed ? 0.001 : p.role === 'ninja' ? 2.4 : p.role === 'crossbow' ? 0.12 : has(p, 'longbow') ? 0.2 : 0.45;
 // the furthest a bot's shots are worth taking
 // is this shot about to hit p? (within about a quarter of a second, passing close enough)
+// Attention: a bot watches the enemy it's fighting, glances at the others now and then, and notices anyone close by.
+// Shots and draws from someone it isn't watching go unnoticed, as they would for a person.
+function botAware(p, q) {
+  if (!p.ai || !q) return true;
+  const ai = p.ai;
+  return ai.focus == null || q.id === ai.focus || (ai.glance && ai.glance.id === q.id && ai.glance.t > 0) || Math.hypot(q.x - p.x, q.y - p.y) < 170;
+}
+const sees = (p, a) => !a.own || botAware(p, a.own) || Math.hypot(a.x - p.x, a.y - p.y) < 110; // (an arrow already this close is seen, but there's no time to act)
+function botAttention(p, foes, T, dt) {
+  const ai = p.ai, D = botD(p);
+  ai.focus = T ? T.id : null;
+  if (ai.glance) { ai.glance.t -= dt; if (ai.glance.t <= 0) ai.glance = null; }
+  ai.lookT = (ai.lookT || 0) - dt;
+  if (ai.lookT <= 0) {
+    // a look round at someone else: sharper players look round more often, but never see everything at once
+    const others = foes.filter(q => q !== T && Math.hypot(q.x - p.x, q.y - p.y) < 1000);
+    if (others.length && !ai.glance) ai.glance = { id: others[Math.floor(Math.random() * others.length)].id, t: rand(0.3, 0.5) };
+    ai.lookT = rand(0.9, 1.9) * (1.35 - 0.5 * (D.iq || 0)) * (1.3 - 0.3 * clamp(1 - D.react, 0, 1));
+  }
+}
 function shotAt(a, p) {
   const dx = p.x - a.x, dy = p.y - a.y, v2 = a.vx * a.vx + a.vy * a.vy; if (!v2) return false;
   const t = (dx * a.vx + dy * a.vy) / v2; if (t <= 0 || t > 0.28) return false;
@@ -3503,7 +3523,7 @@ function botCloseIn(w, p, T, dT, reach, D, dt) {
 function incoming(w, p, horizon) {
   let hit = null;
   for (const a of w.arrows) {
-    if (a.team === p.team || a.stuck > 0) continue;
+    if (a.team === p.team || a.stuck > 0 || !sees(p, a)) continue;
     const rx = p.x - a.x, ry = p.y - a.y, v2 = a.vx * a.vx + a.vy * a.vy || 1;
     const t = (rx * a.vx + ry * a.vy) / v2;
     if (t <= 0 || t > horizon) continue;
@@ -3547,6 +3567,7 @@ function botThink(w, p, dt) {
     ai.target = T ? T.id : null;
     ai.retarget = rand(0.8, 1.6);
   }
+  botAttention(p, foes, T, dt);
 
   // --- movement goal
   let gx = 0, gy = 0;
@@ -3673,7 +3694,7 @@ function botThink(w, p, dt) {
       }
     }
   } else for (const a of w.arrows) {
-    if (a.team === p.team || a.stuck > 0) continue;
+    if (a.team === p.team || a.stuck > 0 || !sees(p, a)) continue;
     const rx = p.x - a.x, ry = p.y - a.y, v2 = a.vx * a.vx + a.vy * a.vy || 1;
     const t = (rx * a.vx + ry * a.vy) / v2;
     if (t <= 0 || t > 0.4) continue;
@@ -3834,7 +3855,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
         use = !!T && dT < 190 && angOff(Math.atan2(T.y - p.y, T.x - p.x), p.input.aim) < 0.4;
         if (!use) { // or blow away an arrow about to hit us
           const inc = w.arrows.find(a => {
-            if (a.team === p.team || a.stuck > 0) return false;
+            if (a.team === p.team || a.stuck > 0 || !sees(p, a)) return false;
             const rx = p.x - a.x, ry = p.y - a.y, v2 = a.vx * a.vx + a.vy * a.vy || 1, t = (rx * a.vx + ry * a.vy) / v2;
             return t > 0 && t < 0.3 && Math.hypot(rx - a.vx * t, ry - a.vy * t) < p.r + 10 && Math.hypot(rx, ry) < 240;
           });
@@ -3864,8 +3885,8 @@ function botAbilities(w, p, T, dT, foes, dt) {
       case 'fortify': use = p.hp < p.maxHp * 0.5 && foes.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 380); break;
       case 'hairtrig':
       case 'bladeguard':
-      case 'parry': use = (foes.some(q => q.drawing && q.charge > 0.55 && Math.hypot(q.x - p.x, q.y - p.y) < 650 && angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.18)
-        || w.arrows.some(a => a.team !== p.team && !a.stuck && shotAt(a, p))) && Math.random() < dt * 6; break; // a bow being drawn at them, or a shot (shuriken, bolt) already on its way
+      case 'parry': use = (foes.some(q => botAware(p, q) && q.drawing && q.charge > 0.55 && Math.hypot(q.x - p.x, q.y - p.y) < 650 && angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.18)
+        || w.arrows.some(a => a.team !== p.team && !a.stuck && sees(p, a) && shotAt(a, p))) && Math.random() < dt * 6; break; // a bow being drawn at them, or a shot (shuriken, bolt) already on its way
       case 'seeker': use = chg > 0.5 && !!T && dT > 220; break;
       case 'rocket': use = chg > 0.3 && !!T && dT > 160 && dT < 700 && !p.rocketArmed; break; // too slow to be worth it from across the arena
       case 'trick': use = chg > 0.55 && !!T && dT > 200 && !p.trickArmed; break;
@@ -3908,7 +3929,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
       case 'stealth': use = !!T && ((dT > 260 && dT < 650 && p.hp > p.maxHp * 0.4) || (p.hp < p.maxHp * 0.35 && dT < 300)); break;
       case 'deflect': {
         const inc = w.arrows.some(a => {
-          if (a.team === p.team || a.stuck > 0) return false;
+          if (a.team === p.team || a.stuck > 0 || !sees(p, a)) return false;
           const rx = p.x - a.x, ry = p.y - a.y, v2 = a.vx * a.vx + a.vy * a.vy || 1, t = (rx * a.vx + ry * a.vy) / v2;
           return t > 0 && t < 0.35 && Math.hypot(rx - a.vx * t, ry - a.vy * t) < p.r + 10;
         });
@@ -3919,7 +3940,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
         if (T && dT < 500 && dT > 120) { p.input.tx = T.x + T.vx * 0.7; p.input.ty = T.y + T.vy * 0.7; use = true; }
         break;
       case 'wall': {
-        const threat = foes.find(q => q.drawing && q.charge > 0.6 && Math.hypot(q.x - p.x, q.y - p.y) < 600 && angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.2);
+        const threat = foes.find(q => botAware(p, q) && q.drawing && q.charge > 0.6 && Math.hypot(q.x - p.x, q.y - p.y) < 600 && angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.2);
         if (threat) { p.input.aim = Math.atan2(threat.y - p.y, threat.x - p.x); use = true; }
         break;
       }

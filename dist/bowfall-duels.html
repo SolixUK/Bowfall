@@ -105,6 +105,16 @@
   .death .big { font: 700 34px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .01em; text-shadow: 0 4px 24px rgba(0,0,0,.8); }
   .death .small { color: var(--text); font: 600 17px 'Titillium Web', 'Segoe UI', sans-serif; line-height: 1.5; padding: 8px 18px; border-radius: 2px; background: rgba(9,18,11,.7); }
   .death .small .dim { color: var(--muted); font-weight: 500; font-size: 14px; }
+  .mutann { position: absolute; left: 50%; top: calc(27% + 112px); transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; width: max-content; max-width: min(92vw, 360px); }
+  .mutann .mp { display: inline-flex; align-items: center; gap: 9px; padding: 6px 14px 6px 8px; border-radius: 16px; max-width: 100%; box-sizing: border-box; text-align: left; line-height: 1.15; border: 1px solid var(--mc); background: linear-gradient(90deg, color-mix(in srgb, var(--mc) 30%, rgba(10,14,10,.85)), rgba(10,14,10,.75)); color: #fff; font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .03em; box-shadow: 0 0 22px color-mix(in srgb, var(--mc) 45%, transparent); position: relative; overflow: hidden;
+    opacity: 0; transform: translateY(14px) scale(.9); animation: mutin .45s cubic-bezier(.2,1.4,.4,1) forwards, mutout .5s ease-in forwards; animation-delay: var(--d), calc(var(--d) + 3.4s); }
+  .mutann .mp i { font-style: normal; flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--mc); color: #111; font-size: 15px; animation: mutspin .9s ease-out; animation-delay: var(--d); }
+  .mutann .mp small { font: 600 11px 'Titillium Web', sans-serif; opacity: .85; letter-spacing: 0; display: block; white-space: normal; }
+  .mutann .mp::after { content: ''; position: absolute; top: 0; bottom: 0; width: 40%; left: -50%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent); animation: mutshine .9s ease-out forwards; animation-delay: calc(var(--d) + .2s); }
+  @keyframes mutin { to { opacity: 1; transform: none; } } @keyframes mutout { to { opacity: 0; transform: translateY(-8px); } }
+  @keyframes mutshine { to { left: 120%; } } @keyframes mutspin { from { transform: rotate(-200deg) scale(.4); } to { transform: none; } }
+  @media (max-width: 600px) { .mutann { top: auto; bottom: 118px; } }
+  @media (prefers-reduced-motion: reduce) { .mutann .mp, .mutann .mp i, .mutann .mp::after { animation-duration: .01s; } }
   .banner { position: absolute; left: 50%; top: 27%; white-space: nowrap; transform: translate(-50%, -50%); text-align: center; pointer-events: none; font: 700 clamp(30px, 6vw, 56px) 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .01em; text-shadow: 0 4px 30px rgba(0,0,0,.8); opacity: 0; }
   .banner.show { animation: ban 1.8s ease-out forwards; }
   .banner small { display: block; font: 500 14px 'Titillium Web', 'Segoe UI', sans-serif; letter-spacing: .2em; color: var(--gold); margin-top: 6px; }
@@ -115,6 +125,25 @@
   .replay-badge .rec { width: 10px; height: 10px; border-radius: 50%; background: #ff4d5e; animation: recb 1s steps(2) infinite; }
   @keyframes recb { 50% { opacity: .2; } }
   .hurtfx { position: absolute; inset: 0; pointer-events: none; opacity: 0; box-shadow: inset 0 0 140px 30px rgba(255,40,40,.55); }
+  /* big announcements between rounds (streaks, shutdowns, empowerment): a slammed-in title on a coloured ribbon */
+  .callouts { position: absolute; left: 0; right: 0; top: 9%; display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: none; z-index: 6; }
+  .co { --nc: #ffcf5a; position: relative; display: flex; flex-direction: column; align-items: center; padding: 6px 70px 8px; text-align: center; max-width: 96vw; box-sizing: border-box; animation: coout .45s ease-in forwards; animation-delay: 2.9s; }
+  .co::before { content: ''; position: absolute; inset: 14% 0 10%; z-index: -1; transform: skewX(-14deg) scaleX(0); background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--nc) 34%, rgba(8,12,9,.9)) 22%, rgba(8,12,9,.82) 50%, color-mix(in srgb, var(--nc) 34%, rgba(8,12,9,.9)) 78%, transparent); border-top: 2px solid color-mix(in srgb, var(--nc) 80%, transparent); border-bottom: 2px solid color-mix(in srgb, var(--nc) 80%, transparent); -webkit-mask: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); mask: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); animation: coband .35s cubic-bezier(.2,.9,.3,1) forwards; }
+  .co-k { font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.7), 0 0 12px color-mix(in srgb, var(--nc) 70%, transparent); opacity: 0; animation: cofade .3s ease-out .12s forwards; }
+  .co-t { position: relative; font: 700 50px/1 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .05em; text-transform: uppercase; color: var(--nc); background: linear-gradient(180deg, #fff 8%, color-mix(in srgb, var(--nc) 55%, #fff) 42%, var(--nc) 58%, color-mix(in srgb, var(--nc) 70%, #000) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; -webkit-text-stroke: 1.5px rgba(10,6,0,.85); paint-order: stroke fill; filter: drop-shadow(0 3px 0 rgba(0,0,0,.75)) drop-shadow(0 0 16px color-mix(in srgb, var(--nc) 75%, transparent)); animation: coslam .5s cubic-bezier(.2,1.5,.4,1) both; }
+  .co-t::after { content: attr(data-t); position: absolute; inset: 0; -webkit-text-stroke: 0; background: linear-gradient(100deg, transparent 35%, rgba(255,255,255,.95) 50%, transparent 65%) no-repeat; background-size: 250% 100%; background-position: 160% 0; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: coshine 1s ease-out .45s forwards; }
+  .co-s { margin-top: 3px; font: 600 13px 'Titillium Web', 'Segoe UI', sans-serif; color: #e9efe6; text-shadow: 0 1px 4px rgba(0,0,0,.9); opacity: 0; animation: cofade .35s ease-out .3s forwards; max-width: 520px; }
+  .co.t2 .co-t { font-size: 60px; } .co.t3 .co-t { font-size: 70px; animation: coslam .5s cubic-bezier(.2,1.5,.4,1) both, coshake .35s linear .45s; }
+  .co.t3::after { content: ''; position: absolute; left: 50%; top: 50%; width: 120px; height: 120px; margin: -60px; border-radius: 50%; border: 3px solid var(--nc); z-index: -1; animation: coring .7s ease-out .1s forwards; opacity: 0; }
+  @keyframes coband { to { transform: skewX(-14deg) scaleX(1); } }
+  @keyframes coslam { 0% { opacity: 0; transform: scale(2.4); letter-spacing: .4em; } 55% { opacity: 1; transform: scale(.94); } 100% { opacity: 1; transform: none; } }
+  @keyframes coshine { to { background-position: -60% 0; } }
+  @keyframes cofade { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+  @keyframes coshake { 0%,100% { transform: none; } 20% { transform: translate(-3px,1px) rotate(-1deg); } 40% { transform: translate(3px,-1px) rotate(1deg); } 60% { transform: translate(-2px,0); } 80% { transform: translate(2px,1px); } }
+  @keyframes coring { 0% { opacity: .9; transform: scale(.3); } 100% { opacity: 0; transform: scale(4.5); } }
+  @keyframes coout { to { opacity: 0; transform: translateY(-10px) scale(.96); } }
+  @media (max-width: 600px) { .co { padding: 4px 30px 6px; } .co-t { font-size: 34px; } .co.t2 .co-t { font-size: 38px; } .co.t3 .co-t { font-size: 42px; } .co-k { font-size: 13px; } .co-s { font-size: 12px; } }
+  @media (prefers-reduced-motion: reduce) { .co, .co::before, .co-t, .co-t::after, .co-k, .co-s { animation-duration: .01s !important; animation-delay: 0s !important; } .co { animation: coout .3s ease-in 2.9s forwards !important; } }
   .notices { position: absolute; left: 0; right: 0; top: 11%; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
   .notice { padding: 6px 16px; border-radius: 3px; background: rgba(9,18,11,.72); border: 1px solid var(--line); font: 600 16px 'Titillium Web', 'Segoe UI', sans-serif; text-shadow: 0 2px 10px rgba(0,0,0,.7); animation: note 3s ease-out forwards; text-align: center; max-width: 92vw; }
   .notices.corner { left: 12px; right: auto; top: 72px; align-items: flex-start; gap: 3px; } body.touchmode .notices.corner { top: 50px; }
@@ -1163,9 +1192,11 @@
   <div class="countdown" id="countdown" hidden></div>
   <div class="qhelp" id="qHelp" hidden></div>
   <div class="banner" id="banner"></div>
+  <div class="mutann" id="mutAnn" aria-live="polite"></div>
   <div class="hurtfx" id="hurtFx"></div>
   <div class="replay-badge" id="replayBadge" hidden><span class="rec"></span>Kill cam</div>
   <div class="notices" id="notices"></div>
+  <div class="callouts" id="callouts" aria-live="polite"></div>
   <div class="netstats" id="netStats" hidden></div>
   <div class="coach" id="coach" hidden><span class="eyebrow" id="coachStep"></span><b id="coachText"></b><small id="coachHint"></small><div class="coachbar"><i id="coachBar"></i></div><div class="btnrow" id="coachBtns"></div><small class="coachesc">Press <kbd>Esc</kbd> (or Start on a controller) for the menu, where you can leave at any time.</small></div>
   <div class="gchat" id="gChat" hidden><div class="gchat-log" id="gChatLog"></div><input id="gChatIn" maxlength="140" placeholder="Say something… (Enter to send, Esc to cancel)" autocomplete="off" hidden><span class="gchat-hint" id="gChatHint">Enter to chat</span></div>
@@ -1702,7 +1733,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.48.0';
+const VERSION = '0.48.4';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1957,11 +1988,11 @@ let CFG = { opt: optDefaults() };
 // Map effects: each match can roll one, shown in the lobby before anyone picks, so archetypes can be chosen round it.
 // mul: how it changes a rule (the same names as OPTIONS); regen: health a second for everyone; bounty: more power-ups
 const MUTATORS = {
-  vigil:  { name: "Warden's Vigil",   color: '#7dff8a', desc: 'Every archer slowly heals: 2.5 health a second, all the time. Burst them down, or dig in and outlast.', regen: 2.5 },
+  vigil:  { name: "Warden's Vigil",   color: '#7dff8a', desc: 'Every archer heals 2.5 health a second, all the time.', regen: 2.5 },
   gale:   { name: 'Gale Winds',       color: '#a8e6ff', desc: 'Everyone moves 20% faster and every shot flies 20% faster.', mul: { mspeed: 1.2, aspeed: 1.2 } },
-  hide:   { name: "Juggernaut's Hide", color: '#c9a878', desc: 'Every archer takes 30% less damage from arrows. Knockback is what wins here.', mul: { dmg: 0.7 } },
+  hide:   { name: "Juggernaut's Hide", color: '#c9a878', desc: 'Every archer takes 30% less damage from arrows.', mul: { dmg: 0.7 } },
   bounty: { name: 'Bounty Hunt',      color: '#ffcf5a', desc: 'Power-ups appear about twice as often, up to three at once, all over the arena.', bounty: true },
-  force:  { name: 'Heavy Blows',      color: '#ff8a3d', desc: 'Everything knocks back 35% harder. Mind the edges.', mul: { kb: 1.35 } },
+  force:  { name: 'Heavy Blows',      color: '#ff8a3d', desc: 'Everything knocks back 35% harder.', mul: { kb: 1.35 } },
   quick:  { name: 'Quickdraw',        color: '#fff27a', desc: 'Every bow draws 30% faster and crossbows reload 30% faster.', mul: { draw: 1.3 } },
   surge:  { name: 'Arcane Surge',     color: '#c7b3ff', desc: 'Abilities recharge 40% faster.', mul: { abcd: 0.6 } },
   bounce: { name: 'Ricochet Arena',   color: '#8affc1', desc: 'Every arrow bounces once off walls and boulders.', bounce: true },
@@ -5097,6 +5128,26 @@ function shotSpeed(p, c) {
 const shotDrag = p => p.railArmed ? 0.001 : p.role === 'ninja' ? 2.4 : p.role === 'crossbow' ? 0.12 : has(p, 'longbow') ? 0.2 : 0.45;
 // the furthest a bot's shots are worth taking
 // is this shot about to hit p? (within about a quarter of a second, passing close enough)
+// Attention: a bot watches the enemy it's fighting, glances at the others now and then, and notices anyone close by.
+// Shots and draws from someone it isn't watching go unnoticed, as they would for a person.
+function botAware(p, q) {
+  if (!p.ai || !q) return true;
+  const ai = p.ai;
+  return ai.focus == null || q.id === ai.focus || (ai.glance && ai.glance.id === q.id && ai.glance.t > 0) || Math.hypot(q.x - p.x, q.y - p.y) < 170;
+}
+const sees = (p, a) => !a.own || botAware(p, a.own) || Math.hypot(a.x - p.x, a.y - p.y) < 110; // (an arrow already this close is seen, but there's no time to act)
+function botAttention(p, foes, T, dt) {
+  const ai = p.ai, D = botD(p);
+  ai.focus = T ? T.id : null;
+  if (ai.glance) { ai.glance.t -= dt; if (ai.glance.t <= 0) ai.glance = null; }
+  ai.lookT = (ai.lookT || 0) - dt;
+  if (ai.lookT <= 0) {
+    // a look round at someone else: sharper players look round more often, but never see everything at once
+    const others = foes.filter(q => q !== T && Math.hypot(q.x - p.x, q.y - p.y) < 1000);
+    if (others.length && !ai.glance) ai.glance = { id: others[Math.floor(Math.random() * others.length)].id, t: rand(0.3, 0.5) };
+    ai.lookT = rand(0.9, 1.9) * (1.35 - 0.5 * (D.iq || 0)) * (1.3 - 0.3 * clamp(1 - D.react, 0, 1));
+  }
+}
 function shotAt(a, p) {
   const dx = p.x - a.x, dy = p.y - a.y, v2 = a.vx * a.vx + a.vy * a.vy; if (!v2) return false;
   const t = (dx * a.vx + dy * a.vy) / v2; if (t <= 0 || t > 0.28) return false;
@@ -5196,7 +5247,7 @@ function botCloseIn(w, p, T, dT, reach, D, dt) {
 function incoming(w, p, horizon) {
   let hit = null;
   for (const a of w.arrows) {
-    if (a.team === p.team || a.stuck > 0) continue;
+    if (a.team === p.team || a.stuck > 0 || !sees(p, a)) continue;
     const rx = p.x - a.x, ry = p.y - a.y, v2 = a.vx * a.vx + a.vy * a.vy || 1;
     const t = (rx * a.vx + ry * a.vy) / v2;
     if (t <= 0 || t > horizon) continue;
@@ -5240,6 +5291,7 @@ function botThink(w, p, dt) {
     ai.target = T ? T.id : null;
     ai.retarget = rand(0.8, 1.6);
   }
+  botAttention(p, foes, T, dt);
 
   // --- movement goal
   let gx = 0, gy = 0;
@@ -5366,7 +5418,7 @@ function botThink(w, p, dt) {
       }
     }
   } else for (const a of w.arrows) {
-    if (a.team === p.team || a.stuck > 0) continue;
+    if (a.team === p.team || a.stuck > 0 || !sees(p, a)) continue;
     const rx = p.x - a.x, ry = p.y - a.y, v2 = a.vx * a.vx + a.vy * a.vy || 1;
     const t = (rx * a.vx + ry * a.vy) / v2;
     if (t <= 0 || t > 0.4) continue;
@@ -5527,7 +5579,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
         use = !!T && dT < 190 && angOff(Math.atan2(T.y - p.y, T.x - p.x), p.input.aim) < 0.4;
         if (!use) { // or blow away an arrow about to hit us
           const inc = w.arrows.find(a => {
-            if (a.team === p.team || a.stuck > 0) return false;
+            if (a.team === p.team || a.stuck > 0 || !sees(p, a)) return false;
             const rx = p.x - a.x, ry = p.y - a.y, v2 = a.vx * a.vx + a.vy * a.vy || 1, t = (rx * a.vx + ry * a.vy) / v2;
             return t > 0 && t < 0.3 && Math.hypot(rx - a.vx * t, ry - a.vy * t) < p.r + 10 && Math.hypot(rx, ry) < 240;
           });
@@ -5557,8 +5609,8 @@ function botAbilities(w, p, T, dT, foes, dt) {
       case 'fortify': use = p.hp < p.maxHp * 0.5 && foes.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 380); break;
       case 'hairtrig':
       case 'bladeguard':
-      case 'parry': use = (foes.some(q => q.drawing && q.charge > 0.55 && Math.hypot(q.x - p.x, q.y - p.y) < 650 && angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.18)
-        || w.arrows.some(a => a.team !== p.team && !a.stuck && shotAt(a, p))) && Math.random() < dt * 6; break; // a bow being drawn at them, or a shot (shuriken, bolt) already on its way
+      case 'parry': use = (foes.some(q => botAware(p, q) && q.drawing && q.charge > 0.55 && Math.hypot(q.x - p.x, q.y - p.y) < 650 && angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.18)
+        || w.arrows.some(a => a.team !== p.team && !a.stuck && sees(p, a) && shotAt(a, p))) && Math.random() < dt * 6; break; // a bow being drawn at them, or a shot (shuriken, bolt) already on its way
       case 'seeker': use = chg > 0.5 && !!T && dT > 220; break;
       case 'rocket': use = chg > 0.3 && !!T && dT > 160 && dT < 700 && !p.rocketArmed; break; // too slow to be worth it from across the arena
       case 'trick': use = chg > 0.55 && !!T && dT > 200 && !p.trickArmed; break;
@@ -5601,7 +5653,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
       case 'stealth': use = !!T && ((dT > 260 && dT < 650 && p.hp > p.maxHp * 0.4) || (p.hp < p.maxHp * 0.35 && dT < 300)); break;
       case 'deflect': {
         const inc = w.arrows.some(a => {
-          if (a.team === p.team || a.stuck > 0) return false;
+          if (a.team === p.team || a.stuck > 0 || !sees(p, a)) return false;
           const rx = p.x - a.x, ry = p.y - a.y, v2 = a.vx * a.vx + a.vy * a.vy || 1, t = (rx * a.vx + ry * a.vy) / v2;
           return t > 0 && t < 0.35 && Math.hypot(rx - a.vx * t, ry - a.vy * t) < p.r + 10;
         });
@@ -5612,7 +5664,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
         if (T && dT < 500 && dT > 120) { p.input.tx = T.x + T.vx * 0.7; p.input.ty = T.y + T.vy * 0.7; use = true; }
         break;
       case 'wall': {
-        const threat = foes.find(q => q.drawing && q.charge > 0.6 && Math.hypot(q.x - p.x, q.y - p.y) < 600 && angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.2);
+        const threat = foes.find(q => botAware(p, q) && q.drawing && q.charge > 0.6 && Math.hypot(q.x - p.x, q.y - p.y) < 600 && angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.2);
         if (threat) { p.input.aim = Math.atan2(threat.y - p.y, threat.x - p.x); use = true; }
         break;
       }
@@ -6410,7 +6462,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.48.0';
+const PAGE_VERSION = '0.48.4';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -6505,7 +6557,24 @@ function howSentence(how, k, v, metres) {
 const howText = (how, kn, vn, meK, meV, metres) => howSentence(how, kn ? { name: kn, you: meK } : null, { name: vn, you: meV }, metres);
 const EL_COL = { frost: '#bfe8ff', flame: '#ff8a3d', storm: '#fff27a', poison: '#9be564', stone: '#d8b98a', void: '#c3a2ff', shadow: '#aab0e0', blood: '#ff4d63' };
 const EL_RGB = { frost: '159,220,255', flame: '255,138,61', storm: '255,242,122', poison: '155,229,100', stone: '201,168,120', void: '180,140,255', shadow: '142,149,201', blood: '224,52,74' };
-const STREAK_TXT = { 3: 'is on a rampage', 5: 'is unstoppable', 7: 'is godlike', 10: 'is legendary' };
+const STREAK_TXT = { 3: 'is on a rampage', 5: 'is dominating', 7: 'is unstoppable', 10: 'is legendary' };
+const STREAK_WORD = { 3: 'Rampage', 5: 'Dominating', 7: 'Unstoppable', 10: 'Legendary' };
+// a big announcement between rounds; mid-fight it falls back to the small corner notice so the arena stays clear
+function callout({ kicker = '', title, sub = '', color = '#ffcf5a', tier = 1, plain }) {
+  const box = $('callouts');
+  if (!box || (mode !== 'menu' && view && view.m.ph === 'play')) { notice(plain, true, color); return false; }
+  const d = document.createElement('div');
+  d.className = 'co t' + tier; d.style.setProperty('--nc', color);
+  d.innerHTML = (kicker ? `<div class="co-k">${kicker}</div>` : '') + `<div class="co-t" data-t="${esc(title)}">${esc(title)}</div>` + (sub ? `<div class="co-s">${sub}</div>` : '');
+  box.appendChild(d);
+  while (box.children.length > 2) box.firstChild.remove();
+  setTimeout(() => d.remove(), 3400);
+  // whoosh in, a thump as it lands, a bright ring when it shines
+  nz(0.28, 0.035 + tier * 0.01, 'bandpass', 600, 3800, 2);
+  setTimeout(() => { tone(90 + tier * 8, 0.22, 'sine', 0.09 + tier * 0.02, -40); nz(0.12, 0.05, 'lowpass', 900, 200, 1); }, 230);
+  setTimeout(() => tone(1760 + tier * 220, 0.35, 'triangle', 0.02), 520);
+  return true;
+}
 let myDeath = null;
 function notice(html, big = false, color = '') {
   const box = $('notices'); if (!box) return;
@@ -8635,8 +8704,8 @@ function connect(joinMsg) {
 // ================= ranked: the draft before a matchmade game =================
 // The map is already drawn; everyone picks an element and role before the timer runs out, then the match starts.
 // this match's map effect, in the lobby and the ranked draft (so archetypes can be picked round it), and as a chip in play
-function mutHtml(k) { const M = Sim.MUTATORS[k]; return M ? `<span class="mutl">Map effect this match</span><b>${esc(M.name)}</b> · ${esc(M.desc)}` : ''; }
-function showMut(el, k) { const M = Sim.MUTATORS[k]; el.hidden = !M; if (M) { el.style.setProperty('--mc', M.color); el.innerHTML = mutHtml(k); } }
+function mutHtml(mut) { const ks = Sim.mutKeys(mut); if (!ks.length) return ''; return `<span class="mutl">Map effect${ks.length > 1 ? 's' : ''} this match</span>` + ks.map(k => { const M = Sim.MUTATORS[k]; return `<b>${esc(M.name)}</b> · ${esc(M.desc)}`; }).join('<br>'); }
+function showMut(el, mut) { const ks = Sim.mutKeys(mut); el.hidden = !ks.length; if (ks.length) { el.style.setProperty('--mc', Sim.MUTATORS[ks[0]].color); el.innerHTML = mutHtml(mut); } }
 function renderDraft(v) {
   setC('dfMut', v.m.mut || '', () => showMut($('dfMut'), v.m.mut));
   const me = v.p.find(p => p.id === myId), R = roomInfo || {};
@@ -10638,6 +10707,14 @@ $('resLeaveBtn').onclick = toMenu;
 $('resFindBtn').onclick = toMenu;
 $('rematchBtn').onclick = () => act({ t: 'restart' });
 
+// the map effects, announced at the start of each game: a pill each, sliding in with a chime
+const MUT_ICON = { vigil: '✚', gale: '≈', hide: '◆', bounty: '★', force: '➜', quick: '➶', surge: '✦', bounce: '↺' };
+function announceMuts(mut) {
+  const ks = Sim.mutKeys(mut), box = $('mutAnn'); if (!ks.length) return;
+  box.innerHTML = ks.map((k, i) => { const M = Sim.MUTATORS[k]; return `<span class="mp" style="--mc:${M.color};--d:${(i * 0.35).toFixed(2)}s"><i>${MUT_ICON[k] || '✦'}</i><span>${esc(M.name)}<small>${esc(M.desc)}</small></span></span>`; }).join('');
+  box.querySelectorAll('.mp').forEach(el => { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; });
+  ks.forEach((k, i) => setTimeout(() => { os('sine', 520, 1040, 0.22, 0.03); setTimeout(() => tone(1320 + i * 220, 0.18, 'triangle', 0.025), 120); nz(0.3, 0.02, 'highpass', 4000, 8000, 1); }, i * 350));
+}
 function banner(title, sub = '') {
   const b = $('banner');
   b.innerHTML = esc(title) + (sub ? `<small>${esc(sub)}</small>` : '');
@@ -10726,7 +10803,7 @@ const medalsHtml = (sc, size) => (Array.isArray(sc) && sc.length ? `<span class=
 const flagImgs = {};
 function flagImg(cc) {
   cc = String(cc || '').toLowerCase(); if (!FLAG_RE.test(cc) || window.BOWFALL_OFFLINE) return null;
-  let im = flagImgs[cc]; if (!im) { im = flagImgs[cc] = new Image(); im.src = flagUrl(cc); }
+  let im = flagImgs[cc]; if (!im) { im = flagImgs[cc] = new Image(); im.src = '/flag/' + cc + '.png'; } // (from our own server: a picture from another site would block recording the kill cam)
   return im.complete && im.naturalWidth ? im : null;
 }
 function drawRankBadge(x, y, lv) {
@@ -10859,6 +10936,7 @@ function eventFx(e) {
           else if (e.gm === 1) banner(decide ? 'Deciding round' : 'Round ' + e.rd, m ? `First to ${m.gtw} game${m.gtw === 1 ? '' : 's'} · ${decide ? 'it wins the match' : `Points ${m.wr}–${m.wb}`}` : '');
           else banner('Game ' + e.gm, m ? `Round ${e.rd} · Games ${m.gr}–${m.gb}` : '');
           tone(330, 0.2, 'triangle', 0.05);
+          if (m && m.mut && !m.cq) setTimeout(() => announceMuts(m.mut), 450); // this match's map effects, every game
         }
         else if (e.ph === 'play') { banner('Fight!'); tone(660, 0.25, 'triangle', 0.06); }
         else if (e.ph === 'pick') { sfx.pick(); }
@@ -11127,14 +11205,17 @@ function onCallout(e) {
     case 'streak': {
       const who = e.id === myId ? 'You are' : esc(e.n);
       const txt = e.id === myId ? STREAK_TXT[e.s].replace(/^is /, '') : STREAK_TXT[e.s];
-      notice(`${e.id === myId ? 'You are ' + txt : who + ' ' + txt}<small>${e.s} knockouts without going down</small>`, true, '#ffcf5a');
+      callout({ kicker: e.id === myId ? 'You are' : `${esc(e.n)} is`, title: STREAK_WORD[e.s] || 'On a streak', sub: `${e.s} knockouts without going down`, color: e.s >= 10 ? '#ff6ad5' : e.s >= 7 ? '#ff5a3c' : e.s >= 5 ? '#ff9f2e' : '#ffcf5a', tier: e.s >= 7 ? 3 : e.s >= 5 ? 2 : 1,
+        plain: `${e.id === myId ? 'You are ' + txt : who + ' ' + txt}<small>${e.s} knockouts without going down</small>` });
       feedAdd(`${esc(e.n)} <span class="cause">${e.s} in a row</span>`, e.id === myId);
       fanfare(e.s >= 7 ? [523, 659, 784, 1047, 1319] : e.s >= 5 ? [523, 659, 784, 1047] : [523, 659, 784], 'triangle', 0.05);
       break;
     }
     case 'shutdown':
-      if (e.emp) notice(`${me ? 'You' : esc(e.kn)} took down ${e.v === myId ? 'you' : esc(e.vn)} while empowered<small>Counts as ${Sim.EMPOWER_BONUS} toward ${me ? 'your' : 'their'} own empowerment</small>`, true, '#ff9f5a');
-      else notice(`${me ? 'You' : esc(e.kn)} ended ${e.v === myId ? 'your' : esc(e.vn) + "'s"} ${e.n}-knockout streak<small>Shut down</small>`, true, '#ff9f5a');
+      if (e.emp) callout({ kicker: `${me ? 'You' : esc(e.kn)} stopped ${e.v === myId ? 'you' : esc(e.vn)}`, title: 'Shut down', sub: `Took down an empowered archer · counts as ${Sim.EMPOWER_BONUS} toward ${me ? 'your' : 'their'} own empowerment`, color: '#5ad1ff', tier: 2,
+        plain: `${me ? 'You' : esc(e.kn)} took down ${e.v === myId ? 'you' : esc(e.vn)} while empowered<small>Counts as ${Sim.EMPOWER_BONUS} toward ${me ? 'your' : 'their'} own empowerment</small>` });
+      else callout({ kicker: `${me ? 'You' : esc(e.kn)} ended ${e.v === myId ? 'your' : esc(e.vn) + "'s"} streak`, title: 'Shut down', sub: `${e.n} knockouts in a row, over`, color: '#5ad1ff', tier: e.n >= 5 ? 2 : 1,
+        plain: `${me ? 'You' : esc(e.kn)} ended ${e.v === myId ? 'your' : esc(e.vn) + "'s"} ${e.n}-knockout streak<small>Shut down</small>` });
       feedAdd(`${esc(e.kn)} shut down ${esc(e.vn)} <span class="cause">(${e.emp ? 'empowered' : e.n + ' streak'})</span>`, me || e.v === myId);
       tone(220, 0.25, 'sawtooth', 0.05, -120); setTimeout(() => tone(440, 0.2, 'triangle', 0.05), 120);
       break;
@@ -11142,7 +11223,8 @@ function onCallout(e) {
       const E = Sim.EMPOWER[e.el] || { name: 'Empowered', desc: '' };
       const col = EL_COL[e.el] || '#ffcf5a';
       const why = e.via ? 'Took down an empowered archer' : `${e.s} knockouts in a row`;
-      notice(`${e.id === myId ? 'You are empowered' : esc(e.n) + ' is empowered'}: ${esc(E.name)}<small>${why} · ${esc(E.desc)}</small>`, true, col);
+      callout({ kicker: e.id === myId ? 'You are' : `${esc(e.n)} is`, title: 'Empowered', sub: `<b style="color:${col}">${esc(E.name)}</b> · ${why} · ${esc(E.desc)}`, color: col, tier: 2,
+        plain: `${e.id === myId ? 'You are empowered' : esc(e.n) + ' is empowered'}: ${esc(E.name)}<small>${why} · ${esc(E.desc)}</small>` });
       feedAdd(`${esc(e.n)} <span class="cause">empowered: ${esc(E.name)}</span>`, e.id === myId);
       const p = view && view.p.find(q => q.id === e.id);
       if (p) { fx.rings.push({ x: p.x, y: p.y, r: 10, life: 0, col: EL_RGB[e.el] || '255,207,90', max: 110 }); burst(p.x, p.y, col, 30, 240, 3.5); }
@@ -14607,7 +14689,7 @@ function updateHud() {
     const dots = (n, col) => Array.from({ length: m.gtw || 3 }, (_, i) => `<i class="${i < n ? 'on' : ''}" style="${i < n ? 'background:' + col : ''}"></i>`).join('');
     $('gdR').innerHTML = dots(m.gr, TEAM_COL.red); $('gdB').innerHTML = dots(m.gb, TEAM_COL.blue);
   });
-  setC('mutChip', m.mut || '', () => { const M = Sim.MUTATORS[m.mut], c = $('mutChip'); c.hidden = !M; if (M) { c.textContent = M.name; c.title = M.desc; c.style.setProperty('--mc', M.color); } });
+  setC('mutChip', m.mut || '', () => { const ks = Sim.mutKeys(m.mut), c = $('mutChip'); c.hidden = !ks.length; if (ks.length) { const Ms = ks.map(k => Sim.MUTATORS[k]); c.textContent = Ms.map(M => M.name).join(' + '); c.title = Ms.map(M => M.name + ': ' + M.desc).join('\n'); c.style.setProperty('--mc', Ms[0].color); } });
   if (m.cq) setC('rd', 'cq' + m.ph, () => { $('rdText').textContent = m.ph === 'over' ? 'Match over' : `Strongholds · first to ${m.cq.tg}`; $('rdText').title = `Each stronghold you hold scores a point a second. First to ${m.cq.tg}, or hold all four at once, wins.`; });
   else setC('rd', m.ph === 'pick' ? (m.op ? 'Opening pick' : 'Choosing upgrades') : m.ph === 'over' ? 'Match over' : (m.ptw > 1 && m.wr === m.ptw - 1 && m.wb === m.ptw - 1 ? (m.gr === m.gtw - 1 && m.gb === m.gtw - 1 ? 'Last Arrow' : `Deciding round · Game ${m.gm}`) : `Round ${m.rd} · Game ${m.gm}`), v => { $('rdText').textContent = v; $('rdText').title = `First to ${m.gtw} games wins a round. First to ${m.ptw} points wins the match.`; });
   setC('timer', m.cq ? m.cq.el : m.T, v => { $('timer').textContent = fmtT(v); });
@@ -14967,7 +15049,7 @@ function replayTick(dt) {
     R.evs = R.evs || RP.evs.filter(x => x.t >= a && x.t <= b);
     if (R.frames.length < 10) { RP.on = null; showPendingSummary(); return null; }
     // kept so it can be saved as a video or put on your profile (your own knockouts), and recorded as it plays
-    if (!CLIP.playing) { CLIP.last = R.k === myId && myId != null ? { map: MAPKEY, me: myId, k: R.k, n: R.n, segs: R.segs, frames: R.frames, evs: R.evs, at: Date.now() } : null; if (CLIP.last) { CLIP.list.push(CLIP.last); if (CLIP.list.length > 8) CLIP.list.shift(); } }
+    if (!CLIP.playing) { CLIP.last = R.k === myId && myId != null ? { map: MAPKEY, me: myId, k: R.k, n: R.n, segs: R.segs, frames: R.frames, evs: R.evs, at: Date.now(), kills: R.evs.filter(x => x.e.e === 'kill' && x.e.k === R.k).map(x => ({ how: x.e.how, vn: x.e.vn })).slice(-R.n) } : null; if (CLIP.last) { CLIP.list.push(CLIP.last); if (CLIP.list.length > 8) CLIP.list.shift(); } }
     if (CLIP.playing || CLIP.last) clipRecStart(); else CLIP.video = null;
     R.started = true; R.cur = Math.max(R.segs[0].t0, R.frames[0].t); RP.cam = null;
     $('replayBadge').innerHTML = `<span class="rec"></span>${R.n > 1 ? `${MULTI_NAME[Math.min(5, R.n)] || R.n + ' kills'}` : 'Kill cam'}`;
@@ -15056,7 +15138,15 @@ function clipRecStart() {
   } catch (e) { CLIP.rec = null; }
 }
 function clipRecStop() { try { if (CLIP.rec && CLIP.rec.state !== 'inactive') CLIP.rec.stop(); } catch (e) {} CLIP.rec = null; }
-const clipLabel = c => `${c.n > 1 ? (MULTI_NAME[Math.min(5, c.n)] || c.n + ' kills') : 'Knockout'} on ${(MAPS[c.map] || {}).name || 'an arena'}`;
+// what a kill cam shows, in a few words: "Slammed into a wall · Bot Quill · Meadow", "Double kill: rip, lava · Meadow"
+const KO_WORDS = { arrow: 'Arrow kill', crit: 'Bullseye', longshot: 'Long shot', bolt: 'Ballista bolt', pit: 'Knocked down a hole', water: 'Knocked into the water', lava: 'Burnt on lava', spikes: 'Slammed into thorns', wall: 'Slammed into a wall', saw: 'Thrown into a saw', crush: 'Bowled over', burn: 'Burnt', poison: 'Poisoned', bleed: 'Bled out', rip: 'Rip kill', shade: 'Shade burst', briar: 'Bramble Toss', trap: 'Bramble trap', harpoon: 'Harpooned', shuriken: 'Shuriken', blast: 'Blown up', quake: 'Earthshaker', gust: 'Blown away', shove: 'Barged out', rain: 'Arrow rain', thunder: 'Thunderstruck', chain: 'Chain lightning', flash: 'Flash Strike', execute: 'Executed', hole: 'Black hole', caltrops: 'Caltrops', ball: 'Hit by the ball' };
+const koWord = h => KO_WORDS[h] || (/^el_/.test(h || '') && ELEMENTS[h.slice(3)] ? ELEMENTS[h.slice(3)].name + ' arrow kill' : HOW[h] ? HOW[h][0] : 'Knockout');
+const clipLabel = c => {
+  const map = (MAPS[c.map] || {}).name || 'an arena', K = c.kills || [];
+  if (c.n > 1) { const ws = K.map(k => koWord(k.how).toLowerCase()); return `${MULTI_NAME[Math.min(5, c.n)] || c.n + ' kills'}${ws.length ? ': ' + [...new Set(ws)].join(', ') : ''} · ${map}`; }
+  const k = K[K.length - 1];
+  return k ? `${koWord(k.how)}${k.vn ? ' · ' + k.vn : ''} · ${map}` : `Knockout on ${map}`;
+};
 function renderClipBar() {
   const c = CLIP.last, show = false; // (kill cams are offered on the results screen now)
   $('clipBar').hidden = !show; $('cvSave').hidden = !(CLIP.playing && CLIP.video);

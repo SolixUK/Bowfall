@@ -2,6 +2,25 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.48.4
+
+- **Big announcements look and sound the part:** streaks, shutdowns and empowerment between rounds now slam in as a large title on a coloured ribbon: a white-to-colour gradient with a dark outline and glow, a shine sweeping across it, the name above and the detail below. Each one has a whoosh, a thump as it lands and a bright ring. Streak titles step up in colour and size: Rampage (3, gold), Dominating (5, orange), Unstoppable (7, red, with a shockwave and a shake) and Legendary (10, pink). Shut down is ice blue. Mid-fight they still go small in the corner so the arena stays clear.
+
+## 0.48.3
+
+- **AI players have a focus:** they watch the enemy they're fighting, glance at the others now and then (sharper players look round more often), and notice anyone who comes close. A shot or a drawn bow from someone they aren't watching goes unnoticed, so they no longer parry, deflect, gust or dash out of the way of a side shot while busy with someone else. In a test with a bot fighting one archer while a second shot at it from the side, its parries dropped by about 40% and the side shots landed about half as often again.
+- **Map effects announced each game:** as each game starts, the match's map effects slide in under the round banner, one pill each with an icon, its name and what it does, with a little chime and shine (below the arena on phones).
+- **Two map effects show properly:** the lobby, the ranked draft and the in-game chip now show both effects when a match rolls a pair (before, a pair could leave them blank).
+
+## 0.48.2
+
+- **Kill cam videos in online games:** the country flags over archers' heads were loaded from another website, and a browser won't record a canvas with another site's pictures on it, so online kill cams (where people have flags) came out with no video. Flags are now served by the game's own server (`/flag/xx.png`, fetched once from flagcdn and kept in memory), so the kill cams record again.
+
+## 0.48.1
+
+- **Kill cams are labelled by what happened:** each one on the results screen (and on your profile) says how the knockout went, who it was and where, like "Slammed into a wall · Bot Quill · Meadow", "Rip kill · fox · Tide Cove" or "Double kill: burnt on lava, frost arrow kill · Ember Rift".
+- **Map effect descriptions** just say what the effect does.
+
 ## 0.48.0
 
 - **Emotes:** press 1 to 8 while playing for laugh, angry, thumbs up, GG, cry, cool, wow and heart. Each one pops up over your archer for everyone in the game, with its own little animation (the laugh shakes, the angry one seethes, the cry drips tears, the heart beats) and sound. One every second and a half. On phones and tablets there's no button unless you switch it on in Options; then a small see-through button by the camera button opens a row of them.
