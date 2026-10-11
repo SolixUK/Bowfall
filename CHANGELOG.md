@@ -2,6 +2,19 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.49.3
+
+- **The first sound mix is in** (`public/sfx/mix.json`, made on the sound desk): 14 sounds rebalanced. Louder: match found (+5.5 dB), the ranked draft opening (+4 dB) and the creaks as you draw the bow (+12 dB). Quieter and less boomy: the crossbow shot (−5 dB, much less low end, softer top), the crossbow reload (−4 dB, less low end, a touch lower and 45% quicker), full auto starting (−4 dB, less low end, quicker), Event Horizon (−7.5 dB), Executed (−3.5 dB) and the bolt loaded sound (−3 dB). Reshaped: the Rip spell is a little lower and much quicker, Rip tearing thorns out is much lower and a bit slower, the stun buzz is lower, quicker and thinner, and Bramble Trap's snap and the angry emote have a little less low end. The limiter stays at its default.
+
+## 0.49.2
+
+- **Limiter on the master out:** everything now ends in a limiter (a fast, hard compressor with a ceiling) followed by a soft clipper, so when lots of sounds go off at once they're held under the ceiling instead of spiking. In a test with two dozen explosions, shots and Event Horizons at once, the raw sum peaked at over five times full scale and came out just under full scale. It's on for everyone by default.
+- **On the sound desk,** the master strip has a Limiter on/off button, a Ceiling slider (default −6 dB) and a live gain-reduction readout, and its meter now shows the level after the limiter. The limiter settings are saved in the mix file.
+
+## 0.49.1
+
+- **The sound desk is quiet:** its buttons, dials and lists no longer make the menu hover and click sounds, so the only thing you hear is what you preview (and the game, when one is running).
+
 ## 0.49.0
 
 - **Sound desk (owner only):** a mixing desk for every sound in the game, from the main menu (Sound desk) or `/play?desk=1`. Each of the 170 sounds has its own strip: preview (with each version, like the streak tiers or each element's hit), pitch, speed, a 3-band EQ, mute and solo, a fader and a level meter. Groups have their own buses, and there's a master fader. Filter by group, element or role, or search.

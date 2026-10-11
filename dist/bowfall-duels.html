@@ -174,7 +174,11 @@
   .dk-strip.sel { background: rgba(255,207,90,.07); border-color: rgba(255,207,90,.45); border-top-color: var(--cc); }
   .dk-strip.changed .dk-name b::after { content: ' •'; color: var(--gold); }
   .dk-strip.muted { opacity: .55; }
-  .dk-bus { width: 60px; } .dk-bus .dk-name { height: 44px; } .dk-bus .dk-name b { font-size: 12px; } .dk-bus .dk-row button { font-size: 11px !important; }
+  .dk-bus { width: 60px; } .dk-bus[data-bus=master] { width: 96px; }
+  #desk .dk-lim.on { background: #7dffb0; color: #0b120d; border-color: #7dffb0; }
+  .dk-limc { display: flex; flex-direction: column; gap: 3px; padding: 0 6px; font-size: 10px; color: var(--muted); } .dk-limc.off { opacity: .4; }
+  .dk-limc label { display: flex; flex-direction: column; gap: 2px; } .dk-limc b { color: var(--text); font-weight: 600; } .dk-limc input { width: 100%; accent-color: #7dffb0; }
+  #dkGR { font-variant-numeric: tabular-nums; } #dkGR.act { color: #ffcf5a; } .dk-bus .dk-name { height: 44px; } .dk-bus .dk-name b { font-size: 12px; } .dk-bus .dk-row button { font-size: 11px !important; }
   .dk-name { padding: 6px 7px 0; height: 60px; overflow: hidden; display: flex; flex-direction: column; gap: 1px; }
   .dk-name b { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .dk-cat { font: 700 9px 'Rajdhani', sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--cc); }
@@ -1818,7 +1822,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script>window.BOWFALL_OFFLINE = true; window.__host = window.claude;</script>
+<script>window.BOWFALL_OFFLINE = true; window.__host = window.claude; window.BOWFALL_MIX = {"v":1,"game":"0.49.0","saved":"2026-10-11T15:31:08.951Z","master":0,"bus":{},"ch":{"found":{"db":5.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"draft":{"db":4,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"drawTick":{"db":12,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"autoOn":{"db":-4,"lo":-7,"mid":0,"hi":0,"semi":0,"speed":1.25,"take":"","trim":0,"mute":0,"solo":0},"snap":{"db":0,"lo":-3,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"loaded":{"db":-3,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"executed":{"db":-3.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"ripCast":{"db":0,"lo":0,"mid":0,"hi":0,"semi":-2,"speed":1.45,"take":"","trim":0,"mute":0,"solo":0},"rip":{"db":0,"lo":0,"mid":0,"hi":0,"semi":-8,"speed":0.8,"take":"","trim":0,"mute":0,"solo":0},"stun":{"db":1,"lo":-9,"mid":-6,"hi":0,"semi":-2,"speed":1.35,"take":"","trim":0,"mute":0,"solo":0},"hole":{"db":-7.5,"lo":-3.5,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"emo.angry":{"db":-1,"lo":-1,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"xbLoad":{"db":-4,"lo":-10,"mid":0,"hi":0,"semi":-1,"speed":1.45,"take":"","trim":0,"mute":0,"solo":0},"xbShot":{"db":-5,"lo":-13,"mid":-1.5,"hi":-4.5,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0}},"takes":{}};</script>
 <script>
 // Bowfall shared simulation. Runs on the server (authoritative) and in the browser (offline practice).
 // Red vs Blue: the last team standing wins a game, 2 games (best of three) take a round (a point), and points win the match.
@@ -1831,7 +1835,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.49.0';
+const VERSION = '0.49.3';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -6559,7 +6563,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.49.0';
+const PAGE_VERSION = '0.49.3';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -6948,9 +6952,24 @@ function chMod() {
     return st(() => { const p = CH; CH = c; try { fn(...a); } finally { CH = p; } }, (ms || 0) / k);
   };
 }
+// the master out ends in a limiter (a fast, hard compressor under a ceiling) and a soft clipper, so a pile-up of sounds
+// at once can't spike: the limiter catches anything over the ceiling, the clipper rounds off whatever slips through
+const LIM_DEF = { on: 1, th: -6 };
+const limSet = () => Object.assign({}, LIM_DEF, MIX.lim || {});
 function masterNode() {
-  if (!AC.master) { AC.master = AC.createGain(); AC.master.connect(AC.destination); }
+  if (!AC.master) {
+    AC.master = AC.createGain();
+    if (RENDER) AC.master.connect(AC.destination); // offline exports: one sound on its own, no limiting
+    else {
+      const L = AC.lim = AC.createDynamicsCompressor(), C = AC.clip = AC.createWaveShaper(), n = 2048, curve = new Float32Array(n);
+      L.knee.value = 0; L.attack.value = 0.002; L.release.value = 0.12;
+      for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1, a = Math.abs(x); curve[i] = Math.sign(x) * (a < 0.8 ? a : 0.8 + 0.18 * Math.tanh((a - 0.8) / 0.18)); }
+      C.curve = curve; C.oversample = '2x';
+      AC.master.connect(L).connect(C).connect(AC.destination);
+    }
+  }
   AC.master.gain.value = RENDER ? (MIX_RAW ? 1 : dbGain(MIX.master || 0)) : OPTS.vol / 100 * (MIX_ON ? dbGain(MIX.master || 0) : 1);
+  if (AC.lim) { const S = limSet(); AC.lim.threshold.value = S.on ? S.th : 0; AC.lim.ratio.value = S.on ? 20 : 1; }
   return AC.master;
 }
 function busNode(cat) {
@@ -7021,7 +7040,7 @@ async function mixDecode() {
 }
 function mixLoad(m) {
   if (!m || typeof m !== 'object') return;
-  MIX = { v: 1, master: +m.master || 0, bus: m.bus || {}, ch: m.ch || {}, takes: m.takes || {} };
+  MIX = { v: 1, master: +m.master || 0, lim: m.lim || null, bus: m.bus || {}, ch: m.ch || {}, takes: m.takes || {} };
   for (const k in TAKEBUF) delete TAKEBUF[k];
   mixApplyAll(); mixDecode();
 }
@@ -10511,12 +10530,12 @@ const UI_SEL = 'button, .chip2, [data-map], select, summary, a.btn, .mode';
 let uiHoverEl = null, uiHoverT = 0;
 document.addEventListener('pointerover', e => {
   const el = e.target.closest && e.target.closest(UI_SEL);
-  if (!el || el === uiHoverEl || el.disabled || el.closest('canvas')) { if (!el) uiHoverEl = null; return; }
+  if (!el || el === uiHoverEl || el.disabled || el.closest('canvas') || el.closest('#desk')) { if (!el) uiHoverEl = null; return; } // the sound desk stays quiet: only the sounds you preview
   uiHoverEl = el;
   const now = performance.now(); if (now - uiHoverT < 45) return; uiHoverT = now; // brushing across a row of buttons doesn't machine-gun
   uiSfx.hover();
 });
-document.addEventListener('pointerdown', e => { const el = e.target.closest && e.target.closest(UI_SEL); if (el && !el.disabled && e.button === 0 && !el.closest('#touchUI')) { initAudio(); uiSfx.click(); } }, true);
+document.addEventListener('pointerdown', e => { const el = e.target.closest && e.target.closest(UI_SEL); if (el && !el.disabled && e.button === 0 && !el.closest('#touchUI') && !el.closest('#desk')) { initAudio(); uiSfx.click(); } }, true);
 // hovering a name in the lobby shows a card with their rank, record and best achievements
 const DIFF_LBL = { easy: 'Easy', normal: 'Normal', hard: 'Hard', extreme: 'Extreme', master: 'Master' };
 function cardHtml(key) {
@@ -15840,7 +15859,8 @@ function stripHtml(id) {
 function busHtml(cat) {
   const B = cat === 'master' ? { db: MIX.master || 0 } : MIX.bus[cat] || {}, C = cat === 'master' ? ['Master', '#ffffff', 'Master'] : SND_CATS[cat];
   return `<div class="dk-strip dk-bus${B.mute ? ' muted' : ''}" data-bus="${cat}" style="--cc:${C[1]}"><div class="dk-name"><span class="dk-cat">${cat === 'master' ? 'All' : 'Group'}</span><b title="${esc(C[0])}">${esc(C[2] || C[0])}</b></div>
-    ${cat === 'master' ? '<div class="dk-row"></div>' : `<div class="dk-row"><button class="dk-m${B.mute ? ' on' : ''}" data-act="bmute">M</button></div>`}
+    ${cat === 'master' ? (() => { const L = limSet(); return `<div class="dk-row"><button class="dk-lim${L.on ? ' on' : ''}" data-act="lim" title="Limiter on the master out: stops sounds that pile up from spiking">Limiter</button></div>
+    <div class="dk-limc${L.on ? '' : ' off'}"><label>Ceiling <b id="dkLimV">${L.th} dB</b><input type="range" data-k="lim" min="-24" max="0" step="0.5" value="${L.th}" aria-label="Limiter ceiling"></label><span id="dkGR" title="How much the limiter is turning things down right now">GR 0.0 dB</span></div>`; })() : `<div class="dk-row"><button class="dk-m${B.mute ? ' on' : ''}" data-act="bmute">M</button></div>`}
     <div class="dk-fader"><input type="range" data-k="bus" min="-40" max="12" step="0.5" value="${B.db || 0}" aria-label="${esc(C[0])} volume"><canvas width="8" height="150" data-meter="bus:${cat}"></canvas></div><div class="dk-db">${dbTxt(B.db || 0)}</div></div>`;
 }
 function deskRender() {
@@ -15863,7 +15883,7 @@ async function deskAutosave() { try { deskPrune(); const db = await deskDb(); db
 async function deskLoadSaved() { try { const db = await deskDb(); return await new Promise(res => { const r = db.transaction('kv').objectStore('kv').get('mix'); r.onsuccess = () => res(r.result ? JSON.parse(r.result) : null); r.onerror = () => res(null); }); } catch (e) { return null; } }
 function mixExport() {
   const takes = {}; for (const id in MIX.takes) if (MIX.takes[id].length) takes[id] = MIX.takes[id].map(t => ({ k: t.k, name: t.name, data: t.data, trim: t.trim || 0 }));
-  return { v: 1, game: Sim.VERSION, saved: new Date().toISOString(), master: MIX.master || 0, bus: MIX.bus, ch: MIX.ch, takes };
+  return { v: 1, game: Sim.VERSION, saved: new Date().toISOString(), master: MIX.master || 0, lim: limSet(), bus: MIX.bus, ch: MIX.ch, takes };
 }
 async function openDesk() {
   if (!(OFFLINE || (account && account.admin))) return;
@@ -15882,10 +15902,11 @@ function deskMeters() {
   DESK.raf = requestAnimationFrame(deskMeters);
   if (!AC) return;
   const box = $('dkStrips').getBoundingClientRect(), buf = deskMeters.buf || (deskMeters.buf = new Float32Array(512));
+  const gr = $('dkGR'); if (gr && AC.lim) { const r = AC.lim.reduction, v = typeof r === 'number' ? r : r && r.value || 0; gr.textContent = 'GR ' + (v < -0.05 ? v.toFixed(1) : '0.0') + ' dB'; gr.classList.toggle('act', v < -0.5); }
   for (const cv of $('desk').querySelectorAll('canvas[data-meter]')) {
     const r = cv.getBoundingClientRect(); if (r.right < box.left - 200 || r.left > innerWidth || r.width === 0) continue;
     const k = cv.dataset.meter; let an;
-    if (k.startsWith('bus:')) { const c = k.slice(4), n = c === 'master' ? masterNode() : busNode(c); an = n._an || (n._an = AC.createAnalyser()); if (!n._anOn) { n.connect(an); n._anOn = 1; } }
+    if (k.startsWith('bus:')) { const c = k.slice(4), n = c === 'master' ? (masterNode(), AC.clip || AC.master) : busNode(c); an = n._an || (n._an = AC.createAnalyser()); if (!n._anOn) { n.connect(an); n._anOn = 1; } }
     else { const s = stripOf(k); an = s.an || (s.an = AC.createAnalyser()); if (!s.anOn) { s.fad.connect(an); s.anOn = 1; } }
     an.fftSize = 512; an.getFloatTimeDomainData(buf);
     let pk = 0; for (let i = 0; i < buf.length; i++) pk = Math.max(pk, Math.abs(buf[i]));
@@ -15981,7 +16002,7 @@ setInterval(() => { // a finished game starts the next
     const b = $('dkReset');
     if (!b.classList.contains('arm')) { b.classList.add('arm'); b.textContent = 'Click again to reset everything'; setTimeout(() => { b.classList.remove('arm'); b.textContent = 'Reset all'; }, 3000); return; }
     b.classList.remove('arm'); b.textContent = 'Reset all';
-    MIX.master = 0; MIX.bus = {}; for (const id in MIX.ch) { const r = MIX.ch[id].refPeak; MIX.ch[id] = Object.assign({}, CH_DEF); if (r) MIX.ch[id].refPeak = r; }
+    MIX.master = 0; MIX.bus = {}; MIX.lim = null; for (const id in MIX.ch) { const r = MIX.ch[id].refPeak; MIX.ch[id] = Object.assign({}, CH_DEF); if (r) MIX.ch[id].refPeak = r; }
     deskPrune(); deskChanged(); deskRender(); deskStatus('Everything is back to the built-in sounds. Your imported takes are still in each strip’s list.');
   };
   $('dkCats').onclick = e => { const b = e.target.closest('[data-cat]'); if (b) { DESK.cat = b.dataset.cat; deskRender(); } };
@@ -16012,11 +16033,13 @@ setInterval(() => { // a finished game starts the next
   });
   S.addEventListener('dblclick', e => { if (e.target.dataset.k === 'db') { const st = e.target.closest('.dk-strip'); e.target.value = 0; e.target.dispatchEvent(new Event('input', { bubbles: true })); } });
   B.addEventListener('input', e => {
+    if (e.target.dataset.k === 'lim') { MIX.lim = Object.assign(limSet(), { th: +e.target.value }); $('dkLimV').textContent = MIX.lim.th + ' dB'; deskChanged(); return; }
     const st = e.target.closest('[data-bus]'); if (!st) return; const k = st.dataset.bus, v = +e.target.value <= -40 ? -60 : +e.target.value;
     if (k === 'master') MIX.master = v; else (MIX.bus[k] = MIX.bus[k] || {}).db = v;
     st.querySelector('.dk-db').textContent = dbTxt(v); deskChanged();
   });
-  B.addEventListener('click', e => { const b = e.target.closest('[data-act="bmute"]'); if (!b) return; const k = b.closest('[data-bus]').dataset.bus, x = MIX.bus[k] = MIX.bus[k] || {}; x.mute = x.mute ? 0 : 1; deskChanged(); B.innerHTML = DESK_CAT_ORDER.map(busHtml).join('') + busHtml('master'); });
+  B.addEventListener('click', e => { if (e.target.closest('[data-act="lim"]')) { const L = limSet(); MIX.lim = Object.assign(L, { on: L.on ? 0 : 1 }); deskChanged(); B.innerHTML = DESK_CAT_ORDER.map(busHtml).join('') + busHtml('master'); return; }
+    const b = e.target.closest('[data-act="bmute"]'); if (!b) return; const k = b.closest('[data-bus]').dataset.bus, x = MIX.bus[k] = MIX.bus[k] || {}; x.mute = x.mute ? 0 : 1; deskChanged(); B.innerHTML = DESK_CAT_ORDER.map(busHtml).join('') + busHtml('master'); });
   $('dkImpF').onchange = () => { const f = $('dkImpF').files[0]; $('dkImpF').value = ''; deskImport(DESK.impFor, f); };
   $('dkMenu').addEventListener('click', e => {
     const b = e.target.closest('[data-m]'); if (!b) return; const id = DESK.menu, m = b.dataset.m;

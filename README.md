@@ -223,7 +223,7 @@ See `docs/balance-report.md` for the results of the 4v4 bot simulations and the 
 Every sound in the game is made in code and plays through its own channel on a mixer (`play('id')` in `public/index.html`; each sound is registered with `defSnd` along with its group, a readable name and any element, role or ability it belongs to). The owner can open **Sound desk** from the main menu (or `/play?desk=1`); the offline copy always has it.
 
 - **A strip per sound** (about 170): preview button (with a picker for sounds that come in versions, like streak tiers or each element), pitch (±12 semitones), speed (0.5× to 2×), a 3-band EQ (low shelf 250 Hz, mid 1.4 kHz, high shelf 4.5 kHz, ±15 dB), mute, solo, reset, a fader and a level meter.
-- **Group buses** (interface, bow and crossbow, hits, movement, abilities, elements, arenas, match, emotes, training) and a master fader.
+- **Group buses** (interface, bow and crossbow, hits, movement, abilities, elements, arenas, match, emotes, training) and a master fader. The master out ends in a limiter (on by default, ceiling −6 dB) and a soft clipper, so piled-up sounds can't spike; the master strip has its on/off switch, ceiling and a gain-reduction readout.
 - **Filters** by group, element and role, a search box, and "changed only".
 - **Takes:** each strip can hold several imported recordings (WAV, MP3, OGG, FLAC) next to its built-in sound; pick which one plays from its list. An imported take is levelled to match the built-in sound, with a dial to adjust it. On a take, pitch and speed both change its playback rate.
 - **Export** renders a sound offline to a WAV: on its own (no pitch, speed, EQ or volume, brought up to a good level to edit) or as it sounds in the mix.
