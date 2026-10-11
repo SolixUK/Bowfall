@@ -2,6 +2,30 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.50.0
+
+**Matchmaking**
+- **Search several modes at once:** on Find game, 1v1, 2v2 and 3v3 are toggles. Pick any you like and you'll get whichever fills first (bigger matches are tried first). Modes too small for your party are greyed out.
+- **Closer matches:** the rating window starts at ±75, widens by 5 a second and stops at ±250 (it was ±120, widening 30 a second, up to ±700). At most that's about an 85% favourite.
+- **Everyone in range of everyone:** every party in a match has to be within range of every other one, not just of whoever has waited longest.
+- **Waiting for someone about to finish:** when AI players would otherwise fill in, but a player who'd complete the match is in the last game of a ranked match (or has just finished one), near your rating, searched that mode last time and usually searches again, the search waits up to 25 seconds more for them. The search screen says so.
+- **Play again** on the results of a ranked match puts you straight back into the search with the same modes.
+
+**Elements**
+- **Frost:** frozen archers can't draw or shoot while frozen. Deep Freeze is gone (that did the same thing); in its place, **Hoarfrost**: your hits leave a patch of frost where they land for 3 seconds that slows enemies in it by 35% (two patches at a time). **Permafrost** now builds up: 25% slow from the first hit, then 40%, 55% and 65% as you keep hitting, lasting 4 seconds (no draw penalty any more).
+- **Chilled archers look it:** the slower they are, the paler and bluer they turn, with a cold haze that clings to them and trails behind as they move.
+- **Flame:** new upgrade **Stoke the Fire**: each hit on a burning enemy adds a second of burning (up to 5) and your fire burns 30% hotter.
+- **Storm:** **Static** locks the dash for 2.5 seconds, and hitting someone whose dash is already locked stuns them for half a second (once every 3 seconds). **Echo Strike** now works on any fully drawn hit, not just bullseyes. New upgrade **Thunderstrike**: every third storm hit on the same enemy within 6 seconds calls down lightning for 8 damage and a 0.6 second stun. **Overload**'s dash penalty is 20% (was 30%).
+
+**Other**
+- **Ninja throws slower:** a shuriken needs 40% of its wind-up to leave your hand and there's a 0.26 second pause after each throw, so tapping throws about 2.3 a second (it was nearly 5).
+- **Short card descriptions:** upgrade cards show one short line so you can read them in time. Hover a card for the full text, which is also in How to play.
+- **Swap Q and E:** a small ⇄ button by your abilities swaps which one is on Q and which on E. It's remembered, and works with controllers too (not shown on touch screens).
+- **Results on phones:** two columns that fit the screen sideways, larger text, the most useful columns, and the buttons in a bar along the bottom. The touch buttons no longer show over it.
+- **Main menu:** the clan button sits under the profile button.
+- **App icon:** the home-screen icon uses the new, bigger archer.
+- **New sound mix:** 37 sounds rebalanced on the sound desk, with the limiter ceiling at −3 dB.
+
 ## 0.49.3
 
 - **The first sound mix is in** (`public/sfx/mix.json`, made on the sound desk): 14 sounds rebalanced. Louder: match found (+5.5 dB), the ranked draft opening (+4 dB) and the creaks as you draw the bow (+12 dB). Quieter and less boomy: the crossbow shot (−5 dB, much less low end, softer top), the crossbow reload (−4 dB, less low end, a touch lower and 45% quicker), full auto starting (−4 dB, less low end, quicker), Event Horizon (−7.5 dB), Executed (−3.5 dB) and the bolt loaded sound (−3 dB). Reshaped: the Rip spell is a little lower and much quicker, Rip tearing thorns out is much lower and a bit slower, the stun buzz is lower, quicker and thinner, and Bramble Trap's snap and the angry emote have a little less low end. The limiter stays at its default.

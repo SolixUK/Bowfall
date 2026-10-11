@@ -327,6 +327,7 @@ function saveRecords(room) {
       const ros = room.rateRoster && room.rateRoster.mid === r.mid ? room.rateRoster : null;
       const T = room.tally && room.tally.mid === r.mid ? room.tally : { gw: { red: 0, blue: 0 }, p: {} };
       room.rateRoster = null; room.tally = null;
+      if (room.ranked && social.matchEnded) social.matchEnded(room); // for matchmaking: who's just come free
       const rated = new Map(), users = new Map();
       if (ros) for (const p of ros.p) { const u = userOfPid(room, p.id); if (u) users.set(p.id, u); }
       if (ros && r.win && room.ranked) { // only matchmade (ranked) games change ratings; custom games don't
