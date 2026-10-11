@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.50.0';
+const VERSION = '0.51.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -575,7 +575,7 @@ const ELEMENTS = {
   storm:  { name: 'Storm',  color: '#fff27a', blurb: 'Lightning arcs between nearby enemies.' },
   poison: { name: 'Poison', color: '#9be564', blurb: 'Stacking poison that wears enemies down and cuts their healing.' },
   stone:  { name: 'Stone',  color: '#c9a878', blurb: 'Crushing hits that break a draw and leave targets easier to knock around.', premium: true },
-  void:   { name: 'Void',   color: '#b48cff', blurb: 'Rifts that drag other enemies in: into hazards, or into each other.', premium: true },
+  void:   { name: 'Void',   color: '#b48cff', blurb: 'Mark enemies with your hits: your arrows bend toward them.', premium: true },
   shadow: { name: 'Shadow', color: '#8e95c9', blurb: 'Every hit stacks a shade that bursts when you stop: keep hitting to build a big one.', premium: true },
   blood:  { name: 'Blood',  color: '#e0344a', blurb: 'Every bit of damage you deal heals you.', premium: true },
 };
@@ -852,11 +852,13 @@ const TREE = {
   aftershock:{ tree: 'stone', name: 'Aftershock', desc: 'Fully drawn hits send a shockwave that shoves every other enemy nearby away.' },
   petrify:   { tree: 'stone', name: 'Petrify', desc: "Staggered enemies can't dash." },
   obsidian:  { tree: 'stone', trade: true, name: 'Obsidian', desc: 'Your arrows knock back 30% harder, but fly 8% slower.' },
-  void:      { tree: 'void', base: true, name: 'Void Arrows', desc: 'A moment after a fully drawn hit (or any bullseye), a rift opens where the target lands. For 2 seconds it pulls them and every enemy nearby toward its centre and slows them by 30%.' },
-  horizon:   { tree: 'void', name: 'Event Horizon', desc: 'Rifts are 30% bigger, pull harder and last 3 seconds.' },
-  collapse:  { tree: 'void', name: 'Collapse', desc: 'When a rift ends it bursts, throwing enemies inside it outward.' },
-  nullfield: { tree: 'void', name: 'Null Field', desc: "Enemies inside your rifts can't dash." },
-  unstable:  { tree: 'void', trade: true, name: 'Unstable Rift', desc: 'Rifts are 50% bigger, but your arrows deal 8% less damage.' },
+  void:      { tree: 'void', base: true, name: 'Void Arrows', desc: 'Hits mark the target with void (up to 5 marks, fading 2.5 seconds after your last hit). From the second mark on, your arrows curve toward them, a little more with every mark. Only your own arrows, and only shots already heading their way.' },
+  rift:      { tree: 'void', name: 'Rift', desc: 'A moment after a fully drawn hit (or any bullseye), a rift opens where the target lands. For 2 seconds it pulls them and every enemy nearby toward its centre and slows them by 30%.' },
+  gravity:   { tree: 'void', name: 'Gravity Arrows', desc: 'Your arrows are dark with gravity: as they fly they pull enemies within 110px slightly toward them.' },
+  horizon:   { tree: 'void', name: 'Event Horizon', desc: 'Rifts are 30% bigger, pull harder and last 3 seconds.', req: ['rift'] },
+  collapse:  { tree: 'void', name: 'Collapse', desc: 'When a rift ends it bursts, throwing enemies inside it outward.', req: ['rift'] },
+  nullfield: { tree: 'void', name: 'Null Field', desc: "Enemies inside your rifts can't dash.", req: ['rift'] },
+  unstable:  { tree: 'void', trade: true, name: 'Unstable Rift', desc: 'Rifts are 50% bigger, but your arrows deal 8% less damage.', req: ['rift'] },
   blink:     { tree: 'assassin', active: { cd: 8 }, name: 'Blink', desc: "Vanish and reappear up to 300px toward your cursor, straight over pits and lava, and draw three times as fast for 1.5 seconds. Doesn't break stealth." },
   stealth:   { tree: 'assassin', active: { cd: 14 }, name: 'Stealth', desc: 'Vanish for 6 seconds and move 30% faster. Enemies only see a faint shimmer when close. Shooting, abilities, dashing or being hit by an arrow ends it (burns and poison don\'t).' },
   ambush:    { tree: 'assassin', name: 'Ambush', desc: 'For 2.5 seconds after stealth ends, your bow draws 60% faster.', req: ['stealth'] },
@@ -978,7 +980,7 @@ const BRIEF = {
   contagion: 'Poison spreads to their teammates.', virulent: 'Poison stacks to 5 and hurts more.', permafrost: 'Frost slow builds with each hit, up to 65%.',
   kindling: 'Burning enemies fly 50% further.', overload: 'Double lightning damage. Dash 20% slower.', potent: 'Poison +50%. Arrows −15% damage.',
   stone: 'Hits stagger: less draw, more knockback.', boulder: 'Full-draw arrows knock back 30% harder.', aftershock: 'Full-draw hits shove nearby enemies away.',
-  petrify: "Staggered enemies can't dash.", obsidian: 'Knockback +30%. Arrows 8% slower.', void: 'Full-draw hits open a rift that pulls enemies in.',
+  petrify: "Staggered enemies can't dash.", obsidian: 'Knockback +30%. Arrows 8% slower.', void: 'Hits mark them; your arrows curve toward marks.', rift: 'Full-draw hits open a rift that pulls enemies in.', gravity: 'Your arrows pull nearby enemies toward them.',
   horizon: 'Bigger, stronger, longer rifts.', collapse: 'Rifts burst outward when they end.', nullfield: "Enemies in your rifts can't dash.", unstable: 'Rifts 50% bigger. Arrows −8% damage.',
   blink: 'Teleport 300px and draw 3× faster briefly.', stealth: 'Vanish for 6s and move faster.', ambush: 'Draw 60% faster right after stealth.',
   shadowdash: "Dashing doesn't break stealth.", cloak: 'Stealth lasts 9s. −10 health.', quickfeet: '8% faster, less damage from behind.',
@@ -1378,7 +1380,7 @@ function restyle(p) {
 }
 // Learned upgrade values: how much each card changed a Master bot's chance of winning a game, compared with others
 // of the same role and element, over about 9,800 games (0.44 rules) where bots picked at random. Smart bots pick by these.
-const CARD_VALUE = { aftershock: -0.006, ambush: 0.01, ballista: 0.009, bankshot: 0.037, barbs: -0.022, bladeguard: 0.027, blink: 0.053, bloodpact: -0.016, blossom: -0.028, bond: 0.003, boomerang: 0.004, boulder: 0.006, briar: 0.0, cloak: -0.019, clone: 0.003, collapse: -0.012, colossus: -0.041, contagion: 0, dance: -0.062, dash: -0.062, deadeye: -0.005, deathmark: -0.027, hoarfrost: 0, stoke: 0, stormcall: 0, deeproots: 0.008, deepshade: -0.001, deflect: 0.008, dread: -0.019, echo: 0.002, echostep: -0.014, eclipse: 0.014, execute: -0.028, execution: -0.009, fanbolt: -0.03, feather: -0.024, flashpoint: -0.053, fleet: 0.024, flurry: -0.025, forked: 0.054, fortify: -0.029, frenzy: 0.004, frostbite: -0.017, glass: 0.026, gloom: -0.029, grapple: 0.007, gust: 0.004, hairtrig: 0.091, harpoon: 0.038, heavy: 0.001, heavybolt: -0.011, hemorrhage: 0.021, holdline: -0.052, horizon: 0.024, kindling: -0.033, longbow: 0.015, longstep: -0.045, longstock: 0.031, mend: 0.003, momentum: 0.027, nullfield: 0.141, oath: -0.006, obsidian: -0.001, overload: 0.02, parry: 0.022, permafrost: -0.024, petrify: 0.122, phase: 0.022, pierce: 0.005, pin: -0.015, pointblank: 0.013, potent: -0.018, quake: -0.038, quickfeet: -0.016, quickshot: 0.054, railshot: 0.011, rain: 0.019, rally: -0.023, ram: 0.006, recall: 0.022, recoil: -0.043, repeater: 0.087, revive: -0.013, ricochet: 0.028, riot: 0.026, rip: -0.016, rocket: -0.019, rush: 0.044, scatter: 0.062, seeker: -0.012, shadowdash: 0.011, sharpstar: 0.007, shatter: -0.02, smoke: -0.028, snare: -0.042, split: 0.029, spot: -0.022, sstrike: -0.016, stance: -0.02, static: 0.047, steady: 0.015, stealth: -0.017, surefoot: -0.016, swiftstep: 0.007, totem: -0.033, toxic: 0.018, transfusion: -0.015, trap: 0.079, tribolt: -0.001, trick: 0.023, twinload: -0.004, unstable: -0.038, virulent: -0.019, vital: -0.027, volley: 0.018, wall: 0.002, wildfire: -0.035, windlass: 0.002 };
+const CARD_VALUE = { aftershock: -0.006, ambush: 0.01, ballista: 0.009, bankshot: 0.037, barbs: -0.022, bladeguard: 0.027, blink: 0.053, bloodpact: -0.016, blossom: -0.028, bond: 0.003, boomerang: 0.004, boulder: 0.006, briar: 0.0, cloak: -0.019, clone: 0.003, collapse: -0.012, colossus: -0.041, contagion: 0, dance: -0.062, dash: -0.062, deadeye: -0.005, deathmark: -0.027, hoarfrost: 0, stoke: 0, stormcall: 0, rift: 0, gravity: 0, deeproots: 0.008, deepshade: -0.001, deflect: 0.008, dread: -0.019, echo: 0.002, echostep: -0.014, eclipse: 0.014, execute: -0.028, execution: -0.009, fanbolt: -0.03, feather: -0.024, flashpoint: -0.053, fleet: 0.024, flurry: -0.025, forked: 0.054, fortify: -0.029, frenzy: 0.004, frostbite: -0.017, glass: 0.026, gloom: -0.029, grapple: 0.007, gust: 0.004, hairtrig: 0.091, harpoon: 0.038, heavy: 0.001, heavybolt: -0.011, hemorrhage: 0.021, holdline: -0.052, horizon: 0.024, kindling: -0.033, longbow: 0.015, longstep: -0.045, longstock: 0.031, mend: 0.003, momentum: 0.027, nullfield: 0.141, oath: -0.006, obsidian: -0.001, overload: 0.02, parry: 0.022, permafrost: -0.024, petrify: 0.122, phase: 0.022, pierce: 0.005, pin: -0.015, pointblank: 0.013, potent: -0.018, quake: -0.038, quickfeet: -0.016, quickshot: 0.054, railshot: 0.011, rain: 0.019, rally: -0.023, ram: 0.006, recall: 0.022, recoil: -0.043, repeater: 0.087, revive: -0.013, ricochet: 0.028, riot: 0.026, rip: -0.016, rocket: -0.019, rush: 0.044, scatter: 0.062, seeker: -0.012, shadowdash: 0.011, sharpstar: 0.007, shatter: -0.02, smoke: -0.028, snare: -0.042, split: 0.029, spot: -0.022, sstrike: -0.016, stance: -0.02, static: 0.047, steady: 0.015, stealth: -0.017, surefoot: -0.016, swiftstep: 0.007, totem: -0.033, toxic: 0.018, transfusion: -0.015, trap: 0.079, tribolt: -0.001, trick: 0.023, twinload: -0.004, unstable: -0.038, virulent: -0.019, vital: -0.027, volley: 0.018, wall: 0.002, wildfire: -0.035, windlass: 0.002 };
 // bots: capstones first, then abilities, cards that suit their playstyle, anything that builds toward one; boosts last.
 // Smart bots (Master, and AI players near it) mostly go by what the learning showed actually wins.
 // cards that do nothing without teammates (yours or theirs): never offered in a 1v1, and bots on their own skip them
@@ -1826,7 +1828,7 @@ function fire(w, p, ang, c, burst, vol, x3) { // burst: 1-2 a Volley's shots, 4 
       x: p.x + Math.cos(a) * (p.r + 8), y: p.y + Math.sin(a) * (p.r + 8),
       vx: Math.cos(a) * speed * (rail ? 1.8 : 1), vy: Math.sin(a) * speed * (rail ? 1.8 : 1), v0: speed * (rail ? 1.8 : 1), ang: a, dist: 0, age: 0,
       dmg, kb, full, crit: false, heavy, el, bolt, snare, rail, big: has(p, 'colossus') || rocket, seek, rocket, swap, boom, exec, bri, drag: rail || rocket || boom || bri ? 0 : has(p, 'longbow') ? 0.2 : 0.45,
-      burst: false, pierce: rail || boom || bri ? 99 : full && has(p, 'pierce') ? 1 : 0, hit: [],
+      burst: false, pierce: rail || boom || bri ? 99 : full && has(p, 'pierce') ? 1 : 0, hit: [], grav: has(p, 'gravity') && !bri && !boom,
       split: full && !boom && !bri && has(p, 'split'),
       bounces: boom || bri ? 0 : (p.pw.ricochet > 0 ? 2 : 0) + (has(p, 'ricochet') ? 1 : 0) + (has(p, 'bankshot') ? 1 : 0) + (trick ? 3 : 0), trick, explosive: p.pw.explosive > 0 || rocket, life: rocket ? ROCKET.life : boom ? 6 : bri ? BRIAR.range * (0.55 + 0.45 * c) / Math.max(1, speed) : p.role === 'ninja' ? 0.5 : 2.4, stuck: 0,
       vol: vol || null, sneak, xb, maxDist: xb && !rail && !bri && !boom && !rocket ? p.xbowRange : 0,
@@ -2254,7 +2256,7 @@ function throwStar(w, p, ang, auto, c = 0.6) {
 }
 function makeStar(w, p, x, y, a, o) {
   const sp = 1050 * OPT('aspeed') * (o.sp || 1);
-  w.arrows.push({ id: w.nid++, owner: p.id, team: p.team, color: p.color, own: p, fullDraw: !!o.fullDraw,
+  w.arrows.push({ id: w.nid++, owner: p.id, team: p.team, color: p.color, own: p, fullDraw: !!o.fullDraw, grav: has(p, 'gravity'),
     x: x + Math.cos(a) * (p.r + 6), y: y + Math.sin(a) * (p.r + 6), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, v0: sp, ang: a, dist: 0, age: 0,
     dmg: o.dmg, kb: o.kb, full: false, crit: false, heavy: false, el: o.el || null, bolt: false, snare: false, rail: false, big: false,
     drag: 2.4, burst: false, burstOK: false, pierce: 0, hit: [], split: false,
@@ -2882,7 +2884,10 @@ function onArrowEffects(w, a, f, primary) {
   } else if (a.el === 'shadow') { // fully drawn hits and bullseyes (any hit when empowered) plant a shade
     if (owner) plantShade(w, f, owner);
   }
-  if (a.el === 'void' && primary && (a.crit || a.full)) { // any fully drawn hit (or a bullseye) opens a rift
+  if (a.el === 'void' && primary && owner && !f.dead) { // void marks: your arrows curve toward this archer
+    f.voidN = f.voidBy === owner.id && f.voidT > w.t ? Math.min(5, (f.voidN || 0) + 1) : 1; f.voidBy = owner.id; f.voidT = w.t + 2.5;
+  }
+  if (a.el === 'void' && primary && (a.crit || a.full) && owner && has(owner, 'rift')) { // Rift: a fully drawn hit (or a bullseye) opens a rift
     // a rift where the arrow struck; it drags in everyone else on their team
     const hz = owner && has(owner, 'horizon'), ecl = false;
     const r = 120 * (hz ? 1.3 : 1) * (owner && has(owner, 'unstable') ? 1.5 : 1) * (ecl ? 1.6 : 1);
@@ -2937,6 +2942,7 @@ const BULLSEYE = 0.4, CRIT_MUL = 1.5;
 const NB_WIND = 0.05, NB_MOVE = 0.09; // Ninja blink: wind-up, then travel time
 // Firework: big and very slow, follows its target for its whole flight, and bursts a little smaller than Blast Tips
 const ROCKET = { speed: 210, turn: 1.5, life: 5, blast: 0.85, dmg: 6 }; // px/s (an archer runs at about 235), radians a second it can turn, fuse, burst size (Blast Tips = 1) and burst damage
+const VOID_PULL = [0, 0, 0.12, 0.3, 0.55, 0.85], GRAV_R = 110, GRAV_PULL = 320; // void marks' homing strength by number of marks; Gravity Arrows' reach and pull
 const ASSIST_LANE = 220, ASSIST_RAMP = 600, SEEK = { power: 1.4, lane: 340, base: 0.6 }; // Seeker Arrow: between the Heavy and Extreme rules, with a wider lane, and it turns firmly from the start; // arrow homing: how far either side of your line of fire it looks for a target (at any range), and the distance over which its turning ramps up
 const XBOW_RANGE = 480, XBOW_RELOAD = 1.15, XBOW_GAP = 0.16, AUTO_TIME = 2, AUTO_GAP = 0.12;
 // Triple Bolt (an upgrade): each shot is a quick burst of three bolts, each this share of a single bolt's damage and knockback, and reloading takes `reload` times as long
@@ -3112,6 +3118,28 @@ function updateArrows(w, dt) {
         const turn = clamp(diff, -rate * dt, rate * dt);
         a.vx = Math.cos(h + turn) * sp; a.vy = Math.sin(h + turn) * sp;
       }
+    }
+    // Void marks: the shot curves toward an enemy you've marked (2+ marks), if it's already heading their way
+    if (a.el === 'void' && !a.back && !a.rail && !a.boom && a.age < 1.6 && a.own) {
+      const h = Math.atan2(a.vy, a.vx); let best = null, bd = 1e9;
+      for (const q of w.players) {
+        if (q.voidBy !== a.owner || !(q.voidT > w.t) || (q.voidN || 0) < 2 || q.dead || q.falling > 0 || q.stealthT > 0 || a.hit.includes(q.id)) continue;
+        const d = Math.hypot(q.x - a.x, q.y - a.y); if (angOff(Math.atan2(q.y - a.y, q.x - a.x), h) > 0.45 || d > bd) continue;
+        bd = d; best = q;
+      }
+      if (best && clearShot(a.x, a.y, best.x, best.y)) {
+        const sp = Math.hypot(a.vx, a.vy), want = Math.atan2(best.y - a.y, best.x - a.x), diff = ((want - h + Math.PI) % TAU + TAU) % TAU - Math.PI;
+        const close = 1 - Math.min(1, bd / ASSIST_RAMP), k = VOID_PULL[Math.min(5, best.voidN)];
+        const rate = k * (0.25 + 1.6 * close * close) * sp / 1000, turn = clamp(diff, -rate * dt, rate * dt);
+        a.vx = Math.cos(h + turn) * sp; a.vy = Math.sin(h + turn) * sp;
+      }
+    }
+    // Gravity Arrows: enemies near the arrow are drawn slightly toward it
+    if (a.grav && !a.back) for (const q of w.players) {
+      if (q.team === a.team || q.dead || q.falling > 0 || q.pinned > 0 || a.hit.includes(q.id)) continue;
+      const dx = a.x - q.x, dy = a.y - q.y, d = Math.hypot(dx, dy) || 1; if (d > GRAV_R) continue;
+      const k = GRAV_PULL * (1 - d / GRAV_R) * dt / q.mass; q.vx += dx / d * k; q.vy += dy / d * k;
+      q.lastHitBy = a.owner; q.lastHitT = w.t;
     }
     // Boomerang: out, then back to the thrower, able to hit everyone again
     // Boomerang: straight out to its range (or a wall), then home in on the thrower over everything
@@ -4615,7 +4643,7 @@ function snapshot(w) {
         id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, nk: p.npc ? p.npc.k : undefined, hd: p.hid ? 1 : 0, tw: p.elev ? 1 : 0, rs: w.cq && p.dead && !p.npc && p.respAt != null ? Math.max(0, Math.ceil(p.respAt - w.t)) : undefined, bi: p.npc ? p.npc.bio : undefined, nw: p.npc && (p.npc.wind || p.npc.charge) ? (p.npc.charge ? 'dash' : p.npc.wind) : undefined, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, ct: p.ct || undefined, cl: p.cl || undefined, ce: p.ce || undefined, sp: p.sp || undefined, fd: p.fd || undefined, pt: p.pt || undefined, fin: p.fin || undefined, fr: p.fr || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
         x: r1(p.x), y: r1(p.y), vx: Math.round(p.vx), vy: Math.round(p.vy), a: r3(p.aim),
         hp: Math.max(0, Math.ceil(p.hp)), mh: p.maxHp, ch: r2(p.charge), dr: p.drawing ? 1 : 0,
-        f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, bu: p.burn > 0 ? 1 : 0, bl: p.bleedT > 0 ? 1 : 0, sl: p.slow > 0 || p.iceSlow > 0 ? 1 : 0, sw: p.slow > 0 || p.iceSlow > 0 ? r2(Math.max(p.slow > 0 ? 1 - (p.sure ? 0.85 : p.slowK || 0.5) : 0, p.iceSlow > 0 ? (p.sure ? 0.15 : 0.35) : 0)) : undefined, iv: p.inv > 0 ? 1 : 0,
+        f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, bu: p.burn > 0 ? 1 : 0, bl: p.bleedT > 0 ? 1 : 0, vd: p.voidT > w.t && p.voidN ? p.voidN : undefined, vb: p.voidT > w.t && p.voidN ? p.voidBy : undefined, sl: p.slow > 0 || p.iceSlow > 0 ? 1 : 0, sw: p.slow > 0 || p.iceSlow > 0 ? r2(Math.max(p.slow > 0 ? 1 - (p.sure ? 0.85 : p.slowK || 0.5) : 0, p.iceSlow > 0 ? (p.sure ? 0.15 : 0.35) : 0)) : undefined, iv: p.inv > 0 ? 1 : 0,
         da: p.dashT > 0 ? 1 : 0, hl: p.healing ? 1 : 0, dn: p.dashN, dk: p.dashMaxN, ra: p.rallied ? 1 : 0, shd: p.shade ? p.shade.n : undefined, sht: p.shade ? r2(p.shade.t / SHADE.t) : undefined, th: p.thornN > 0 ? p.thornN : undefined,
         ab: p.slots.slice(), ac: p.abCd.map(r1), fz: p.frozen > 0 ? 1 : 0, sx: p.dashLock > 0 ? 1 : 0, ov: p.over >= 1 ? 1 : 0,
         sn: p.snare ? 1 : 0, vl: p.volleyArmed ? 1 : 0, rl: p.railArmed ? 1 : 0,
@@ -4628,7 +4656,7 @@ function snapshot(w) {
       };
     }),
     b: w.ball ? { x: r1(w.ball.x), y: r1(w.ball.y), r: w.ball.r, o: w.ball.out > 0 ? 1 : 0, s: r2(w.ball.spin % TAU) } : undefined,
-    a: w.arrows.map(a => ({ id: a.id, o: a.owner, x: r1(a.x), y: r1(a.y), g: r3(a.ang), s: a.stuck > 0 ? r2(a.stuck) : 0, c: a.color, cr: a.full ? 1 : 0, ex: a.explosive ? 1 : 0, rl: a.rail ? 1 : 0, bg: a.big ? 1 : 0, sk: a.seek ? 1 : 0, rk: a.rocket ? 1 : 0, bm: a.boom ? (a.back ? 2 : 1) : 0, br: a.bri ? 1 : 0, sw: a.swap ? 1 : 0, xq: a.exec ? 1 : 0, sh: a.shur ? (a.dbl ? 2 : 1) : 0, xb: a.xb ? 1 : 0, hv: a.heavy ? 1 : 0, el: a.el, b: a.bolt ? 1 : 0, sn: a.snare ? 1 : 0 })),
+    a: w.arrows.map(a => ({ id: a.id, o: a.owner, x: r1(a.x), y: r1(a.y), g: r3(a.ang), s: a.stuck > 0 ? r2(a.stuck) : 0, c: a.color, cr: a.full ? 1 : 0, ex: a.explosive ? 1 : 0, rl: a.rail ? 1 : 0, bg: a.big ? 1 : 0, sk: a.seek ? 1 : 0, rk: a.rocket ? 1 : 0, bm: a.boom ? (a.back ? 2 : 1) : 0, br: a.bri ? 1 : 0, sw: a.swap ? 1 : 0, xq: a.exec ? 1 : 0, sh: a.shur ? (a.dbl ? 2 : 1) : 0, gv: a.grav ? 1 : 0, xb: a.xb ? 1 : 0, hv: a.heavy ? 1 : 0, el: a.el, b: a.bolt ? 1 : 0, sn: a.snare ? 1 : 0 })),
     z: w.zones.filter(z => !(z.delay > 0)).map(z => ({ id: z.id, ty: z.ty, x: r1(z.x), y: r1(z.y), x2: z.x2 != null ? r1(z.x2) : undefined, y2: z.y2 != null ? r1(z.y2) : undefined, r: z.r, cr: z.core, t: r2(z.t), tm: z.team, o: z.owner })),
     u: w.pickups.map(u => ({ id: u.id, x: r1(u.x), y: r1(u.y), ty: u.type, ag: r1(u.age), li: u.life, cp: u.chan ? r2(u.cp) : undefined, ct: u.chan ? u.ct : undefined, cs: u.chan ? u.cs : undefined })),
   };

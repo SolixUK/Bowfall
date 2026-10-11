@@ -2,6 +2,12 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.51.0
+
+- **Void reworked around marks:** every Void hit puts a void mark on the target (up to 5), shown as violet motes circling them, brighter for the archer who placed them. Marks fade 2.5 seconds after your last hit. From the second mark on, your own arrows curve toward that archer, only a touch at first and more with every mark, and only on shots already heading their way. In a test at 500px, an unmarked target needed aim within about 3°; at 2 marks about 4°, 3 marks 6°, 4 marks 8° and 5 marks 9°.
+- **Rift is now an upgrade:** the rift on a fully drawn hit (or bullseye) moved from Void's base to an upgrade called Rift. Event Horizon, Collapse, Null Field and Unstable Rift now need it.
+- **New Void upgrade, Gravity Arrows:** your arrows are dark with gravity: a black-violet halo, a long smoky trail and specks of dark matter drawn in, and as they fly they pull enemies within 110px slightly toward them (on shuriken too).
+
 ## 0.50.0
 
 **Matchmaking**

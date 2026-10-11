@@ -1879,7 +1879,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.50.0"></script>
+<script src="sim.js?v=0.51.0"></script>
 <script>
 (() => {
 'use strict';
@@ -1887,7 +1887,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.50.0';
+const PAGE_VERSION = '0.51.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -8955,6 +8955,16 @@ function drawPlayer(p, isMe, bare) {
     ctx.fillStyle = '#e3d9c6';
     for (let k = 0; k < 9; k++) { const a = k / 9 * TAU + 0.3, r0 = R + 5; ctx.beginPath(); ctx.moveTo(Math.cos(a - 0.08) * r0, Math.sin(a - 0.08) * r0); ctx.lineTo(Math.cos(a) * (r0 + 7), Math.sin(a) * (r0 + 7)); ctx.lineTo(Math.cos(a + 0.08) * r0, Math.sin(a + 0.08) * r0); ctx.fill(); }
   }
+  if (p.vd && !p.f) {
+    // void marks: violet motes circling them, one per mark (bright for the archer who placed them)
+    const mine = p.vb === myId, n = p.vd;
+    for (let i = 0; i < n; i++) {
+      const an = gclock * (1.6 + n * 0.25) + i * TAU / n, rr = R + 9 + Math.sin(gclock * 5 + i) * 1.5;
+      ctx.fillStyle = mine ? 'rgba(200,160,255,0.95)' : 'rgba(180,140,255,0.6)'; ctx.beginPath(); ctx.arc(Math.cos(an) * rr, Math.sin(an) * rr, n >= 5 ? 4 : 3.2, 0, TAU); ctx.fill();
+      ctx.fillStyle = 'rgba(20,6,36,0.9)'; ctx.beginPath(); ctx.arc(Math.cos(an) * rr, Math.sin(an) * rr, 1.4, 0, TAU); ctx.fill();
+    }
+    if (n >= 2) { ctx.strokeStyle = `rgba(180,140,255,${0.12 + 0.08 * n})`; ctx.lineWidth = 1.2; ctx.setLineDash([3, 5]); ctx.beginPath(); ctx.arc(0, 0, R + 9, 0, TAU); ctx.stroke(); ctx.setLineDash([]); }
+  }
   if (p.sl && !p.f) {
     // chilled: a cold haze clings to them and trails behind as they move, thicker the slower they are
     const k = p.sw || 0.5, sp = Math.hypot(p.vx || 0, p.vy || 0);
@@ -9029,6 +9039,7 @@ function drawArrow(a) {
   }
   if (a.sh) { // shuriken: a spinning four-point star
     ctx.save(); ctx.globalAlpha = a.s > 0 && a.s < 1 ? a.s : 1; ctx.translate(a.x, a.y); ctx.rotate(a.s ? a.id * 0.7 : gclock * 26 + a.id); // stuck in a wall: stops spinning
+    if (!a.s && a.gv) { const g = ctx.createRadialGradient(0, 0, 2, 0, 0, 18); g.addColorStop(0, 'rgba(10,0,20,0.8)'); g.addColorStop(0.5, 'rgba(70,30,120,0.45)'); g.addColorStop(1, 'rgba(120,60,220,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 18, 0, TAU); ctx.fill(); }
     if (!a.s && (a.sh === 2 || EL_COL[a.el])) { ctx.fillStyle = a.sh === 2 ? 'rgba(255,77,94,0.35)' : `rgba(${EL_RGB[a.el]},0.3)`; ctx.beginPath(); ctx.arc(0, 0, a.sh === 2 ? 11 : 9, 0, TAU); ctx.fill(); }
     ctx.fillStyle = '#d7dde5'; ctx.strokeStyle = a.sh === 2 ? '#ff4d5e' : EL_COL[a.el] || '#4a515c'; ctx.lineWidth = a.sh === 2 || a.el ? 1.6 : 1;
     starPath(a.sh === 2 ? 8.5 : 7, 2); ctx.fill(); ctx.stroke();
@@ -9062,7 +9073,8 @@ function drawArrow(a) {
   ctx.translate(a.x, a.y); ctx.rotate(a.g);
   if (a.rk && !a.s) { drawRocket(a); ctx.restore(); return; }
   if (a.b) ctx.scale(1.7, 1.7); else if (a.bg) ctx.scale(1.45, 1.45); else ctx.scale(1.12, 1.12); // a touch bigger than life, to be easy to see
-  if (!a.s) {
+  if (a.gv && !a.s) gravityFx(a);
+  if (!a.s && !a.gv) {
     const col = a.rl ? '140,255,255' : a.xq ? '255,70,90' : a.sw ? '255,120,230' : a.sk ? '255,150,90' : a.el === 'blood' ? '224,52,74' : a.el === 'shadow' ? '142,149,201' : a.el === 'poison' ? '130,210,80' : a.sn ? '155,229,100' : a.el === 'storm' ? '255,242,122' : a.b ? '255,207,90' : a.el === 'frost' ? '159,220,255' : a.el === 'flame' ? '255,140,60' : a.el === 'stone' ? '201,168,120' : a.el === 'void' ? '180,140,255' : a.ex ? '255,90,122' : a.cr ? '255,255,255' : '255,207,90';
     if (a.el === 'flame' && Math.random() < 0.4) fx.parts.push({ x: a.x, y: a.y, vx: rand(-20, 20), vy: rand(-20, 20), life: 0, max: 0.35, color: Math.random() < 0.5 ? '#ff6a2b' : '#ffcf5a', r: rand(1, 2.2) });
     ctx.strokeStyle = trailStyle(-70, -20, col, 0.55); ctx.lineWidth = a.cr ? 4 : 2.5; ctx.beginPath(); ctx.moveTo(-70, 0); ctx.lineTo(-20, 0); ctx.stroke();
@@ -9073,14 +9085,25 @@ function drawArrow(a) {
     }
   }
   ctx.strokeStyle = 'rgba(20,14,8,0.75)'; ctx.lineWidth = 4; ctx.lineCap = 'butt'; ctx.beginPath(); ctx.moveTo(-21, 0); ctx.lineTo(2, 0); ctx.stroke(); // dark edge for contrast (stops at the head, so the tip stays sharp)
-  ctx.strokeStyle = '#d8c7a0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(4, 0); ctx.stroke();
-  ctx.fillStyle = a.el === 'blood' ? '#e0344a' : a.el === 'shadow' ? '#8e95c9' : a.el === 'poison' ? '#7fcf4a' : a.sn ? '#9be564' : a.el === 'storm' ? '#fff27a' : a.el === 'frost' ? '#bfe8ff' : a.el === 'flame' ? '#ff7a2b' : a.el === 'stone' ? '#b8966a' : a.el === 'void' ? '#b48cff' : a.ex ? '#ff5a7a' : a.hv ? '#ff8a3d' : '#c9d1dc';
+  ctx.strokeStyle = a.gv ? '#3b2c55' : '#d8c7a0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(4, 0); ctx.stroke();
+  ctx.fillStyle = a.gv ? '#1a1026' : a.el === 'blood' ? '#e0344a' : a.el === 'shadow' ? '#8e95c9' : a.el === 'poison' ? '#7fcf4a' : a.sn ? '#9be564' : a.el === 'storm' ? '#fff27a' : a.el === 'frost' ? '#bfe8ff' : a.el === 'flame' ? '#ff7a2b' : a.el === 'stone' ? '#b8966a' : a.el === 'void' ? '#b48cff' : a.ex ? '#ff5a7a' : a.hv ? '#ff8a3d' : '#c9d1dc';
   if (a.el === 'stone' && !a.s) { ctx.save(); ctx.fillStyle = '#9b8566'; ctx.strokeStyle = 'rgba(40,30,20,0.8)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(5, -4.6); ctx.lineTo(-0.5, -3.6); ctx.lineTo(-1.5, 2.8); ctx.lineTo(4.5, 4.6); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); if (Math.random() < 0.3) fx.parts.push({ x: a.x, y: a.y, vx: rand(-15, 15), vy: rand(-15, 15), life: 0, max: 0.4, color: 'rgba(205,190,160,0.5)', r: rand(1.5, 3) }); }
   ctx.beginPath(); ctx.moveTo(8, 0); ctx.lineTo(1, -3.5); ctx.lineTo(1, 3.5); ctx.closePath(); ctx.strokeStyle = 'rgba(20,14,8,0.7)'; ctx.lineWidth = 1.4; ctx.lineJoin = 'miter'; ctx.miterLimit = 10; ctx.stroke(); ctx.fill();
   ctx.fillStyle = a.c; ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(-25, -4); ctx.lineTo(-17, 0); ctx.lineTo(-25, 4); ctx.fill();
   ctx.restore();
 }
 
+// Gravity Arrows: drawn in the arrow's frame. A dark, heavy arrow: a black-violet halo that warps around it, a long
+// smoky trail behind, and specks of dark matter drawn in toward it
+function gravityFx(a) {
+  const pulse = 0.85 + 0.15 * Math.sin(gclock * 14 + (+a.id || 0));
+  const tr = ctx.createLinearGradient(-110, 0, -8, 0); tr.addColorStop(0, 'rgba(40,10,70,0)'); tr.addColorStop(0.6, 'rgba(70,30,120,0.45)'); tr.addColorStop(1, 'rgba(15,5,25,0.85)');
+  ctx.strokeStyle = tr; ctx.lineWidth = 7; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-110, 0); ctx.lineTo(-8, 0); ctx.stroke();
+  ctx.strokeStyle = 'rgba(180,140,255,0.35)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-90, 0); ctx.lineTo(-10, 0); ctx.stroke();
+  const g = ctx.createRadialGradient(-4, 0, 2, -4, 0, 22 * pulse); g.addColorStop(0, 'rgba(10,0,20,0.85)'); g.addColorStop(0.45, 'rgba(60,20,110,0.5)'); g.addColorStop(1, 'rgba(120,60,220,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(-4, 0, 22 * pulse, 0, TAU); ctx.fill();
+  if (!lightFx() && Math.random() < 0.6) { const an = rand(0, TAU), r = rand(18, 34); fx.parts.push({ x: a.x + Math.cos(an) * r, y: a.y + Math.sin(an) * r, vx: -Math.cos(an) * r * 3, vy: -Math.sin(an) * r * 3, life: 0, max: 0.3, color: Math.random() < 0.5 ? 'rgba(30,10,50,0.8)' : 'rgba(170,120,255,0.7)', r: rand(1, 2.2) }); }
+}
 // Firework: drawn in the arrow's frame (already translated and rotated). A striped paper tube with a pointed cap,
 // wobbling a little as it flies, with a flame and sparks (reds, oranges and yellows) from its tail
 function drawRocket(a) {
