@@ -11,8 +11,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Bowfall">
-<link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="/icons/archer-32.png">
+<link rel="icon" href="/favicon.ico?v=3" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/archer-32.png?v=3">
+<link rel="icon" type="image/png" sizes="16x16" href="/icons/archer-16.png?v=3">
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/archer-192.png">
 <meta name="description" content="Bowfall: team knockback archery in your browser. Pick an element and a role, knock the other team into the lava.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,7 +41,7 @@
   header .wrap { display: flex; align-items: center; gap: 18px; height: 60px; }
   .logo { display: flex; align-items: center; gap: 10px; font: 700 24px var(--display); color: var(--text); }
   .logo:hover { text-decoration: none; }
-  .logo svg { width: 30px; height: 30px; }
+  .logo svg, .logo img { width: 34px; height: 34px; } .logo { text-transform: uppercase; letter-spacing: .04em; }
   nav { display: flex; gap: 4px; flex: 1; overflow-x: auto; }
   nav a { color: var(--muted); padding: 8px 12px; border-radius: 2px; font: 600 15px var(--display); white-space: nowrap; }
   nav a:hover, nav a.on { color: var(--text); background: var(--panel); text-decoration: none; }
@@ -215,13 +216,98 @@
   .pform { display: grid; gap: 12px; max-width: 640px; } .pform label { display: grid; gap: 6px; font-size: 14px; } .pform .pchk { display: flex; align-items: center; gap: 8px; }
   .paccs { display: flex; flex-wrap: wrap; gap: 8px; } .pacc { width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; } .pacc.on { border-color: #fff; box-shadow: 0 0 0 2px rgba(0,0,0,.6); }
   .ppinsel { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; } @media (max-width: 600px) { .ppinsel { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  /* ---------- front page ---------- */
+  body { overflow-x: hidden; }
+  .fx-bleed { width: 100vw; margin-left: calc(50% - 50vw); }
+  .hx { position: relative; margin-top: -28px; min-height: min(78vh, 760px); display: flex; align-items: center; overflow: hidden; isolation: isolate; background: #0b130d; }
+  .hx iframe { position: absolute; inset: -4% -4%; width: 108%; height: 108%; border: 0; pointer-events: none; z-index: -2; opacity: 0; transition: opacity 1.2s; filter: saturate(1.08); }
+  .hx iframe.on { opacity: 1; }
+  .hx::before { content: ''; position: absolute; inset: 0; z-index: -1; background:
+      radial-gradient(ellipse 70% 90% at 22% 55%, rgba(8,14,9,.92) 0%, rgba(8,14,9,.72) 45%, rgba(8,14,9,.15) 80%),
+      linear-gradient(180deg, rgba(8,14,9,.55) 0%, transparent 25%, transparent 70%, var(--bg) 100%); }
+  .hx .wrap { position: relative; padding: 70px 0 90px; }
+  .hx-kick { display: inline-flex; align-items: center; gap: 10px; font: 700 14px var(--display); letter-spacing: .18em; text-transform: uppercase; color: var(--gold2); padding: 6px 12px; border: 1px solid rgba(255,201,74,.35); background: rgba(255,201,74,.08); }
+  .hx-kick i { width: 8px; height: 8px; border-radius: 50%; background: #7dff8a; box-shadow: 0 0 10px #7dff8a; animation: hxpulse 1.6s infinite; }
+  @keyframes hxpulse { 50% { opacity: .35; } }
+  .hx-word { font: 700 clamp(60px, 12vw, 168px)/.8 var(--display); text-transform: uppercase; letter-spacing: .01em; margin: 22px 0 8px; background: linear-gradient(180deg, #fff6d8 0%, #ffd263 45%, #ff8a2b 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 6px 30px rgba(255,140,40,.35)); }
+  .hx-line { font: 700 clamp(24px, 3.4vw, 40px)/1.05 var(--display); text-transform: uppercase; letter-spacing: .03em; margin: 0 0 14px; }
+  .hx-line em { font-style: normal; color: #ff6a2b; }
+  .hx p.lead { font-size: clamp(17px, 1.6vw, 20px); color: #dfe8d6; max-width: 560px; margin: 0; }
+  .hx-cta { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 28px; align-items: center; }
+  .btn.mega { font-size: 26px; padding: 18px 40px; box-shadow: 0 10px 40px rgba(255,180,40,.35); position: relative; }
+  .btn.mega::after { content: '▶'; font-size: 16px; margin-left: 4px; }
+  .btn.ghost { background: rgba(255,255,255,.06); color: var(--text); box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); backdrop-filter: blur(4px); }
+  .btn.ghost:hover { background: rgba(255,255,255,.12); }
+  .hx-note { font-size: 13px; color: var(--muted); }
+  .hx-stats { display: flex; gap: 30px; flex-wrap: wrap; margin-top: 36px; }
+  .hx-stats div { display: flex; flex-direction: column; border-left: 2px solid rgba(255,201,74,.5); padding-left: 12px; }
+  .hx-stats b { font: 700 34px/1 var(--display); } .hx-stats span { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+  .hx-scroll { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); font-size: 12px; color: var(--muted); letter-spacing: .2em; text-transform: uppercase; }
+  .hx-scroll::after { content: ''; display: block; width: 1px; height: 26px; margin: 6px auto 0; background: linear-gradient(var(--gold), transparent); animation: hxdrop 1.8s infinite; }
+  @keyframes hxdrop { 0% { transform: scaleY(0); transform-origin: top; } 50% { transform: scaleY(1); transform-origin: top; } 51% { transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } }
+  .sx { margin: 84px 0 0; }
+  .sx-h { display: flex; justify-content: space-between; align-items: end; gap: 18px; margin-bottom: 26px; flex-wrap: wrap; }
+  .sx-h .k { font: 700 13px var(--display); letter-spacing: .2em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 8px; }
+  .sx-h h2 { font-size: clamp(34px, 4.6vw, 54px); text-transform: uppercase; line-height: .95; }
+  .sx-h p { color: var(--muted); max-width: 460px; margin: 0; }
+  .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+  .step { position: relative; padding: 26px 24px 24px; background: linear-gradient(160deg, var(--panel2), var(--panel) 60%); border: 1px solid var(--line); clip-path: var(--notch); overflow: hidden; }
+  .step .n { position: absolute; right: 14px; top: -8px; font: 700 110px/1 var(--display); color: rgba(255,255,255,.04); }
+  .step svg { width: 80px; height: 80px; display: block; margin-bottom: 14px; filter: drop-shadow(0 4px 12px rgba(0,0,0,.4)); }
+  .step h3 { font-size: 26px; text-transform: uppercase; margin-bottom: 8px; }
+  .step p { color: #c9d6c2; margin: 0; }
+  .step::before { content: ''; position: absolute; left: 0; top: 0; right: 0; height: 3px; background: var(--c); }
+  .forge { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 30px; align-items: stretch; padding: 28px; background: radial-gradient(ellipse at 15% 30%, color-mix(in srgb, var(--ec) 22%, transparent), transparent 60%), linear-gradient(135deg, #142319, #0e1810); border: 1px solid color-mix(in srgb, var(--ec) 40%, var(--line)); clip-path: var(--notch); transition: background .4s; }
+  .forge-av { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+  .forge-av canvas { width: 240px; height: 240px; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--ec) 30%, transparent), rgba(0,0,0,.3) 70%); box-shadow: 0 0 0 3px var(--ec), 0 0 60px color-mix(in srgb, var(--ec) 45%, transparent); transition: box-shadow .4s; }
+  .forge-av .nm { font: 700 34px/1 var(--display); text-transform: uppercase; text-align: center; }
+  .forge-av .nm span { color: var(--ec); }
+  .forge-pick .lbl { font: 700 12px var(--display); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+  .chipz { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+  .chipz button { font: 700 15px var(--display); letter-spacing: .03em; padding: 7px 13px; background: rgba(255,255,255,.04); color: var(--text); border: 1px solid rgba(255,255,255,.12); cursor: pointer; transition: transform .12s, background .2s, border-color .2s; }
+  .chipz button:hover { transform: translateY(-2px); border-color: var(--c); }
+  .chipz button.on { background: color-mix(in srgb, var(--c) 22%, transparent); border-color: var(--c); color: #fff; box-shadow: 0 0 18px color-mix(in srgb, var(--c) 35%, transparent); }
+  .chipz button i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--c); margin-right: 7px; vertical-align: 1px; }
+  .forge-info { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .forge-info > div { padding: 14px 16px; background: rgba(0,0,0,.22); border-left: 3px solid var(--c); }
+  .forge-info b { font: 700 18px var(--display); display: block; margin-bottom: 4px; color: var(--c); }
+  .forge-info p { margin: 0; font-size: 14px; color: #cfdac8; }
+  .forge-info ul { margin: 8px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 5px; }
+  .forge-info li { font-size: 12px; padding: 2px 8px; border: 1px solid rgba(255,255,255,.14); color: #dfe7d8; }
+  .forge-go { margin-top: 18px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .arenaz { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .arenaz a { position: relative; display: block; aspect-ratio: 3 / 2; overflow: hidden; border: 1px solid var(--line); background: #1b2a1f center / cover no-repeat; color: #fff; clip-path: var(--notch); }
+  .arenaz a:hover { text-decoration: none; }
+  .arenaz a .im { position: absolute; inset: 0; background: inherit; background-size: cover; transition: transform .6s cubic-bezier(.2,.8,.2,1); }
+  .arenaz a:hover .im { transform: scale(1.07); }
+  .arenaz a::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 35%, rgba(6,10,7,.92)); }
+  .arenaz .tx { position: absolute; left: 16px; right: 16px; bottom: 14px; z-index: 1; }
+  .arenaz b { font: 700 26px/1 var(--display); text-transform: uppercase; display: block; }
+  .arenaz span { font-size: 13px; color: #d5ddcf; display: block; margin-top: 6px; max-height: 0; opacity: 0; overflow: hidden; transition: max-height .4s, opacity .4s; }
+  .arenaz a:hover span, .arenaz a:focus span { max-height: 80px; opacity: 1; }
+  .modes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  .mode { padding: 22px; background: var(--panel); border: 1px solid var(--line); clip-path: var(--notch); position: relative; overflow: hidden; }
+  .mode::after { content: ''; position: absolute; right: -40px; top: -40px; width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--c) 30%, transparent), transparent 70%); }
+  .mode .tg { font: 700 12px var(--display); letter-spacing: .16em; text-transform: uppercase; color: var(--c); }
+  .mode h3 { font-size: 24px; text-transform: uppercase; margin: 6px 0 8px; }
+  .mode p { margin: 0; color: #c7d3c0; font-size: 15px; }
+  .tierrow { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+  .comm { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .finale { margin-top: 90px; padding: 60px 28px; text-align: center; background: radial-gradient(ellipse at 50% 120%, rgba(255,106,43,.35), transparent 60%), linear-gradient(180deg, #13211a, #0c150f); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .finale h2 { font-size: clamp(36px, 5vw, 64px); text-transform: uppercase; }
+  .finale p { color: var(--muted); margin: 10px 0 26px; font-size: 18px; }
+  .rv { opacity: 0; transform: translateY(26px); transition: opacity .7s, transform .7s cubic-bezier(.2,.8,.2,1); }
+  .rv.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .rv { opacity: 1; transform: none; transition: none; } .hx-kick i, .hx-scroll::after { animation: none; } }
+  @media (max-width: 980px) { .steps, .modes, .comm { grid-template-columns: repeat(2, minmax(0, 1fr)); } .arenaz { grid-template-columns: repeat(2, minmax(0, 1fr)); } .forge { grid-template-columns: 1fr; } }
+  @media (max-width: 620px) { .steps, .modes, .comm, .arenaz, .forge-info { grid-template-columns: 1fr; } .hx { min-height: 640px; } .hx-word { font-size: 17vw; } .hx::before { background: linear-gradient(180deg, rgba(8,14,9,.6), rgba(8,14,9,.85) 60%, var(--bg)); } .forge { padding: 18px; } .forge-av canvas { width: 180px; height: 180px; } .arenaz span { max-height: 80px; opacity: 1; } }
 </style>
 </head>
 <body>
 <header>
   <div class="wrap">
     <a class="logo" href="#/" aria-label="Bowfall home">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#ffc94a"/><path d="M9 7c9 3 13 9 13 18" stroke="#221a08" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M9 7l13 18" stroke="#221a08" stroke-width="1.5"/><path d="M6 20l14-8" stroke="#ff5a45" stroke-width="2.5" stroke-linecap="round"/><path d="M20 12l-4 .5 1.5 3z" fill="#ff5a45"/></svg>
+      <img src="/icons/archer-64.png?v=3" width="34" height="34" alt="" aria-hidden="true">
       <span>Bowfall</span>
     </a>
     <nav id="nav">
@@ -373,6 +459,14 @@ function seasonsCard(list) {
 // the real picture comes from the game's own drawing code, borrowed from a hidden copy of the game page; this simple
 // version shows until it's ready (or if it can't load)
 let avatarFrame = null;
+function gameMapArt(keys, cb) {
+  gameAvatar(document.createElement('canvas'), { el: 'frost', ro: 'sniper', c: '#ff6b5a' }); // makes sure the hidden game frame exists
+  let n = 0; const t = setInterval(() => {
+    let w = null; try { w = avatarFrame && avatarFrame.contentWindow; } catch (e) {}
+    if (w && w.bowfallMapArt) { clearInterval(t); keys.forEach((k, i) => setTimeout(() => { try { cb(k, w.bowfallMapArt(k, 0.42)); } catch (e) {} }, i * 60)); }
+    else if (++n > 80) clearInterval(t);
+  }, 150);
+}
 function gameAvatar(cv, av) {
   const draw = () => { try { const w = avatarFrame.contentWindow; if (!w || !w.bowfallDrawAvatar) return false; w.bowfallDrawAvatar(cv, av.el, av.ro, av.c); return true; } catch (e) { return false; } };
   if (!avatarFrame) { avatarFrame = document.createElement('iframe'); avatarFrame.src = '/play?avatar=1'; avatarFrame.title = ''; avatarFrame.setAttribute('aria-hidden', 'true'); avatarFrame.style.cssText = 'position:absolute;width:1px;height:1px;left:-9999px;top:0;border:0;opacity:0'; document.body.appendChild(avatarFrame); }
@@ -396,34 +490,106 @@ const pages = {
     const [rooms, forum, lb] = await Promise.all([api('/rooms').catch(() => ({ rooms: [], online: 0 })), api('/forum').catch(() => ({ recent: [] })), api('/leaderboard?by=elo').catch(() => ({ rows: [] }))]);
     const E = Object.entries(Sim.ELEMENTS), R = Object.entries(Sim.ROLES);
     const CATC = { Power: '#ff8a5b', Agility: '#5ad1ff', Utility: '#c7b3ff' };
-    const THEME = { meadow: '#5f9a3e', spring: '#6fae4a', rift: '#6b4a3a', beach: '#d9c28a', pitch: '#4f9a3c', mill: '#a07a4e', ruins: '#8a8a94', grove: '#3f7a3a', highland: '#8a8a48', dusk: '#2c3a31' };
+    const ICO = {
+      draw: '<svg viewBox="0 0 64 64"><path d="M18 6c22 6 30 26 26 52" stroke="#e0aa60" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M18 6L34 34 44 58" stroke="#fff" stroke-width="1.5" fill="none" opacity=".8"/><path d="M8 40L40 26" stroke="#ffc94a" stroke-width="4" stroke-linecap="round"/><path d="M44 24l-9-1 4 8z" fill="#ffc94a"/><circle cx="46" cy="24" r="5" fill="#fff" opacity=".9"/></svg>',
+      knock: '<svg viewBox="0 0 64 64"><ellipse cx="44" cy="50" rx="17" ry="9" fill="#120c08" stroke="#5a3a22" stroke-width="2"/><circle cx="30" cy="26" r="11" fill="#3d8bff" stroke="#0d2a55" stroke-width="2.5"/><path d="M8 18l10 4M6 28h10M8 38l10-4" stroke="#ff5a45" stroke-width="3.5" stroke-linecap="round"/><path d="M38 34l6 8" stroke="#ffc94a" stroke-width="3" stroke-linecap="round" stroke-dasharray="3 4"/></svg>',
+      win: '<svg viewBox="0 0 64 64"><path d="M14 10h36v10c0 12-8 20-18 20S14 32 14 20z" fill="#ffc94a" stroke="#8a5a00" stroke-width="2.5"/><path d="M14 14H6c0 8 4 12 10 12M50 14h8c0 8-4 12-10 12" stroke="#ffc94a" stroke-width="3" fill="none"/><path d="M26 40h12v8H26zM20 50h24v6H20z" fill="#e0aa60" stroke="#8a5a00" stroke-width="2"/><path d="M32 16l2.5 5 5.5.7-4 3.8 1 5.5-5-2.7-5 2.7 1-5.5-4-3.8 5.5-.7z" fill="#fff6d8"/></svg>',
+    };
+    const tierRow = () => `<div class="tierrow">${(Sim.TIERS || []).map(t => `<span title="${esc(t.n)}">${Sim.tierSvg(t.k, 28)}</span>`).join('')}</div>`;
     app.innerHTML = `
-      <section class="hero2">
-        <div class="h2l">
-          <h1 class="wordmark">Bow<span>fall</span></h1>
-          <p class="tagline">Team knockback archery.</p>
-          <p>Draw your bow and knock the other team off the map: into pits, lava, water, spikes and saw blades. Build your archer from ${E.length} elements and ${R.length} roles, upgrade between rounds, and climb the ranked ladder in 1v1, 2v2 or 3v3.</p>
-          <div class="cta"><a class="btn big" href="/play">Play now</a><a class="btn alt big" href="#/leaderboard">Leaderboard</a></div>
-          <div class="h2stats"><div><b class="livedot">${rooms.online}</b><span>playing now</span></div><div><b>${rooms.rooms.length}</b><span>open games</span></div><div><b>${Sim.MAP_KEYS.length}</b><span>arenas</span></div><div><b>${E.length * R.length}</b><span>archetypes</span></div></div>
+      <section class="hx fx-bleed">
+        <iframe id="hxShow" title="Bots playing a match" aria-hidden="true" tabindex="-1" loading="eager"></iframe>
+        <div class="wrap">
+          <span class="hx-kick"><i></i>${rooms.online ? `${rooms.online} playing right now` : 'Free to play · in your browser'}</span>
+          <h1 class="hx-word">Bowfall</h1>
+          <p class="hx-line">Draw. Loose. <em>Knock them off the map.</em></p>
+          <p class="lead">A fast team archery brawler where knockback is the weapon. Shove rivals into lava, pits, water and saw blades, build your archer from ${E.length} elements and ${R.length} roles, and climb the ranked ladder.</p>
+          <div class="hx-cta"><a class="btn mega" href="/play">Play now</a><a class="btn ghost big" href="#/leaderboard">Leaderboard</a></div>
+          <p class="hx-note" style="margin-top:12px">No download. Plays on a computer, phone or tablet, with mouse, touch or a controller.</p>
+          <div class="hx-stats"><div><b>${E.length * R.length}</b><span>archetypes</span></div><div><b>${Sim.MAP_KEYS.length}</b><span>arenas</span></div><div><b>${Object.keys(Sim.TREE).length}</b><span>upgrades</span></div><div><b>1v1 · 2v2 · 3v3</b><span>ranked</span></div></div>
         </div>
-        <figure class="h2r"><canvas id="heroCv" width="1200" height="800" aria-label="A live match between bots"></canvas><figcaption>A live bot match, running in your browser</figcaption></figure>
+        <div class="hx-scroll">Scroll</div>
       </section>
-      <div class="section-h"><h2>How it plays</h2></div>
-      <div class="grid g4">
-        <div class="card feat" style="border-top:4px solid var(--red)"><h3>Knockback is the weapon</h3><p class="muted">Every arrow shoves. A full draw flies faster and hits harder; a shot through the middle is a bullseye. Anyone knocked into a pit or water is out on the spot, however much health they had.</p></div>
-        <div class="card feat" style="border-top:4px solid var(--gold)"><h3>Build your archer</h3><p class="muted">One element for your arrows, one role for your body and abilities. Pick upgrades from both after every round.</p>
-          <div class="echips">${E.map(([k, e]) => `<span style="--c:${e.color}">${esc(e.name)}</span>`).join('')}</div><div class="echips">${R.map(([k, r]) => `<span style="--c:${CATC[r.cat] || '#aaa'}">${esc(r.name)}</span>`).join('')}</div></div>
-        <div class="card feat" style="border-top:4px solid var(--blue)"><h3>Ranked matchmaking</h3><p class="muted">Search on your own or with a party. You're matched by rating, then everyone picks an archetype for the arena. Separate 1v1 and team ratings, tiered achievements and match history on your profile.</p></div>
-        <div class="card feat" style="border-top:4px solid #7dff8a"><h3>Play together</h3><p class="muted">Add friends and see what they're playing, invite them to your party, or host a custom game with your own rules. Up to four players can share one screen with controllers.</p></div>
-      </div>
-      <div class="section-h"><h2>The arenas</h2></div>
-      <div class="arenas">${Sim.MAP_KEYS.map(k => `<div class="arena" style="--c:${THEME[Sim.MAPS[k].theme] || '#5f9a3e'}"><b>${esc(Sim.MAPS[k].name)}</b><span class="muted">${esc(Sim.MAPS[k].desc)}</span></div>`).join('')}</div>
-      <div class="grid g3" style="margin-top:16px">
-        <div class="card"><div class="section-h" style="margin-top:0"><h2>Top players</h2><a href="#/leaderboard">Leaderboard</a></div>${(lb.rows || []).length ? `<ol class="toplist">${lb.rows.slice(0, 6).map(r => `<li>${badge(r.level)}${flag(r.country)}<a href="#/u/${esc(r.name)}"><b>${esc(r.name)}</b></a>${crown(r.own)}${status(r)}${r.ai ? '<span class="tag">AI</span>' : ''}<span class="v">${r.value}</span></li>`).join('')}</ol>` : '<p class="muted">Nobody yet.</p>'}</div>
-        <div class="card"><div class="section-h" style="margin-top:0"><h2>Open games</h2><a href="#/servers">All games</a></div>${roomTable(rooms.rooms.slice(0, 5), true)}</div>
-        <div class="card"><div class="section-h" style="margin-top:0"><h2>From the forum</h2><a href="#/forum">Forum</a></div>${threadList(forum.recent || [], true)}</div>
-      </div>`;
-    heroArt($('heroCv'));
+
+      <section class="sx rv">
+        <div class="sx-h"><div><span class="k">How a fight goes</span><h2>Easy to pick up.<br>Hard to put down.</h2></div><p>Every arrow shoves. Health matters, but the edge of the arena matters more: one well-aimed shot can end a round.</p></div>
+        <div class="steps">
+          <div class="step" style="--c:#ffc94a"><span class="n">1</span>${ICO.draw}<h3>Draw</h3><p>Hold to draw, let go to shoot. A full draw flies faster and hits harder, and a shot through the middle is a bullseye. Watch for the white spark on an enemy's bow.</p></div>
+          <div class="step" style="--c:#ff5a45"><span class="n">2</span>${ICO.knock}<h3>Knock</h3><p>Every hit throws its target. Line up your shots so they send rivals tumbling into pits, lava, water, thorns and saw blades. Out of the arena is out of the round.</p></div>
+          <div class="step" style="--c:#7dff8a"><span class="n">3</span>${ICO.win}<h3>Outplay</h3><p>Dash out of danger, fire your two abilities, and pick an upgrade after every round. Best of three games wins a round; first to three rounds takes the match.</p></div>
+        </div>
+      </section>
+
+      <section class="sx rv">
+        <div class="sx-h"><div><span class="k">${E.length} elements × ${R.length} roles</span><h2>Forge your archer</h2></div><p>Your element decides what your arrows do; your role decides how you move and fight. Try a few.</p></div>
+        <div class="forge" id="forge">
+          <div class="forge-av"><canvas id="fgAv" width="320" height="320" aria-hidden="true"></canvas><div class="nm" id="fgName"></div></div>
+          <div class="forge-pick">
+            <p class="lbl">Element</p><div class="chipz" id="fgEl">${E.map(([k, e]) => `<button type="button" data-el="${k}" style="--c:${e.color}"><i></i>${esc(e.name)}</button>`).join('')}</div>
+            <p class="lbl">Role</p><div class="chipz" id="fgRo">${R.map(([k, r]) => `<button type="button" data-ro="${k}" style="--c:${CATC[r.cat] || '#aaa'}">${esc(r.name)}</button>`).join('')}</div>
+            <div class="forge-info" id="fgInfo"></div>
+            <div class="forge-go"><a class="btn big" href="/play" id="fgPlay">Play this archer</a><span class="muted" style="font-size:14px">Every archetype is free to try against bots.</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sx rv">
+        <div class="sx-h"><div><span class="k">${Sim.MAP_KEYS.length} arenas, each with a twist</span><h2>Pick your battlefield</h2></div><p>Saw blades, lava rivers, rising tides and healing springs. Some matches roll a map effect too: winds, regeneration, tougher hides or a bounty of power-ups.</p></div>
+        <div class="arenaz" id="arenaz">${Sim.MAP_KEYS.map(k => `<a href="/play" data-map="${k}"><div class="im"></div><div class="tx"><b>${esc(Sim.MAPS[k].name)}</b><span>${esc(Sim.MAPS[k].desc)}</span></div></a>`).join('')}</div>
+      </section>
+
+      <section class="sx rv">
+        <div class="sx-h"><div><span class="k">Ways to play</span><h2>Solo, squad or couch</h2></div></div>
+        <div class="modes">
+          <div class="mode" style="--c:#ffc94a"><span class="tg">Ranked</span><h3>Climb the ladder</h3><p>Matchmade 1v1, 2v2 and 3v3 with separate solo and team ratings, seasons and tiers from Bronze up.</p>${tierRow()}</div>
+          <div class="mode" style="--c:#5ad1ff"><span class="tg">Custom</span><h3>Your rules</h3><p>Host a private or public game: arena, bots, health, knockback, arrow speed and damage, map effects. Or draw your own arena and share its code.</p></div>
+          <div class="mode" style="--c:#7dff8a"><span class="tg">Together</span><h3>Friends and clans</h3><p>Party up, see what friends are playing and watch their games. Up to four players can share one screen with controllers.</p></div>
+          <div class="mode" style="--c:#c7b3ff"><span class="tg">Practice</span><h3>Train and test</h3><p>Graded drills from D to S, a tutorial, and bots from Easy to Master to try every archetype against.</p></div>
+        </div>
+      </section>
+
+      <section class="sx rv">
+        <div class="sx-h"><div><span class="k">Community</span><h2>Who's on top</h2></div></div>
+        <div class="comm">
+          <div class="card"><div class="section-h" style="margin-top:0"><h3>Top players</h3><a href="#/leaderboard">Leaderboard</a></div>${(lb.rows || []).length ? `<ol class="toplist">${lb.rows.slice(0, 6).map(r => `<li>${badge(r.level)}${flag(r.country)}<a href="#/u/${esc(r.name)}"><b>${esc(r.name)}</b></a>${crown(r.own)}${status(r)}${r.ai ? '<span class="tag">AI</span>' : ''}<span class="v">${r.value}</span></li>`).join('')}</ol>` : '<p class="muted">Nobody yet.</p>'}</div>
+          <div class="card"><div class="section-h" style="margin-top:0"><h3>Open games</h3><a href="#/servers">All games</a></div>${roomTable(rooms.rooms.slice(0, 5), true)}</div>
+          <div class="card"><div class="section-h" style="margin-top:0"><h3>From the forum</h3><a href="#/forum">Forum</a></div>${threadList(forum.recent || [], true)}</div>
+        </div>
+      </section>
+
+      <section class="finale fx-bleed rv">
+        <h2>Your first match is one click away</h2>
+        <p>No download, no sign-up needed. Make an account later to keep your rating.</p>
+        <a class="btn mega" href="/play">Play now</a>
+      </section>`;
+    // the live backdrop: real bots on the real renderer (skipped for people who'd rather not have motion)
+    // (phones, data savers and reduced motion get a still picture of an arena instead)
+    const sh = $('hxShow'), still = matchMedia('(prefers-reduced-motion: reduce)').matches || innerWidth < 700 || (navigator.connection && navigator.connection.saveData);
+    if (!still) { sh.src = '/play?showcase=1'; sh.onload = () => setTimeout(() => sh.classList.add('on'), 600); }
+    else { sh.remove(); gameMapArt([Sim.MAP_KEYS[Math.floor(Math.random() * Sim.MAP_KEYS.length)]], (k, url) => { const h = app.querySelector('.hx'); if (h && url) { h.style.background = `#0b130d url(${url}) center / cover no-repeat`; } }); }
+    // scroll reveals
+    const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.12 }) : null;
+    app.querySelectorAll('.rv').forEach(el => io ? io.observe(el) : el.classList.add('in'));
+    // the archetype forge
+    const T = Sim.TREE, pickRand = a => a[Math.floor(Math.random() * a.length)];
+    let fe = pickRand(E)[0], fr = pickRand(R)[0];
+    const cards = tree => Object.entries(T).filter(([id, n]) => !n.base && !n.hidden && (n.tree === tree || (n.also || []).includes(tree))).map(([, n]) => n.name);
+    const drawForge = () => {
+      const e = Sim.ELEMENTS[fe], r = Sim.ROLES[fr], base = T[fe];
+      $('forge').style.setProperty('--ec', e.color);
+      $('fgName').innerHTML = `<span>${esc(e.name)}</span> ${esc(r.name)}`;
+      $('fgEl').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.el === fe));
+      $('fgRo').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.ro === fr));
+      const ec = cards(fe).slice(0, 6), rc = cards(fr).slice(0, 8);
+      $('fgInfo').innerHTML = `<div style="--c:${e.color}"><b>${esc(e.name)} · ${esc(base ? base.name : '')}</b><p>${esc(base ? base.desc : e.blurb)}</p><ul>${ec.map(n => `<li>${esc(n)}</li>`).join('')}</ul></div>
+        <div style="--c:${CATC[r.cat] || '#aaa'}"><b>${esc(r.name)} · ${esc(r.trait ? r.trait.name : '')}</b><p>${esc(r.trait ? r.trait.desc : r.blurb)}</p><ul>${rc.map(n => `<li>${esc(n)}</li>`).join('')}</ul></div>`;
+      gameAvatar($('fgAv'), { el: fe, ro: fr, c: pickRand(['#ff6b5a', '#4fa8ff', '#ffcf5a', '#3fd0c9', '#ff7ac8', '#b38cff']) });
+    };
+    $('fgEl').onclick = ev => { const b = ev.target.closest('button'); if (b) { fe = b.dataset.el; drawForge(); } };
+    $('fgRo').onclick = ev => { const b = ev.target.closest('button'); if (b) { fr = b.dataset.ro; drawForge(); } };
+    drawForge();
+    // arena art, painted by the game itself
+    gameMapArt(Sim.MAP_KEYS, (k, url) => { const a = app.querySelector(`.arenaz a[data-map="${k}"]`); if (a && url) a.style.backgroundImage = `url(${url})`; });
   },
   async servers() {
     const d = await api('/rooms');
@@ -688,63 +854,6 @@ function threadList(list, short) {
     <div class="muted" style="font-size:13px">by ${esc(t.author)}${short && t.catName ? ` in ${esc(t.catName)}` : ''} · ${ago(t.last)}</div></div>
     <div class="muted" style="font-size:14px">${t.posts} ${t.posts === 1 ? 'post' : 'posts'}</div></div>`).join('')}</div>`;
 }
-// a little scene for the front page: an archer's arrow knocking another toward a pit
-// the home page's picture: a real match between bots, run with the game's own rules and drawn simply
-function heroArt(cv) {
-  const g = cv.getContext('2d'), S = Sim, maps = ['meadow', 'spring', 'rift', 'pitch', 'grove', 'beach'];
-  const THEME = { meadow: ['#5f9a3e', '#1b120c'], spring: ['#6fae4a', '#1b120c'], rift: ['#5c4636', '#140c08'], beach: ['#d9c28a', '#1f6fa8'], pitch: ['#4f9a3c', '#0b100b'], grove: ['#3f7a3a', '#120c08'] };
-  let w, mapK, n = 0, pops = [], last = performance.now(), acc = 0, over = 0;
-  const start = () => {
-    mapK = maps[n++ % maps.length];
-    w = S.createWorld({ map: mapK, diff: 'hard' });
-    for (let i = 0; i < 2; i++) { S.addBot(w, 'red'); S.addBot(w, 'blue'); }
-    S.startMatch(w); over = 0;
-  };
-  start();
-  const hz = (h, col) => { g.fillStyle = col; if (h.shape === 'circle') { g.beginPath(); g.arc(h.x, h.y, h.r, 0, 7); g.fill(); } else g.fillRect(h.x - h.w / 2, h.y - h.h / 2, h.w, h.h); };
-  const frame = now => {
-    if (!document.body.contains(cv)) return;
-    acc += Math.min(0.1, (now - last) / 1000); last = now;
-    while (acc >= 1 / 60) {
-      acc -= 1 / 60;
-      for (const p of w.players) if (p.offer && !p.picked) S.choose(w, p.id, Math.floor(Math.random() * 3));
-      S.step(w, 1 / 60);
-      for (const e of w.events) if (e.e === 'kill') pops.push({ x: e.x, y: e.y, t: 1.2, c: e.c });
-      w.events.length = 0; w.records.length = 0;
-      if (w.match.ph === 'over' && (over += 1 / 60) > 3) start();
-    }
-    const v = S.snapshot(w), T = THEME[mapK] || THEME.meadow, m = S.MAPS[mapK];
-    g.fillStyle = '#0f1a12'; g.fillRect(0, 0, 1200, 800);
-    g.fillStyle = T[0]; g.fillRect(S.WALL, S.WALL, 1200 - 2 * S.WALL, 800 - 2 * S.WALL);
-    for (const h of m.haz) {
-      if (h.type === 'lava') { hz(h, '#ff6a2b'); g.globalAlpha = 0.5 + 0.2 * Math.sin(now / 300); hz(Object.assign({}, h, h.r ? { r: h.r * 0.7 } : { w: h.w * 0.8, h: h.h * 0.7 }), '#ffcf5a'); g.globalAlpha = 1; }
-      else if (h.type === 'pit') hz(h, T[1]);
-      else if (h.type === 'tar') { g.globalAlpha = 0.55; hz(h, '#3b2a1a'); g.globalAlpha = 1; }
-    }
-    for (const q of m.pillars) { g.fillStyle = '#9aa39a'; g.beginPath(); g.arc(q.x, q.y, q.r, 0, 7); g.fill(); g.fillStyle = 'rgba(0,0,0,.2)'; g.beginPath(); g.arc(q.x + 4, q.y + 5, q.r * 0.8, 0, 7); g.fill(); }
-    for (const b of m.bumpers || []) { g.fillStyle = '#e8506a'; g.beginPath(); g.arc(b.x, b.y, b.r || 30, 0, 7); g.fill(); }
-    g.lineCap = 'round';
-    for (const a of v.a) { g.strokeStyle = a.c || '#fff'; g.lineWidth = 4; g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(a.x - Math.cos(a.g) * 26, a.y - Math.sin(a.g) * 26); g.stroke(); }
-    for (const p of v.p) {
-      if (p.d && !(p.f > 0)) continue;
-      const r = (p.rz || 16) * (p.f > 0 ? Math.max(0.2, 1 - p.f) : 1);
-      g.fillStyle = 'rgba(0,0,0,.25)'; g.beginPath(); g.arc(p.x + 3, p.y + 5, r, 0, 7); g.fill();
-      g.fillStyle = p.c; g.beginPath(); g.arc(p.x, p.y, r, 0, 7); g.fill();
-      g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 3; g.beginPath(); g.arc(p.x, p.y, r + 7, p.a - 1, p.a + 1); g.stroke();
-      if (p.dr) { g.strokeStyle = '#ffffff'; g.globalAlpha = 0.5; g.lineWidth = 2; g.beginPath(); g.moveTo(p.x + Math.cos(p.a) * (r + 7 - 14 * p.ch), p.y + Math.sin(p.a) * (r + 7 - 14 * p.ch)); g.lineTo(p.x + Math.cos(p.a) * (r + 60), p.y + Math.sin(p.a) * (r + 60)); g.stroke(); g.globalAlpha = 1; }
-      if (!p.d) { g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(p.x - 24, p.y - r - 18, 48, 8); g.fillStyle = p.tm === 'red' ? '#ff5a45' : '#3f8cff'; g.fillRect(p.x - 24, p.y - r - 18, 48 * Math.max(0, p.hp / (p.mh || 100)), 8); }
-    }
-    g.textAlign = 'center'; g.font = "700 64px 'Rajdhani', 'Arial Narrow', sans-serif";
-    pops = pops.filter(o => (o.t -= 1 / 60) > 0);
-    for (const o of pops) { g.globalAlpha = Math.min(1, o.t); g.fillStyle = '#ffcf5a'; g.fillText(['pit', 'lava', 'water', 'spikes', 'saw'].includes(o.c) ? 'RING OUT' : 'KNOCKOUT', o.x, o.y - 40 - (1.2 - o.t) * 60); }
-    g.globalAlpha = 1;
-    g.fillStyle = 'rgba(0,0,0,.5)'; g.fillRect(470, 12, 260, 76);
-    g.font = "700 60px 'Rajdhani', 'Arial Narrow', sans-serif"; g.fillStyle = '#ff5a45'; g.fillText(v.m.wr, 545, 72); g.fillStyle = '#3f8cff'; g.fillText(v.m.wb, 655, 72); g.fillStyle = '#eef3e6'; g.fillText(':', 600, 68);
-    requestAnimationFrame(frame);
-  };
-  requestAnimationFrame(frame);
-}
-
 async function route() {
   const h = (location.hash || '#/').slice(1).split('?')[0];
   const parts = h.split('/').filter(Boolean);

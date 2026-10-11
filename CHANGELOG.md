@@ -2,6 +2,17 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.46.0
+
+- **A new front page for the website.**
+  - **The hero:** behind it, a real match plays out between bots on the game's own renderer (four archers, a new arena each match), under a big BOWFALL wordmark and a Play now button. Phones, data savers and reduced-motion settings get a still picture of an arena instead.
+  - **Sections:** how a fight goes (draw, knock, outplay); an archetype forge where you click through every element and role and see the archer drawn by the game, with its base effect, trait and upgrades; every arena with the game's own art; the ways to play (ranked with the tier badges, custom, friends, practice); top players, open games and the forum; and a closing call to play.
+  - Sections fade in as you scroll.
+- **Browser tab icon:** just the archer now, on a transparent background and filling the icon, so it reads at tab size (16px and 32px versions, and a new favicon). The site's header uses it too.
+- **Kill cam:**
+  - It now records and replays far more effects exactly as they looked live: Rip's wind-up and the thorns flying back, shade stacks and bursts, Eclipse, boomerang turns and catches, Mend, Flashpoint, smoke, totems, harpoons, blinks, gusts, deflects, stagger, snares, Echo Strike and more.
+  - Animations run on game time: in slow motion (and the kill cam's slow-down at the hit and the knockout) spins, pulses and particles slow down with it, so a boomerang spins slower in a slow-motion replay.
+
 ## 0.45.4
 
 - **Rip:**

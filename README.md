@@ -312,7 +312,7 @@ Friends can join straight from a link, for example `https://your-host/play?room=
 | `lib/level.js` | Account xp and level from a player's career. |
 | `lib/rating.js` | Elo ratings, overall and per role, after each online game. |
 | `lib/geo.js` | Rough country from an IP address, for the starting flag (cached; set `GEO_OFF=1` to turn it off). |
-| `public/site.html` | The website: front page, games list, leaderboard, profiles, forum, sign in. |
+| `public/site.html` | The website: front page (a live bot match from `/play?showcase=1` behind the hero, an archetype forge, the arenas drawn by the game through `/play?avatar=1`), games list, leaderboard, profiles, forum, sign in. |
 | `public/index.html` | Client: menus, rendering, sound, HUD, pick screen. Online it smooths other players with 100 ms interpolation. |
 | `build-offline.js` | `npm run build:offline` builds a single-file offline copy at `dist/bowfall-duels.html`: double-click it to play practice games with no server. |
 
