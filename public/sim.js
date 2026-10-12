@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.52.1';
+const VERSION = '0.54.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -665,36 +665,52 @@ function emblemSvg(code, size) {
     `<defs><clipPath id="${id}"><path d="${path}"/></clipPath></defs><path d="${path}" fill="${base}"/><g clip-path="url(#${id})">${pats}</g>${syms}` +
     `<path d="${path}" fill="none" stroke="${trim}" stroke-width="6" stroke-linejoin="round"/></svg>`;
 }
+// Banner backgrounds and frames are earned by particular feats, not by playing a lot: each one says something about how
+// its owner plays, so a banner you've never seen makes you wonder how they got it (hovering one says).
+// need: [achievement stat, amount]; how: what earns it. Status backgrounds are for supporters, founders and patrons.
 const BANNER_FINISH = {
-  plain:   { name: 'Plain',        tiers: 0 },
-  carbon:  { name: 'Carbon',       tiers: 2 },
-  brushed: { name: 'Brushed steel', tiers: 3 },
-  hex:     { name: 'Hex plating',  tiers: 6 },
-  camo:    { name: 'Woodland camo', tiers: 11 },
-  waves:   { name: 'Tidal',        tiers: 18 },
-  chevron: { name: 'Chevrons',     tiers: 8 },
-  ember:   { name: 'Ember',        tiers: 15 },
-  storm:   { name: 'Stormfront',   tiers: 25 },
-  royal:   { name: 'Royal',        tiers: 40 },
-  diamond: { name: 'Diamond',      tiers: 60 },
+  plain:   { name: 'Plain' },
+  carbon:  { name: 'Carbon',        need: ['mw', 25],     how: 'Win 25 matches' },
+  brushed: { name: 'Brushed steel', need: ['pin', 50],    how: 'Pin 50 archers to a wall' },
+  hex:     { name: 'Hex plating',   need: ['revive', 25], how: 'Revive 25 teammates' },
+  camo:    { name: 'Woodland camo', need: ['topdmg', 50], how: 'Top your team\'s damage in 50 won games' },
+  chevron: { name: 'Chevrons',      need: ['capture', 25], how: 'Capture 25 objectives' },
+  waves:   { name: 'Tidal',         need: ['hzWater', 20], how: 'Knock 20 archers into water' },
+  ember:   { name: 'Ember',         need: ['hzLava', 20], how: 'Knock 20 archers into lava' },
+  storm:   { name: 'Stormfront',    need: ['emp', 50],    how: 'Become empowered 50 times' },
+  royal:   { name: 'Royal',         need: ['mstreak', 10], how: 'Win 10 matches in a row' },
+  diamond: { name: 'Diamond',       need: ['acc', 100],   how: 'Win a game hitting every shot (6 or more)' },
   // status finishes: for supporters (while their membership is active), founders and patrons
-  aurora:  { name: 'Aurora',       need: 'sp', label: 'Supporters' },
-  founder: { name: 'Founder',      need: 'fd', label: 'Founders' },
-  rose:    { name: 'Patron rose',  need: 'pt', label: 'Patrons' },
+  aurora:  { name: 'Aurora',       sneed: 'sp', label: 'Supporters', how: 'A Bowfall supporter' },
+  founder: { name: 'Founder',      sneed: 'fd', label: 'Founders', how: 'A Bowfall founder' },
+  rose:    { name: 'Patron rose',  sneed: 'pt', label: 'Patrons', how: 'A Bowfall patron' },
 };
-// banner frames: a styled edge round the banner (on top of its finish), unlocked by total achievement tiers
 const BANNER_FRAME = {
-  none:   { name: 'None',       tiers: 0 },
-  tech:   { name: 'Circuit',    tiers: 5 },
-  frost:  { name: 'Rime',       tiers: 12 },
-  primal: { name: 'Primal',     tiers: 20 },
-  shadow: { name: 'Shadow',     tiers: 30 },
-  blood:  { name: 'Bloodied',   tiers: 45 },
-  gilded: { name: 'Gilded',     tiers: 65 },
+  none:      { name: 'None' },
+  // an element's frame: games won with it
+  frost:     { name: 'Rime',       need: ['w_frost', 150],  how: 'Win 150 games as Frost', el: 'frost' },
+  flame:     { name: 'Inferno',    need: ['w_flame', 150],  how: 'Win 150 games as Flame', el: 'flame' },
+  storm:     { name: 'Tempest',    need: ['w_storm', 150],  how: 'Win 150 games as Storm', el: 'storm' },
+  poison:    { name: 'Venom',      need: ['w_poison', 150], how: 'Win 150 games as Poison', el: 'poison' },
+  primal:    { name: 'Bedrock',    need: ['w_stone', 150],  how: 'Win 150 games as Stone', el: 'stone' },
+  void:      { name: 'Abyss',      need: ['w_void', 150],   how: 'Win 150 games as Void', el: 'void' },
+  shadow:    { name: 'Umbra',      need: ['w_shadow', 150], how: 'Win 150 games as Shadow', el: 'shadow' },
+  blood:     { name: 'Sanguine',   need: ['w_blood', 150],  how: 'Win 150 games as Blood', el: 'blood' },
+  // feats
+  laststand: { name: 'Last Stand', need: ['clutch3', 1],  how: 'Win a game as the last one standing against three' },
+  farsight:  { name: 'Farsight',   need: ['longM', 30],   how: 'Knock someone out with a shot from 30 metres' },
+  reaper:    { name: 'Reaper',     need: ['kstreak', 12], how: '12 knockouts in a row without being knocked out' },
+  untouched: { name: 'Untouched',  need: ['dstreak', 10], how: 'Win 10 games in a row without being knocked out' },
+  giant:     { name: 'Giantsbane', need: ['giant', 10],   how: 'Beat a team rated 150 or more above yours 10 times' },
+  thorn:     { name: 'Thornbound', need: ['hazKo', 50],   how: 'Knock 50 archers into hazards' },
+  tech:      { name: 'Circuit',    need: ['capture', 50], how: 'Capture 50 objectives' },
+  gilded:    { name: 'Gilded',     need: ['perfect', 25], how: 'Win 25 matches without losing a game' },
 };
-const frameAllowed = (f, rec) => { const F = BANNER_FRAME[f]; return !!F && F.tiers <= tierTotal(rec); };
+const featHas = (F, rec) => !F.need || (((rec && rec.stats) || {})[F.need[0]] || 0) >= F.need[1];
+const featProgress = (F, rec) => (F.need ? Math.min(F.need[1], ((rec && rec.stats) || {})[F.need[0]] || 0) : 0);
+const frameAllowed = (f, rec) => { const F = BANNER_FRAME[f]; return !!F && featHas(F, rec); };
 // may this record (and status: { sp, fd, pt }) wear this finish?
-const finishAllowed = (f, rec, st) => { const F = BANNER_FINISH[f]; if (!F) return false; return F.need ? !!(st && st[F.need]) : F.tiers <= tierTotal(rec); };
+const finishAllowed = (f, rec, st) => { const F = BANNER_FINISH[f]; if (!F) return false; return F.sneed ? !!(st && st[F.sneed]) : featHas(F, rec); };
 const tierTotal = rec => Object.values((rec && rec.tier) || {}).reduce((s, t) => s + t, 0);
 // what someone's banner is allowed to show, from their record: the finish (if earned) and up to 3 medals they've reached
 function bannerOf(rec, st) {
@@ -710,7 +726,8 @@ function achFromEvents(evs, pid, team) {
   const out = [];
   for (const e of evs) switch (e.e) {
     case 'kill':
-      if (e.k === pid) { out.push(['ko', 1]); if (e.ks) out.push(['kstreak', e.ks, 'max']); if (e.m) out.push(['longM', e.m, 'max']); }
+      if (e.k === pid) { out.push(['ko', 1]); if (e.ks) out.push(['kstreak', e.ks, 'max']); if (e.m) out.push(['longM', e.m, 'max']);
+        if (HAZARD_OUTS.includes(e.c)) { out.push(['hazKo', 1]); if (e.c === 'water') out.push(['hzWater', 1]); if (e.c === 'lava' || e.c === 'burn') out.push(['hzLava', 1]); } }
       break;
     case 'pinned': if (e.by === pid) out.push(['pin', 1]); break;
     case 'clutch': if (e.id === pid) { out.push(['clutch', 1]); if (e.vs >= 3) out.push(['clutch3', 1]); } break;
@@ -725,6 +742,7 @@ function achFromGame(rec, pid, cur) {
   const me = rec.p.find(p => p.id === pid); if (!me || !rec.win) return [];
   const out = [];
   if (me.sh >= 6) out.push(['acc', Math.round(me.hi / me.sh * 100), 'max']);
+  if (me.w === 1 && me.el) out.push(['w_' + me.el, 1]); // wins with each element (their banner frames)
   if (me.bu) out.push(['bullG', me.bu, 'max']);
   const team = rec.p.filter(p => p.tm === me.tm);
   if (team.length >= 2 && me.dmg > 0 && team.every(p => p === me || p.dmg < me.dmg)) out.push(['topdmg', 1]);
@@ -772,6 +790,13 @@ function achMigrate(rec) {
   rec.stats = st; rec.got = {}; rec.tier = {}; rec.v = 2;
   for (const k of ACH_ORDER) { const t = achTierOf(k, st[ACHIEVEMENTS[k].stat] || 0); if (t) { rec.tier[k] = t; rec.got[k] = old[k] || Date.now(); } }
   if (rec.border && !rec.got[rec.border]) rec.border = null;
+  return rec;
+}
+// games already won with each element (from the career record) count toward the element frames
+function achSeed(rec, career) {
+  if (!rec || !career || !career.elW) return rec;
+  const st = rec.stats || (rec.stats = {});
+  for (const [el, n] of Object.entries(career.elW)) if ((st['w_' + el] || 0) < n) st['w_' + el] = n;
   return rec;
 }
 // country flag and account level shown next to a name; the server fills these in
@@ -1989,6 +2014,7 @@ function stepBody(w, f, mx, my, dt) {
   let sp = f.speed;
   if (f.drawing) sp *= f.role === 'ranger' ? 0.7 : 0.55; // the Ranger keeps more of its speed while drawing
   if (f.slow > 0) sp *= f.sure ? 0.85 : (f.slowK || 0.5); // frost
+  if (f.onLava) sp *= f.sure ? 0.85 : 0.6; // wading through lava
   if (f.riftSlow > 0) { f.riftSlow -= dt; sp *= f.sure ? 0.9 : 0.7; }
   if (f.caltT > 0) { f.caltT -= dt; sp *= f.sure ? 0.85 : 0.6; } // Caltrops
   if (f.stuck > 0) { f.stuck -= dt; sp = 0; }
@@ -2031,6 +2057,9 @@ function stepBody(w, f, mx, my, dt) {
     ev(w, { e: 'stuck', id: f.id, x: r1(f.x), y: r1(f.y - 26) });
   }
   f.inTar = inTar;
+  // lava is thick: anyone flung onto it slows to a crawl instead of sliding across (and walking out takes a while too)
+  if (inLava) { const e = Math.exp(-(f.sure ? 1.2 : 2.6) * dt); f.vx *= e; f.vy *= e; }
+  f.onLava = inLava;
   if (inLava) { hurt(w, f, 30 * dt, 0, 0, 'lava', null, true); f.burn = Math.max(f.burn, 1.5); }
   else if (f.burn > 0) { f.burn -= dt; hurt(w, f, (f.burnDps || 5) * dt, 0, 0, 'burn', null, true); if (f.burn <= 0) f.burnDps = 5; }
   if (!f.dead && f.bleedT > 0) { f.bleedT -= dt; hurt(w, f, 2 * dt, 0, 0, 'bleed', f.bleedBy, true); } // Hemorrhage
@@ -4822,7 +4851,7 @@ return {
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg,
-  setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, BANNER_FRAME, frameAllowed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
+  setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, BANNER_FRAME, frameAllowed, featProgress, achSeed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
   _grant(w, id, cards) { const p = w.players.find(q => q.id === id); for (const c of cards) takeCard(w, p, c); applyStats(p); p.picked = false; return p; },
 };

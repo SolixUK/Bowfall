@@ -2,6 +2,35 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.54.0
+
+- **AFK and leaving in ranked:** the server watches every human archer while a ranked game is being fought (not during picks, countdowns or while knocked out).
+  - After 3 seconds of doing nothing (no moving, aiming, drawing, dashing or abilities), a warning appears with a countdown and a double beep.
+  - You're marked AFK after 20 seconds in a row of nothing, or 40 seconds in all across the match, or 45 seconds of play while disconnected (or if you're still gone when the match ends).
+  - Marked AFK: the match is a loss at the full rate for you, even if your team wins, and your next search waits 3 minutes (10, 30, then 120 for more within a week; three full matches forgive one). Find game shows the countdown.
+  - Your teammates lose only a quarter of the usual rating if they lose. That relief doesn't apply between people who queued in the same party, or if the AFK came in the last 15 seconds, and each player gets it at most three times a day, so it can't be used as a get-out.
+  - Leave in a ranked match's menu now says it counts as AFK (rejoining in time avoids it).
+- **Tutorial away check is stricter:** 3 seconds without moving, aiming, drawing, dashing or an ability during a fight against the adaptive bot leaves that game out (was 6 seconds of any input at all).
+- **Friends' online status:** "Away" now holds up better: a mouse that twitches by itself, or a controller whose stick drifts, no longer counts as someone at the game. A page that's frozen or asleep goes offline after 100 seconds (was 150), and "Away" shows for how long.
+- **Find game:** your card no longer jumps about when you pick modes (the ratings stay in one fixed row; the one for your search is in gold), selected modes are clearly marked (gold, with a tick), and the arena preview stays next to its button instead of drifting off screen.
+- **Options are compact on computers:** each setting on one line, so the whole screen fits without scrolling.
+- **Tutorial pause menu:** no Achievements or Balance data buttons there.
+- **Banner frames, redesigned and earned by feats:** sixteen frames that follow the banner's arrow shape, each with its own crest, patterns and movement (icicles and twinkling frost, rising embers, lightning, dripping venom, drifting stars…). Each is earned by one feat instead of total achievement tiers: 150 game wins with an element for that element's frame (games you've already won count), or things like winning a game alone against three (Last Stand), a 30 metre knockout shot (Farsight), 12 knockouts in a row (Reaper), 10 games won in a row without being knocked out (Untouched), 50 hazard knockouts (Thornbound) or 25 flawless matches (Gilded). Backgrounds are earned by feats too (20 knockouts into water for Tidal, a game won hitting every shot for Diamond…). Hovering anyone's banner says what earned it. The achievements screen shows the whole collection with what each takes and how far along you are. (Frames or backgrounds worn under the old rules come off if their new feat isn't done yet.)
+- **Kill cam sound:** in the kill cam's slow motion every sound plays slower and lower, like real slow motion.
+- **Kill cams on the results screen:** hover one to watch it big.
+- **Highscores records that mean something:** longest knockout shot, longest knockout streak, quickest 1v1 game won, best match accuracy (25 shots or more), most ranked wins in a row, and highest rating. These come from ranked matches only, so they can't be farmed against bots. (The old per-game knockouts, damage and ring-outs were capped by the enemy's health.)
+
+## 0.53.0
+
+- **Lava holds you:** anyone flung onto lava slows right down instead of sliding across, and walking on it is 40% slower, so a knock onto lava is properly punishing (Sure Footing softens both).
+- **New lava:** pools and rivers are molten rock under a skin of dark, cracked crust plates with glowing seams, more molten toward the middle. Pools turn slowly and rivers flow along their length, the seams pulse brighter and dimmer, glowing bubbles swell and pop, and a scorched rim glows where the lava meets the bank.
+- **Tutorial:** the dodge step asks for 5 dodges (was 2), and the ability step uses Volley, which is easy to see working.
+- **Ranked opens after the tutorial:** new players finish the tutorial (winning a game against its bot) before Find game lets them search; the server checks this too. Anyone with rated matches is never asked.
+- **Skill check:** new players on Find game are offered a few more games against the tutorial's adaptive bot (it carries on where it left off, and about six games is plenty) so their first matches are fairer.
+- **Away games don't count:** if you switch to another tab or window, or stop touching the controls for 6 seconds, during a game against the tutorial's adaptive bot, that game is left out: the bot doesn't get easier and your rating guess doesn't drop. A short note says so.
+- **Lobbies don't shrink on phones:** adding bots or players to a lobby (and the custom games, Find game and results screens) scrolls the list instead of shrinking the whole screen to fit.
+- **New sound mix:** 48 sounds tuned.
+
 ## 0.52.1
 
 - **No endless upgrades in the tutorial's practice:** after a normal match's worth of picks (the opening and three more) the rounds just carry on, so the fight stays realistic however long you keep playing. Custom games can use the same limit (`cfg.maxPicks`).

@@ -45,7 +45,7 @@ const live = new Map();   // user id -> user object
 const dirty = new Set();
 const SEASON = require('./lib/season')({ store, Sim, live, track: u => track(u), markDirty: u => markDirty(u), give: (u, n, why) => E.give(u, n, why), START: ELO_START });
 setInterval(() => SEASON.check().catch(e => console.error('Season:', e.message)), 60 * 60 * 1000).unref();
-function track(u) { if (!u) return null; const have = live.get(u.id); if (have) return have; u.admin = isOwner(u); u.ach = Sim.achMigrate(u.ach || {}); live.set(u.id, u); return u; }
+function track(u) { if (!u) return null; const have = live.get(u.id); if (have) return have; u.admin = isOwner(u); u.ach = Sim.achSeed(Sim.achMigrate(u.ach || {}), u.career); live.set(u.id, u); return u; }
 function markDirty(u) { if (!u) return; if (u.guest) guestDirty.add(u); else dirty.add(u.id); }
 async function flushUsers() {
   const ids = [...dirty]; dirty.clear();
@@ -312,12 +312,13 @@ function saveRecords(room) {
       if (r.win) T.gw[r.win]++;
       for (const p of r.p) {
         const t = T.p[p.id] || (T.p[p.id] = { k: 0, a: 0, d: 0, dmg: 0, ring: 0, games: 0 });
-        t.k += p.k; t.a += p.a || 0; t.d += p.s ? 0 : 1; t.dmg += p.dmg; t.ring += p.ring; t.games++; t.el = p.el; t.ro = p.ro; t.tm = p.tm;
+        t.k += p.k; t.a += p.a || 0; t.d += p.s ? 0 : 1; t.dmg += p.dmg; t.ring += p.ring; t.sh = (t.sh || 0) + (p.sh || 0); t.hi = (t.hi || 0) + (p.hi || 0); t.games++; t.el = p.el; t.ro = p.ro; t.tm = p.tm;
       }
       for (const p of r.p) {
         const u = userOfPid(room, p.id); if (!u) continue;
         const team = r.p.filter(q => q.tm === p.tm);
         careerAdd(u, { type: 'game', pl: p, teamDmg: team.reduce((s2, q) => s2 + q.dmg, 0), teamSize: team.length });
+        if (room.ranked && p.w === 1 && r.size && r.size[0] === 1 && r.size[1] === 1 && r.dur >= 3) bestUp(u, 'fast', Math.round(r.dur * 10) / 10, true); // the quickest 1v1 game won
         if (counts && isAccount(room, u)) { const n = E.earnGame(u, p.w === 1); (room.crestGain || (room.crestGain = new Map())).set(u, ((room.crestGain.get(u)) || 0) + n); }
         if (counts) achNote(u, Sim.achApply(u.ach || (u.ach = {}), Sim.achFromGame(r, p.id, (u.ach.stats || {}))));
       }
@@ -351,7 +352,13 @@ function saveRecords(room) {
           const out = CLANS.record(S.clan.id, r.win === S.tm, before[1 - i]); if (!out) return;
           for (const u of S.us) { const ws = [...room.clients].find(q => q.user === u); if (ws) send(ws, { t: 'clanRated', tag: out.tag, em: out.em, name: out.name, rating: out.rating, d: out.d }); }
         });
+        const AF = afkAtEnd(room, ros, users, r.win); // who went AFK or left, and who gets their loss softened for it
+        for (const p of rec.p) if (AF.afk.has(p.id)) { p.w = 0; p.share = 0; } // AFK or gone: always a loss, at the full rate, whatever the result
         for (const [k, v] of rateGame(rec, users)) rated.set(k, v); // worked out for everyone first, from the ratings before this match
+        for (const [pid, f] of AF.soft) { const u = users.get(pid), x = u && rated.get(u.id); if (!x || x.delta >= 0) continue;
+          const d = Math.round(x.delta * f * 10) / 10, dr = Math.round((x.rd || 0) * f * 10) / 10;
+          x.elo = Math.round((x.elo - x.delta + d) * 10) / 10; x.roleElo = Math.round((x.roleElo - (x.rd || 0) + dr) * 10) / 10; x.delta = d; x.soft = 1; }
+        for (const pid of AF.afk) { const u = users.get(pid), x = u && rated.get(u.id); if (x) x.afk = 1; }
         for (const [pid, u] of users) {
           const x = rated.get(u.id); if (!x) continue;
           const c = u.career; c[key] = x.elo; c.rated = (c.rated != null ? c.rated : Math.max(0, (c.matches || 0) - 1)) + 1;
@@ -360,7 +367,7 @@ function saveRecords(room) {
           payReferral(u).catch(e => console.error('Referral:', e.message));
           c.relo = c.relo || {}; c.relo[x.role] = x.roleElo;
           const ws = [...room.clients].find(q => q.user === u || q.guest === u);
-          if (ws) send(ws, { t: 'rated', elo: x.elo, d: x.delta, key, guest: u.guest ? 1 : undefined, pl: placedOf(u) ? 1 : 0, left: Math.max(0, 5 - (c.rated || 0)) });
+          if (ws) send(ws, { t: 'rated', elo: x.elo, d: x.delta, key, guest: u.guest ? 1 : undefined, pl: placedOf(u) ? 1 : 0, left: Math.max(0, 5 - (c.rated || 0)), afk: x.afk || undefined, soft: x.soft || undefined, wait: x.afk && c.afk ? c.afk.until : undefined });
         }
       }
       for (const [pid, u] of users) {
@@ -369,10 +376,14 @@ function saveRecords(room) {
         const won = r.win === q.team, opp = q.team === 'red' ? 'blue' : 'red', x = rated.get(u.id);
         if (counts && isAccount(room, u)) { const n = E.earnMatch(u, won); (room.crestGain || (room.crestGain = new Map())).set(u, ((room.crestGain.get(u)) || 0) + n); }
         if (counts) achNote(u, Sim.achApply(u.ach || (u.ach = {}), Sim.achFromMatch(won, { lostGames: T.gw[opp], ring: t ? t.ring : 0, giant: !!(x && x.opp - x.mine >= 150) }, (u.ach.stats || {}))));
+        if (room.ranked && t && !(x && x.afk)) {
+          const c = u.career; c.ws = won ? (c.ws || 0) + 1 : 0; bestUp(u, 'ws', c.ws); // ranked matches won in a row
+          if ((t.sh || 0) >= 25) bestUp(u, 'acc', Math.round(t.hi / t.sh * 1000) / 10); // the best accuracy over a whole match (25 shots or more)
+        } else if (room.ranked && u.career) u.career.ws = 0;
         // match history: the last 10 ranked matches
         if (room.ranked && t) {
           const c = u.career; c.hist = c.hist || [];
-          c.hist.unshift({ t: Date.now(), mode: room.ranked.mode, won: won ? 1 : 0, score: [T.gw[q.team], T.gw[opp]], k: t.k, d: t.d, a: t.a, el: t.el, ro: t.ro, map: r.map, de: x ? x.delta : undefined });
+          c.hist.unshift({ t: Date.now(), mode: room.ranked.mode, won: won && !(x && x.afk) ? 1 : 0, afk: x && x.afk ? 1 : undefined, soft: x && x.soft ? 1 : undefined, score: [T.gw[q.team], T.gw[opp]], k: t.k, d: t.d, a: t.a, el: t.el, ro: t.ro, map: r.map, de: x ? x.delta : undefined });
           c.hist.length = Math.min(c.hist.length, 10);
           markDirty(u);
         }
@@ -386,6 +397,71 @@ function saveRecords(room) {
   const lines = recs.map(r => JSON.stringify(Object.assign({ src: 'online', room: room.code, humans }, r, r.p ? { p: r.p.map(({ id, ...x }) => x) } : {}))).join('\n') + '\n';
   balanceCache = null;
   fs.appendFile(DATA_FILE, lines, err => { if (err) console.error('Could not save game stats:', err.message); });
+}
+
+// ---------------- AFK and leaving in ranked ----------------
+// While a ranked game is being fought, every human archer has to be doing something: moving, aiming somewhere new,
+// drawing, dashing or using an ability. (Knocked out and waiting doesn't count as idle, nor do the picks and countdowns.)
+// - 3 seconds of nothing: a warning on their screen, counting down.
+// - Marked AFK at 20 seconds in a row of nothing, or 40 seconds in all over the match (counting only stretches past the
+//   first 3 seconds, so someone who keeps drifting off is caught too), or 45 seconds of a game while disconnected,
+//   or still disconnected when the match ends (having missed 10 seconds or more).
+// Marked AFK: the match is a loss for them at the full rate (even if their team wins), and the next search waits:
+// 3 minutes the first time, then 10, 30 and 120 for more within a week (three clean ranked matches forgive one).
+// Their teammates lose a quarter of the usual rating if they lose, but not if they queued in the same party as the
+// AFK player (so friends can't use it as a get-out), not if the AFK came in the last 15 seconds, and not more than
+// three times a day each.
+const AFK = { WARN: 3, CUT: 20, SUM: 40, AWAY: 45, END_AWAY: 10, LATE: 15000, SOFT: 0.25, SOFT_DAY: 3, WAITS: [3, 10, 30, 120], WEEK: 7 * 86400000, CLEAN: 3 };
+function afkRec(room, pid) { const A = room.afk || (room.afk = new Map()); let a = A.get(pid); if (!a) A.set(pid, a = { idle: 0, sum: 0, away: 0 }); return a; }
+function afkInput(room, ws, m) {
+  const L = ws.lastIn, tx = +m.tx || 0, ty = +m.ty || 0;
+  if (m.mx || m.my || m.draw || m.dash || m.q || m.e || m.dp || m.em || (L && Math.abs(tx - L.tx) + Math.abs(ty - L.ty) > 3)) afkRec(room, ws.pid).seen = true;
+  ws.lastIn = { tx, ty };
+}
+function afkTick(room, dt) {
+  const w = room.world; if (w.match.ph !== 'play') return;
+  for (const p of w.players) {
+    if (p.bot || (room.ai && room.ai.has(p.id))) continue;
+    const ws = [...room.clients].find(c => c.pid === p.id && !c.watch), a = afkRec(room, p.id);
+    if (p.dead) { a.idle = 0; a.seen = false; continue; } // knocked out: nothing to do until the next game
+    if (ws && (a.seen || (p.input && (p.input.mx || p.input.my || p.input.draw)))) { a.idle = 0; a.seen = false; if (a.warned) { a.warned = false; send(ws, { t: 'afk', s: 0 }); } continue; }
+    a.idle += dt;
+    if (!ws) a.away += dt; else if (a.idle > AFK.WARN) a.sum += dt;
+    if (!a.flag && (!ws ? a.away >= AFK.AWAY : a.idle >= AFK.CUT || a.sum >= AFK.SUM)) afkFlag(room, p, a, ws);
+    else if (ws && a.idle >= AFK.WARN) { a.warned = true; send(ws, { t: 'afk', s: Math.floor(a.idle), left: a.flag ? 0 : Math.max(1, Math.ceil(Math.min(AFK.CUT - a.idle, AFK.SUM - a.sum))), flag: a.flag ? 1 : undefined }); }
+  }
+}
+function afkFlag(room, p, a, ws) {
+  a.flag = true; a.at = Date.now();
+  sysChat(room, `${p.name} has been marked AFK.`);
+  if (ws) send(ws, { t: 'afk', flag: 1, now: 1 });
+}
+// at the end of a ranked match: { afk: Set of sim ids, soft: Map of sim id -> loss factor }
+function afkAtEnd(room, ros, users, win) {
+  const out = { afk: new Set(), soft: new Map() }, now = Date.now(), A = room.afk || new Map();
+  if (room.away) for (const s of room.away.values()) { const a = A.get(s.pid); if (a && !a.flag && a.away >= AFK.END_AWAY) { a.flag = true; a.at = now; } } // gone for good
+  const keyOfPid = pid => { const ws = [...room.clients].find(c => c.pid === pid); if (ws) return ws.mmKey; if (room.away) for (const s of room.away.values()) if (s.pid === pid) return s.mk; return null; };
+  const grp = (room.ranked && room.ranked.grp) || {};
+  for (const p of ros.p) { const a = A.get(p.id); if (a && a.flag && users.get(p.id)) out.afk.add(p.id); }
+  for (const pid of out.afk) { // the wait before their next search
+    const u = users.get(pid), c = u.career || (u.career = {}), F = c.afk || (c.afk = { s: [], clean: 0 });
+    F.s = (F.s || []).filter(t => now - t < AFK.WEEK); F.s.push(now); F.clean = 0;
+    F.until = now + AFK.WAITS[Math.min(F.s.length, AFK.WAITS.length) - 1] * 60000; markDirty(u);
+  }
+  for (const p of ros.p) {
+    const u = users.get(p.id); if (!u || out.afk.has(p.id) || (u.career && u.career.ai)) continue;
+    const c = u.career || (u.career = {});
+    if (c.afk && c.afk.s && c.afk.s.length && ++c.afk.clean >= AFK.CLEAN) { c.afk.s.shift(); c.afk.clean = 0; } // a clean match: on the way to forgiving one
+    if (p.tm === win) continue; // (relief is only for a loss)
+    const gone = ros.p.filter(q => q.tm === p.tm && out.afk.has(q.id)); if (!gone.length) continue;
+    const mk = keyOfPid(p.id);
+    if (gone.some(q => { const k = keyOfPid(q.id); return k && mk && grp[k] != null && grp[k] === grp[mk]; })) continue; // their own party
+    if (gone.every(q => now - (A.get(q.id).at || now) < AFK.LATE)) continue; // too late in the match to have made the difference
+    c.softs = (c.softs || []).filter(t => now - t < 86400000); if (c.softs.length >= AFK.SOFT_DAY) continue;
+    c.softs.push(now); out.soft.set(p.id, AFK.SOFT); markDirty(u);
+  }
+  room.afk = null;
+  return out;
 }
 
 // ---------------- HTTP ----------------
@@ -805,7 +881,9 @@ async function api(req, res, url) {
       .map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, ...stOf(u), country: flagOf(u), level: levelOf(u.career).lv, value: u.career.best[k] }));
     const peak = all.filter(u => (u.career || {}).eloPeak).sort((a, b) => b.career.eloPeak - a.career.eloPeak).slice(0, 10)
       .map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, ...stOf(u), country: flagOf(u), level: levelOf(u.career).lv, value: Math.round(u.career.eloPeak) }));
-    return board({ kills: top('k'), dmg: top('dmg'), ring: top('ring'), peak });
+    const fast = all.filter(u => ((u.career || {}).best || {}).fast > 0).sort((a, b) => a.career.best.fast - b.career.best.fast).slice(0, 10)
+      .map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, ...stOf(u), country: flagOf(u), level: levelOf(u.career).lv, value: u.career.best.fast }));
+    return board({ far: top('far'), ks: top('ks'), ws: top('ws'), acc: top('acc'), fast, peak });
   }
   if (route === '/look' && method === 'POST') {
     if (!me) return json(res, 401, { error: 'Sign in first.' });
@@ -1168,7 +1246,7 @@ function leave(ws) {
   if (ws.pid && !ws.watch && k && ranked_live(room)) {
     // dropped out of a ranked match: their archer stays (standing still) and their seat is kept so they can rejoin
     room.away = room.away || new Map();
-    room.away.set(k, { pid: ws.pid, u: ws.user || ws.guest, name: ws.name, at: Date.now() });
+    room.away.set(k, { pid: ws.pid, u: ws.user || ws.guest, name: ws.name, at: Date.now(), mk: ws.mmKey });
     Sim.setInput(room.world, ws.pid, { mx: 0, my: 0, draw: false, aim: 0 });
     ws.room = null; ws.pid = null;
     setTimeout(() => social.presence(ws), 0);
@@ -1403,7 +1481,7 @@ async function handle(ws, m) {
     // whoever creates the room starts on Red; everyone else arrives unassigned (or spectating a match in progress) and picks a team
     if (m.create) { room.host = ws.cid; applyRoomCfg(room, Object.assign({ name: '' }, m.room || {}), ws.name); joinTeam(room, ws, 'red'); }
     else if (ws.back && room.world.players.some(p => p.id === ws.back.pid)) { // their archer is still there: take it back
-      ws.pid = ws.back.pid; room.away.delete(whoKey(ws)); room.emptySince = null;
+      ws.pid = ws.back.pid; if (ws.back.mk) ws.mmKey = ws.back.mk; room.away.delete(whoKey(ws)); room.emptySince = null;
       const p = room.world.players.find(q => q.id === ws.pid); ws.mmTeam = p.team;
       send(ws, { t: 'you', id: ws.pid });
     }
@@ -1422,7 +1500,7 @@ async function handle(ws, m) {
   const w = room.world, isHost = room.host === ws.cid;
   if (ws.watch && !['ping', 'nz', 'perfRep'].includes(m.t)) return; // watching a matchmade game: no playing, picking or chatting
   switch (m.t) {
-    case 'in': if (ws.pid) Sim.setInput(w, ws.pid, m); break;
+    case 'in': if (ws.pid) { Sim.setInput(w, ws.pid, m); if (room.ranked) afkInput(room, ws, m); } break;
     case 'ping': send(ws, { t: 'pong', c: m.c }); break;
     case 'nz': ws.zOk = false; break; // this browser couldn't unpack the stream: plain snapshots from now on
     case 'perfRep': { // a player's own view of the last 10 seconds (frame rate, ping, late packets), for the owner's lag reports
@@ -1571,7 +1649,20 @@ function achNote(u, fresh) { // tell the owner (an account or a guest) what they
   if (!u.guest && !(u.career && u.career.ai) && live.get(u.id) === u) { const n = E.give(u, E.EARN.achTier * fresh.length, 'ach'); markDirty(u); setTimeout(() => walletNote(u, n, 'ach'), 0); }
   for (const r of rooms.values()) for (const c of r.clients) if ((c.user && c.user === u) || (c.guest && c.guest === u)) send(c, { t: 'ach', keys: fresh, ach: u.ach });
 }
+// ranked records (the highscores): only matchmade games count, so nothing can be farmed against easy bots
+const bestUp = (u, k, v, low) => { if (!u || !(v > 0)) return; const b = (u.career || (u.career = {})).best || (u.career.best = {}); if (b[k] == null || (low ? v < b[k] : v > b[k])) { b[k] = v; markDirty(u); } };
+function recordEvents(room, evs) {
+  if (!room.ranked) return;
+  for (const e of evs) if (e.e === 'kill' && e.k && !e.npc) {
+    const u = userOfPid(room, e.k); if (!u) continue;
+    const victim = room.world.players.find(q => q.id === e.v), killer = room.world.players.find(q => q.id === e.k);
+    if (victim && killer && victim.team === killer.team) continue;
+    if (e.c === 'arrow') bestUp(u, 'far', e.m); // the longest knockout shot, in metres
+    bestUp(u, 'ks', e.ks); // knockouts in a row without being knocked out (it carries on between games)
+  }
+}
 function creditAchievements(room, evs) {
+  recordEvents(room, evs);
   if (!achCounts(room)) return;
   for (const ws of room.clients) {
     if (!(ws.user || ws.guest) || !ws.pid) continue;
@@ -1717,6 +1808,7 @@ function gameLoop() {
           PERF.w.send += Number(process.hrtime.bigint() - t1) / 1e6;
         }
       }
+      if (room.ranked && room.tick % 15 === 0) afkTick(room, 15 * TICK);
       if (room.world.records.length) saveRecords(room);
     }
   }
