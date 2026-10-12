@@ -2,6 +2,73 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.59.0
+
+- **Clip studio:**
+  - **Starred only** (or F) lists just the starred clips to watch through again; **Export all starred** exports every one in turn, each as its own file with its own start and end.
+  - **Pause** (or P) holds the clip where it is.
+  - Settings now **carry over** from clip to clip (black bars off stays off, and so on). Only the start and end belong to each clip.
+  - **Moving the end later (or the start earlier) now shows in the preview**: clips are saved with 2.6 seconds to spare either side (up to 2½ s later or earlier). Clips saved before this version have little to spare.
+  - **Real time stays real time** even when the frame rate dips (it measured 1.00× here). With the Kill cam camera it still rides the arrow close up, which can feel like slow motion: pick Follow the shot or Wide for a normal view.
+  - **New camera, Follow the shot:** in on the shooter as they draw, out to show them and their target while the arrow flies, then in on the target as it lands. The kill cam is still there.
+  - **Vertical 9:16 for phones and reels:** the preview becomes phone-shaped, every camera frames for it, and exports are 720×1280, 1080×1920 or 1440×2560.
+  - Exported files are named after the clip and the archer, so a batch doesn't overwrite itself.
+- **More kinds of clip from the farm:**
+  - **Untouchable:** six or more enemy shots dodged in 8 seconds, dashing about, while dealing damage or knocking someone out. The camera stays on that archer.
+  - **Burst:** 130 or more damage dealt in 3 seconds.
+  - **Harpooned:** reeled in by a harpoon straight into a hole, water, lava or thorns.
+  - **Bullied out:** bullying that ends in the knockout, from the first slam.
+  - The same play is no longer saved twice. A long shot that also won the game is one clip, marked with both.
+  - **Clips to keep:** every one, the good ones (score 3 or more, the default) or only the best (4.5 or more). Plain game-winning knockouts are no longer kept unless you choose every one.
+- **Farm variety (each game):** each player can be swapped for a random ranked AI player of a similar rating, a high rating, a low rating or any rating, playing one of their favourite roles or any archetype. You can also give them random set upgrades (one ability and some passives) and a map effect (none, a random one each game, or a set one). With the arena on Random, it changes every game too.
+- **Lava toned down:** the crust is a softer warm brown rather than near-black, the seams are thinner and orange rather than white-hot, and the glow, heat haze, bubbles and rim are all gentler, closer to the rest of the art.
+
+## 0.58.0
+
+- **Clip studio (clip farm):** run the farm as long as you like, then go through every clip it saved and pick the best. Open it from the farm's bar (it pauses the match) or from the farm's setup. The list is best first (or newest, or starred first); **↑ ↓** or **← →** browse, and the selected clip plays on a loop beside the list. **S** stars it, **Space** replays it, **Delete** removes it, **E** exports it, **Esc** closes.
+  - **Edit each clip before saving:** kill cam (slow motion, following the arrow) or real time; the camera (kill cam, wide on everyone involved, or the whole arena); playback speed (¼× to 2×); start and end moved earlier or later; names and health, health bars or nothing over the archers; and black bars, particles, floating text, screen shake, the knockout flash and the empowered glow each on or off. A clip keeps its edits.
+  - **Smooth exports:** **Export video** draws the replay frame by frame at exactly 60 frames a second and encodes it (VP9 WebM, 720p, 1080p or 1440p), so it's smooth however busy the machine is and however fast the farm was running (no sound). **Export with sound** records it as it plays instead, at a higher bit rate than before.
+  - The farm now records every game step (not every other one), so clips from fast-forwarded games are as smooth as ones at 1×. The reel keeps the best 150.
+- **Back to setup:** the farm bar's exit button goes back to the farm's setup rather than the main menu.
+- The review-after-each-game option (0.57.1) is replaced by the studio.
+
+## 0.57.1
+
+- **Clip farm, the ranked AI players for sure:** the list asks the server for them again each time it opens until it has them (0.57.0 gave up after one try, so opening it before you were signed in left only the difficulty bots), and says why if it can't (not signed in as the owner, or the server not yet on this version). The offline copy has the whole roster built in. Once they arrive, the teams start from named players.
+- **Pause:** a Pause button on the farm's bar, or P.
+- **Review after each game:** tick it in the setup (or on the bar) and the farm stops when each game ends and goes through that game's clips, best first, playing each one on a loop: **← →** to browse, **S** to keep it (kept clips go to the Reel), **R** to switch between kill cam and real time, **V** to save it as a video, **Space** to carry on (the rest are let go). Best with a fast game speed: it runs at 16× and only stops for the good bits.
+
+## 0.57.0
+
+- **Clip farm, made for leaving running:**
+  - **Fast-forward:** 1×, 2×, 4×, 8× or 16× from the bar (no sound above 4×). Everything is still recorded at full detail, because the replays keep every other game step whatever the speed.
+  - **The reel:** every best moment (multi-kills, roasts on lava, bullying into walls, long shots), every clutch and every game-winning knockout is saved as it happens, scored, and kept (the best 80, in this browser, so it's still there after closing the page). Open **Reel** on the bar to see them best-first or newest-first, and watch any of them as a **kill cam** (slow motion, close up) or in **real time**, or **save it as a video** (it plays as a kill cam and records). The farm holds still while you watch and carries on afterwards.
+  - **Set upgrades:** each player can be given a set list of upgrades (any of their archetype's, abilities marked ★), which they have from the start of the match instead of picking, for footage of particular abilities.
+  - **Names:** names and health, health bars only, or nothing over the archers.
+  - **Empowerment:** on, on but not shown, or off (nobody gets empowered).
+  - The roster's list is clearer: **Ranked AI players** (the named players you meet in ranked, with their rating, tier and mains, and their favourite roles under each pick) and **Difficulty bots** (no name) as separate groups.
+- **AI trappers use the new Harpoon well:** a bot with Harpoon now waits for the play: when there's a hole, water or lava between it and its target, it arms the harpoon on the shot it's drawing and reels them through it (the better the bot, the more surely it waits for that); otherwise it only pulls now and then. This goes for the ranked AI players who play Trapper too.
+
+## 0.56.0
+
+- **Harpoon, reworked (Trapper):** using it arms your next shot: a big barbed harpoon on a rope, slower than an arrow. Whoever it hits is hooked (the rope stays on them), and half a second later they're reeled in hard toward you, straight over any hole, water or lava in between. The rope is drawn from you to the harpoon in flight and to whoever's hooked, pulling taut as it reels. The line breaks if you go down or they're over 1,000 px away; a knockout during the pull is yours.
+- **Best moments:** plays worth remembering get a callout as they happen and a line in the feed: **Double/Triple/Quad kill** (knockouts within 4 seconds of each other), **Roasted** (knocked out on lava after being held there a second or more), **Bullied** (slammed into walls or thorns three or more times inside 5 seconds by the same archer; five or more is **Merciless**), and **Long shot** (a knockout from 22 metres or more). The results screen lists the match's best three.
+- **Practise while you wait:** while a search is running, Find game offers a practice game against a bot (no upgrade picks; it just carries on). A bar at the top says the search is still going and for how long; the match is joined the moment it's found. Back to Find game and Stop searching are on the bar.
+- **Straight back into a dropped ranked match:** if the connection drops mid-match, the game reconnects to it by itself (a few tries), and opening the game or reloading the page while your ranked match is still going takes you straight back in. Leaving a ranked match on purpose doesn't (the Rejoin button is still there).
+- **Season frames:** a frame for each ranked tier, Bronze to Champion, in the tier's colours with a laurel-wreathed shield (more stars and sparkle the higher it goes). When a season ends, you get the frame for the best tier you reached that season and every one below it. They have their own section in the banner collection.
+- **Featured kill cam previews:** a profile card shows the featured kill cam playing, small, beside its button; hover it and it grows to watch, click to watch it full size.
+- **Profiles' best moment:** "Best game: 3 knockouts" (capped by how many enemies a game has) is replaced by their most impressive feat: a 1v3 clutch, their longest knockout streak, longest knockout shot, longest win streak, games won untouched or giants slain. The pinned stat "Most KOs in a game" is now Knockout streak, and Win streak and Longest shot can be pinned too.
+- **AI players are European:** this is the Europe server, so every AI player is from a European country (Russia included); two names changed to suit (Kiwi_Kicks is now Kipper_Kicks and Mochi is Mieze, keeping everything they had). Their profile pictures show their main archetype instead of everyone having the same one. (Another region's server can re-label the same players.)
+- **Clip farm is set up like a lobby:** add up to four a side (1v3, 1v4…), each one any of the matchmaking AI players, listed with their rating and tier, level, skill and mains, playing their mains or any archetype you choose, or a plain bot of a chosen skill. One strong player against three middling ones to start. The scoreboard panel is hidden in the farm, so the arena gets the whole width.
+
+## 0.55.0
+
+- **Spectate friends, and a featured match:** friends' lists say **Spectate** on anyone in a match. The main menu shows **Live now**: the ranked match being fought by the highest-rated players (two or more of them), with its tier, arena, how long it's been going and how many are watching; anyone can spectate it, up to 40 at once. Spectators of a ranked match see it **5 seconds behind** (their updates wait in a queue and go out on a stream of their own), so nobody can watch a friend's match and tell them where the other side is. When the last player leaves, spectators still see those last seconds before the game closes.
+- **Multi-kill kill cams:** the earlier knockouts of a double or triple play nearer real time with the shooter, whoever they're knocking out and the arrows all in view, so the next shot is never missed while someone falls down a hole; only the last knockout gets the full slow-motion close-up. The whole thing still fits the gap between games.
+- **Kill cam videos with sound, at higher quality:** the saved video now carries the game's sound (tapped after the limiter, before the volume control, so it's at full level whatever your volume is), at 60 frames a second and about 14 Mb/s for 1080p on a machine that keeps up (30 and half that where the game is already struggling, so recording never makes it stutter). The volume control now sits after the limiter, so the limiter always works at the mix's own level.
+- **Kept kill cams:** instead of one featured kill cam, your account keeps several (free accounts 3, supporters 12): **Keep on my account** on the results screen, then **Show on my profile** on any kept one. Profile settings list them to watch, feature or delete. The first one kept goes on your profile.
+- **Clip farm (owner only):** AI players fight each other locally for footage: arena, 1v1 to 3v3, a skill per bot, elements and roles, the AI players' real names and looks, a camera that follows the fighting, HUD on or off, kill cams on or off, maximum picture quality, and a built-in 60 fps recorder with sound that writes straight to a file. See README.
+
 ## 0.54.0
 
 - **AFK and leaving in ranked:** the server watches every human archer while a ranked game is being fought (not during picks, countdowns or while knocked out).

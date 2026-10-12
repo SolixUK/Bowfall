@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.54.0';
+const VERSION = '0.59.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -705,6 +705,14 @@ const BANNER_FRAME = {
   thorn:     { name: 'Thornbound', need: ['hazKo', 50],   how: 'Knock 50 archers into hazards' },
   tech:      { name: 'Circuit',    need: ['capture', 50], how: 'Capture 50 objectives' },
   gilded:    { name: 'Gilded',     need: ['perfect', 25], how: 'Win 25 matches without losing a game' },
+  // season rewards: the ranked tier you reached in a season (at its end; each frame up to your best)
+  s_bronze:  { name: 'Season: Bronze',   need: ['sTier', 1], how: 'Finish a ranked season in Bronze or above', season: 1 },
+  s_silver:  { name: 'Season: Silver',   need: ['sTier', 2], how: 'Finish a ranked season having reached Silver', season: 1 },
+  s_gold:    { name: 'Season: Gold',     need: ['sTier', 3], how: 'Finish a ranked season having reached Gold', season: 1 },
+  s_plat:    { name: 'Season: Platinum', need: ['sTier', 4], how: 'Finish a ranked season having reached Platinum', season: 1 },
+  s_diamond: { name: 'Season: Diamond',  need: ['sTier', 5], how: 'Finish a ranked season having reached Diamond', season: 1 },
+  s_master:  { name: 'Season: Master',   need: ['sTier', 6], how: 'Finish a ranked season having reached Master', season: 1 },
+  s_champ:   { name: 'Season: Champion', need: ['sTier', 7], how: 'Finish a ranked season having reached Champion', season: 1 },
 };
 const featHas = (F, rec) => !F.need || (((rec && rec.stats) || {})[F.need[0]] || 0) >= F.need[1];
 const featProgress = (F, rec) => (F.need ? Math.min(F.need[1], ((rec && rec.stats) || {})[F.need[0]] || 0) : 0);
@@ -794,9 +802,11 @@ function achMigrate(rec) {
 }
 // games already won with each element (from the career record) count toward the element frames
 function achSeed(rec, career) {
-  if (!rec || !career || !career.elW) return rec;
+  if (!rec || !career) return rec;
   const st = rec.stats || (rec.stats = {});
-  for (const [el, n] of Object.entries(career.elW)) if ((st['w_' + el] || 0) < n) st['w_' + el] = n;
+  for (const [el, n] of Object.entries(career.elW || {})) if ((st['w_' + el] || 0) < n) st['w_' + el] = n;
+  // the best ranked tier reached in a finished season (1 bronze … 7 champion), for the season frames
+  for (const x of career.seasons || []) for (const k of [x.k1, x.kT]) { const i = TIERS.findIndex(t => t.k === k) + 1; if (i > (st.sTier || 0)) st.sTier = i; }
   return rec;
 }
 // country flag and account level shown next to a name; the server fills these in
@@ -981,7 +991,7 @@ const TREE = {
   pointblank:{ tree: 'crossbow', name: 'Point Blank', desc: 'Bolts that hit within 220px of where you fired deal 30% more damage and knock back 15% harder.' },
   longstock: { tree: 'crossbow', trade: true, name: 'Long Stock', desc: 'Your bolts reach 40% further, but you reload 15% slower.' },
   twinload:  { tree: 'crossbow', cap: true, name: 'Double Crank', desc: 'Hold two bolts: fire them back to back, and each one reloads on its own.' },
-  harpoon:   { tree: 'trapper', active: { cd: 9 }, name: 'Harpoon', desc: 'Fire a barbed line along your aim (up to 420px). The first enemy it catches is yanked toward you and briefly stuck.' },
+  harpoon:   { tree: 'trapper', active: { cd: 9 }, name: 'Harpoon', desc: 'Your next shot is a big barbed harpoon on a rope: slower, but whoever it hits is reeled in hard toward you half a second later. Pull them into holes, water and lava.' },
   snare:     { tree: 'trapper', also: ['crossbow'], active: { cd: 5 }, name: 'Snare Arrow', desc: 'Your next shot roots whoever it hits for 1.8 seconds.' },
   trap:      { tree: 'trapper', active: { cd: 6.5 }, name: 'Bramble Trap', desc: 'Weave a bramble trap at the spot under your cursor (up to 450px away, never over a hole or water); it takes half a second to set, and you move at half speed meanwhile. An enemy who steps on it is rooted for 2.5 seconds and hurt. Up to 2 at once.' },
   briar:     { tree: 'trapper', active: { cd: 9 }, name: 'Bramble Toss', desc: 'Your next shot tosses a spinning bramble trap instead of an arrow. It flies straight along your aim, slowly (further and a little faster the longer you draw, up to 760px), roots every enemy it passes through for 1.8 seconds and hurts them, and stops at walls and boulders.' },
@@ -1035,7 +1045,7 @@ const BRIEF = {
   barbs: 'Rooted or frozen enemies fly 50% further.', repeater: 'Instant bolt, then reload 3× faster.', fanbolt: 'Next shot: five bolts in a fan.',
   hairtrig: 'Block an arrow to go full auto.', windlass: 'Reload 25% faster.', tribolt: 'Shots fire 3 bolts. Reload slower.', heavybolt: 'Bolts knock back 20% harder.',
   pointblank: 'Close bolts hit 30% harder.', longstock: 'Bolts reach 40% further. Reload slower.', twinload: 'Hold two bolts.',
-  harpoon: 'Yank the first enemy you catch to you.', snare: 'Next shot roots them for 1.8s.', trap: 'Place a bramble trap that roots.',
+  harpoon: 'Next shot: a harpoon that reels them in.', snare: 'Next shot roots them for 1.8s.', trap: 'Place a bramble trap that roots.',
   briar: 'Next shot tosses a rolling bramble trap.', rip: 'Hits leave thorns; Rip tears them out.', deeproots: 'Roots last twice as long.',
   hone_hp: '+15 health.', hone_kb: 'Knockback +8%.', hone_draw: 'Draw 8% faster.', hone_speed: '5% faster.',
 };
@@ -1074,6 +1084,12 @@ const LETHAL = { lava: 1, burn: 1, spikes: 1, wall: 1, crush: 1, pit: 1, water: 
 const has = (p, id) => p.up.includes(id);
 const TIMES = { pre: 3, post: 10, roundPost: 11.5, pick: 20, game: 120 };
 
+// is there a hole, water or lava on the line from the target to the thrower (that a harpoon's pull would drag them over)?
+function harpoonThrough(T, p) {
+  const dx = p.x - T.x, dy = p.y - T.y, d = Math.hypot(dx, dy); if (d < 1) return false;
+  for (let s = 30; s < d - 40; s += 18) { const x = T.x + dx / d * s, y = T.y + dy / d * s; for (const h of HAZ) if ((h.type === 'pit' || h.type === 'lava') && inHaz(h, x, y, -12)) return true; }
+  return false;
+}
 function inHaz(h, x, y, pad = 0) {
   if (h.shape === 'circle') return Math.hypot(x - h.x, y - h.y) < h.r + pad;
   return x > h.x - pad && x < h.x + h.w + pad && y > h.y - pad && y < h.y + h.h + pad;
@@ -1172,7 +1188,7 @@ function makePlayer(w, opts) {
     bot: !!opts.bot, diff: opts.diff || w.cfg.diff, team: opts.team, color: '#fff',
     x: 0, y: 0, vx: 0, vy: 0, r: 16, mass: 1, hp: 100, maxHp: 100, speed: 235, baseSpeed: 235,
     aim: 0, charge: 0, over: 0, drawing: false, knock: 0, falling: 0, stuck: 0, inTar: false, burn: 0, slow: 0,
-    frozen: 0, frostN: 0, frostT: 0, dashLock: 0, snare: false, grap: null,
+    frozen: 0, frostN: 0, frostT: 0, dashLock: 0, snare: false, grap: null, hook: null, harpoonArmed: false,
     thr: 0, tdx: 0, tdy: 0, inv: 0, dashT: 0, dashCd: 0, dashN: null, dashDir: [1, 0], shoved: [], flash: 0,
     dead: false, kills: 0, deaths: 0, amber: 0, earned: 0, up: [], hones: {}, ready: false, offer: null, picked: false,
     streak: 0, emp: false, empPts: 0, trailT: 0, auraT: 0, lastArrow: null, lastHow: '', lastHurtT: -99, slowK: 0.5, fallCause: 'pit', coat: {},
@@ -1430,6 +1446,10 @@ function startPick(w) {
   const solo = teamCount(w, 'red') <= 1 && teamCount(w, 'blue') <= 1; // a 1v1: no cards that need teammates
   for (const p of w.players) {
     p.solo = solo;
+    if (p.forceUp) { // a set list of upgrades (the clip farm): all of them now, in order, and no picks
+      for (let pass = 0; pass < 3; pass++) for (const id of p.forceUp) if (!p.up.includes(id) && canTake(p, id)) takeCard(w, p, id);
+      p.offer = null; p.picked = true; continue;
+    }
     p.picked = false; p.offer = rollOffer(p, [], M.opening, !M.opening && M.picks === 1);
     // bots take a moment to "read" the cards, like a person would: quicker the better they are
     if (p.bot) { const iq = botD(p).iq || 0; p.botPickAt = w.t + rand(1, 3) + rand(0, 5) * (1 - iq); }
@@ -1506,7 +1526,7 @@ function placeForRound(w, p) {
 function freshBody(p, x, y) {
   Object.assign(p, {
     x, y, vx: 0, vy: 0, hp: p.maxHp, dead: false, falling: 0, stuck: 0, burn: 0, slow: 0,
-    frozen: 0, frostN: 0, frostT: 0, dashLock: 0, snare: false, grap: null, over: 0, poisonN: 0, poisonT: 0, bleedT: 0, bleedBy: null, burnDps: 5, quickT: 0, disarm: 0, poisonBy: null, contT: 0,
+    frozen: 0, frostN: 0, frostT: 0, dashLock: 0, snare: false, grap: null, hook: null, harpoonArmed: false, over: 0, poisonN: 0, poisonT: 0, bleedT: 0, bleedBy: null, burnDps: 5, quickT: 0, disarm: 0, poisonBy: null, contT: 0,
     knock: 0, inv: 0, dashT: 0, dashCd: 0, dashN: p.dashMaxN, charge: 0, drawing: false, thr: 0, tdx: 0, tdy: 0,
     lastHitBy: null, lastHitT: -99, lastCause: '', killedBy: null, pw: emptyPowers(), wantDash: false, lastHurtT: -99, pinT: 0, pinned: 0, dashK: 1,
     pinSafe: 0, volleyArmed: false, railArmed: false, recoilArmed: false, seekArmed: false, rocketArmed: false, swapArmed: false, boomArmed: false, execArmed: false, briarArmed: false,
@@ -1756,6 +1776,15 @@ function kill(w, f, cause) {
   let killer = null;
   if (f.lastHitBy && w.t - f.lastHitT < 5) killer = w.players.find(q => q.id === f.lastHitBy && q.team !== f.team) || null;
   f.killedBy = killer ? killer.name : null;
+  // best moments: two or more knockouts in quick succession, someone held on lava until they burnt, a long shot
+  if (killer) {
+    const M2 = killer.multi && w.t - killer.multi.t < 4 ? killer.multi : (killer.multi = { n: 0, t: 0 }); M2.n++; M2.t = w.t;
+    if (M2.n >= 2) ev(w, { e: 'moment', m: 'multi', k: killer.id, kn: killer.name, v: f.id, vn: f.name, n: M2.n, x: r1(f.x), y: r1(f.y) });
+    if ((cause === 'lava' || cause === 'burn') && (f.lavaT || 0) >= 1) ev(w, { e: 'moment', m: 'roast', k: killer.id, kn: killer.name, v: f.id, vn: f.name, s: r1(f.lavaT), x: r1(f.x), y: r1(f.y) });
+    const far = cause === 'arrow' && f.lastArrow && f.lastArrow.dist ? f.lastArrow.dist / 50 : 0;
+    if (far >= 22) ev(w, { e: 'moment', m: 'snipe', k: killer.id, kn: killer.name, v: f.id, vn: f.name, n: Math.round(far), x: r1(f.x), y: r1(f.y) });
+  }
+  f.lavaT = 0; f.slams = null; f.hook = null;
   let gain = 0;
   // assists: every other enemy who hurt them in the last 8 seconds
   for (const id in (f.hitBy || {})) {
@@ -1792,7 +1821,7 @@ function kill(w, f, cause) {
   if (killer) {
     killer.streak++;
     killer.empPts += wasEmp ? EMPOWER_BONUS : 1;
-    const nowEmp = !killer.emp && killer.empPts >= EMPOWER_AT;
+    const nowEmp = !killer.emp && killer.empPts >= EMPOWER_AT && !w.cfg.noEmp;
     if (nowEmp) { killer.emp = true; killer.gEmp = true; ev(w, { e: 'empowered', id: killer.id, n: killer.name, el: killer.element, s: killer.streak, via: wasEmp ? 1 : 0 }); }
     if ([3, 5, 7, 10].includes(killer.streak) && !nowEmp) ev(w, { e: 'streak', id: killer.id, n: killer.name, s: killer.streak });
   }
@@ -1845,6 +1874,8 @@ function fire(w, p, ang, c, burst, vol, x3) { // burst: 1-2 a Volley's shots, 4 
   if (full && has(p, 'scatter')) { spread = p.pw.multi > 0 ? [-0.26, -0.13, 0, 0.13, 0.26] : [-0.13, 0, 0.13]; dmg *= 0.4; kb *= 0.45; }
   if (xb && !burst && p.fanArmed) { p.fanArmed = false; spread = [-0.3, -0.15, 0, 0.15, 0.3]; dmg *= 0.45; kb *= 0.5; }
   const snare = p.snare; p.snare = false;
+  // Harpoon: one big barbed arrow on a rope, slower than an arrow; whoever it hits is reeled in (see onArrowEffects)
+  const hpn = !burst && p.harpoonArmed; if (hpn) { p.harpoonArmed = false; spread = [0]; speed = (300 + 420 * c) * OPT('aspeed'); dmg = Math.max(6, dmg * 0.8); kb *= 0.25; }
   p.stats.shots += spread.length;
   for (const s of spread) {
     const a = ang + s;
@@ -1852,10 +1883,10 @@ function fire(w, p, ang, c, burst, vol, x3) { // burst: 1-2 a Volley's shots, 4 
       id: w.nid++, owner: p.id, team: p.team, color: p.color, own: p,
       x: p.x + Math.cos(a) * (p.r + 8), y: p.y + Math.sin(a) * (p.r + 8),
       vx: Math.cos(a) * speed * (rail ? 1.8 : 1), vy: Math.sin(a) * speed * (rail ? 1.8 : 1), v0: speed * (rail ? 1.8 : 1), ang: a, dist: 0, age: 0,
-      dmg, kb, full, crit: false, heavy, el, bolt, snare, rail, big: has(p, 'colossus') || rocket, seek, rocket, swap, boom, exec, bri, drag: rail || rocket || boom || bri ? 0 : has(p, 'longbow') ? 0.2 : 0.45,
-      burst: false, pierce: rail || boom || bri ? 99 : full && has(p, 'pierce') ? 1 : 0, hit: [], grav: has(p, 'gravity') && !bri && !boom,
+      dmg, kb, full, crit: false, heavy, el, bolt, snare, rail, big: has(p, 'colossus') || rocket || hpn, seek, rocket, swap, boom, exec, bri, hpn, drag: rail || rocket || boom || bri ? 0 : hpn ? 0.15 : has(p, 'longbow') ? 0.2 : 0.45,
+      burst: false, pierce: rail || boom || bri ? 99 : full && has(p, 'pierce') && !hpn ? 1 : 0, hit: [], grav: has(p, 'gravity') && !bri && !boom,
       split: full && !boom && !bri && has(p, 'split'),
-      bounces: boom || bri ? 0 : (p.pw.ricochet > 0 ? 2 : 0) + (has(p, 'ricochet') ? 1 : 0) + (has(p, 'bankshot') ? 1 : 0) + (trick ? 3 : 0), trick, explosive: p.pw.explosive > 0 || rocket, life: rocket ? ROCKET.life : boom ? 6 : bri ? BRIAR.range * (0.55 + 0.45 * c) / Math.max(1, speed) : p.role === 'ninja' ? 0.5 : 2.4, stuck: 0,
+      bounces: boom || bri || hpn ? 0 : (p.pw.ricochet > 0 ? 2 : 0) + (has(p, 'ricochet') ? 1 : 0) + (has(p, 'bankshot') ? 1 : 0) + (trick ? 3 : 0), trick, explosive: p.pw.explosive > 0 || rocket, life: rocket ? ROCKET.life : boom ? 6 : bri ? BRIAR.range * (0.55 + 0.45 * c) / Math.max(1, speed) : p.role === 'ninja' ? 0.5 : 2.4, stuck: 0,
       vol: vol || null, sneak, xb, maxDist: xb && !rail && !bri && !boom && !rocket ? p.xbowRange : 0,
     });
     if (xb && !rocket && !boom && !bri) { const A = w.arrows[w.arrows.length - 1]; A.drag = 0.12; }
@@ -1884,6 +1915,11 @@ function explode(w, x, y, owner, team, k = 1, fw = false) { // k: size of the bl
 function impact(w, f, speed, side, pos) {
   if (f.dashT > 0) return;
   const spiked = side && SPIKES.some(s => s.side === side && pos > s.a && pos < s.b);
+  // best moments: slammed into walls (or thorns) by the same archer, again and again (three times inside 5 seconds)
+  if ((spiked && speed > 120) || (f.knock > 0 && speed > 420)) if (f.lastHitBy && w.t - f.lastHitT < 1.5) {
+      const S = f.slams && f.slams.by === f.lastHitBy && w.t - f.slams.t < 5 ? f.slams : (f.slams = { by: f.lastHitBy, n: 0, t: w.t, at: -9 });
+      if (w.t - S.at > 0.35) { S.n++; S.at = w.t; const k = w.players.find(q => q.id === S.by); if (S.n >= 3 && k && k.team !== f.team) ev(w, { e: 'moment', m: 'bully', k: k.id, kn: k.name, v: f.id, vn: f.name, n: S.n, x: r1(f.x), y: r1(f.y) }); } // (one bounce off a corner is one slam)
+    }
   if (spiked && speed > 120) {
     ev(w, { e: 'spike', id: f.id, x: r1(f.x), y: r1(f.y) });
     hurt(w, f, 14 + speed * 0.02, 0, 0, 'spikes', null);
@@ -2011,6 +2047,14 @@ function stepBody(w, f, mx, my, dt) {
     if (k >= 1) { f.nblink = null; f.vx = b.dx * 240; f.vy = b.dy * 240; }
     return; // in the air: no hazards, no bumping into things
   }
+  // hooked by a harpoon: held on the line for a moment, then reeled in hard toward the thrower (it can drag them over a
+  // hole, into water or across lava). The line breaks if the thrower goes down or they're too far apart
+  if (f.hook) {
+    const H = f.hook, o = w.players.find(q => q.id === H.by), dx = o ? o.x - f.x : 0, dy = o ? o.y - f.y : 0, d = Math.hypot(dx, dy) || 1;
+    if (!o || o.dead || f.dead || d > HOOK_MAX) f.hook = null;
+    else if (H.t > 0) { H.t -= dt; if (H.t <= 0) { const v = Math.min(HOOK_PULL, 240 + d * 2.4); f.vx = dx / d * v; f.vy = dy / d * v; f.knock = Math.max(f.knock, 0.45); f.stuck = 0; f.lastHitBy = o.id; f.lastHitT = w.t; H.pull = 0.45; ev(w, { e: 'reel', id: f.id, by: o.id, x: r1(f.x), y: r1(f.y) }); } }
+    else if ((H.pull -= dt) <= 0 || d < o.r + f.r + 30) { if (d < o.r + f.r + 30) { f.vx *= 0.3; f.vy *= 0.3; } f.hook = null; } // (the rope goes slack once they've arrived: they stop at your feet)
+  }
   let sp = f.speed;
   if (f.drawing) sp *= f.role === 'ranger' ? 0.7 : 0.55; // the Ranger keeps more of its speed while drawing
   if (f.slow > 0) sp *= f.sure ? 0.85 : (f.slowK || 0.5); // frost
@@ -2059,7 +2103,7 @@ function stepBody(w, f, mx, my, dt) {
   f.inTar = inTar;
   // lava is thick: anyone flung onto it slows to a crawl instead of sliding across (and walking out takes a while too)
   if (inLava) { const e = Math.exp(-(f.sure ? 1.2 : 2.6) * dt); f.vx *= e; f.vy *= e; }
-  f.onLava = inLava;
+  f.onLava = inLava; f.lavaT = inLava ? (f.lavaT || 0) + dt : Math.max(0, (f.lavaT || 0) - dt * 0.5); // (how long they've been cooking, for best moments)
   if (inLava) { hurt(w, f, 30 * dt, 0, 0, 'lava', null, true); f.burn = Math.max(f.burn, 1.5); }
   else if (f.burn > 0) { f.burn -= dt; hurt(w, f, (f.burnDps || 5) * dt, 0, 0, 'burn', null, true); if (f.burn <= 0) f.burnDps = 5; }
   if (!f.dead && f.bleedT > 0) { f.bleedT -= dt; hurt(w, f, 2 * dt, 0, 0, 'bleed', f.bleedBy, true); } // Hemorrhage
@@ -2317,7 +2361,9 @@ function useAbility(w, p, id) {
       ev(w, { e: 'blink', id: p.id, x1: r1(x0), y1: r1(y0), x2: r1(nx), y2: r1(ny), st: p.stealthT > 0 ? 1 : 0 });
       return true;
     }
-    case 'harpoon': {
+    case 'harpoon':
+      p.harpoonArmed = true; ev(w, { e: 'armed', id: p.id }); return true;
+    case 'harpoonOld': {
       const ax = Math.cos(p.aim), ay = Math.sin(p.aim);
       let hit = null, bestT = HARPOON_RANGE;
       for (const q of w.players) {
@@ -2844,6 +2890,7 @@ function root(f, t, by) { if (by && has(by, 'deeproots')) t *= 2; f.stuck = Math
 function onArrowEffects(w, a, f, primary) {
   const owner = a.own;
   if (a.snare && primary) { root(f, 1.8, owner); ev(w, { e: 'snared', x: r1(f.x), y: r1(f.y) }); }
+  if (a.hpn && primary && owner && !f.dead) { f.hook = { by: owner.id, t: HOOK_DELAY }; ev(w, { e: 'hooked', id: f.id, by: owner.id, x: r1(f.x), y: r1(f.y) }); }
   if (primary && owner && has(owner, 'rip') && !f.dead) { // Rip: every hit leaves a thorn
     if (f.thornBy !== owner.id) f.thornN = 0;
     f.thornBy = owner.id; f.thornN = Math.min(5, (f.thornN || 0) + 1); f.thornT = 10;
@@ -2981,6 +3028,8 @@ const XB3 = { n: 3, gap: 0.08, dmg: 0.45, kb: 0.5, spread: 0.035, reload: 1.5 };
 const rangeOf = (w, p) => p.role === 'crossbow' ? Math.round(p.xbowRange || XBOW_RANGE)
   : p.role === 'ninja' ? Math.round(1050 * optValue((w.cfg || {}).opt, 'aspeed') * mutMul((w.cfg || {}).mut, 'aspeed') * 0.275) : null;
 const SNIPE_FULL = Math.hypot(AW - 2 * WALL, AH - 2 * WALL); // corner to corner
+// Harpoon: hooked for HOOK_DELAY seconds, then reeled toward the thrower at up to HOOK_PULL (it breaks past HOOK_MAX)
+const HOOK_DELAY = 0.5, HOOK_PULL = 1150, HOOK_MAX = 1000;
 const VOLLEY_GAP = 0.12, BLINK_RANGE = 300, HARPOON_RANGE = 420, NINJA_BLINK = 150, FLASH_RANGE = 240;
 // is this archer hidden inside smoke from someone standing at (x, y)?
 function inSmoke(w, q, x, y) {
@@ -4000,7 +4049,14 @@ function botAbilities(w, p, T, dT, foes, dt) {
         else if (T && st && (st.name === 'Stalker' || st.name === 'Brawler') && dT > 280 && dT < 480 && Math.random() < dt) { p.input.tx = T.x; p.input.ty = T.y; use = true; }
         break;
       }
-      case 'harpoon': use = !!T && dT > 140 && dT < HARPOON_RANGE - 20 && angOff(Math.atan2(T.y - p.y, T.x - p.x), p.input.aim) < 0.12 && Math.random() < dt * 2; break;
+      case 'harpoon': { // (arms the shot being drawn)
+        if (!T || p.harpoonArmed || chg < 0.3 || dT < 150 || dT > 700) break;
+        // the play: someone with a hole, water or lava between them and us gets reeled straight through it. A good
+        // bot waits for that; otherwise it pulls now and then just to bring them close (more often the worse it is)
+        const through = harpoonThrough(T, p), sk = botD(p).iq || 0.5;
+        use = through ? Math.random() < dt * (2 + 6 * sk) : Math.random() < dt * 0.6 * (1.2 - sk);
+        break;
+      }
       case 'recoil': use = !!T && dT < 190 && chg > 0.5; break;
       case 'spot': if (T && dT < 700) { p.input.tx = T.x; p.input.ty = T.y; use = true; } break;
       case 'rush': {
@@ -4675,7 +4731,7 @@ function snapshot(w) {
         f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, bu: p.burn > 0 ? 1 : 0, bl: p.bleedT > 0 ? 1 : 0, vd: p.voidT > w.t && p.voidN ? p.voidN : undefined, vb: p.voidT > w.t && p.voidN ? p.voidBy : undefined, sl: p.slow > 0 || p.iceSlow > 0 ? 1 : 0, sw: p.slow > 0 || p.iceSlow > 0 ? r2(Math.max(p.slow > 0 ? 1 - (p.sure ? 0.85 : p.slowK || 0.5) : 0, p.iceSlow > 0 ? (p.sure ? 0.15 : 0.35) : 0)) : undefined, iv: p.inv > 0 ? 1 : 0,
         da: p.dashT > 0 ? 1 : 0, hl: p.healing ? 1 : 0, dn: p.dashN, dk: p.dashMaxN, ra: p.rallied ? 1 : 0, shd: p.shade ? p.shade.n : undefined, sht: p.shade ? r2(p.shade.t / SHADE.t) : undefined, th: p.thornN > 0 ? p.thornN : undefined,
         ab: p.slots.slice(), ac: p.abCd.map(r1), fz: p.frozen > 0 ? 1 : 0, sx: p.dashLock > 0 ? 1 : 0, ov: p.over >= 1 ? 1 : 0,
-        sn: p.snare ? 1 : 0, vl: p.volleyArmed ? 1 : 0, rl: p.railArmed ? 1 : 0,
+        sn: p.snare ? 1 : 0, vl: p.volleyArmed ? 1 : 0, rl: p.railArmed ? 1 : 0, ha: p.harpoonArmed ? 1 : 0, hk: p.hook ? p.hook.by : 0,
         arm: p.recoilArmed ? 'recoil' : p.rocketArmed ? 'rocket' : p.seekArmed ? 'seeker' : p.trickArmed ? 'trick' : p.boomArmed ? 'boomerang' : p.execArmed ? 'execute' : p.briarArmed ? 'briar' : undefined,
         sr: p.shroudT > 0 ? p.shroudR : undefined, rsh: p.rush ? 1 : 0, sk: p.strikeN || 0, nb: p.nblink ? 1 : 0, ft: p.fortT > 0 ? 1 : 0, wd: p.windT > 0 ? 1 : 0, ph: p.phaseT > 0 ? 1 : 0, gr: p.grap ? [r1(p.grap.x), r1(p.grap.y)] : 0, rp: r2(p.revP || 0), rv: p.reviveUsed ? 1 : 0, fl: p.flash > 0 ? 1 : 0, dc: r2(p.dashCd), dm: p.dashCdMax, d: p.dead ? 1 : 0,
         k: p.kills, de: p.deaths, am: p.amber, er: p.earned, up: p.up.slice(), hn: p.hones ? Object.assign({}, p.hones) : p.hones, el: p.element, ro: p.role,
@@ -4685,7 +4741,7 @@ function snapshot(w) {
       };
     }),
     b: w.ball ? { x: r1(w.ball.x), y: r1(w.ball.y), r: w.ball.r, o: w.ball.out > 0 ? 1 : 0, s: r2(w.ball.spin % TAU) } : undefined,
-    a: w.arrows.map(a => ({ id: a.id, o: a.owner, x: r1(a.x), y: r1(a.y), g: r3(a.ang), s: a.stuck > 0 ? r2(a.stuck) : 0, c: a.color, cr: a.full ? 1 : 0, ex: a.explosive ? 1 : 0, rl: a.rail ? 1 : 0, bg: a.big ? 1 : 0, sk: a.seek ? 1 : 0, rk: a.rocket ? 1 : 0, bm: a.boom ? (a.back ? 2 : 1) : 0, br: a.bri ? 1 : 0, sw: a.swap ? 1 : 0, xq: a.exec ? 1 : 0, sh: a.shur ? (a.dbl ? 2 : 1) : 0, gv: a.grav ? 1 : 0, xb: a.xb ? 1 : 0, hv: a.heavy ? 1 : 0, el: a.el, b: a.bolt ? 1 : 0, sn: a.snare ? 1 : 0 })),
+    a: w.arrows.map(a => ({ id: a.id, o: a.owner, x: r1(a.x), y: r1(a.y), g: r3(a.ang), s: a.stuck > 0 ? r2(a.stuck) : 0, c: a.color, cr: a.full ? 1 : 0, ex: a.explosive ? 1 : 0, rl: a.rail ? 1 : 0, bg: a.big ? 1 : 0, hp: a.hpn ? 1 : 0, sk: a.seek ? 1 : 0, rk: a.rocket ? 1 : 0, bm: a.boom ? (a.back ? 2 : 1) : 0, br: a.bri ? 1 : 0, sw: a.swap ? 1 : 0, xq: a.exec ? 1 : 0, sh: a.shur ? (a.dbl ? 2 : 1) : 0, gv: a.grav ? 1 : 0, xb: a.xb ? 1 : 0, hv: a.heavy ? 1 : 0, el: a.el, b: a.bolt ? 1 : 0, sn: a.snare ? 1 : 0 })),
     z: w.zones.filter(z => !(z.delay > 0)).map(z => ({ id: z.id, ty: z.ty, x: r1(z.x), y: r1(z.y), x2: z.x2 != null ? r1(z.x2) : undefined, y2: z.y2 != null ? r1(z.y2) : undefined, r: z.r, cr: z.core, t: r2(z.t), tm: z.team, o: z.owner })),
     u: w.pickups.map(u => ({ id: u.id, x: r1(u.x), y: r1(u.y), ty: u.type, ag: r1(u.age), li: u.life, cp: u.chan ? r2(u.cp) : undefined, ct: u.chan ? u.ct : undefined, cs: u.chan ? u.cs : undefined })),
   };

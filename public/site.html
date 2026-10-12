@@ -417,7 +417,7 @@ const PSTAT = {
   matches: ['Games', c => c.matches || 0], matchWins: ['Wins', c => c.matchWins || 0], rate: ['Win rate', c => (c.matches ? Math.round((c.matchWins || 0) / c.matches * 100) + '%' : '–')],
   wins: ['Rounds won', c => c.wins || 0], kills: ['Knockouts', c => c.kills || 0], kd: ['K/D', c => (c.deaths ? ((c.kills || 0) / c.deaths).toFixed(2) : c.kills || 0)],
   acc: ['Accuracy', c => (c.shots ? Math.round((c.hits || 0) / c.shots * 100) + '%' : '–')], ring: ['Ring-outs', c => c.ring || 0], bulls: ['Bullseyes', c => c.bulls || 0],
-  dmg: ['Damage dealt', c => Math.round(c.dmg || 0)], best: ['Most KOs in a game', c => (c.best || {}).k || 0], level: ['Level', (c, u) => (u.level ? u.level.lv : 1)],
+  dmg: ['Damage dealt', c => Math.round(c.dmg || 0)], best: ['Knockout streak', (c, u) => ((u && u.feats) || {}).ks || (c.best || {}).ks || 0], streak: ['Win streak', (c, u) => ((u && u.feats) || {}).ws || (c.best || {}).ws || 0], far: ['Longest shot', (c, u) => (((u && u.feats) || {}).far || (c.best || {}).far || 0) + ' m'], level: ['Level', (c, u) => (u.level ? u.level.lv : 1)],
 };
 function profSig(u) {
   const c = u.career || {}, out = [], top = o => Object.entries(o || {}).sort((a, b) => b[1] - a[1])[0];
@@ -428,7 +428,15 @@ function profSig(u) {
   if (best) { const T = Sim.tierOf(best.r, u.placed !== false); out.push({ k: best.k === 'elo' ? '1v1 rank' : 'Team rank', big: T.label, sub: peakS ? `Peaked ${peakS[1]} in season ${peakS[2]}` : u.placed === false ? 'Placement matches to go' : `${Math.round(best.r)} rating`, col: T.col, badge: T.k }); }
   const tr = u.play && u.play.traits ? u.play.traits.filter(x => x.pct != null).sort((a, b) => b.pct - a.pct)[0] : null;
   if (tr && tr.pct >= 0.5) out.push({ k: 'Playstyle', big: tr.name, sub: `Top ${Math.max(1, Math.round((1 - tr.pct) * 100))}% · ${tr.value} ${tr.what}`, col: '#5ad1ff' });
-  const bk = (c.best || {}).k; if (bk >= 3) out.push({ k: 'Best game', big: `${bk} knockouts`, sub: 'In a single game', col: '#ff9f43' });
+  const F = u.feats || {}, bm = [
+    F.clutch3 ? { s: 3, big: F.clutch3 > 1 ? `${F.clutch3} times 1 vs 3` : '1 vs 3, and won', sub: 'Last one standing against three' } : null,
+    F.ks >= 5 ? { s: F.ks / 6, big: `${F.ks} in a row`, sub: 'Knockouts without being knocked out' } : null,
+    F.far >= 18 ? { s: F.far / 22, big: `${F.far} m shot`, sub: 'Longest knockout shot' } : null,
+    F.ws >= 4 ? { s: F.ws / 5, big: `${F.ws} wins in a row`, sub: 'Matches won back to back' } : null,
+    F.dstreak >= 5 ? { s: F.dstreak / 6, big: `${F.dstreak} games untouched`, sub: 'Won in a row without being knocked out' } : null,
+    F.giant >= 3 ? { s: F.giant / 4, big: `${F.giant} giants slain`, sub: 'Beat a team rated 150+ above' } : null,
+  ].filter(Boolean).sort((a, b) => b.s - a.s)[0];
+  if (bm) out.push({ k: 'Best moment', big: bm.big, sub: bm.sub, col: '#ff9f43' });
   return out.slice(0, 4);
 }
 function profHero(u, mine) {

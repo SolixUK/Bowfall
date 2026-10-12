@@ -115,12 +115,15 @@ async function loadById(id) { if (!live.has(id)) { const [x] = await store.users
 // the community Discord server's invite link (DISCORD_INVITE in the environment), shown on the website and the main menu
 const DISCORD_INVITE = /^https:\/\/(discord\.gg|discord\.com\/invite)\/[A-Za-z0-9-]+$/.test(process.env.DISCORD_INVITE || '') ? process.env.DISCORD_INVITE : null;
 const placedOf = u => { const c = u.career || {}; return !!c.ai || (c.rated != null ? c.rated : c.matches || 0) >= 5; };
+// a player's standout feats, for their profile's "Best moment" (things that aren't capped by how many enemies a game has)
+const featsOf = u => { const st = (u.ach && u.ach.stats) || {}, b = (u.career && u.career.best) || {};
+  return { ks: Math.max(st.kstreak || 0, b.ks || 0), far: Math.max(st.longM || 0, b.far || 0), clutch3: st.clutch3 || 0, clutch: st.clutch || 0, ws: Math.max(st.mstreak || 0, b.ws || 0), dstreak: st.dstreak || 0, perfect: st.perfect || 0, giant: st.giant || 0, fast: b.fast || null, acc: b.acc || null }; };
 const publicUser = u => ({ placed: placedOf(u), season: SEASON.info(), status: (u.career && u.career.ai) ? {} : E.statusOf(u), name: u.name, title: u.title, admin: !!u.admin, created: u.created, career: Object.assign({}, u.career || {}, { ai: undefined }), got: Object.keys((u.ach && u.ach.got) || {}), stats: (u.ach && u.ach.stats) || {},
   ai: !!(u.career && u.career.ai), country: flagOf(u), level: levelOf(u.career), border: (u.ach && u.ach.border) || null, avatar: (u.ach && u.ach.avatar) || null,
-  tier: (u.ach && u.ach.tier) || {}, play: playstyleOf(u), clip: (u.ach && u.ach.clip) || null, prof: (u.ach && u.ach.prof) || null,
+  feats: featsOf(u), tier: (u.ach && u.ach.tier) || {}, play: playstyleOf(u), clip: (u.ach && u.ach.clip) || null, prof: (u.ach && u.ach.prof) || null,
   look: u.career && u.career.ai ? null : lookOf(u), clan: u.career && u.career.ai ? null : (CLANS.of(u.id) ? { tag: CLANS.tagOf(u.id), em: CLANS.emOf(u.id), col: CLANS.colOf(u.id), name: CLANS.of(u.id).name } : null) });
 // profile page settings: a backdrop arena, an accent colour, a motto and up to four pinned stats
-const PROF_STATS = ['elo', 'eloT', 'matches', 'matchWins', 'rate', 'wins', 'kills', 'kd', 'acc', 'ring', 'bulls', 'dmg', 'best', 'level'];
+const PROF_STATS = ['elo', 'eloT', 'matches', 'matchWins', 'rate', 'wins', 'kills', 'kd', 'acc', 'ring', 'bulls', 'dmg', 'best', 'streak', 'far', 'level'];
 const PROF_COLS = ['#ffcf5a', '#ff6b5a', '#ff9f43', '#7dff8a', '#4fe3c6', '#5ad1ff', '#7fb6ff', '#c77dff', '#ff7ac8', '#e9edf2'];
 function cleanProf(p, prev) {
   const o = Object.assign({}, prev || {});
@@ -480,7 +483,8 @@ function readBody(req, limit = 16 * 1024) {
 }
 const ip = req => String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
 const forgotLimit = A.limiter(5, 15 * 60 * 1000), authLimit = A.limiter(12, 60 * 1000), postLimit = A.limiter(6, 60 * 1000), threadLimit = A.limiter(3, 5 * 60 * 1000);
-const clipLimit = A.limiter(6, 60 * 1000), clanLimit = A.limiter(40, 60 * 1000), clanNewLimit = A.limiter(6, 10 * 60 * 1000);
+const CLIP_MAX = { free: 3, sup: 12 };
+const clipLimit = A.limiter(12, 60 * 1000), clanLimit = A.limiter(40, 60 * 1000), clanNewLimit = A.limiter(6, 10 * 60 * 1000);
 const cleanText = (s, max) => String(s || '').replace(/\r\n/g, '\n').replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '').trim().slice(0, max);
 
 async function api(req, res, url) {
@@ -792,21 +796,47 @@ async function api(req, res, url) {
     const origin = process.env.PUBLIC_URL ? process.env.PUBLIC_URL.replace(/\/$/, '') : (secure(req) ? 'https://' : 'http://') + req.headers.host;
     return json(res, 200, { link: origin + '/?ref=' + encodeURIComponent(me.name), after: REF_AFTER, gift: REF_GIFT, welcome: REF_WELCOME, max: REF_MAX, list });
   }
-  // featured kill cams: a player puts one of their own kill cams on their profile (the replay's frames, gzipped)
+  // saved kill cams: a player keeps a few of their own kill cams on their account (the replay's frames, gzipped) and
+  // features one of them on their profile. Free accounts keep 3, supporters 12 (storage costs; the owner has no limit)
+  const clipMax = u => (u.admin ? 100 : E.statusOf(u).sp ? CLIP_MAX.sup : CLIP_MAX.free);
+  const clipsOut = async u => { const list = await store.clipList(u.id), feat = u.ach && u.ach.clip ? u.ach.clip.id : null; return { clips: list.map(c => Object.assign({ id: c.id, featured: c.id === feat ? 1 : 0 }, c.meta)), max: clipMax(u), sup: CLIP_MAX.sup, free: CLIP_MAX.free }; };
+  // the clip farm's roster (the owner's): every matchmaking AI player, with their ratings, skill, favourite archetypes and look
+  if (route === '/aiplayers' && method === 'GET') {
+    if (!me || !me.admin) return json(res, 403, { error: 'Only the game owner can see this.' });
+    const list = (social._ai() || []).map(u => { const a = u.career.ai || {}; return { name: u.name, cc: flagOf(u), lv: levelOf(u.career).lv, elo: Math.round(ratingOf(u, 'elo')), eloT: Math.round(ratingOf(u, 'eloT')), skill: a.skill, loadouts: a.loadouts || [], look: Object.assign({ av: (u.ach && u.ach.avatar) || null }, lookOf(u)) }; })
+      .sort((a, b) => b.elo - a.elo);
+    return json(res, 200, { players: list });
+  }
+  if (route === '/clips' && method === 'GET') { if (!me) return json(res, 401, { error: 'Sign in first.' }); return json(res, 200, await clipsOut(me)); }
   if (route === '/clip' && method === 'POST') {
     if (!me) return json(res, 401, { error: 'Sign in first.' });
     if (!clipLimit(me.id)) return json(res, 429, { error: 'Try again in a minute.' });
-    if (body.drop) { await store.clipDrop(me.id); me.ach = me.ach || {}; me.ach.clip = null; markDirty(me); return json(res, 200, { ok: true }); }
+    me.ach = me.ach || {};
+    if (body.drop) { // delete one (drop: id), or everything (drop: true)
+      const id = body.drop === true ? null : String(body.drop);
+      await store.clipDrop(me.id, id);
+      if (!id || (me.ach.clip && me.ach.clip.id === id)) me.ach.clip = null;
+      markDirty(me); return json(res, 200, Object.assign({ ok: true, clip: me.ach.clip }, await clipsOut(me)));
+    }
+    if ('feature' in body && !body.data) { // feature one of the saved ones on the profile (feature: null takes it off)
+      if (body.feature == null) { me.ach.clip = null; markDirty(me); return json(res, 200, Object.assign({ ok: true, clip: null }, await clipsOut(me))); }
+      const c = await store.clipGet(String(body.feature)); if (!c || c.userId !== me.id) return json(res, 404, { error: 'That replay is gone.' });
+      me.ach.clip = Object.assign({ id: c.id }, c.meta); markDirty(me);
+      return json(res, 200, Object.assign({ ok: true, clip: me.ach.clip }, await clipsOut(me)));
+    }
     const data = String(body.data || ''), meta = body.meta && typeof body.meta === 'object' ? body.meta : {};
     if (!/^[A-Za-z0-9+/=]+$/.test(data) || data.length > 650 * 1024) return json(res, 400, { error: 'That replay is too big.' });
     let clip;
     try { clip = JSON.parse(zlib.gunzipSync(Buffer.from(data, 'base64'), { maxOutputLength: 8 * 1024 * 1024 }).toString('utf8')); } catch (e) { return json(res, 400, { error: 'Bad replay.' }); }
     if (!clip || clip.v !== 1 || !Sim.MAPS[clip.map] || !Array.isArray(clip.f) || clip.f.length < 10 || clip.f.length > 900 || !Array.isArray(clip.segs)) return json(res, 400, { error: 'Bad replay.' });
+    const have = await store.clipList(me.id), max = clipMax(me);
+    if (have.length >= max) return json(res, 409, { error: `You can keep ${max} kill cams${E.statusOf(me).sp ? '' : ` (supporters keep ${CLIP_MAX.sup})`}. Delete one from your profile settings first.`, full: 1 });
     const id = crypto.randomBytes(6).toString('hex');
-    const m2 = { map: clip.map, n: Math.max(1, Math.min(9, +clip.n || 1)), label: cleanText(meta.label, 40) || 'Kill cam', at: Date.now() };
+    const m2 = { map: clip.map, n: Math.max(1, Math.min(9, +clip.n || 1)), label: cleanText(meta.label, 60) || 'Kill cam', at: Date.now() };
     await store.clipSet(me.id, id, data, m2);
-    me.ach = me.ach || {}; me.ach.clip = Object.assign({ id }, m2); markDirty(me);
-    return json(res, 200, { ok: true, clip: me.ach.clip });
+    if (body.feature || !me.ach.clip) me.ach.clip = Object.assign({ id }, m2); // the first one saved goes on the profile
+    markDirty(me);
+    return json(res, 200, Object.assign({ ok: true, id, clip: me.ach.clip }, await clipsOut(me)));
   }
   if ((m = route.match(/^\/clip\/([a-f0-9]{12})$/)) && method === 'GET') {
     const c = await store.clipGet(m[1]); if (!c) return json(res, 404, { error: 'That replay is gone.' });
@@ -1182,6 +1212,7 @@ function roomInfo(room, ws) {
     t: 'room', code: room.code, host: h ? h.pid : null, hostName: h ? h.name : '', amHost: room.host === ws.cid,
     name: room.name, pub: room.pub, locked: !!room.pwHash, max: room.max || 8, people: room.clients.size,
     ranked: room.ranked ? room.ranked.mode : undefined, arena: arenaInfo(room.world.cfg.map),
+    delay: delayed(ws) ? WATCH_DELAY : undefined, // (spectating a ranked match: this many seconds behind)
     // the ranked draft: seconds left to choose, and who's ready
     draft: room.ranked && room.ranked.draftUntil && !room.ranked.go ? Math.max(0, Math.ceil((room.ranked.draftUntil - Date.now()) / 1000)) : undefined,
     ready: room.ranked && room.ranked.ready ? [...room.clients].filter(c => room.ranked.ready.has(c.cid) && c.pid).map(c => c.pid) : undefined,
@@ -1259,7 +1290,11 @@ function leave(ws) {
   setTimeout(() => social.presence(ws), 0);
   if (!room.clients.size) { social.freeAI(room); if (room.z) { room.z.d.close(); room.z = null; } rooms.delete(room.code); return; }
   if (room.away && room.away.size && ranked_live(room)) { sysChat(room, `${ws.name} left.`); sendRoom(room); return; } // seats are being kept: watchers stay
-  if ([...room.clients].every(c => c.watch)) { for (const c of [...room.clients]) { send(c, { t: 'kicked', msg: 'Everyone has left that game.' }); leave(c); } return; } // only people watching are left
+  if ([...room.clients].every(c => c.watch)) { // only people watching are left: they see the last few seconds (they're behind), then it closes
+    const close = () => { if (rooms.get(room.code) !== room) return; for (const c of [...room.clients]) { send(c, { t: 'kicked', msg: 'Everyone has left that game.' }); leave(c); } };
+    if (room.ranked && !room.farm && !room.closing) { room.closing = true; setTimeout(close, WATCH_DELAY * 1000 + 2500); } else if (!room.ranked) close();
+    return;
+  }
   if (room.ranked) { sysChat(room, `${ws.name} left.`); sendRoom(room); return; }
   if (room.host === ws.cid) {
     // hand the room to someone on a team if possible, otherwise anyone
@@ -1438,7 +1473,12 @@ async function handle(ws, m) {
     if (bannedWs(ws)) return send(ws, { t: 'err', msg: 'You have been banned from online games.' });
     let room;
     ws.watch = false;
-    if (m.watch != null) {
+    if (m.watch === 'feat') {
+      // the featured match (the "Live now" card on the main menu): anyone can watch it, 5 seconds behind
+      const f = social.featured(); room = f && rooms.get(f.code);
+      if (!room || !room.ranked) return send(ws, { t: 'err', msg: 'That match has finished. Another will be along soon.' });
+      ws.watch = true; if ([...room.clients].filter(c => c.watch).length >= WATCH_MAX_FEAT) return send(ws, { t: 'err', msg: 'Too many people are watching that match.' });
+    } else if (m.watch != null) {
       // watching a friend's game: find the game they're in; matchmade games are watch-only, custom games are joined as usual
       const fid = +m.watch;
       if (!ws.user || !((ws.user.social || {}).friends || []).includes(fid)) return send(ws, { t: 'err', msg: 'You can only watch friends.' });
@@ -1738,10 +1778,19 @@ function frameDelta(o) {
   const body = Buffer.concat([Buffer.from([1]), u32(j.length), j, Buffer.from(bytes)]);
   return Buffer.concat([u32(body.length), body]);
 }
+// Spectators of a ranked match see it WATCH_DELAY seconds behind, so nobody can watch a friend's match and tell them
+// where the other side is. Their updates wait in a queue, then go out through a second compressed stream of their own.
+const WATCH_DELAY = 5, WATCH_MAX_FEAT = 40;
+const delayed = c => !!(c.watch && c.room && c.room.ranked && !c.room.farm);
 function sendSnap(room, cur, evs) {
   const zc = []; let plain = null;
+  if (room.ranked && !room.farm) {
+    const dw = [...room.clients].some(c => c.readyState === 1 && delayed(c));
+    if (dw) { (room.dq || (room.dq = [])).push({ at: Date.now() + WATCH_DELAY * 1000, cur, evs, tick: room.tick }); }
+    else if (room.dq) { room.dq = null; room.dz = null; }
+  }
   for (const c of room.clients) {
-    if (c.readyState !== 1 || c.quiet) continue;
+    if (c.readyState !== 1 || c.quiet || delayed(c)) continue;
     if (c.zOk) { zc.push(c); continue; }
     // browsers that can't unpack the stream: the full snapshot as before (packed, so leave cur itself alone)
     if (!plain) plain = JSON.stringify({ t: 'snap', k: room.tick, s: Sim.packSnap(JSON.parse(JSON.stringify(cur))), ev: evs });
@@ -1770,6 +1819,32 @@ function sendSnap(room, cur, evs) {
   PERF.w.zMs = (PERF.w.zMs || 0) + Number(process.hrtime.bigint() - t0) / 1e6;
 }
 
+// the delayed stream: what the live players saw WATCH_DELAY seconds ago, to the spectators (same framing as the live one)
+function sendDelayed(room) {
+  const q = room.dq; if (!q || !q.length || q[0].at > Date.now()) return;
+  const cs = [...room.clients].filter(c => c.readyState === 1 && !c.quiet && delayed(c));
+  if (!cs.length) { room.dq = null; room.dz = null; return; }
+  while (q.length && q[0].at <= Date.now()) {
+    const { cur, evs, tick } = q.shift(), zc = cs.filter(c => c.zOk);
+    for (const c of cs) if (!c.zOk) c.send(JSON.stringify({ t: 'snap', k: tick, s: Sim.packSnap(JSON.parse(JSON.stringify(cur))), ev: evs }));
+    const prev = room.dzPrev; room.dzPrev = cur;
+    if (!zc.length) { room.dz = null; continue; }
+    const fresh = !room.dz || !prev || zc.some(c => c.zRoom !== room.dz);
+    const key = !fresh && tick - (room.dzKey || 0) >= 600; if (fresh || key) room.dzKey = tick;
+    if (fresh) {
+      const Z = room.dz = { d: zlib.createDeflateRaw({ level: 1, memLevel: 7, windowBits: 12 }), out: [] };
+      Z.d.on('data', ch => Z.out.push(ch)); Z.d.on('error', () => { if (room.dz === Z) room.dz = null; });
+      for (const c of zc) c.zRoom = Z;
+    }
+    const Z = room.dz;
+    Z.d.write(fresh || key ? frameJson({ t: 'snap', k: tick, s: cur, f: 1, ev: evs }) : frameDelta({ t: 'snap', k: tick, d: Sim.snapDelta(prev, cur), ev: evs }));
+    Z.d.flush(zlib.constants.Z_SYNC_FLUSH, () => {
+      const body = Buffer.concat(Z.out.splice(0)); if (!body.length) return;
+      const frame = Buffer.concat([Buffer.from([fresh ? 1 : 0]), body]);
+      for (const c of zc) if (c.readyState === 1 && c.zRoom === Z) c.send(frame, { binary: true, compress: false });
+    });
+  }
+}
 // fixed-step game loop. It wakes once per tick (about 60 times a second, not every few milliseconds) and sleeps longer
 // when no games are running: on a small host the wake-ups themselves were a big share of the CPU allowance.
 let last = process.hrtime.bigint(), acc = 0;
@@ -1809,6 +1884,7 @@ function gameLoop() {
         }
       }
       if (room.ranked && room.tick % 15 === 0) afkTick(room, 15 * TICK);
+      if (room.dq) sendDelayed(room);
       if (room.world.records.length) saveRecords(room);
     }
   }

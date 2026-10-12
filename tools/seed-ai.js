@@ -50,7 +50,7 @@ const NAMES = ['Fletchling', 'QuiverQueen', 'xNocturnex', 'tired_archer', 'BowDo
 // the last nine are Russian-speaking players; everyone else picks a country from the list below
 const RU = { Strelok_: 'ru', Vanya_Volkov: 'ru', medved88: 'ru', Katyusha_: 'ru', Zhenya_K: 'ru', kotik_uwu: 'ru', Ded_Moroz: 'ru', Anya_Sokol: 'ua', Oleg_TT: 'ru' };
 const ELS = Object.keys(Sim.ELEMENTS), ROS = Object.keys(Sim.ROLES), STY = Object.keys(Sim.STYLES);
-const CC = ['gb', 'us', 'us', 'de', 'fr', 'se', 'pl', 'br', 'ca', 'au', 'nl', 'es', 'it', 'jp', 'kr', 'no', 'ie', 'fi', 'dk', 'nz', 'mx', 'pt', 'be', 'at', 'ru', 'ru', 'tr', 'ua', 'cz'];
+const CC = ['gb', 'gb', 'de', 'fr', 'se', 'pl', 'nl', 'es', 'it', 'no', 'ie', 'fi', 'dk', 'pt', 'be', 'at', 'ru', 'ru', 'ua', 'cz', 'ch', 'gr', 'ro', 'hu', 'hr', 'rs', 'sk', 'bg', 'ee', 'lt', 'lv', 'is']; // the Europe server's players (Russia counts); another region's server re-labels the same list
 // personalities: most chat now and then, a few never shut up, a few barely speak
 const players = NAMES.map((name, i) => {
   const skill = Math.min(1, Math.max(0.03, 0.52 + (rnd() + rnd() + rnd() + rnd() - 2) * 0.45));
