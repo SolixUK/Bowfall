@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.59.0';
+const VERSION = '0.62.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -2241,7 +2241,7 @@ function updatePlayer(w, p, dt) {
       }
     }
     p.wasDraw = !!inp.draw; p.drawing = false; p.charge = 0; p.over = 0;
-  } else if (inp.draw && p.falling <= 0 && p.disarm <= 0 && !(p.nockT > 0)) {
+  } else if (inp.draw && p.falling <= 0 && p.disarm <= 0 && !(p.nockT > 0) && !roped(w, p)) {
     const prev = p.charge;
     p.drawing = true;
     p.charge = p.riposteT > 0 && !p.riposteUsed ? 1 : Math.min(1, p.charge + dt * p.drawMul * frenzyDraw(p) * (p.pw.quick > 0 ? 2.2 : 1) * (p.quickT > 0 ? 3 : 1) * (p.ambushT > 0 ? 1.6 : 1) * (p.focusT > 0 ? 2 : 1));
@@ -2249,7 +2249,7 @@ function updatePlayer(w, p, dt) {
     if (p.charge >= 1 && has(p, 'ballista')) { const was = p.over; p.over += dt; if (was < 1 && p.over >= 1) ev(w, { e: 'loaded', id: p.id }); }
   } else if (p.drawing) {
     // a bow needs a real draw: taps under a quarter draw don't fire, and every shot takes a moment to nock the next arrow
-    if (p.charge >= MIN_DRAW && p.falling <= 0) { fire(w, p, p.aim, p.charge); p.nockT = p.role === 'sniper' ? NOCK_SNIPER : NOCK; }
+    if (p.charge >= MIN_DRAW && p.falling <= 0 && !roped(w, p)) { fire(w, p, p.aim, p.charge); p.nockT = p.role === 'sniper' ? NOCK_SNIPER : NOCK; }
     p.drawing = false; p.charge = 0; p.over = 0;
   }
   if (p.nockT > 0) p.nockT -= dt;
@@ -2344,6 +2344,10 @@ function nearestFoeTo(w, p, x, y, maxD) {
   }
   return best;
 }
+// an ability already waiting on the next shot (only one at a time)
+const armedShot = p => !!(p.fanArmed || p.railArmed || p.recoilArmed || p.rocketArmed || p.volleyArmed || p.seekArmed || p.trickArmed || p.boomArmed || p.execArmed || p.briarArmed || p.harpoonArmed);
+// on the rope: a harpoon in flight or someone being reeled in; no drawing or shooting until it's done
+const roped = (w, p) => w.arrows.some(a => a.hpn && a.owner === p.id && !(a.stuck > 0)) || w.players.some(q => q.hook && q.hook.by === p.id);
 function useAbility(w, p, id) {
   const ax = Math.cos(p.aim), ay = Math.sin(p.aim);
   switch (id) {
@@ -2362,6 +2366,7 @@ function useAbility(w, p, id) {
       return true;
     }
     case 'harpoon':
+      if (armedShot(p) || p.snare) return false; // (one armed shot at a time: not on top of Bramble Toss or another armed arrow)
       p.harpoonArmed = true; ev(w, { e: 'armed', id: p.id }); return true;
     case 'harpoonOld': {
       const ax = Math.cos(p.aim), ay = Math.sin(p.aim);
@@ -2435,7 +2440,7 @@ function useAbility(w, p, id) {
       ev(w, { e: 'eclipse', id: p.id, x: r1(tx), y: r1(ty) });
       return true;
     }
-    case 'briar': p.briarArmed = true; ev(w, { e: 'armed', id: p.id, k: 'briar' }); return true;
+    case 'briar': if (armedShot(p) || p.harpoonArmed) return false; p.briarArmed = true; ev(w, { e: 'armed', id: p.id, k: 'briar' }); return true;
     case 'rip': { // tear out every thorn you've left in anyone
       const hit = w.players.filter(q => q.team !== p.team && !q.dead && q.thornBy === p.id && q.thornN > 0);
       if (!hit.length) { if (!p.bot) ev(w, { e: 'abFail', id: p.id, why: 'No one has your thorns in them' }); return false; }
@@ -3735,6 +3740,7 @@ function botThink(w, p, dt) {
       let s = Math.hypot(q.x - p.x, q.y - p.y) + q.hp * 1.5 - (lethalDist(q.x, q.y) < 120 ? 150 : 0) + (q.inv > 0 ? 400 : 0);
       if (iq > 0) {
         const d = Math.hypot(q.x - p.x, q.y - p.y) || 1;
+        if (has(p, 'rip') && q.thornBy === p.id && q.thornN >= 3) s += (q.thornN >= 5 ? 220 : 70) * iq; // (Rip: spread the thorns over everyone rather than piling them on one)
         if (clearShot(p.x, p.y, q.x, q.y)) s -= pushRisk(q.x, q.y, (q.x - p.x) / d, (q.y - p.y) / d, kbTravel(0.95, q.mass, p.kbMul), q.r) * 300 * iq; else s += 150 * iq;
         if (d > botReach(p)) s += 400 * iq;
       }
@@ -4080,8 +4086,15 @@ function botAbilities(w, p, T, dT, foes, dt) {
         break;
       }
       case 'briar': use = chg > 0.25 && !!T && dT > 70 && dT < BRIAR.range - 60 && !p.briarArmed && clearShot(p.x, p.y, T.x, T.y); break; // then the next shot rolls it at them
-      case 'rip': { // tear the thorns out when it's worth it: a pile of them, a kill, or someone held near a hazard
-        use = foes.some(q => q.thornBy === p.id && q.thornN > 0 && (q.thornN >= 4 || q.hp <= q.thornN * 5 + 1 || (q.thornN >= 2 && lethalDist(q.x, q.y) < 90) || (q.thornN >= 3 && q.thornT < 1.5)));
+      case 'rip': { // tear the thorns out when it's worth it: a kill (or two), a pile of them spread over several enemies, or someone held near a hazard
+        const mine = foes.filter(q => q.thornBy === p.id && q.thornN > 0), iq2 = botD(p).iq || 0.5;
+        const tot = mine.reduce((a, q) => a + q.thornN, 0), kills = mine.filter(q => q.hp <= q.thornN * 5 + 1).length, held = mine.filter(q => q.thornN >= 3 && lethalDist(q.x, q.y) < 100 && chg >= 0.5 && clearShot(p.x, p.y, q.x, q.y)).length; // (rooted beside a hazard, with a shot ready to push them in)
+        const expiring = mine.some(q => q.thornN >= 3 && q.thornT < 1.5), stacked = mine.filter(q => q.thornN >= 3).length;
+        // a sharp bot keeps stacking across everyone it can reach and rips once that's likely to get a kill or two; a duller one rips a full set on sight
+        const soon = mine.some(q => q.hp > q.thornN * 5 + 1 && q.hp <= (q.thornN + 1) * 5 + 1 && q.thornN < 5); // (one more hit and they'd go too)
+        const wait = kills >= 1 && soon && iq2 >= 0.6 && (p.ai.ripW = (p.ai.ripW || 0) + dt) < 1.0; if (!wait) p.ai.ripW = 0; // (a sharp bot gives a second kill a moment to come)
+        use = kills >= 2 || held > 0 || expiring || (kills >= 1 && !wait) || (stacked >= 2 && tot >= 7) || tot >= 10
+          || (iq2 < 0.6 && mine.some(q => q.thornN >= 4)) || (mine.length === 1 && mine[0].thornN >= 5 && foes.length === 1);
         break;
       }
       case 'mend': {

@@ -2,6 +2,50 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.62.0
+
+- **Clip farm:**
+  - **Arenas in the random pick:** tick boxes under Arena to leave arenas out of the random choice (remembered).
+  - **Lock archetype** on each player: their element, role and set upgrades stay put whatever the variety options do, even when the player in that seat is swapped.
+  - The live camera option is gone from the setup (the studio has the cameras); the bar's Camera button still switches smooth, tight and arena while it runs.
+  - Kill cams after games are off by default: the best moments are saved to the studio anyway.
+- **Clip studio:**
+  - **The action camera keeps everyone in the fight in the picture**: the playmaker, their victims, anyone close to them and anyone who's shot or been hit in the last moments (an archer idling at the far end of the arena isn't counted, or every clip would be the whole arena). It's centred on all of them with a lean toward the playmaker, as close as fits, looks a second ahead, and now moves with weight (it accelerates and settles, never jumps). Slow and steady is properly slow and steady.
+  - **The shot after the shot is gone:** an arrow the playmaker loosed after the final knockout had landed is left out of the replay.
+  - **Clear unstarred:** deletes every clip that isn't starred (click twice).
+- **Scoring:** knockouts in quick succession score much higher (a double 5, a triple 8, a quad 11), and a Rip that takes several at once scores higher still (three in one Rip is worth about 8 on its own).
+
+## 0.61.0
+
+- **Clip studio exports have sound:** Export video renders every sound the replay makes at exactly its frame's moment (slowed and lowered in slow motion, as in the game) and puts it in the WebM alongside the smooth 60 fps picture, so there's one export and it's both smooth and heard. The old record-as-it-plays export is gone (it only runs now if the browser can't encode video at all).
+- **Clip studio cameras, rethought:**
+  - **On the action (playmaker):** the camera is built round whoever made the play: them, whoever they're fighting at that moment, their arrows in flight and where everyone's about to be. It fits as close as it can (up to the **Closeness** you choose: wide, medium, close, very close), slides toward the playmaker as far as it can while keeping the fight in view, widens quickly and tightens slowly. Nothing far away pulls it out any more, so it no longer zooms out to the whole arena after the final knockout.
+  - **Camera speed:** slow and steady, calm, normal, quick or snappy: how fast it moves from one thing to the next. It applies to every camera.
+  - The smooth follow option is folded into the action camera.
+  - No kill cam whoosh at the start of every clip.
+- **Better clips from the farm:**
+  - Every knockout is looked at for the play behind it: a **frozen, rooted, pinned, stunned or hooked target**, a **dash into position** just before the shot (and more for both: trap them, dash in, finish them), **Bull Rush**, a **full Volley** landing all three, a **Rip** (much more when it takes several at once), a **Quake** into a hazard, a **pin** before the finish, and a **run of quick hits slamming them into the walls**. Good ones are saved as clips of their own (Set-up knockout, Dash knockout, Held knockout, Ability knockout, Rip, Bullied out), and the same play adds to the score of any other clip it's part of (a double kill off a Rip, a game-winning knockout from a dash).
+  - **Bullied out** now means what it says: three or more quick hits in a row that slam them into a wall or corner, ending in the knockout. Plain bullying without a knockout scores less.
+  - **Untouchable** is only kept when the dodging ends in a knockout (dodging bad shots alone isn't a clip), and scores less.
+- **Farm variety, each its own tick box:** one battle per game, team sizes, players, archetypes, upgrades and map effect are chosen separately.
+- **Hunting** no longer flashes the callouts, banners and map-effect announcements.
+- **Trappers:** Harpoon and Bramble Toss can't both be loaded on the same shot (one armed shot at a time), and while your harpoon is in flight or reeling someone in you can't draw or shoot.
+- **Bots use Rip properly:** they spread thorns over everyone they can reach rather than piling them on one target, hold Rip until it's likely to knock someone out (a sharp bot gives a second knockout a moment to line up), and only rip early to root someone beside a hazard when they have a shot ready to push them in. Rip knockouts roughly doubled in testing.
+- The scorched ground round lava fades out instead of stopping in a hard ring, and on Meadow it's a warmer brown.
+
+## 0.60.0
+
+- **Clip farm:**
+  - **Randomise everything after every battle:** one-battle matches, each with a new arena, team sizes (1 to 4 a side), players (any ranked AI player, or of the chosen rating), archetypes, upgrades and map effect.
+  - **Hunt:** a setup option and a ⚡ button on the bar. The farm runs flat out without drawing the game (about 100× real time here, 170 battles in a minute) and keeps only the very best clips (score 6 or more). The screen shows the speed, the battles played and the clips kept.
+  - **Smooth camera** (the new default): it frames everyone fighting and anyone close to them, where they are and where they're heading half a second ahead, with the arrows round them. The frame widens quickly and narrows slowly, so it glides instead of darting about and nobody slips out of view. It keeps up at any game speed. **Tight** is the old closer, quicker camera. The bar's Camera button cycles smooth, tight and arena.
+  - Points to win of 1 or 2 now work (they were quietly 3).
+- **Clip studio:**
+  - **Smooth follow (looks ahead):** a new camera that uses the recording to see a second ahead and keeps the archers in the current fight and the arrows round them in the picture, gliding between them. Wide and the one-archer clips use it too.
+  - **Vertical framing is smarter:** it's tighter on who matters, so they fill the phone's frame, and it allows for the black bars. When the archers are too far apart to fit a phone's width (a long shot across the arena), it follows the play instead, staying a step ahead: toward the target while they draw, ahead of the arrow in flight, then on the target.
+  - **Clear all:** a button to delete every clip (click twice to be sure).
+  - Clips loop straight round with no gap.
+
 ## 0.59.0
 
 - **Clip studio:**

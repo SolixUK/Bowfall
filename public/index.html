@@ -344,6 +344,7 @@
   body.farmrevon .farmbar { opacity: 1 !important; pointer-events: auto !important; }
   body.studiomode #cv { width: calc(100% - min(460px, 94vw)); cursor: default; }
   body.studiomode.stvert #cv { width: min(56.25vh, calc(100% - min(460px, 94vw))); margin-left: max(0px, calc((100% - min(460px, 94vw) - 56.25vh) / 2)); } /* vertical: a phone-shaped frame */ /* the clip plays beside the studio's panel, not under it */
+  .farmmaps { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: 12px; } .farmmaps label { white-space: nowrap; }
   .studio { position: fixed; right: 0; top: 0; bottom: 0; width: min(460px, 94vw); z-index: 40; display: flex; flex-direction: column; background: rgba(9,18,11,.96); border-left: 1px solid var(--gold); }
   .studio .sth { display: flex; align-items: center; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--line); } .studio .sth b { font: 700 20px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--gold); } .studio .sth .status { flex: 1; font-size: 12px; }
   .studio select { padding: 3px 6px; font-size: 13px; }
@@ -1976,28 +1977,31 @@
       <section class="mode">
         <h3>Match</h3>
         <div class="field"><label for="farmMap">Arena</label><select id="farmMap"></select></div>
+        <div class="field farmmaps" id="farmMaps"><span class="status">In the random pick:</span></div>
         <div class="field"><label for="farmPts">Points to win</label><select id="farmPts"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="5">5</option></select></div>
         <div class="field"><label><input type="checkbox" id="farmLoop" checked> Start another match when one ends (a new arena each time if Arena is Random)</label></div>
       </section>
       <section class="mode">
         <h3>Picture</h3>
-        <div class="field"><label for="farmCam">Camera</label><select id="farmCam"><option value="arena">Whole arena</option><option value="follow" selected>Follow the action (zooms in on the fighting)</option></select></div>
         <div class="field"><label for="farmHud">Scores and timer</label><select id="farmHud"><option value="1" selected>Shown</option><option value="0">Hidden (just the arena)</option></select></div>
         <div class="field"><label for="farmTags">Names over archers</label><select id="farmTags"><option value="all">Names and health</option><option value="bars">Health bars only</option><option value="none">Nothing (just the archers)</option></select></div>
         <div class="field"><label for="farmEmp">Empowerment</label><select id="farmEmp"><option value="on">On</option><option value="hide">On, but not shown</option><option value="off">Off (nobody gets empowered)</option></select></div>
         <div class="field"><label for="farmSpeed">Game speed</label><select id="farmSpeed"><option value="1">Normal</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option><option value="16">16× (fast-forward, no sound)</option></select></div>
-        <div class="field"><label><input type="checkbox" id="farmKc" checked> Kill cams after games (at normal speed only; the best moments are always saved to the reel)</label></div>
+        <div class="field"><label><input type="checkbox" id="farmKc"> Kill cams after games (at normal speed only, and not needed: the best moments are saved to the clip studio anyway)</label></div>
         <div class="field"><label><input type="checkbox" id="farmMaxq" checked> Maximum quality: sharp resolution, full effects and detail, never lowered to keep up</label></div>
         <div class="field"><label><input type="checkbox" id="farmRec"> Record: a video file (60 frames a second, high bit rate, with sound) from start to stop</label></div>
       </section>
       <section class="mode">
         <h3>Variety (each game)</h3>
-        <div class="field"><label for="farmRndWho">Players</label><select id="farmRndWho"><option value="">The same ones every game</option><option value="near">Each swapped for a random AI player of a similar rating</option><option value="high">Each swapped for a random high-rated AI player</option><option value="low">Each swapped for a random low-rated AI player</option><option value="any">Each swapped for any random AI player</option></select></div>
-        <div class="field"><label><input type="checkbox" id="farmRndMains" checked> Swapped players play one of their favourite roles (untick: any archetype)</label></div>
-        <div class="field"><label><input type="checkbox" id="farmRndUps"> Random set upgrades each game (3 to 5 of their archetype's, from the start)</label></div>
-        <div class="field"><label for="farmEffect">Map effect</label><select id="farmEffect"></select></div>
+        <p class="status" style="margin:0 0 4px">Tick what should change for every game. Pick Random under Match for a new arena each time.</p>
+        <div class="field"><label><input type="checkbox" id="farmEvery"> <b>One battle per game</b> (so everything below changes after every battle)</label></div>
+        <div class="field"><label><input type="checkbox" id="farmRndSize"> <b>Team sizes:</b> 1 to 4 a side</label></div>
+        <div class="field"><label for="farmRndWho"><b>Players</b></label><select id="farmRndWho"><option value="">The same ones every game</option><option value="near">Each swapped for a random AI player of a similar rating</option><option value="high">Each swapped for a random high-rated AI player</option><option value="low">Each swapped for a random low-rated AI player</option><option value="any">Each swapped for any random AI player</option></select></div>
+        <div class="field"><label><input type="checkbox" id="farmRndLo"> <b>Archetypes:</b> any element and role, not just their favourites</label></div>
+        <div class="field"><label><input type="checkbox" id="farmRndUps"> <b>Upgrades:</b> a random set each game (one ability and some passives, from the start)</label></div>
+        <div class="field"><label for="farmEffect"><b>Map effect</b></label><select id="farmEffect"></select></div>
+        <div class="field"><label><input type="checkbox" id="farmHunt"> <b>Hunt:</b> run flat out without drawing the game and keep only the very best clips (score 6 or more). Also ⚡ on the bar.</label></div>
         <div class="field"><label for="farmKeep">Clips to keep</label><select id="farmKeep"><option value="all">Every one</option><option value="good" selected>The good ones (score 3 or more)</option><option value="best">Only the best (score 4.5 or more)</option></select></div>
-        <p class="status" style="margin:0">Arena: pick Random under Match for a new one each game.</p>
       </section>
       <section class="mode farmside" style="--tc:#ff6b5a">
         <div class="farmh"><h3>Red</h3><span class="status" id="farmRedN"></span><button type="button" class="ghost sm" data-fadd="red">+ Add AI player</button></div><div id="farmRed" class="farmteam"></div>
@@ -2008,7 +2012,7 @@
     </div>
   </div>
 </div>
-<div class="farmbar" id="farmBar" hidden><b>Clip farm</b><button type="button" class="ghost sm" id="fbPause" title="Pause or carry on (P)">❚❚ Pause</button><span class="fbspeed" id="fbSpeed"><button type="button" class="ghost sm" data-fsp="1">1×</button><button type="button" class="ghost sm" data-fsp="2">2×</button><button type="button" class="ghost sm" data-fsp="4">4×</button><button type="button" class="ghost sm" data-fsp="8">8×</button><button type="button" class="ghost sm" data-fsp="16">16×</button></span><button type="button" class="ghost sm" id="fbReel">Reel (0)</button><button type="button" class="ghost sm" id="fbTags">Names: on</button><button type="button" class="ghost sm" id="fbEmp">Empower: on</button><button type="button" class="ghost sm" id="fbRec">● Record</button><button type="button" class="ghost sm" id="fbCam">Camera: follow</button><button type="button" class="ghost sm" id="fbHud">HUD: on</button><button type="button" class="ghost sm" id="fbNew">New match</button><button type="button" class="ghost sm" id="fbExit">Back to setup</button><span class="status" id="fbInfo"></span></div>
+<div class="farmbar" id="farmBar" hidden><b>Clip farm</b><button type="button" class="ghost sm" id="fbPause" title="Pause or carry on (P)">❚❚ Pause</button><span class="fbspeed" id="fbSpeed"><button type="button" class="ghost sm" data-fsp="1">1×</button><button type="button" class="ghost sm" data-fsp="2">2×</button><button type="button" class="ghost sm" data-fsp="4">4×</button><button type="button" class="ghost sm" data-fsp="8">8×</button><button type="button" class="ghost sm" data-fsp="16">16×</button></span><button type="button" class="ghost sm" id="fbReel">Reel (0)</button><button type="button" class="ghost sm" id="fbTags">Names: on</button><button type="button" class="ghost sm" id="fbEmp">Empower: on</button><button type="button" class="ghost sm" id="fbRec">● Record</button><button type="button" class="ghost sm" id="fbCam">Camera: follow</button><button type="button" class="ghost sm" id="fbHud">HUD: on</button><button type="button" class="ghost sm" id="fbHunt" title="Run flat out without drawing the game, keeping only the very best clips (score 6+)">⚡ Hunt</button><button type="button" class="ghost sm" id="fbNew">New match</button><button type="button" class="ghost sm" id="fbExit">Back to setup</button><span class="status" id="fbInfo"></span></div>
 <div class="farmrev" id="farmRev" hidden>
   <div class="frvt"><b id="frvTitle"></b><span id="frvN"></span></div>
   <div class="frvl" id="frvLine"></div>
@@ -2017,7 +2021,7 @@
 </div>
 <div class="studio" id="studio" hidden role="dialog" aria-label="Clip studio">
   <div class="sth"><b>Clip studio</b><span class="status" id="stInfo"></span><select id="stSort"><option value="score">Best first</option><option value="new">Newest first</option><option value="star">Starred first</option></select><button type="button" class="ghost sm" id="stClose">Close</button></div>
-  <div class="sttools"><button type="button" class="ghost sm" id="stPause" title="Pause or carry on (P)">❚❚ Pause</button><button type="button" class="ghost sm" id="stOnlyStar" title="Show only the starred clips (F)">★ Starred only</button><button type="button" class="ghost sm" id="stExpStar" title="Export every starred clip, one after another, each with its own start and end">Export all starred</button></div>
+  <div class="sttools"><button type="button" class="ghost sm" id="stPause" title="Pause or carry on (P)">❚❚ Pause</button><button type="button" class="ghost sm" id="stOnlyStar" title="Show only the starred clips (F)">★ Starred only</button><button type="button" class="ghost sm" id="stExpStar" title="Export every starred clip, one after another, each with its own start and end">Export all starred</button><button type="button" class="ghost sm" id="stClearUn" title="Delete every clip that isn't starred (click twice)">Clear unstarred</button><button type="button" class="ghost sm" id="stClear" title="Delete every clip (click twice)">Clear all</button></div>
   <div class="stlist" id="stList"></div>
   <div class="stedit" id="stEdit"></div>
   <small class="status sthelp">↑ ↓ or ← → browse · S star · F starred only · P pause · Space replay · Delete remove · E export</small>
@@ -2143,7 +2147,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.59.0"></script>
+<script src="sim.js?v=0.62.0"></script>
 <script>
 (() => {
 'use strict';
@@ -2151,7 +2155,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.59.0';
+const PAGE_VERSION = '0.62.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -2249,7 +2253,9 @@ const EL_RGB = { frost: '159,220,255', flame: '255,138,61', storm: '255,242,122'
 const STREAK_TXT = { 3: 'is on a rampage', 5: 'is dominating', 7: 'is unstoppable', 10: 'is legendary' };
 const STREAK_WORD = { 3: 'Rampage', 5: 'Dominating', 7: 'Unstoppable', 10: 'Legendary' };
 // a big announcement between rounds; mid-fight it falls back to the small corner notice so the arena stays clear
+const hunting = () => FARM.on && FARM.hunt && !STUDIO.on; // (the clip farm hunting: nothing announced, nothing drawn)
 function callout({ kicker = '', title, sub = '', color = '#ffcf5a', tier = 1, plain }) {
+  if (hunting()) return false;
   const box = $('callouts');
   if (!box || (mode !== 'menu' && view && view.m.ph === 'play')) { notice(plain, true, color); return false; }
   const d = document.createElement('div');
@@ -2264,6 +2270,7 @@ function callout({ kicker = '', title, sub = '', color = '#ffcf5a', tier = 1, pl
 }
 let myDeath = null;
 function notice(html, big = false, color = '') {
+  if (big && hunting()) return;
   const box = $('notices'); if (!box) return;
   // mid-fight they go small in the top-left corner instead of across the middle of the arena
   box.classList.toggle('corner', mode !== 'menu' && !!view && view.m.ph === 'play');
@@ -2339,7 +2346,7 @@ function funName() {
 
 // ================= audio =================
 let AC = null, noiseBuf = null, muted = store.get('bowfall-muted', '0') === '1';
-let TOFF = 0, RENDER = false; // rendering a sound offline (the desk's export): timers inside it become time offsets
+let TOFF = 0, RENDER = false, SND_EXPORT = false; // rendering a sound offline (the desk's export, or a clip's soundtrack): timers inside it become time offsets
 function initAudio() {
   try {
     AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume();
@@ -2529,7 +2536,7 @@ function sndTable(tbl, pre, meta) { for (const k of Object.keys(tbl)) { const m 
 const chSet = id => MIX.ch[id] || CH_DEF;
 const dbGain = db => db <= -60 ? 0 : Math.pow(10, db / 20);
 // slow motion (the kill cam): every sound plays slower and lower together, like a tape slowed down
-const slowMo = () => (!RENDER && typeof RP !== 'undefined' && RP.on && RP.on.started ? clamp(RP.on.rate || 1, 0.35, 1) : 1);
+const slowMo = () => ((!RENDER || SND_EXPORT) && typeof RP !== 'undefined' && RP.on && RP.on.started ? clamp(RP.on.rate || 1, 0.35, 1) : 1);
 function chMod() {
   const r = slowMo();
   const st = !CH || MIX_RAW || !MIX_ON ? null : MIX.ch[CH];
@@ -2552,7 +2559,7 @@ const limSet = () => Object.assign({}, LIM_DEF, MIX.lim || {});
 function masterNode() {
   if (!AC.master) {
     AC.master = AC.createGain();
-    if (RENDER) AC.master.connect(AC.destination); // offline exports: one sound on its own, no limiting
+    if (RENDER && !SND_EXPORT) AC.master.connect(AC.destination); // offline exports: one sound on its own, no limiting
     else {
       const L = AC.lim = AC.createDynamicsCompressor(), C = AC.clip = AC.createWaveShaper(), n = 2048, curve = new Float32Array(n);
       L.knee.value = 0; L.attack.value = 0.002; L.release.value = 0.12;
@@ -2565,7 +2572,7 @@ function masterNode() {
     }
   }
   AC.master.gain.value = RENDER ? (MIX_RAW ? 1 : dbGain(MIX.master || 0)) : (MIX_ON ? dbGain(MIX.master || 0) : 1);
-  if (AC.out) AC.out.gain.value = OPTS.vol / 100;
+  if (AC.out) AC.out.gain.value = SND_EXPORT ? 1 : OPTS.vol / 100; // (a clip's soundtrack at full level, whatever the volume's set to)
   if (AC.lim) { const S = limSet(); AC.lim.threshold.value = S.on ? S.th : 0; AC.lim.ratio.value = S.on ? 20 : 1; }
   return AC.master;
 }
@@ -2608,7 +2615,7 @@ function takeOf(id) {
 }
 function play(id, ...a) {
   const S = SND[id]; if (!S || muted || !AC) return;
-  if (FARM.on && FARM.speed > 4 && !RP.on && !FARM.viewing) return; // (the clip farm fast-forwarding: no sound)
+  if (FARM.on && (FARM.speed > 4 || FARM.hunt) && !RP.on && !FARM.viewing && !STUDIO.on) return; // (the clip farm fast-forwarding: no sound)
   if (CH) return S.fn(...a); // a sound inside another sound stays on that one's channel
   const st = MIX.ch[id];
   if (!RENDER && st && (st.mute || (SOLO && !st.solo))) return;
@@ -3520,7 +3527,7 @@ function phoneCamUpdate(dt) {
   const f = Math.min(1, dt * 6); PCAM.x += (me.x - PCAM.x) * f; PCAM.y += (me.y - PCAM.y) * f;
   phoneCamApply();
 }
-const STUDIO_DEF = { frame: 'h', style: 'kc', cam: 'kc', speed: 1, bars: true, parts: true, text: true, shake: true, flash: true, emp: true, names: 'all', res: '1080', trimA: 0, trimB: 0 };
+const STUDIO_DEF = { frame: 'h', style: 'kc', cam: 'kc', camSpeed: 1, zoomMax: 1.8, speed: 1, bars: true, parts: true, text: true, shake: true, flash: true, emp: true, names: 'all', res: '1080', trimA: 0, trimB: 0 };
 const STUDIO = { on: false, i: 0, list: [], cur: Object.assign({}, STUDIO_DEF), from: null, exporting: false, stop: false, paused: false, onlyStar: false, batch: null, g: (() => { try { return JSON.parse(localStorage.getItem('bowfall-studio') || '{}') || {}; } catch (e) { return {}; } })() };
 const stVert = () => STUDIO.on && STUDIO.cur.frame === 'v'; // (the clip studio framing for phones: 9:16)
 const STUDIO_CLIP = ['trimA', 'trimB']; // (kept with each clip; every other setting carries over from clip to clip)
@@ -6997,12 +7004,13 @@ $('rematchBtn').onclick = () => act({ t: 'restart' });
 // the map effects, announced at the start of each game: a pill each, sliding in with a chime
 const MUT_ICON = { vigil: '✚', gale: '≈', hide: '◆', bounty: '★', force: '➜', quick: '➶', surge: '✦' };
 function announceMuts(mut) {
-  const ks = Sim.mutKeys(mut), box = $('mutAnn'); if (!ks.length) return;
+  const ks = Sim.mutKeys(mut), box = $('mutAnn'); if (!ks.length || hunting()) return;
   box.innerHTML = ks.map((k, i) => { const M = Sim.MUTATORS[k]; return `<span class="mp" style="--mc:${M.color};--d:${(i * 0.35).toFixed(2)}s"><i>${MUT_ICON[k] || '✦'}</i><span>${esc(M.name)}<small>${esc(M.desc)}</small></span></span>`; }).join('');
   box.querySelectorAll('.mp').forEach(el => { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; });
   ks.forEach((k, i) => setTimeout(() => play('mapFx', i), i * 350));
 }
 function banner(title, sub = '') {
+  if (hunting()) return;
   const b = $('banner');
   b.innerHTML = esc(title) + (sub ? `<small>${esc(sub)}</small>` : '');
   b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
@@ -7513,7 +7521,7 @@ let crackT = {};
 // again by the same archer · snipe: a knockout shot from 22 metres or more
 const MOMENTS = { mid: null, list: [] };
 const MULTI_WORD = ['', '', 'Double kill', 'Triple kill', 'Quad kill', 'Penta kill'];
-const momentScore = e => (e.m === 'multi' ? 2 + e.n * 1.5 : e.m === 'roast' ? 4 + Math.min(3, e.s || 0) : e.m === 'bully' ? 3 + e.n : e.m === 'snipe' ? 2 + (e.n - 22) / 4 : 1);
+const momentScore = e => (e.m === 'multi' ? 2 + e.n * 1.5 + Math.max(0, e.n - 2) * 1.5 : e.m === 'roast' ? 4 + Math.min(3, e.s || 0) : e.m === 'bully' ? 3 + e.n : e.m === 'snipe' ? 2 + (e.n - 22) / 4 : 1);
 function momentText(e, you) {
   const K = you && e.k === myId ? 'You' : esc(e.kn), V = e.v === myId ? 'you' : esc(e.vn);
   switch (e.m) {
@@ -7815,7 +7823,7 @@ const THEMES = {
     blades: ['#467a2c', '#6fa347', '#3b6824', '#7cb150'], ground2: 'grass', flowers: 26, fairy: true,
     dirt: '#6b4c30', dirtDark: '#3d2a1a', pitIn: '#030202', pitOut: '#1c130b', roots: 'rgba(92,62,38,0.8)',
     bogBank: '#4d4027', bogEdge: '#332e1b', bog: '#3a3a20', bogSheen: 'rgba(90,86,44,0.55)', lily: ['#6f9a3c', '#58802f'], reeds: true,
-    rock: '#4a403a', rockLight: '#62564d', basalt: '#2e2723', scorch: 'rgba(40,24,12,0.55)',
+    rock: '#4a403a', rockLight: '#62564d', basalt: '#2e2723', scorch: 'rgba(70,44,20,0.7)',
     boulder: '#7c8178', boulderLight: '#9aa093', moss: ['#56752e', '#6b8c3a'],
     border: 'hedge', wall: '#22401b', wallMid: '#2e5423', wallLight: '#3f6d2c', stoneWall: true, rich: 'grass',
     stem: ['#5b3b27', '#6d4a31'], thorn: '#e3d9c6', leaf: '#2e5423', berry: '#b3263a', burrow: '#6b4c30',
@@ -8526,7 +8534,8 @@ function paintFloor(s) {
         }
       }
     } else if (h.type === 'lava') {
-      hazP(g, h, 34); g.fillStyle = T.scorch; g.fill();
+      // the scorched ground round it fades out rather than stopping in a ring
+      for (const [grow, k] of [[34, 0.22], [24, 0.3], [15, 0.42]]) { hazP(g, h, grow); g.fillStyle = T.scorch; g.globalAlpha = k; g.fill(); } g.globalAlpha = 1;
       hazP(g, h, 7); g.fillStyle = T.basalt; g.fill();
       for (const p of perim(h, 4, 11, R)) {
         const r = 4 + R() * 5;
@@ -11503,6 +11512,27 @@ function replayFrameAt(t) {
     a: A.v.a.map(q => { const n = ab.get(q.id); return n && !q.s && !n.s && Math.hypot(n.x - q.x, n.y - q.y) < 450 ? Object.assign({}, q, { x: lerp(q.x, n.x, k), y: lerp(q.y, n.y, k) }) : q; }),
   });
 }
+// ---- smooth cameras (the clip farm's, and the clip studio's smooth follow)
+// a box round what matters whose edges grow quickly (so nothing leaves the picture) and shrink slowly; the camera eases to fit it
+function camBox(st, pts, dt, o) {
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  for (const [x, y] of pts) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  const b = st.sb || (st.sb = { x0, x1, y0, y1 }), grow = 1 - Math.exp(-dt * 8), shrink = 1 - Math.exp(-dt * 1.1);
+  b.x0 += (x0 - b.x0) * (x0 < b.x0 ? grow : shrink); b.x1 += (x1 - b.x1) * (x1 > b.x1 ? grow : shrink);
+  b.y0 += (y0 - b.y0) * (y0 < b.y0 ? grow : shrink); b.y1 += (y1 - b.y1) * (y1 > b.y1 ? grow : shrink);
+  b.px = o.px; b.py = o.py;
+  return { x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2, z: clamp(Math.min(o.vw / (b.x1 - b.x0 + o.px), AH / (b.y1 - b.y0 + o.py)), o.z0, o.z1) };
+}
+// keep the box inside the view: zoom out (and slide) just enough when the easing camera would leave something out
+function camKeep(cam, b, VW, minZ = 0.5) {
+  const mx = b.px * 0.25, my = b.py * 0.3, needZ = Math.min(VW / (b.x1 - b.x0 + mx * 2), AH / (b.y1 - b.y0 + my * 2));
+  if (cam.z > needZ) cam.z = Math.max(needZ, minZ);
+  const hw = VW / (2 * cam.z), hh = AH / (2 * cam.z);
+  if (b.x1 - b.x0 + mx * 2 <= hw * 2) cam.x = clamp(cam.x, b.x1 + mx - hw, b.x0 - mx + hw);
+  if (b.y1 - b.y0 + my * 2 <= hh * 2) cam.y = clamp(cam.y, b.y1 + my - hh, b.y0 - my + hh);
+}
+// a recorded frame as it was (no blending): for looking ahead
+function replayFrameRaw(t) { const fr = RP.on && RP.on.frames; if (!fr || !fr.length || t > fr[fr.length - 1].t) return null; let lo = 0, hi = fr.length - 1; while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (fr[mid].t <= t) lo = mid; else hi = mid - 1; } return fr[lo].v; }
 const MULTI_NAME = ['', '', 'Double kill', 'Triple kill', 'Quad kill', 'Penta kill'];
 function replayTick(dt) {
   const R = RP.on; if (!R) return null;
@@ -11518,7 +11548,7 @@ function replayTick(dt) {
     R.started = true; R.cur = Math.max(R.segs[0].t0, R.frames[0].t); RP.cam = null;
     $('replayBadge').innerHTML = `<span class="rec"></span>${R.n > 1 ? `${MULTI_NAME[Math.min(5, R.n)] || R.n + ' kills'}` : 'Kill cam'}`;
     $('replayBadge').hidden = false; $('gameSum').hidden = true; document.body.classList.add('replaying');
-    play('killcam');
+    if (!STUDIO.on) play('killcam'); // (the clip studio: no whoosh at the start of every clip)
   }
   let seg = R.segs[R.si];
   if (R.rate == null) R.rate = R.si === R.segs.length - 1 && R.cur >= R.finFrom ? R.speed : R.early;
@@ -11562,33 +11592,75 @@ function replayTick(dt) {
   else if (now.shotT != null && R.cur < now.shotT + 0.05 && kil) { fx0 = kil.x; fy0 = kil.y; zoom = 2.2; }
   else if (arrow && !arrow.s && (now.hitT == null || R.cur < now.hitT)) { fx0 = arrow.x; fy0 = arrow.y; zoom = 2.0; }
   else if (!vic && RP.cam) { fx0 = RP.cam.x; fy0 = RP.cam.y; }
-  let camK = 0;
+  let camK = 0, zIn = 0, zOut = 0;
+  if (RP.cut) R.sb = null;
   if (STUDIO.on && (STUDIO.cur.cam !== 'kc' || R.focus != null)) { // the clip studio's cameras
-    const cm = STUDIO.cur.cam, vert = stVert(), VW = vert ? AH * 9 / 16 : AW, box = (pts, px, py, z0, z1) => { if (vert) { z0 = Math.min(z0, 0.8); px *= 0.6; } let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity; for (const [x, y] of pts) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } fx0 = (x0 + x1) / 2; fy0 = (y0 + y1) / 2; zoom = clamp(Math.min(VW / (x1 - x0 + px), AH / (y1 - y0 + py)), z0, z1); };
-    const fp = R.focus != null ? v.p.find(p => p.id === R.focus) : null;
+    const cm = STUDIO.cur.cam, vert = stVert(), VW = vert ? AH * 9 / 16 : AW, box = (pts, px, py, z0, z1) => { if (vert) { z0 = Math.min(z0, 0.6); px *= 0.6; } let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity; for (const [x, y] of pts) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } fx0 = (x0 + x1) / 2; fy0 = (y0 + y1) / 2; zoom = clamp(Math.min(VW / (x1 - x0 + px), AH / (y1 - y0 + py)), z0, z1); };
+    const useDir = cm === 'dir' && kil && !(R.focus != null && !(vic && !vic.d && R.cur > now.kt - 2.5 && R.cur < now.kt + 0.8));
     if (cm === 'arena') { fx0 = AW / 2; fy0 = AH / 2; zoom = vert ? 0.56 : 1; }
-    else if (fp && cm !== 'wide' && !(cm === 'dir' && vic && !vic.d && R.cur > now.kt - 2.5 && R.cur < now.kt + 0.8)) {
-      // a clip about one archer: on them, with whoever's near them and the arrows flying at them or from them in view
-      const pts = [[fp.x, fp.y]];
-      for (const p of v.p) if (p.id !== fp.id && !p.d && !p.f && Math.hypot(p.x - fp.x, p.y - fp.y) < 420) pts.push([p.x, p.y]);
-      for (const a of v.a) if (!a.s && Math.hypot(a.x - fp.x, a.y - fp.y) < 360) pts.push([a.x, a.y]);
-      box(pts, 460, 340, 1.05, 1.9); camK = 4;
-    } else if (cm === 'dir' && kil) {
+    else if (useDir) {
       // follow the shot: on the shooter as they draw, out to show them and their target while the arrow flies, in on the target as it lands
-      const tgt = vic && !vic.d ? vic : null, landT = now.hitT != null ? now.hitT : now.kt;
-      if (now.shotT != null && R.cur < now.shotT + 0.04) { fx0 = kil.x + (tgt ? (tgt.x - kil.x) * 0.12 : 0); fy0 = kil.y + (tgt ? (tgt.y - kil.y) * 0.12 : 0); zoom = 2.1; }
+      const tgt = vic && !vic.d ? vic : null, landT = now.hitT != null ? now.hitT : now.kt, zc = vert ? 1.7 : 2.1;
+      if (now.shotT != null && R.cur < now.shotT + 0.04) { fx0 = kil.x + (tgt ? (tgt.x - kil.x) * 0.12 : 0); fy0 = kil.y + (tgt ? (tgt.y - kil.y) * 0.12 : 0); zoom = zc; }
       else if (tgt && R.cur < landT - (now.shotT != null ? 0.12 : 0.6)) { const pts = [[kil.x, kil.y], [tgt.x, tgt.y]]; if (arrow && !arrow.s) pts.push([arrow.x, arrow.y]); box(pts, 380, 300, 1.0, 1.9); }
-      else if (vic) { fx0 = vic.x; fy0 = vic.y; zoom = 2.1; }
-      camK = 4.5;
-    } else if (kil) { // wide: everyone involved in view
-      const pts = [[kil.x, kil.y]]; for (const q of seg.subs) { const p = v.p.find(z => z.id === q.v); if (p && !p.d) pts.push([p.x, p.y]); } for (const a of v.a) if (a.o === R.k && !a.s) pts.push([a.x, a.y]);
-      box(pts, 520, 380, 1, 1.7);
+      else if (vic) { fx0 = vic.x; fy0 = vic.y; zoom = zc; }
+      camK = 4.5 * (+STUDIO.cur.camSpeed || 1);
+    } else {
+      // the action camera: every archer still standing stays in the picture, as close as that allows (up to the chosen
+      // closeness), centred on all of them with a lean toward the playmaker. It looks a second ahead in the recording so
+      // it's already moving before anyone runs, and it glides: a weighted camera with momentum rather than a chase
+      const sp = +STUDIO.cur.camSpeed || 1, close = (+STUDIO.cur.zoomMax || 2) * (vert ? 0.85 : 1);
+      const pm = R.focus != null ? v.p.find(p => p.id === R.focus) : kil, ids2 = o => o === R.k || o === R.focus || seg.subs.some(q => q.v === o);
+      const pts = [], wsum = { x: 0, y: 0, w: 0 };
+      const add = (x, y, w) => { pts.push([x, y]); if (w) { wsum.x += x * w; wsum.y += y * w; wsum.w += w; } };
+      // everyone in the fight: the playmaker and their victims, anyone close to them, and anyone who's shot or been hit in the
+      // last moments; an archer idling at the far end of the arena isn't (or every clip would be the whole arena)
+      const busy = new Set(); for (let i2 = R.fired - 1; i2 >= 0; i2--) { const x = R.evs[i2]; if (R.cur - x.t > 2.5) break; const ev2 = x.e; if (ev2.e === 'fire' || ev2.e === 'hit' || ev2.e === 'dmg' || ev2.e === 'dash') for (const id of [ev2.id, ev2.by]) if (id != null) busy.add(id); }
+      const near = (p, d) => pts.some(([x, y]) => Math.hypot(p.x - x, p.y - y) < d);
+      const core = v.p.filter(p => !p.d && !p.f && !p.npc && (p === pm || ids2(p.id)));
+      for (const p of core) add(p.x, p.y, p === pm ? 2.2 : 1);
+      for (const p of v.p) if (!p.d && !p.f && !p.npc && !core.includes(p) && (busy.has(p.id) || near(p, vert ? 300 : 380))) add(p.x, p.y, 0.8);
+      for (const q of seg.subs) { const p = v.p.find(z => z.id === q.v); if (p && p.d && R.cur <= q.kt + 0.9) add(p.x, p.y, 1); } // (whoever just went down, for a moment)
+      for (const a of v.a) if (!a.s && (ids2(a.o) || (pm && Math.hypot(a.x - pm.x, a.y - pm.y) < 260))) add(a.x, a.y, 0);
+      for (let t = R.cur + 0.25; t <= R.cur + 1.0; t += 0.25) { const f = replayFrameRaw(t); if (f) for (const p of f.p) if (!p.d && !p.f && !p.npc) add(p.x, p.y, 0); } // (a second ahead)
+      if (!pts.length) for (const p of v.p) add(p.x, p.y, 1);
+      if (pts.length) {
+        const T = camBox(R, pts, dt * sp, { vw: VW, px: vert ? 150 : 260, py: vert ? (STUDIO.cur.bars ? 400 : 280) : 210, z0: vert ? 0.56 : 1, z1: close });
+        // centred on everyone (leaning toward the playmaker), as far as keeping them all in view allows
+        let cx = wsum.w ? wsum.x / wsum.w : T.x, cy = wsum.w ? wsum.y / wsum.w : T.y;
+        const b = R.sb, hw = VW / (2 * T.z) - (vert ? 60 : 100), hh = AH / (2 * T.z) - (vert ? 140 : 80);
+        cx = b.x1 - b.x0 > hw * 2 ? T.x : clamp(cx, b.x1 - hw, b.x0 + hw); cy = b.y1 - b.y0 > hh * 2 ? T.y : clamp(cy, b.y1 - hh, b.y0 + hh);
+        fx0 = cx; fy0 = cy; zoom = T.z; camK = -1; // (-1: the weighted camera below)
+        // vertical, with the archers too spread out for a phone's frame (a shot across the arena): follow the play itself,
+        // a step ahead: toward the target while they draw, ahead of the arrow in flight, then on the target
+        if (vert && R.sb.x1 - R.sb.x0 + 150 > VW / 0.56 && kil) {
+          const tgt = vic && !vic.d ? vic : null;
+          if (tgt && now.shotT != null && R.cur < now.shotT + 0.04) { fx0 = lerp(kil.x, tgt.x, 0.22); fy0 = lerp(kil.y, tgt.y, 0.22); }
+          else if (arrow && !arrow.s && tgt) { fx0 = lerp(arrow.x, tgt.x, 0.45); fy0 = lerp(arrow.y, tgt.y, 0.45); }
+          else if (vic) { fx0 = vic.x; fy0 = vic.y; }
+          else { fx0 = kil.x; fy0 = kil.y; }
+          zoom = Math.min(close, 1.0); R.sb = null;
+        }
+      }
     }
   }
-  if (!RP.cam || RP.cut) { RP.cam = { x: fx0, y: fy0, z: RP.cam ? RP.cam.z : 1.2 }; RP.cut = 0; }
+  if (!RP.cam || RP.cut) { RP.cam = { x: fx0, y: fy0, z: RP.cam && !R.sb ? RP.cam.z : zoom }; RP.cut = 0; }
   // the camera follows smoothly; it chases a fast arrow harder so the arrow never runs off the edge of the view
-  const far = Math.hypot(fx0 - RP.cam.x, fy0 - RP.cam.y), k = 1 - Math.exp(-dt * (camK || (far > 120 ? 12 : 7)));
-  RP.cam.x += (fx0 - RP.cam.x) * k; RP.cam.y += (fy0 - RP.cam.y) * k; RP.cam.z += (zoom - RP.cam.z) * (1 - Math.exp(-dt * (camK ? 3.5 : 3)));
+  const spd = STUDIO.on ? (+STUDIO.cur.camSpeed || 1) : 1, C = RP.cam;
+  if (camK === -1) {
+    // the action camera has weight: it accelerates toward where it should be and settles without overshooting
+    // (a critically damped spring), so there are no jumps at all; the zoom tightens slowly and widens quicker
+    const wn = 2.6 * spd, dtc = Math.min(dt, 0.05); C.vx = C.vx || 0; C.vy = C.vy || 0;
+    C.vx += ((fx0 - C.x) * wn * wn - 2 * wn * C.vx) * dtc; C.vy += ((fy0 - C.y) * wn * wn - 2 * wn * C.vy) * dtc;
+    C.x += C.vx * dtc; C.y += C.vy * dtc;
+    C.z += (zoom - C.z) * (1 - Math.exp(-dtc * (zoom < C.z ? 3.2 : 1.0) * spd));
+    if (R.sb) camKeep(C, R.sb, stVert() ? AH * 9 / 16 : AW, stVert() ? 0.56 : 1); // (never let anyone leave the picture)
+  } else {
+    const far = Math.hypot(fx0 - C.x, fy0 - C.y), k = 1 - Math.exp(-dt * (camK || (far > 120 ? 12 : 7) * spd));
+    C.x += (fx0 - C.x) * k; C.y += (fy0 - C.y) * k; C.z += (zoom - C.z) * (1 - Math.exp(-dt * (zIn ? (zoom < C.z ? zOut : zIn) : camK ? 3.5 : 3)));
+    C.vx = C.vy = 0;
+    if (R.sb) camKeep(C, R.sb, stVert() ? AH * 9 / 16 : AW, stVert() ? 0.56 : 1);
+  }
   // keep the zoomed view inside the arena so we never look past its edge
   const VW = stVert() ? AH * 9 / 16 : AW, hw = VW / (2 * RP.cam.z), hh = AH / (2 * RP.cam.z);
   RP.cam.x = hw * 2 >= AW ? AW / 2 : clamp(RP.cam.x, hw, AW - hw); RP.cam.y = hh * 2 >= AH ? AH / 2 : clamp(RP.cam.y, hh, AH - hh);
@@ -11621,7 +11693,7 @@ function showPendingSummary() { if (pendingSummary && view && view.m.ph === 'pos
 function endReplay() {
   if (!RP.on) return; RP.on = null; RP.cam = null; $('replayBadge').hidden = true; document.body.classList.remove('replaying');
   clipRecStop();
-  if (STUDIO.on) { if (!STUDIO.exporting) setTimeout(() => { if (STUDIO.on && !RP.on && !STUDIO.exporting) studioPlay(); }, 500); return; } // (the clip studio loops the clip)
+  if (STUDIO.on) { if (!STUDIO.exporting) studioPlay(); return; } // (the clip studio loops the clip, straight round)
   if (FARM.viewing) { farmViewEnd(); return; }
   if (CLIP.playing) { $('cvAgain').hidden = false; if (CLIP.playing.embed) setTimeout(() => { if (CLIP.playing && !RP.on) clipReplay(); }, 2500); return; }
   showPendingSummary();
@@ -11833,8 +11905,11 @@ function frame(now) {
     if (!paused && !(TUT.on && TUT_STEPS[TUT.step] && TUT_STEPS[TUT.step].info)) {
       if (fx.stop > 0) fx.stop -= dt; // hit-stop: the world holds for a few frames
       else { acc += (fx.slow > 0 ? dt * 0.35 : dt) * (FARM.on && !RP.on ? FARM.speed : 1); fx.slow = Math.max(0, fx.slow - dt); }
-      if (FARM.on && acc > STEP * 40) acc = STEP * 40; // (a slow machine at 16×: drop time rather than fall ever further behind)
+      if (FARM.on && FARM.hunt && !FARM.held) acc = STEP * 5000; // (hunting: as many steps as fit in the frame)
+      else if (FARM.on && acc > STEP * 40) acc = STEP * 40; // (a slow machine at 16×: drop time rather than fall ever further behind)
+      const hT0 = performance.now();
       while (acc >= STEP) {
+        if (FARM.on && FARM.hunt && (world.match.ph === 'over' || performance.now() - hT0 > 24)) { acc = 0; break; }
         prevPos = capturePos(world);
         tutGuard(); trainGuard();
         const meW = world.players.find(p => p.id === myId);
@@ -11884,7 +11959,7 @@ function frame(now) {
   const rv = cbView(replayTick(stHold ? 0 : RP.on && RP.on.real ? Math.min(0.1, frameMs / 1000) : dt)); // (real time stays real even when the frame rate dips)
   // a drawing error must never freeze the game: report it and carry on with the next frame
   try { camUpdate(dt); phoneCamUpdate(dt); } catch (e) { clientError(e, 'camera'); }
-  try { if (rv) { const live = view; view = rv; try { render(true); } finally { view = live; } } else render(); }
+  try { if (rv) { const live = view; view = rv; try { render(true); } finally { view = live; } } else if (FARM.on && FARM.hunt && !STUDIO.on) huntDraw(); else render(); }
   catch (e) { clientError(e, 'render'); if (rv) endReplay(); try { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none'; } catch (e2) {} }
   PR.lap('overlay');
   try { updateHud(); qHelp(); linkAutoJoin(); if (TOUCH.on) touchUI(); } catch (e) { clientError(e, 'hud'); }
@@ -11933,7 +12008,7 @@ function farmRender() {
       const sub = a ? `Ranked AI player · ${(a.cc || '').toUpperCase()} · level ${a.lv} · skill ${Math.round((a.skill || 0) * 100)} · team ${a.eloT}${mains ? ' · favourite roles ' + [...new Set(mains.map(l => (ROLES[l[1]] || {}).name))].join(', ') : ''}` : 'A difficulty bot (no name or look)';
       // the upgrades they'll have: their own picks, or a set list (all of them from the start, and no picks)
       const L = farmLoadout(r), ups = L ? farmCards(L[0], L[1]) : [];
-      const upBtn = `<button type="button" class="ghost sm" data-fupt="${t}|${i}" title="Choose the upgrades they'll have">${r.up && r.up.length ? `Upgrades: ${r.up.length} set` : 'Upgrades: own picks'}</button>`;
+      const upBtn = `<button type="button" class="ghost sm" data-fupt="${t}|${i}" title="Choose the upgrades they'll have">${r.up && r.up.length ? `Upgrades: ${r.up.length} set` : 'Upgrades: own picks'}</button> <label title="Keep this archetype (and set upgrades) whatever the variety options do, even when the player is swapped"><input type="checkbox" data-flock="${t}|${i}"${r.lock ? ' checked' : ''}> Lock archetype</label>`;
       const upPanel = r.upOpen ? `<div class="farmups">${L ? ups.map(id => `<button type="button" class="${(r.up || []).includes(id) ? 'on' : ''}${TREE[id].active ? ' ab' : ''}" data-fup="${t}|${i}|${id}" title="${esc(TREE[id].desc || '')}">${TREE[id].active ? '★ ' : ''}${esc(TREE[id].name)}</button>`).join('') + `<button type="button" data-fupclr="${t}|${i}">Own picks</button>` : '<span class="status">Pick an archetype first (not "Their mains" with several).</span>'}</div>` : '';
       return `<div class="farmrow"><canvas width="60" height="60" data-fav="${t}${i}"></canvas><select data-fwho="${t}|${i}">${who}</select><select data-flo="${t}|${i}">${lo}</select><button type="button" class="ghost sm" data-frm="${t}|${i}" aria-label="Remove">×</button><small>${esc(sub)} · ${upBtn}</small>${upPanel}</div>`;
     }).join('') : '<span class="status">Nobody yet.</span>';
@@ -11944,7 +12019,10 @@ function farmRender() {
 async function openFarm() {
   if (mode !== 'menu') return;
   closeSubs();
-  if (!$('farmMap').options.length) $('farmMap').innerHTML = '<option value="">Random</option>' + MAP_KEYS.map(k => `<option value="${k}">${esc(MAPS[k].name)}</option>`).join('');
+  if (!$('farmMap').options.length) { $('farmMap').innerHTML = '<option value="">Random</option>' + MAP_KEYS.map(k => `<option value="${k}">${esc(MAPS[k].name)}</option>`).join('');
+    const off = new Set(store.get('bowfall-farm-maps', '').split(',').filter(Boolean)); // (arenas left out of the random pick, remembered)
+    $('farmMaps').insertAdjacentHTML('beforeend', MAP_KEYS.filter(k => !MAPS[k].big).map(k => `<label><input type="checkbox" data-fmap="${k}"${off.has(k) ? '' : ' checked'}> ${esc(MAPS[k].name)}</label>`).join(''));
+    $('farmMaps').addEventListener('change', () => store.set('bowfall-farm-maps', [...$('farmMaps').querySelectorAll('[data-fmap]')].filter(c => !c.checked).map(c => c.dataset.fmap).join(','))); }
   if (!$('farmEffect').options.length) $('farmEffect').innerHTML = '<option value="none">None</option><option value="random">A random one each game</option>' + Object.keys(Sim.MUTATORS).map(k => `<option value="${k}">${esc(Sim.MUTATORS[k].name)}</option>`).join('');
   $('farmScr').hidden = false;
   // the ranked AI players (asked again each time until it works; offline, the copy built into the page)
@@ -11969,32 +12047,41 @@ $('farmScr').addEventListener('click', e => {
   else if (uc) { const [t, i] = uc.dataset.fupclr.split('|'); FARM.team[t][+i].up = []; farmRender(); }
 });
 $('farmScr').addEventListener('change', e => {
-  const w = e.target.dataset.fwho, l = e.target.dataset.flo;
+  const w = e.target.dataset.fwho, l = e.target.dataset.flo, lk = e.target.dataset.flock;
+  if (lk) { const [t, i] = lk.split('|'); FARM.team[t][+i].lock = e.target.checked; return; }
   if (w) { const [t, i] = w.split('|'); FARM.team[t][+i] = { who: e.target.value, lo: '' }; farmRender(); }
   else if (l) { const [t, i] = l.split('|'); FARM.team[t][+i].lo = e.target.value; FARM.team[t][+i].up = []; farmRender(); }
 });
 $('farmGo').onclick = () => {
   if (!FARM.team.red.length || !FARM.team.blue.length) { notice('Put someone on each side.', false); return; }
-  FARM.cfg = { map: $('farmMap').value, pts: +$('farmPts').value, rndWho: $('farmRndWho').value, rndMains: $('farmRndMains').checked, rndUps: $('farmRndUps').checked, effect: $('farmEffect').value || 'none', keep: $('farmKeep').value, red: FARM.team.red.map(x => Object.assign({}, x)), blue: FARM.team.blue.map(x => Object.assign({}, x)), kc: $('farmKc').checked, rec: $('farmRec').checked };
-  FARM.follow = $('farmCam').value === 'follow'; FARM.hud = $('farmHud').value === '1'; FARM.maxq = $('farmMaxq').checked; FARM.loop = $('farmLoop').checked;
-  FARM.tags = $('farmTags').value; FARM.emp = $('farmEmp').value; FARM.speed = +$('farmSpeed').value || 1; FARM.review = false;
+  FARM.cfg = { map: $('farmMap').value, maps: [...$('farmMaps').querySelectorAll('[data-fmap]')].filter(c => c.checked).map(c => c.dataset.fmap), pts: +$('farmPts').value, rndWho: $('farmRndWho').value, rndMains: !$('farmRndLo').checked, rndLo: $('farmRndLo').checked, rndSize: $('farmRndSize').checked, every: $('farmEvery').checked, rndUps: $('farmRndUps').checked, effect: $('farmEffect').value || 'none', keep: $('farmKeep').value, red: FARM.team.red.map(x => Object.assign({}, x)), blue: FARM.team.blue.map(x => Object.assign({}, x)), kc: $('farmKc').checked, rec: $('farmRec').checked };
+  if (FARM.camMode == null) { FARM.follow = true; FARM.camMode = 'follow'; } // (the live camera: smooth follow; the bar's Camera button changes it) FARM.hud = $('farmHud').value === '1'; FARM.maxq = $('farmMaxq').checked; FARM.loop = $('farmLoop').checked;
+  FARM.tags = $('farmTags').value; FARM.emp = $('farmEmp').value; FARM.speed = +$('farmSpeed').value || 1; FARM.review = false; FARM.hunt = $('farmHunt').checked; FARM.huntN = 400; FARM.found = 0; FARM.battles = 0;
   $('farmScr').hidden = true; if (document.activeElement) document.activeElement.blur(); farmStart();
 };
 // the variety option: each player swapped for a random ranked AI player (near their rating, high, low or any), playing
 // one of their favourite roles or any archetype; nobody twice in a match
 function farmRoll(C) {
-  const L = FARM.ai || [], out = { red: [], blue: [] };
-  if (!C.rndWho || !L.length) return { red: C.red, blue: C.blue };
-  const used = new Set(), byElo = L.slice().sort((x, y) => x.elo - y.elo), third = Math.max(1, Math.round(L.length / 3)), mid = byElo[byElo.length >> 1].elo;
+  const L = FARM.ai || [], out = { red: [], blue: [] }, ELS = Object.keys(ELEMENTS), ROS = Object.keys(ROLES).filter(x => x !== 'crossbow');
+  const anyLo = () => ELS[Math.floor(Math.random() * ELS.length)] + '|' + ROS[Math.floor(Math.random() * ROS.length)];
+  const used = new Set(), byElo = L.slice().sort((x, y) => x.elo - y.elo), third = Math.max(1, Math.round(L.length / 3)), mid = byElo.length ? byElo[byElo.length >> 1].elo : 1000;
   for (const t of ['red', 'blue']) for (const r of C[t]) {
-    const base = farmAI(r.who) ? farmAI(r.who).elo : mid;
-    let pool = C.rndWho === 'high' ? byElo.slice(-third) : C.rndWho === 'low' ? byElo.slice(0, third) : C.rndWho === 'near' ? L.slice().sort((x, y) => Math.abs(x.elo - base) - Math.abs(y.elo - base)).slice(0, 8) : L;
-    pool = pool.filter(a => !used.has(a.name)); if (!pool.length) pool = L.filter(a => !used.has(a.name)); if (!pool.length) { out[t].push(r); continue; }
-    const a = pool[Math.floor(Math.random() * pool.length)]; used.add(a.name);
-    const ELS = Object.keys(ELEMENTS), ROS = Object.keys(ROLES).filter(x => x !== 'crossbow');
-    out[t].push({ who: a.name, lo: C.rndMains || !a.loadouts.length ? '' : ELS[Math.floor(Math.random() * ELS.length)] + '|' + ROS[Math.floor(Math.random() * ROS.length)] });
+    let row = r;
+    if ((C.rndWho || r.rnd) && L.length) {
+      const base = farmAI(r.who) ? farmAI(r.who).elo : mid, m = C.rndWho || 'any';
+      let pool = m === 'high' ? byElo.slice(-third) : m === 'low' ? byElo.slice(0, third) : m === 'near' ? L.slice().sort((x, y) => Math.abs(x.elo - base) - Math.abs(y.elo - base)).slice(0, 8) : L;
+      pool = pool.filter(a => !used.has(a.name)); if (!pool.length) pool = L.filter(a => !used.has(a.name));
+      if (pool.length) { const a = pool[Math.floor(Math.random() * pool.length)]; used.add(a.name); row = r.lock && r.lo ? { who: a.name, lo: r.lo, up: r.up, lock: 1 } : { who: a.name, lo: '' }; } // (a locked archetype stays with the seat)
+    }
+    if (C.rndLo && !r.lock) row = Object.assign({}, row, { lo: anyLo(), up: [] }); // (any archetype: their set upgrades wouldn't fit it)
+    out[t].push(row);
   }
   return out;
+}
+function farmSizes(C) {
+  const nR = 1 + Math.floor(Math.random() * 4), nB = 1 + Math.floor(Math.random() * 4), L = FARM.ai || [];
+  const rows = (src, n) => Array.from({ length: n }, (_, i) => (i < src.length ? Object.assign({}, src[i]) : L.length ? { who: L[Math.floor(Math.random() * L.length)].name, lo: '', rnd: 1 } : Object.assign({}, src[i % Math.max(1, src.length)])));
+  return Object.assign({}, C, { red: rows(C.red, nR), blue: rows(C.blue, nB) });
 }
 function farmStart() {
   const C = FARM.cfg; if (!C) return;
@@ -12002,9 +12089,10 @@ function farmStart() {
   // anything still waiting to be saved from the last match is saved now, before its frames are let go
   if (FARM.on && RP.buf.length) while (FARM.pending.length) farmCapture(FARM.pending.shift());
   const ELS = Object.keys(ELEMENTS), ROS = Object.keys(ROLES).filter(r => r !== 'crossbow'), pick = a => a[Math.floor(Math.random() * a.length)];
-  const map = C.map || pick(MAP_KEYS.filter(k => !MAPS[k].big));
-  world = Sim.createWorld({ map, diff: 'normal', opt: { effect: C.effect || 'none' }, pointsToWin: C.pts });
-  const rows = farmRoll(C);
+  const pool = (C.maps || []).filter(k => MAPS[k] && !MAPS[k].big), map = C.map || pick(pool.length ? pool : MAP_KEYS.filter(k => !MAPS[k].big));
+  world = Sim.createWorld({ map, diff: 'normal', opt: { effect: C.effect || 'none' } });
+  world.cfg.pointsToWin = C.every ? 1 : C.pts || 3; if (C.every) world.cfg.gamesToWin = 1; // (one battle, then everything changes)
+  const rows = farmRoll(C.rndSize ? farmSizes(C) : C);
   for (const t of ['red', 'blue']) for (const r of rows[t]) {
     const bot = Sim.addBot(world, t); if (!bot) continue;
     const a = farmAI(r.who), sk = a ? a.skill : +String(r.who).replace('skill:', '') || 0;
@@ -12015,7 +12103,7 @@ function farmStart() {
     Sim.setLoadout(world, bot.id, lo[0], lo[1]);
     bot.dparams = Sim.skillParams(sk); bot.diff = sk >= 0.9 ? 'master' : sk >= 0.78 ? 'extreme' : sk >= 0.55 ? 'hard' : sk >= 0.3 ? 'normal' : 'easy';
     let ups = r.up && r.up.length ? r.up.slice() : null;
-    if (C.rndUps) { const cards = farmCards(lo[0], lo[1]), act = cards.filter(id => TREE[id].active), pas = cards.filter(id => !TREE[id].active), n = 3 + Math.floor(Math.random() * 3); ups = [];
+    if (C.rndUps && !(r.lock && r.up && r.up.length)) { const cards = farmCards(lo[0], lo[1]), act = cards.filter(id => TREE[id].active), pas = cards.filter(id => !TREE[id].active), n = 3 + Math.floor(Math.random() * 3); ups = [];
       if (act.length) ups.push(pick(act)); // (one ability, the rest passives)
       while (ups.length < n && pas.length) ups.push(pas.splice(Math.floor(Math.random() * pas.length), 1)[0]); }
     if (ups && ups.length) bot.forceUp = ups; // their upgrades are set: all of them from the start
@@ -12024,13 +12112,14 @@ function farmStart() {
   world.cfg.noEmp = FARM.emp === 'off';
   Sim.startMatch(world); world.events.length = 0;
   myId = null; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {}; TUT.on = false; TR.on = false;
-  FARM.on = true; FARM.cam = null; FARM.act = {}; FARM.overAt = 0; FARM.kc = C.kc; RP.enabled = C.kc && FARM.speed === 1;
+  FARM.battles = (FARM.battles || 0) + 1;
+  FARM.on = true; FARM.cam = null; FARM.sb = null; FARM.act = {}; FARM.overAt = 0; FARM.kc = C.kc; RP.enabled = C.kc && FARM.speed === 1 && !FARM.hunt;
   RP.buf = []; RP.evs = []; RP.lastKill = null; FARM.pending = []; FARM.batch = []; FARM.near = new Map(); FARM.pl = new Map(); FARM.revAt = 0; FARM.held = false; FARM.match = (FARM.match || 0) + 1;
   farmBarSync();
   document.body.classList.add('farm'); document.body.classList.toggle('farmnohud', !FARM.hud); farmBarShow(true);
   setScreens(); resize();
   if (C.rec && !FARM.rec) farmRecStart();
-  $('fbCam').textContent = `Camera: ${FARM.follow ? 'follow' : 'arena'}`; $('fbHud').textContent = `HUD: ${FARM.hud ? 'on' : 'off'}`;
+  $('fbCam').textContent = `Camera: ${FARM.follow ? (FARM.camMode === 'tight' ? 'tight' : 'smooth') : 'arena'}`; $('fbHud').textContent = `HUD: ${FARM.hud ? 'on' : 'off'}`;
 }
 // ---- the farm's game clock, and its frames and events for the replays (every step, so fast-forwarding loses nothing)
 function farmStep() {
@@ -12070,7 +12159,7 @@ function farmEvasive(id) {
   const P = farmPl(id), now = FARM.gt, p = world.players.find(q => q.id === id); if (!p || p.dead) return;
   const T = now - 8, dodges = P.dodge.filter(t => t >= T).length, dashes = P.dash.filter(t => t >= T).length, dmg = P.dmg.filter(x => x.t >= T).reduce((a, x) => a + x.v, 0), kills = P.kill.filter(t => t >= T).length;
   const same = FARM.pending.find(x => x.e.e === 'evasive' && x.e.id === id);
-  if (dodges < 6 || dashes < 2 || (dmg < 60 && !kills) || (!same && now - P.flag < 12)) return;
+  if (dodges < 6 || dashes < 2 || !kills || (!same && now - P.flag < 12)) return; // (dodging alone isn't a clip: it has to end in a knockout)
   if (!same) P.flag = now; // (one clip for a run of it; the next can't start for a while)
   const e = { e: 'evasive', id, kn: p.name, n: Math.max(dodges, same ? same.e.n : 0), dmg, kills, a0: same ? same.e.a0 : now - 8 };
   if (same) { same.e = e; same.at = now; same.due = now + 3.4; } else FARM.pending.push({ e, at: now, due: now + 3.4 });
@@ -12097,14 +12186,39 @@ function farmNote(e) {
     farmPl(e.k).kill.push(at);
     // reeled in by a harpoon and straight into a hole, water, lava or thorns
     if (e.c !== 'arrow' && RP.evs.some(x => x.e.e === 'reel' && x.e.id === e.v && x.e.by === e.k && at - x.t < 3)) push({ e: 'harpoon', k: e.k, kn: e.kn, v: e.v, vn: e.vn, c: e.c }, 3);
+    // a knockout with some play behind it (a dash into position, a trapped or frozen target, an ability that set it up, a run of hits into a wall)
+    else { const st = killStyle(e, at); if (st.score >= 2.5) push({ e: 'style', k: e.k, kn: e.kn, v: e.v, vn: e.vn, c: e.c, st }, 3); }
   }
   if (e.e === 'gameEnd' && e.rw !== 'draw' && RP.lastKill && at - RP.lastKill.t < 1.5) FARM.pending.push({ e: { e: 'winko', k: RP.lastKill.k, kn: RP.lastKill.kn, v: RP.lastKill.v, vn: RP.lastKill.vn }, at: RP.lastKill.t, due: at + 2.5 });
   FARM.pending.sort((a, b) => a.due - b.due);
 }
+// the play behind a knockout, from the events and frames just before it: what set it up, and what it's worth
+const CC_WORD = { fz: 'frozen', pn: 'pinned', hk: 'hooked', su: 'stunned', st: 'rooted' };
+function killStyle(e, t) {
+  const tags = [], ev = (name, test, back) => RP.evs.some(x => x.e.e === name && x.t >= t - back && x.t <= t + 0.02 && test(x.e));
+  let score = 0, cc = null;
+  // the victim held in place in the moment before (frozen, rooted by a trap or thorns, pinned, stunned, on a harpoon's rope)
+  for (const f of RP.buf) { if (f.t < t - 1.4 || f.t > t) continue; const v = f.v.p.find(q => q.id === e.v); if (!v) continue; for (const k in CC_WORD) if (v[k]) { cc = k; break; } if (cc) break; }
+  if (cc) { tags.push(`${CC_WORD[cc]} target`); score += 1.5; }
+  // the shooter dashed (or blinked) into position just before the shot
+  const shotT = (() => { for (let i = RP.evs.length - 1; i >= 0; i--) { const x = RP.evs[i]; if (x.t > t) continue; if (x.e.e === 'hit' && x.e.id === e.v && x.e.by === e.k) return x.t; if (t - x.t > 3) break; } return t; })();
+  const dashed = ev('dash', x => x.id === e.k, (t - shotT) + 1.6) || ev('blink', x => x.id === e.k, (t - shotT) + 1.6);
+  if (dashed) { tags.push('dash into position'); score += 1.5; if (cc) score += 1; }
+  // abilities that made it: Bull Rush, a Volley's three arrows, a Rip (more if it took several), a Quake into a hazard, a Pin before the finish
+  if (ev('rush', x => x.id === e.k, 1.3)) { tags.push('Bull Rush'); score += 1.5; }
+  if (ev('volleyArmed', x => x.id === e.k, 2.6)) { const hits = RP.evs.filter(x => x.e.e === 'hit' && x.e.by === e.k && x.e.id === e.v && t - x.t < 1.2).length; if (hits >= 3) { tags.push('full Volley'); score += 2; } else if (hits >= 2) { tags.push('Volley'); score += 1; } }
+  if (e.how === 'rip' || e.c === 'rip') { const others = RP.evs.filter(x => x.e.e === 'kill' && x.e.k === e.k && x.e.how === 'rip' && x.e.v !== e.v && Math.abs(x.t - t) < 0.1).length; tags.push(others ? `Rip, ${others + 1} at once` : 'Rip'); score += 1 + others * 3.5; }
+  if (ev('quake', () => true, 1.2) && e.c !== 'arrow' && ev('quake', x => Math.hypot(x.x - e.x, x.y - e.y) < 300, 1.2)) { tags.push('Quake'); score += 1.5; }
+  if (ev('pinned', x => x.id === e.v && x.by === e.k, 3) && cc !== 'pn') { tags.push('pinned first'); score += 1; }
+  // smashed into the walls: a run of quick hits that threw them into a wall or corner again and again
+  const hits = RP.evs.filter(x => x.e.e === 'hit' && x.e.by === e.k && x.e.id === e.v && t - x.t < 3.2).length, slams = RP.evs.filter(x => (x.e.e === 'thud' || x.e.e === 'spike') && x.e.id === e.v && t - x.t < 3.2).length;
+  if (hits >= 3 && slams >= 2) { tags.push(`${hits} quick hits, ${slams} slams`); score += 2.5 + (hits - 3) * 0.5 + (slams - 2) * 0.5; }
+  return { tags, score, cc: !!cc, dashed, hits, slams };
+}
 const FARM_KEEP = { all: 0, good: 3, best: 4.5 };
 const HAZ_WORD = { pit: 'a hole', water: 'the water', lava: 'the lava', burn: 'the lava', spikes: 'the thorns', saw: 'a saw', wall: 'a wall', crush: 'a wall' };
 function farmCapture(P) {
-  const e = P.e, T = P.at, kevs = RP.evs.filter(x => x.e.e === 'kill' && !x.e.npc).map(x => ({ t: x.t, k: x.e.k, v: x.e.v, how: x.e.how, kn: x.e.kn, vn: x.e.vn, c: x.e.c }));
+  const e = P.e, T = P.at, kevs = RP.evs.filter(x => x.e.e === 'kill' && !x.e.npc).map(x => ({ t: x.t, k: x.e.k, v: x.e.v, how: x.e.how, kn: x.e.kn, vn: x.e.vn, c: x.e.c, x: x.e.x, y: x.e.y }));
   const kills = kevs.filter(x => x.k === e.k && x.t <= T + 0.3);
   let ks, focus = null, segs = [], title, line, score, extra = 0;
   if (e.e === 'evasive' || e.e === 'burst') {
@@ -12115,25 +12229,31 @@ function farmCapture(P) {
     const subs = ks.map(k => replaySeg(k, false).subs[0]);
     segs = [{ t0: a0, t1: Math.max(b0, ks.length ? ks[ks.length - 1].t + 0.9 : b0), subs: subs.length ? subs : [{ kt: b0 - 0.3, v: null }] }];
     if (e.e === 'burst') { title = 'Burst'; line = `${e.kn} dealt ${e.n} damage in 3 seconds${ks.length ? ` (${ks.length} knockout${ks.length > 1 ? 's' : ''})` : ''}`; score = 3 + (e.n - 130) / 40 + ks.length; }
-    else { title = 'Untouchable'; line = `${e.kn} dodged ${e.n} shots${e.kills ? ` and knocked out ${e.kills}` : ` while dealing ${e.dmg} damage`}`; score = 3 + (e.n - 6) * 0.5 + e.kills * 1.5 + e.dmg / 100; }
+    else { title = 'Untouchable'; line = `${e.kn} dodged ${e.n} shots and knocked out ${e.kills}`; score = 2.5 + (e.n - 6) * 0.4 + e.kills * 1.5 + e.dmg / 120; }
   } else {
     if (e.e === 'moment' && e.m === 'multi') ks = kills.filter(k => k.t >= T - 6);
     else if (e.e === 'moment' && e.m === 'bully') {
-      // did the bullying end in a knockout? (then it's that, from the first slam)
-      const out = kevs.filter(k => k.k === e.k && k.v === e.v && k.t >= T - 1 && k.t <= T + 2.8).slice(-1);
-      ks = out.length ? out : [{ t: T, k: e.k, v: e.v, how: 'wall' }]; if (out.length) extra = 2;
+      // bullying that ended in a knockout is caught as a play of its own (the hits and slams); this is the rest
+      if (kevs.some(k => k.k === e.k && k.v === e.v && k.t >= T - 1 && k.t <= T + 2.8)) return;
+      ks = [{ t: T, k: e.k, v: e.v, how: 'wall' }];
     }
     else if (e.e === 'clutch') ks = kills.filter(k => k.t >= T - 8).slice(-3);
     else ks = kevs.filter(k => k.k === e.k && k.v === e.v && k.t >= T - 1.5 && k.t <= T + 0.3).slice(-1);
     if (!ks.length) return;
     for (const k of ks) { const sg = replaySeg(k, k === ks[ks.length - 1]), prev = segs[segs.length - 1]; if (prev && sg.t0 <= prev.t1 + RP_JOIN) { prev.t1 = Math.max(prev.t1, sg.t1); prev.subs.push(...sg.subs); } else segs.push(sg); }
     if (e.e === 'moment' && e.m === 'bully') segs[0].t0 = Math.min(segs[0].t0, T - 4.5); // (all the slams)
+    if (e.e === 'style') segs[0].t0 = Math.min(segs[0].t0, T - (e.st.hits >= 3 ? 3.4 : e.st.dashed ? 2.2 : 1.8)); // (the set-up too)
     if (e.e === 'harpoon') { const h = RP.evs.find(x => x.e.e === 'hooked' && x.e.id === e.v && x.e.by === e.k && x.t >= ks[0].t - 4); if (h) segs[0].t0 = Math.min(segs[0].t0, h.t - 1); }
     const T2 = e.e === 'moment' ? momentText(e, false) : null;
-    title = e.e === 'harpoon' ? 'Harpooned' : T2 ? (extra ? (e.n >= 5 ? 'Merciless' : 'Bullied out') : T2.title) : e.e === 'clutch' ? `Clutch 1v${e.vs}` : 'Game-winning knockout';
-    line = e.e === 'harpoon' ? `${e.kn} reeled ${e.vn} into ${HAZ_WORD[e.c] || 'trouble'}` : T2 ? T2.line.replace(/<[^>]+>/g, '') + (extra ? ' and knocked them out' : '') : e.e === 'clutch' ? `${e.n} won a 1v${e.vs}` : `${e.kn} knocked out ${e.vn} to win the game`;
-    score = (e.e === 'moment' ? momentScore(e) : e.e === 'clutch' ? 3 + e.vs * 1.5 : e.e === 'harpoon' ? 4.5 : 1.5) + extra;
+    const S = e.e === 'style' ? e.st : null, styleTitle = S ? (S.hits >= 3 && S.slams >= 2 ? 'Bullied out' : S.tags.some(x => /Rip, /.test(x)) ? 'Rip' : S.cc && S.dashed ? 'Set-up knockout' : S.tags.some(x => /Volley|Rush|Quake|Rip/.test(x)) ? 'Ability knockout' : S.dashed ? 'Dash knockout' : 'Held knockout') : null;
+    title = e.e === 'harpoon' ? 'Harpooned' : S ? styleTitle : T2 ? (e.m === 'bully' ? (e.n >= 5 ? 'Merciless' : 'Bullied') : T2.title) : e.e === 'clutch' ? `Clutch 1v${e.vs}` : 'Game-winning knockout';
+    line = e.e === 'harpoon' ? `${e.kn} reeled ${e.vn} into ${HAZ_WORD[e.c] || 'trouble'}` : S ? `${e.kn} knocked out ${e.vn}: ${S.tags.join(', ')}` : T2 ? T2.line.replace(/<[^>]+>/g, '') : e.e === 'clutch' ? `${e.n} won a 1v${e.vs}` : `${e.kn} knocked out ${e.vn} to win the game`;
+    score = (e.e === 'moment' ? (e.m === 'bully' ? 2 + e.n * 0.5 : momentScore(e)) : e.e === 'clutch' ? 3 + e.vs * 1.5 : e.e === 'harpoon' ? 4.5 : S ? 2 + S.score : 1.5) + extra;
   }
+  // any play behind the knockouts counts toward every kind of clip (a game-winning knockout from a dash, a double kill off a Rip)
+  let tags = [];
+  if (e.e !== 'style' && e.e !== 'harpoon') for (const k of ks) { if (k.how === 'wall' && !k.kn) continue; const st = killStyle({ k: k.k, v: k.v, how: k.how, c: k.c, x: k.x || 0, y: k.y || 0 }, k.t); if (st.score > 0) { score += st.score * 0.7; tags.push(...st.tags); } }
+  if (tags.length) line += ` · ${[...new Set(tags)].join(', ')}`;
   // a little room either side (for moving the start and end in the clip studio)
   const a = segs[0].t0, b = segs[segs.length - 1].t1, frames = RP.buf.filter(f => f.t >= a - 2.6 && f.t <= b + 2.6);
   if (frames.length < 8) return;
@@ -12141,7 +12261,8 @@ function farmCapture(P) {
   const who = e.e === 'clutch' ? e.n : e.kn, K = e.k != null ? e.k : e.id;
   const c = { map: MAPKEY, me: K, k: K, n: Math.max(1, ks.length), segs, frames, evs };
   const item = { id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title, line, who, score: Math.round(score * 10) / 10, map: MAPKEY, at: Date.now(), match: FARM.match, kt: ks.map(k => +k.t.toFixed(2)), k: K, focus, win: [+a.toFixed(2), +b.toFixed(2)], data: clipPack(c), fresh: 1 };
-  if (item.score < (FARM_KEEP[(FARM.cfg || {}).keep] || 0)) return; // (not good enough to keep)
+  if (item.score < Math.max(FARM_KEEP[(FARM.cfg || {}).keep] || 0, FARM.hunt ? 6 : 0)) return; // (not good enough to keep; hunting keeps only the very best)
+  FARM.found = (FARM.found || 0) + 1;
   // the same play caught twice (a long shot that also won the game): one clip, the better, noting both
   const dup = FARM.reel.filter(x => x.match === item.match && x.k === item.k && ((focus != null && x.focus === focus && x.win && x.win[0] < item.win[1] - 1 && item.win[0] + 1 < x.win[1]) || (item.kt.length && (x.kt || []).some(t => item.kt.includes(t)))));
   if (dup.length) {
@@ -12289,21 +12410,23 @@ function studioRender() {
   const on = $('stList').querySelector('.on'); if (on) on.scrollIntoView({ block: 'nearest' });
   if (!it) { $('stEdit').innerHTML = ''; return; }
   const own = {}; for (const k of STUDIO_CLIP) if (it.edit && it.edit[k] != null) own[k] = it.edit[k];
-  const E = STUDIO.cur = Object.assign({}, STUDIO_DEF, STUDIO.g, own);
+  const E = STUDIO.cur = Object.assign({}, STUDIO_DEF, STUDIO.g, own); if (E.cam === 'smooth') E.cam = 'wide'; // (0.60's smooth follow is part of the action camera now)
   if (document.body.classList.contains('stvert') !== (E.frame === 'v')) { document.body.classList.toggle('stvert', E.frame === 'v'); resize(); }
   const seg = (k, opts) => `<div class="seg">${opts.map(([v, l]) => `<button type="button" class="${String(E[k]) === String(v) ? 'on' : ''}" data-stk="${k}" data-stv="${v}">${l}</button>`).join('')}</div>`;
   const tog = (k, l) => `<button type="button" class="${E[k] ? 'on' : ''}" data-stt="${k}">${l}</button>`;
   $('stEdit').innerHTML = `<h4>${esc(it.title)}</h4><small class="status">${esc(it.line)}</small>
     <div class="row"><span>Frame</span>${seg('frame', [['h', 'Landscape 16:9'], ['v', 'Vertical 9:16 (phones, reels)']])}</div>
     <div class="row"><span>Replay</span>${seg('style', [['kc', 'Kill cam (slow motion, follows the arrow)'], ['real', 'Real time']])}</div>
-    <div class="row"><span>Camera</span>${seg('cam', [['kc', it.focus != null ? 'On the archer' : 'Kill cam (rides the arrow)'], ['dir', 'Follow the shot (shooter, both, then target)'], ['wide', 'Wide on the action'], ['arena', 'Whole arena']])}</div>
+    <div class="row"><span>Camera</span>${seg('cam', [['kc', it.focus != null ? 'On the archer' : 'Kill cam (rides the arrow)'], ['dir', 'Follow the shot (shooter, both, then target)'], ['wide', 'On the action (playmaker)'], ['arena', 'Whole arena']])}</div>
+    <div class="row"><span>Camera speed</span>${seg('camSpeed', [[0.5, 'Slow and steady'], [0.75, 'Calm'], [1, 'Normal'], [1.5, 'Quick'], [2.2, 'Snappy']])}</div>
+    <div class="row"><span>Closeness</span>${seg('zoomMax', [[1.5, 'Wide'], [1.8, 'Medium'], [2.1, 'Close'], [2.5, 'Very close']])}</div>
     <div class="row"><span>Speed</span>${seg('speed', [[0.25, '¼×'], [0.5, '½×'], [0.75, '¾×'], [1, '1×'], [1.5, '1½×'], [2, '2×']])}</div>
     <div class="row"><span>Start <small class="status">(this clip)</small></span>${seg('trimA', [[-2.5, '2½ s earlier'], [-1.5, '1½ s earlier'], [-0.75, '¾ s earlier'], [0, 'As saved'], [0.75, '¾ s later'], [1.5, '1½ s later']])}</div>
     <div class="row"><span>End <small class="status">(this clip)</small></span>${seg('trimB', [[-1, '1 s earlier'], [-0.5, '½ s earlier'], [0, 'As saved'], [0.75, '¾ s later'], [1.5, '1½ s later'], [2.5, '2½ s later']])}${it.kt ? '' : '<small class="status">(clips saved before 0.59 have little to spare either side)</small>'}</div>
     <div class="row"><span>Over archers</span>${seg('names', [['all', 'Names and health'], ['bars', 'Health bars'], ['none', 'Nothing']])}</div>
     <div class="row"><span>Show</span><div class="seg">${tog('bars', 'Black bars')}${tog('parts', 'Particles')}${tog('text', 'Floating text')}${tog('shake', 'Screen shake')}${tog('flash', 'Knockout flash')}${tog('emp', 'Empowered glow')}</div></div>
     <div class="row"><span>Export size</span>${seg('res', E.frame === 'v' ? [['720', '720×1280'], ['1080', '1080×1920'], ['1440', '1440×2560']] : [['720', '720p'], ['1080', '1080p'], ['1440', '1440p']])}</div>
-    <div class="btnrow"><button type="button" class="cta sm" id="stExport">Export video</button><button type="button" class="ghost sm" id="stExportRt" title="Recorded as it plays, with the game's sound (smoothness depends on the machine)">Export with sound</button><button type="button" class="ghost sm" id="stStar">${it.star ? '★ Starred' : '☆ Star'}</button><button type="button" class="ghost sm" id="stReplay">Replay</button><button type="button" class="ghost sm" id="stDel">Delete</button></div>`;
+    <div class="btnrow"><button type="button" class="cta sm" id="stExport">Export video</button><button type="button" class="ghost sm" id="stStar">${it.star ? '★ Starred' : '☆ Star'}</button><button type="button" class="ghost sm" id="stReplay">Replay</button><button type="button" class="ghost sm" id="stDel">Delete</button></div>`;
 }
 // play the selected clip with its edits (and again when it ends)
 function studioPlay() {
@@ -12315,6 +12438,13 @@ function studioPlay() {
   c.segs = c.segs.map(g => Object.assign({}, g, { subs: g.subs.slice() }));
   c.segs[0].t0 = clamp(c.segs[0].t0 + (+E.trimA || 0), f0, c.segs[0].t1 - 0.5);
   const lg = c.segs[c.segs.length - 1]; lg.t1 = clamp(lg.t1 + (+E.trimB || 0), lg.t0 + 0.5, f1);
+  // the shot after the shot: an arrow the playmaker loosed once the final knockout had landed is left out (it's over)
+  if (it.focus == null) {
+    const kt = lg.subs[lg.subs.length - 1].kt, seen = new Set();
+    for (const f of c.frames) { if (f.t > kt) break; for (const a of f.v.a) seen.add(a.id); }
+    for (const f of c.frames) if (f.t > kt) f.v = Object.assign({}, f.v, { a: f.v.a.filter(a => a.o !== c.k || seen.has(a.id)) });
+    c.evs = c.evs.filter(x => !(x.t > kt && x.e.e === 'fire' && x.e.id === c.k));
+  }
   setArena(c.map); floorKey = null; fx.parts.length = 0; fx.floaters.length = 0; fx.rings.length = 0; myId = null;
   CLIP.playing = { c, studio: true };
   const focus = it.focus != null ? it.focus : null;
@@ -12335,6 +12465,22 @@ function studioPause(on) { STUDIO.paused = on == null ? !STUDIO.paused : !!on; s
 function studioStar(it) { if (!it) return; it.star = !it.star; farmReelSave(); if (STUDIO.onlyStar && !it.star) { studioList(); STUDIO.i = Math.min(STUDIO.i, Math.max(0, STUDIO.list.length - 1)); studioRender(); studioPlay(); } else studioRender(); }
 function studioOnlyStar() { const it = studioItem(); STUDIO.onlyStar = !STUDIO.onlyStar; studioList(); STUDIO.i = Math.max(0, STUDIO.list.indexOf(it)); studioRender(); studioPlay(); }
 $('stPause').onclick = e => { studioPause(); e.currentTarget.blur(); };
+// clear the lot: a second click to be sure (the starred ones can be kept)
+$('stClearUn').onclick = e => {
+  const b = e.currentTarget; b.blur(); const un = FARM.reel.filter(x => !x.star).length; if (!un || STUDIO.exporting || STUDIO.batch) return;
+  if (!STUDIO.clearUnArm) { STUDIO.clearUnArm = 1; b.classList.add('on'); b.textContent = `Delete ${un} unstarred? Click again`; clearTimeout(STUDIO.clearUnT); STUDIO.clearUnT = setTimeout(() => { STUDIO.clearUnArm = 0; b.classList.remove('on'); b.textContent = 'Clear unstarred'; }, 3500); return; }
+  clearTimeout(STUDIO.clearUnT); STUDIO.clearUnArm = 0; b.classList.remove('on'); b.textContent = 'Clear unstarred';
+  const cur = studioItem(); FARM.reel = FARM.reel.filter(x => x.star); farmReelSave(); farmBarSync(); studioList(); STUDIO.i = Math.max(0, STUDIO.list.indexOf(cur)); studioRender(); studioPlay();
+  notice(`Cleared ${un} unstarred clip${un === 1 ? '' : 's'}.`, false);
+};
+$('stClear').onclick = e => {
+  const b = e.currentTarget; b.blur(); if (!FARM.reel.length || STUDIO.exporting || STUDIO.batch) return;
+  const nS = FARM.reel.filter(x => x.star).length;
+  if (!STUDIO.clearArm) { STUDIO.clearArm = 1; b.classList.add('on'); b.textContent = `Delete all ${FARM.reel.length}? Click again`; clearTimeout(STUDIO.clearT); STUDIO.clearT = setTimeout(() => { STUDIO.clearArm = 0; b.classList.remove('on'); b.textContent = 'Clear all'; }, 3500); return; }
+  clearTimeout(STUDIO.clearT); STUDIO.clearArm = 0; b.classList.remove('on'); b.textContent = 'Clear all';
+  FARM.reel = []; farmReelSave(); farmBarSync(); STUDIO.onlyStar = false; studioList(); STUDIO.i = 0; studioRender(); studioPlay();
+  notice(`Cleared${nS ? ` (including ${nS} starred)` : ''}.`, false);
+};
 $('stOnlyStar').onclick = e => { studioOnlyStar(); e.currentTarget.blur(); };
 $('stExpStar').onclick = e => { studioExportStarred(); e.currentTarget.blur(); };
 // every starred clip exported in turn (each a file of its own, with its own start and end)
@@ -12357,13 +12503,12 @@ $('stSort').onchange = () => { const it = studioItem(); studioList(); STUDIO.i =
 $('stList').addEventListener('click', e => { const b = e.target.closest('[data-sti]'); if (!b) return; STUDIO.i = +b.dataset.sti; studioRender(); studioPlay(); b.blur(); });
 $('stEdit').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return; const it = studioItem(); if (!it) return;
-  if (b.dataset.stk) studioSet(b.dataset.stk, ['speed', 'trimA', 'trimB'].includes(b.dataset.stk) ? +b.dataset.stv : b.dataset.stv);
+  if (b.dataset.stk) studioSet(b.dataset.stk, ['speed', 'trimA', 'trimB', 'camSpeed', 'zoomMax'].includes(b.dataset.stk) ? +b.dataset.stv : b.dataset.stv);
   else if (b.dataset.stt) studioSet(b.dataset.stt, !STUDIO.cur[b.dataset.stt]);
   else if (b.id === 'stStar') studioStar(it);
   else if (b.id === 'stReplay') studioPlay();
   else if (b.id === 'stDel') { FARM.reel = FARM.reel.filter(x => x !== it); farmReelSave(); studioList(); STUDIO.i = Math.min(STUDIO.i, STUDIO.list.length - 1); studioRender(); studioPlay(); farmBarSync(); }
   else if (b.id === 'stExport') studioExport();
-  else if (b.id === 'stExportRt') studioExportRt();
   b.blur();
 });
 function studioKey(e) {
@@ -12390,18 +12535,23 @@ async function studioExport() {
   const cfgs = [{ codec: 'vp09.00.41.08', width: w, height: h, bitrate: Math.round(s0 / 1080 * 22e6), framerate: 60 }, { codec: 'vp8', width: w, height: h, bitrate: Math.round(s0 / 1080 * 22e6), framerate: 60 }];
   let cfg = null; for (const c of cfgs) { try { const r = await VideoEncoder.isConfigSupported(c); if (r.supported) { cfg = c; break; } } catch (e) {} }
   if (!cfg) { notice("This browser can't encode video frame by frame. Recording as it plays instead.", false); return studioExportRt(); }
+  // the soundtrack: every sound the replay makes is rendered offline at exactly its frame's moment, then encoded (Opus)
+  const SR = 48000; let acfg = null;
+  try { if (typeof AudioEncoder !== 'undefined' && typeof AudioData !== 'undefined') { const c = { codec: 'opus', sampleRate: SR, numberOfChannels: 1, bitrate: 128000 }; const r = await AudioEncoder.isConfigSupported(c); if (r.supported) acfg = c; } } catch (e) {}
   STUDIO.exporting = true; STUDIO.stop = false; $('stExp').hidden = false; $('stExpTxt').textContent = 'Getting ready…'; $('stExpBar').style.width = '0';
-  const keep = { w: cv.style.width, h: cv.style.height, muted, pos: cv.style.position };
-  const chunks = []; let err = null;
+  const keep = { w: cv.style.width, h: cv.style.height, muted, pos: cv.style.position, AC, RENDER, TOFF, mixOn: MIX_ON };
+  const chunks = []; let err = null, OAC = null, i = 0;
   const enc = new VideoEncoder({ output: (ch) => { const b = new Uint8Array(ch.byteLength); ch.copyTo(b); chunks.push({ t: ch.timestamp, key: ch.type === 'key', b }); }, error: e => { err = e; } });
   try {
     enc.configure(cfg);
-    // the canvas at the export size, drawn with nothing around the arena
-    muted = true; cv.style.width = w + 'px'; cv.style.height = h + 'px'; resize();
+    if (acfg) { if (!noiseBuf) initAudio(); try { OAC = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, SR * 130, SR); } catch (e) { OAC = null; } }
+    // the canvas at the export size, drawn with nothing around the arena; the sound into the offline context
+    cv.style.width = w + 'px'; cv.style.height = h + 'px'; resize();
+    if (OAC) { AC = OAC; RENDER = true; SND_EXPORT = true; muted = false; } else muted = true;
     studioPlay(); const R = RP.on; const total = R.segs.reduce((a, g) => a + g.t1 - g.t0, 0);
-    let i = 0, guard = 60 * 120;
+    const guard = 60 * 120;
     while (RP.on === R && i < guard && !STUDIO.stop && !err) {
-      const dt = 1 / 60;
+      const dt = 1 / 60; TOFF = i / 60;
       clock += dt; const tScale = R.started ? (R.rate || 1) * (R.mul || 1) : 1; gclock += dt * tScale; updateFx(dt * tScale);
       const rv = replayTick(dt); if (!rv) break;
       const live = view; view = rv; try { render(true); } finally { view = live; }
@@ -12409,16 +12559,32 @@ async function studioExport() {
       enc.encode(vf, { keyFrame: i % 120 === 0 }); vf.close(); i++;
       if (enc.encodeQueueSize > 6 || i % 10 === 0) { $('stExpTxt').textContent = `${STUDIO.batch ? `Clip ${STUDIO.batch.i} of ${STUDIO.batch.n} · ` : ''}Frame ${i} · ${(i / 60).toFixed(1)} s of video`; $('stExpBar').style.width = Math.min(100, (R.cur - R.segs[0].t0) / Math.max(0.1, total) * 100) + '%'; await new Promise(r => setTimeout(r, 0)); while (enc.encodeQueueSize > 6) await new Promise(r => setTimeout(r, 4)); }
     }
+    AC = keep.AC; RENDER = keep.RENDER; SND_EXPORT = false; TOFF = keep.TOFF; muted = keep.muted;
     await enc.flush(); enc.close();
     if (err) throw err;
     if (STUDIO.stop && i < 10) throw new Error('Stopped');
-    const blob = webmMux(chunks, cfg.codec.startsWith('vp09') ? 'V_VP9' : 'V_VP8', w, h, i / 60);
+    // the soundtrack, rendered and encoded
+    let audio = null;
+    if (OAC && i > 0) {
+      $('stExpTxt').textContent = 'Mixing the sound…';
+      try {
+        const buf = await OAC.startRendering(), d = buf.getChannelData(0), n = Math.min(d.length, Math.ceil(i / 60 * SR) + SR / 10);
+        const achunks = []; let desc = null, aerr = null;
+        const aenc = new AudioEncoder({ output: (ch, meta) => { const b = new Uint8Array(ch.byteLength); ch.copyTo(b); achunks.push({ t: ch.timestamp, b }); if (!desc && meta && meta.decoderConfig && meta.decoderConfig.description) desc = new Uint8Array(meta.decoderConfig.description.slice ? meta.decoderConfig.description.slice(0) : meta.decoderConfig.description); }, error: e => { aerr = e; } });
+        aenc.configure(acfg);
+        const F = 960; for (let o = 0; o < n; o += F) { const len = Math.min(F, n - o); const data = new Float32Array(F); data.set(d.subarray(o, o + len)); aenc.encode(new AudioData({ format: 'f32-planar', sampleRate: SR, numberOfFrames: F, numberOfChannels: 1, timestamp: Math.round(o * 1e6 / SR), data })); }
+        await aenc.flush(); aenc.close();
+        if (!aerr && achunks.length) audio = { chunks: achunks, desc, sr: SR, ch: 1 };
+      } catch (e) { audio = null; }
+    }
+    const blob = webmMux(chunks, cfg.codec.startsWith('vp09') ? 'V_VP9' : 'V_VP8', w, h, i / 60, audio);
     const name = `bowfall-${it.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${(it.who || '').toLowerCase().replace(/[^a-z0-9]+/g, '') || 'clip'}-${it.id.slice(-4)}.webm`;
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-    notice(`Saved ${name} (${(i / 60).toFixed(1)} s, ${w}×${h}, 60 fps)`, false);
+    notice(`Saved ${name} (${(i / 60).toFixed(1)} s, ${w}×${h}, 60 fps${audio ? ', with sound' : ', no sound'})`, false);
   } catch (e) { if (String(e && e.message) !== 'Stopped') notice('Export failed: ' + esc(e && e.message || String(e)), false); try { enc.close(); } catch (e2) {} }
   finally {
-    cv.style.width = keep.w; cv.style.height = keep.h; muted = keep.muted;
+    AC = keep.AC; RENDER = keep.RENDER; SND_EXPORT = false; TOFF = keep.TOFF; muted = keep.muted;
+    cv.style.width = keep.w; cv.style.height = keep.h;
     STUDIO.exporting = false; $('stExp').hidden = true; resize(); if (RP.on) { RP.on = null; RP.cam = null; } studioPlay();
   }
 }
@@ -12438,7 +12604,7 @@ function studioExportRt() {
   notice('Recording as it plays…', false);
 }
 // a minimal WebM (Matroska) writer for the encoded frames: EBML header, segment info, one video track, clusters of blocks
-function webmMux(chunks, codecId, w, h, durS) {
+function webmMux(chunks, codecId, w, h, durS, audio) {
   const enc = new TextEncoder();
   const vint = n => { for (let len = 1; len <= 8; len++) if (n < 2 ** (7 * len) - 1) { const b = new Uint8Array(len); let x = n; for (let i = len - 1; i >= 0; i--) { b[i] = x & 0xff; x = Math.floor(x / 256); } b[0] |= 1 << (8 - len); return b; } throw new Error('too big'); };
   const idb = id => { const b = []; let x = id; while (x > 0) { b.unshift(x & 0xff); x = Math.floor(x / 256); } return new Uint8Array(b); };
@@ -12449,12 +12615,21 @@ function webmMux(chunks, codecId, w, h, durS) {
   const flt = (id, v) => { const b = new Uint8Array(8); new DataView(b.buffer).setFloat64(0, v); return el(id, b); };
   const ebml = el(0x1A45DFA3, cat([uint(0x4286, 1), uint(0x42F7, 1), uint(0x42F2, 4), uint(0x42F3, 8), str(0x4282, 'webm'), uint(0x4287, 4), uint(0x4285, 2)]));
   const info = el(0x1549A966, cat([uint(0x2AD7B1, 1000000), str(0x4D80, 'Bowfall'), str(0x5741, 'Bowfall clip studio'), flt(0x4489, durS * 1000)]));
-  const tracks = el(0x1654AE6B, el(0xAE, cat([uint(0xD7, 1), uint(0x73C5, 1), uint(0x83, 1), str(0x86, codecId), uint(0x23E383, Math.round(1e9 / 60)), el(0xE0, cat([uint(0xB0, w), uint(0xBA, h)]))])));
+  const vtrack = el(0xAE, cat([uint(0xD7, 1), uint(0x73C5, 1), uint(0x83, 1), str(0x86, codecId), uint(0x23E383, Math.round(1e9 / 60)), el(0xE0, cat([uint(0xB0, w), uint(0xBA, h)]))]));
+  let atrack = null;
+  if (audio) {
+    // OpusHead, if the encoder didn't say: version 1, the channels, 312 samples of pre-skip, the input rate, no gain, no mapping
+    let desc = audio.desc; if (!desc || desc.length < 19) { desc = new Uint8Array(19); desc.set(enc.encode('OpusHead')); desc[8] = 1; desc[9] = audio.ch; desc[10] = 312 & 0xff; desc[11] = 312 >> 8; desc[12] = audio.sr & 0xff; desc[13] = (audio.sr >> 8) & 0xff; desc[14] = (audio.sr >> 16) & 0xff; desc[15] = (audio.sr >> 24) & 0xff; }
+    atrack = el(0xAE, cat([uint(0xD7, 2), uint(0x73C5, 2), uint(0x83, 2), str(0x86, 'A_OPUS'), uint(0x56BB, 80000000), el(0x63A2, desc), el(0xE1, cat([flt(0xB5, audio.sr), uint(0x9F, audio.ch)]))]));
+  }
+  const tracks = el(0x1654AE6B, cat(atrack ? [vtrack, atrack] : [vtrack]));
+  // the blocks of both tracks in time order; a new cluster at each video keyframe (or every 30 s)
+  const all = chunks.map(c => ({ ms: Math.round(c.t / 1000), tr: 1, key: c.key, b: c.b })).concat(audio ? audio.chunks.map(c => ({ ms: Math.round(c.t / 1000), tr: 2, key: true, b: c.b })) : []);
+  all.sort((a, b) => a.ms - b.ms || a.tr - b.tr);
   const clusters = []; let cur = null, base = 0;
-  for (const c of chunks) {
-    const ms = Math.round(c.t / 1000);
-    if (!cur || c.key || ms - base > 30000) { if (cur) clusters.push(el(0x1F43B675, cat(cur))); cur = [uint(0xE7, ms)]; base = ms; }
-    const hdr = new Uint8Array(4); hdr[0] = 0x81; new DataView(hdr.buffer).setInt16(1, ms - base); hdr[3] = c.key ? 0x80 : 0;
+  for (const c of all) {
+    if (!cur || (c.tr === 1 && c.key) || c.ms - base > 30000) { if (cur) clusters.push(el(0x1F43B675, cat(cur))); cur = [uint(0xE7, c.ms)]; base = c.ms; }
+    const hdr = new Uint8Array(4); hdr[0] = 0x80 | c.tr; new DataView(hdr.buffer).setInt16(1, c.ms - base); hdr[3] = c.key ? 0x80 : 0;
     cur.push(el(0xA3, cat([hdr, c.b])));
   }
   if (cur) clusters.push(el(0x1F43B675, cat(cur)));
@@ -12474,9 +12649,11 @@ function farmBarSync() {
   $('fbEmp').textContent = `Empower: ${{ on: 'on', hide: 'hidden', off: 'off' }[FARM.emp]}`;
   $('fbSpeed').querySelectorAll('[data-fsp]').forEach(b => b.classList.toggle('on', +b.dataset.fsp === FARM.speed));
   $('fbPause').textContent = FARM.held ? '▶ Carry on' : '❚❚ Pause'; $('fbPause').classList.toggle('on', !!FARM.held);
+  $('fbHunt').classList.toggle('on', !!FARM.hunt); $('fbHunt').textContent = FARM.hunt ? '⚡ Hunting (stop)' : '⚡ Hunt';
 
 }
-$('fbSpeed').addEventListener('click', e => { const b = e.target.closest('[data-fsp]'); if (!b) return; FARM.speed = +b.dataset.fsp; RP.enabled = FARM.kc && FARM.speed === 1; farmBarSync(); });
+$('fbSpeed').addEventListener('click', e => { const b = e.target.closest('[data-fsp]'); if (!b) return; FARM.speed = +b.dataset.fsp; RP.enabled = FARM.kc && FARM.speed === 1 && !FARM.hunt; farmBarSync(); });
+$('fbHunt').onclick = () => { FARM.hunt = !FARM.hunt; FARM.huntN = 400; RP.enabled = FARM.kc && FARM.speed === 1 && !FARM.hunt; if (FARM.hunt && RP.on && !STUDIO.on) { RP.on = null; RP.cam = null; } farmBarSync(); };
 $('fbTags').onclick = () => { FARM.tags = { all: 'bars', bars: 'none', none: 'all' }[FARM.tags]; farmBarSync(); };
 $('fbEmp').onclick = () => { FARM.emp = { on: 'hide', hide: 'off', off: 'on' }[FARM.emp]; if (world) world.cfg.noEmp = FARM.emp === 'off'; farmBarSync(); };
 farmReelLoad();
@@ -12488,14 +12665,45 @@ function farmStop() {
   document.body.classList.remove('farm', 'farmnohud', 'farmidle'); $('farmBar').hidden = true;
   toMenu(); resize();
 }
+// hunting: no picture of the game (all the time goes to playing it), just how it's going
+function huntDraw() {
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.fillStyle = '#0d150f'; ctx.fillRect(0, 0, W, H);
+  ctx.textAlign = 'center'; ctx.fillStyle = '#ffcf5a'; ctx.font = "700 34px 'Rajdhani', sans-serif"; ctx.fillText('Hunting for the best clips', W / 2, H / 2 - 30);
+  ctx.fillStyle = '#c9d1c9'; ctx.font = "600 17px 'Titillium Web', sans-serif";
+  const sp = FARM.huntSp ? `about ${Math.round(FARM.huntSp)}× real time · ` : '';
+  ctx.fillText(`${sp}${FARM.battles || 0} battle${FARM.battles === 1 ? '' : 's'} · ${FARM.found || 0} great clip${FARM.found === 1 ? '' : 's'} kept (score 6 or more)`, W / 2, H / 2 + 8);
+  ctx.fillStyle = '#7f8d80'; ctx.font = "15px 'Titillium Web', sans-serif"; ctx.fillText('Open the clip studio from the bar to watch them; ⚡ on the bar stops hunting.', W / 2, H / 2 + 36);
+}
 function farmBarShow(on) { FARM.idleT = 0; document.body.classList.toggle('farmidle', !on); $('farmBar').hidden = !FARM.on; }
 addEventListener('pointermove', () => { if (FARM.on) farmBarShow(true); }, { passive: true });
+// the farm's smooth camera: whoever's fighting (and anyone close to them), where they are and where they're heading,
+// with the arrows round them; in game time, so it keeps up at any speed
+function farmCamSmooth(dtw) {
+  const dt = Math.min(0.25, dtw * (FARM.speed || 1)), alive = view.p.filter(p => !p.d && !p.f);
+  const busy = new Set(alive.filter(p => clock - (FARM.act[p.id] || -9) < 3).map(p => p.id));
+  for (const p of alive) if (!busy.has(p.id) && alive.some(q => busy.has(q.id) && Math.hypot(p.x - q.x, p.y - q.y) < 330)) busy.add(p.id);
+  const ps = busy.size ? alive.filter(p => busy.has(p.id)) : alive, pts = [];
+  for (const p of ps) { pts.push([p.x, p.y]); pts.push([clamp(p.x + (p.vx || 0) * 0.5, 0, AW), clamp(p.y + (p.vy || 0) * 0.5, 0, AH)]); } // (and where they'll be in half a second)
+  for (const a of view.a) if (!a.s && ps.some(p => Math.hypot(p.x - a.x, p.y - a.y) < 340)) pts.push([a.x, a.y], [a.x + Math.cos(a.g || 0) * 100, a.y + Math.sin(a.g || 0) * 100]);
+  if (!pts.length) pts.push([AW / 2, AH / 2]);
+  let T;
+  if (view.m.ph !== 'play') { FARM.sb = null; T = { x: AW / 2, y: AH / 2, z: 1 }; } // (between fights: the whole arena)
+  else T = camBox(FARM, pts, dt, { vw: AW, px: 430, py: 330, z0: 1, z1: 1.6 });
+  if (!FARM.cam) FARM.cam = { x: T.x, y: T.y, z: T.z };
+  const k = 1 - Math.exp(-dt * 2.2);
+  FARM.cam.x += (T.x - FARM.cam.x) * k; FARM.cam.y += (T.y - FARM.cam.y) * k; FARM.cam.z += (T.z - FARM.cam.z) * (1 - Math.exp(-dt * (T.z < FARM.cam.z ? 3 : 0.9)));
+  if (FARM.sb) camKeep(FARM.cam, FARM.sb, AW, 1);
+  const hw = AW / (2 * FARM.cam.z), hh = AH / (2 * FARM.cam.z);
+  FARM.cam.x = clamp(FARM.cam.x, hw, AW - hw); FARM.cam.y = clamp(FARM.cam.y, hh, AH - hh);
+}
 function farmTick(dt) {
+  if (FARM.hunt) { const g = FARM.gt, n = performance.now(); if (FARM.hS) { const k = (g - FARM.hS.g) / Math.max(0.001, (n - FARM.hS.t) / 1000); FARM.huntSp = FARM.huntSp ? FARM.huntSp * 0.9 + k * 0.1 : k; } FARM.hS = { g, t: n }; } else FARM.hS = null;
   // the bar hides itself after 3 seconds without the mouse moving (so a screen recording doesn't show it)
   FARM.idleT += dt; if (FARM.idleT > 3 && !document.body.classList.contains('farmidle')) document.body.classList.add('farmidle');
   if (FARM.rec) $('fbInfo').textContent = `● ${Math.floor((performance.now() - FARM.recAt) / 1000)} s`;
   // the camera: on the fighting (everyone still standing, and the arrows in flight near them), zoomed to fit with room to spare
-  if (FARM.follow && view) {
+  if (FARM.follow && view && FARM.camMode !== 'tight' && !FARM.hunt) farmCamSmooth(dt);
+  else if (FARM.follow && view) {
     const alive = view.p.filter(p => !p.d && !p.f), busy = alive.filter(p => clock - (FARM.act[p.id] || -9) < 2.5), ps = busy.length ? busy : alive; // whoever's been fighting in the last moments, else everyone
     let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
     const add = (x, y) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); };
@@ -12511,7 +12719,7 @@ function farmTick(dt) {
   }
   // when a match ends: the next one after a few seconds (or the bar's New match)
   if (FARM.rev || FARM.held) FARM.overAt = FARM.overAt && performance.now(); // (not while reviewing or paused)
-  if (world && world.match.ph === 'over' && !FARM.viewing && !FARM.rev && !FARM.held) { if (!FARM.overAt) FARM.overAt = performance.now(); else if (FARM.loop && performance.now() - FARM.overAt > 6000 / Math.min(4, FARM.speed) && !RP.on) { $('resultsScreen').hidden = true; farmStart(); } }
+  if (world && world.match.ph === 'over' && !FARM.viewing && !FARM.rev && !FARM.held) { if (!FARM.overAt) FARM.overAt = performance.now(); else if (FARM.loop && performance.now() - FARM.overAt > (FARM.hunt ? 0 : (FARM.cfg && FARM.cfg.every ? 2500 : 6000) / Math.min(4, FARM.speed)) && !RP.on) { $('resultsScreen').hidden = true; farmStart(); } }
 }
 // the built-in recorder: the whole canvas, 60 frames a second at a high bit rate, with the game's sound, until stopped
 // (written straight to a file as it goes where the browser allows it, so a long recording never fills the memory;
@@ -12538,7 +12746,7 @@ async function farmRecStart() {
 }
 function farmRecStop() { try { if (FARM.rec && FARM.rec.state !== 'inactive') FARM.rec.stop(); } catch (e) {} FARM.rec = null; $('farmBar').classList.remove('rec'); $('fbRec').textContent = '● Record'; $('fbInfo').textContent = ''; }
 $('fbRec').onclick = () => (FARM.rec ? farmRecStop() : farmRecStart());
-$('fbCam').onclick = () => { FARM.follow = !FARM.follow; FARM.cam = null; $('fbCam').textContent = `Camera: ${FARM.follow ? 'follow' : 'arena'}`; };
+$('fbCam').onclick = () => { const order = ['follow', 'tight', 'arena'], cur = FARM.follow ? FARM.camMode || 'follow' : 'arena', nx = order[(order.indexOf(cur) + 1) % 3]; FARM.follow = nx !== 'arena'; FARM.camMode = nx; FARM.cam = null; FARM.sb = null; $('fbCam').textContent = `Camera: ${FARM.follow ? (nx === 'tight' ? 'tight' : 'smooth') : 'arena'}`; };
 $('fbHud').onclick = () => { FARM.hud = !FARM.hud; document.body.classList.toggle('farmnohud', !FARM.hud); $('fbHud').textContent = `HUD: ${FARM.hud ? 'on' : 'off'}`; resize(); };
 $('fbNew').onclick = () => { if (RP.on) endReplay(); $('resultsScreen').hidden = true; farmStart(); };
 $('fbExit').onclick = () => { farmStop(); openFarm(); }; // (back to the setup, to change the teams or start again)
