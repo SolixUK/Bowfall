@@ -2,6 +2,30 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.70.1
+
+- **Save video** on every kill cam and best play on the results screen: the clip studio's exporter, run on that one clip as it was shown (1080p landscape, 60 fps, drawn frame by frame and encoded, with the sound rendered to match). It only runs when asked, behind a progress box with a Stop button; nothing is filmed live, and the results come back as they were.
+- **No replay files.** 0.70.0's Download replay, Import replays and dropping `.bowfall` files on the page are gone: nothing from outside is ever loaded into the game.
+- **Best play of the week on the main menu:** the card now sits under the Discord button, wider, and always shows (an invitation when there's no play yet, or when the server doesn't answer; that's noted for the owner at `/api/perf` as `mem:weekplays` and tried again in a minute). It shows the week's highest-scoring play, replaced whenever a higher one comes in (the best ever when the week has none). Plays only reach it from 0.69.1 on: before that, no play was caught in online matches at all.
+
+## 0.70.0
+
+**Kill cams as replays, not videos.**
+
+- **Your kill cams on the results screen are freeze frames drawn from the replay**, exactly like the best plays: hover and it grows and plays (as a kill cam), click to watch full size. Nothing is filmed or encoded during the game any more; the live recorder that froze some computers is gone from matches altogether (along with its Options switch). The newest four of a match's kill cams are shown.
+- **Download replay** on every kill cam and best play: the game's own recording of the moment, saved as a small `.bowfall` file (tens of KB). Keep them in your own time, as many as you like.
+- **Import replays** in the clip studio (or drop `.bowfall` files on its window, or on the main menu as the owner): they join the studio's list to watch, trim, restyle and export as video whenever you like, frame by frame, with sound. So plays from real ranked matches can now become videos for the socials. **Download replay** in the studio saves any clip the same way. A `.bowfall` file dropped on the main menu by anyone else simply plays.
+- Keep on my account and Show on my profile work as before.
+
+## 0.69.4
+
+- **Best plays: the camera rides the final arrow again.** A play's calm camera (half speed) fell behind a fast final shot; it runs at full speed while that arrow is in the air, then settles.
+
+## 0.69.3
+
+- **Found it: recording kill cams as video.** With Options → Record your kill cams as video switched off, a match that had crashed on every version back to 0.61 ended without a hitch. Capturing the canvas live (`captureStream` into a `MediaRecorder`, since 0.55) can freeze the whole computer on some machines, so recording is now **off by default** and only on for those who switch it on, with 0.69.1's 1080p cap and watchdog behind it. Keeping a kill cam on your account (the replay itself) is unaffected. The results list says why there's no video ("Video recording is off (Options → Graphics)", or "Recording stopped: your computer couldn't keep up") rather than "No video in this browser".
+- Still to do, as its own change: **Save video** rendered from the kept replay with the clip studio's frame-by-frame exporter (no live capture at all), so videos come back without the risk.
+
 ## 0.69.2
 
 - **The results screen no longer opens a video player per kill cam.** It used to put a `<video>` for every one of your kill cams on the page at once, each with its own decoder (and with hardware decoding, each on the graphics driver), which a driver can take badly. Each kill cam now shows a still (grabbed as the recording starts) with a play button; a click opens one player, and any other in the list is taken down first. The big hover preview works the same way and releases its decoder when it hides. This has been so since 0.55, so it's in every version that crashed.

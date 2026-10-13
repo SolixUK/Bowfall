@@ -359,7 +359,7 @@
   .stedit .seg { display: flex; flex-wrap: wrap; gap: 3px; } .stedit .seg button { padding: 3px 8px; font: 600 12px 'Titillium Web', sans-serif; border: 1px solid var(--line); background: none; color: var(--muted); cursor: pointer; } .stedit .seg button.on { background: var(--gold); color: #111; border-color: var(--gold); }
   .stedit .btnrow { gap: 5px; flex-wrap: wrap; margin-top: 4px; }
   .sthelp { padding: 6px 12px; border-top: 1px solid var(--line); font-size: 11px; }
-  .stexp { position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%); z-index: 60; display: flex; flex-direction: column; gap: 8px; padding: 18px 22px; background: rgba(9,18,11,.97); border: 1px solid var(--gold); min-width: 320px; }
+  .stexp { position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%); z-index: 400; display: flex; flex-direction: column; gap: 8px; padding: 18px 22px; background: rgba(9,18,11,.97); border: 1px solid var(--gold); min-width: 320px; }
   .stexp b { font: 700 20px 'Rajdhani', sans-serif; color: var(--gold); } .stexp .bar { height: 6px; background: rgba(255,255,255,.1); } .stexp .bar i { display: block; height: 100%; width: 0; background: var(--gold); }
   body.studiomode #hud, body.studiomode #feed, body.studiomode #callout { display: none !important; } /* (the clip on its own, as it'll be exported) */
   .stedit > * { flex-shrink: 0; }
@@ -634,11 +634,11 @@
   .pcclipw { position: relative; display: flex; gap: 10px; align-items: stretch; }
   .pcclipw .pcclip { flex: 1; min-width: 0; }
   /* the featured kill cam playing, small beside its button; hovering it (or the button) plays it big */
-  .weekplays { width: 250px; padding: 8px; background: rgba(9,18,11,.82); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+  .weekplays { width: 330px; padding: 8px; background: rgba(9,18,11,.82); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
   .weekplays .wph { display: flex; align-items: baseline; justify-content: space-between; } .weekplays .wph b { font: 700 15px 'Rajdhani', sans-serif; color: var(--gold); letter-spacing: .04em; text-transform: uppercase; } .weekplays .wph small { color: var(--muted); font-size: 11px; }
   .wpprev { position: relative; width: 234px; aspect-ratio: 16 / 9; background: #000; overflow: hidden; cursor: pointer; border: 1px solid var(--line); transition: transform .2s ease-out, box-shadow .2s; transform-origin: right top; z-index: 8; }
   .wpprev iframe { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; border: 0; transform: scale(calc(234 / 1280)); transform-origin: 0 0; pointer-events: none; }
-  .wpcard { width: 234px; } .wpcard[hidden] { display: none; } .ccard { transform-origin: right top; }
+  .wpcard { width: 314px; } .wpcard[hidden] { display: none; } .ccard { transform-origin: right top; }
   .wpcap { font-size: 12px; color: var(--text); line-height: 1.3; } .wpcap b { color: var(--gold); font: 700 15px 'Rajdhani', sans-serif; margin-right: 4px; } .wpcap small { display: block; color: var(--muted); font-size: 11px; }
   .wpprev.big { transform: scale(var(--pk, 3)); box-shadow: 0 8px 26px rgba(0,0,0,.75); border-color: var(--gold); }
   .wptabs[hidden], .wpprev[hidden], .wpnote[hidden] { display: none !important; }
@@ -997,6 +997,7 @@
   .rcbig[hidden] { display: none; }
   .rcbig video { width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #000; display: block; }
   .rcbig b { font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; text-align: center; color: var(--gold); }
+  .rplay2 .kcl { font: 700 15px 'Rajdhani', sans-serif; } .rplay2 .rcb { margin-top: 2px; }
   .rclips { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
   .rclip { display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 1px solid var(--line); background: rgba(255,255,255,.03); }
   .rclip b { font-size: 14px; } .rcb { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -1579,9 +1580,9 @@
         </div>
         <div class="lpbox"><div class="lplist" id="lpList"></div><button type="button" class="ghost sm" id="lpAdd" title="Another player with their own controller, on this screen">+ Add player on controller</button></div>
         <div class="frpanel" id="homeFriends" hidden></div>
-        <div class="weekplays" id="weekPlays" hidden><div class="wph"><b id="wpHead">Best play of the week</b></div><div class="wpcard" id="wpCard"></div><div class="wpcap" id="wpCap"></div><span class="wpnote" id="wpNote" hidden></span></div>
         <button type="button" class="homelive" id="homeLive" hidden></button>
         <a class="dclink" id="homeDiscord" href="#" target="_blank" rel="noopener" title="Join the Bowfall Discord" aria-label="Join the Bowfall Discord" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.3 4.4A19.6 19.6 0 0 0 15.5 3l-.6 1.2a18 18 0 0 0-5.8 0L8.5 3a19.6 19.6 0 0 0-4.8 1.4C.6 9 .0 13.5.3 18a19.8 19.8 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4c-.6.4-1.3.7-2 1L17.7 21a19.7 19.7 0 0 0 6-3c.4-5.2-.7-9.7-3.4-13.6zM8.5 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4zm7 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4z"/></svg></a>
+        <div class="weekplays" id="weekPlays" hidden><div class="wph"><b id="wpHead">Best play of the week</b></div><div class="wpcard" id="wpCard"></div><div class="wpcap" id="wpCap"></div><span class="wpnote" id="wpNote" hidden></span></div>
       </div>
       <div class="hometitle"><span class="eyebrow">Knockback archery · Team rounds</span><h1>Bow<span>fall</span></h1><div class="homelinks"><div class="online" id="homeOnline" hidden><i></i><b id="homeOnlineN">0</b> online</div></div></div>
       <nav class="mainmenu" aria-label="Main menu">
@@ -1805,7 +1806,6 @@
           <div class="field"><label for="oShadow">Shots' shadows</label><select id="oShadow"><option value="soft">Soft</option><option value="simple">Simple (a dot)</option><option value="off">Off</option></select></div>
           <div class="field"><label for="oPart">Particles</label><select id="oPart"><option value="1">Full</option><option value="0.5">Reduced</option><option value="0.2">Minimal</option></select></div>
           <div class="field"><label for="oShake">Screen shake</label><select id="oShake"><option value="1">On</option><option value="0">Off</option></select></div>
-          <div class="field"><label for="oReckc">Record your kill cams as video</label><select id="oReckc"><option value="1">On (Save video on the results screen; 1080p at most)</option><option value="0">Off (lighter on the computer)</option></select></div>
           <div class="field"><label>Performance recording (F9)</label><button type="button" class="ghost" id="oRec">Start recording</button><small class="status">Records how long each part of the game takes while you play, then saves a file you can send in to find what's slowing it down.</small></div>
           <div class="field"><label for="oNet">Performance stats (F3)</label><select id="oNet"><option value="0">Hidden</option><option value="1">Shown in online games</option></select></div>
         </section>
@@ -2174,7 +2174,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.69.2"></script>
+<script src="sim.js?v=0.70.1"></script>
 <script>
 (() => {
 'use strict';
@@ -2182,7 +2182,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.69.2';
+const PAGE_VERSION = '0.70.1';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -2540,7 +2540,7 @@ const syncMute = () => { $('muteBtn').textContent = muted ? 'Sound off' : 'Sound
 let emoteLatch = null;
 // the clip farm's state (the owner's tool, further down); here because the renderer and sizing check it
 const FARM = { act: {}, gt: 0, speed: 1, tags: 'all', emp: 'on', reel: [], pending: [], viewing: null, step: 0, on: false, follow: true, hud: true, maxq: true, loop: true, cam: null, rec: null, chunks: null, idleT: 0, cfg: null, names: null, overAt: 0 };
-const OPTS = { emo: store.get('bowfall-emo', '0') === '1', vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') !== '0', guideBold: store.get('bowfall-guide', '1') === '2', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), me: store.get('bowfall-me', 'strong'), detail: store.get('bowfall-detail', 'full'), pz: +store.get('bowfall-pz', '1.15') || 1, taim: store.get('bowfall-taim2', 'point'), cb: store.get('bowfall-cb', '') === '1', reckc: store.get('bowfall-reckc', '1') === '1' };
+const OPTS = { emo: store.get('bowfall-emo', '0') === '1', vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') !== '0', guideBold: store.get('bowfall-guide', '1') === '2', net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), me: store.get('bowfall-me', 'strong'), detail: store.get('bowfall-detail', 'full'), pz: +store.get('bowfall-pz', '1.15') || 1, taim: store.get('bowfall-taim2', 'point'), cb: store.get('bowfall-cb', '') === '1' };
 cbApply();
 // ================= the mixer =================
 // Every named sound plays through its own channel strip: input -> low shelf -> mid peak -> high shelf -> fader -> its
@@ -6760,7 +6760,7 @@ $('scTabs').addEventListener('click', e => { const b = e.target.closest('[data-s
 $('scBody').addEventListener('click', e => { const b = e.target.closest('[data-scr]'); if (b) { SC.role = b.dataset.scr; renderScores(); } });
 function syncOptions() {
   $('oVol').value = OPTS.vol; $('oVolN').textContent = OPTS.vol + '%'; $('oMute').value = muted ? '1' : '0';
-  $('oRes').value = OPTS.res; $('oFx').value = OPTS.fx; $('oShadow').value = OPTS.shadow; $('oGlow').value = OPTS.glow; $('oMe').value = OPTS.me; $('oCb').value = OPTS.cb ? '1' : ''; $('oDetail').value = OPTS.detail; $('oPz').value = String(OPTS.pz); $('oTaim').value = OPTS.taim; $('oEmo').value = OPTS.emo ? '1' : '0'; $('oPart').value = String(OPTS.part); $('oShake').value = OPTS.shake ? '1' : '0'; $('oReckc').value = OPTS.reckc ? '1' : '0';
+  $('oRes').value = OPTS.res; $('oFx').value = OPTS.fx; $('oShadow').value = OPTS.shadow; $('oGlow').value = OPTS.glow; $('oMe').value = OPTS.me; $('oCb').value = OPTS.cb ? '1' : ''; $('oDetail').value = OPTS.detail; $('oPz').value = String(OPTS.pz); $('oTaim').value = OPTS.taim; $('oEmo').value = OPTS.emo ? '1' : '0'; $('oPart').value = String(OPTS.part); $('oShake').value = OPTS.shake ? '1' : '0';
   $('oDmg').value = OPTS.dmg; $('oGuide').value = !OPTS.guide ? '0' : OPTS.guideBold ? '2' : '1'; $('oNet').value = OPTS.net ? '1' : '0';
 }
 $('oRec').onclick = () => { PR.toggle(); $('oRec').textContent = PR.on ? 'Stop and save' : 'Start recording'; };
@@ -6780,7 +6780,6 @@ $('oTaim').onchange = () => { OPTS.taim = $('oTaim').value; store.set('bowfall-t
 $('oDetail').onchange = () => { OPTS.detail = $('oDetail').value; store.set('bowfall-detail', OPTS.detail); floorCv = null; };
 $('oPart').onchange = () => { OPTS.part = +$('oPart').value; store.set('bowfall-part', OPTS.part); };
 $('oShake').onchange = () => { OPTS.shake = $('oShake').value === '1'; store.set('bowfall-shake', OPTS.shake ? '1' : '0'); };
-$('oReckc').onchange = () => { OPTS.reckc = $('oReckc').value === '1'; store.set('bowfall-reckc', OPTS.reckc ? '1' : '0'); if (OPTS.reckc) CLIP.recOff = false; };
 $('oDmg').onchange = () => { OPTS.dmg = $('oDmg').value; store.set('bowfall-dmgnum', OPTS.dmg); };
 $('oGuide').onchange = () => { const v = $('oGuide').value; OPTS.guide = v !== '0'; OPTS.guideBold = v === '2'; store.set('bowfall-guide', v); };
 $('rmName').value = store.get('bowfall-room-name', '');
@@ -11673,7 +11672,9 @@ function replayTick(dt) {
   }
   if (!RP.cam || RP.cut) { RP.cam = { x: fx0, y: fy0, z: RP.cam && camK !== -1 ? RP.cam.z : zoom }; RP.cut = 0; }
   // the camera follows smoothly; it chases a fast arrow harder so the arrow never runs off the edge of the view
-  const spd = STUDIO.on ? (+STUDIO.cur.camSpeed || 1) : (R.camSpd || 1), C = RP.cam;
+  // (a best play's calm camera speeds up again while the final arrow is in the air: at half speed it fell behind a fast shot)
+  const riding = isFinal && arrow && !arrow.s && (now.hitT == null || R.cur < now.hitT);
+  const spd = STUDIO.on ? (+STUDIO.cur.camSpeed || 1) : (R.camSpd && !riding ? R.camSpd : 1), C = RP.cam;
   if (camK === -1) {
     // the action camera has weight: it accelerates toward where it should be and settles without overshooting
     // (a critically damped spring), so there are no jumps at all; the zoom tightens slowly and widens quicker
@@ -11746,7 +11747,7 @@ const REC_MAX = 1920 * 1080;
 function clipRecStart() {
   CLIP.video = null;
   if ((FARM.on && !(FARM.viewing && FARM.viewing.save)) || typeof MediaRecorder === 'undefined' || !cv.captureStream) return;
-  if (!OPTS.reckc || CLIP.recOff || perf.low) return;
+  if (!(FARM.on && FARM.viewing && FARM.viewing.save) || CLIP.recOff) return; // (kill cams are never filmed live: they're kept as replays, and a video is made from one on request)
   try {
     let src = cv;
     if (cv.width * cv.height > REC_MAX * 1.15) {
@@ -11860,47 +11861,48 @@ $('clipSave').onclick = () => clipSaveVideo(); $('cvSave').onclick = () => clipS
 // the results screen: this match's kill cams, to watch again, save as a video or put on your profile
 function renderResClips() {
   const box = $('resClips'); if (!box) return;
+  if (INFRAME) { box.hidden = true; return; }
   if (account && !OFFLINE && !CLIP.mine && !CLIP.loading) { CLIP.loading = true; clipLoadMine().then(() => { CLIP.loading = false; if (!$('resultsScreen').hidden) renderResClips(); }); }
-  const L = CLIP.list; box.hidden = !L.length; if (!L.length) { box.innerHTML = ''; return; }
+  // this match's kill cams, newest first: each a freeze frame drawn from the replay itself (no video), like the best plays
+  const L = CLIP.list.slice(-KC_CARDS).reverse(); box.hidden = !L.length; if (!L.length) { box.innerHTML = ''; CLIP.shown = ''; return; }
   const feat = account && !OFFLINE, M = CLIP.mine;
-  box.innerHTML = `<div class="shopbar"><h3>Your kill cams</h3><span class="status">Save the video, or keep the replay on your account${M ? ` (${M.clips.length} of ${M.max} kept${M.max < M.sup ? `; supporters keep ${M.sup}` : ''})` : ''}. ${feat ? 'One goes on your profile.' : ''}</span></div><div class="rclips">` + L.map((c, i) => {
+  const key = L.map(c => (c.at || 0) + ':' + (c.kept || '') + (c.feat || '')).join(',') + (M ? M.clips.length : '');
+  if (CLIP.shown === key && box.innerHTML) return; CLIP.shown = key; // (the cards hold their frames: only redrawn when something changes)
+  box.innerHTML = `<div class="shopbar"><h3>Your kill cams</h3><span class="status">Hover to play · click to watch full size · save it as a video${feat ? `, or keep it on your account${M ? ` (${M.clips.length} of ${M.max} kept${M.max < M.sup ? `; supporters keep ${M.sup}` : ''})` : ''}` : ''}.</span></div><div class="rplays2">` + L.map((c, i) => {
     const okMap = MAPS[c.map] && !/^a\d/.test(c.map) && c.map !== 'edit' && c.map !== 'pv';
-    return `<div class="rclip"><div class="rcv" data-i="${i}">${c.video ? `${c.poster ? `<img src="${c.poster}" alt="">` : ''}<i>▶</i>` : '<span class="status">No video in this browser</span>'}</div>
-      <b>${esc(clipLabel(c))}</b><div class="rcb">${c.video ? `<button type="button" class="ghost sm" data-csave="${i}">Save video</button>` : ''}${feat && okMap ? `<button type="button" class="ghost sm" data-ckeep="${i}"${c.kept ? ' disabled' : ''}>${c.kept === 'saving' ? 'Saving…' : c.kept ? 'Kept ✓' : 'Keep on my account'}</button>${c.kept && c.kept !== 'saving' ? `<button type="button" class="ghost sm" data-cfeat="${i}"${c.feat ? ' disabled' : ''}>${c.feat === 'saving' ? 'Saving…' : c.feat ? 'On your profile ✓' : 'Show on my profile'}</button>` : ''}` : ''}</div></div>`;
+    return `<div class="rplay2"><div class="rpc" data-kcc="${i}"></div><b class="kcl">${esc(clipLabel(c))}</b>
+      <div class="rcb"><button type="button" class="ghost sm" data-cdl="${i}">Save video</button>${feat && okMap ? `<button type="button" class="ghost sm" data-ckeep="${i}"${c.kept ? ' disabled' : ''}>${c.kept === 'saving' ? 'Saving…' : c.kept ? 'Kept ✓' : 'Keep on my account'}</button>${c.kept && c.kept !== 'saving' ? `<button type="button" class="ghost sm" data-cfeat="${i}"${c.feat ? ' disabled' : ''}>${c.feat === 'saving' ? 'Saving…' : c.feat ? 'On your profile ✓' : 'Show on my profile'}</button>` : ''}` : ''}</div></div>`;
   }).join('') + '</div>';
+  L.forEach((c, i) => clipCard(box.querySelector(`[data-kcc="${i}"]`), '/play?cframe=1&preview=1', clipPack(c), clipLabel(c), () => playWatch({ c, title: clipLabel(c), line: '', kc: true }), true));
+  CLIP.cards = L;
 }
+const KC_CARDS = 4; // (each card is a little copy of the game: the newest four of a match's kill cams)
 $('resClips').onclick = ev => {
-  const t = ev.target.closest('[data-csave],[data-ckeep],[data-cfeat],.rcv'); if (!t) return;
-  if (t.dataset.csave != null) clipSaveVideo(CLIP.list[+t.dataset.csave].video);
-  else if (t.dataset.ckeep != null) clipKeep(CLIP.list[+t.dataset.ckeep], false);
-  else if (t.dataset.cfeat != null) clipKeep(CLIP.list[+t.dataset.cfeat], true);
-  else { const v = t.querySelector('video') || rcOpen(t); if (v) { if (v.paused) { v.currentTime = 0; v.play().catch(() => {}); t.classList.add('on'); v.onended = () => t.classList.remove('on'); } else { v.pause(); t.classList.remove('on'); } } }
+  const t = ev.target.closest('[data-cdl],[data-ckeep],[data-cfeat]'); if (!t) return;
+  const L = CLIP.cards || [];
+  if (t.dataset.cdl != null) { const c = L[+t.dataset.cdl]; if (c) saveVideo(kcItem(c), true); }
+  else if (t.dataset.ckeep != null) clipKeep(L[+t.dataset.ckeep], false);
+  else if (t.dataset.cfeat != null) clipKeep(L[+t.dataset.cfeat], true);
 };
-// the one video player in the list: made when a kill cam is clicked, and any other one in the list is taken down first
-function rcOpen(t) {
-  const c = CLIP.list[+t.dataset.i]; if (!c || !c.video) return null;
-  for (const o of $('resClips').querySelectorAll('.rcv video')) { try { o.pause(); o.removeAttribute('src'); o.load(); } catch (e) {} o.parentNode.classList.remove('on'); o.remove(); }
-  const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = c.url || (c.url = URL.createObjectURL(c.video));
-  t.insertBefore(v, t.firstChild); return v;
+function kcItem(c) { // a kill cam as a clip-studio item
+  const segs = c.segs || [], a = segs.length ? segs[0].t0 : 0, b = segs.length ? segs[segs.length - 1].t1 : 0;
+  return { id: 'k' + (c.at || Date.now()).toString(36) + Math.random().toString(36).slice(2, 5), title: c.n > 1 ? (MULTI_NAME[Math.min(5, c.n)] || c.n + ' kills') : 'Kill cam', line: clipLabel(c), who: (account && account.name) || '', score: 0, map: c.map, at: c.at || Date.now(), k: c.k, kt: (c.evs || []).filter(x => x.e.e === 'kill' && x.e.k === c.k).map(x => +x.t.toFixed(2)), win: [+a.toFixed(2), +b.toFixed(2)], data: clipPack(c), kc: 1 };
 }
-// hovering a kill cam plays it big, next to the list (a mouse only: on touch screens a tap plays it in place)
-const RCBIG = { el: null, t: 0, cur: null };
-function rcBigShow(t) {
-  const c = CLIP.list[+t.dataset.i]; if (!c || !c.video) return;
-  if (!RCBIG.el) { RCBIG.el = document.createElement('div'); RCBIG.el.className = 'rcbig'; RCBIG.el.innerHTML = '<video muted playsinline loop></video><b></b>'; document.body.appendChild(RCBIG.el); }
-  const box = RCBIG.el, v = box.querySelector('video');
-  if (RCBIG.cur !== t) { RCBIG.cur = t; v.src = c.url || (c.url = URL.createObjectURL(c.video)); v.currentTime = 0; }
-  box.querySelector('b').textContent = (t.parentNode.querySelector('b') || {}).textContent || '';
-  box.hidden = false; v.play().catch(() => {});
-  const r = t.getBoundingClientRect(), w = Math.min(640, innerWidth * 0.55), h = w * 9 / 16 + 30;
-  box.style.width = w + 'px';
-  let x = r.left - w - 14; if (x < 8) x = Math.min(innerWidth - w - 8, r.right + 14);
-  box.style.left = Math.max(8, x) + 'px'; box.style.top = Math.max(8, Math.min(innerHeight - h - 8, r.top + r.height / 2 - h / 2)) + 'px';
+function playItem(x) { return { id: x.id || 'p' + Date.now().toString(36), title: x.title, line: x.line, who: x.who || '', score: x.score || 0, map: x.map || (x.c && x.c.map), at: x.at || Date.now(), k: x.k, kt: x.kt || [], focus: x.focus, win: x.win, data: x.data || clipPack(x.c) }; }
+// Save video: the clip studio's exporter (drawn frame by frame at 60 fps and encoded, with the sound rendered to match),
+// run on this one kill cam or play, at 1080p landscape. Nothing is filmed live; it happens only when asked, behind a
+// progress box with a Stop button, and the results come back as they were.
+async function saveVideo(item, kc) {
+  if (STUDIO.exporting || STUDIO.on) return;
+  if (typeof VideoEncoder === 'undefined' || typeof VideoFrame === 'undefined') { notice('Saving a video needs Chrome or Edge.', false); return; }
+  const keep = { cur: STUDIO.cur, map: MAPKEY, me: myId, playing: CLIP.playing, vert: document.body.classList.contains('stvert') };
+  STUDIO.solo = { item, kc }; STUDIO.cur = Object.assign({}, STUDIO_DEF, { frame: 'h', res: '1080', both: '' }); document.body.classList.remove('stvert');
+  try { await studioExport1('h'); }
+  finally {
+    STUDIO.solo = null; STUDIO.cur = keep.cur; if (RP.on) { RP.on = null; RP.cam = null; } $('replayBadge').hidden = true; document.body.classList.remove('replaying');
+    CLIP.playing = keep.playing; myId = keep.me; setArena(keep.map); floorKey = null; document.body.classList.toggle('stvert', keep.vert); resize();
+  }
 }
-function rcBigHide() { clearTimeout(RCBIG.t); RCBIG.cur = null; if (RCBIG.el) { RCBIG.el.hidden = true; const v = RCBIG.el.querySelector('video'); try { v.pause(); v.removeAttribute('src'); v.load(); } catch (e) {} } } // (and let its decoder go)
-$('resClips').addEventListener('pointerover', e => { if (e.pointerType !== 'mouse') return; const t = e.target.closest('.rcv'); if (!t || t === RCBIG.cur) return; clearTimeout(RCBIG.t); RCBIG.t = setTimeout(() => rcBigShow(t), 200); });
-$('resClips').addEventListener('pointerout', e => { const t = e.target.closest('.rcv'); if (t && !t.contains(e.relatedTarget)) rcBigHide(); });
-new MutationObserver(() => { if ($('resultsScreen').hidden) rcBigHide(); }).observe($('resultsScreen'), { attributes: true, attributeFilter: ['hidden'] });
 $('clipX').onclick = () => { CLIP.barT = 0; renderClipBar(); };
 // watching a featured kill cam (from a profile, or a link): played on the game's own canvas
 async function playClip(id, embed) {
@@ -11956,18 +11958,18 @@ if (CFRAME.on) {
   if (params.get('cframe') === '1') { const g = $('gate'); if (g) g.hidden = true; }
   addEventListener('message', e => {
     if (e.origin !== location.origin || !e.data || !e.data.bf) return; const m = e.data;
-    if (m.bf === 'clip' && m.clip) { try { const c = clipUnpack(m.clip); if (!MAPS[c.map]) return; CLIP.playing = { c, meta: { label: m.label || '', play: 1 }, embed: true }; document.body.classList.add('clipmode'); $('clipView').hidden = false; CFRAME.has = 1; CFRAME.playing ? clipReplay() : clipHold(); } catch (err) {} }
+    if (m.bf === 'clip' && m.clip) { try { const c = clipUnpack(m.clip); if (!MAPS[c.map]) return; CLIP.playing = { c, meta: { label: m.label || '', play: m.kc ? 0 : 1 }, embed: true }; document.body.classList.add('clipmode'); $('clipView').hidden = false; CFRAME.has = 1; CFRAME.playing ? clipReplay() : clipHold(); } catch (err) {} }
     else if (m.bf === 'play') { CFRAME.playing = true; if (CLIP.playing) { RP.on = null; RP.cam = null; clipReplay(); } }
     else if (m.bf === 'still') { CFRAME.playing = false; if (CLIP.playing) { RP.on = null; RP.cam = null; clipHold(); } }
   });
   try { parent.postMessage({ bfReady: 1 }, location.origin); } catch (e) {}
 }
 // a clip card: a freeze frame in a little frame that grows and plays when the mouse is over it (click to watch full size)
-function clipCard(box, src, clipObj, label, onOpen) {
+function clipCard(box, src, clipObj, label, onOpen, kc) { // kc: a kill cam (played as one), not a best play
   box.innerHTML = '<iframe tabindex="-1" loading="lazy" title=""></iframe>'; box.classList.add('ccard');
   const f = box.querySelector('iframe'); let ready = false;
   const send = m => { try { f.contentWindow.postMessage(m, location.origin); } catch (e) {} };
-  const hand = () => { if (clipObj) send({ bf: 'clip', clip: clipObj, label }); };
+  const hand = () => { if (clipObj) send({ bf: 'clip', clip: clipObj, label, kc: kc ? 1 : 0 }); };
   f.addEventListener('load', () => { ready = true; setTimeout(hand, 400); setTimeout(hand, 1500); });
   f.src = src; requestAnimationFrame(() => box.style.setProperty('--cs', ((box.clientWidth || 320) / 1280).toFixed(4)));
   const big = on => {
@@ -12296,7 +12298,10 @@ async function weekPlaysLoad() {
   // inside frames until the browser ran out of memory; nor in the website's backdrop, an avatar, a replay or a preview)
   if (INFRAME || OFFLINE || mode !== 'menu' || Date.now() - WEEKP.at < 5 * 60 * 1000) return;
   WEEKP.at = Date.now();
-  try { const r = await fetch('/api/weekplays', { cache: 'no-store' }); if (!r.ok) return; WEEKP.data = await r.json(); } catch (e) { return; }
+  // (the card shows either way: with nothing to show, or the server not answering, it invites a play instead; a failure is
+  // noted for the owner at /api/perf, and tried again in a minute rather than five)
+  try { const r = await fetch('/api/weekplays', { cache: 'no-store' }); if (!r.ok) throw new Error('weekplays ' + r.status); WEEKP.data = await r.json(); }
+  catch (e) { WEEKP.at = Date.now() - 4 * 60 * 1000; clientError(e, 'mem:weekplays'); }
   weekPlaysShow();
 }
 function weekPlaysShow() {
@@ -12363,11 +12368,12 @@ function renderResPlays() {
   const sup = isSupporter(), online = account && !OFFLINE;
   box.innerHTML = `<div class="rplays2">${show.map((o, i) => `<div class="rplay2"><span class="hd">${esc(o.head)}</span><div class="rpc" data-rpc="${i}"></div>
     <div class="rpi"><span class="sc">${o.x.score}</span><span><b>${esc(o.x.title)}</b><small>${esc(o.x.line)}</small></span></div>
-    ${o.x.k === myId && online ? `<button type="button" class="${sup ? 'ghost' : 'ghost locked'} sm" data-pkeep="${i}"${o.x.kept === true ? ' disabled' : ''}>${o.x.kept === true ? 'Kept ✓' : o.x.kept === 'saving' ? 'Saving…' : sup ? 'Keep on profile' : '★ Keep (supporters)'}</button>` : ''}</div>`).join('')}</div><small class="status">Hover to play · click to watch full size</small>`;
+    <div class="rcb"><button type="button" class="ghost sm" data-pdl="${i}">Save video</button>${o.x.k === myId && online ? `<button type="button" class="${sup ? 'ghost' : 'ghost locked'} sm" data-pkeep="${i}"${o.x.kept === true ? ' disabled' : ''}>${o.x.kept === true ? 'Kept ✓' : o.x.kept === 'saving' ? 'Saving…' : sup ? 'Keep on profile' : '★ Keep (supporters)'}</button>` : ''}</div></div>`).join('')}</div><small class="status">Hover to play · click to watch full size</small>`;
   show.forEach((o, i) => clipCard(box.querySelector(`[data-rpc="${i}"]`), '/play?cframe=1&preview=1', clipPack(o.x.c), o.x.title, () => playWatch(o.x)));
   PLAY.cards = show.map(o => o.x);
 }
 $('resPlays').onclick = ev => {
+  const dl = ev.target.closest('[data-pdl]'); if (dl) { const x = (PLAY.cards || [])[+dl.dataset.pdl]; if (x) saveVideo(playItem(x), false); return; }
   const k = ev.target.closest('[data-pkeep]'); if (!k) return; const x = (PLAY.cards || [])[+k.dataset.pkeep]; if (!x) return;
   if (!isSupporter()) { notice('Keeping your best plays is for supporters (it helps keep Bowfall running).', false); return; }
   playKeep(x);
@@ -12378,8 +12384,8 @@ function playWatch(x) {
   const c = clipUnpack(JSON.parse(JSON.stringify(clipPack(x.c))));
   PLAY.watch = { results: !$('resultsScreen').hidden, map: MAPKEY, me: myId };
   $('resultsScreen').hidden = true;
-  CLIP.playing = { c, local: true, meta: { label: x.title, play: 1 } };
-  $('cvTitle').textContent = x.title; $('cvSub').textContent = x.line.replace(/^[^:]*: /, '');
+  CLIP.playing = { c, local: true, meta: { label: x.title, play: x.kc ? 0 : 1 } };
+  $('cvTitle').textContent = x.title; $('cvSub').textContent = (x.line || '').replace(/^[^:]*: /, '');
   document.body.classList.add('clipmode'); $('clipView').hidden = false;
   clipReplay();
 }
@@ -12716,7 +12722,7 @@ function studioTools() {
   $('stPause').textContent = STUDIO.paused ? '▶ Play' : '❚❚ Pause'; $('stPause').classList.toggle('on', STUDIO.paused);
   $('stOnlyStar').classList.toggle('on', STUDIO.onlyStar); $('stExpStar').textContent = `Export all starred (${n})`; $('stExpStar').disabled = !n;
 }
-const studioItem = () => STUDIO.list[STUDIO.i];
+const studioItem = () => (STUDIO.solo ? STUDIO.solo.item : STUDIO.list[STUDIO.i]);
 function studioRender() {
   const L = STUDIO.list, it = studioItem();
   const nS = FARM.reel.filter(x => x.star).length; studioTools();
@@ -12747,6 +12753,8 @@ function studioRender() {
 }
 // play the selected clip with its edits (and again when it ends)
 function studioPlay() {
+  // (a kill cam or best play being saved as a video from the results: played as it was shown there, not as a studio clip)
+  if (STUDIO.solo) { const S = STUDIO.solo; if (RP.on) { RP.on = null; RP.cam = null; } CLIP.playing = { c: clipUnpack(JSON.parse(JSON.stringify(S.item.data))), meta: { label: S.item.title, play: S.kc ? 0 : 1 } }; clipReplay(); return; }
   const it = studioItem(); if (!it) { if (RP.on) { RP.on = null; RP.cam = null; } return; }
   if (RP.on) { RP.on = null; RP.cam = null; }
   const c = clipUnpack(JSON.parse(JSON.stringify(it.data))), E = STUDIO.cur;
