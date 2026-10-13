@@ -2,6 +2,70 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.67.1
+
+- **Clip farm defaults:** one battle per game, players swapped for AI players of a similar rating, any archetype (all roles and elements), random set upgrades, a random map effect each game, Hunt on, keeping clips scoring 4.5 or more; picture as before (scores and names shown, empowerment on, normal speed, no kill cams, maximum quality).
+- **Clip studio defaults:** kill cam, kill cam camera, calm, close, 1×, start and end as saved, names and health, no black bars (particles, text, shake, flash and glow on), this frame only, 1440p. Best plays on the results, profiles and the plays of the week keep their own look (real time, then the kill cam on the final shot).
+
+## 0.67.0
+
+- **Plays of the week, from everyone's online matches:** not just ranked: any online match (ranked or custom) offers its best play when it ends (score 6 or more), checked by the server as before.
+  - **All time too:** the best ten plays ever are kept for good. The main menu's card has Week and All time tabs (a new week with nothing in it yet shows the best ever), and a line on how to get on it.
+  - **On the website:** a "Plays of the week" section on the home page, the three playing one after another in a large frame beside the list (This week / All time). Click one to watch it in the game.
+- **Bullying, reworked:** it's now any run of three or more slams into the walls, each within 1.8 seconds of the last, by one archer or several together. It scores more for more slams, for slams coming faster, for each one into a corner, for each extra archer joining in, and most if it ends in the knockout. Clips are titled Bullied, Cornered (two or more into a corner), Merciless (six or more), Bullied out or Cornered out (ending in the knockout), and the line says who did it, how many slams in how long and how many into a corner. The game reports every slam (the "slam" event) so the client can follow it; the old one-archer-only rule no longer decides the clip.
+
+## 0.66.0
+
+- **Plays of the week on the main menu:** the three best plays from ranked matches this week (Monday to Sunday, UTC), in a small frame on the right that plays them one after another with a caption (rank, score, play, who). Hover over it and it grows to watch; click it, or one in the list, to watch full size.
+  - When a ranked match ends, its best play (score 6 or more) is offered for the week automatically. The server only takes it from someone who has just played a ranked match on that arena, with knockouts in it by the player they were in that match, keeps each player's best three and the week's best 30, and lets last week's go. The owner can take one off (POST /api/weekplay with drop: id).
+- **Best plays are shown your way:** on the results screen, on profiles and in the plays of the week, a best play now plays from 2.5 s before, in real time until the final shot, which the kill cam rides in slow motion, on to ¾ s after, with a calm camera and no black bars.
+- **Clip studio defaults** are the same look: real time then kill cam on the final shot, kill cam camera, slow and steady, close, start 2½ s earlier, end ¾ s later, no black bars, 1440p. (Settings you've already changed are kept.)
+
+## 0.65.0
+
+- **Your best plays, in every match:** the clip farm's eye for a good play now watches your own games too (ranked, online and against bots; not the tutorial, training or spectating). Every play you make is scored as it happens, the same way as in the farm: multi-kills (more the closer together), Rip and other ability knockouts, a held or trapped target, a dash into position, bullying into the walls, roasts, harpoon pulls, long shots, clutches and the rest. If you made one worth showing (score 4.5 or more), the results screen shows your best (up to three), best first, with its score and what made it.
+  - **Watch** plays it on the game's canvas as a kill cam (save it as a video from there), then takes you back to the results.
+  - **Keep on profile:** supporters can keep a best play on their account, alongside their kill cams (it counts toward the same limit). Others see the button and what it's for.
+- The server checks that only supporters (and the owner) keep best plays, and remembers a kept play's score.
+
+## 0.64.4
+
+- **Ricochets aren't long shots:** an arrow that bounced on its way (Ricochet, Bank Shot, a ricochet power-up or Trick Shot) no longer counts as a long shot: not for the Long shot moment and clip, the "Long shot" knockout label, the longest-shot stat, or the Longshot and Farsight achievements. Its distance was luck, not range.
+
+## 0.64.3
+
+- **Clip farm: Crossbowman** can be picked for a player, is in the random archetypes, and has its own tick box under roles in the random pick (it had been left out of all three).
+
+## 0.64.2
+
+- **Clip farm, "Three or more at once"** in Only these plays: keeps just triple (or bigger) knockouts landed in the same instant, from one hit, ability or blast. "Two or more at once" covers doubles too.
+
+## 0.64.1
+
+- **Clip studio, export both frames:** a new Export setting, "Landscape and vertical (two files)", exports the clip twice, once 16:9 and once 9:16, each with sound. Export all starred honours it too. Every exported file's name now ends in -landscape or -vertical.
+
+## 0.64.0
+
+- **Clip farm:**
+  - **Only these plays:** tick the kinds of play to look for (knockouts at once, triple kill or more, double kill, Rip, set-up, dash, ability, held, bullied out, harpooned, roasted, long shot, clutch, burst, untouchable) and only those are kept, so it can run for hours hunting one kind without filling the studio. Nothing ticked keeps any kind. Remembered.
+  - **Higher score floors:** clips to keep can be score 6, 8, 10 or 13 and up, as well as 3 and 4.5. Remembered.
+  - **Roles and elements in the random pick:** tick boxes to leave roles or elements out of the random archetypes (and out of a player's favourites when they play those). Remembered.
+  - **Runs in the background:** switching tab or minimising no longer pauses it. The browser stops drawing a hidden page, so the farm keeps playing on its own clock without drawing anything (tested: 16× speed carried on at full rate with the page hidden).
+  - **No round and match messages while fast-forwarding or hunting:** the game summary, results screen, countdown, banners and callouts stay hidden (at 1× they show as before).
+- **Clip studio, new replay style: Real time, then kill cam on the final shot.** The clip plays at full speed with your chosen camera, then just before the final shot (or ability) is loosed it eases into slow motion and the camera rides it in to the knockout.
+
+## 0.63.0
+
+- **Clip studio, the action camera:**
+  - **Every archer still standing stays in the picture**, and whoever's just going down, for a moment. The frame is worked out from where they are and where they'll be half a second on, centred on all of them with a lean toward the playmaker.
+  - **Closeness now does what it says:** it sets how tightly the frame sits round the archers (from a roomy margin at Wide to a snug one at Very close) as well as how far in it may go, so closer settings come in noticeably tighter whenever the archers are near each other.
+  - It allows for the black bars (the top and bottom 8%) and for the names and health above each archer, so nobody is hidden under a bar.
+  - **Vertical 9:16 keeps everyone in frame:** it zooms out as far as it needs to rather than switching to following the arrow (which was what made it jump about and lose archers). Tested: no archer out of frame in any clip, and the slow camera moves well under a pixel a frame.
+- **Scoring:**
+  - Knockouts close together score more the closer they are: several from one hit, ability or blast (within a tenth of a second) add 4 for each extra one, within a second about 2.5, a few seconds apart a little. Clips like that are titled as such ("Triple kill at once").
+  - The play behind a multi-kill counts once at full value rather than once per knockout.
+  - **Untouchable** scores lower (a typical one is now about 4 rather than 6).
+
 ## 0.62.0
 
 - **Clip farm:**

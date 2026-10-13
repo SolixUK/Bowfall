@@ -334,6 +334,7 @@ function saveRecords(room) {
       if (room.ranked && social.matchEnded) social.matchEnded(room); // for matchmaking: who's just come free
       const rated = new Map(), users = new Map();
       if (ros) for (const p of ros.p) { const u = userOfPid(room, p.id); if (u) users.set(p.id, u); }
+      for (const [pid, u] of users) if (u && typeof u.id === 'number') RECENT_RANKED.set(u.id, { at: Date.now(), map: room.world && room.world.cfg.map, pid }); // (for the plays of the week: who's just played a ranked match, where)
       if (ros && r.win && room.ranked) { // only matchmade (ranked) games change ratings; custom games don't
         const key = keyFor(room.ranked.mode);
         // each player's share of what their team did this match: knockouts, assists (half) and damage (per 40)
@@ -484,6 +485,9 @@ function readBody(req, limit = 16 * 1024) {
 const ip = req => String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
 const forgotLimit = A.limiter(5, 15 * 60 * 1000), authLimit = A.limiter(12, 60 * 1000), postLimit = A.limiter(6, 60 * 1000), threadLimit = A.limiter(3, 5 * 60 * 1000);
 const CLIP_MAX = { free: 3, sup: 12 };
+// the plays of the week: kept in the clips store under the pool's own id; offered after ranked matches (score WEEK_MIN and up)
+const WEEK_POOL = 0, WEEK_MIN = 6, RECENT_RANKED = new Map(); // (RECENT_RANKED: who's just finished an online match, ranked or not)
+const weekKey = (t = Date.now()) => { const d = new Date(t), day = (d.getUTCDay() + 6) % 7; d.setUTCDate(d.getUTCDate() - day); return d.toISOString().slice(0, 10); }; // (the Monday the week began, UTC)
 const clipLimit = A.limiter(12, 60 * 1000), clanLimit = A.limiter(40, 60 * 1000), clanNewLimit = A.limiter(6, 10 * 60 * 1000);
 const cleanText = (s, max) => String(s || '').replace(/\r\n/g, '\n').replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '').trim().slice(0, max);
 
@@ -492,7 +496,7 @@ async function api(req, res, url) {
   const method = req.method;
   let m;
   const me = await userFromReq(req);
-  const body = method === 'POST' ? await readBody(req, route === '/clip' ? 700 * 1024 : undefined).catch(() => null) : null;
+  const body = method === 'POST' ? await readBody(req, route === '/clip' || route === '/weekplay' ? 700 * 1024 : undefined).catch(() => null) : null;
   if (method === 'POST' && !body) return json(res, 400, { error: 'Bad request.' });
 
   // balance data for the in-game screen
@@ -807,6 +811,39 @@ async function api(req, res, url) {
       .sort((a, b) => b.elo - a.elo);
     return json(res, 200, { players: list });
   }
+  // ---- the plays of the week: the best plays from ranked matches, shown on the main menu. A player's game offers its best
+  // play when a ranked match ends (if it's scored highly); the server checks they've just played a ranked match on that
+  // arena and keeps the best of the week (each player's best few), in the clips store under the pool's own id (0)
+  if (route === '/weekplays' && method === 'GET') {
+    res.setHeader('Cache-Control', 'public, max-age=120');
+    const wk = weekKey(), pool = (await store.clipList(WEEK_POOL)).filter(c => c.meta).sort((a, b) => b.meta.score - a.meta.score), out = c => ({ id: c.id, label: c.meta.label, who: c.meta.who, score: c.meta.score, map: c.meta.map, at: c.meta.at });
+    return json(res, 200, { week: wk, plays: pool.filter(c => c.meta.week === wk).slice(0, 3).map(out), all: pool.slice(0, 3).map(out) });
+  }
+  if (route === '/weekplay' && method === 'POST') {
+    if (!me) return json(res, 401, { error: 'Sign in first.' });
+    if (body && body.drop && me.admin) { await store.clipDrop(WEEK_POOL, String(body.drop)); return json(res, 200, { ok: true }); } // (the owner taking one off)
+    if (!clipLimit(ip(req))) return json(res, 429, { error: 'Slow down a little.' });
+    const rec = RECENT_RANKED.get(me.id); if (!rec || Date.now() - rec.at > 10 * 60 * 1000) return json(res, 403, { error: 'Only plays from an online match you have just played.' });
+    const data = String((body && body.data) || ''), meta = body && body.meta && typeof body.meta === 'object' ? body.meta : {};
+    if (!/^[A-Za-z0-9+/=]+$/.test(data) || data.length > 650 * 1024) return json(res, 400, { error: 'That replay is too big.' });
+    let clip; try { clip = JSON.parse(zlib.gunzipSync(Buffer.from(data, 'base64'), { maxOutputLength: 8 * 1024 * 1024 }).toString('utf8')); } catch (e) { return json(res, 400, { error: 'Bad replay.' }); }
+    if (!clip || clip.v !== 1 || clip.map !== rec.map || !Array.isArray(clip.f) || clip.f.length < 10 || clip.f.length > 900 || !Array.isArray(clip.segs)) return json(res, 400, { error: 'Bad replay.' });
+    // it has to be theirs: the knockouts in it are by the player the server had them as in that match
+    const kos = (clip.ev || []).filter(x => x && x.e && x.e.e === 'kill' && x.e.k === rec.pid).length;
+    if (clip.k !== rec.pid || !kos) return json(res, 400, { error: 'Bad replay.' });
+    const score = Math.max(0, Math.min(40, Math.round((+meta.score || 0) * 10) / 10)); if (score < WEEK_MIN) return json(res, 200, { ok: true, kept: false });
+    const wk = weekKey(), pool = await store.clipList(WEEK_POOL);
+    const allTop = new Set(pool.filter(c => c.meta).sort((a, b) => b.meta.score - a.meta.score).slice(0, 10).map(c => c.id)); // (the best ten of all time stay for good)
+    for (const c of pool) if ((!c.meta || c.meta.week !== wk) && !allTop.has(c.id)) await store.clipDrop(WEEK_POOL, c.id); // (the rest of last week's are let go)
+    const cur = pool.filter(c => c.meta && c.meta.week === wk), mine = cur.filter(c => c.meta.uid === me.id).sort((a, b) => a.meta.score - b.meta.score);
+    if (mine.length >= 3) { if (mine[0].meta.score >= score) return json(res, 200, { ok: true, kept: false }); await store.clipDrop(WEEK_POOL, mine[0].id); } // (each player's best three)
+    const rest = (await store.clipList(WEEK_POOL)).filter(c => c.meta && c.meta.week === wk).sort((a, b) => a.meta.score - b.meta.score); // (the week's, at most 30)
+    if (rest.length >= 30) { if (rest[0].meta.score >= score) return json(res, 200, { ok: true, kept: false }); if (!allTop.has(rest[0].id)) await store.clipDrop(WEEK_POOL, rest[0].id); }
+    const id = crypto.randomBytes(6).toString('hex');
+    await store.clipSet(WEEK_POOL, id, data, { map: clip.map, n: Math.max(1, Math.min(9, +clip.n || 1)), label: cleanText(meta.label, 60) || 'Best play', who: me.name, uid: me.id, score, week: wk, play: 1, at: Date.now() });
+    RECENT_RANKED.delete(me.id); // (one offer per match)
+    return json(res, 200, { ok: true, kept: true });
+  }
   if (route === '/clips' && method === 'GET') { if (!me) return json(res, 401, { error: 'Sign in first.' }); return json(res, 200, await clipsOut(me)); }
   if (route === '/clip' && method === 'POST') {
     if (!me) return json(res, 401, { error: 'Sign in first.' });
@@ -829,10 +866,12 @@ async function api(req, res, url) {
     let clip;
     try { clip = JSON.parse(zlib.gunzipSync(Buffer.from(data, 'base64'), { maxOutputLength: 8 * 1024 * 1024 }).toString('utf8')); } catch (e) { return json(res, 400, { error: 'Bad replay.' }); }
     if (!clip || clip.v !== 1 || !Sim.MAPS[clip.map] || !Array.isArray(clip.f) || clip.f.length < 10 || clip.f.length > 900 || !Array.isArray(clip.segs)) return json(res, 400, { error: 'Bad replay.' });
+    if (meta.play && !(me.admin || E.statusOf(me).sp)) return json(res, 403, { error: 'Keeping your best plays is for supporters.' }); // (a best play from the results)
     const have = await store.clipList(me.id), max = clipMax(me);
     if (have.length >= max) return json(res, 409, { error: `You can keep ${max} kill cams${E.statusOf(me).sp ? '' : ` (supporters keep ${CLIP_MAX.sup})`}. Delete one from your profile settings first.`, full: 1 });
     const id = crypto.randomBytes(6).toString('hex');
     const m2 = { map: clip.map, n: Math.max(1, Math.min(9, +clip.n || 1)), label: cleanText(meta.label, 60) || 'Kill cam', at: Date.now() };
+    if (meta.play) { m2.play = 1; m2.score = Math.max(0, Math.min(99, Math.round((+meta.score || 0) * 10) / 10)); }
     await store.clipSet(me.id, id, data, m2);
     if (body.feature || !me.ach.clip) me.ach.clip = Object.assign({ id }, m2); // the first one saved goes on the profile
     markDirty(me);
@@ -842,7 +881,7 @@ async function api(req, res, url) {
     const c = await store.clipGet(m[1]); if (!c) return json(res, 404, { error: 'That replay is gone.' });
     const owner = live.get(c.userId) || (await store.usersByIds([c.userId]).catch(() => []))[0];
     res.setHeader('Cache-Control', 'public, max-age=300');
-    return json(res, 200, { id: c.id, data: c.data, meta: c.meta, owner: owner ? owner.name : null });
+    return json(res, 200, { id: c.id, data: c.data, meta: c.meta, owner: owner ? owner.name : (c.meta && c.meta.who) || null });
   }
   if ((m = route.match(/^\/users\/([A-Za-z0-9_-]{1,16})$/)) && method === 'GET') {
     const u = await store.userByName(m[1]);
