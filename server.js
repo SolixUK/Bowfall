@@ -334,7 +334,7 @@ function saveRecords(room) {
       if (room.ranked && social.matchEnded) social.matchEnded(room); // for matchmaking: who's just come free
       const rated = new Map(), users = new Map();
       if (ros) for (const p of ros.p) { const u = userOfPid(room, p.id); if (u) users.set(p.id, u); }
-      for (const [pid, u] of users) if (u && typeof u.id === 'number') RECENT_RANKED.set(u.id, { at: Date.now(), map: room.world && room.world.cfg.map, pid }); // (for the plays of the week: who's just played a ranked match, where)
+      { const ai = room.ai ? [...room.ai].map(([pid, u]) => [pid, u.name]) : []; for (const [pid, u] of users) if (u && typeof u.id === 'number' && !(u.career && u.career.ai)) RECENT_RANKED.set(u.id, { at: Date.now(), map: room.world && room.world.cfg.map, pid, mid: r.mid, ai }); } // (for the plays of the week: who's just played a ranked match, where)
       if (ros && r.win && room.ranked) { // only matchmade (ranked) games change ratings; custom games don't
         const key = keyFor(room.ranked.mode);
         // each player's share of what their team did this match: knockouts, assists (half) and damage (per 40)
@@ -486,7 +486,7 @@ const ip = req => String(req.headers['x-forwarded-for'] || req.socket.remoteAddr
 const forgotLimit = A.limiter(5, 15 * 60 * 1000), authLimit = A.limiter(12, 60 * 1000), postLimit = A.limiter(6, 60 * 1000), threadLimit = A.limiter(3, 5 * 60 * 1000);
 const CLIP_MAX = { free: 3, sup: 12 };
 // the plays of the week: kept in the clips store under the pool's own id; offered after ranked matches (score WEEK_MIN and up)
-const WEEK_POOL = 0, WEEK_MIN = 4.5, RECENT_RANKED = new Map(); // (RECENT_RANKED: who's just finished an online match, ranked or not)
+const WEEK_POOL = 0, WEEK_MIN = 4.5, RECENT_RANKED = new Map(), WEEK_AI_MATCH = new Set(); // (RECENT_RANKED: who's just finished an online match, ranked or not)
 const weekKey = (t = Date.now()) => { const d = new Date(t), day = (d.getUTCDay() + 6) % 7; d.setUTCDate(d.getUTCDate() - day); return d.toISOString().slice(0, 10); }; // (the Monday the week began, UTC)
 const clipLimit = A.limiter(12, 60 * 1000), clanLimit = A.limiter(40, 60 * 1000), clanNewLimit = A.limiter(6, 10 * 60 * 1000);
 const cleanText = (s, max) => String(s || '').replace(/\r\n/g, '\n').replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '').trim().slice(0, max);
@@ -831,7 +831,7 @@ async function api(req, res, url) {
     res.setHeader('Cache-Control', 'no-store'); // (a new best play shows at once)
     const wk = weekKey();
     try {
-      const pool = (await store.clipList(WEEK_POOL)).map(c => ({ id: c.id, meta: typeof c.meta === 'string' ? JSON.parse(c.meta) : c.meta })).filter(c => c.meta && typeof c.meta === 'object').sort((a, b) => (+b.meta.score || 0) - (+a.meta.score || 0)), out = c => ({ id: c.id, label: c.meta.label, who: c.meta.who, score: c.meta.score, map: c.meta.map, at: c.meta.at });
+      const pool = (await store.clipList(WEEK_POOL)).map(c => ({ id: c.id, meta: typeof c.meta === 'string' ? JSON.parse(c.meta) : c.meta })).filter(c => c.meta && typeof c.meta === 'object').sort((a, b) => (+b.meta.score || 0) - (+a.meta.score || 0) || (a.meta.ai ? 1 : 0) - (b.meta.ai ? 1 : 0)), out = c => ({ id: c.id, label: c.meta.label, who: c.meta.who, score: c.meta.score, map: c.meta.map, at: c.meta.at, ai: c.meta.ai ? 1 : undefined }); // (a real player's play wins a tie with an AI player's)
       return json(res, 200, { week: wk, plays: pool.filter(c => c.meta.week === wk).slice(0, 3).map(out), all: pool.slice(0, 3).map(out) });
     } catch (e) { // (noted where the owner can read it, /api/perf, and an empty list rather than an error)
       console.error('weekplays:', e); PERF.errors.unshift({ t: Date.now(), name: 'server', where: 'server:weekplays', m: String(e && e.message || e).slice(0, 300), s: String(e && e.stack || '').slice(0, 1200), v: Sim.VERSION, mode: '', ph: '', map: '', ua: '' });
@@ -848,19 +848,22 @@ async function api(req, res, url) {
     let clip; try { clip = JSON.parse(zlib.gunzipSync(Buffer.from(data, 'base64'), { maxOutputLength: 8 * 1024 * 1024 }).toString('utf8')); } catch (e) { return json(res, 400, { error: 'Bad replay.' }); }
     if (!clip || clip.v !== 1 || clip.map !== rec.map || !Array.isArray(clip.f) || clip.f.length < 10 || clip.f.length > 900 || !Array.isArray(clip.segs)) return json(res, 400, { error: 'Bad replay.', why: !clip ? 'none' : clip.map !== rec.map ? `map ${clip.map} vs ${rec.map}` : `frames ${(clip.f || []).length}` });
     // it has to be theirs: the knockouts in it are by the player the server had them as in that match
-    const kos = (clip.ev || []).filter(x => x && x.e && x.e.e === 'kill' && x.e.k === rec.pid).length;
-    if (clip.k !== rec.pid || !kos) return json(res, 400, { error: 'Bad replay.', why: `k ${clip.k} vs ${rec.pid}, ${kos} knockouts` });
+    // it has to be theirs, or an AI player's from that match (each match's AI play taken once, whoever sends it)
+    const aiName = (rec.ai || []).find(([pid]) => pid === clip.k), own = clip.k === rec.pid;
+    const kos = (clip.ev || []).filter(x => x && x.e && x.e.e === 'kill' && x.e.k === clip.k).length;
+    if ((!own && !aiName) || !kos) return json(res, 400, { error: 'Bad replay.', why: `k ${clip.k} vs ${rec.pid}, ${kos} knockouts` });
+    if (own ? rec.ownDone : rec.aiDone || WEEK_AI_MATCH.has(rec.mid)) return json(res, 200, { ok: true, kept: false, why: 'already offered' });
     const score = Math.max(0, Math.min(40, Math.round((+meta.score || 0) * 10) / 10)); if (score < WEEK_MIN) return json(res, 200, { ok: true, kept: false, why: 'score' });
     const wk = weekKey(), pool = await store.clipList(WEEK_POOL);
     const allTop = new Set(pool.filter(c => c.meta).sort((a, b) => b.meta.score - a.meta.score).slice(0, 10).map(c => c.id)); // (the best ten of all time stay for good)
     for (const c of pool) if ((!c.meta || c.meta.week !== wk) && !allTop.has(c.id)) await store.clipDrop(WEEK_POOL, c.id); // (the rest of last week's are let go)
-    const cur = pool.filter(c => c.meta && c.meta.week === wk), mine = cur.filter(c => c.meta.uid === me.id).sort((a, b) => a.meta.score - b.meta.score);
+    const cur = pool.filter(c => c.meta && c.meta.week === wk), mine = cur.filter(c => own ? c.meta.uid === me.id : c.meta.ai && c.meta.who === aiName[1]).sort((a, b) => a.meta.score - b.meta.score);
     if (mine.length >= 3) { if (mine[0].meta.score >= score) return json(res, 200, { ok: true, kept: false }); await store.clipDrop(WEEK_POOL, mine[0].id); } // (each player's best three)
     const rest = (await store.clipList(WEEK_POOL)).filter(c => c.meta && c.meta.week === wk).sort((a, b) => a.meta.score - b.meta.score); // (the week's, at most 30)
     if (rest.length >= 30) { if (rest[0].meta.score >= score) return json(res, 200, { ok: true, kept: false }); if (!allTop.has(rest[0].id)) await store.clipDrop(WEEK_POOL, rest[0].id); }
     const id = crypto.randomBytes(6).toString('hex');
-    await store.clipSet(WEEK_POOL, id, data, { map: clip.map, n: Math.max(1, Math.min(9, +clip.n || 1)), label: cleanText(meta.label, 60) || 'Best play', who: me.name, uid: me.id, score, week: wk, play: 1, at: Date.now() });
-    RECENT_RANKED.delete(me.id); // (one offer per match)
+    await store.clipSet(WEEK_POOL, id, data, Object.assign({ map: clip.map, n: Math.max(1, Math.min(9, +clip.n || 1)), label: cleanText(meta.label, 60) || 'Best play', score, week: wk, play: 1, at: Date.now() }, own ? { who: me.name, uid: me.id } : { who: aiName[1], ai: 1 }));
+    if (own) rec.ownDone = true; else { rec.aiDone = true; WEEK_AI_MATCH.add(rec.mid); if (WEEK_AI_MATCH.size > 500) WEEK_AI_MATCH.clear(); } // (one offer of each per match)
     return json(res, 200, { ok: true, kept: true });
   } catch (e) { console.error('weekplay:', e); PERF.errors.unshift({ t: Date.now(), name: me ? me.name : 'guest', where: 'server:weekplay', m: String(e && e.message || e).slice(0, 300), s: String(e && e.stack || '').slice(0, 1200), v: Sim.VERSION, mode: '', ph: '', map: '', ua: '' }); return json(res, 500, { error: 'Something went wrong on the server.', why: String(e && e.message || e).slice(0, 200) }); } }
   if (route === '/clips' && method === 'GET') { if (!me) return json(res, 401, { error: 'Sign in first.' }); return json(res, 200, await clipsOut(me)); }

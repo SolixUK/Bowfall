@@ -594,7 +594,7 @@ const pages = {
       const show = () => {
         const L = (tab === 'all' ? D.all : D.plays) || [];
         sec.querySelectorAll('[data-wkt]').forEach(b => b.classList.toggle('on', b.dataset.wkt === tab)); $('wkpH').textContent = tab === 'all' ? 'The best plays ever' : 'Plays of the week';
-        $('wkpL').innerHTML = L.length ? L.map((x, i) => `<a class="wkpi${i ? '' : ' on'}" data-wki="${i}" href="/play?clip=${encodeURIComponent(x.id)}"><span class="rk">#${i + 1}</span><span class="sc">${x.score}</span><span class="tx"><b>${esc(x.label)}</b><small>${esc(x.who || '')} · ${esc((Sim.MAPS[x.map] || {}).name || '')}</small></span></a>`).join('') : '<p class="muted">Nothing yet this week. It could be you.</p>';
+        $('wkpL').innerHTML = L.length ? L.map((x, i) => `<a class="wkpi${i ? '' : ' on'}" data-wki="${i}" href="/play?clip=${encodeURIComponent(x.id)}"><span class="rk">#${i + 1}</span><span class="sc">${x.score}</span><span class="tx"><b>${esc(x.label)}</b><small>${esc(x.who || '')}${x.ai ? ' (AI)' : ''} · ${esc((Sim.MAPS[x.map] || {}).name || '')}</small></span></a>`).join('') : '<p class="muted">Nothing yet this week. It could be you.</p>';
         $('wkpF').src = L.length ? `/play?clips=${L.map(x => x.id).join(',')}&embed=1&preview=1` : 'about:blank';
       };
       sec.addEventListener('click', e => { const b = e.target.closest('[data-wkt]'); if (b) { tab = b.dataset.wkt; show(); } });

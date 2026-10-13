@@ -2,6 +2,13 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.70.4
+
+- **AI players' plays count for Best play of the week.** After a match, your client offers your best play and the best of anyone else's; the server takes an AI player's (checked against the AI players in that match, and each match's taken once whoever sends it), never another person's. They're marked **AI** on the menu card and the website, each AI player keeps at most three a week, and a real player's play wins a tie.
+- **Outnumbered plays score more.** Knockouts made while your side had fewer archers standing than theirs (1v2, 1v3, 2v3) earn a bonus that grows with the odds and with how many you took out: a 1v2 knockout about +1.5, a 1v2 double +2.7, a 1v3 triple +7.8. The play's line says so ("outnumbered 1v3"), and the clip farm's play filter has **Outnumbered**. (A clutch already scores on this, so it isn't counted twice.)
+- **Freeze frames really freeze.** Once the camera settles, the menu's best play and the results' cards are left as they are: no spinning boomerangs, drifting particles or bouncing powerups. Drawn again if the frame is resized.
+- **Hover previews stay inside the results card.** A card grows toward whichever side has room within the card's own shape (it has clipped corners, which cut off one growing past its edge), not the window's.
+
 ## 0.70.3
 
 - **Fix: anything that lists saved clips failed on the live (Postgres) database.** `clipList` read the query's rows twice (the query helper already returns the rows), so it threw on every call: the plays of the week (list and offers), kept kill cams in Profile, Keep on my account and the clip limits. The local test database has its own version of the function, which is why it worked there. Found from the error 0.70.2 now writes to `/api/perf`.

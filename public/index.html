@@ -2174,7 +2174,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.70.3"></script>
+<script src="sim.js?v=0.70.4"></script>
 <script>
 (() => {
 'use strict';
@@ -2182,7 +2182,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.70.3';
+const PAGE_VERSION = '0.70.4';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -11976,7 +11976,10 @@ function clipCard(box, src, clipObj, label, onOpen, kc) { // kc: a kill cam (pla
   const big = on => {
     if (!on) { box.classList.remove('big'); send({ bf: 'still' }); return; }
     const r = box.getBoundingClientRect(); if (!r.width) return;
-    const room = { l: r.right - 8, r: innerWidth - r.left - 8, d: innerHeight - r.top - 8, u: r.bottom - 8 };
+    // the room it has: the window, or the panel it sits in when that clips what overflows it (the results card has a clipped shape)
+    let P = { left: 0, top: 0, right: innerWidth, bottom: innerHeight };
+    for (let el = box.parentElement; el && el !== document.body; el = el.parentElement) { const st = getComputedStyle(el); if (/(auto|scroll|hidden)/.test(st.overflow + st.overflowX + st.overflowY) || (st.clipPath && st.clipPath !== 'none')) { const q = el.getBoundingClientRect(); P = { left: Math.max(0, q.left), top: Math.max(0, q.top), right: Math.min(innerWidth, q.right), bottom: Math.min(innerHeight, q.bottom) }; break; } }
+    const room = { l: r.right - P.left - 8, r: P.right - r.left - 8, d: P.bottom - r.top - 8, u: r.bottom - P.top - 8 };
     const left = room.l > room.r, up = room.u > room.d; box.style.transformOrigin = `${left ? 'right' : 'left'} ${up ? 'bottom' : 'top'}`;
     const k = Math.max(1, Math.min(820 / r.width, (left ? room.l : room.r) / r.width, (up ? room.u : room.d) / r.height));
     box.style.setProperty('--pk', k.toFixed(3)); box.classList.add('big'); send({ bf: 'play' });
@@ -12102,7 +12105,8 @@ function frame(now) {
   const rv = cbView(replayTick(stHold ? 0 : RP.on && RP.on.real ? Math.min(0.1, frameMs / 1000) : dt)); // (real time stays real even when the frame rate dips)
   // a drawing error must never freeze the game: report it and carry on with the next frame
   try { camUpdate(dt); phoneCamUpdate(dt); } catch (e) { clientError(e, 'camera'); }
-  const heldStill = CFRAME.on && !CFRAME.playing && RP.on && RP.on.holdAt != null && (CFRAME.hn = (CFRAME.hn || 0) + 1) > 90 && CFRAME.hn % 15; // (a freeze frame: once the camera has settled, redrawn only now and then)
+  if (CFRAME.on && CFRAME.sz !== cv.width + 'x' + cv.height) { CFRAME.sz = cv.width + 'x' + cv.height; CFRAME.hn = 0; } // (resized: draw it again)
+  const heldStill = CFRAME.on && !CFRAME.playing && RP.on && RP.on.holdAt != null && (CFRAME.hn = (CFRAME.hn || 0) + 1) > 50; // (a freeze frame: once the camera has settled, it's left as it is: nothing spins, drifts or bounces)
   try { if (heldStill) {} else if (document.hidden && FARM.on && !STUDIO.exporting) {} /* (in the background: nothing to draw) */ else if (rv) { const live = view; view = rv; try { render(true); } finally { view = live; } } else if (FARM.on && FARM.hunt && !STUDIO.on) huntDraw(); else render(); }
   catch (e) { clientError(e, 'render'); if (rv) endReplay(); try { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none'; } catch (e2) {} }
   clipRecFrame();
@@ -12310,7 +12314,7 @@ function weekPlaysShow() {
   const box = $('weekPlays'); box.hidden = false;
   $('wpHead').textContent = wk ? 'Best play of the week' : ever ? 'Best play ever' : 'Best play of the week';
   $('wpNote').hidden = !!x; $('wpNote').textContent = 'No plays yet. Make a big play in an online match (a multi-kill, a Rip, a set-up knockout…) and you could be the first up here.';
-  $('wpCard').hidden = !x; $('wpCap').innerHTML = x ? `<b>${x.score}</b> ${esc(x.label)} <small>${esc(x.who || '')} · ${esc((MAPS[x.map] || {}).name || '')}</small>` : '';
+  $('wpCard').hidden = !x; $('wpCap').innerHTML = x ? `<b>${x.score}</b> ${esc(x.label)} <small>${esc(x.who || '')}${x.ai ? ' <span class="aitag">AI</span>' : ''} · ${esc((MAPS[x.map] || {}).name || '')}</small>` : '';
   if (!x || WEEKP.shown === x.id) return; WEEKP.shown = x.id;
   clipCard($('wpCard'), `/play?clip=${encodeURIComponent(x.id)}&embed=1&preview=1&still=1`, null, x.label, () => playClip(x.id));
 }
@@ -12326,7 +12330,7 @@ async function weekPlayOffer(x) {
     const r = await fetch('/api/weekplay', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data, meta: { label: x.title, score: x.score } }) });
     const d = await r.json().catch(() => ({}));
     why = `${r.status} ${d.kept ? 'kept' : 'not kept'} ${d.error || ''} ${d.why || ''} (score ${x.score}, ${frames.length} frames, ${Math.round(data.length / 1024)} KB)`;
-    if (d.kept) { WEEKP.at = 0; notice(`Your ${esc(x.title.toLowerCase())} made the plays of the week!`, true); }
+    if (d.kept && x.k === myId) { WEEKP.at = 0; notice(`Your ${esc(x.title.toLowerCase())} made the plays of the week!`, true); } else if (d.kept) WEEKP.at = 0;
   } catch (e) { why = 'failed: ' + (e && e.message); }
   clientError(new Error(why), 'mem:weekoffer');
 }
@@ -12351,7 +12355,7 @@ function playTick() {
   PC = PLAY;
   try { while (PLAY.pending.length && (all || now >= PLAY.pending[0].due)) farmCapture(PLAY.pending.shift()); }
   catch (e) { PLAY.pending = []; } finally { PC = FARM; }
-  if (all && !PLAY.pending.length && !PLAY.offered) { PLAY.offered = true; const best = PLAY.list.find(x => x.k === myId); if (mode === 'online' && account && !OFFLINE) { if (best) weekPlayOffer(best); else clientError(new Error(`no play of yours (${PLAY.list.length} in the game)`), 'mem:weekoffer'); } }
+  if (all && !PLAY.pending.length && !PLAY.offered) { PLAY.offered = true; const best = PLAY.list.find(x => x.k === myId), top = PLAY.list.find(x => x.k !== myId); if (mode === 'online' && account && !OFFLINE) { if (best) weekPlayOffer(best); if (top) weekPlayOffer(top); if (!best && !top) clientError(new Error('no plays in the game'), 'mem:weekoffer'); } } // (yours, and the best of anyone else's: the server takes an AI player's, never another person's)
 }
 function playAdd(item, c) {
   if (item.score < PLAY_MIN) return;
@@ -12509,6 +12513,7 @@ const FARM_LOOK = [
   ['once3', 'Three or more at once', it => /^(Triple|Quad|Penta|\d+ knockouts).* at once$/.test(it.title)],
   ['triple', 'Triple kill or more', it => /^(Triple|Quad|Penta|\d+ knockouts)/.test(it.title) || /(Triple|Quad|Penta)/.test(it.line)],
   ['double', 'Double kill', it => /^Double/.test(it.title)],
+  ['outnum', 'Outnumbered (fewer standing on your side)', it => /outnumbered \d+v\d+/.test(it.line)],
   ['rip', 'Rip knockouts', it => /Rip/.test(it.title + it.line)],
   ['setup', 'Set-up knockout (held, then dash in)', it => it.title === 'Set-up knockout'],
   ['dash', 'Dash knockout', it => it.title === 'Dash knockout' || /dash into position/.test(it.line)],
@@ -12577,6 +12582,21 @@ function farmCapture(P) {
     for (let i2 = 1; i2 < ts.length; i2++) { const gap = ts[i2] - ts[i2 - 1]; tight += gap < 0.12 ? 4 : gap < 1 ? 2.5 - gap : Math.max(0, 1.2 - gap * 0.3); run = gap < 0.12 ? run + 1 : 1; same = Math.max(same, run); }
     score += tight;
     if (same >= 2) { title = `${MULTI_WORD[Math.min(5, same)] || same + ' knockouts'} at once`; line += ` · ${same} in one`; }
+  }
+  // outnumbered: knockouts made while your side had fewer archers standing than theirs (1v2, 1v3, 2v3) are worth more,
+  // the more the odds were against you and the more you took out (a clutch is scored on that already)
+  if (ks.length && e.e !== 'clutch') {
+    const K0 = e.k != null ? e.k : e.id, t0 = ks[0].t - 0.6; let fr = null;
+    for (let i2 = RP.buf.length - 1; i2 >= 0; i2--) if (RP.buf[i2].t <= t0) { fr = RP.buf[i2].v; break; }
+    const me0 = fr && fr.p.find(q => q.id === K0);
+    if (me0) {
+      const up = fr.p.filter(q => !q.d && !q.f && !q.npc), mates = up.filter(q => q.tm === me0.tm).length, foes = up.filter(q => q.tm !== me0.tm).length;
+      if (mates >= 1 && foes > mates) {
+        const mine = ks.filter(k => k.k === K0).length;
+        score += Math.min(3, (foes - mates) / mates) * (1.5 + 1.2 * Math.max(0, mine - 1));
+        line += ` · outnumbered ${mates}v${foes}`;
+      }
+    }
   }
   // any play behind the knockouts counts toward every kind of clip (a game-winning knockout from a dash, a double kill off a Rip)
   let tags = [];
