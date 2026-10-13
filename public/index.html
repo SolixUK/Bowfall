@@ -2166,7 +2166,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.67.1"></script>
+<script src="sim.js?v=0.67.2"></script>
 <script>
 (() => {
 'use strict';
@@ -2174,7 +2174,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.67.1';
+const PAGE_VERSION = '0.67.2';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -12176,8 +12176,11 @@ function farmStep() {
 // ---- the plays of the week on the main menu: the three best plays from ranked matches this week, playing one after
 // another in a small frame (it grows as you hover over it); click one to watch it full size
 const WEEKP = { list: null, at: 0, tab: 'week', data: null };
+const INFRAME = (() => { try { return window.top !== window || SHOWCASE || ['clip', 'clips', 'embed', 'preview', 'avatar'].some(k => params.has(k)); } catch (e) { return true; } })();
 async function weekPlaysLoad() {
-  if (OFFLINE || mode !== 'menu' || Date.now() - WEEKP.at < 5 * 60 * 1000) return;
+  // (never inside another page: the plays' own frame is this same page, and loading the card in there too would nest frames
+  // inside frames until the browser ran out of memory; nor in the website's backdrop, an avatar, a replay or a preview)
+  if (INFRAME || OFFLINE || mode !== 'menu' || Date.now() - WEEKP.at < 5 * 60 * 1000) return;
   WEEKP.at = Date.now();
   try { const r = await fetch('/api/weekplays', { cache: 'no-store' }); if (!r.ok) return; WEEKP.data = await r.json(); } catch (e) { return; }
   weekPlaysShow();

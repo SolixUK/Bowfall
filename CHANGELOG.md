@@ -2,6 +2,10 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.67.2
+
+- **Fix: the browser running out of memory ("Aw, Snap!") on the main menu.** The plays of the week play inside a small frame that is the game itself, and that copy of the game was loading its own plays-of-the-week frame, which loaded another, and so on, until the browser ran out of memory (it showed once there was a play of the week, so usually on returning to the menu after a match). The card now only loads on the real main menu, never inside a frame (the plays' own frame, the website's backdrop and previews, avatars or replays). Tested: the menu holds at one frame for the plays, and the website at one.
+
 ## 0.67.1
 
 - **Clip farm defaults:** one battle per game, players swapped for AI players of a similar rating, any archetype (all roles and elements), random set upgrades, a random map effect each game, Hunt on, keeping clips scoring 4.5 or more; picture as before (scores and names shown, empowerment on, normal speed, no kill cams, maximum quality).
