@@ -333,7 +333,6 @@
   body.farmrevon .farmbar { opacity: 1 !important; pointer-events: auto !important; }
   body.studiomode #cv { width: calc(100% - min(460px, 94vw)); cursor: default; }
   body.studiomode.stvert #cv { width: min(56.25vh, calc(100% - min(460px, 94vw))); margin-left: max(0px, calc((100% - min(460px, 94vw) - 56.25vh) / 2)); } /* vertical: a phone-shaped frame */ /* the clip plays beside the studio's panel, not under it */
-  .farmmaps { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: 12px; align-items: center; } .farmmaps > .status { flex-basis: 100%; margin: 4px 0 0; } .farmmaps label { white-space: nowrap; display: inline-flex !important; flex-direction: row !important; align-items: center; gap: 4px; width: auto !important; margin: 0 !important; font-size: 12px; text-align: left; } .farmmaps { margin: 2px 0 8px; } .farmmaps input { margin: 0; }
   .studio { position: fixed; right: 0; top: 0; bottom: 0; width: min(460px, 94vw); z-index: 40; display: flex; flex-direction: column; background: rgba(9,18,11,.96); border-left: 1px solid var(--gold); }
   .studio .sth { display: flex; align-items: center; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--line); } .studio .sth b { font: 700 20px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--gold); } .studio .sth .status { flex: 1; font-size: 12px; }
   .studio select { padding: 3px 6px; font-size: 13px; }
@@ -1962,17 +1961,17 @@
       <section class="mode">
         <h3>Match</h3>
         <div class="field"><label for="farmMap">Arena</label><select id="farmMap"></select></div>
-        <div class="farmmaps" id="farmMaps"><span class="status">In the random pick:</span></div>
         <div class="field"><label for="farmPts">Points to win</label><select id="farmPts"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="5">5</option></select></div>
         <div class="field"><label><input type="checkbox" id="farmLoop" checked> Start another match when one ends (a new arena each time if Arena is Random)</label></div>
       </section>
       <section class="mode">
         <h3>Picture</h3>
+        <div class="field"><label for="farmCam">Camera</label><select id="farmCam"><option value="arena">Whole arena</option><option value="follow" selected>Follow the action, smooth (looks ahead, keeps everyone fighting in view)</option><option value="tight">Follow the action, tight (closer and quicker)</option></select></div>
         <div class="field"><label for="farmHud">Scores and timer</label><select id="farmHud"><option value="1" selected>Shown</option><option value="0">Hidden (just the arena)</option></select></div>
         <div class="field"><label for="farmTags">Names over archers</label><select id="farmTags"><option value="all">Names and health</option><option value="bars">Health bars only</option><option value="none">Nothing (just the archers)</option></select></div>
         <div class="field"><label for="farmEmp">Empowerment</label><select id="farmEmp"><option value="on">On</option><option value="hide">On, but not shown</option><option value="off">Off (nobody gets empowered)</option></select></div>
         <div class="field"><label for="farmSpeed">Game speed</label><select id="farmSpeed"><option value="1">Normal</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option><option value="16">16× (fast-forward, no sound)</option></select></div>
-        <div class="field"><label><input type="checkbox" id="farmKc"> Kill cams after games (at normal speed only, and not needed: the best moments are saved to the clip studio anyway)</label></div>
+        <div class="field"><label><input type="checkbox" id="farmKc" checked> Kill cams after games (at normal speed only; the best moments are always saved to the reel)</label></div>
         <div class="field"><label><input type="checkbox" id="farmMaxq" checked> Maximum quality: sharp resolution, full effects and detail, never lowered to keep up</label></div>
         <div class="field"><label><input type="checkbox" id="farmRec"> Record: a video file (60 frames a second, high bit rate, with sound) from start to stop</label></div>
       </section>
@@ -1983,13 +1982,10 @@
         <div class="field"><label><input type="checkbox" id="farmRndSize"> <b>Team sizes:</b> 1 to 4 a side</label></div>
         <div class="field"><label for="farmRndWho"><b>Players</b></label><select id="farmRndWho"><option value="">The same ones every game</option><option value="near">Each swapped for a random AI player of a similar rating</option><option value="high">Each swapped for a random high-rated AI player</option><option value="low">Each swapped for a random low-rated AI player</option><option value="any">Each swapped for any random AI player</option></select></div>
         <div class="field"><label><input type="checkbox" id="farmRndLo"> <b>Archetypes:</b> any element and role, not just their favourites</label></div>
-        <div class="farmmaps" id="farmRoles"><span class="status">Roles in the random pick:</span></div>
-        <div class="farmmaps" id="farmEls"><span class="status">Elements in the random pick:</span></div>
         <div class="field"><label><input type="checkbox" id="farmRndUps"> <b>Upgrades:</b> a random set each game (one ability and some passives, from the start)</label></div>
         <div class="field"><label for="farmEffect"><b>Map effect</b></label><select id="farmEffect"></select></div>
-        <div class="field"><label><input type="checkbox" id="farmHunt"> <b>Hunt:</b> run flat out without drawing the game, keeping only the very best clips (score 6 or more, or just the plays ticked below). Also ⚡ on the bar. It keeps going in the background if you switch tabs.</label></div>
-        <div class="field"><label for="farmKeep">Clips to keep</label><select id="farmKeep"><option value="all">Every one</option><option value="good" selected>Score 3 or more</option><option value="best">Score 4.5 or more</option><option value="s6">Score 6 or more</option><option value="s8">Score 8 or more</option><option value="s10">Score 10 or more</option><option value="s13">Score 13 or more (rare)</option></select></div>
-        <div class="farmmaps" id="farmLook"><span class="status">Only these plays (none ticked: any):</span></div>
+        <div class="field"><label><input type="checkbox" id="farmHunt"> <b>Hunt:</b> run flat out without drawing the game and keep only the very best clips (score 6 or more). Also ⚡ on the bar.</label></div>
+        <div class="field"><label for="farmKeep">Clips to keep</label><select id="farmKeep"><option value="all">Every one</option><option value="good" selected>The good ones (score 3 or more)</option><option value="best">Only the best (score 4.5 or more)</option></select></div>
       </section>
       <section class="mode farmside" style="--tc:#ff6b5a">
         <div class="farmh"><h3>Red</h3><span class="status" id="farmRedN"></span><button type="button" class="ghost sm" data-fadd="red">+ Add AI player</button></div><div id="farmRed" class="farmteam"></div>
@@ -2009,7 +2005,7 @@
 </div>
 <div class="studio" id="studio" hidden role="dialog" aria-label="Clip studio">
   <div class="sth"><b>Clip studio</b><span class="status" id="stInfo"></span><select id="stSort"><option value="score">Best first</option><option value="new">Newest first</option><option value="star">Starred first</option></select><button type="button" class="ghost sm" id="stClose">Close</button></div>
-  <div class="sttools"><button type="button" class="ghost sm" id="stPause" title="Pause or carry on (P)">❚❚ Pause</button><button type="button" class="ghost sm" id="stOnlyStar" title="Show only the starred clips (F)">★ Starred only</button><button type="button" class="ghost sm" id="stExpStar" title="Export every starred clip, one after another, each with its own start and end">Export all starred</button><button type="button" class="ghost sm" id="stClearUn" title="Delete every clip that isn't starred (click twice)">Clear unstarred</button><button type="button" class="ghost sm" id="stClear" title="Delete every clip (click twice)">Clear all</button></div>
+  <div class="sttools"><button type="button" class="ghost sm" id="stPause" title="Pause or carry on (P)">❚❚ Pause</button><button type="button" class="ghost sm" id="stOnlyStar" title="Show only the starred clips (F)">★ Starred only</button><button type="button" class="ghost sm" id="stExpStar" title="Export every starred clip, one after another, each with its own start and end">Export all starred</button><button type="button" class="ghost sm" id="stClear" title="Delete every clip (click twice)">Clear all</button></div>
   <div class="stlist" id="stList"></div>
   <div class="stedit" id="stEdit"></div>
   <small class="status sthelp">↑ ↓ or ← → browse · S star · F starred only · P pause · Space replay · Delete remove · E export</small>
@@ -2148,7 +2144,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.64.4';
+const VERSION = '0.61.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -3893,7 +3889,7 @@ function howKilled(f, cause) {
   if (a.chain) return 'chain';
   if (a.shur) return 'shuriken';
   if (a.bolt) return 'bolt';
-  if (a.dist >= 600 && !a.bnc) return 'longshot';
+  if (a.dist >= 600) return 'longshot';
   if (a.el) return 'el_' + a.el;
   if (a.crit) return 'crit';
   return 'arrow';
@@ -3920,7 +3916,7 @@ function kill(w, f, cause) {
     const M2 = killer.multi && w.t - killer.multi.t < 4 ? killer.multi : (killer.multi = { n: 0, t: 0 }); M2.n++; M2.t = w.t;
     if (M2.n >= 2) ev(w, { e: 'moment', m: 'multi', k: killer.id, kn: killer.name, v: f.id, vn: f.name, n: M2.n, x: r1(f.x), y: r1(f.y) });
     if ((cause === 'lava' || cause === 'burn') && (f.lavaT || 0) >= 1) ev(w, { e: 'moment', m: 'roast', k: killer.id, kn: killer.name, v: f.id, vn: f.name, s: r1(f.lavaT), x: r1(f.x), y: r1(f.y) });
-    const far = cause === 'arrow' && f.lastArrow && f.lastArrow.dist && !f.lastArrow.bnc ? f.lastArrow.dist / 50 : 0; // (a ricochet or trick shot isn't a long shot: it's luck, not range)
+    const far = cause === 'arrow' && f.lastArrow && f.lastArrow.dist ? f.lastArrow.dist / 50 : 0;
     if (far >= 22) ev(w, { e: 'moment', m: 'snipe', k: killer.id, kn: killer.name, v: f.id, vn: f.name, n: Math.round(far), x: r1(f.x), y: r1(f.y) });
   }
   f.lavaT = 0; f.slams = null; f.hook = null;
@@ -3949,7 +3945,7 @@ function kill(w, f, cause) {
   }
   const how = howKilled(f, cause);
   f.lastHow = how;
-  const dist = cause === 'arrow' && f.lastArrow && f.lastArrow.dist && !f.lastArrow.bnc ? Math.round(f.lastArrow.dist / 50) : 0;
+  const dist = cause === 'arrow' && f.lastArrow && f.lastArrow.dist ? Math.round(f.lastArrow.dist / 50) : 0;
   ev(w, { e: 'kill', k: killer ? killer.id : null, kn: killer ? killer.name : null, kc: killer ? killer.color : null,
     v: f.id, vn: f.name, vc: f.color, vt: f.team, c: cause, how, m: dist, x: r1(f.x), y: r1(f.y), am: gain, ks: killer ? killer.streak + 1 : undefined });
   // streaks: knockouts in a row without being knocked out
@@ -5252,14 +5248,14 @@ function arrowHit(w, a, f) {
   a.crit = !a.boom && off <= f.r * BULLSEYE; // a boomerang's wide blade has no bullseye
   if (a.star) { a.full = a.crit || !!a.fullDraw; a.burst = false; }
   const dmgHit = dmg * (a.crit ? CRIT_MUL : 1) * OPT('dmg');
-  f.lastArrow = { el: a.el, crit: a.crit, bolt: a.bolt, dist: a.dist, shur: a.shur, bnc: a.bnc ? 1 : 0 }; // (bnc: it bounced on the way, so its distance isn't a long shot)
+  f.lastArrow = { el: a.el, crit: a.crit, bolt: a.bolt, dist: a.dist, shur: a.shur };
   // Riot Shield: hits from the front are softened
   const shielded = has(f, 'riot') && headOn(f, a);
   if (shielded) ev(w, { e: 'shield', x: r1(f.x + Math.cos(f.aim) * f.r), y: r1(f.y + Math.sin(f.aim) * f.r) });
   const landed = hurt(w, f, dmgHit * (shielded ? 0.65 : 1), a.vx / v * kf * (shielded ? 0.7 : 1), a.vy / v * kf * (shielded ? 0.7 : 1), 'arrow', a.owner);
   if (!landed) return;
   if (f.stealthT > 0) breakStealth(w, f); // only an arrow hit breaks stealth; burns, poison and blasts don't
-  if (a.own && !a.counted) { a.counted = true; a.own.stats.hits++; if (!a.bnc) a.own.stats.longest = Math.max(a.own.stats.longest, a.dist); }
+  if (a.own && !a.counted) { a.counted = true; a.own.stats.hits++; a.own.stats.longest = Math.max(a.own.stats.longest, a.dist); }
   ev(w, { e: 'hit', x: r1(a.x), y: r1(a.y), cr: a.crit ? 1 : 0, fd: a.full ? 1 : 0, id: f.id, by: a.owner, el: a.el, b: a.bolt ? 1 : 0, ls: range > 0.3 ? 1 : 0 });
   if (a.crit && a.own) a.own.stats.bull = (a.own.stats.bull || 0) + 1;
   if (a.sneak && !f.dead) { a.sneak = false; stun(w, f, 1); ev(w, { e: 'ambushHit', id: f.id, by: a.owner, x: r1(f.x), y: r1(f.y) }); }
@@ -7073,7 +7069,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.64.4';
+const PAGE_VERSION = '0.61.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -7171,7 +7167,7 @@ const EL_RGB = { frost: '159,220,255', flame: '255,138,61', storm: '255,242,122'
 const STREAK_TXT = { 3: 'is on a rampage', 5: 'is dominating', 7: 'is unstoppable', 10: 'is legendary' };
 const STREAK_WORD = { 3: 'Rampage', 5: 'Dominating', 7: 'Unstoppable', 10: 'Legendary' };
 // a big announcement between rounds; mid-fight it falls back to the small corner notice so the arena stays clear
-const hunting = () => FARM.on && !STUDIO.on && (FARM.hunt || FARM.speed > 1); // (the clip farm hunting or fast-forwarding: nothing announced)
+const hunting = () => FARM.on && FARM.hunt && !STUDIO.on; // (the clip farm hunting: nothing announced, nothing drawn)
 function callout({ kicker = '', title, sub = '', color = '#ffcf5a', tier = 1, plain }) {
   if (hunting()) return false;
   const box = $('callouts');
@@ -8384,7 +8380,7 @@ for (const [id, fn] of [['tbDash', () => { dashLatch = true; }], ['tbQ', () => t
   el.addEventListener('touchend', end); el.addEventListener('touchcancel', end);
 }
 cv.addEventListener('contextmenu', e => e.preventDefault());
-document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'local' && !menuOpen && !FARM.on) openMenu(); }); // (not the clip farm: it carries on in the background)
+document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'local' && !menuOpen) openMenu(); });
 
 function buildInput(me) {
   let mx = (held('right') ? 1 : 0) - (held('left') ? 1 : 0);
@@ -8445,7 +8441,7 @@ function phoneCamUpdate(dt) {
   const f = Math.min(1, dt * 6); PCAM.x += (me.x - PCAM.x) * f; PCAM.y += (me.y - PCAM.y) * f;
   phoneCamApply();
 }
-const STUDIO_DEF = { both: '', frame: 'h', style: 'kc', cam: 'kc', camSpeed: 1, zoomMax: 1.8, speed: 1, bars: true, parts: true, text: true, shake: true, flash: true, emp: true, names: 'all', res: '1080', trimA: 0, trimB: 0 };
+const STUDIO_DEF = { frame: 'h', style: 'kc', cam: 'kc', camSpeed: 1, zoomMax: 1.8, speed: 1, bars: true, parts: true, text: true, shake: true, flash: true, emp: true, names: 'all', res: '1080', trimA: 0, trimB: 0 };
 const STUDIO = { on: false, i: 0, list: [], cur: Object.assign({}, STUDIO_DEF), from: null, exporting: false, stop: false, paused: false, onlyStar: false, batch: null, g: (() => { try { return JSON.parse(localStorage.getItem('bowfall-studio') || '{}') || {}; } catch (e) { return {}; } })() };
 const stVert = () => STUDIO.on && STUDIO.cur.frame === 'v'; // (the clip studio framing for phones: 9:16)
 const STUDIO_CLIP = ['trimA', 'trimB']; // (kept with each clip; every other setting carries over from clip to clip)
@@ -12404,7 +12400,6 @@ function hlParts(h) {
   return null;
 }
 function showGameSummary(e) {
-  if (hunting()) return;
   const mine = e.rw === myTeam(), draw = e.rw === 'draw';
   $('gameSum').style.setProperty('--tc', draw ? 'var(--muted)' : TEAM_COL[e.rw]);
   // kept short: it's only up for a moment (the score is always at the top of the screen)
@@ -12440,7 +12435,7 @@ let crackT = {};
 // again by the same archer · snipe: a knockout shot from 22 metres or more
 const MOMENTS = { mid: null, list: [] };
 const MULTI_WORD = ['', '', 'Double kill', 'Triple kill', 'Quad kill', 'Penta kill'];
-const momentScore = e => (e.m === 'multi' ? 2 + e.n * 1.5 + Math.max(0, e.n - 2) * 1.5 : e.m === 'roast' ? 4 + Math.min(3, e.s || 0) : e.m === 'bully' ? 3 + e.n : e.m === 'snipe' ? 2 + (e.n - 22) / 4 : 1);
+const momentScore = e => (e.m === 'multi' ? 2 + e.n * 1.5 : e.m === 'roast' ? 4 + Math.min(3, e.s || 0) : e.m === 'bully' ? 3 + e.n : e.m === 'snipe' ? 2 + (e.n - 22) / 4 : 1);
 function momentText(e, you) {
   const K = you && e.k === myId ? 'You' : esc(e.kn), V = e.v === myId ? 'you' : esc(e.vn);
   switch (e.m) {
@@ -16101,7 +16096,7 @@ function updateHud() {
 
   if (m.ph !== 'post' && !$('gameSum').hidden) $('gameSum').hidden = true;
   const cd = m.ph === 'pre' ? m.T : 0;
-  $('countdown').hidden = !cd || hunting();
+  $('countdown').hidden = !cd;
   if (cd) setC('cd', cd, v => { $('countdown').textContent = v; sfx.count(v); });
 
   const dead = !!me.d && m.ph === 'play';
@@ -16143,7 +16138,7 @@ function updateHud() {
       resultsView = Object.assign({}, view, { p: view.p.filter(p => !p.nk) });
       renderAwards(resultsView); renderRanking();
       $('rematchBtn').hidden = $('resLobbyBtn').hidden = !isHost();
-      if (!hunting()) $('resultsScreen').hidden = false; $('resHint').textContent = TOUCH.on ? 'Tap a column to rank by it.' : 'Click a column to rank by it.'; progShow(); renderResClips();
+      $('resultsScreen').hidden = false; $('resHint').textContent = TOUCH.on ? 'Tap a column to rank by it.' : 'Click a column to rank by it.'; progShow(); renderResClips();
       { const rb = $('ratedBox'); clearTimeout(RATED.t); rb.classList.remove('show'); rb.hidden = true; renderResRated(); } // the results show the rating themselves: no pop-up over the headline
       $('gameMenu').hidden = true; menuOpen = false; paused = false;
     }
@@ -16436,17 +16431,17 @@ function replayFrameAt(t) {
 function camBox(st, pts, dt, o) {
   let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
   for (const [x, y] of pts) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
-  const b = st.sb || (st.sb = { x0, x1, y0, y1 }), grow = 1 - Math.exp(-dt * 6), shrink = 1 - Math.exp(-dt * 0.9);
+  const b = st.sb || (st.sb = { x0, x1, y0, y1 }), grow = 1 - Math.exp(-dt * 8), shrink = 1 - Math.exp(-dt * 1.1);
   b.x0 += (x0 - b.x0) * (x0 < b.x0 ? grow : shrink); b.x1 += (x1 - b.x1) * (x1 > b.x1 ? grow : shrink);
   b.y0 += (y0 - b.y0) * (y0 < b.y0 ? grow : shrink); b.y1 += (y1 - b.y1) * (y1 > b.y1 ? grow : shrink);
   b.px = o.px; b.py = o.py;
-  return { x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2, z: clamp(Math.min(o.vw / (b.x1 - b.x0 + o.px), (o.ah || AH) / (b.y1 - b.y0 + o.py)), o.z0, o.z1) };
+  return { x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2, z: clamp(Math.min(o.vw / (b.x1 - b.x0 + o.px), AH / (b.y1 - b.y0 + o.py)), o.z0, o.z1) };
 }
 // keep the box inside the view: zoom out (and slide) just enough when the easing camera would leave something out
 function camKeep(cam, b, VW, minZ = 0.5) {
-  const mx = b.exact ? b.px : b.px * 0.25, my = b.exact ? b.py : b.py * 0.3, AHv = b.ah || AH, needZ = Math.min(VW / (b.x1 - b.x0 + mx * 2), AHv / (b.y1 - b.y0 + my * 2));
+  const mx = b.px * 0.3, my = b.py * 0.38, needZ = Math.min(VW / (b.x1 - b.x0 + mx * 2), AH / (b.y1 - b.y0 + my * 2));
   if (cam.z > needZ) cam.z = Math.max(needZ, minZ);
-  const hw = VW / (2 * cam.z), hh = AHv / (2 * cam.z);
+  const hw = VW / (2 * cam.z), hh = AH / (2 * cam.z);
   if (b.x1 - b.x0 + mx * 2 <= hw * 2) cam.x = clamp(cam.x, b.x1 + mx - hw, b.x0 - mx + hw);
   if (b.y1 - b.y0 + my * 2 <= hh * 2) cam.y = clamp(cam.y, b.y1 + my - hh, b.y0 - my + hh);
 }
@@ -16477,7 +16472,7 @@ function replayTick(dt) {
   const sub = isFinal ? finSub : subNow(seg, R.cur, 0.15);
   // slower still as the arrow lands and at the knockout itself (eased, so the speed never jumps)
   const base = isFinal ? R.speed : R.early;
-  const near = isFinal ? ((sub.hitT != null && Math.abs(R.cur - sub.hitT) < 0.25) || Math.abs(R.cur - sub.kt) < 0.25) : !R.finalOnly && Math.abs(R.cur - sub.kt) < 0.2; // (final-shot-only: everything before it in real time)
+  const near = isFinal ? ((sub.hitT != null && Math.abs(R.cur - sub.hitT) < 0.25) || Math.abs(R.cur - sub.kt) < 0.25) : Math.abs(R.cur - sub.kt) < 0.2;
   R.rate += ((near ? base * (isFinal ? 0.45 : 0.6) : base) - R.rate) * (1 - Math.exp(-dt * 10));
   if (R.real) R.rate = 1; // (the clip farm's "real time": no slow motion at all)
   else if (R.fixed) R.rate = R.fixed; // (a clip about one archer rather than one knockout: an even slow motion)
@@ -16513,7 +16508,7 @@ function replayTick(dt) {
   else if (!vic && RP.cam) { fx0 = RP.cam.x; fy0 = RP.cam.y; }
   let camK = 0, zIn = 0, zOut = 0;
   if (RP.cut) R.sb = null;
-  if (STUDIO.on && (STUDIO.cur.cam !== 'kc' || R.focus != null) && !(R.finalOnly && isFinal)) { // the clip studio's cameras (the final shot of a final-shot-only replay rides the arrow)
+  if (STUDIO.on && (STUDIO.cur.cam !== 'kc' || R.focus != null)) { // the clip studio's cameras
     const cm = STUDIO.cur.cam, vert = stVert(), VW = vert ? AH * 9 / 16 : AW, box = (pts, px, py, z0, z1) => { if (vert) { z0 = Math.min(z0, 0.6); px *= 0.6; } let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity; for (const [x, y] of pts) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } fx0 = (x0 + x1) / 2; fy0 = (y0 + y1) / 2; zoom = clamp(Math.min(VW / (x1 - x0 + px), AH / (y1 - y0 + py)), z0, z1); };
     const useDir = cm === 'dir' && kil && !(R.focus != null && !(vic && !vic.d && R.cur > now.kt - 2.5 && R.cur < now.kt + 0.8));
     if (cm === 'arena') { fx0 = AW / 2; fy0 = AH / 2; zoom = vert ? 0.56 : 1; }
@@ -16525,50 +16520,46 @@ function replayTick(dt) {
       else if (vic) { fx0 = vic.x; fy0 = vic.y; zoom = zc; }
       camK = 4.5 * (+STUDIO.cur.camSpeed || 1);
     } else {
-      // the action camera: every archer still standing stays in the picture, as close as that allows (up to the chosen
-      // closeness), centred on all of them with a lean toward the playmaker. The frame is worked out from where they are
-      // and where they'll be half a second on (from the recording), and the camera glides to it with weight
-      const sp = +STUDIO.cur.camSpeed || 1, close = +STUDIO.cur.zoomMax || 1.8;
-      // closeness: how tight the frame sits round the archers (and how far in it may go)
-      const m = close >= 2.4 ? 60 : close >= 2 ? 80 : close >= 1.7 ? 115 : 170, zMax = close * (vert ? 1.15 : 1);
-      const barK = STUDIO.cur.bars ? 0.84 : 1; // (the black bars cover the top and bottom 8%)
+      // the action camera: on the playmaker, with everyone they're fighting right now, their arrows in flight and where
+      // they're all about to be in view. As close as fits (up to the chosen closeness), the frame biased toward the
+      // playmaker, widening quickly and tightening slowly so it glides rather than darts
+      const sp = +STUDIO.cur.camSpeed || 1, close = (+STUDIO.cur.zoomMax || 2) * (vert ? 0.85 : 1);
       const pm = R.focus != null ? v.p.find(p => p.id === R.focus) : kil;
-      const cur = [], pts = [], wsum = { x: 0, y: 0, w: 0 };
-      const live = v.p.filter(p => !p.d && !p.f && !p.npc);
-      for (const p of live) { cur.push([p.x, p.y]); pts.push([p.x, p.y]); const w = p === pm ? 2.2 : 1; wsum.x += p.x * w; wsum.y += p.y * w; wsum.w += w; }
-      for (const q of seg.subs) { const p = v.p.find(z => z.id === q.v); if (p && (p.d || p.f) && R.cur <= q.kt + 0.6) { cur.push([p.x, p.y]); pts.push([p.x, p.y]); } } // (whoever's just going down, for a moment)
-      for (const t of [R.cur + 0.25, R.cur + 0.5]) { const f = replayFrameRaw(t); if (f) for (const p of f.p) if (!p.d && !p.f && !p.npc) pts.push([p.x, p.y]); } // (half a second ahead)
-      if (!pts.length) for (const p of v.p) { cur.push([p.x, p.y]); pts.push([p.x, p.y]); }
-      // names and health sit above each archer, so a little more room on top
-      const T = camBox(R, pts, dt * sp, { vw: VW, px: m * 2, py: (m * 2 + 50) / barK, z0: vert ? 0.3 : 1, z1: zMax, ah: AH * barK });
-      let cx = wsum.w ? wsum.x / wsum.w : T.x, cy = wsum.w ? wsum.y / wsum.w : T.y;
-      const b = R.sb, hw = VW / (2 * T.z) - m, hh = AH * barK / (2 * T.z) - m - 25;
-      cx = b.x1 - b.x0 > hw * 2 ? T.x : clamp(cx, b.x1 - hw, b.x0 + hw); cy = b.y1 - b.y0 > hh * 2 ? T.y : clamp(cy, b.y1 - hh, b.y0 + hh) - 12;
-      fx0 = cx; fy0 = cy; zoom = T.z; camK = -1; // (-1: the weighted camera below)
-      // what must be in view this instant (the camera's safety net): where they are now, not where they'll be
-      let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity; for (const [x, y] of cur) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
-      R.keep = cur.length ? { x0, x1, y0: y0 - 45, y1, px: m * 0.55, py: m * 0.55, ah: AH * barK } : null;
+      const inFight = q => R.cur >= subStart(q) - 0.5 && R.cur <= q.kt + 0.9;
+      const ids = new Set([pm && pm.id, ...seg.subs.filter(inFight).map(q => q.v)].filter(x => x != null)); if (!seg.subs.some(inFight)) ids.add(now.v);
+      const pts = [], w2 = [];
+      const add = (x, y, w) => { pts.push([x, y]); w2.push(w || 1); };
+      for (const p of v.p) if (ids.has(p.id) && !p.f && (!p.d || seg.subs.some(q => q.v === p.id && R.cur <= q.kt + 0.9))) add(p.x, p.y, p === pm ? 3 : 1);
+      if (pm) for (const p of v.p) if (!ids.has(p.id) && !p.d && !p.f && Math.hypot(p.x - pm.x, p.y - pm.y) < (vert ? 200 : 260)) add(p.x, p.y, 0.5); // (anyone right on top of the playmaker)
+      for (const a of v.a) if (!a.s && pts.some(([x, y]) => Math.hypot(a.x - x, a.y - y) < 420) && (ids.has(a.o) || (pm && Math.hypot(a.x - pm.x, a.y - pm.y) < 220))) { add(a.x, a.y, 0.3); add(a.x + Math.cos(a.g || 0) * 70, a.y + Math.sin(a.g || 0) * 70, 0); }
+      for (let t = R.cur + 0.3; t <= R.cur + 0.9; t += 0.3) { const f = replayFrameRaw(t); if (f) for (const p of f.p) if (ids.has(p.id) && !p.d && !p.f) add(p.x, p.y, 0); } // (looking ahead)
+      if (!pts.length) for (const p of v.p) if (!p.d) add(p.x, p.y, 1);
+      if (pts.length) {
+        const T = camBox(R, pts, dt * sp, { vw: VW, px: vert ? 170 : 300, py: vert ? (STUDIO.cur.bars ? 420 : 300) : 230, z0: vert ? 0.56 : 1, z1: close });
+        // the frame slides toward the playmaker as far as it can while keeping the box in view
+        let cx = T.x, cy = T.y;
+        if (pm) { const b = R.sb, hw = VW / (2 * T.z) - (vert ? 70 : 110), hh = AH / (2 * T.z) - (vert ? 150 : 90); cx = clamp(lerp(T.x, pm.x, 0.6), b.x1 - hw, b.x0 + hw); cy = clamp(lerp(T.y, pm.y, 0.6), b.y1 - hh, b.y0 + hh); if (b.x1 - b.x0 > hw * 2) cx = T.x; if (b.y1 - b.y0 > hh * 2) cy = T.y; }
+        fx0 = cx; fy0 = cy; zoom = T.z; camK = 2.8 * sp; zIn = 1.2 * sp; zOut = 3.4 * sp;
+        // vertical, with the fight too wide for a phone's frame (a shot across the arena): follow the play itself instead,
+        // a step ahead: toward the target while they draw, ahead of the arrow in flight, then on the target
+        if (vert && R.sb.x1 - R.sb.x0 + 170 > VW / 0.56 && kil) {
+          const tgt = vic && !vic.d ? vic : null;
+          if (tgt && now.shotT != null && R.cur < now.shotT + 0.04) { fx0 = lerp(kil.x, tgt.x, 0.22); fy0 = lerp(kil.y, tgt.y, 0.22); }
+          else if (arrow && !arrow.s && tgt) { fx0 = lerp(arrow.x, tgt.x, 0.45); fy0 = lerp(arrow.y, tgt.y, 0.45); }
+          else if (vic) { fx0 = vic.x; fy0 = vic.y; }
+          else { fx0 = kil.x; fy0 = kil.y; }
+          zoom = Math.min(close, 1.0); R.sb = null; camK = 5 * sp; zIn = 1.2 * sp; zOut = 2.5 * sp;
+        }
+      }
     }
   }
-  if (!RP.cam || RP.cut) { RP.cam = { x: fx0, y: fy0, z: RP.cam && camK !== -1 ? RP.cam.z : zoom }; RP.cut = 0; }
+  if (!RP.cam || RP.cut) { RP.cam = { x: fx0, y: fy0, z: RP.cam && !R.sb ? RP.cam.z : zoom }; RP.cut = 0; }
   // the camera follows smoothly; it chases a fast arrow harder so the arrow never runs off the edge of the view
-  const spd = STUDIO.on ? (+STUDIO.cur.camSpeed || 1) : 1, C = RP.cam;
-  if (camK === -1) {
-    // the action camera has weight: it accelerates toward where it should be and settles without overshooting
-    // (a critically damped spring), so there are no jumps at all; the zoom tightens slowly and widens quicker
-    const wn = 2.6 * spd, dtc = Math.min(dt, 0.05); C.vx = C.vx || 0; C.vy = C.vy || 0;
-    C.vx += ((fx0 - C.x) * wn * wn - 2 * wn * C.vx) * dtc; C.vy += ((fy0 - C.y) * wn * wn - 2 * wn * C.vy) * dtc;
-    C.x += C.vx * dtc; C.y += C.vy * dtc;
-    C.z += (zoom - C.z) * (1 - Math.exp(-dtc * (zoom < C.z ? 4 : 0.9) * spd));
-    if (R.keep) camKeep(C, Object.assign({ exact: 1 }, R.keep), stVert() ? AH * 9 / 16 : AW, stVert() ? 0.3 : 1); // (never let anyone leave the picture)
-  } else {
-    const far = Math.hypot(fx0 - C.x, fy0 - C.y), k = 1 - Math.exp(-dt * (camK || (far > 120 ? 12 : 7) * spd));
-    C.x += (fx0 - C.x) * k; C.y += (fy0 - C.y) * k; C.z += (zoom - C.z) * (1 - Math.exp(-dt * (zIn ? (zoom < C.z ? zOut : zIn) : camK ? 3.5 : 3)));
-    C.vx = C.vy = 0;
-    if (R.sb) camKeep(C, R.sb, stVert() ? AH * 9 / 16 : AW, stVert() ? 0.56 : 1);
-  }
+  const spd = STUDIO.on ? (+STUDIO.cur.camSpeed || 1) : 1, far = Math.hypot(fx0 - RP.cam.x, fy0 - RP.cam.y), k = 1 - Math.exp(-dt * (camK || (far > 120 ? 12 : 7) * spd));
+  RP.cam.x += (fx0 - RP.cam.x) * k; RP.cam.y += (fy0 - RP.cam.y) * k; RP.cam.z += (zoom - RP.cam.z) * (1 - Math.exp(-dt * (zIn ? (zoom < RP.cam.z ? zOut : zIn) : camK ? 3.5 : 3)));
+  if (R.sb) camKeep(RP.cam, R.sb, stVert() ? AH * 9 / 16 : AW, stVert() ? 0.56 : 1); // (the smooth cameras: never let what matters leave the picture)
   // keep the zoomed view inside the arena so we never look past its edge
-  const VW = stVert() ? AH * 9 / 16 : AW, hw = VW / (2 * RP.cam.z), hh = AH * (STUDIO.on && STUDIO.cur.bars ? 0.84 : 1) / (2 * RP.cam.z); // (with the black bars, the view may reach under them past the arena's edge)
+  const VW = stVert() ? AH * 9 / 16 : AW, hw = VW / (2 * RP.cam.z), hh = AH / (2 * RP.cam.z);
   RP.cam.x = hw * 2 >= AW ? AW / 2 : clamp(RP.cam.x, hw, AW - hw); RP.cam.y = hh * 2 >= AH ? AH / 2 : clamp(RP.cam.y, hh, AH - hh);
   return v;
 }
@@ -16799,10 +16790,8 @@ const PR = {
   toggle() { this.on ? this.stop() : this.start(); },
 };
 const fmtClock = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
-let rafQ = false; // (one frame queued at a time, however it was asked for)
-function nextFrame() { if (rafQ) return; rafQ = true; requestAnimationFrame(t => { rafQ = false; frame(t); }); }
 function frame(now) {
-  if (STUDIO.exporting) { last = now; nextFrame(); return; } // (the clip studio is drawing the frames itself)
+  if (STUDIO.exporting) { last = now; requestAnimationFrame(frame); return; } // (the clip studio is drawing the frames itself)
   const frameMs = now - last; PR.begin(now);
   pollPad();
   NET.frame(now - last);
@@ -16867,12 +16856,12 @@ function frame(now) {
   const rv = cbView(replayTick(stHold ? 0 : RP.on && RP.on.real ? Math.min(0.1, frameMs / 1000) : dt)); // (real time stays real even when the frame rate dips)
   // a drawing error must never freeze the game: report it and carry on with the next frame
   try { camUpdate(dt); phoneCamUpdate(dt); } catch (e) { clientError(e, 'camera'); }
-  try { if (document.hidden && FARM.on && !STUDIO.exporting) {} /* (in the background: nothing to draw) */ else if (rv) { const live = view; view = rv; try { render(true); } finally { view = live; } } else if (FARM.on && FARM.hunt && !STUDIO.on) huntDraw(); else render(); }
+  try { if (rv) { const live = view; view = rv; try { render(true); } finally { view = live; } } else if (FARM.on && FARM.hunt && !STUDIO.on) huntDraw(); else render(); }
   catch (e) { clientError(e, 'render'); if (rv) endReplay(); try { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none'; } catch (e2) {} }
   PR.lap('overlay');
   try { updateHud(); qHelp(); linkAutoJoin(); if (TOUCH.on) touchUI(); } catch (e) { clientError(e, 'hud'); }
   PR.lap('hud'); PR.end(frameMs);
-  nextFrame();
+  requestAnimationFrame(frame);
 }
 
 new ResizeObserver(resize).observe(cv);
@@ -16900,7 +16889,7 @@ function farmDefault(team) { // a sensible next pick: the strongest free one for
   return { who: (team === 'red' ? free[0] : free[Math.floor(free.length / 2)]).name, lo: '' };
 }
 function farmRender() {
-  const ELS = Object.keys(ELEMENTS), ROS = Object.keys(ROLES);
+  const ELS = Object.keys(ELEMENTS), ROS = Object.keys(ROLES).filter(r => r !== 'crossbow');
   const loName = l => `${(ELEMENTS[l[0]] || {}).name || l[0]} ${(ROLES[l[1]] || {}).name || l[1]}`;
   for (const t of ['red', 'blue']) {
     const box = $(t === 'red' ? 'farmRed' : 'farmBlue'), rows = FARM.team[t];
@@ -16916,7 +16905,7 @@ function farmRender() {
       const sub = a ? `Ranked AI player · ${(a.cc || '').toUpperCase()} · level ${a.lv} · skill ${Math.round((a.skill || 0) * 100)} · team ${a.eloT}${mains ? ' · favourite roles ' + [...new Set(mains.map(l => (ROLES[l[1]] || {}).name))].join(', ') : ''}` : 'A difficulty bot (no name or look)';
       // the upgrades they'll have: their own picks, or a set list (all of them from the start, and no picks)
       const L = farmLoadout(r), ups = L ? farmCards(L[0], L[1]) : [];
-      const upBtn = `<button type="button" class="ghost sm" data-fupt="${t}|${i}" title="Choose the upgrades they'll have">${r.up && r.up.length ? `Upgrades: ${r.up.length} set` : 'Upgrades: own picks'}</button> <label title="Keep this archetype (and set upgrades) whatever the variety options do, even when the player is swapped"><input type="checkbox" data-flock="${t}|${i}"${r.lock ? ' checked' : ''}> Lock archetype</label>`;
+      const upBtn = `<button type="button" class="ghost sm" data-fupt="${t}|${i}" title="Choose the upgrades they'll have">${r.up && r.up.length ? `Upgrades: ${r.up.length} set` : 'Upgrades: own picks'}</button>`;
       const upPanel = r.upOpen ? `<div class="farmups">${L ? ups.map(id => `<button type="button" class="${(r.up || []).includes(id) ? 'on' : ''}${TREE[id].active ? ' ab' : ''}" data-fup="${t}|${i}|${id}" title="${esc(TREE[id].desc || '')}">${TREE[id].active ? '★ ' : ''}${esc(TREE[id].name)}</button>`).join('') + `<button type="button" data-fupclr="${t}|${i}">Own picks</button>` : '<span class="status">Pick an archetype first (not "Their mains" with several).</span>'}</div>` : '';
       return `<div class="farmrow"><canvas width="60" height="60" data-fav="${t}${i}"></canvas><select data-fwho="${t}|${i}">${who}</select><select data-flo="${t}|${i}">${lo}</select><button type="button" class="ghost sm" data-frm="${t}|${i}" aria-label="Remove">×</button><small>${esc(sub)} · ${upBtn}</small>${upPanel}</div>`;
     }).join('') : '<span class="status">Nobody yet.</span>';
@@ -16927,18 +16916,7 @@ function farmRender() {
 async function openFarm() {
   if (mode !== 'menu') return;
   closeSubs();
-  if (!$('farmMap').options.length) { $('farmMap').innerHTML = '<option value="">Random</option>' + MAP_KEYS.map(k => `<option value="${k}">${esc(MAPS[k].name)}</option>`).join('');
-    const off = new Set(store.get('bowfall-farm-maps', '').split(',').filter(Boolean)); // (arenas left out of the random pick, remembered)
-    $('farmMaps').insertAdjacentHTML('beforeend', MAP_KEYS.filter(k => !MAPS[k].big).map(k => `<label><input type="checkbox" data-fmap="${k}"${off.has(k) ? '' : ' checked'}> ${esc(MAPS[k].name)}</label>`).join(''));
-    $('farmMaps').addEventListener('change', () => store.set('bowfall-farm-maps', [...$('farmMaps').querySelectorAll('[data-fmap]')].filter(c => !c.checked).map(c => c.dataset.fmap).join(','))); }
-  if (!FARM.keepInit) { FARM.keepInit = 1; const kv = store.get('bowfall-farm-keep', ''); if (kv && FARM_KEEP[kv] != null) $('farmKeep').value = kv; $('farmKeep').addEventListener('change', () => store.set('bowfall-farm-keep', $('farmKeep').value)); }
-  if (!$('farmRoles').querySelector('input')) { // (roles and elements left out of the random picks, remembered)
-    const mk = (box, keys, name, key) => { const off = new Set(store.get(key, '').split(',').filter(Boolean)); $(box).insertAdjacentHTML('beforeend', keys.map(k => `<label><input type="checkbox" data-fpick="${k}"${off.has(k) ? '' : ' checked'}> ${esc(name(k))}</label>`).join('')); $(box).addEventListener('change', () => store.set(key, [...$(box).querySelectorAll('[data-fpick]')].filter(c => !c.checked).map(c => c.dataset.fpick).join(','))); };
-    mk('farmRoles', Object.keys(ROLES), k => ROLES[k].name, 'bowfall-farm-roles');
-    mk('farmEls', Object.keys(ELEMENTS), k => ELEMENTS[k].name, 'bowfall-farm-els'); }
-  if (!$('farmLook').querySelector('input')) { const on = new Set(store.get('bowfall-farm-look', '').split(',').filter(Boolean));
-    $('farmLook').insertAdjacentHTML('beforeend', FARM_LOOK.map(([k, l]) => `<label><input type="checkbox" data-flook="${k}"${on.has(k) ? ' checked' : ''}> ${esc(l)}</label>`).join(''));
-    $('farmLook').addEventListener('change', () => store.set('bowfall-farm-look', [...$('farmLook').querySelectorAll('[data-flook]')].filter(c => c.checked).map(c => c.dataset.flook).join(','))); }
+  if (!$('farmMap').options.length) $('farmMap').innerHTML = '<option value="">Random</option>' + MAP_KEYS.map(k => `<option value="${k}">${esc(MAPS[k].name)}</option>`).join('');
   if (!$('farmEffect').options.length) $('farmEffect').innerHTML = '<option value="none">None</option><option value="random">A random one each game</option>' + Object.keys(Sim.MUTATORS).map(k => `<option value="${k}">${esc(Sim.MUTATORS[k].name)}</option>`).join('');
   $('farmScr').hidden = false;
   // the ranked AI players (asked again each time until it works; offline, the copy built into the page)
@@ -16963,24 +16941,21 @@ $('farmScr').addEventListener('click', e => {
   else if (uc) { const [t, i] = uc.dataset.fupclr.split('|'); FARM.team[t][+i].up = []; farmRender(); }
 });
 $('farmScr').addEventListener('change', e => {
-  const w = e.target.dataset.fwho, l = e.target.dataset.flo, lk = e.target.dataset.flock;
-  if (lk) { const [t, i] = lk.split('|'); FARM.team[t][+i].lock = e.target.checked; return; }
+  const w = e.target.dataset.fwho, l = e.target.dataset.flo;
   if (w) { const [t, i] = w.split('|'); FARM.team[t][+i] = { who: e.target.value, lo: '' }; farmRender(); }
   else if (l) { const [t, i] = l.split('|'); FARM.team[t][+i].lo = e.target.value; FARM.team[t][+i].up = []; farmRender(); }
 });
 $('farmGo').onclick = () => {
   if (!FARM.team.red.length || !FARM.team.blue.length) { notice('Put someone on each side.', false); return; }
-  FARM.cfg = { roles: [...$('farmRoles').querySelectorAll('[data-fpick]')].filter(c => c.checked).map(c => c.dataset.fpick), els: [...$('farmEls').querySelectorAll('[data-fpick]')].filter(c => c.checked).map(c => c.dataset.fpick), look: [...$('farmLook').querySelectorAll('[data-flook]')].filter(c => c.checked).map(c => c.dataset.flook), map: $('farmMap').value, maps: [...$('farmMaps').querySelectorAll('[data-fmap]')].filter(c => c.checked).map(c => c.dataset.fmap), pts: +$('farmPts').value, rndWho: $('farmRndWho').value, rndMains: !$('farmRndLo').checked, rndLo: $('farmRndLo').checked, rndSize: $('farmRndSize').checked, every: $('farmEvery').checked, rndUps: $('farmRndUps').checked, effect: $('farmEffect').value || 'none', keep: $('farmKeep').value, red: FARM.team.red.map(x => Object.assign({}, x)), blue: FARM.team.blue.map(x => Object.assign({}, x)), kc: $('farmKc').checked, rec: $('farmRec').checked };
-  if (FARM.camMode == null) { FARM.follow = true; FARM.camMode = 'follow'; } // (the live camera: smooth follow; the bar's Camera button changes it) FARM.hud = $('farmHud').value === '1'; FARM.maxq = $('farmMaxq').checked; FARM.loop = $('farmLoop').checked;
+  FARM.cfg = { map: $('farmMap').value, pts: +$('farmPts').value, rndWho: $('farmRndWho').value, rndMains: !$('farmRndLo').checked, rndLo: $('farmRndLo').checked, rndSize: $('farmRndSize').checked, every: $('farmEvery').checked, rndUps: $('farmRndUps').checked, effect: $('farmEffect').value || 'none', keep: $('farmKeep').value, red: FARM.team.red.map(x => Object.assign({}, x)), blue: FARM.team.blue.map(x => Object.assign({}, x)), kc: $('farmKc').checked, rec: $('farmRec').checked };
+  FARM.follow = $('farmCam').value !== 'arena'; FARM.camMode = $('farmCam').value; FARM.hud = $('farmHud').value === '1'; FARM.maxq = $('farmMaxq').checked; FARM.loop = $('farmLoop').checked;
   FARM.tags = $('farmTags').value; FARM.emp = $('farmEmp').value; FARM.speed = +$('farmSpeed').value || 1; FARM.review = false; FARM.hunt = $('farmHunt').checked; FARM.huntN = 400; FARM.found = 0; FARM.battles = 0;
   $('farmScr').hidden = true; if (document.activeElement) document.activeElement.blur(); farmStart();
 };
 // the variety option: each player swapped for a random ranked AI player (near their rating, high, low or any), playing
 // one of their favourite roles or any archetype; nobody twice in a match
-const farmRoles = C => { const all = Object.keys(ROLES), ok = (C.roles || []).filter(r => all.includes(r)); return ok.length ? ok : all; };
-const farmEls = C => { const all = Object.keys(ELEMENTS), ok = (C.els || []).filter(e => all.includes(e)); return ok.length ? ok : all; };
 function farmRoll(C) {
-  const L = FARM.ai || [], out = { red: [], blue: [] }, ELS = farmEls(C), ROS = farmRoles(C);
+  const L = FARM.ai || [], out = { red: [], blue: [] }, ELS = Object.keys(ELEMENTS), ROS = Object.keys(ROLES).filter(x => x !== 'crossbow');
   const anyLo = () => ELS[Math.floor(Math.random() * ELS.length)] + '|' + ROS[Math.floor(Math.random() * ROS.length)];
   const used = new Set(), byElo = L.slice().sort((x, y) => x.elo - y.elo), third = Math.max(1, Math.round(L.length / 3)), mid = byElo.length ? byElo[byElo.length >> 1].elo : 1000;
   for (const t of ['red', 'blue']) for (const r of C[t]) {
@@ -16989,9 +16964,9 @@ function farmRoll(C) {
       const base = farmAI(r.who) ? farmAI(r.who).elo : mid, m = C.rndWho || 'any';
       let pool = m === 'high' ? byElo.slice(-third) : m === 'low' ? byElo.slice(0, third) : m === 'near' ? L.slice().sort((x, y) => Math.abs(x.elo - base) - Math.abs(y.elo - base)).slice(0, 8) : L;
       pool = pool.filter(a => !used.has(a.name)); if (!pool.length) pool = L.filter(a => !used.has(a.name));
-      if (pool.length) { const a = pool[Math.floor(Math.random() * pool.length)]; used.add(a.name); row = r.lock && r.lo ? { who: a.name, lo: r.lo, up: r.up, lock: 1 } : { who: a.name, lo: '' }; } // (a locked archetype stays with the seat)
+      if (pool.length) { const a = pool[Math.floor(Math.random() * pool.length)]; used.add(a.name); row = { who: a.name, lo: '' }; }
     }
-    if (C.rndLo && !r.lock) row = Object.assign({}, row, { lo: anyLo(), up: [] }); // (any archetype: their set upgrades wouldn't fit it)
+    if (C.rndLo) row = Object.assign({}, row, { lo: anyLo(), up: [] }); // (any archetype: their set upgrades wouldn't fit it)
     out[t].push(row);
   }
   return out;
@@ -17006,8 +16981,8 @@ function farmStart() {
   initAudio();
   // anything still waiting to be saved from the last match is saved now, before its frames are let go
   if (FARM.on && RP.buf.length) while (FARM.pending.length) farmCapture(FARM.pending.shift());
-  const ELS = Object.keys(ELEMENTS), ROS = Object.keys(ROLES), pick = a => a[Math.floor(Math.random() * a.length)];
-  const pool = (C.maps || []).filter(k => MAPS[k] && !MAPS[k].big), map = C.map || pick(pool.length ? pool : MAP_KEYS.filter(k => !MAPS[k].big));
+  const ELS = Object.keys(ELEMENTS), ROS = Object.keys(ROLES).filter(r => r !== 'crossbow'), pick = a => a[Math.floor(Math.random() * a.length)];
+  const map = C.map || pick(MAP_KEYS.filter(k => !MAPS[k].big));
   world = Sim.createWorld({ map, diff: 'normal', opt: { effect: C.effect || 'none' } });
   world.cfg.pointsToWin = C.every ? 1 : C.pts || 3; if (C.every) world.cfg.gamesToWin = 1; // (one battle, then everything changes)
   const rows = farmRoll(C.rndSize ? farmSizes(C) : C);
@@ -17015,14 +16990,13 @@ function farmStart() {
     const bot = Sim.addBot(world, t); if (!bot) continue;
     const a = farmAI(r.who), sk = a ? a.skill : +String(r.who).replace('skill:', '') || 0;
     let lo = r.lo ? r.lo.split('|') : r.up && r.up.length ? farmLoadout(r) : null;
-    const okR = farmRoles(C), okE = farmEls(C), mains = a ? a.loadouts.filter(l => r.lock || (okR.includes(l[1]) && okE.includes(l[0]))) : []; // (their favourites, less any left out)
-    if (!lo && mains.length) { const tot = mains.reduce((s2, l) => s2 + (l[2] || 1), 0); let x = Math.random() * tot; lo = mains[0]; for (const l of mains) { if ((x -= (l[2] || 1)) <= 0) { lo = l; break; } } }
-    if (!lo) lo = [pick(okE), pick(okR)];
+    if (!lo && a && a.loadouts.length) { const tot = a.loadouts.reduce((s2, l) => s2 + (l[2] || 1), 0); let x = Math.random() * tot; lo = a.loadouts[0]; for (const l of a.loadouts) { if ((x -= (l[2] || 1)) <= 0) { lo = l; break; } } }
+    if (!lo) lo = [pick(ELS), pick(ROS)];
     if (a) { bot.name = a.name; Sim.setMeta(world, bot.id, Object.assign({ cc: a.cc, lv: a.lv }, a.look || {})); } else bot.name = `${(FARM_SKILLS.find(s2 => +s2[0] === sk) || [0, 'Bot'])[1]} bot`;
     Sim.setLoadout(world, bot.id, lo[0], lo[1]);
     bot.dparams = Sim.skillParams(sk); bot.diff = sk >= 0.9 ? 'master' : sk >= 0.78 ? 'extreme' : sk >= 0.55 ? 'hard' : sk >= 0.3 ? 'normal' : 'easy';
     let ups = r.up && r.up.length ? r.up.slice() : null;
-    if (C.rndUps && !(r.lock && r.up && r.up.length)) { const cards = farmCards(lo[0], lo[1]), act = cards.filter(id => TREE[id].active), pas = cards.filter(id => !TREE[id].active), n = 3 + Math.floor(Math.random() * 3); ups = [];
+    if (C.rndUps) { const cards = farmCards(lo[0], lo[1]), act = cards.filter(id => TREE[id].active), pas = cards.filter(id => !TREE[id].active), n = 3 + Math.floor(Math.random() * 3); ups = [];
       if (act.length) ups.push(pick(act)); // (one ability, the rest passives)
       while (ups.length < n && pas.length) ups.push(pas.splice(Math.floor(Math.random() * pas.length), 1)[0]); }
     if (ups && ups.length) bot.forceUp = ups; // their upgrades are set: all of them from the start
@@ -17126,7 +17100,7 @@ function killStyle(e, t) {
   // abilities that made it: Bull Rush, a Volley's three arrows, a Rip (more if it took several), a Quake into a hazard, a Pin before the finish
   if (ev('rush', x => x.id === e.k, 1.3)) { tags.push('Bull Rush'); score += 1.5; }
   if (ev('volleyArmed', x => x.id === e.k, 2.6)) { const hits = RP.evs.filter(x => x.e.e === 'hit' && x.e.by === e.k && x.e.id === e.v && t - x.t < 1.2).length; if (hits >= 3) { tags.push('full Volley'); score += 2; } else if (hits >= 2) { tags.push('Volley'); score += 1; } }
-  if (e.how === 'rip' || e.c === 'rip') { const others = RP.evs.filter(x => x.e.e === 'kill' && x.e.k === e.k && x.e.how === 'rip' && x.e.v !== e.v && Math.abs(x.t - t) < 0.1).length; tags.push(others ? `Rip, ${others + 1} at once` : 'Rip'); score += 1 + others * 3.5; }
+  if (e.how === 'rip' || e.c === 'rip') { const others = RP.evs.filter(x => x.e.e === 'kill' && x.e.k === e.k && x.e.how === 'rip' && x.e.v !== e.v && Math.abs(x.t - t) < 0.1).length; tags.push(others ? `Rip, ${others + 1} at once` : 'Rip'); score += 1 + others * 2.5; }
   if (ev('quake', () => true, 1.2) && e.c !== 'arrow' && ev('quake', x => Math.hypot(x.x - e.x, x.y - e.y) < 300, 1.2)) { tags.push('Quake'); score += 1.5; }
   if (ev('pinned', x => x.id === e.v && x.by === e.k, 3) && cc !== 'pn') { tags.push('pinned first'); score += 1; }
   // smashed into the walls: a run of quick hits that threw them into a wall or corner again and again
@@ -17134,26 +17108,7 @@ function killStyle(e, t) {
   if (hits >= 3 && slams >= 2) { tags.push(`${hits} quick hits, ${slams} slams`); score += 2.5 + (hits - 3) * 0.5 + (slams - 2) * 0.5; }
   return { tags, score, cc: !!cc, dashed, hits, slams };
 }
-const FARM_KEEP = { all: 0, good: 3, best: 4.5, s6: 6, s8: 8, s10: 10, s13: 13 };
-// the kinds of play a clip can be, for the farm's "only these plays" filter: [key, label, test on the clip]
-const FARM_LOOK = [
-  ['once', 'Two or more at once (one hit or ability)', it => / at once$/.test(it.title)],
-  ['once3', 'Three or more at once', it => /^(Triple|Quad|Penta|\d+ knockouts).* at once$/.test(it.title)],
-  ['triple', 'Triple kill or more', it => /^(Triple|Quad|Penta|\d+ knockouts)/.test(it.title) || /(Triple|Quad|Penta)/.test(it.line)],
-  ['double', 'Double kill', it => /^Double/.test(it.title)],
-  ['rip', 'Rip knockouts', it => /Rip/.test(it.title + it.line)],
-  ['setup', 'Set-up knockout (held, then dash in)', it => it.title === 'Set-up knockout'],
-  ['dash', 'Dash knockout', it => it.title === 'Dash knockout' || /dash into position/.test(it.line)],
-  ['ability', 'Ability knockout (Rush, Volley, Quake)', it => it.title === 'Ability knockout' || /Bull Rush|Volley|Quake/.test(it.line)],
-  ['held', 'Held knockout (frozen, rooted, pinned)', it => it.title === 'Held knockout' || /(frozen|rooted|pinned|stunned|hooked) target/.test(it.line)],
-  ['bully', 'Bullied out', it => /^Bullied out|^Merciless/.test(it.title)],
-  ['harpoon', 'Harpooned', it => it.title === 'Harpooned'],
-  ['roast', 'Roasted', it => it.title === 'Roasted'],
-  ['snipe', 'Long shot', it => it.title === 'Long shot' || /sniped/.test(it.line)],
-  ['clutch', 'Clutch', it => /^Clutch/.test(it.title)],
-  ['burst', 'Burst', it => it.title === 'Burst'],
-  ['untouch', 'Untouchable', it => it.title === 'Untouchable'],
-];
+const FARM_KEEP = { all: 0, good: 3, best: 4.5 };
 const HAZ_WORD = { pit: 'a hole', water: 'the water', lava: 'the lava', burn: 'the lava', spikes: 'the thorns', saw: 'a saw', wall: 'a wall', crush: 'a wall' };
 function farmCapture(P) {
   const e = P.e, T = P.at, kevs = RP.evs.filter(x => x.e.e === 'kill' && !x.e.npc).map(x => ({ t: x.t, k: x.e.k, v: x.e.v, how: x.e.how, kn: x.e.kn, vn: x.e.vn, c: x.e.c, x: x.e.x, y: x.e.y }));
@@ -17167,7 +17122,7 @@ function farmCapture(P) {
     const subs = ks.map(k => replaySeg(k, false).subs[0]);
     segs = [{ t0: a0, t1: Math.max(b0, ks.length ? ks[ks.length - 1].t + 0.9 : b0), subs: subs.length ? subs : [{ kt: b0 - 0.3, v: null }] }];
     if (e.e === 'burst') { title = 'Burst'; line = `${e.kn} dealt ${e.n} damage in 3 seconds${ks.length ? ` (${ks.length} knockout${ks.length > 1 ? 's' : ''})` : ''}`; score = 3 + (e.n - 130) / 40 + ks.length; }
-    else { title = 'Untouchable'; line = `${e.kn} dodged ${e.n} shots and knocked out ${e.kills}`; score = 1.5 + (e.n - 6) * 0.25 + e.kills * 1.1 + e.dmg / 200; }
+    else { title = 'Untouchable'; line = `${e.kn} dodged ${e.n} shots and knocked out ${e.kills}`; score = 2.5 + (e.n - 6) * 0.4 + e.kills * 1.5 + e.dmg / 120; }
   } else {
     if (e.e === 'moment' && e.m === 'multi') ks = kills.filter(k => k.t >= T - 6);
     else if (e.e === 'moment' && e.m === 'bully') {
@@ -17188,17 +17143,9 @@ function farmCapture(P) {
     line = e.e === 'harpoon' ? `${e.kn} reeled ${e.vn} into ${HAZ_WORD[e.c] || 'trouble'}` : S ? `${e.kn} knocked out ${e.vn}: ${S.tags.join(', ')}` : T2 ? T2.line.replace(/<[^>]+>/g, '') : e.e === 'clutch' ? `${e.n} won a 1v${e.vs}` : `${e.kn} knocked out ${e.vn} to win the game`;
     score = (e.e === 'moment' ? (e.m === 'bully' ? 2 + e.n * 0.5 : momentScore(e)) : e.e === 'clutch' ? 3 + e.vs * 1.5 : e.e === 'harpoon' ? 4.5 : S ? 2 + S.score : 1.5) + extra;
   }
-  // knockouts close together score more the closer they are: several from one hit, one ability or one blast is the best
-  // there is (each extra knockout within a tenth of a second is worth 4, within a second about 2.5, within 4 seconds a little)
-  if (ks.length >= 2 && ks.every(k => k.kn != null || k.how !== 'wall')) {
-    const ts = ks.map(k => k.t).sort((x, y) => x - y); let tight = 0, same = 1, run = 1;
-    for (let i2 = 1; i2 < ts.length; i2++) { const gap = ts[i2] - ts[i2 - 1]; tight += gap < 0.12 ? 4 : gap < 1 ? 2.5 - gap : Math.max(0, 1.2 - gap * 0.3); run = gap < 0.12 ? run + 1 : 1; same = Math.max(same, run); }
-    score += tight;
-    if (same >= 2) { title = `${MULTI_WORD[Math.min(5, same)] || same + ' knockouts'} at once`; line += ` · ${same} in one`; }
-  }
   // any play behind the knockouts counts toward every kind of clip (a game-winning knockout from a dash, a double kill off a Rip)
   let tags = [];
-  if (e.e !== 'style' && e.e !== 'harpoon') { const sc = []; for (const k of ks) { if (k.how === 'wall' && !k.kn) continue; const st = killStyle({ k: k.k, v: k.v, how: k.how, c: k.c, x: k.x || 0, y: k.y || 0 }, k.t); if (st.score > 0) { sc.push(st.score); tags.push(...st.tags); } } if (sc.length) { const mx = Math.max(...sc); score += mx * 0.7 + (sc.reduce((a2, b2) => a2 + b2, 0) - mx) * 0.3; } }
+  if (e.e !== 'style' && e.e !== 'harpoon') for (const k of ks) { if (k.how === 'wall' && !k.kn) continue; const st = killStyle({ k: k.k, v: k.v, how: k.how, c: k.c, x: k.x || 0, y: k.y || 0 }, k.t); if (st.score > 0) { score += st.score * 0.7; tags.push(...st.tags); } }
   if (tags.length) line += ` · ${[...new Set(tags)].join(', ')}`;
   // a little room either side (for moving the start and end in the clip studio)
   const a = segs[0].t0, b = segs[segs.length - 1].t1, frames = RP.buf.filter(f => f.t >= a - 2.6 && f.t <= b + 2.6);
@@ -17207,8 +17154,7 @@ function farmCapture(P) {
   const who = e.e === 'clutch' ? e.n : e.kn, K = e.k != null ? e.k : e.id;
   const c = { map: MAPKEY, me: K, k: K, n: Math.max(1, ks.length), segs, frames, evs };
   const item = { id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title, line, who, score: Math.round(score * 10) / 10, map: MAPKEY, at: Date.now(), match: FARM.match, kt: ks.map(k => +k.t.toFixed(2)), k: K, focus, win: [+a.toFixed(2), +b.toFixed(2)], data: clipPack(c), fresh: 1 };
-  if (item.score < Math.max(FARM_KEEP[(FARM.cfg || {}).keep] || 0, FARM.hunt && !((FARM.cfg || {}).look || []).length ? 6 : 0)) return; // (not good enough to keep; hunting keeps only the very best)
-  const look = (FARM.cfg || {}).look || []; if (look.length) { const all = Object.assign({}, item, { title: item.title + (item.also ? ' ' + item.also.join(' ') : '') }); if (!FARM_LOOK.some(([k, , f]) => look.includes(k) && (f(item) || f(all)))) return; } // (only the plays asked for)
+  if (item.score < Math.max(FARM_KEEP[(FARM.cfg || {}).keep] || 0, FARM.hunt ? 6 : 0)) return; // (not good enough to keep; hunting keeps only the very best)
   FARM.found = (FARM.found || 0) + 1;
   // the same play caught twice (a long shot that also won the game): one clip, the better, noting both
   const dup = FARM.reel.filter(x => x.match === item.match && x.k === item.k && ((focus != null && x.focus === focus && x.win && x.win[0] < item.win[1] - 1 && item.win[0] + 1 < x.win[1]) || (item.kt.length && (x.kt || []).some(t => item.kt.includes(t)))));
@@ -17363,7 +17309,7 @@ function studioRender() {
   const tog = (k, l) => `<button type="button" class="${E[k] ? 'on' : ''}" data-stt="${k}">${l}</button>`;
   $('stEdit').innerHTML = `<h4>${esc(it.title)}</h4><small class="status">${esc(it.line)}</small>
     <div class="row"><span>Frame</span>${seg('frame', [['h', 'Landscape 16:9'], ['v', 'Vertical 9:16 (phones, reels)']])}</div>
-    <div class="row"><span>Replay</span>${seg('style', [['kc', 'Kill cam (slow motion, follows the arrow)'], ['final', 'Real time, then kill cam on the final shot'], ['real', 'Real time']])}</div>
+    <div class="row"><span>Replay</span>${seg('style', [['kc', 'Kill cam (slow motion, follows the arrow)'], ['real', 'Real time']])}</div>
     <div class="row"><span>Camera</span>${seg('cam', [['kc', it.focus != null ? 'On the archer' : 'Kill cam (rides the arrow)'], ['dir', 'Follow the shot (shooter, both, then target)'], ['wide', 'On the action (playmaker)'], ['arena', 'Whole arena']])}</div>
     <div class="row"><span>Camera speed</span>${seg('camSpeed', [[0.5, 'Slow and steady'], [0.75, 'Calm'], [1, 'Normal'], [1.5, 'Quick'], [2.2, 'Snappy']])}</div>
     <div class="row"><span>Closeness</span>${seg('zoomMax', [[1.5, 'Wide'], [1.8, 'Medium'], [2.1, 'Close'], [2.5, 'Very close']])}</div>
@@ -17372,7 +17318,6 @@ function studioRender() {
     <div class="row"><span>End <small class="status">(this clip)</small></span>${seg('trimB', [[-1, '1 s earlier'], [-0.5, '½ s earlier'], [0, 'As saved'], [0.75, '¾ s later'], [1.5, '1½ s later'], [2.5, '2½ s later']])}${it.kt ? '' : '<small class="status">(clips saved before 0.59 have little to spare either side)</small>'}</div>
     <div class="row"><span>Over archers</span>${seg('names', [['all', 'Names and health'], ['bars', 'Health bars'], ['none', 'Nothing']])}</div>
     <div class="row"><span>Show</span><div class="seg">${tog('bars', 'Black bars')}${tog('parts', 'Particles')}${tog('text', 'Floating text')}${tog('shake', 'Screen shake')}${tog('flash', 'Knockout flash')}${tog('emp', 'Empowered glow')}</div></div>
-    <div class="row"><span>Export</span>${seg('both', [['', 'This frame only'], ['1', 'Landscape and vertical (two files)']])}</div>
     <div class="row"><span>Export size</span>${seg('res', E.frame === 'v' ? [['720', '720×1280'], ['1080', '1080×1920'], ['1440', '1440×2560']] : [['720', '720p'], ['1080', '1080p'], ['1440', '1440p']])}</div>
     <div class="btnrow"><button type="button" class="cta sm" id="stExport">Export video</button><button type="button" class="ghost sm" id="stStar">${it.star ? '★ Starred' : '☆ Star'}</button><button type="button" class="ghost sm" id="stReplay">Replay</button><button type="button" class="ghost sm" id="stDel">Delete</button></div>`;
 }
@@ -17386,20 +17331,10 @@ function studioPlay() {
   c.segs = c.segs.map(g => Object.assign({}, g, { subs: g.subs.slice() }));
   c.segs[0].t0 = clamp(c.segs[0].t0 + (+E.trimA || 0), f0, c.segs[0].t1 - 0.5);
   const lg = c.segs[c.segs.length - 1]; lg.t1 = clamp(lg.t1 + (+E.trimB || 0), lg.t0 + 0.5, f1);
-  // the shot after the shot: an arrow the playmaker loosed once the final knockout had landed is left out (it's over)
-  if (it.focus == null) {
-    const kt = lg.subs[lg.subs.length - 1].kt, seen = new Set();
-    for (const f of c.frames) { if (f.t > kt) break; for (const a of f.v.a) seen.add(a.id); }
-    for (const f of c.frames) if (f.t > kt) f.v = Object.assign({}, f.v, { a: f.v.a.filter(a => a.o !== c.k || seen.has(a.id)) });
-    c.evs = c.evs.filter(x => !(x.t > kt && x.e.e === 'fire' && x.e.id === c.k));
-  }
   setArena(c.map); floorKey = null; fx.parts.length = 0; fx.floaters.length = 0; fx.rings.length = 0; myId = null;
   CLIP.playing = { c, studio: true };
   const focus = it.focus != null ? it.focus : null;
-  const finSub = lg.subs[lg.subs.length - 1], hasKill = finSub && finSub.v != null;
-  // real time, then the kill cam only for the final shot (or ability): from just before it's loosed, in slow motion riding it in
-  const finalPlan = () => { const P = replayPlan(c.segs, c.n); return { speed: Math.min(P.speed, 0.5), early: 1, finFrom: Math.max(lg.t0, finSub.castT != null ? finSub.castT - 0.35 : finSub.shotT != null ? finSub.shotT - 0.45 : finSub.hitT != null ? finSub.hitT - 0.6 : finSub.kt - 0.8), finalOnly: true }; };
-  const plan = E.style === 'real' ? { speed: 1, early: 1, finFrom: Infinity, real: true } : E.style === 'final' && hasKill ? finalPlan() : E.style === 'final' ? { speed: 1, early: 1, finFrom: Infinity, real: true } : focus != null ? { speed: 0.55, early: 0.55, finFrom: Infinity, fixed: 0.55 } : replayPlan(c.segs, c.n);
+  const plan = E.style === 'real' ? { speed: 1, early: 1, finFrom: Infinity, real: true } : focus != null ? { speed: 0.55, early: 0.55, finFrom: Infinity, fixed: 0.55 } : replayPlan(c.segs, c.n);
   // (the effects from before the start aren't replayed all at once as it begins)
   let fired = c.evs.findIndex(x => x.t >= c.segs[0].t0); if (fired < 0) fired = c.evs.length;
   RP.on = Object.assign({ wait: -1e9, segs: c.segs, si: 0, cur: c.segs[0].t0, k: c.k, n: c.n, fired, started: false, frames: c.frames, evs: c.evs, mul: +E.speed || 1, focus }, plan);
@@ -17417,13 +17352,6 @@ function studioStar(it) { if (!it) return; it.star = !it.star; farmReelSave(); i
 function studioOnlyStar() { const it = studioItem(); STUDIO.onlyStar = !STUDIO.onlyStar; studioList(); STUDIO.i = Math.max(0, STUDIO.list.indexOf(it)); studioRender(); studioPlay(); }
 $('stPause').onclick = e => { studioPause(); e.currentTarget.blur(); };
 // clear the lot: a second click to be sure (the starred ones can be kept)
-$('stClearUn').onclick = e => {
-  const b = e.currentTarget; b.blur(); const un = FARM.reel.filter(x => !x.star).length; if (!un || STUDIO.exporting || STUDIO.batch) return;
-  if (!STUDIO.clearUnArm) { STUDIO.clearUnArm = 1; b.classList.add('on'); b.textContent = `Delete ${un} unstarred? Click again`; clearTimeout(STUDIO.clearUnT); STUDIO.clearUnT = setTimeout(() => { STUDIO.clearUnArm = 0; b.classList.remove('on'); b.textContent = 'Clear unstarred'; }, 3500); return; }
-  clearTimeout(STUDIO.clearUnT); STUDIO.clearUnArm = 0; b.classList.remove('on'); b.textContent = 'Clear unstarred';
-  const cur = studioItem(); FARM.reel = FARM.reel.filter(x => x.star); farmReelSave(); farmBarSync(); studioList(); STUDIO.i = Math.max(0, STUDIO.list.indexOf(cur)); studioRender(); studioPlay();
-  notice(`Cleared ${un} unstarred clip${un === 1 ? '' : 's'}.`, false);
-};
 $('stClear').onclick = e => {
   const b = e.currentTarget; b.blur(); if (!FARM.reel.length || STUDIO.exporting || STUDIO.batch) return;
   const nS = FARM.reel.filter(x => x.star).length;
@@ -17479,20 +17407,7 @@ function studioKey(e) {
 }
 $('farmStudio').onclick = () => openStudio();
 // ---- export, frame by frame: the replay drawn at exactly 60 frames a second into a WebM file (VP9, or VP8)
-// export the clip: in the frame being viewed, or (if asked) in both landscape and vertical, one file each
 async function studioExport() {
-  if (STUDIO.exporting) return;
-  if (!STUDIO.cur.both) return studioExport1();
-  const keep = STUDIO.cur.frame, had = document.body.classList.contains('stvert');
-  try {
-    for (const fr of ['h', 'v']) {
-      if (STUDIO.stop && fr === 'v') break;
-      STUDIO.cur.frame = fr; document.body.classList.toggle('stvert', fr === 'v'); resize();
-      await studioExport1(fr);
-    }
-  } finally { STUDIO.cur.frame = keep; document.body.classList.toggle('stvert', had); resize(); studioPlay(); }
-}
-async function studioExport1(frame) {
   const it = studioItem(); if (!it || STUDIO.exporting) return;
   if (typeof VideoEncoder === 'undefined' || typeof VideoFrame === 'undefined') { notice('Smooth export needs Chrome, Edge or a recent Firefox. Recording as it plays instead.', false); return studioExportRt(); }
   const E = STUDIO.cur, vert = E.frame === 'v', s0 = +E.res || 1080, w = vert ? s0 : Math.round(s0 * 16 / 9 / 2) * 2, h = vert ? Math.round(s0 * 16 / 9 / 2) * 2 : s0;
@@ -17521,7 +17436,7 @@ async function studioExport1(frame) {
       const live = view; view = rv; try { render(true); } finally { view = live; }
       const vf = new VideoFrame(cv, { timestamp: Math.round(i * 1e6 / 60), duration: Math.round(1e6 / 60) });
       enc.encode(vf, { keyFrame: i % 120 === 0 }); vf.close(); i++;
-      if (enc.encodeQueueSize > 6 || i % 10 === 0) { $('stExpTxt').textContent = `${STUDIO.batch ? `Clip ${STUDIO.batch.i} of ${STUDIO.batch.n} · ` : ''}${vert ? 'Vertical' : 'Landscape'} · frame ${i} · ${(i / 60).toFixed(1)} s of video`; $('stExpBar').style.width = Math.min(100, (R.cur - R.segs[0].t0) / Math.max(0.1, total) * 100) + '%'; await new Promise(r => setTimeout(r, 0)); while (enc.encodeQueueSize > 6) await new Promise(r => setTimeout(r, 4)); }
+      if (enc.encodeQueueSize > 6 || i % 10 === 0) { $('stExpTxt').textContent = `${STUDIO.batch ? `Clip ${STUDIO.batch.i} of ${STUDIO.batch.n} · ` : ''}Frame ${i} · ${(i / 60).toFixed(1)} s of video`; $('stExpBar').style.width = Math.min(100, (R.cur - R.segs[0].t0) / Math.max(0.1, total) * 100) + '%'; await new Promise(r => setTimeout(r, 0)); while (enc.encodeQueueSize > 6) await new Promise(r => setTimeout(r, 4)); }
     }
     AC = keep.AC; RENDER = keep.RENDER; SND_EXPORT = false; TOFF = keep.TOFF; muted = keep.muted;
     await enc.flush(); enc.close();
@@ -17542,7 +17457,7 @@ async function studioExport1(frame) {
       } catch (e) { audio = null; }
     }
     const blob = webmMux(chunks, cfg.codec.startsWith('vp09') ? 'V_VP9' : 'V_VP8', w, h, i / 60, audio);
-    const name = `bowfall-${it.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${(it.who || '').toLowerCase().replace(/[^a-z0-9]+/g, '') || 'clip'}-${it.id.slice(-4)}-${vert ? 'vertical' : 'landscape'}.webm`;
+    const name = `bowfall-${it.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${(it.who || '').toLowerCase().replace(/[^a-z0-9]+/g, '') || 'clip'}-${it.id.slice(-4)}.webm`;
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 10000);
     notice(`Saved ${name} (${(i / 60).toFixed(1)} s, ${w}×${h}, 60 fps${audio ? ', with sound' : ', no sound'})`, false);
   } catch (e) { if (String(e && e.message) !== 'Stopped') notice('Export failed: ' + esc(e && e.message || String(e)), false); try { enc.close(); } catch (e2) {} }
@@ -18025,14 +17940,6 @@ if (params.get('desk') === '1') { if (OFFLINE) setTimeout(openDesk, 300); else {
 buildMapCards();
 buildArchChips();
 syncArch();
-nextFrame();
-// in the background (another tab, or the window minimised) the browser stops drawing frames; the clip farm keeps going on a
-// clock from a worker (which the browser doesn't hold back), playing and saving without drawing anything
-{
-  let wk = null;
-  const bgTick = () => { if (document.hidden && FARM.on && !STUDIO.on) frame(performance.now()); };
-  try { wk = new Worker(URL.createObjectURL(new Blob(['setInterval(() => postMessage(0), 20)'], { type: 'text/javascript' }))); wk.onmessage = bgTick; }
-  catch (e) { setInterval(bgTick, 20); } // (no workers allowed: a plain timer, which the browser may slow down)
-}
+requestAnimationFrame(frame);
 })();
 </script>

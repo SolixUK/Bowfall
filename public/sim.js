@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.64.4';
+const VERSION = '0.61.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1754,7 +1754,7 @@ function howKilled(f, cause) {
   if (a.chain) return 'chain';
   if (a.shur) return 'shuriken';
   if (a.bolt) return 'bolt';
-  if (a.dist >= 600 && !a.bnc) return 'longshot';
+  if (a.dist >= 600) return 'longshot';
   if (a.el) return 'el_' + a.el;
   if (a.crit) return 'crit';
   return 'arrow';
@@ -1781,7 +1781,7 @@ function kill(w, f, cause) {
     const M2 = killer.multi && w.t - killer.multi.t < 4 ? killer.multi : (killer.multi = { n: 0, t: 0 }); M2.n++; M2.t = w.t;
     if (M2.n >= 2) ev(w, { e: 'moment', m: 'multi', k: killer.id, kn: killer.name, v: f.id, vn: f.name, n: M2.n, x: r1(f.x), y: r1(f.y) });
     if ((cause === 'lava' || cause === 'burn') && (f.lavaT || 0) >= 1) ev(w, { e: 'moment', m: 'roast', k: killer.id, kn: killer.name, v: f.id, vn: f.name, s: r1(f.lavaT), x: r1(f.x), y: r1(f.y) });
-    const far = cause === 'arrow' && f.lastArrow && f.lastArrow.dist && !f.lastArrow.bnc ? f.lastArrow.dist / 50 : 0; // (a ricochet or trick shot isn't a long shot: it's luck, not range)
+    const far = cause === 'arrow' && f.lastArrow && f.lastArrow.dist ? f.lastArrow.dist / 50 : 0;
     if (far >= 22) ev(w, { e: 'moment', m: 'snipe', k: killer.id, kn: killer.name, v: f.id, vn: f.name, n: Math.round(far), x: r1(f.x), y: r1(f.y) });
   }
   f.lavaT = 0; f.slams = null; f.hook = null;
@@ -1810,7 +1810,7 @@ function kill(w, f, cause) {
   }
   const how = howKilled(f, cause);
   f.lastHow = how;
-  const dist = cause === 'arrow' && f.lastArrow && f.lastArrow.dist && !f.lastArrow.bnc ? Math.round(f.lastArrow.dist / 50) : 0;
+  const dist = cause === 'arrow' && f.lastArrow && f.lastArrow.dist ? Math.round(f.lastArrow.dist / 50) : 0;
   ev(w, { e: 'kill', k: killer ? killer.id : null, kn: killer ? killer.name : null, kc: killer ? killer.color : null,
     v: f.id, vn: f.name, vc: f.color, vt: f.team, c: cause, how, m: dist, x: r1(f.x), y: r1(f.y), am: gain, ks: killer ? killer.streak + 1 : undefined });
   // streaks: knockouts in a row without being knocked out
@@ -3113,14 +3113,14 @@ function arrowHit(w, a, f) {
   a.crit = !a.boom && off <= f.r * BULLSEYE; // a boomerang's wide blade has no bullseye
   if (a.star) { a.full = a.crit || !!a.fullDraw; a.burst = false; }
   const dmgHit = dmg * (a.crit ? CRIT_MUL : 1) * OPT('dmg');
-  f.lastArrow = { el: a.el, crit: a.crit, bolt: a.bolt, dist: a.dist, shur: a.shur, bnc: a.bnc ? 1 : 0 }; // (bnc: it bounced on the way, so its distance isn't a long shot)
+  f.lastArrow = { el: a.el, crit: a.crit, bolt: a.bolt, dist: a.dist, shur: a.shur };
   // Riot Shield: hits from the front are softened
   const shielded = has(f, 'riot') && headOn(f, a);
   if (shielded) ev(w, { e: 'shield', x: r1(f.x + Math.cos(f.aim) * f.r), y: r1(f.y + Math.sin(f.aim) * f.r) });
   const landed = hurt(w, f, dmgHit * (shielded ? 0.65 : 1), a.vx / v * kf * (shielded ? 0.7 : 1), a.vy / v * kf * (shielded ? 0.7 : 1), 'arrow', a.owner);
   if (!landed) return;
   if (f.stealthT > 0) breakStealth(w, f); // only an arrow hit breaks stealth; burns, poison and blasts don't
-  if (a.own && !a.counted) { a.counted = true; a.own.stats.hits++; if (!a.bnc) a.own.stats.longest = Math.max(a.own.stats.longest, a.dist); }
+  if (a.own && !a.counted) { a.counted = true; a.own.stats.hits++; a.own.stats.longest = Math.max(a.own.stats.longest, a.dist); }
   ev(w, { e: 'hit', x: r1(a.x), y: r1(a.y), cr: a.crit ? 1 : 0, fd: a.full ? 1 : 0, id: f.id, by: a.owner, el: a.el, b: a.bolt ? 1 : 0, ls: range > 0.3 ? 1 : 0 });
   if (a.crit && a.own) a.own.stats.bull = (a.own.stats.bull || 0) + 1;
   if (a.sneak && !f.dead) { a.sneak = false; stun(w, f, 1); ev(w, { e: 'ambushHit', id: f.id, by: a.owner, x: r1(f.x), y: r1(f.y) }); }

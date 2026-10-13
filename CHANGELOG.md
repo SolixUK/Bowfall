@@ -2,57 +2,6 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
-## 0.64.4
-
-- **Ricochets aren't long shots:** an arrow that bounced on its way (Ricochet, Bank Shot, a ricochet power-up or Trick Shot) no longer counts as a long shot: not for the Long shot moment and clip, the "Long shot" knockout label, the longest-shot stat, or the Longshot and Farsight achievements. Its distance was luck, not range.
-
-## 0.64.3
-
-- **Clip farm: Crossbowman** can be picked for a player, is in the random archetypes, and has its own tick box under roles in the random pick (it had been left out of all three).
-
-## 0.64.2
-
-- **Clip farm, "Three or more at once"** in Only these plays: keeps just triple (or bigger) knockouts landed in the same instant, from one hit, ability or blast. "Two or more at once" covers doubles too.
-
-## 0.64.1
-
-- **Clip studio, export both frames:** a new Export setting, "Landscape and vertical (two files)", exports the clip twice, once 16:9 and once 9:16, each with sound. Export all starred honours it too. Every exported file's name now ends in -landscape or -vertical.
-
-## 0.64.0
-
-- **Clip farm:**
-  - **Only these plays:** tick the kinds of play to look for (knockouts at once, triple kill or more, double kill, Rip, set-up, dash, ability, held, bullied out, harpooned, roasted, long shot, clutch, burst, untouchable) and only those are kept, so it can run for hours hunting one kind without filling the studio. Nothing ticked keeps any kind. Remembered.
-  - **Higher score floors:** clips to keep can be score 6, 8, 10 or 13 and up, as well as 3 and 4.5. Remembered.
-  - **Roles and elements in the random pick:** tick boxes to leave roles or elements out of the random archetypes (and out of a player's favourites when they play those). Remembered.
-  - **Runs in the background:** switching tab or minimising no longer pauses it. The browser stops drawing a hidden page, so the farm keeps playing on its own clock without drawing anything (tested: 16× speed carried on at full rate with the page hidden).
-  - **No round and match messages while fast-forwarding or hunting:** the game summary, results screen, countdown, banners and callouts stay hidden (at 1× they show as before).
-- **Clip studio, new replay style: Real time, then kill cam on the final shot.** The clip plays at full speed with your chosen camera, then just before the final shot (or ability) is loosed it eases into slow motion and the camera rides it in to the knockout.
-
-## 0.63.0
-
-- **Clip studio, the action camera:**
-  - **Every archer still standing stays in the picture**, and whoever's just going down, for a moment. The frame is worked out from where they are and where they'll be half a second on, centred on all of them with a lean toward the playmaker.
-  - **Closeness now does what it says:** it sets how tightly the frame sits round the archers (from a roomy margin at Wide to a snug one at Very close) as well as how far in it may go, so closer settings come in noticeably tighter whenever the archers are near each other.
-  - It allows for the black bars (the top and bottom 8%) and for the names and health above each archer, so nobody is hidden under a bar.
-  - **Vertical 9:16 keeps everyone in frame:** it zooms out as far as it needs to rather than switching to following the arrow (which was what made it jump about and lose archers). Tested: no archer out of frame in any clip, and the slow camera moves well under a pixel a frame.
-- **Scoring:**
-  - Knockouts close together score more the closer they are: several from one hit, ability or blast (within a tenth of a second) add 4 for each extra one, within a second about 2.5, a few seconds apart a little. Clips like that are titled as such ("Triple kill at once").
-  - The play behind a multi-kill counts once at full value rather than once per knockout.
-  - **Untouchable** scores lower (a typical one is now about 4 rather than 6).
-
-## 0.62.0
-
-- **Clip farm:**
-  - **Arenas in the random pick:** tick boxes under Arena to leave arenas out of the random choice (remembered).
-  - **Lock archetype** on each player: their element, role and set upgrades stay put whatever the variety options do, even when the player in that seat is swapped.
-  - The live camera option is gone from the setup (the studio has the cameras); the bar's Camera button still switches smooth, tight and arena while it runs.
-  - Kill cams after games are off by default: the best moments are saved to the studio anyway.
-- **Clip studio:**
-  - **The action camera keeps everyone in the fight in the picture**: the playmaker, their victims, anyone close to them and anyone who's shot or been hit in the last moments (an archer idling at the far end of the arena isn't counted, or every clip would be the whole arena). It's centred on all of them with a lean toward the playmaker, as close as fits, looks a second ahead, and now moves with weight (it accelerates and settles, never jumps). Slow and steady is properly slow and steady.
-  - **The shot after the shot is gone:** an arrow the playmaker loosed after the final knockout had landed is left out of the replay.
-  - **Clear unstarred:** deletes every clip that isn't starred (click twice).
-- **Scoring:** knockouts in quick succession score much higher (a double 5, a triple 8, a quad 11), and a Rip that takes several at once scores higher still (three in one Rip is worth about 8 on its own).
-
 ## 0.61.0
 
 - **Clip studio exports have sound:** Export video renders every sound the replay makes at exactly its frame's moment (slowed and lowered in slow motion, as in the game) and puts it in the WebM alongside the smooth 60 fps picture, so there's one export and it's both smooth and heard. The old record-as-it-plays export is gone (it only runs now if the browser can't encode video at all).
