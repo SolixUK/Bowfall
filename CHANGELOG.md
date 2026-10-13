@@ -2,6 +2,127 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.69.2
+
+- **The results screen no longer opens a video player per kill cam.** It used to put a `<video>` for every one of your kill cams on the page at once, each with its own decoder (and with hardware decoding, each on the graphics driver), which a driver can take badly. Each kill cam now shows a still (grabbed as the recording starts) with a play button; a click opens one player, and any other in the list is taken down first. The big hover preview works the same way and releases its decoder when it hides. This has been so since 0.55, so it's in every version that crashed.
+
+## 0.69.1
+
+- **The crash after a match, take two.** It also happens on 0.64.4, which has none of the best-play frames, so 0.68.1's fix was aimed at the wrong thing. Two changes to find and fend it off:
+  - **A trail.** When the results open, and over the next 20 seconds, the page sends the server a short note on what it's holding (memory, canvas size, replay buffer, kill-cam clips and their video, the recorder's state, frames and videos on the page, frame rate). They're listed at `/api/perf` (owner) under `errors` as `mem:results…`, so a crash leaves a record of what was piling up. These notes never show a pop-up or count as errors.
+  - **Kill-cam recording made safe.** Your own kill cams are recorded as video while they play (since 0.55). Encoding a 4K or high-DPI canvas at 60 frames a second is more than many machines manage, and when the encoder falls behind the browser queues raw frames in memory. Recording is now capped at 1080p (a bigger canvas is drawn down each frame), never starts while the game is already struggling, and a watchdog stops it the moment data stops arriving, it runs too long, or the page's memory climbs, then switches recording off for the session (with a quiet note to the server). **Options → Graphics → Record your kill cams as video** turns it off altogether.
+- **Fix: best plays were never caught in online matches.** The check for "am I spectating" read the room's list of spectators, which is a list even when empty, so every online match counted as spectating and no play was ever scored. Best plays now appear after online and ranked matches as intended (and the plays-of-the-week offer works).
+
+## 0.69.0
+
+**AI players with a way of playing of their own.**
+
+- **A playstyle that fits the role, at last.** An AI player's style (marksman, brawler, skirmisher, guardian, stalker) was picked for a role they weren't playing: they got one when they were added to the match, before their real loadout went on, so a sniper could play like a brawler. The style now follows the role they actually pick, or the one on their list (`setBotMind`).
+- **Traits.** Each has its own: **cover ducking** (after a shot, tuck in behind a nearby boulder while the bow is drawn again, then step out on the side they're leaning to and loose), **edge hunting** (work round to the side from which a hit throws you into a hazard, in the planner and the plain brain both), **dash habit** (how freely they dash, bash and close in) and a **charge lean** (quick shots or full draws). Plain bots have none, so practice is unchanged.
+- **Human ability timing.** Gust, Parry, Deflect, Wall and the like used to catch an arrow the instant it was in range, every time. An arrow now has to have been in the air for about the bot's reaction time, each arrow is either noticed or missed (sharper players miss fewer, nobody catches them all), the flick takes a moment and a Gust's aim is a little off.
+- **Temper.** A game lost without a kill, or several lost in a row, gets to the short-fused: they say so, and play wilder (more aggression) until they win one. The calm ones shrug.
+- **Chat rewritten.** Far fewer lines, and plainer ones ("got you!" is gone): most of a game is silence, and "gg" is the one thing everyone types. New moments: a double or triple ("light work", "bots?"), being thrown into walls over and over ("ok stop", or a keyboard mash from the hot-headed), a game lost without a kill, tilt. Each player types their own way: some all lowercase, some with the odd typo, some who add !! when worked up, and those from a country with its own language say the odd word in it ("блин", "jaja", "mdr", "kkkk"), never more than a word or two.
+- **149 AI players (up from 69)** for the Europe server, and `node tools/seed-ai.js --region na` makes a North America list (`AI_PLAYERS=lib/ai-players-na.json` on that server). Most are rated where new players start, so a solo 3v3 at 4am still fills with people of the right rating. Their archetypes follow the unlock ladder: low-rated ones play the starter kits, the premium roles and elements show up among the better players.
+- **They learn.** While the seed simulation runs, each player tries one small change in half their games (a trait, their aggression, a second archetype, a planner weight) and keeps it if it wins more; `tools/balance-report.md` lists what each kept. The same run writes win rates by role, element, combination and upgrade: the cheapest balance check we have.
+- **Owner view:** `/api/aiplayers?html=1` (signed in as the owner) lists every AI player with their rating now against the one they arrived with, ranked matches played here, skill, style, traits and loadouts.
+- **Matchmaking:** real players first, but no pointless waiting. The 20-second wait before AI players fill a match only applies while someone else is online who could still search (on the menu, or in a ranked match that's nearly over); with nobody about, the wait is 5 to 8 seconds.
+- **Bots and boulders.** Two bots either side of a big rock (a player arena with a boulder in the middle) pushed at it, were pushed back by the steering, and stood there facing each other. A goal that points into a boulder now goes round it, on the side the bot is already leaning to, and the planner looks further afield when a boulder blocks the view.
+- **Transfusion** (Blood): a third of your healing flies to your most hurt teammate within 300px, plus anything you'd waste at full health; with nobody hurt in reach it all stays yours. (It only ever sent what you'd have wasted, which at less than full health was nothing.)
+- The clip farm seats the ranked AI players with their traits and style, as in ranked.
+
+## 0.68.1
+
+- **Fix: the crash (and the whole computer slowing down) as a match's results appeared.** A clip's little frame (on the results, or the main menu's best play) is a copy of the game, and that copy was doing everything the real game does: it connected to the server as you, saw your match was still going and rejoined it, then showed its own results with its own clip frames, each another copy that did the same, so copies multiplied until the browser (and the computer) ran out of memory. A copy of the game in a frame now never connects to the server's live side (no friends, presence or rejoining, never joins a game) and never shows best plays of its own; and as a safety net, a frame inside a frame stops at once. Tested: the results open with one frame per clip card and no connection from it.
+- The clip frames draw at standard resolution, and a held freeze frame is only redrawn now and then once the camera has settled (much lighter on the computer).
+
+## 0.68.0
+
+- **Best plays at the end of a match, as freeze frames:** two cards: **Best play of the game** (anyone's, AI players included) and **Your best play** (or one card, "Best play of the game: yours!", when they're the same). Each shows a freeze frame of the moment the final shot lands; hover over it and it grows and plays (real time, then the kill cam on the final shot); click to watch full size. Under each: the score, the play and what made it, and Keep on profile on yours (supporters).
+- **Main menu: Best play of the week**, on the right: the same kind of freeze frame card (hover to grow and play, click to watch full size), with its score, play, player and arena. With nothing this week yet it shows the best play ever, and with nothing at all an invitation to be the first. (The website keeps its plays of the week section.)
+- Your best play is still the one offered for the plays of the week.
+- A clip that isn't yours no longer shows "You" over the archer who made it.
+
+## 0.67.2
+
+- **Fix: the browser running out of memory ("Aw, Snap!") on the main menu.** The plays of the week play inside a small frame that is the game itself, and that copy of the game was loading its own plays-of-the-week frame, which loaded another, and so on, until the browser ran out of memory (it showed once there was a play of the week, so usually on returning to the menu after a match). The card now only loads on the real main menu, never inside a frame (the plays' own frame, the website's backdrop and previews, avatars or replays). Tested: the menu holds at one frame for the plays, and the website at one.
+
+## 0.67.1
+
+- **Clip farm defaults:** one battle per game, players swapped for AI players of a similar rating, any archetype (all roles and elements), random set upgrades, a random map effect each game, Hunt on, keeping clips scoring 4.5 or more; picture as before (scores and names shown, empowerment on, normal speed, no kill cams, maximum quality).
+- **Clip studio defaults:** kill cam, kill cam camera, calm, close, 1×, start and end as saved, names and health, no black bars (particles, text, shake, flash and glow on), this frame only, 1440p. Best plays on the results, profiles and the plays of the week keep their own look (real time, then the kill cam on the final shot).
+
+## 0.67.0
+
+- **Plays of the week, from everyone's online matches:** not just ranked: any online match (ranked or custom) offers its best play when it ends (score 6 or more), checked by the server as before.
+  - **All time too:** the best ten plays ever are kept for good. The main menu's card has Week and All time tabs (a new week with nothing in it yet shows the best ever), and a line on how to get on it.
+  - **On the website:** a "Plays of the week" section on the home page, the three playing one after another in a large frame beside the list (This week / All time). Click one to watch it in the game.
+- **Bullying, reworked:** it's now any run of three or more slams into the walls, each within 1.8 seconds of the last, by one archer or several together. It scores more for more slams, for slams coming faster, for each one into a corner, for each extra archer joining in, and most if it ends in the knockout. Clips are titled Bullied, Cornered (two or more into a corner), Merciless (six or more), Bullied out or Cornered out (ending in the knockout), and the line says who did it, how many slams in how long and how many into a corner. The game reports every slam (the "slam" event) so the client can follow it; the old one-archer-only rule no longer decides the clip.
+
+## 0.66.0
+
+- **Plays of the week on the main menu:** the three best plays from ranked matches this week (Monday to Sunday, UTC), in a small frame on the right that plays them one after another with a caption (rank, score, play, who). Hover over it and it grows to watch; click it, or one in the list, to watch full size.
+  - When a ranked match ends, its best play (score 6 or more) is offered for the week automatically. The server only takes it from someone who has just played a ranked match on that arena, with knockouts in it by the player they were in that match, keeps each player's best three and the week's best 30, and lets last week's go. The owner can take one off (POST /api/weekplay with drop: id).
+- **Best plays are shown your way:** on the results screen, on profiles and in the plays of the week, a best play now plays from 2.5 s before, in real time until the final shot, which the kill cam rides in slow motion, on to ¾ s after, with a calm camera and no black bars.
+- **Clip studio defaults** are the same look: real time then kill cam on the final shot, kill cam camera, slow and steady, close, start 2½ s earlier, end ¾ s later, no black bars, 1440p. (Settings you've already changed are kept.)
+
+## 0.65.0
+
+- **Your best plays, in every match:** the clip farm's eye for a good play now watches your own games too (ranked, online and against bots; not the tutorial, training or spectating). Every play you make is scored as it happens, the same way as in the farm: multi-kills (more the closer together), Rip and other ability knockouts, a held or trapped target, a dash into position, bullying into the walls, roasts, harpoon pulls, long shots, clutches and the rest. If you made one worth showing (score 4.5 or more), the results screen shows your best (up to three), best first, with its score and what made it.
+  - **Watch** plays it on the game's canvas as a kill cam (save it as a video from there), then takes you back to the results.
+  - **Keep on profile:** supporters can keep a best play on their account, alongside their kill cams (it counts toward the same limit). Others see the button and what it's for.
+- The server checks that only supporters (and the owner) keep best plays, and remembers a kept play's score.
+
+## 0.64.4
+
+- **Ricochets aren't long shots:** an arrow that bounced on its way (Ricochet, Bank Shot, a ricochet power-up or Trick Shot) no longer counts as a long shot: not for the Long shot moment and clip, the "Long shot" knockout label, the longest-shot stat, or the Longshot and Farsight achievements. Its distance was luck, not range.
+
+## 0.64.3
+
+- **Clip farm: Crossbowman** can be picked for a player, is in the random archetypes, and has its own tick box under roles in the random pick (it had been left out of all three).
+
+## 0.64.2
+
+- **Clip farm, "Three or more at once"** in Only these plays: keeps just triple (or bigger) knockouts landed in the same instant, from one hit, ability or blast. "Two or more at once" covers doubles too.
+
+## 0.64.1
+
+- **Clip studio, export both frames:** a new Export setting, "Landscape and vertical (two files)", exports the clip twice, once 16:9 and once 9:16, each with sound. Export all starred honours it too. Every exported file's name now ends in -landscape or -vertical.
+
+## 0.64.0
+
+- **Clip farm:**
+  - **Only these plays:** tick the kinds of play to look for (knockouts at once, triple kill or more, double kill, Rip, set-up, dash, ability, held, bullied out, harpooned, roasted, long shot, clutch, burst, untouchable) and only those are kept, so it can run for hours hunting one kind without filling the studio. Nothing ticked keeps any kind. Remembered.
+  - **Higher score floors:** clips to keep can be score 6, 8, 10 or 13 and up, as well as 3 and 4.5. Remembered.
+  - **Roles and elements in the random pick:** tick boxes to leave roles or elements out of the random archetypes (and out of a player's favourites when they play those). Remembered.
+  - **Runs in the background:** switching tab or minimising no longer pauses it. The browser stops drawing a hidden page, so the farm keeps playing on its own clock without drawing anything (tested: 16× speed carried on at full rate with the page hidden).
+  - **No round and match messages while fast-forwarding or hunting:** the game summary, results screen, countdown, banners and callouts stay hidden (at 1× they show as before).
+- **Clip studio, new replay style: Real time, then kill cam on the final shot.** The clip plays at full speed with your chosen camera, then just before the final shot (or ability) is loosed it eases into slow motion and the camera rides it in to the knockout.
+
+## 0.63.0
+
+- **Clip studio, the action camera:**
+  - **Every archer still standing stays in the picture**, and whoever's just going down, for a moment. The frame is worked out from where they are and where they'll be half a second on, centred on all of them with a lean toward the playmaker.
+  - **Closeness now does what it says:** it sets how tightly the frame sits round the archers (from a roomy margin at Wide to a snug one at Very close) as well as how far in it may go, so closer settings come in noticeably tighter whenever the archers are near each other.
+  - It allows for the black bars (the top and bottom 8%) and for the names and health above each archer, so nobody is hidden under a bar.
+  - **Vertical 9:16 keeps everyone in frame:** it zooms out as far as it needs to rather than switching to following the arrow (which was what made it jump about and lose archers). Tested: no archer out of frame in any clip, and the slow camera moves well under a pixel a frame.
+- **Scoring:**
+  - Knockouts close together score more the closer they are: several from one hit, ability or blast (within a tenth of a second) add 4 for each extra one, within a second about 2.5, a few seconds apart a little. Clips like that are titled as such ("Triple kill at once").
+  - The play behind a multi-kill counts once at full value rather than once per knockout.
+  - **Untouchable** scores lower (a typical one is now about 4 rather than 6).
+
+## 0.62.0
+
+- **Clip farm:**
+  - **Arenas in the random pick:** tick boxes under Arena to leave arenas out of the random choice (remembered).
+  - **Lock archetype** on each player: their element, role and set upgrades stay put whatever the variety options do, even when the player in that seat is swapped.
+  - The live camera option is gone from the setup (the studio has the cameras); the bar's Camera button still switches smooth, tight and arena while it runs.
+  - Kill cams after games are off by default: the best moments are saved to the studio anyway.
+- **Clip studio:**
+  - **The action camera keeps everyone in the fight in the picture**: the playmaker, their victims, anyone close to them and anyone who's shot or been hit in the last moments (an archer idling at the far end of the arena isn't counted, or every clip would be the whole arena). It's centred on all of them with a lean toward the playmaker, as close as fits, looks a second ahead, and now moves with weight (it accelerates and settles, never jumps). Slow and steady is properly slow and steady.
+  - **The shot after the shot is gone:** an arrow the playmaker loosed after the final knockout had landed is left out of the replay.
+  - **Clear unstarred:** deletes every clip that isn't starred (click twice).
+- **Scoring:** knockouts in quick succession score much higher (a double 5, a triple 8, a quad 11), and a Rip that takes several at once scores higher still (three in one Rip is worth about 8 on its own).
+
 ## 0.61.0
 
 - **Clip studio exports have sound:** Export video renders every sound the replay makes at exactly its frame's moment (slowed and lowered in slow motion, as in the game) and puts it in the WebM alongside the smooth 60 fps picture, so there's one export and it's both smooth and heard. The old record-as-it-plays export is gone (it only runs now if the browser can't encode video at all).

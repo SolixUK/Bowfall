@@ -11,7 +11,7 @@ try { const m = JSON.parse(fs.readFileSync(path.join(__dirname, 'public/sfx/mix.
 // the ranked AI players' roster, for the clip farm (offline there's no server to ask)
 let aiJs = '';
 try { const { levelOf } = require('./lib/level'); const L = JSON.parse(fs.readFileSync(path.join(__dirname, 'lib/ai-players.json'), 'utf8'));
-  const roster = L.map(a => ({ name: a.name, cc: a.country, lv: levelOf(a.career || {}).lv, elo: Math.round((a.career || {}).elo || 800), eloT: Math.round((a.career || {}).eloT || (a.career || {}).elo || 800), skill: (a.ai || {}).skill, loadouts: (a.ai || {}).loadouts || [], look: { av: (a.ach || {}).avatar || null, bd: (a.ach || {}).border || null, ti: a.title || null } })).sort((x, y) => y.elo - x.elo);
+  const roster = L.map(a => ({ name: a.name, cc: a.country, lv: levelOf(a.career || {}).lv, elo: Math.round((a.career || {}).elo || 800), eloT: Math.round((a.career || {}).eloT || (a.career || {}).elo || 800), skill: (a.ai || {}).skill, style: (a.ai || {}).style || null, aggr: (a.ai || {}).aggr, tr: (a.ai || {}).tr || null, gene: (a.ai || {}).gene || null, loadouts: (a.ai || {}).loadouts || [], look: { av: (a.ach || {}).avatar || null, bd: (a.ach || {}).border || null, ti: a.title || null } })).sort((x, y) => y.elo - x.elo);
   aiJs = ' window.BOWFALL_AI = ' + JSON.stringify(roster).replace(/</g, '\\u003c') + ';'; } catch (e) { console.warn('No AI roster for the clip farm:', e.message); }
 const part = (a, b) => { const i = html.indexOf(a), j = html.indexOf(b); if (i < 0 || j < 0) throw new Error('marker missing: ' + a); return html.slice(i + a.length, j); };
 
