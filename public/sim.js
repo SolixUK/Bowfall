@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.71.1';
+const VERSION = '0.72.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -45,7 +45,7 @@ function buildMapNow(def) {
     haz: both(def.haz, mirrorItem),
     pillars: both(def.pillars, mirrorItem),
     spikes: def.spikes.flatMap(s => [s, mirrorSpike(s)]),
-    cracks: (def.cracks || []).flatMap(c => [c, mirrorItem(c)]),
+    cracks: both(def.cracks || [], mirrorItem),
     saws: (def.saws || []).flatMap(o => [o, Object.assign({}, o, { x0: AW - o.x0, x1: AW - o.x1, y: AH - o.y })]),
     bumpers: both(def.bumpers || [], mirrorItem),
     lights: both(def.lights || [], mirrorItem), // lamps that only light the ground (drawn by the page)
@@ -226,6 +226,29 @@ MAPS.reach = buildMap({
     spikes: [],
     spawns: [{ x: 110, y: 420 }, { x: 110, y: 540 }, { x: 180, y: 480 }, { x: 100, y: 320 }],
     power: [{ x: 750, y: 480 }], amberY: [340, 420],
+  });
+// Tidegate: a harbour where the tide comes in and goes out. Every TIDE.per seconds the flats flood (with CRACK_WARN
+// seconds of warning) and stay under water for a while, leaving the boardwalk, the spawn decks, a sandbar on each side
+// and the central pier; at the height of it the drawbridge lifts and splits the pier in two. Then it drains away again.
+const TIDE = { per: 30, from: 20, to: 28 }, BRIDGE = { per: 30, from: 22, to: 27 };
+const tide = (x, y, w, h, T, extra) => Object.assign({ type: 'pit', water: true, shape: 'rect', x, y, w, h, tide: T || TIDE }, extra || {});
+MAPS.tidegate = buildMap({
+    name: 'Tidegate', theme: 'beach',
+    desc: 'A harbour where the tide comes and goes. Every half minute the flats flood: get to the boardwalk, the pier or a sandbar before the water does. At high tide the drawbridge lifts and splits the pier in two.',
+    haz: [
+      { type: 'pit', water: true, shape: 'circle', x: 120, y: 120, r: 34 },
+      { type: 'tar', shape: 'circle', x: 360, y: 640, r: 42 },
+    ],
+    cracks: [
+      tide(WALL, WALL, 174, 274), tide(200, WALL, 300, 134), tide(200, 160, 100, 220), tide(400, 160, 100, 220), tide(300, 260, 100, 120),
+      tide(WALL, 500, 174, 274), tide(200, 420, 300, 354),
+      tide(500, WALL, 200, 274, null, { centre: true }), tide(500, 500, 200, 274, null, { centre: true }),
+      tide(585, 300, 30, 200, BRIDGE, { centre: true, bridge: true }),
+    ],
+    pillars: [{ x: 540, y: 400, r: 20 }, { x: 350, y: 470, r: 22 }, { x: 250, y: 110, r: 20 }],
+    spikes: [],
+    spawns: [{ x: 110, y: 360 }, { x: 110, y: 440 }, { x: 170, y: 400 }, { x: 60, y: 400 }],
+    power: [{ x: 600, y: 400 }], amberY: [180, 330],
   });
 const CRACK_WARN = 4;
 // custom game options; def is the standard rule
@@ -535,6 +558,11 @@ function updateCracks(w) {
   const el = TIMES.game - w.match.T;
   MAP.cracks.forEach((c, i) => {
     const st = w.cracks[i] || 0;
+    if (c.tide) { // comes and goes: under water from `from` to `to` in every `per` seconds, with a warning first
+      const ph = el % c.tide.per, want = ph >= c.tide.from && ph < c.tide.to ? 2 : ph >= c.tide.from - CRACK_WARN && ph < c.tide.from ? 1 : 0;
+      if (want !== st) { w.cracks[i] = want; ev(w, { e: want === 1 ? 'crackWarn' : want === 2 ? 'crackOpen' : 'crackClose', i }); }
+      return;
+    }
     if (st === 0 && el >= c.at - CRACK_WARN) { w.cracks[i] = 1; ev(w, { e: 'crackWarn', i }); }
     else if (st === 1 && el >= c.at) { w.cracks[i] = 2; ev(w, { e: 'crackOpen', i }); }
   });
@@ -618,12 +646,23 @@ const achBest = (rec, n) => ACH_ORDER.filter(k => ((rec && rec.tier) || {})[k] >
 // a 9-character code (shape, pattern, symbol, letter, then base, trim, pattern, symbol and background colours as hex digits),
 // e.g. 'aabT09c0e'. Drawn as SVG (emblemSvg), so the game, the website and the server all share it.
 const EMB_COLS = ['#ffcf5a', '#ff5a5a', '#ff9a3d', '#ffe66b', '#7dff8a', '#2f8a46', '#3fd0c9', '#5ad1ff', '#3b6cff', '#1f2f6b', '#a46bff', '#ff7ad8', '#f2f2f2', '#8a929e', '#15181d', '#8a5a32'];
-const EMB_SHAPES = { a: ['Shield', 'M12 8H88V44C88 70 70 86 50 95C30 86 12 70 12 44Z'], b: ['Circle', 'M50 8A44 44 0 1 1 49.9 8Z'], c: ['Triangle', 'M50 7L95 90H5Z'],
-  d: ['Diamond', 'M50 4L95 50L50 96L5 50Z'], e: ['Hexagon', 'M50 5L90 27.5V72.5L50 95L10 72.5V27.5Z'], f: ['Square', 'M12 12H88V88H12Z'], g: ['Pennant', 'M14 6H86V93L50 75L14 93Z'] };
-const EMB_PATS = { a: 'Plain', b: 'Diagonal', c: 'Horizontal', d: 'Vertical', e: 'Chevron', f: 'Checks', g: 'Quarters', h: 'Cross', i: 'Halves', j: 'Dots' };
-const EMB_SYMS = { a: 'None', b: 'Letter', c: 'Star', d: 'Arrow', e: 'Crossed arrows', f: 'Flame', g: 'Crown', h: 'Moon', i: 'Bolt', j: 'Target' };
-const EMB_RE = /^[a-g][a-j][a-j][A-Z0-9][0-9a-f]{5}$/;
-const emblemOk = c => typeof c === 'string' && EMB_RE.test(c);
+// shapes: name, outline, and where a symbol sits on it (centre y, scale), so it looks centred on that shape
+const EMB_SHAPES = { a: ['Shield', 'M12 8H88V44C88 70 70 86 50 95C30 86 12 70 12 44Z', 47, 0.9], b: ['Circle', 'M50 8A44 44 0 1 1 49.9 8Z', 51, 1], c: ['Triangle', 'M50 7L95 90H5Z', 63, 0.62],
+  d: ['Diamond', 'M50 4L95 50L50 96L5 50Z', 50, 0.8], e: ['Hexagon', 'M50 5L90 27.5V72.5L50 95L10 72.5V27.5Z', 50, 0.92], f: ['Square', 'M12 12H88V88H12Z', 50, 1], g: ['Pennant', 'M14 6H86V93L50 75L14 93Z', 42, 0.84],
+  h: ['Octagon', 'M33 6H67L94 33V67L67 94H33L6 67V33Z', 50, 1], i: ['Kite', 'M50 4L86 32L50 96L14 32Z', 40, 0.72], j: ['Arch', 'M14 44A36 36 0 0 1 86 44V93H14Z', 58, 0.92],
+  k: ['Heater', 'M10 9H90C90 48 76 78 50 95C24 78 10 48 10 9Z', 44, 0.9] };
+const EMB_PATS = { a: 'Plain', b: 'Diagonal', c: 'Horizontal', d: 'Vertical', e: 'Chevron', f: 'Checks', g: 'Quarters', h: 'Cross', i: 'Halves', j: 'Dots',
+  k: 'Saltire', l: 'Border', m: 'Waves', n: 'Rays', o: 'Zigzag', p: 'Pale', q: 'Bend', r: 'Stars' };
+const EMB_SYMS = { a: 'None', b: 'Letter', c: 'Star', d: 'Arrow', e: 'Crossed arrows', f: 'Flame', g: 'Crown', h: 'Moon', i: 'Bolt', j: 'Target',
+  k: 'Heart', l: 'Skull', m: 'Sword', n: 'Paw', o: 'Leaf', p: 'Snowflake', q: 'Sun', r: 'Wave', s: 'Mountain', t: 'Anchor', u: 'Eye', v: 'Wings', w: 'Bow', x: 'Gem', y: 'Axe', z: 'Tree' };
+// two forms of code: the first, colours from EMB_COLS as single hex digits ('aabT09c0e', 9 characters); the second, any
+// colours, each as six hex digits ('aabT' + base, trim, pattern, symbol: 28 characters)
+const EMB_RE = /^([a-z])([a-z])([a-z])[A-Z0-9](?:[0-9a-f]{5}|[0-9a-f]{24})$/;
+const emblemOk = c => { if (typeof c !== 'string') return false; const m = EMB_RE.exec(c); return !!(m && EMB_SHAPES[m[1]] && EMB_PATS[m[2]] && EMB_SYMS[m[3]]); };
+// a code's colour k (0 base, 1 trim, 2 pattern, 3 symbol) as #rrggbb, whichever form it's in
+const emblemCol = (code, k) => code.length === 28 ? '#' + code.slice(4 + k * 6, 10 + k * 6) : EMB_COLS[parseInt(code[4 + k], 16)];
+// any code in the second form (so colours can be anything)
+const emblemFull = code => code.slice(0, 4) + [0, 1, 2, 3].map(k => emblemCol(code, k).slice(1)).join('');
 // a starting emblem for a clan: a shield with its tag's first letter, in colours that suit the tag colour
 function emblemDefault(tag, col) {
   const L = (String(tag || 'A').toUpperCase().match(/[A-Z0-9]/) || ['A'])[0];
@@ -635,8 +674,8 @@ function emblemDefault(tag, col) {
 let embN = 0;
 function emblemSvg(code, size) {
   if (!emblemOk(code)) return '';
-  const [sh, pt, sy, L] = code, col = k => EMB_COLS[parseInt(code[4 + k], 16)], base = col(0), trim = col(1), pc = col(2), cc = col(3), bg = col(4);
-  const id = 'emb' + (++embN), path = EMB_SHAPES[sh][1];
+  const [sh, pt, sy, L] = code, col = k => emblemCol(code, k), base = col(0), trim = col(1), pc = col(2), cc = col(3);
+  const id = 'emb' + (++embN), S = EMB_SHAPES[sh], path = S[1];
   const pats = {
     a: '', b: [-60, -30, 0, 30, 60, 90].map(x => `<path d="M${x} 100L${x + 100} 0" stroke="${pc}" stroke-width="10"/>`).join(''),
     c: [22, 42, 62, 82].map(y => `<rect x="0" y="${y}" width="100" height="10" fill="${pc}"/>`).join(''),
@@ -647,22 +686,50 @@ function emblemSvg(code, size) {
     h: `<rect x="40" y="0" width="20" height="100" fill="${pc}"/><rect x="0" y="40" width="100" height="20" fill="${pc}"/>`,
     i: `<path d="M0 0H100L0 100Z" fill="${pc}"/>`,
     j: [20, 40, 60, 80].map(y => [20, 40, 60, 80].map(x => `<circle cx="${x + (y % 40 ? 10 : 0)}" cy="${y}" r="5" fill="${pc}"/>`).join('')).join(''),
+    k: `<path d="M0 0L100 100M100 0L0 100" stroke="${pc}" stroke-width="18"/>`,
+    l: `<path d="${path}" fill="none" stroke="${pc}" stroke-width="22"/>`,
+    m: [24, 46, 68, 90].map(y => `<path d="M-5 ${y}Q7.5 ${y - 9} 20 ${y}T45 ${y}T70 ${y}T95 ${y}T120 ${y}" fill="none" stroke="${pc}" stroke-width="7"/>`).join(''),
+    n: Array.from({ length: 8 }, (_, k) => { const a = k / 8 * Math.PI * 2, b = a + Math.PI / 8, cy = S[2]; return `<path d="M50 ${cy}L${(50 + Math.cos(a) * 120).toFixed(1)} ${(cy + Math.sin(a) * 120).toFixed(1)}L${(50 + Math.cos(b) * 120).toFixed(1)} ${(cy + Math.sin(b) * 120).toFixed(1)}Z" fill="${pc}"/>`; }).join(''),
+    o: [30, 62].map(y => `<path d="M-10 ${y + 12}L5 ${y}L20 ${y + 12}L35 ${y}L50 ${y + 12}L65 ${y}L80 ${y + 12}L95 ${y}L110 ${y + 12}" fill="none" stroke="${pc}" stroke-width="9" stroke-linejoin="miter"/>`).join(''),
+    p: `<rect x="34" y="0" width="32" height="100" fill="${pc}"/>`,
+    q: `<path d="M-10 18L18 -10L110 82L82 110Z" fill="${pc}"/>`,
+    r: [[22, 24], [76, 22], [30, 74], [72, 76], [50, 14], [14, 50], [86, 50]].map(([x, y]) => { let d = ''; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 2.6 : 6.5; d += (i ? 'L' : 'M') + (x + Math.cos(a) * r).toFixed(1) + ' ' + (y + Math.sin(a) * r).toFixed(1); } return `<path d="${d}Z" fill="${pc}"/>`; }).join(''),
   }[pt];
-  const ink = 'stroke="rgba(0,0,0,.45)" stroke-width="2.5" stroke-linejoin="round"';
+  const ink = 'stroke="rgba(0,0,0,.45)" stroke-width="2.5" stroke-linejoin="round"', hole = 'fill="rgba(0,0,0,.55)"';
+  const line = (d, w) => `<path d="${d}" fill="none" stroke="rgba(0,0,0,.45)" stroke-width="${w + 5}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${cc}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
   const star = n => { let d = ''; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? n * 0.42 : n; d += (i ? 'L' : 'M') + (50 + Math.cos(a) * r).toFixed(1) + ' ' + (52 + Math.sin(a) * r).toFixed(1); } return d + 'Z'; };
   const arrow = rot => `<g transform="rotate(${rot} 50 52)"><rect x="47" y="30" width="6" height="42" fill="${cc}" ${ink}/><path d="M50 14L62 34H38Z" fill="${cc}" ${ink}/><path d="M50 70L60 82V90L50 80L40 90V82Z" fill="${cc}" ${ink}/></g>`;
+  const sun = () => { let r = ''; for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2, b = 0.22; r += `<path d="M${(50 + Math.cos(a - b) * 17).toFixed(1)} ${(52 + Math.sin(a - b) * 17).toFixed(1)}L${(50 + Math.cos(a) * 29).toFixed(1)} ${(52 + Math.sin(a) * 29).toFixed(1)}L${(50 + Math.cos(a + b) * 17).toFixed(1)} ${(52 + Math.sin(a + b) * 17).toFixed(1)}Z" fill="${cc}" ${ink}/>`; } return r + `<circle cx="50" cy="52" r="13" fill="${cc}" ${ink}/>`; };
+  const flake = () => { let d = ''; for (let k = 0; k < 3; k++) { const a = k * Math.PI / 3 + Math.PI / 2; for (const sgn of [1, -1]) { const ex = 50 + Math.cos(a) * 27 * sgn, ey = 52 + Math.sin(a) * 27 * sgn, mx = 50 + Math.cos(a) * 17 * sgn, my = 52 + Math.sin(a) * 17 * sgn;
+    d += `M50 52L${ex.toFixed(1)} ${ey.toFixed(1)}M${mx.toFixed(1)} ${my.toFixed(1)}L${(mx + Math.cos(a + 0.7 * sgn) * 8 * sgn).toFixed(1)} ${(my + Math.sin(a + 0.7 * sgn) * 8 * sgn).toFixed(1)}M${mx.toFixed(1)} ${my.toFixed(1)}L${(mx + Math.cos(a - 0.7 * sgn) * 8 * sgn).toFixed(1)} ${(my + Math.sin(a - 0.7 * sgn) * 8 * sgn).toFixed(1)}`; } } return line(d, 4.5); };
   const syms = {
     a: '', b: `<text x="50" y="53" text-anchor="middle" dominant-baseline="central" font-family="Rajdhani, 'Arial Narrow', sans-serif" font-weight="700" font-size="54" fill="${cc}" stroke="rgba(0,0,0,.45)" stroke-width="2.5" paint-order="stroke">${L}</text>`,
     c: `<path d="${star(26)}" fill="${cc}" ${ink}/>`, d: arrow(0), e: arrow(-40) + arrow(40),
     f: `<path d="M50 20C58 34 70 42 68 60C67 74 58 82 50 82C40 82 31 74 32 61C33 50 41 46 42 36C47 42 47 48 50 50C54 42 54 32 50 20Z" fill="${cc}" ${ink}/>`,
-    g: `<path d="M26 70L22 34L38 48L50 26L62 48L78 34L74 70Z" fill="${cc}" ${ink}/><rect x="26" y="70" width="48" height="8" fill="${cc}" ${ink}/>`,
-    h: `<path d="M60 24A30 30 0 1 0 60 80A24 24 0 1 1 60 24Z" fill="${cc}" ${ink}/>`,
-    i: `<path d="M56 18L32 56H48L42 86L68 46H52Z" fill="${cc}" ${ink}/>`,
+    g: `<path d="M26 66L22 30L38 44L50 22L62 44L78 30L74 66Z" fill="${cc}" ${ink}/><rect x="26" y="70" width="48" height="9" fill="${cc}" ${ink}/>`,
+    h: `<path d="M58 23A30 30 0 1 0 58 81A23 23 0 1 1 58 23Z" fill="${cc}" ${ink}/>`,
+    i: `<path d="M56 20L32 56H48L42 84L68 46H52Z" fill="${cc}" ${ink}/>`,
     j: `<circle cx="50" cy="52" r="26" fill="none" stroke="${cc}" stroke-width="7"/><circle cx="50" cy="52" r="13" fill="none" stroke="${cc}" stroke-width="7"/><circle cx="50" cy="52" r="4" fill="${cc}"/>`,
+    k: `<path d="M50 79C22 61 22 36 37 33C44 32 48 37 50 41C52 37 56 32 63 33C78 36 78 61 50 79Z" fill="${cc}" ${ink}/>`,
+    l: `<path d="M50 24C33 24 25 36 25 49C25 58 30 63 35 65V77H65V65C70 63 75 58 75 49C75 36 67 24 50 24Z" fill="${cc}" ${ink}/><ellipse cx="40" cy="50" rx="7" ry="8" ${hole}/><ellipse cx="60" cy="50" rx="7" ry="8" ${hole}/><path d="M50 58L46 65H54Z" ${hole}/><path d="M42 70V77M50 70V77M58 70V77" stroke="rgba(0,0,0,.55)" stroke-width="2.5"/>`,
+    m: `<path d="M50 14L56 24V64H44V24Z" fill="${cc}" ${ink}/><rect x="32" y="64" width="36" height="7" rx="2" fill="${cc}" ${ink}/><rect x="46" y="71" width="8" height="13" fill="${cc}" ${ink}/><circle cx="50" cy="88" r="5" fill="${cc}" ${ink}/>`,
+    n: `<ellipse cx="50" cy="64" rx="15" ry="12" fill="${cc}" ${ink}/><ellipse cx="32" cy="48" rx="6" ry="7.5" fill="${cc}" ${ink}/><ellipse cx="43" cy="36" rx="6" ry="7.5" fill="${cc}" ${ink}/><ellipse cx="57" cy="36" rx="6" ry="7.5" fill="${cc}" ${ink}/><ellipse cx="68" cy="48" rx="6" ry="7.5" fill="${cc}" ${ink}/>`,
+    o: `<path d="M50 22C72 32 76 60 50 82C24 60 28 32 50 22Z" fill="${cc}" ${ink}/><path d="M50 30V78M50 50L40 42M50 60L60 52" stroke="rgba(0,0,0,.45)" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
+    p: flake(), q: sun(),
+    r: line('M24 44Q31 36 38 44T52 44T66 44T80 44', 6) + line('M24 60Q31 52 38 60T52 60T66 60T80 60', 6),
+    s: `<path d="M20 76L41 38L52 54L61 42L80 76Z" fill="${cc}" ${ink}/><path d="M41 38L35 49L41 46L47 50Z" fill="rgba(255,255,255,.75)"/>`,
+    t: line('M50 32V80M38 42H62M28 62Q30 80 50 80Q70 80 72 62', 6) + `<circle cx="50" cy="26" r="6" fill="none" stroke="${cc}" stroke-width="5"/>`,
+    u: `<path d="M22 52Q50 24 78 52Q50 80 22 52Z" fill="${cc}" ${ink}/><circle cx="50" cy="52" r="10" ${hole}/><circle cx="50" cy="52" r="4" fill="${cc}"/>`,
+    v: `<path d="M47 70C40 46 26 34 11 35C17 41 19 45 21 49C15 50 12 55 12 61C17 60 21 61 24 63C20 65 18 68 18 72C29 69 38 69 47 74Z" fill="${cc}" ${ink}/><path d="M53 70C60 46 74 34 89 35C83 41 81 45 79 49C85 50 88 55 88 61C83 60 79 61 76 63C80 65 82 68 82 72C71 69 62 69 53 74Z" fill="${cc}" ${ink}/>`,
+    w: line('M40 22Q68 52 40 82', 6) + `<path d="M40 22V82" stroke="${cc}" stroke-width="2"/>` + line('M28 52H70', 4) + `<path d="M76 52L66 46V58Z" fill="${cc}" ${ink}/>`,
+    x: `<path d="M36 32H64L76 46L50 80L24 46Z" fill="${cc}" ${ink}/><path d="M24 46H76M36 32L44 46L50 80L56 46L64 32" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="2"/>`,
+    y: `<rect x="46.5" y="22" width="7" height="64" rx="2" fill="${cc}" ${ink}/><path d="M54 30C68 24 80 34 79 52C72 46 63 46 54 50Z" fill="${cc}" ${ink}/><path d="M46 30C32 24 20 34 21 52C28 46 37 46 46 50Z" fill="${cc}" ${ink}/>`,
+    z: `<path d="M50 20L65 42H58L72 62H28L42 42H35Z" fill="${cc}" ${ink}/><rect x="46" y="62" width="8" height="15" fill="${cc}" ${ink}/>`,
   }[sy];
-  // the backing colour (the 9th character) is kept in the code but no longer drawn: emblems sit on a transparent background
+  // the symbol sits at the shape's own centre, sized to it (a triangle's is low and smaller, a pennant's high)
+  const place = `translate(50 ${S[2]}) scale(${S[3]}) translate(-50 -52)`;
   return `<svg class="emblem" viewBox="0 0 100 100" width="${size || 24}" height="${size || 24}" aria-hidden="true">` +
-    `<defs><clipPath id="${id}"><path d="${path}"/></clipPath></defs><path d="${path}" fill="${base}"/><g clip-path="url(#${id})">${pats}</g>${syms}` +
+    `<defs><clipPath id="${id}"><path d="${path}"/></clipPath></defs><path d="${path}" fill="${base}"/><g clip-path="url(#${id})">${pats}</g><g transform="${place}">${syms}</g>` +
     `<path d="${path}" fill="none" stroke="${trim}" stroke-width="6" stroke-linejoin="round"/></svg>`;
 }
 // Banner backgrounds and frames are earned by particular feats, not by playing a lot: each one says something about how
@@ -5005,7 +5072,7 @@ return {
   AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
-  EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg,
+  EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg, emblemCol, emblemFull,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, BANNER_FRAME, frameAllowed, featProgress, achSeed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
   _grant(w, id, cards) { const p = w.players.find(q => q.id === id); for (const c of cards) takeCard(w, p, c); applyStats(p); p.picked = false; return p; },

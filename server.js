@@ -518,13 +518,18 @@ async function api(req, res, url) {
     if (!A.validName(name)) return json(res, 400, { error: 'Names are 3 to 16 letters, numbers, _ or -.' });
     if (!A.validPassword(body.password)) return json(res, 400, { error: 'Passwords need at least 6 characters.' });
     const email = String(body.email || '').trim();
-    if (!MAIL.validEmail(email)) return json(res, 400, { error: 'Enter your email address. It is only used to reset your password.' });
-    if (await userWithEmail(email)) return json(res, 409, { error: 'That email already has an account. Sign in, or reset your password.' });
-    const u = await store.createUser(name, A.hashPassword(body.password), name.toLowerCase() === OWNER);
+    // a test account, for trying the game as a brand-new player: the owner's secret code (TEST_SIGNUP_CODE, set on the
+    // server) typed as the email, as CODE@test. No email is kept, nothing from this browser's guest is carried over,
+    // and the page clears what this browser remembers, so it starts exactly as a newcomer's would.
+    const TCODE = process.env.TEST_SIGNUP_CODE, isTest = !!(TCODE && TCODE.length >= 6 && email.toLowerCase() === (TCODE + '@test').toLowerCase());
+    if (!isTest && !MAIL.validEmail(email)) return json(res, 400, { error: 'Enter your email address. It is only used to reset your password.' });
+    if (!isTest && await userWithEmail(email)) return json(res, 409, { error: 'That email already has an account. Sign in, or reset your password.' });
+    const u = await store.createUser(name, A.hashPassword(body.password), !isTest && name.toLowerCase() === OWNER);
     if (!u) return json(res, 409, { error: 'That name is taken.' });
-    u.social = Object.assign(u.social || {}, { email });
-    await noteReferral(u, req, body);
+    u.social = Object.assign(u.social || {}, isTest ? { test: Date.now() } : { email });
+    if (!isTest) await noteReferral(u, req, body);
     await store.saveUser(u);
+    if (isTest) { const r = await login(req, res, u, [clearCookie('bf_ref', req)], null); return r; }
     return login(req, res, u, [clearCookie('bf_ref', req)], await adoptGuest(u, body.guest));
   }
   // forgotten password: email a one-use link that lasts an hour (the reply is the same whether or not the account exists)
@@ -1091,7 +1096,7 @@ function securityMail(req, u, subject, line, to) {
 }
 async function login(req, res, u, extraCookies = [], moved = null) {
   const ck = await sessionFor(req, u), t = track(u);
-  return json(res, 200, { user: Object.assign(publicUser(t), { ach: t.ach || {} }), guestMoved: moved }, { 'Set-Cookie': [ck].concat(extraCookies) });
+  return json(res, 200, { user: Object.assign(publicUser(t), { ach: t.ach || {} }), guestMoved: moved, test: u.social && u.social.test && Date.now() - u.social.test < 60000 ? 1 : undefined }, { 'Set-Cookie': [ck].concat(extraCookies) });
 }
 const secure = req => (req.headers['x-forwarded-proto'] || '').includes('https');
 const tempCookie = (name, value, req, minutes) => `${name}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${minutes * 60}${secure(req) ? '; Secure' : ''}`;

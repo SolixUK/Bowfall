@@ -52,6 +52,7 @@ Every arena is point-symmetric: each map defines one half, and the other half is
 | Sideline Sawmill | One huge boulder in the middle to fight round, and saw blades racing along both sidelines: get knocked wide and you meet a blade. A mill pond and a mud patch on each side. |
 | Harvest Field | A farm field at harvest time. Round hay bales give cover in lanes, an old well on each side and the duck ponds are deep, and the mud in the middle slows you right down. |
 | Highland Reach | At dusk, lit by campfires and lanterns. Cover sits by the outer walls, leaving the middle open for long shots. Bigger than the others (1500 × 960) and built for long shots: a canyon splits the middle, crossed only in the centre, with drops along the top and bottom edges and a pool in front of each side's crossing. |
+| Tidegate | A harbour mouth on a 30-second tide. At low tide it is all open sand; then the water comes in (4 seconds of warning) and for 8 seconds everything but the wooden decks is under water: the spawn decks, the boardwalk, the sandbars and the pier in the middle. The pier's drawbridge lifts for 5 of those seconds, splitting it in two. Then the tide goes out again. |
 
 Mushroom Grove, Portal Ruins and Frozen Lake are out of the rotation for now (`retired` in `public/sim.js`); player-made arenas can still use their looks and gates.
 

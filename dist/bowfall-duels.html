@@ -377,6 +377,11 @@
   .embed .ech button { padding: 2px; border: 2px solid transparent; background: rgba(255,255,255,.04); cursor: pointer; line-height: 0; }
   .embed .ech button.sel { border-color: var(--gold); }
   .embed .ech button .emblem { width: 28px; height: 28px; }
+  .embed .ecols { display: flex; flex-wrap: wrap; gap: 6px; } .embed .ecols button { display: flex; align-items: center; gap: 6px; padding: 4px 9px 4px 4px; background: rgba(255,255,255,.04); border: 2px solid transparent; color: var(--text); font: 600 12px 'Titillium Web', sans-serif; cursor: pointer; }
+  .embed .ecols button.sel { border-color: var(--gold); } .embed .ecols i { width: 18px; height: 18px; background: var(--c); box-shadow: inset 0 0 0 1px rgba(0,0,0,.4); }
+  .embed .epick { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; } .embed .epick .esw { max-width: 190px; }
+  .embed .hsv { display: flex; flex-direction: column; gap: 6px; } .embed .hsv canvas { display: block; cursor: crosshair; border: 1px solid var(--line); touch-action: none; }
+  .embed .hexin { display: flex; align-items: center; gap: 2px; font: 600 13px monospace; color: var(--muted); } .embed .hexin input { width: 78px; font: 600 13px monospace; padding: 3px 5px; }
   .embed .esw button { width: 20px; height: 20px; padding: 0; border: 2px solid transparent; background: var(--c); cursor: pointer; }
   .embed .esw button.sel { border-color: #fff; box-shadow: 0 0 0 1px #111 inset; }
   .embed input.eltr { width: 46px; text-transform: uppercase; text-align: center; font: 700 16px 'Rajdhani', sans-serif; }
@@ -725,7 +730,8 @@
   .hometop { --rcw: 300px; } .hometop > .toprow, .hometop > .frpanel, .hometop > .weekplays { width: var(--rcw); box-sizing: border-box; }
   .hometop > .toprow { align-items: stretch; } .hometop .profchip, .hometop .clanchip { width: 100%; box-sizing: border-box; }
   .profchip .pcn.plate { flex: 1; min-width: 0; margin: 0; padding: 6px 16px 6px 10px; align-self: stretch; justify-content: center; } .profchip .pcn.plate b { flex-wrap: wrap; gap: 4px; }
-  .profchip:has(.pcn.plate) { padding: 0; gap: 0; background: transparent; border-color: transparent; clip-path: none; } .profchip:has(.pcn.plate) canvas { width: 56px; height: 56px; background: rgba(9,18,11,.86); border: 1px solid var(--line); box-sizing: border-box; } .profchip:has(.pcn.plate):hover .plate { filter: brightness(1.12); }
+  .profchip:has(.pcn.plate) { padding: 0; gap: 0; background: transparent; border-color: transparent; clip-path: none; } .profchip:has(.pcn.plate) { align-items: stretch; } .profchip:has(.pcn.plate) canvas { flex: 0 0 auto; width: var(--ph, 60px); height: var(--ph, 60px); background: rgba(9,18,11,.86); border: 1px solid var(--line); box-sizing: border-box; } /* (the archer as tall as the banner) */
+  .hometop .clanchip { justify-content: flex-start; text-align: left; } .hometop .clanchip .cct { align-items: flex-start; } .profchip:has(.pcn.plate):hover .plate { filter: brightness(1.12); }
   .wpcap .wpl { display: flex; gap: 8px; align-items: center; } .wpcap .wpl .sc { color: var(--gold); font: 700 18px 'Rajdhani', sans-serif; }
   .wpcap .wpl span { display: flex; flex-direction: column; font: 700 14px 'Rajdhani', sans-serif; } .wpcap .wpl small { margin: 0; }
   .wpcap .plate { display: flex; margin-top: 4px; max-width: 100%; box-sizing: border-box; }
@@ -2188,7 +2194,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.71.1';
+const VERSION = '0.72.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -2224,7 +2230,7 @@ function buildMapNow(def) {
     haz: both(def.haz, mirrorItem),
     pillars: both(def.pillars, mirrorItem),
     spikes: def.spikes.flatMap(s => [s, mirrorSpike(s)]),
-    cracks: (def.cracks || []).flatMap(c => [c, mirrorItem(c)]),
+    cracks: both(def.cracks || [], mirrorItem),
     saws: (def.saws || []).flatMap(o => [o, Object.assign({}, o, { x0: AW - o.x0, x1: AW - o.x1, y: AH - o.y })]),
     bumpers: both(def.bumpers || [], mirrorItem),
     lights: both(def.lights || [], mirrorItem), // lamps that only light the ground (drawn by the page)
@@ -2405,6 +2411,29 @@ MAPS.reach = buildMap({
     spikes: [],
     spawns: [{ x: 110, y: 420 }, { x: 110, y: 540 }, { x: 180, y: 480 }, { x: 100, y: 320 }],
     power: [{ x: 750, y: 480 }], amberY: [340, 420],
+  });
+// Tidegate: a harbour where the tide comes in and goes out. Every TIDE.per seconds the flats flood (with CRACK_WARN
+// seconds of warning) and stay under water for a while, leaving the boardwalk, the spawn decks, a sandbar on each side
+// and the central pier; at the height of it the drawbridge lifts and splits the pier in two. Then it drains away again.
+const TIDE = { per: 30, from: 20, to: 28 }, BRIDGE = { per: 30, from: 22, to: 27 };
+const tide = (x, y, w, h, T, extra) => Object.assign({ type: 'pit', water: true, shape: 'rect', x, y, w, h, tide: T || TIDE }, extra || {});
+MAPS.tidegate = buildMap({
+    name: 'Tidegate', theme: 'beach',
+    desc: 'A harbour where the tide comes and goes. Every half minute the flats flood: get to the boardwalk, the pier or a sandbar before the water does. At high tide the drawbridge lifts and splits the pier in two.',
+    haz: [
+      { type: 'pit', water: true, shape: 'circle', x: 120, y: 120, r: 34 },
+      { type: 'tar', shape: 'circle', x: 360, y: 640, r: 42 },
+    ],
+    cracks: [
+      tide(WALL, WALL, 174, 274), tide(200, WALL, 300, 134), tide(200, 160, 100, 220), tide(400, 160, 100, 220), tide(300, 260, 100, 120),
+      tide(WALL, 500, 174, 274), tide(200, 420, 300, 354),
+      tide(500, WALL, 200, 274, null, { centre: true }), tide(500, 500, 200, 274, null, { centre: true }),
+      tide(585, 300, 30, 200, BRIDGE, { centre: true, bridge: true }),
+    ],
+    pillars: [{ x: 540, y: 400, r: 20 }, { x: 350, y: 470, r: 22 }, { x: 250, y: 110, r: 20 }],
+    spikes: [],
+    spawns: [{ x: 110, y: 360 }, { x: 110, y: 440 }, { x: 170, y: 400 }, { x: 60, y: 400 }],
+    power: [{ x: 600, y: 400 }], amberY: [180, 330],
   });
 const CRACK_WARN = 4;
 // custom game options; def is the standard rule
@@ -2714,6 +2743,11 @@ function updateCracks(w) {
   const el = TIMES.game - w.match.T;
   MAP.cracks.forEach((c, i) => {
     const st = w.cracks[i] || 0;
+    if (c.tide) { // comes and goes: under water from `from` to `to` in every `per` seconds, with a warning first
+      const ph = el % c.tide.per, want = ph >= c.tide.from && ph < c.tide.to ? 2 : ph >= c.tide.from - CRACK_WARN && ph < c.tide.from ? 1 : 0;
+      if (want !== st) { w.cracks[i] = want; ev(w, { e: want === 1 ? 'crackWarn' : want === 2 ? 'crackOpen' : 'crackClose', i }); }
+      return;
+    }
     if (st === 0 && el >= c.at - CRACK_WARN) { w.cracks[i] = 1; ev(w, { e: 'crackWarn', i }); }
     else if (st === 1 && el >= c.at) { w.cracks[i] = 2; ev(w, { e: 'crackOpen', i }); }
   });
@@ -2797,12 +2831,23 @@ const achBest = (rec, n) => ACH_ORDER.filter(k => ((rec && rec.tier) || {})[k] >
 // a 9-character code (shape, pattern, symbol, letter, then base, trim, pattern, symbol and background colours as hex digits),
 // e.g. 'aabT09c0e'. Drawn as SVG (emblemSvg), so the game, the website and the server all share it.
 const EMB_COLS = ['#ffcf5a', '#ff5a5a', '#ff9a3d', '#ffe66b', '#7dff8a', '#2f8a46', '#3fd0c9', '#5ad1ff', '#3b6cff', '#1f2f6b', '#a46bff', '#ff7ad8', '#f2f2f2', '#8a929e', '#15181d', '#8a5a32'];
-const EMB_SHAPES = { a: ['Shield', 'M12 8H88V44C88 70 70 86 50 95C30 86 12 70 12 44Z'], b: ['Circle', 'M50 8A44 44 0 1 1 49.9 8Z'], c: ['Triangle', 'M50 7L95 90H5Z'],
-  d: ['Diamond', 'M50 4L95 50L50 96L5 50Z'], e: ['Hexagon', 'M50 5L90 27.5V72.5L50 95L10 72.5V27.5Z'], f: ['Square', 'M12 12H88V88H12Z'], g: ['Pennant', 'M14 6H86V93L50 75L14 93Z'] };
-const EMB_PATS = { a: 'Plain', b: 'Diagonal', c: 'Horizontal', d: 'Vertical', e: 'Chevron', f: 'Checks', g: 'Quarters', h: 'Cross', i: 'Halves', j: 'Dots' };
-const EMB_SYMS = { a: 'None', b: 'Letter', c: 'Star', d: 'Arrow', e: 'Crossed arrows', f: 'Flame', g: 'Crown', h: 'Moon', i: 'Bolt', j: 'Target' };
-const EMB_RE = /^[a-g][a-j][a-j][A-Z0-9][0-9a-f]{5}$/;
-const emblemOk = c => typeof c === 'string' && EMB_RE.test(c);
+// shapes: name, outline, and where a symbol sits on it (centre y, scale), so it looks centred on that shape
+const EMB_SHAPES = { a: ['Shield', 'M12 8H88V44C88 70 70 86 50 95C30 86 12 70 12 44Z', 47, 0.9], b: ['Circle', 'M50 8A44 44 0 1 1 49.9 8Z', 51, 1], c: ['Triangle', 'M50 7L95 90H5Z', 63, 0.62],
+  d: ['Diamond', 'M50 4L95 50L50 96L5 50Z', 50, 0.8], e: ['Hexagon', 'M50 5L90 27.5V72.5L50 95L10 72.5V27.5Z', 50, 0.92], f: ['Square', 'M12 12H88V88H12Z', 50, 1], g: ['Pennant', 'M14 6H86V93L50 75L14 93Z', 42, 0.84],
+  h: ['Octagon', 'M33 6H67L94 33V67L67 94H33L6 67V33Z', 50, 1], i: ['Kite', 'M50 4L86 32L50 96L14 32Z', 40, 0.72], j: ['Arch', 'M14 44A36 36 0 0 1 86 44V93H14Z', 58, 0.92],
+  k: ['Heater', 'M10 9H90C90 48 76 78 50 95C24 78 10 48 10 9Z', 44, 0.9] };
+const EMB_PATS = { a: 'Plain', b: 'Diagonal', c: 'Horizontal', d: 'Vertical', e: 'Chevron', f: 'Checks', g: 'Quarters', h: 'Cross', i: 'Halves', j: 'Dots',
+  k: 'Saltire', l: 'Border', m: 'Waves', n: 'Rays', o: 'Zigzag', p: 'Pale', q: 'Bend', r: 'Stars' };
+const EMB_SYMS = { a: 'None', b: 'Letter', c: 'Star', d: 'Arrow', e: 'Crossed arrows', f: 'Flame', g: 'Crown', h: 'Moon', i: 'Bolt', j: 'Target',
+  k: 'Heart', l: 'Skull', m: 'Sword', n: 'Paw', o: 'Leaf', p: 'Snowflake', q: 'Sun', r: 'Wave', s: 'Mountain', t: 'Anchor', u: 'Eye', v: 'Wings', w: 'Bow', x: 'Gem', y: 'Axe', z: 'Tree' };
+// two forms of code: the first, colours from EMB_COLS as single hex digits ('aabT09c0e', 9 characters); the second, any
+// colours, each as six hex digits ('aabT' + base, trim, pattern, symbol: 28 characters)
+const EMB_RE = /^([a-z])([a-z])([a-z])[A-Z0-9](?:[0-9a-f]{5}|[0-9a-f]{24})$/;
+const emblemOk = c => { if (typeof c !== 'string') return false; const m = EMB_RE.exec(c); return !!(m && EMB_SHAPES[m[1]] && EMB_PATS[m[2]] && EMB_SYMS[m[3]]); };
+// a code's colour k (0 base, 1 trim, 2 pattern, 3 symbol) as #rrggbb, whichever form it's in
+const emblemCol = (code, k) => code.length === 28 ? '#' + code.slice(4 + k * 6, 10 + k * 6) : EMB_COLS[parseInt(code[4 + k], 16)];
+// any code in the second form (so colours can be anything)
+const emblemFull = code => code.slice(0, 4) + [0, 1, 2, 3].map(k => emblemCol(code, k).slice(1)).join('');
 // a starting emblem for a clan: a shield with its tag's first letter, in colours that suit the tag colour
 function emblemDefault(tag, col) {
   const L = (String(tag || 'A').toUpperCase().match(/[A-Z0-9]/) || ['A'])[0];
@@ -2814,8 +2859,8 @@ function emblemDefault(tag, col) {
 let embN = 0;
 function emblemSvg(code, size) {
   if (!emblemOk(code)) return '';
-  const [sh, pt, sy, L] = code, col = k => EMB_COLS[parseInt(code[4 + k], 16)], base = col(0), trim = col(1), pc = col(2), cc = col(3), bg = col(4);
-  const id = 'emb' + (++embN), path = EMB_SHAPES[sh][1];
+  const [sh, pt, sy, L] = code, col = k => emblemCol(code, k), base = col(0), trim = col(1), pc = col(2), cc = col(3);
+  const id = 'emb' + (++embN), S = EMB_SHAPES[sh], path = S[1];
   const pats = {
     a: '', b: [-60, -30, 0, 30, 60, 90].map(x => `<path d="M${x} 100L${x + 100} 0" stroke="${pc}" stroke-width="10"/>`).join(''),
     c: [22, 42, 62, 82].map(y => `<rect x="0" y="${y}" width="100" height="10" fill="${pc}"/>`).join(''),
@@ -2826,22 +2871,50 @@ function emblemSvg(code, size) {
     h: `<rect x="40" y="0" width="20" height="100" fill="${pc}"/><rect x="0" y="40" width="100" height="20" fill="${pc}"/>`,
     i: `<path d="M0 0H100L0 100Z" fill="${pc}"/>`,
     j: [20, 40, 60, 80].map(y => [20, 40, 60, 80].map(x => `<circle cx="${x + (y % 40 ? 10 : 0)}" cy="${y}" r="5" fill="${pc}"/>`).join('')).join(''),
+    k: `<path d="M0 0L100 100M100 0L0 100" stroke="${pc}" stroke-width="18"/>`,
+    l: `<path d="${path}" fill="none" stroke="${pc}" stroke-width="22"/>`,
+    m: [24, 46, 68, 90].map(y => `<path d="M-5 ${y}Q7.5 ${y - 9} 20 ${y}T45 ${y}T70 ${y}T95 ${y}T120 ${y}" fill="none" stroke="${pc}" stroke-width="7"/>`).join(''),
+    n: Array.from({ length: 8 }, (_, k) => { const a = k / 8 * Math.PI * 2, b = a + Math.PI / 8, cy = S[2]; return `<path d="M50 ${cy}L${(50 + Math.cos(a) * 120).toFixed(1)} ${(cy + Math.sin(a) * 120).toFixed(1)}L${(50 + Math.cos(b) * 120).toFixed(1)} ${(cy + Math.sin(b) * 120).toFixed(1)}Z" fill="${pc}"/>`; }).join(''),
+    o: [30, 62].map(y => `<path d="M-10 ${y + 12}L5 ${y}L20 ${y + 12}L35 ${y}L50 ${y + 12}L65 ${y}L80 ${y + 12}L95 ${y}L110 ${y + 12}" fill="none" stroke="${pc}" stroke-width="9" stroke-linejoin="miter"/>`).join(''),
+    p: `<rect x="34" y="0" width="32" height="100" fill="${pc}"/>`,
+    q: `<path d="M-10 18L18 -10L110 82L82 110Z" fill="${pc}"/>`,
+    r: [[22, 24], [76, 22], [30, 74], [72, 76], [50, 14], [14, 50], [86, 50]].map(([x, y]) => { let d = ''; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 2.6 : 6.5; d += (i ? 'L' : 'M') + (x + Math.cos(a) * r).toFixed(1) + ' ' + (y + Math.sin(a) * r).toFixed(1); } return `<path d="${d}Z" fill="${pc}"/>`; }).join(''),
   }[pt];
-  const ink = 'stroke="rgba(0,0,0,.45)" stroke-width="2.5" stroke-linejoin="round"';
+  const ink = 'stroke="rgba(0,0,0,.45)" stroke-width="2.5" stroke-linejoin="round"', hole = 'fill="rgba(0,0,0,.55)"';
+  const line = (d, w) => `<path d="${d}" fill="none" stroke="rgba(0,0,0,.45)" stroke-width="${w + 5}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${cc}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
   const star = n => { let d = ''; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? n * 0.42 : n; d += (i ? 'L' : 'M') + (50 + Math.cos(a) * r).toFixed(1) + ' ' + (52 + Math.sin(a) * r).toFixed(1); } return d + 'Z'; };
   const arrow = rot => `<g transform="rotate(${rot} 50 52)"><rect x="47" y="30" width="6" height="42" fill="${cc}" ${ink}/><path d="M50 14L62 34H38Z" fill="${cc}" ${ink}/><path d="M50 70L60 82V90L50 80L40 90V82Z" fill="${cc}" ${ink}/></g>`;
+  const sun = () => { let r = ''; for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2, b = 0.22; r += `<path d="M${(50 + Math.cos(a - b) * 17).toFixed(1)} ${(52 + Math.sin(a - b) * 17).toFixed(1)}L${(50 + Math.cos(a) * 29).toFixed(1)} ${(52 + Math.sin(a) * 29).toFixed(1)}L${(50 + Math.cos(a + b) * 17).toFixed(1)} ${(52 + Math.sin(a + b) * 17).toFixed(1)}Z" fill="${cc}" ${ink}/>`; } return r + `<circle cx="50" cy="52" r="13" fill="${cc}" ${ink}/>`; };
+  const flake = () => { let d = ''; for (let k = 0; k < 3; k++) { const a = k * Math.PI / 3 + Math.PI / 2; for (const sgn of [1, -1]) { const ex = 50 + Math.cos(a) * 27 * sgn, ey = 52 + Math.sin(a) * 27 * sgn, mx = 50 + Math.cos(a) * 17 * sgn, my = 52 + Math.sin(a) * 17 * sgn;
+    d += `M50 52L${ex.toFixed(1)} ${ey.toFixed(1)}M${mx.toFixed(1)} ${my.toFixed(1)}L${(mx + Math.cos(a + 0.7 * sgn) * 8 * sgn).toFixed(1)} ${(my + Math.sin(a + 0.7 * sgn) * 8 * sgn).toFixed(1)}M${mx.toFixed(1)} ${my.toFixed(1)}L${(mx + Math.cos(a - 0.7 * sgn) * 8 * sgn).toFixed(1)} ${(my + Math.sin(a - 0.7 * sgn) * 8 * sgn).toFixed(1)}`; } } return line(d, 4.5); };
   const syms = {
     a: '', b: `<text x="50" y="53" text-anchor="middle" dominant-baseline="central" font-family="Rajdhani, 'Arial Narrow', sans-serif" font-weight="700" font-size="54" fill="${cc}" stroke="rgba(0,0,0,.45)" stroke-width="2.5" paint-order="stroke">${L}</text>`,
     c: `<path d="${star(26)}" fill="${cc}" ${ink}/>`, d: arrow(0), e: arrow(-40) + arrow(40),
     f: `<path d="M50 20C58 34 70 42 68 60C67 74 58 82 50 82C40 82 31 74 32 61C33 50 41 46 42 36C47 42 47 48 50 50C54 42 54 32 50 20Z" fill="${cc}" ${ink}/>`,
-    g: `<path d="M26 70L22 34L38 48L50 26L62 48L78 34L74 70Z" fill="${cc}" ${ink}/><rect x="26" y="70" width="48" height="8" fill="${cc}" ${ink}/>`,
-    h: `<path d="M60 24A30 30 0 1 0 60 80A24 24 0 1 1 60 24Z" fill="${cc}" ${ink}/>`,
-    i: `<path d="M56 18L32 56H48L42 86L68 46H52Z" fill="${cc}" ${ink}/>`,
+    g: `<path d="M26 66L22 30L38 44L50 22L62 44L78 30L74 66Z" fill="${cc}" ${ink}/><rect x="26" y="70" width="48" height="9" fill="${cc}" ${ink}/>`,
+    h: `<path d="M58 23A30 30 0 1 0 58 81A23 23 0 1 1 58 23Z" fill="${cc}" ${ink}/>`,
+    i: `<path d="M56 20L32 56H48L42 84L68 46H52Z" fill="${cc}" ${ink}/>`,
     j: `<circle cx="50" cy="52" r="26" fill="none" stroke="${cc}" stroke-width="7"/><circle cx="50" cy="52" r="13" fill="none" stroke="${cc}" stroke-width="7"/><circle cx="50" cy="52" r="4" fill="${cc}"/>`,
+    k: `<path d="M50 79C22 61 22 36 37 33C44 32 48 37 50 41C52 37 56 32 63 33C78 36 78 61 50 79Z" fill="${cc}" ${ink}/>`,
+    l: `<path d="M50 24C33 24 25 36 25 49C25 58 30 63 35 65V77H65V65C70 63 75 58 75 49C75 36 67 24 50 24Z" fill="${cc}" ${ink}/><ellipse cx="40" cy="50" rx="7" ry="8" ${hole}/><ellipse cx="60" cy="50" rx="7" ry="8" ${hole}/><path d="M50 58L46 65H54Z" ${hole}/><path d="M42 70V77M50 70V77M58 70V77" stroke="rgba(0,0,0,.55)" stroke-width="2.5"/>`,
+    m: `<path d="M50 14L56 24V64H44V24Z" fill="${cc}" ${ink}/><rect x="32" y="64" width="36" height="7" rx="2" fill="${cc}" ${ink}/><rect x="46" y="71" width="8" height="13" fill="${cc}" ${ink}/><circle cx="50" cy="88" r="5" fill="${cc}" ${ink}/>`,
+    n: `<ellipse cx="50" cy="64" rx="15" ry="12" fill="${cc}" ${ink}/><ellipse cx="32" cy="48" rx="6" ry="7.5" fill="${cc}" ${ink}/><ellipse cx="43" cy="36" rx="6" ry="7.5" fill="${cc}" ${ink}/><ellipse cx="57" cy="36" rx="6" ry="7.5" fill="${cc}" ${ink}/><ellipse cx="68" cy="48" rx="6" ry="7.5" fill="${cc}" ${ink}/>`,
+    o: `<path d="M50 22C72 32 76 60 50 82C24 60 28 32 50 22Z" fill="${cc}" ${ink}/><path d="M50 30V78M50 50L40 42M50 60L60 52" stroke="rgba(0,0,0,.45)" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
+    p: flake(), q: sun(),
+    r: line('M24 44Q31 36 38 44T52 44T66 44T80 44', 6) + line('M24 60Q31 52 38 60T52 60T66 60T80 60', 6),
+    s: `<path d="M20 76L41 38L52 54L61 42L80 76Z" fill="${cc}" ${ink}/><path d="M41 38L35 49L41 46L47 50Z" fill="rgba(255,255,255,.75)"/>`,
+    t: line('M50 32V80M38 42H62M28 62Q30 80 50 80Q70 80 72 62', 6) + `<circle cx="50" cy="26" r="6" fill="none" stroke="${cc}" stroke-width="5"/>`,
+    u: `<path d="M22 52Q50 24 78 52Q50 80 22 52Z" fill="${cc}" ${ink}/><circle cx="50" cy="52" r="10" ${hole}/><circle cx="50" cy="52" r="4" fill="${cc}"/>`,
+    v: `<path d="M47 70C40 46 26 34 11 35C17 41 19 45 21 49C15 50 12 55 12 61C17 60 21 61 24 63C20 65 18 68 18 72C29 69 38 69 47 74Z" fill="${cc}" ${ink}/><path d="M53 70C60 46 74 34 89 35C83 41 81 45 79 49C85 50 88 55 88 61C83 60 79 61 76 63C80 65 82 68 82 72C71 69 62 69 53 74Z" fill="${cc}" ${ink}/>`,
+    w: line('M40 22Q68 52 40 82', 6) + `<path d="M40 22V82" stroke="${cc}" stroke-width="2"/>` + line('M28 52H70', 4) + `<path d="M76 52L66 46V58Z" fill="${cc}" ${ink}/>`,
+    x: `<path d="M36 32H64L76 46L50 80L24 46Z" fill="${cc}" ${ink}/><path d="M24 46H76M36 32L44 46L50 80L56 46L64 32" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="2"/>`,
+    y: `<rect x="46.5" y="22" width="7" height="64" rx="2" fill="${cc}" ${ink}/><path d="M54 30C68 24 80 34 79 52C72 46 63 46 54 50Z" fill="${cc}" ${ink}/><path d="M46 30C32 24 20 34 21 52C28 46 37 46 46 50Z" fill="${cc}" ${ink}/>`,
+    z: `<path d="M50 20L65 42H58L72 62H28L42 42H35Z" fill="${cc}" ${ink}/><rect x="46" y="62" width="8" height="15" fill="${cc}" ${ink}/>`,
   }[sy];
-  // the backing colour (the 9th character) is kept in the code but no longer drawn: emblems sit on a transparent background
+  // the symbol sits at the shape's own centre, sized to it (a triangle's is low and smaller, a pennant's high)
+  const place = `translate(50 ${S[2]}) scale(${S[3]}) translate(-50 -52)`;
   return `<svg class="emblem" viewBox="0 0 100 100" width="${size || 24}" height="${size || 24}" aria-hidden="true">` +
-    `<defs><clipPath id="${id}"><path d="${path}"/></clipPath></defs><path d="${path}" fill="${base}"/><g clip-path="url(#${id})">${pats}</g>${syms}` +
+    `<defs><clipPath id="${id}"><path d="${path}"/></clipPath></defs><path d="${path}" fill="${base}"/><g clip-path="url(#${id})">${pats}</g><g transform="${place}">${syms}</g>` +
     `<path d="${path}" fill="none" stroke="${trim}" stroke-width="6" stroke-linejoin="round"/></svg>`;
 }
 // Banner backgrounds and frames are earned by particular feats, not by playing a lot: each one says something about how
@@ -7184,7 +7257,7 @@ return {
   AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
-  EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg,
+  EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg, emblemCol, emblemFull,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, BANNER_FRAME, frameAllowed, featProgress, achSeed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
   _grant(w, id, cards) { const p = w.players.find(q => q.id === id); for (const c of cards) takeCard(w, p, c); applyStats(p); p.picked = false; return p; },
@@ -7199,7 +7272,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.71.1';
+const PAGE_VERSION = '0.72.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -11663,10 +11736,48 @@ function emblemEditor() {
   return `<div class="embed"><div class="prev">${Sim.emblemSvg(e, 120)}</div><div class="opts">` +
     EMB_PARTS.map(([lbl, i, o]) => `<div class="erow"><span>${lbl}</span><div class="ech">${Object.keys(o).map(k => `<button type="button" data-emi="${i}" data-emv="${k}" class="${e[i] === k ? 'sel' : ''}" title="${esc(name(o, k))}">${Sim.emblemSvg(sample(i, k), 28)}</button>`).join('')}</div></div>`).join('') +
     `<div class="erow"><span>Letter</span><div><input class="eltr" id="emLtr" maxlength="1" value="${esc(e[3])}" title="Shown when the symbol is Letter"></div></div>` +
-    EMB_COLROWS.map(([lbl, i]) => `<div class="erow"><span>${lbl}</span><div class="ech esw">${Sim.EMB_COLS.map((c, n) => `<button type="button" data-emi="${i}" data-emv="${n.toString(16)}" class="${e[i] === n.toString(16) ? 'sel' : ''}" style="--c:${c}" aria-label="${lbl} colour ${c}"></button>`).join('')}</div></div>`).join('') +
+    // the colours: pick which one you're setting, then a quick swatch or any colour at all from the picker
+    `<div class="erow"><span>Colours</span><div class="ecols">${EMB_COLROWS.map(([lbl, i]) => { const k = i - 4, c = Sim.emblemCol(e, k); return `<button type="button" data-emslot="${k}" class="${(CLAN.emSlot || 0) === k ? 'sel' : ''}"><i style="--c:${c}"></i>${lbl}</button>`; }).join('')}</div></div>` +
+    `<div class="erow"><span></span><div class="epick"><div class="ech esw">${Sim.EMB_COLS.map(c => `<button type="button" data-emcol="${c}" style="--c:${c}" aria-label="Colour ${c}"></button>`).join('')}</div>` +
+    `<div class="hsv"><canvas id="emSV" width="180" height="110"></canvas><canvas id="emHue" width="180" height="14"></canvas><label class="hexin">#<input id="emHex" maxlength="6" value="${Sim.emblemCol(e, CLAN.emSlot || 0).slice(1)}" spellcheck="false"></label></div></div></div>` +
     '</div></div>';
 }
-function emblemRedraw() { const box = $('clBody').querySelector('.embed'); if (box) box.outerHTML = emblemEditor(); }
+function emblemRedraw() { const box = $('clBody').querySelector('.embed'); if (box) { box.outerHTML = emblemEditor(); emPickerInit(); } }
+// ---- the colour picker: saturation and brightness on the square, hue on the bar (any colour, for the slot being set)
+const hsv2hex = (h, s2, v) => { const f = n => { const k = (n + h / 60) % 6; return v - v * s2 * Math.max(0, Math.min(k, 4 - k, 1)); }; return '#' + [f(5), f(3), f(1)].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join(''); };
+const hex2hsv = hex => { const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  let h = 0; if (d) h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h = (h * 60 + 360) % 360; return { h, s: mx ? d / mx : 0, v: mx }; };
+function emSetCol(hex, redraw) {
+  const k = CLAN.emSlot || 0, full = Sim.emblemFull(CLAN.em);
+  CLAN.em = full.slice(0, 4 + k * 6) + hex.slice(1).toLowerCase() + full.slice(10 + k * 6);
+  if (redraw) { emblemRedraw(); return; }
+  // (while dragging: just the preview, the slot's swatch and the picker, not the whole editor)
+  const box = $('clBody').querySelector('.embed'); if (!box) return;
+  box.querySelector('.prev').innerHTML = Sim.emblemSvg(CLAN.em, 120);
+  const sw = box.querySelector(`[data-emslot="${k}"] i`); if (sw) sw.style.setProperty('--c', hex);
+  const hx = $('emHex'); if (hx && document.activeElement !== hx) hx.value = hex.slice(1);
+  emPickerDraw();
+}
+function emPickerDraw() {
+  const sv = $('emSV'), hu = $('emHue'); if (!sv || !hu) return;
+  const P = CLAN.emHsv || (CLAN.emHsv = hex2hsv(Sim.emblemCol(CLAN.em, CLAN.emSlot || 0)));
+  let c = sv.getContext('2d'); const W = sv.width, H = sv.height;
+  c.fillStyle = hsv2hex(P.h, 1, 1); c.fillRect(0, 0, W, H);
+  let g = c.createLinearGradient(0, 0, W, 0); g.addColorStop(0, '#fff'); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+  g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, '#000'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+  c.strokeStyle = P.v > 0.5 ? '#000' : '#fff'; c.lineWidth = 2; c.beginPath(); c.arc(P.s * W, (1 - P.v) * H, 6, 0, Math.PI * 2); c.stroke();
+  c = hu.getContext('2d'); g = c.createLinearGradient(0, 0, hu.width, 0); for (let i = 0; i <= 6; i++) g.addColorStop(i / 6, hsv2hex(i * 60 % 360, 1, 1)); c.fillStyle = g; c.fillRect(0, 0, hu.width, hu.height);
+  c.fillStyle = '#fff'; c.strokeStyle = '#000'; c.lineWidth = 1.5; const x = P.h / 360 * hu.width; c.fillRect(x - 2, 0, 4, hu.height); c.strokeRect(x - 2, 0, 4, hu.height);
+}
+function emPickerInit() {
+  const sv = $('emSV'), hu = $('emHue'), hx = $('emHex'); if (!sv) return;
+  CLAN.emHsv = hex2hsv(Sim.emblemCol(CLAN.em, CLAN.emSlot || 0)); emPickerDraw();
+  const drag = (el, fn) => { el.onpointerdown = e => { el.setPointerCapture(e.pointerId); fn(e); el.onpointermove = fn; }; el.onpointerup = el.onpointercancel = () => { el.onpointermove = null; }; };
+  const at = (el, e) => { const r = el.getBoundingClientRect(); return [Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)), Math.max(0, Math.min(1, (e.clientY - r.top) / r.height))]; };
+  drag(sv, e => { const [x, y] = at(sv, e); CLAN.emHsv.s = x; CLAN.emHsv.v = 1 - y; emSetCol(hsv2hex(CLAN.emHsv.h, CLAN.emHsv.s, CLAN.emHsv.v)); });
+  drag(hu, e => { const [x] = at(hu, e); CLAN.emHsv.h = Math.min(359.9, x * 360); emSetCol(hsv2hex(CLAN.emHsv.h, CLAN.emHsv.s, CLAN.emHsv.v)); });
+  hx.oninput = () => { const v = hx.value.replace(/[^0-9a-f]/gi, '').slice(0, 6); if (v.length === 6) { CLAN.emHsv = hex2hsv('#' + v); emSetCol('#' + v); } };
+}
 const clanSwatches = sel => `<div class="clsw" id="clSw">${CLAN.colours.map(c => `<button type="button" data-clcol="${c}" class="${c === sel ? 'sel' : ''}" style="--c:${c}" aria-label="Colour ${c}"></button>`).join('')}</div>`;
 function clanMembers(v, manage) {
   const myRole = v.role, R = { leader: 3, officer: 2, member: 1 };
@@ -11725,7 +11836,7 @@ function renderClan() {
       `<span class="status" id="clMsg"></span><div class="btnrow" style="margin-top:6px"><button type="button" class="ghost sm" data-clsure="Leave ${esc(c.name)}?" data-clleave>Leave clan</button>${lead ? `<button type="button" class="ghost sm" data-clsure="Disband for everyone?" data-cldisband>Disband clan</button>` : ''}</div>
       ${lead && c.size > 1 ? '<p class="status">If you leave, the longest-serving officer (or member) becomes leader.</p>' : ''}</div></div>`;
   }
-  $('clBody').innerHTML = h;
+  $('clBody').innerHTML = h; emPickerInit();
 }
 async function clanDo(body, okMsg) {
   if (CLAN.busy) return; CLAN.busy = true;
@@ -11740,6 +11851,8 @@ $('clBody').addEventListener('click', async e => {
   if (b.dataset.clsure && !b.dataset.armed) { b.dataset.armed = '1'; b.dataset.was = b.textContent; b.textContent = b.dataset.clsure + ' Click again'; setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = b.dataset.was; } }, 4000); return; }
   const D = b.dataset;
   if (D.clcol) { CLAN.col = D.clcol; $('clSw').querySelectorAll('button').forEach(x => x.classList.toggle('sel', x === b)); return; }
+  if (D.emslot != null) { CLAN.emSlot = +D.emslot; CLAN.emHsv = null; emblemRedraw(); return; }
+  if (D.emcol) { CLAN.emHsv = hex2hsv(D.emcol); emSetCol(D.emcol, true); return; }
   if (D.emi) { CLAN.em = embSet(CLAN.em, +D.emi, D.emv); if (+D.emi === 2 && D.emv === 'b' && !/[A-Z0-9]/.test(CLAN.em[3])) CLAN.em = embSet(CLAN.em, 3, 'A'); emblemRedraw(); return; }
   if (D.clback != null) { CLAN.viewing = null; return renderClan(); }
   if (D.clview) { try { const r = await fetch('/api/clan?id=' + encodeURIComponent(D.clview), { cache: 'no-store' }), d = await r.json(); if (!r.ok) throw new Error(d.error); CLAN.viewing = d.clan; renderClan(); } catch (er) { notice(esc(er.message || 'Could not load that clan.'), false); clanLoad(true); } return; }
@@ -11952,12 +12065,23 @@ function saveAvatar(a) {
   store.set('bowfall-avatar', JSON.stringify(a));
   if (account) { account.avatar = a; fetch('/api/look', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ avatar: a }) }).catch(() => {}); }
 }
+// the menu's right column starts level with the top of the BOWFALL title (wide screens, where it sits beside it)
+function alignHomeTop() {
+  const wrap = document.querySelector('#home .homewrap'), top = document.querySelector('#home .hometop'), h1 = document.querySelector('#home .hometitle h1');
+  if (!wrap || !top || !h1) return;
+  if (innerWidth < 960 || getComputedStyle(top).position !== 'absolute') { top.style.top = ''; return; }
+  const fs = parseFloat(getComputedStyle(h1).fontSize) || 80, y = h1.getBoundingClientRect().top - wrap.getBoundingClientRect().top + fs * 0.12; // (the letters' tops, not the line box's)
+  if (y > 0) top.style.top = Math.round(y) + 'px';
+}
+addEventListener('resize', () => requestAnimationFrame(alignHomeTop)); if (document.fonts) document.fonts.ready.then(alignHomeTop);
 function drawProfChip() {
+  requestAnimationFrame(alignHomeTop);
   const a = myAvatar();
   try { drawPreview($('profAv'), a.el, a.ro, a.c); } catch (e) {}
   // the button is your banner: its frame, background, border, clan, title and medals, as everyone else sees it
   const me = myLook(), box = $('profName').parentNode;
   box.className = 'pcn nm plate' + plateClass(me); box.style.cssText = me.bd && BORDERS[me.bd] ? `--bd:${BORDERS[me.bd]}` : '';
+  requestAnimationFrame(() => { const h = box.offsetHeight; if (h) $('profChip').style.setProperty('--ph', h + 'px'); }); // (your archer exactly as tall as the banner)
   $('profName').innerHTML = idHtml(me) + esc(me.n) + (account ? ownHtml(account.admin) + statusHtml(WALLET && WALLET.status) : '') + trophyHtml(me.na) + (me.ti ? ` <em class="ttl">${esc(titleName(me.ti))}</em>` : '');
   $('profSub').innerHTML = account ? `${account.placed === false ? 'Unranked' : `1v1 ${Math.round((account.career || {}).elo || 800)} · Team ${Math.round((account.career || {}).eloT != null ? account.career.eloT : (account.career || {}).elo || 800)}`}${WALLET && !WALLET.guest ? ' · ' + crestTxt(WALLET.crests) : ''}` : 'Guest · edit profile';
 }
@@ -12311,7 +12435,8 @@ function eventFx(e) {
         floater(e.x, e.y - 40, e.n > 1 ? `Overload ×${e.n}` : 'Overload', '#fff27a', 14); sfx.zap(0.8);
         break;
       case 'autoPicked': if (e.id === myId) notice(`Time's up. You got <b>${esc(cardInfo(e.card).name)}</b> at random`); break;
-      case 'crackWarn': crackT[e.i] = clock; if (crackT.warned !== view.m.gm) { crackT.warned = view.m.gm; notice(THEME.beach ? 'The tide is coming in!' : 'The ice is cracking!', false); } play('crack', !!THEME.beach); break;
+      case 'crackWarn': crackT[e.i] = clock; if (crackT.warned !== view.m.gm || (MAPS[MAPKEY].cracks[e.i] && (MAPS[MAPKEY].cracks[e.i].bridge || (MAPS[MAPKEY].cracks[e.i].tide && clock - (crackT.warnAt || 0) > 8)))) { crackT.warned = view.m.gm; crackT.warnAt = clock; notice(MAPS[MAPKEY].cracks[e.i] && MAPS[MAPKEY].cracks[e.i].bridge ? 'The drawbridge is lifting!' : THEME.beach ? 'The tide is coming in! Get to the boardwalk.' : 'The ice is cracking!', false); } play('crack', !!THEME.beach); break;
+      case 'crackClose': { const h = Sim.MAPS[MAPKEY].cracks[e.i]; if (h) { const [cx, cy] = hazCentre(h); burst(cx, cy, '#cfeefc', 14, 120, 2.5); } if (clock - (crackT.outAt || 0) > 8) { crackT.outAt = clock; notice(h && h.bridge ? 'The drawbridge is down.' : 'The tide is going out.', false); } break; }
       case 'crackOpen': { const h = Sim.MAPS[MAPKEY].cracks[e.i]; if (h) { const [cx, cy] = hazCentre(h); burst(cx, cy, '#e6f7ff', 40, 260, 4); burst(cx, cy, '#5aa9d6', 20, 180, 3); } sfx.splash(); shake(5); break; }
       case 'phase': {
         const m = view && view.m;
@@ -13359,6 +13484,19 @@ function paintFloor(s) {
       const a = R() * TAU, r = 3 + R() * 3;
       g.fillStyle = R() < 0.5 ? '#fbf3e4' : '#f2cdb8'; g.beginPath(); g.moveTo(x, y); g.arc(x, y, r, a - 1.2, a + 1.2); g.closePath(); g.fill();
       g.strokeStyle = 'rgba(160,120,90,0.6)'; g.lineWidth = 0.7; for (let k = -1; k <= 1; k++) { g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a + k * 0.6) * r, y + Math.sin(a + k * 0.6) * r); g.stroke(); }
+    }
+    // Tidegate: the dry places at high tide are timber: the boardwalk, the spawn decks, the sandbar's jetty and the pier
+    if (MAPKEY === 'tidegate') {
+      const deck = (x, y, w, h, along) => { g.save(); g.fillStyle = 'rgba(120,84,48,0.92)'; g.fillRect(x, y, w, h);
+        g.strokeStyle = 'rgba(60,38,20,0.6)'; g.lineWidth = 1.4; const P = 12;
+        if (along === 'x') for (let yy = y + P; yy < y + h; yy += P) { g.beginPath(); g.moveTo(x, yy); g.lineTo(x + w, yy); g.stroke(); }
+        else for (let xx = x + P; xx < x + w; xx += P) { g.beginPath(); g.moveTo(xx, y); g.lineTo(xx, y + h); g.stroke(); }
+        g.fillStyle = 'rgba(255,230,190,0.12)'; g.fillRect(x, y, w, 3); g.strokeStyle = 'rgba(40,24,12,0.7)'; g.lineWidth = 2; g.strokeRect(x + 1, y + 1, w - 2, h - 2);
+        for (const [px, py] of [[x + 4, y + 4], [x + w - 4, y + 4], [x + 4, y + h - 4], [x + w - 4, y + h - 4]]) { g.fillStyle = 'rgba(50,30,15,0.85)'; g.beginPath(); g.arc(px, py, 3.2, 0, TAU); g.fill(); }
+        g.restore(); };
+      const M = (x, y, w, h) => [AW - x - w, AH - y - h, w, h];
+      for (const [x, y, w, h, a] of [[WALL, 300, 174, 200, 'y'], [200, 380, 300, 40, 'y'], [300, 160, 100, 100, 'x']]) { deck(x, y, w, h, a); deck(...M(x, y, w, h), a); }
+      deck(500, 300, 200, 200, 'x');
     }
   } else if (T.ground2 === 'planks') {
     // long boards with staggered joints, nail heads and grain, dusted with sawdust

@@ -773,7 +773,8 @@ const pages = {
     const f = $('authF'); f.name.focus();
     f.onsubmit = async e => {
       e.preventDefault();
-      try { const r = await api(reg ? '/register' : '/login', { name: f.name.value.trim(), email: reg ? f.email.value.trim() : undefined, password: f.password.value, guest: guestToken(), ref: refName() }); me = r.user; await loadMe(); drawWho(); guestMoved(r);
+      try { const r = await api(reg ? '/register' : '/login', { name: f.name.value.trim(), email: reg ? f.email.value.trim() : undefined, password: f.password.value, guest: guestToken(), ref: refName() }); if (r.test) { try { for (const k of Object.keys(localStorage)) if (/^bowfall-/.test(k)) localStorage.removeItem(k); sessionStorage.clear(); } catch (e2) {} location.href = '/play'; return; } // (a test account: start as a newcomer, straight into the game)
+        me = r.user; await loadMe(); drawWho(); guestMoved(r);
         const next = new URLSearchParams(location.hash.split('?')[1] || '').get('next');
         if (next && next.startsWith('/')) location.href = next; else go('#/u/' + me.name);
       } catch (err) { $('aErr').textContent = err.message; }

@@ -2,6 +2,16 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.72.0
+
+- **New arena: Tidegate.** A harbour on a 30-second tide. At low tide it's open sand; then the tide comes in (with a 4-second warning) and for 8 seconds everything but the wooden decks floods: the spawn decks, the boardwalk, the sandbars and the central pier. The pier's drawbridge lifts for 5 of those seconds and cuts it in two. Then the water goes out and the sand is open again. Tide pools (crack hazards) can now come and go on a cycle (`tide: {per, from, to}`), not just open once.
+- **Clan emblems:**
+  - More shapes (Octagon, Kite, Arch, Heater), more patterns (Saltire, Border, Waves, Rays, Zigzag, Pale, Bend, Stars) and 15 new symbols (Heart, Skull, Sword, Paw, Leaf, Snowflake, Sun, Wave, Mountain, Anchor, Eye, Bow, Gem, Axe, Tree, and better Wings).
+  - Symbols sit in the visual centre of every shape (they sat too high on the shield and too low on the triangle).
+  - **Any colour:** each of the four colours has a picker with a saturation/brightness square, a hue slider and a hex box, as well as the quick palette. Old emblems still read the same.
+- **Test sign-up:** set `TEST_SIGNUP_CODE` (6+ characters) in the server's environment, then sign up with the email `CODE@test` to make a brand-new account with no email needed, as many times as you like. It starts as a fresh newcomer (this browser's saved settings are cleared, nothing is carried over from a guest, no referral), and isn't an owner account.
+- **Menu:** your archer on the banner button is as tall as the banner; the clan button's text is left-aligned; the right-hand column starts level with the top of the BOWFALL title.
+
 ## 0.71.1
 
 - **Archers' eyes, taking aim:** while drawing, one eye shuts (a short line) and the other narrows to a slit, the more the fuller the draw.

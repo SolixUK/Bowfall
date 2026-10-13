@@ -388,6 +388,11 @@
   .embed .ech button { padding: 2px; border: 2px solid transparent; background: rgba(255,255,255,.04); cursor: pointer; line-height: 0; }
   .embed .ech button.sel { border-color: var(--gold); }
   .embed .ech button .emblem { width: 28px; height: 28px; }
+  .embed .ecols { display: flex; flex-wrap: wrap; gap: 6px; } .embed .ecols button { display: flex; align-items: center; gap: 6px; padding: 4px 9px 4px 4px; background: rgba(255,255,255,.04); border: 2px solid transparent; color: var(--text); font: 600 12px 'Titillium Web', sans-serif; cursor: pointer; }
+  .embed .ecols button.sel { border-color: var(--gold); } .embed .ecols i { width: 18px; height: 18px; background: var(--c); box-shadow: inset 0 0 0 1px rgba(0,0,0,.4); }
+  .embed .epick { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; } .embed .epick .esw { max-width: 190px; }
+  .embed .hsv { display: flex; flex-direction: column; gap: 6px; } .embed .hsv canvas { display: block; cursor: crosshair; border: 1px solid var(--line); touch-action: none; }
+  .embed .hexin { display: flex; align-items: center; gap: 2px; font: 600 13px monospace; color: var(--muted); } .embed .hexin input { width: 78px; font: 600 13px monospace; padding: 3px 5px; }
   .embed .esw button { width: 20px; height: 20px; padding: 0; border: 2px solid transparent; background: var(--c); cursor: pointer; }
   .embed .esw button.sel { border-color: #fff; box-shadow: 0 0 0 1px #111 inset; }
   .embed input.eltr { width: 46px; text-transform: uppercase; text-align: center; font: 700 16px 'Rajdhani', sans-serif; }
@@ -736,7 +741,8 @@
   .hometop { --rcw: 300px; } .hometop > .toprow, .hometop > .frpanel, .hometop > .weekplays { width: var(--rcw); box-sizing: border-box; }
   .hometop > .toprow { align-items: stretch; } .hometop .profchip, .hometop .clanchip { width: 100%; box-sizing: border-box; }
   .profchip .pcn.plate { flex: 1; min-width: 0; margin: 0; padding: 6px 16px 6px 10px; align-self: stretch; justify-content: center; } .profchip .pcn.plate b { flex-wrap: wrap; gap: 4px; }
-  .profchip:has(.pcn.plate) { padding: 0; gap: 0; background: transparent; border-color: transparent; clip-path: none; } .profchip:has(.pcn.plate) canvas { width: 56px; height: 56px; background: rgba(9,18,11,.86); border: 1px solid var(--line); box-sizing: border-box; } .profchip:has(.pcn.plate):hover .plate { filter: brightness(1.12); }
+  .profchip:has(.pcn.plate) { padding: 0; gap: 0; background: transparent; border-color: transparent; clip-path: none; } .profchip:has(.pcn.plate) { align-items: stretch; } .profchip:has(.pcn.plate) canvas { flex: 0 0 auto; width: var(--ph, 60px); height: var(--ph, 60px); background: rgba(9,18,11,.86); border: 1px solid var(--line); box-sizing: border-box; } /* (the archer as tall as the banner) */
+  .hometop .clanchip { justify-content: flex-start; text-align: left; } .hometop .clanchip .cct { align-items: flex-start; } .profchip:has(.pcn.plate):hover .plate { filter: brightness(1.12); }
   .wpcap .wpl { display: flex; gap: 8px; align-items: center; } .wpcap .wpl .sc { color: var(--gold); font: 700 18px 'Rajdhani', sans-serif; }
   .wpcap .wpl span { display: flex; flex-direction: column; font: 700 14px 'Rajdhani', sans-serif; } .wpcap .wpl small { margin: 0; }
   .wpcap .plate { display: flex; margin-top: 4px; max-width: 100%; box-sizing: border-box; }
@@ -2190,7 +2196,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.71.1"></script>
+<script src="sim.js?v=0.72.0"></script>
 <script>
 (() => {
 'use strict';
@@ -2198,7 +2204,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.71.1';
+const PAGE_VERSION = '0.72.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -6662,10 +6668,48 @@ function emblemEditor() {
   return `<div class="embed"><div class="prev">${Sim.emblemSvg(e, 120)}</div><div class="opts">` +
     EMB_PARTS.map(([lbl, i, o]) => `<div class="erow"><span>${lbl}</span><div class="ech">${Object.keys(o).map(k => `<button type="button" data-emi="${i}" data-emv="${k}" class="${e[i] === k ? 'sel' : ''}" title="${esc(name(o, k))}">${Sim.emblemSvg(sample(i, k), 28)}</button>`).join('')}</div></div>`).join('') +
     `<div class="erow"><span>Letter</span><div><input class="eltr" id="emLtr" maxlength="1" value="${esc(e[3])}" title="Shown when the symbol is Letter"></div></div>` +
-    EMB_COLROWS.map(([lbl, i]) => `<div class="erow"><span>${lbl}</span><div class="ech esw">${Sim.EMB_COLS.map((c, n) => `<button type="button" data-emi="${i}" data-emv="${n.toString(16)}" class="${e[i] === n.toString(16) ? 'sel' : ''}" style="--c:${c}" aria-label="${lbl} colour ${c}"></button>`).join('')}</div></div>`).join('') +
+    // the colours: pick which one you're setting, then a quick swatch or any colour at all from the picker
+    `<div class="erow"><span>Colours</span><div class="ecols">${EMB_COLROWS.map(([lbl, i]) => { const k = i - 4, c = Sim.emblemCol(e, k); return `<button type="button" data-emslot="${k}" class="${(CLAN.emSlot || 0) === k ? 'sel' : ''}"><i style="--c:${c}"></i>${lbl}</button>`; }).join('')}</div></div>` +
+    `<div class="erow"><span></span><div class="epick"><div class="ech esw">${Sim.EMB_COLS.map(c => `<button type="button" data-emcol="${c}" style="--c:${c}" aria-label="Colour ${c}"></button>`).join('')}</div>` +
+    `<div class="hsv"><canvas id="emSV" width="180" height="110"></canvas><canvas id="emHue" width="180" height="14"></canvas><label class="hexin">#<input id="emHex" maxlength="6" value="${Sim.emblemCol(e, CLAN.emSlot || 0).slice(1)}" spellcheck="false"></label></div></div></div>` +
     '</div></div>';
 }
-function emblemRedraw() { const box = $('clBody').querySelector('.embed'); if (box) box.outerHTML = emblemEditor(); }
+function emblemRedraw() { const box = $('clBody').querySelector('.embed'); if (box) { box.outerHTML = emblemEditor(); emPickerInit(); } }
+// ---- the colour picker: saturation and brightness on the square, hue on the bar (any colour, for the slot being set)
+const hsv2hex = (h, s2, v) => { const f = n => { const k = (n + h / 60) % 6; return v - v * s2 * Math.max(0, Math.min(k, 4 - k, 1)); }; return '#' + [f(5), f(3), f(1)].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join(''); };
+const hex2hsv = hex => { const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  let h = 0; if (d) h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h = (h * 60 + 360) % 360; return { h, s: mx ? d / mx : 0, v: mx }; };
+function emSetCol(hex, redraw) {
+  const k = CLAN.emSlot || 0, full = Sim.emblemFull(CLAN.em);
+  CLAN.em = full.slice(0, 4 + k * 6) + hex.slice(1).toLowerCase() + full.slice(10 + k * 6);
+  if (redraw) { emblemRedraw(); return; }
+  // (while dragging: just the preview, the slot's swatch and the picker, not the whole editor)
+  const box = $('clBody').querySelector('.embed'); if (!box) return;
+  box.querySelector('.prev').innerHTML = Sim.emblemSvg(CLAN.em, 120);
+  const sw = box.querySelector(`[data-emslot="${k}"] i`); if (sw) sw.style.setProperty('--c', hex);
+  const hx = $('emHex'); if (hx && document.activeElement !== hx) hx.value = hex.slice(1);
+  emPickerDraw();
+}
+function emPickerDraw() {
+  const sv = $('emSV'), hu = $('emHue'); if (!sv || !hu) return;
+  const P = CLAN.emHsv || (CLAN.emHsv = hex2hsv(Sim.emblemCol(CLAN.em, CLAN.emSlot || 0)));
+  let c = sv.getContext('2d'); const W = sv.width, H = sv.height;
+  c.fillStyle = hsv2hex(P.h, 1, 1); c.fillRect(0, 0, W, H);
+  let g = c.createLinearGradient(0, 0, W, 0); g.addColorStop(0, '#fff'); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+  g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, '#000'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+  c.strokeStyle = P.v > 0.5 ? '#000' : '#fff'; c.lineWidth = 2; c.beginPath(); c.arc(P.s * W, (1 - P.v) * H, 6, 0, Math.PI * 2); c.stroke();
+  c = hu.getContext('2d'); g = c.createLinearGradient(0, 0, hu.width, 0); for (let i = 0; i <= 6; i++) g.addColorStop(i / 6, hsv2hex(i * 60 % 360, 1, 1)); c.fillStyle = g; c.fillRect(0, 0, hu.width, hu.height);
+  c.fillStyle = '#fff'; c.strokeStyle = '#000'; c.lineWidth = 1.5; const x = P.h / 360 * hu.width; c.fillRect(x - 2, 0, 4, hu.height); c.strokeRect(x - 2, 0, 4, hu.height);
+}
+function emPickerInit() {
+  const sv = $('emSV'), hu = $('emHue'), hx = $('emHex'); if (!sv) return;
+  CLAN.emHsv = hex2hsv(Sim.emblemCol(CLAN.em, CLAN.emSlot || 0)); emPickerDraw();
+  const drag = (el, fn) => { el.onpointerdown = e => { el.setPointerCapture(e.pointerId); fn(e); el.onpointermove = fn; }; el.onpointerup = el.onpointercancel = () => { el.onpointermove = null; }; };
+  const at = (el, e) => { const r = el.getBoundingClientRect(); return [Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)), Math.max(0, Math.min(1, (e.clientY - r.top) / r.height))]; };
+  drag(sv, e => { const [x, y] = at(sv, e); CLAN.emHsv.s = x; CLAN.emHsv.v = 1 - y; emSetCol(hsv2hex(CLAN.emHsv.h, CLAN.emHsv.s, CLAN.emHsv.v)); });
+  drag(hu, e => { const [x] = at(hu, e); CLAN.emHsv.h = Math.min(359.9, x * 360); emSetCol(hsv2hex(CLAN.emHsv.h, CLAN.emHsv.s, CLAN.emHsv.v)); });
+  hx.oninput = () => { const v = hx.value.replace(/[^0-9a-f]/gi, '').slice(0, 6); if (v.length === 6) { CLAN.emHsv = hex2hsv('#' + v); emSetCol('#' + v); } };
+}
 const clanSwatches = sel => `<div class="clsw" id="clSw">${CLAN.colours.map(c => `<button type="button" data-clcol="${c}" class="${c === sel ? 'sel' : ''}" style="--c:${c}" aria-label="Colour ${c}"></button>`).join('')}</div>`;
 function clanMembers(v, manage) {
   const myRole = v.role, R = { leader: 3, officer: 2, member: 1 };
@@ -6724,7 +6768,7 @@ function renderClan() {
       `<span class="status" id="clMsg"></span><div class="btnrow" style="margin-top:6px"><button type="button" class="ghost sm" data-clsure="Leave ${esc(c.name)}?" data-clleave>Leave clan</button>${lead ? `<button type="button" class="ghost sm" data-clsure="Disband for everyone?" data-cldisband>Disband clan</button>` : ''}</div>
       ${lead && c.size > 1 ? '<p class="status">If you leave, the longest-serving officer (or member) becomes leader.</p>' : ''}</div></div>`;
   }
-  $('clBody').innerHTML = h;
+  $('clBody').innerHTML = h; emPickerInit();
 }
 async function clanDo(body, okMsg) {
   if (CLAN.busy) return; CLAN.busy = true;
@@ -6739,6 +6783,8 @@ $('clBody').addEventListener('click', async e => {
   if (b.dataset.clsure && !b.dataset.armed) { b.dataset.armed = '1'; b.dataset.was = b.textContent; b.textContent = b.dataset.clsure + ' Click again'; setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = b.dataset.was; } }, 4000); return; }
   const D = b.dataset;
   if (D.clcol) { CLAN.col = D.clcol; $('clSw').querySelectorAll('button').forEach(x => x.classList.toggle('sel', x === b)); return; }
+  if (D.emslot != null) { CLAN.emSlot = +D.emslot; CLAN.emHsv = null; emblemRedraw(); return; }
+  if (D.emcol) { CLAN.emHsv = hex2hsv(D.emcol); emSetCol(D.emcol, true); return; }
   if (D.emi) { CLAN.em = embSet(CLAN.em, +D.emi, D.emv); if (+D.emi === 2 && D.emv === 'b' && !/[A-Z0-9]/.test(CLAN.em[3])) CLAN.em = embSet(CLAN.em, 3, 'A'); emblemRedraw(); return; }
   if (D.clback != null) { CLAN.viewing = null; return renderClan(); }
   if (D.clview) { try { const r = await fetch('/api/clan?id=' + encodeURIComponent(D.clview), { cache: 'no-store' }), d = await r.json(); if (!r.ok) throw new Error(d.error); CLAN.viewing = d.clan; renderClan(); } catch (er) { notice(esc(er.message || 'Could not load that clan.'), false); clanLoad(true); } return; }
@@ -6951,12 +6997,23 @@ function saveAvatar(a) {
   store.set('bowfall-avatar', JSON.stringify(a));
   if (account) { account.avatar = a; fetch('/api/look', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ avatar: a }) }).catch(() => {}); }
 }
+// the menu's right column starts level with the top of the BOWFALL title (wide screens, where it sits beside it)
+function alignHomeTop() {
+  const wrap = document.querySelector('#home .homewrap'), top = document.querySelector('#home .hometop'), h1 = document.querySelector('#home .hometitle h1');
+  if (!wrap || !top || !h1) return;
+  if (innerWidth < 960 || getComputedStyle(top).position !== 'absolute') { top.style.top = ''; return; }
+  const fs = parseFloat(getComputedStyle(h1).fontSize) || 80, y = h1.getBoundingClientRect().top - wrap.getBoundingClientRect().top + fs * 0.12; // (the letters' tops, not the line box's)
+  if (y > 0) top.style.top = Math.round(y) + 'px';
+}
+addEventListener('resize', () => requestAnimationFrame(alignHomeTop)); if (document.fonts) document.fonts.ready.then(alignHomeTop);
 function drawProfChip() {
+  requestAnimationFrame(alignHomeTop);
   const a = myAvatar();
   try { drawPreview($('profAv'), a.el, a.ro, a.c); } catch (e) {}
   // the button is your banner: its frame, background, border, clan, title and medals, as everyone else sees it
   const me = myLook(), box = $('profName').parentNode;
   box.className = 'pcn nm plate' + plateClass(me); box.style.cssText = me.bd && BORDERS[me.bd] ? `--bd:${BORDERS[me.bd]}` : '';
+  requestAnimationFrame(() => { const h = box.offsetHeight; if (h) $('profChip').style.setProperty('--ph', h + 'px'); }); // (your archer exactly as tall as the banner)
   $('profName').innerHTML = idHtml(me) + esc(me.n) + (account ? ownHtml(account.admin) + statusHtml(WALLET && WALLET.status) : '') + trophyHtml(me.na) + (me.ti ? ` <em class="ttl">${esc(titleName(me.ti))}</em>` : '');
   $('profSub').innerHTML = account ? `${account.placed === false ? 'Unranked' : `1v1 ${Math.round((account.career || {}).elo || 800)} · Team ${Math.round((account.career || {}).eloT != null ? account.career.eloT : (account.career || {}).elo || 800)}`}${WALLET && !WALLET.guest ? ' · ' + crestTxt(WALLET.crests) : ''}` : 'Guest · edit profile';
 }
@@ -7310,7 +7367,8 @@ function eventFx(e) {
         floater(e.x, e.y - 40, e.n > 1 ? `Overload ×${e.n}` : 'Overload', '#fff27a', 14); sfx.zap(0.8);
         break;
       case 'autoPicked': if (e.id === myId) notice(`Time's up. You got <b>${esc(cardInfo(e.card).name)}</b> at random`); break;
-      case 'crackWarn': crackT[e.i] = clock; if (crackT.warned !== view.m.gm) { crackT.warned = view.m.gm; notice(THEME.beach ? 'The tide is coming in!' : 'The ice is cracking!', false); } play('crack', !!THEME.beach); break;
+      case 'crackWarn': crackT[e.i] = clock; if (crackT.warned !== view.m.gm || (MAPS[MAPKEY].cracks[e.i] && (MAPS[MAPKEY].cracks[e.i].bridge || (MAPS[MAPKEY].cracks[e.i].tide && clock - (crackT.warnAt || 0) > 8)))) { crackT.warned = view.m.gm; crackT.warnAt = clock; notice(MAPS[MAPKEY].cracks[e.i] && MAPS[MAPKEY].cracks[e.i].bridge ? 'The drawbridge is lifting!' : THEME.beach ? 'The tide is coming in! Get to the boardwalk.' : 'The ice is cracking!', false); } play('crack', !!THEME.beach); break;
+      case 'crackClose': { const h = Sim.MAPS[MAPKEY].cracks[e.i]; if (h) { const [cx, cy] = hazCentre(h); burst(cx, cy, '#cfeefc', 14, 120, 2.5); } if (clock - (crackT.outAt || 0) > 8) { crackT.outAt = clock; notice(h && h.bridge ? 'The drawbridge is down.' : 'The tide is going out.', false); } break; }
       case 'crackOpen': { const h = Sim.MAPS[MAPKEY].cracks[e.i]; if (h) { const [cx, cy] = hazCentre(h); burst(cx, cy, '#e6f7ff', 40, 260, 4); burst(cx, cy, '#5aa9d6', 20, 180, 3); } sfx.splash(); shake(5); break; }
       case 'phase': {
         const m = view && view.m;
@@ -8358,6 +8416,19 @@ function paintFloor(s) {
       const a = R() * TAU, r = 3 + R() * 3;
       g.fillStyle = R() < 0.5 ? '#fbf3e4' : '#f2cdb8'; g.beginPath(); g.moveTo(x, y); g.arc(x, y, r, a - 1.2, a + 1.2); g.closePath(); g.fill();
       g.strokeStyle = 'rgba(160,120,90,0.6)'; g.lineWidth = 0.7; for (let k = -1; k <= 1; k++) { g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a + k * 0.6) * r, y + Math.sin(a + k * 0.6) * r); g.stroke(); }
+    }
+    // Tidegate: the dry places at high tide are timber: the boardwalk, the spawn decks, the sandbar's jetty and the pier
+    if (MAPKEY === 'tidegate') {
+      const deck = (x, y, w, h, along) => { g.save(); g.fillStyle = 'rgba(120,84,48,0.92)'; g.fillRect(x, y, w, h);
+        g.strokeStyle = 'rgba(60,38,20,0.6)'; g.lineWidth = 1.4; const P = 12;
+        if (along === 'x') for (let yy = y + P; yy < y + h; yy += P) { g.beginPath(); g.moveTo(x, yy); g.lineTo(x + w, yy); g.stroke(); }
+        else for (let xx = x + P; xx < x + w; xx += P) { g.beginPath(); g.moveTo(xx, y); g.lineTo(xx, y + h); g.stroke(); }
+        g.fillStyle = 'rgba(255,230,190,0.12)'; g.fillRect(x, y, w, 3); g.strokeStyle = 'rgba(40,24,12,0.7)'; g.lineWidth = 2; g.strokeRect(x + 1, y + 1, w - 2, h - 2);
+        for (const [px, py] of [[x + 4, y + 4], [x + w - 4, y + 4], [x + 4, y + h - 4], [x + w - 4, y + h - 4]]) { g.fillStyle = 'rgba(50,30,15,0.85)'; g.beginPath(); g.arc(px, py, 3.2, 0, TAU); g.fill(); }
+        g.restore(); };
+      const M = (x, y, w, h) => [AW - x - w, AH - y - h, w, h];
+      for (const [x, y, w, h, a] of [[WALL, 300, 174, 200, 'y'], [200, 380, 300, 40, 'y'], [300, 160, 100, 100, 'x']]) { deck(x, y, w, h, a); deck(...M(x, y, w, h), a); }
+      deck(500, 300, 200, 200, 'x');
     }
   } else if (T.ground2 === 'planks') {
     // long boards with staggered joints, nail heads and grain, dusted with sawdust
