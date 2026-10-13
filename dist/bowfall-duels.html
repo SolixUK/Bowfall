@@ -623,21 +623,6 @@
   .pcclipw { position: relative; display: flex; gap: 10px; align-items: stretch; }
   .pcclipw .pcclip { flex: 1; min-width: 0; }
   /* the featured kill cam playing, small beside its button; hovering it (or the button) plays it big */
-  .weekplays { width: 250px; padding: 8px; background: rgba(9,18,11,.82); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
-  .weekplays .wph { display: flex; align-items: baseline; justify-content: space-between; } .weekplays .wph b { font: 700 15px 'Rajdhani', sans-serif; color: var(--gold); letter-spacing: .04em; text-transform: uppercase; } .weekplays .wph small { color: var(--muted); font-size: 11px; }
-  .wpprev { position: relative; width: 234px; aspect-ratio: 16 / 9; background: #000; overflow: hidden; cursor: pointer; border: 1px solid var(--line); transition: transform .2s ease-out, box-shadow .2s; transform-origin: right top; z-index: 8; }
-  .wpprev iframe { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; border: 0; transform: scale(calc(234 / 1280)); transform-origin: 0 0; pointer-events: none; }
-  .wpcard { width: 234px; } .wpcard[hidden] { display: none; } .ccard { transform-origin: right top; }
-  .wpcap { font-size: 12px; color: var(--text); line-height: 1.3; } .wpcap b { color: var(--gold); font: 700 15px 'Rajdhani', sans-serif; margin-right: 4px; } .wpcap small { display: block; color: var(--muted); font-size: 11px; }
-  .wpprev.big { transform: scale(var(--pk, 3)); box-shadow: 0 8px 26px rgba(0,0,0,.75); border-color: var(--gold); }
-  .wptabs[hidden], .wpprev[hidden], .wpnote[hidden] { display: none !important; }
-  .wptabs { display: flex; gap: 2px; } .wptabs button { background: none; border: 1px solid var(--line); color: var(--muted); font: 600 10px 'Titillium Web', sans-serif; padding: 1px 6px; cursor: pointer; } .wptabs button.on { color: #111; background: var(--gold); border-color: var(--gold); }
-  .weekplays .wpnote { color: var(--muted); font-size: 11px; line-height: 1.3; }
-  .wplist { display: flex; flex-direction: column; gap: 2px; } .wplist button { display: grid; grid-template-columns: 30px 1fr; gap: 6px; align-items: center; text-align: left; background: none; border: 1px solid transparent; color: var(--text); padding: 3px 5px; cursor: pointer; font: inherit; }
-  .wplist button.on { border-color: var(--gold); background: rgba(255,207,90,.08); } .wplist .sc { font: 700 15px 'Rajdhani', sans-serif; color: var(--gold); text-align: center; } .wplist b { font: 700 13px 'Rajdhani', sans-serif; display: block; } .wplist small { color: var(--muted); font-size: 11px; }
-  .ccard { position: relative; aspect-ratio: 16 / 9; background: #000; overflow: hidden; cursor: pointer; border: 1px solid var(--line); transition: transform .2s ease-out, box-shadow .2s; z-index: 8; }
-  .ccard iframe { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; border: 0; transform: scale(var(--cs, .25)); transform-origin: 0 0; pointer-events: none; }
-  .ccard.big { transform: scale(var(--pk, 3)); box-shadow: 0 8px 26px rgba(0,0,0,.75); border-color: var(--gold); z-index: 30; }
   .pcprev { position: relative; width: 168px; aspect-ratio: 16 / 9; flex: none; border: 1px solid color-mix(in srgb, var(--pa) 50%, transparent); background: #000; overflow: hidden; cursor: pointer; }
   .pcprev iframe { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; border: 0; transform: scale(calc(168 / 1280)); transform-origin: 0 0; pointer-events: none; }
   .pcprev { transition: transform .18s ease-out, box-shadow .18s; transform-origin: right bottom; z-index: 5; }
@@ -969,12 +954,6 @@
   @keyframes winpop { 0% { transform: translateY(14px) scale(.6); opacity: 0; } 100% { transform: none; opacity: 1; } }
   .resrated b.ticking { color: var(--gold); }
   .resclips { display: flex; flex-direction: column; gap: 8px; }
-  .resplays { display: flex; flex-direction: column; gap: 6px; } .rplays2 { display: flex; flex-wrap: wrap; gap: 16px; }
-  .rplay2 { display: flex; flex-direction: column; gap: 6px; width: 300px; } .rplay2 .ccard { width: 300px; } .rplay2 .hd { font: 700 15px 'Rajdhani', sans-serif; color: var(--gold); text-transform: uppercase; letter-spacing: .04em; }
-  .rplay2 .rpi { display: grid; grid-template-columns: 40px 1fr; gap: 8px; align-items: center; } .rplay2 .rpi .sc { font: 700 20px 'Rajdhani', sans-serif; color: var(--gold); text-align: center; } .rplay2 .rpi b { display: block; font: 700 16px 'Rajdhani', sans-serif; } .rplay2 .rpi small { color: var(--muted); font-size: 12px; } .rplay2 button { align-self: flex-start; } .rplays { display: flex; flex-direction: column; gap: 6px; }
-  .rplay { display: grid; grid-template-columns: 46px 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); background: rgba(255,255,255,.03); }
-  .rplay.top { border-color: var(--gold); background: rgba(255,207,90,.08); } .rplay .sc { font: 700 22px 'Rajdhani', sans-serif; color: var(--gold); text-align: center; }
-  .rplay b { display: block; font: 700 17px 'Rajdhani', 'Arial Narrow', sans-serif; } .rplay b small { color: var(--gold); font-weight: 600; } .rplay > div > small { color: var(--muted); font-size: 12px; } .rplay .rcb { display: flex; gap: 5px; } .rplay .locked { opacity: .75; }
   .moments { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; } .moments .lbl { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
   .moment { display: flex; flex-direction: column; padding: 6px 10px; border-left: 3px solid var(--line); background: rgba(255,255,255,.03); } .moment.top { border-left-color: var(--gold); background: rgba(255,207,90,.07); }
   .moment b { font: 700 16px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--gold); } .moment span { font-size: 13px; }
@@ -1564,7 +1543,6 @@
         </div>
         <div class="lpbox"><div class="lplist" id="lpList"></div><button type="button" class="ghost sm" id="lpAdd" title="Another player with their own controller, on this screen">+ Add player on controller</button></div>
         <div class="frpanel" id="homeFriends" hidden></div>
-        <div class="weekplays" id="weekPlays" hidden><div class="wph"><b id="wpHead">Best play of the week</b></div><div class="wpcard" id="wpCard"></div><div class="wpcap" id="wpCap"></div><span class="wpnote" id="wpNote" hidden></span></div>
         <button type="button" class="homelive" id="homeLive" hidden></button>
         <a class="dclink" id="homeDiscord" href="#" target="_blank" rel="noopener" title="Join the Bowfall Discord" aria-label="Join the Bowfall Discord" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.3 4.4A19.6 19.6 0 0 0 15.5 3l-.6 1.2a18 18 0 0 0-5.8 0L8.5 3a19.6 19.6 0 0 0-4.8 1.4C.6 9 .0 13.5.3 18a19.8 19.8 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4c-.6.4-1.3.7-2 1L17.7 21a19.7 19.7 0 0 0 6-3c.4-5.2-.7-9.7-3.4-13.6zM8.5 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4zm7 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4z"/></svg></a>
       </div>
@@ -1958,7 +1936,6 @@
         <div class="shopbar"><h3>Rankings</h3><span class="status" id="resHint">Click a column to rank by it.</span></div>
         <div class="tablewrap"><table class="rank" id="resTable"></table></div>
       </div>
-      <div class="resplays" id="resPlays" hidden></div>
       <div class="resclips" id="resClips" hidden></div>
       <div class="resrated" id="resRated" hidden></div>
       <div class="resclan" id="resClan" hidden></div>
@@ -2002,16 +1979,16 @@
       <section class="mode">
         <h3>Variety (each game)</h3>
         <p class="status" style="margin:0 0 4px">Tick what should change for every game. Pick Random under Match for a new arena each time.</p>
-        <div class="field"><label><input type="checkbox" id="farmEvery" checked> <b>One battle per game</b> (so everything below changes after every battle)</label></div>
+        <div class="field"><label><input type="checkbox" id="farmEvery"> <b>One battle per game</b> (so everything below changes after every battle)</label></div>
         <div class="field"><label><input type="checkbox" id="farmRndSize"> <b>Team sizes:</b> 1 to 4 a side</label></div>
-        <div class="field"><label for="farmRndWho"><b>Players</b></label><select id="farmRndWho"><option value="">The same ones every game</option><option value="near" selected>Each swapped for a random AI player of a similar rating</option><option value="high">Each swapped for a random high-rated AI player</option><option value="low">Each swapped for a random low-rated AI player</option><option value="any">Each swapped for any random AI player</option></select></div>
-        <div class="field"><label><input type="checkbox" id="farmRndLo" checked> <b>Archetypes:</b> any element and role, not just their favourites</label></div>
+        <div class="field"><label for="farmRndWho"><b>Players</b></label><select id="farmRndWho"><option value="">The same ones every game</option><option value="near">Each swapped for a random AI player of a similar rating</option><option value="high">Each swapped for a random high-rated AI player</option><option value="low">Each swapped for a random low-rated AI player</option><option value="any">Each swapped for any random AI player</option></select></div>
+        <div class="field"><label><input type="checkbox" id="farmRndLo"> <b>Archetypes:</b> any element and role, not just their favourites</label></div>
         <div class="farmmaps" id="farmRoles"><span class="status">Roles in the random pick:</span></div>
         <div class="farmmaps" id="farmEls"><span class="status">Elements in the random pick:</span></div>
-        <div class="field"><label><input type="checkbox" id="farmRndUps" checked> <b>Upgrades:</b> a random set each game (one ability and some passives, from the start)</label></div>
+        <div class="field"><label><input type="checkbox" id="farmRndUps"> <b>Upgrades:</b> a random set each game (one ability and some passives, from the start)</label></div>
         <div class="field"><label for="farmEffect"><b>Map effect</b></label><select id="farmEffect"></select></div>
-        <div class="field"><label><input type="checkbox" id="farmHunt" checked> <b>Hunt:</b> run flat out without drawing the game, keeping only the very best clips (score 6 or more, or just the plays ticked below). Also ⚡ on the bar. It keeps going in the background if you switch tabs.</label></div>
-        <div class="field"><label for="farmKeep">Clips to keep</label><select id="farmKeep"><option value="all">Every one</option><option value="good">Score 3 or more</option><option value="best" selected>Score 4.5 or more</option><option value="s6">Score 6 or more</option><option value="s8">Score 8 or more</option><option value="s10">Score 10 or more</option><option value="s13">Score 13 or more (rare)</option></select></div>
+        <div class="field"><label><input type="checkbox" id="farmHunt"> <b>Hunt:</b> run flat out without drawing the game, keeping only the very best clips (score 6 or more, or just the plays ticked below). Also ⚡ on the bar. It keeps going in the background if you switch tabs.</label></div>
+        <div class="field"><label for="farmKeep">Clips to keep</label><select id="farmKeep"><option value="all">Every one</option><option value="good" selected>Score 3 or more</option><option value="best">Score 4.5 or more</option><option value="s6">Score 6 or more</option><option value="s8">Score 8 or more</option><option value="s10">Score 10 or more</option><option value="s13">Score 13 or more (rare)</option></select></div>
         <div class="farmmaps" id="farmLook"><span class="status">Only these plays (none ticked: any):</span></div>
       </section>
       <section class="mode farmside" style="--tc:#ff6b5a">
@@ -2158,7 +2135,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script>window.BOWFALL_OFFLINE = true; window.__host = window.claude; window.BOWFALL_MIX = {"v":1,"game":"0.52.1","saved":"2026-10-11T23:08:03.438Z","master":0,"lim":{"on":1,"th":-3},"bus":{},"ch":{"found":{"db":5.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"draft":{"db":4,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"drawTick":{"db":12,"lo":0,"mid":3,"hi":10,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"autoOn":{"db":-4,"lo":-7,"mid":0,"hi":0,"semi":0,"speed":1.25,"take":"","trim":0,"mute":0,"solo":0},"snap":{"db":0,"lo":-3,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"loaded":{"db":-3,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"executed":{"db":-3.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"ripCast":{"db":0,"lo":0,"mid":0,"hi":0,"semi":-2,"speed":1.45,"take":"","trim":0,"mute":0,"solo":0},"rip":{"db":0,"lo":0,"mid":0,"hi":0,"semi":-8,"speed":0.8,"take":"","trim":0,"mute":0,"solo":0},"stun":{"db":2.5,"lo":-10.5,"mid":-2.5,"hi":12.5,"semi":-7,"speed":2,"take":"","trim":0,"mute":0,"solo":0},"hole":{"db":-7.5,"lo":-2,"mid":-5.5,"hi":-7,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"emo.angry":{"db":-1,"lo":-1,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"xbLoad":{"db":-4,"lo":-10,"mid":0,"hi":0,"semi":-1,"speed":1.45,"take":"","trim":0,"mute":0,"solo":0},"xbShot":{"db":-5,"lo":-13,"mid":-1.5,"hi":-4.5,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"ui.hover":{"db":0,"lo":0,"mid":0,"hi":0,"semi":-6,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"ui.click":{"db":0,"lo":-7,"mid":0,"hi":0,"semi":0,"speed":1.3,"take":"","trim":0,"mute":0,"solo":0},"achieve":{"db":4,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"rankMove":{"db":6.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"ratedTick":{"db":2,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"partyReady":{"db":3.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"abFail":{"db":4.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"thunk":{"db":12,"lo":15,"mid":15,"hi":15,"semi":-5,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"guardUp":{"db":0,"lo":-4,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"rush":{"db":4,"lo":-1.5,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"armed":{"db":4.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"volleyArmed":{"db":3.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"pinned":{"db":8,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"trapStart":{"db":3.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"shield":{"db":4,"lo":0,"mid":0,"hi":0,"semi":-4,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"freeze":{"db":-5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"el.blood":{"db":0,"lo":-4,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"count":{"db":6.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"streak":{"db":4.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"clutch":{"db":4,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"roundStart":{"db":5.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"killcam":{"db":0,"lo":15,"mid":0,"hi":0,"semi":-3,"speed":0.5,"take":"","trim":0,"mute":0,"solo":0},"twang":{"db":7.5,"lo":0,"mid":0,"hi":0,"semi":2,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"fall":{"db":0,"lo":0,"mid":0,"hi":7,"semi":5,"speed":0.5,"take":"","trim":0,"mute":0,"solo":0},"boom":{"db":6,"lo":3,"mid":0,"hi":6,"semi":0,"speed":0.5,"take":"","trim":0,"mute":0,"solo":0},"kill":{"db":4,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"splat":{"db":12,"lo":-9.5,"mid":0,"hi":15,"semi":0,"speed":1.15,"take":"","trim":0,"mute":0,"solo":0},"dash":{"db":0,"lo":-4.5,"mid":0,"hi":4.5,"semi":0,"speed":0.7,"take":"","trim":0,"mute":0,"solo":0},"stoneHit":{"db":12,"lo":7,"mid":6.5,"hi":10.5,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"ballKick":{"db":5.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"ballHit":{"db":5.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"shrine":{"db":6,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"fight":{"db":5.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"matchEnd":{"db":6.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0}},"takes":{}}; window.BOWFALL_AI = [{"name":"ellie_bellie","cc":"ee","lv":22,"elo":1876,"eloT":1876,"skill":0.95,"style":"guardian","aggr":0.77,"tr":{"cover":0.71,"edge":0.9,"dash":0.43,"charge":0.06},"gene":{"push":0.93,"safety":1.47,"jink":0.31},"loadouts":[["poison","trapper",0.63],["storm","trapper",0.32],["flame","trapper",0.24]],"look":{"av":null,"bd":"longshot","ti":null}},{"name":"Kasia_","cc":"pl","lv":25,"elo":1790,"eloT":1790,"skill":0.86,"style":"brawler","aggr":0.97,"tr":{"cover":0,"edge":0.32,"dash":1,"charge":-0.29},"gene":{"push":1.01,"safety":1.38,"jink":0.79},"loadouts":[["storm","ranger",0.67],["flame","juggernaut",0.29]],"look":{"av":null,"bd":"unstoppable","ti":"unstoppable"}},{"name":"kotik_uwu","cc":"ru","lv":21,"elo":1770,"eloT":1770,"skill":0.91,"style":"stalker","aggr":0.71,"tr":{"cover":0.2,"edge":0.62,"dash":0.67,"charge":0.63},"gene":{"push":1.3,"safety":1.45,"jink":0.48},"loadouts":[["frost","ranger",0.72]],"look":{"av":null,"bd":"unstoppable","ti":"bruiser"}},{"name":"Pasha","cc":"ru","lv":26,"elo":1752,"eloT":1752,"skill":0.95,"style":"skirmisher","aggr":0.42,"tr":{"cover":0.05,"edge":0.36,"dash":0.19,"charge":-0.01},"gene":{"push":1.35,"safety":1.31,"jink":0.42},"loadouts":[["shadow","crossbow",0.82],["shadow","warden",0.29]],"look":{"av":null,"bd":null,"ti":null}},{"name":"benji","cc":"hu","lv":23,"elo":1739,"eloT":1739,"skill":0.89,"style":"marksman","aggr":0.3,"tr":{"cover":0.79,"edge":0.39,"dash":0.65,"charge":0.64},"gene":{"push":1.35,"safety":0.95,"jink":0.67},"loadouts":[["storm","sniper",0.89],["void","sniper",0.35],["frost","ranger",0.3]],"look":{"av":null,"bd":"untouchable","ti":null}},{"name":"Tiago_PT","cc":"pt","lv":23,"elo":1719,"eloT":1719,"skill":0.94,"style":"brawler","aggr":0.85,"tr":{"cover":0,"edge":0.42,"dash":1,"charge":-0.38},"gene":{"push":1.23,"safety":1.27,"jink":0.74},"loadouts":[["frost","ranger",0.48],["stone","juggernaut",0.19],["frost","crossbow",0.22]],"look":{"av":null,"bd":"unstoppable","ti":"bruiser"}},{"name":"EmberLynx","cc":"gb","lv":24,"elo":1717,"eloT":1717,"skill":0.88,"style":"guardian","aggr":0.67,"tr":{"cover":0.33,"edge":0.42,"dash":0.45,"charge":0.42},"gene":{"push":1.1,"safety":0.83,"jink":0.63,"mid":0.69},"loadouts":[["frost","trapper",0.68],["shadow","trapper",0.32],["void","trapper",0.28]],"look":{"av":null,"bd":"sharpshooter","ti":"unstoppable"}},{"name":"Freja","cc":"dk","lv":19,"elo":1712,"eloT":1712,"skill":0.96,"style":"marksman","aggr":0.23,"tr":{"cover":0.8,"edge":0,"dash":0.42,"charge":0.47},"gene":{"push":1.38,"safety":1.39,"jink":0.63},"loadouts":[["frost","sniper",0.59],["flame","warden",0.45]],"look":{"av":null,"bd":"bruiser","ti":null}},{"name":"bowtie","cc":"gr","lv":24,"elo":1689,"eloT":1689,"skill":0.82,"style":"skirmisher","aggr":0.46,"tr":{"cover":0.54,"edge":0.29,"dash":0.06,"charge":0.7},"gene":{"push":1.29,"safety":1.19,"jink":0.42},"loadouts":[["flame","crossbow",0.68],["stone","ranger",0.25],["flame","ranger",0.24]],"look":{"av":null,"bd":"eagleeye","ti":null}},{"name":"Rhys_W","cc":"gb","lv":21,"elo":1688,"eloT":1688,"skill":0.85,"style":"stalker","aggr":0.84,"tr":{"cover":0.1,"edge":0.53,"dash":0.72,"charge":0.18},"gene":{"push":1.24,"safety":1.37,"jink":0.71},"loadouts":[["frost","ranger",0.61],["shadow","ranger",0.26],["frost","assassin",0.39]],"look":{"av":null,"bd":"bruiser","ti":"bruiser"}},{"name":"Vanya_Volkov","cc":"ru","lv":22,"elo":1681,"eloT":1681,"skill":0.92,"style":"marksman","aggr":0.6,"tr":{"cover":0.81,"edge":0.6,"dash":0.34,"charge":0.28},"gene":{"push":1.43,"safety":1.18,"jink":0.51},"loadouts":[["poison","sniper",0.75],["storm","ranger",0.3]],"look":{"av":null,"bd":"unstoppable","ti":null}},{"name":"Luca_C","cc":"ch","lv":22,"elo":1633,"eloT":1633,"skill":0.82,"style":"brawler","aggr":0.6,"tr":{"cover":0.16,"edge":0.03,"dash":0.7,"charge":-0.18},"gene":{"push":1.22,"safety":0.71,"jink":0.36},"loadouts":[["poison","crossbow",0.73],["shadow","crossbow",0.16]],"look":{"av":null,"bd":"bruiser","ti":"unstoppable"}},{"name":"QuiverQueen","cc":"hu","lv":20,"elo":1616,"eloT":1616,"skill":0.9,"style":"skirmisher","aggr":0.49,"tr":{"cover":0.55,"edge":0.23,"dash":1,"charge":0.38},"gene":{"push":1.29,"safety":0.98,"jink":0.41,"mid":0.78},"loadouts":[["frost","trickster",0.67],["storm","ranger",0.23],["shadow","ranger",0.21]],"look":{"av":null,"bd":"unstoppable","ti":"unstoppable"}},{"name":"Pieter_V","cc":"be","lv":18,"elo":1598,"eloT":1598,"skill":0.88,"style":"stalker","aggr":0.73,"tr":{"cover":0.2,"edge":0.24,"dash":0.59,"charge":0.52},"gene":{"push":1.17,"safety":1.14,"jink":0.51,"quick":0.2},"loadouts":[["storm","ninja",0.72],["stone","assassin",0.17],["frost","ninja",0.23]],"look":{"av":null,"bd":"bruiser","ti":null}},{"name":"Artem_","cc":"ru","lv":23,"elo":1580,"eloT":1580,"skill":0.84,"style":"stalker","aggr":0.46,"tr":{"cover":0.56,"edge":0.68,"dash":0.85,"charge":0.07},"gene":{"push":1.31,"safety":1.3,"jink":0.49},"loadouts":[["storm","ranger",0.74],["flame","ranger",0.11],["shadow","assassin",0.23]],"look":{"av":null,"bd":"longshot","ti":"longshot"}},{"name":"Jannik","cc":"de","lv":19,"elo":1556,"eloT":1556,"skill":0.81,"style":"marksman","aggr":0.79,"tr":{"cover":0,"edge":0,"dash":0.07,"charge":0.11},"gene":{"push":1.15,"safety":1.24,"jink":0.65},"loadouts":[["storm","sniper",0.76],["void","ranger",0.35]],"look":{"av":null,"bd":"flawless","ti":"unstoppable"}},{"name":"dizzy_d","cc":"ro","lv":18,"elo":1540,"eloT":1540,"skill":0.83,"style":"brawler","aggr":0.85,"tr":{"cover":0.28,"edge":0.63,"dash":1,"charge":0.23},"gene":{"push":1,"safety":0.99,"jink":0.48},"loadouts":[["void","juggernaut",0.86],["void","ranger",0.31],["flame","juggernaut",0.27]],"look":{"av":null,"bd":"flawless","ti":"unstoppable"}},{"name":"Cptn_Crossbow","cc":"bg","lv":20,"elo":1539,"eloT":1539,"skill":0.82,"style":"marksman","aggr":0.3,"tr":{"cover":0.75,"edge":0.73,"dash":0.22,"charge":0.45},"gene":{"push":0.71,"safety":1.38,"jink":0.74},"loadouts":[["void","ranger",0.75],["void","sniper",0.25],["flame","ranger",0.31]],"look":{"av":null,"bd":"eagleeye","ti":null}},{"name":"gh0st","cc":"gb","lv":21,"elo":1501,"eloT":1501,"skill":0.72,"style":"brawler","aggr":0.63,"tr":{"cover":0,"edge":0.12,"dash":0.5,"charge":-0.24},"gene":{"push":1.47,"safety":0.96,"jink":0.73},"loadouts":[["poison","juggernaut",0.78],["blood","ranger",0.17],["shadow","juggernaut",0.35]],"look":{"av":null,"bd":"longshot","ti":null}},{"name":"Gethin","cc":"gb","lv":21,"elo":1492,"eloT":1492,"skill":0.8,"style":"guardian","aggr":0.45,"tr":{"cover":0.14,"edge":0.11,"dash":0.36,"charge":0.21},"gene":{"push":1.15,"safety":1.34,"jink":0.72},"loadouts":[["shadow","trapper",0.69],["frost","trapper",0.28],["blood","warden",0.18]],"look":{"av":null,"bd":null,"ti":null}},{"name":"tootsie","cc":"it","lv":22,"elo":1463,"eloT":1463,"skill":0.76,"style":"guardian","aggr":0.22,"tr":{"cover":0.06,"edge":0.27,"dash":0.25,"charge":0.64},"gene":{"push":1.43,"safety":1.47,"jink":0.52},"loadouts":[["void","trapper",0.62],["storm","trapper",0.29],["flame","trapper",0.37]],"look":{"av":null,"bd":"sharpshooter","ti":null}},{"name":"JustTom","cc":"ee","lv":22,"elo":1441,"eloT":1441,"skill":0.72,"style":"skirmisher","aggr":0.49,"tr":{"cover":0.27,"edge":0.24,"dash":0.27,"charge":-0.03},"gene":{"push":0.96,"safety":0.85,"jink":0.46},"loadouts":[["frost","trickster",0.66],["frost","warden",0.24],["shadow","ranger",0.28]],"look":{"av":null,"bd":"unstoppable","ti":"bruiser"}},{"name":"sadbowboy","cc":"it","lv":20,"elo":1418,"eloT":1418,"skill":0.73,"style":"stalker","aggr":0.6,"tr":{"cover":0,"edge":0.49,"dash":0.87,"charge":0},"gene":{"push":0.73,"safety":1.02,"jink":0.44},"loadouts":[["frost","ranger",0.89]],"look":{"av":null,"bd":"bruiser","ti":"unstoppable"}},{"name":"Ines_","cc":"pt","lv":18,"elo":1418,"eloT":1418,"skill":0.71,"style":"marksman","aggr":0.29,"tr":{"cover":0.47,"edge":0.18,"dash":0,"charge":0.4},"gene":{"push":0.8,"safety":0.75,"jink":0.75},"loadouts":[["frost","sniper",0.6],["flame","sniper",0.2],["blood","sniper",0.33]],"look":{"av":null,"bd":null,"ti":"bruiser"}},{"name":"Skadi","cc":"is","lv":17,"elo":1402,"eloT":1402,"skill":0.74,"style":"marksman","aggr":0.46,"tr":{"cover":0.77,"edge":0.39,"dash":0.17,"charge":0.34},"gene":{"push":0.87,"safety":1.4,"jink":0.49},"loadouts":[["frost","sniper",0.87],["blood","sniper",0.22],["flame","ranger",0.25]],"look":{"av":null,"bd":"longshot","ti":null}},{"name":"Eleni","cc":"gr","lv":19,"elo":1390,"eloT":1390,"skill":0.73,"style":"brawler","aggr":0.73,"tr":{"cover":0.02,"edge":0.46,"dash":1,"charge":-0.47},"gene":{"push":1.25,"safety":0.94,"jink":0.52},"loadouts":[["flame","ranger",0.75],["poison","juggernaut",0.19],["flame","juggernaut",0.3]],"look":{"av":null,"bd":"bruiser","ti":"bruiser"}},{"name":"Fraser_","cc":"gb","lv":21,"elo":1379,"eloT":1379,"skill":0.69,"style":"stalker","aggr":0.6,"tr":{"cover":0.63,"edge":0.57,"dash":0.86,"charge":0.36},"gene":{"push":0.9,"safety":1.49,"jink":0.6},"loadouts":[["storm","assassin",0.65],["frost","ninja",0.12]],"look":{"av":null,"bd":"unstoppable","ti":"unstoppable"}},{"name":"Nastya","cc":"ru","lv":18,"elo":1379,"eloT":1379,"skill":0.67,"style":"brawler","aggr":0.74,"tr":{"cover":0.28,"edge":0.42,"dash":0.95,"charge":-0.56},"gene":{"push":0.75,"safety":1.2,"jink":0.73},"loadouts":[["flame","juggernaut",0.76],["void","juggernaut",0.27],["blood","ranger",0.16]],"look":{"av":null,"bd":null,"ti":null}},{"name":"Thistle","cc":"lt","lv":21,"elo":1355,"eloT":1355,"skill":0.7,"style":"stalker","aggr":0.49,"tr":{"cover":0.17,"edge":0.6,"dash":0.69,"charge":-0.11},"gene":{"push":1.29,"safety":1.09,"jink":0.71},"loadouts":[["blood","ninja",0.78],["storm","assassin",0.29],["flame","ranger",0.25]],"look":{"av":null,"bd":"unstoppable","ti":"unstoppable"}},{"name":"GoblinMode","cc":"ee","lv":17,"elo":1342,"eloT":1342,"skill":0.67,"style":"brawler","aggr":0.46,"tr":{"cover":0.27,"edge":0.53,"dash":0.97,"charge":-0.36},"gene":{"push":1.46,"safety":1.34,"jink":0.71},"loadouts":[["flame","ranger",0.73],["shadow","ranger",0.16],["poison","juggernaut",0.31]],"look":{"av":null,"bd":null,"ti":null}},{"name":"tinyviolin","cc":"rs","lv":18,"elo":1339,"eloT":1339,"skill":0.66,"style":"skirmisher","aggr":0.52,"tr":{"cover":0.38,"edge":0,"dash":0.65,"charge":-0.24},"gene":{"push":0.93,"safety":0.8,"jink":0.65},"loadouts":[["shadow","ranger",0.69]],"look":{"av":null,"bd":null,"ti":"longshot"}},{"name":"knockbackkid","cc":"de","lv":22,"elo":1325,"eloT":1325,"skill":0.66,"style":"guardian","aggr":0.53,"tr":{"cover":0.36,"edge":0.47,"dash":0.22,"charge":0.31},"gene":{"push":1.03,"safety":0.81,"jink":0.3},"loadouts":[["blood","trapper",0.85],["frost","trapper",0.34]],"look":{"av":null,"bd":"unstoppable","ti":null}},{"name":"Mathis","cc":"fr","lv":19,"elo":1302,"eloT":1302,"skill":0.62,"style":"marksman","aggr":0.51,"tr":{"cover":0,"edge":0.38,"dash":0.26,"charge":-0.17},"gene":{"push":1.46,"safety":0.71,"jink":0.31},"loadouts":[["poison","sniper",0.64],["flame","sniper",0.34]],"look":{"av":null,"bd":"sharpshooter","ti":"longshot"}},{"name":"Katyusha_","cc":"ru","lv":20,"elo":1296,"eloT":1296,"skill":0.64,"style":"guardian","aggr":0.56,"tr":{"cover":0.27,"edge":0.5,"dash":0,"charge":0.17},"gene":{"push":0.88,"safety":1,"jink":0.4},"loadouts":[["frost","trapper",0.88],["frost","warden",0.24],["storm","warden",0.15]],"look":{"av":null,"bd":"unstoppable","ti":"unstoppable"}},{"name":"Shazam_7","cc":"ro","lv":19,"elo":1290,"eloT":1290,"skill":0.64,"style":"stalker","aggr":0.8,"tr":{"cover":0,"edge":0.2,"dash":0.91,"charge":0.09},"gene":{"push":0.74,"safety":0.72,"jink":0.43},"loadouts":[["void","ninja",0.82],["storm","ninja",0.31],["frost","ranger",0.35]],"look":{"av":null,"bd":null,"ti":null}},{"name":"xNocturnex","cc":"ee","lv":20,"elo":1283,"eloT":1283,"skill":0.64,"style":"guardian","aggr":0.25,"tr":{"cover":0,"edge":0.34,"dash":0,"charge":-0.25},"gene":{"push":1.15,"safety":0.78,"jink":0.73},"loadouts":[["shadow","warden",0.85],["flame","trapper",0.27]],"look":{"av":null,"bd":"bruiser","ti":"bruiser"}},{"name":"Matteo.","cc":"it","lv":18,"elo":1277,"eloT":1277,"skill":0.64,"style":"skirmisher","aggr":0.51,"tr":{"cover":0,"edge":0.12,"dash":0.95,"charge":-0.1},"gene":{"push":0.86,"safety":1.24,"jink":0.66},"loadouts":[["poison","crossbow",0.65],["frost","ranger",0.16],["flame","ranger",0.34]],"look":{"av":null,"bd":null,"ti":null}},{"name":"BowDown99","cc":"ro","lv":17,"elo":1275,"eloT":1275,"skill":0.61,"style":"skirmisher","aggr":0.34,"tr":{"cover":0.3,"edge":0.21,"dash":0.94,"charge":0.53},"gene":{"push":0.8,"safety":1.35,"jink":0.64},"loadouts":[["storm","warden",0.69],["storm","ranger",0.27],["flame","ranger",0.25]],"look":{"av":null,"bd":"unstoppable","ti":"unstoppable"}},{"name":"TheRealFrost","cc":"nl","lv":17,"elo":1264,"eloT":1264,"skill":0.64,"style":"stalker","aggr":0.65,"tr":{"cover":0.41,"edge":0.11,"dash":0.74,"charge":-0.33},"gene":{"push":1.02,"safety":1.01,"jink":0.34},"loadouts":[["storm","assassin",0.69],["flame","assassin",0.28]],"look":{"av":null,"bd":null,"ti":null}},{"name":"DashDashBoom","cc":"sk","lv":20,"elo":1262,"eloT":1262,"skill":0.58,"style":"brawler","aggr":0.69,"tr":{"cover":0,"edge":0.48,"dash":0.97,"charge":-0.17},"gene":null,"loadouts":[["flame","juggernaut",0.68],["frost","juggernaut",0.26]],"look":{"av":null,"bd":null,"ti":null}},{"name":"Ded_Moroz","cc":"ru","lv":20,"elo":1256,"eloT":1256,"skill":0.65,"style":"stalker","aggr":0.8,"tr":{"cover":0.37,"edge":0.96,"dash":0.82,"charge":0.2},"gene":{"push":1.03,"safety":1.38,"jink":0.31},"loadouts":[["stone","ninja",0.78],["frost","ninja",0.3],["flame","assassin",0.32]],"look":{"av":null,"bd":null,"ti":null}},{"name":"Lars_","cc":"no","lv":18,"elo":1249,"eloT":1249,"skill":0.62,"style":"marksman","aggr":0.15,"tr":{"cover":0.77,"edge":0.52,"dash":0.59,"charge":0.22},"gene":{"push":1.13,"safety":1.02,"jink":0.38},"loadouts":[["poison","warden",0.79],["storm","ranger",0.13]],"look":{"av":null,"bd":"sharpshooter","ti":null}},{"name":"Kirill","cc":"ru","lv":18,"elo":1243,"eloT":1243,"skill":0.64,"style":"marksman","aggr":0.46,"tr":{"cover":0.37,"edge":0.47,"dash":0.24,"charge":1},"gene":{"push":0.8,"safety":1.34,"jink":0.39},"loadouts":[["blood","sniper",0.91],["shadow","sniper",0.23]],"look":{"av":null,"bd":"bruiser","ti":null}},{"name":"Masha","cc":"ru","lv":17,"elo":1227,"eloT":1227,"skill":0.58,"style":"brawler","aggr":0.84,"tr":{"cover":0.06,"edge":0.42,"dash":0.86,"charge":-0.11},"gene":null,"loadouts":[["frost","ranger",0.55],["frost","juggernaut",0.17]],"look":{"av":null,"bd":null,"ti":"sharpshooter"}},{"name":"Grumblebow","cc":"es","lv":16,"elo":1211,"eloT":1211,"skill":0.6,"style":"marksman","aggr":0.15,"tr":{"cover":0.91,"edge":0,"dash":0.43,"charge":0.22},"gene":{"push":0.92,"safety":0.74,"jink":0.78},"loadouts":[["shadow","sniper",0.67]],"look":{"av":null,"bd":"eagleeye","ti":null}},{"name":"luna.exe","cc":"gr","lv":15,"elo":1211,"eloT":1211,"skill":0.59,"style":"marksman","aggr":0.37,"tr":{"cover":0.69,"edge":0.32,"dash":0.32,"charge":0.62},"gene":null,"loadouts":[["blood","ranger",0.81],["stone","sniper",0.21],["stone","warden",0.26]],"look":{"av":null,"bd":"clutch","ti":"bruiser"}},{"name":"Siobhan","cc":"ie","lv":16,"elo":1211,"eloT":1211,"skill":0.61,"style":"skirmisher","aggr":0.19,"tr":{"cover":0.34,"edge":0.19,"dash":0.46,"charge":0.33},"gene":{"push":1.34,"safety":1.24,"jink":0.71},"loadouts":[["frost","crossbow",0.87]],"look":{"av":null,"bd":null,"ti":null}},{"name":"Aoife","cc":"ie","lv":18,"elo":1203,"eloT":1203,"skill":0.56,"style":"marksman","aggr":0.16,"tr":{"cover":0.56,"edge":0.29,"dash":0.21,"charge":0.32},"gene":null,"loadouts":[["storm","sniper",0.87],["shadow","ranger",0.31],["stone","warden",0.16]],"look":{"av":null,"bd":"sharpshooter","ti":"sharpshooter"}},{"name":"medved88","cc":"ru","lv":19,"elo":1198,"eloT":1198,"skill":0.61,"style":"skirmisher","aggr":0.46,"tr":{"cover":0.52,"edge":0.42,"dash":0.22,"charge":0.35},"gene":{"push":1.2,"safety":0.71,"jink":0.32},"loadouts":[["stone","ranger",0.69],["stone","trickster",0.31],["stone","crossbow",0.22]],"look":{"av":null,"bd":null,"ti":null}},{"name":"SirPokesALot","cc":"es","lv":17,"elo":1195,"eloT":1195,"skill":0.6,"style":"brawler","aggr":0.65,"tr":{"cover":0.16,"edge":0.34,"dash":0.46,"charge":-0.62},"gene":{"push":1.29,"safety":1.29,"jink":0.64},"loadouts":[["shadow","juggernaut",0.69],["void","ranger",0.35],["poison","juggernaut",0.28]],"look":{"av":null,"bd":"eagleeye","ti":"unstoppable"}},{"name":"zenith","cc":"bg","lv":16,"elo":1193,"eloT":1193,"skill":0.58,"style":"brawler","aggr":0.84,"tr":{"cover":0,"edge":0.79,"dash":1,"charge":-0.11},"gene":null,"loadouts":[["blood","juggernaut",0.86]],"look":{"av":null,"bd":"sharpshooter","ti":null}},{"name":"Finn_","cc":"de","lv":16,"elo":1180,"eloT":1180,"skill":0.61,"style":"stalker","aggr":0.75,"tr":{"cover":0,"edge":0.11,"dash":1,"charge":0.37},"gene":{"push":0.87,"safety":0.85,"jink":0.72},"loadouts":[["void","ninja",0.84],["shadow","ninja",0.26]],"look":{"av":null,"bd":"ringmaster","ti":null}},{"name":"Nyx_","cc":"pl","lv":16,"elo":1158,"eloT":1158,"skill":0.56,"style":"guardian","aggr":0.79,"tr":{"cover":0.08,"edge":0.56,"dash":0.47,"charge":0.39},"gene":null,"loadouts":[["stone","trapper",0.84],["storm","trapper",0.12],["flame","ranger",0.32]],"look":{"av":null,"bd":null,"ti":"sharpshooter"}},{"name":"Wyvern","cc":"ie","lv":18,"elo":1153,"eloT":1153,"skill":0.55,"style":"marksman","aggr":0.55,"tr":{"cover":1,"edge":0.08,"dash":0.41,"charge":-0.01},"gene":null,"loadouts":[["shadow","warden",0.65]],"look":{"av":null,"bd":"longshot","ti":null}},{"name":"Zoe_","cc":"at","lv":17,"elo":1149,"eloT":1149,"skill":0.52,"style":"skirmisher","aggr":0.44,"tr":{"cover":0.09,"edge":0.22,"dash":0.1,"charge":0.35},"gene":null,"loadouts":[["frost","ranger",0.6],["storm","ranger",0.3],["frost","warden",0.35]],"look":{"av":null,"bd":"bruiser","ti":"bruiser"}},{"name":"mattyb_22","cc":"gr","lv":17,"elo":1143,"eloT":1143,"skill":0.55,"style":"brawler","aggr":1,"tr":{"cover":0.08,"edge":0.36,"dash":0.46,"charge":-0.2},"gene":null,"loadouts":[["void","crossbow",0.68],["poison","crossbow",0.11],["poison","juggernaut",0.24]],"look":{"av":null,"bd":"unstoppable","ti":"unstoppable"}},{"name":"Kiwi_Kicks","cc":"fr","lv":15,"elo":1128,"eloT":1128,"skill":0.55,"style":"stalker","aggr":0.15,"tr":{"cover":0,"edge":0.66,"dash":0.42,"charge":-0.03},"gene":null,"loadouts":[["shadow","assassin",0.77],["storm","ninja",0.05]],"look":{"av":null,"bd":"sharpshooter","ti":null}},{"name":"rainyday","cc":"no","lv":18,"elo":1119,"eloT":1119,"skill":0.54,"style":"guardian","aggr":0.63,"tr":{"cover":0,"edge":0.72,"dash":0.29,"charge":0.05},"gene":null,"loadouts":[["blood","trapper",0.63],["void","trapper",0.23],["storm","trapper",0.27]],"look":{"av":null,"bd":"sharpshooter","ti":"unstoppable"}},{"name":"PitStop","cc":"hu","lv":13,"elo":1109,"eloT":1109,"skill":0.56,"style":"brawler","aggr":0.84,"tr":{"cover":0.61,"edge":0.58,"dash":1,"charge":-0.36},"gene":null,"loadouts":[["flame","crossbow",0.75],["flame","juggernaut",0.16],["storm","juggernaut",0.2]],"look":{"av":null,"bd":"eagleeye","ti":null}},{"name":"TeaAndArrows","cc":"es","lv":17,"elo":1107,"eloT":1107,"skill":0.51,"style":"guardian","aggr":0.37,"tr":{"cover":0.01,"edge":0.79,"dash":0.11,"charge":0.71},"gene":null,"loadouts":[["flame","warden",0.86],["frost","warden",0.05],["void","warden",0.35]],"look":{"av":null,"bd":"sharpshooter","ti":"unstoppable"}},{"name":"fox_in_socks","cc":"dk","lv":16,"elo":1102,"eloT":1102,"skill":0.51,"style":"guardian","aggr":0.37,"tr":{"cover":0.03,"edge":0.56,"dash":0.47,"charge":-0.12},"gene":null,"loadouts":[["storm","warden",0.74],["frost","ranger",0.24]],"look":{"av":null,"bd":"unstoppable","ti":"unstoppable"}},{"name":"MeadowLark","cc":"ie","lv":15,"elo":1088,"eloT":1088,"skill":0.53,"style":"brawler","aggr":0.52,"tr":{"cover":0,"edge":0.38,"dash":0.6,"charge":-0.59},"gene":null,"loadouts":[["poison","ranger",0.8],["poison","juggernaut",0.17],["frost","ranger",0.17]],"look":{"av":null,"bd":"sharpshooter","ti":null}},{"name":"Yew_Know_It","cc":"dk","lv":17,"elo":1085,"eloT":1085,"skill":0.55,"style":"stalker","aggr":0.84,"tr":{"cover":0.13,"edge":0.6,"dash":0.59,"charge":0.02},"gene":null,"loadouts":[["frost","assassin",0.82],["frost","ninja",0.3],["storm","ninja",0.25]],"look":{"av":null,"bd":"eagleeye","ti":"unstoppable"}},{"name":"tryhard_tim","cc":"gb","lv":15,"elo":1076,"eloT":1076,"skill":0.51,"style":"skirmisher","aggr":0.5,"tr":{"cover":0.34,"edge":0.72,"dash":0.15,"charge":-0.17},"gene":null,"loadouts":[["frost","trickster",0.63],["poison","trickster",0.28],["frost","crossbow",0.24]],"look":{"av":null,"bd":null,"ti":null}},{"name":"VoidWalker13","cc":"ch","lv":14,"elo":1069,"eloT":1069,"skill":0.5,"style":"marksman","aggr":0.47,"tr":{"cover":0.49,"edge":0.36,"dash":0.13,"charge":0.3},"gene":null,"loadouts":[["flame","sniper",0.73],["shadow","sniper",0.29],["frost","sniper",0.28]],"look":{"av":null,"bd":null,"ti":null}},{"name":"hollowpoint","cc":"se","lv":14,"elo":1066,"eloT":1066,"skill":0.52,"style":"brawler","aggr":0.51,"tr":{"cover":0,"edge":0.57,"dash":0.46,"charge":-0.11},"gene":null,"loadouts":[["frost","ranger",0.93],["frost","juggernaut",0.05],["shadow","ranger",0.18]],"look":{"av":null,"bd":"sharpshooter","ti":null}},{"name":"Beansprout","cc":"se","lv":17,"elo":1058,"eloT":1058,"skill":0.49,"style":"skirmisher","aggr":0.45,"tr":{"cover":0.17,"edge":0,"dash":0.19,"charge":0.13},"gene":null,"loadouts":[["frost","ranger",0.68],["flame","crossbow",0.17]],"look":{"av":null,"bd":"bruiser","ti":"unstoppable"}},{"name":"Ollie_","cc":"se","lv":15,"elo":1046,"eloT":1046,"skill":0.46,"style":"brawler","aggr":0.75,"tr":{"cover":0,"edge":0.1,"dash":0.87,"charge":-0.43},"gene":null,"loadouts":[["void","juggernaut",0.95],["shadow","crossbow",0.05]],"look":{"av":null,"bd":"sharpshooter","ti":"unstoppable"}},{"name":"Mochi","cc":"es","lv":13,"elo":1042,"eloT":1042,"skill":0.53,"style":"stalker","aggr":0.86,"tr":{"cover":0.21,"edge":0,"dash":0.5,"charge":0.73},"gene":null,"loadouts":[["flame","ninja",0.74],["storm","ninja",0.33]],"look":{"av":null,"bd":null,"ti":"sharpshooter"}},{"name":"Pickle_Rick42","cc":"at","lv":15,"elo":1035,"eloT":1035,"skill":0.5,"style":"stalker","aggr":0.85,"tr":{"cover":0.13,"edge":0.66,"dash":0.75,"charge":-0.06},"gene":null,"loadouts":[["storm","ranger",0.8],["flame","ranger",0.34],["void","ninja",0.31]],"look":{"av":null,"bd":null,"ti":null}},{"name":"ohnoitsjake","cc":"de","lv":15,"elo":1021,"eloT":1021,"skill":0.49,"style":"stalker","aggr":0.75,"tr":{"cover":0,"edge":0.09,"dash":0.87,"charge":0.66},"gene":null,"loadouts":[["frost","assassin",0.84]],"look":{"av":null,"bd":"sharpshooter","ti":null}},{"name":"lilbrambles","cc":"ro","lv":12,"elo":1019,"eloT":1019,"skill":0.45,"style":"brawler","aggr":0.54,"tr":{"cover":0,"edge":0.24,"dash":0.91,"charge":-0.64},"gene":null,"loadouts":[["frost","ranger",0.76],["frost","juggernaut",0.18],["storm","crossbow",0.34]],"look":{"av":null,"bd":"bruiser","ti":"bruiser"}},{"name":"BigYew","cc":"se","lv":14,"elo":1002,"eloT":1002,"skill":0.46,"style":"marksman","aggr":0.15,"tr":{"cover":0.84,"edge":0.51,"dash":0.4,"charge":0.33},"gene":null,"loadouts":[["flame","sniper",0.81],["blood","ranger",0.3]],"look":{"av":null,"bd":null,"ti":"bruiser"}},{"name":"AimAssistOff","cc":"ro","lv":16,"elo":995,"eloT":995,"skill":0.47,"style":"stalker","aggr":1,"tr":{"cover":0.58,"edge":0.2,"dash":1,"charge":0.33},"gene":null,"loadouts":[["flame","ranger",0.61],["storm","ranger",0.12],["stone","ranger",0.44]],"look":{"av":null,"bd":"unstoppable","ti":null}},{"name":"DadBod_Dan","cc":"ch","lv":14,"elo":964,"eloT":964,"skill":0.41,"style":"brawler","aggr":0.62,"tr":{"cover":0.11,"edge":0.6,"dash":0.67,"charge":-0.62},"gene":null,"loadouts":[["flame","juggernaut",0.86],["stone","juggernaut",0.17]],"look":{"av":null,"bd":"lifeline","ti":"bruiser"}},{"name":"hazel_nut","cc":"at","lv":15,"elo":951,"eloT":951,"skill":0.47,"style":"skirmisher","aggr":0.66,"tr":{"cover":0.21,"edge":0.29,"dash":0.18,"charge":-0.04},"gene":null,"loadouts":[["flame","ranger",0.65],["storm","ranger",0.18]],"look":{"av":null,"bd":"onfire","ti":null}},{"name":"Bence","cc":"hu","lv":15,"elo":937,"eloT":937,"skill":0.44,"style":"skirmisher","aggr":0.26,"tr":{"cover":0.22,"edge":0.07,"dash":0.61,"charge":0.03},"gene":null,"loadouts":[["storm","ranger",0.78],["storm","warden",0.19],["shadow","ranger",0.23]],"look":{"av":null,"bd":"sharpshooter","ti":null}},{"name":"Bartek_PL","cc":"pl","lv":12,"elo":925,"eloT":925,"skill":0.4,"style":"stalker","aggr":0.69,"tr":{"cover":0.58,"edge":0.34,"dash":0.84,"charge":-0.28},"gene":null,"loadouts":[["poison","ranger",0.53],["storm","ranger",0.5],["flame","ranger",0.3]],"look":{"av":null,"bd":"unstoppable","ti":"bruiser"}},{"name":"Isla","cc":"gb","lv":13,"elo":925,"eloT":925,"skill":0.41,"style":"brawler","aggr":0.67,"tr":{"cover":0.06,"edge":0.73,"dash":1,"charge":-0.09},"gene":null,"loadouts":[["storm","ranger",0.84],["flame","juggernaut",0.3],["storm","juggernaut",0.3]],"look":{"av":null,"bd":"onfire","ti":"sharpshooter"}},{"name":"WaffleIron","cc":"de","lv":14,"elo":924,"eloT":924,"skill":0.42,"style":"stalker","aggr":0.48,"tr":{"cover":0.31,"edge":0.48,"dash":0.64,"charge":-0.03},"gene":null,"loadouts":[["frost","ranger",0.63],["stone","ranger",0.2],["storm","ninja",0.31]],"look":{"av":null,"bd":null,"ti":null}},{"name":"Marigold_","cc":"at","lv":12,"elo":907,"eloT":907,"skill":0.41,"style":"brawler","aggr":0.77,"tr":{"cover":0,"edge":0.52,"dash":0.9,"charge":0.03},"gene":null,"loadouts":[["frost","ranger",0.79],["stone","juggernaut",0.2]],"look":{"av":null,"bd":null,"ti":"unstoppable"}},{"name":"LowKeyLethal","cc":"lt","lv":12,"elo":894,"eloT":894,"skill":0.43,"style":"guardian","aggr":0.49,"tr":{"cover":0.47,"edge":0.76,"dash":0.15,"charge":0.06},"gene":null,"loadouts":[["storm","trapper",0.76],["blood","trapper",0.17]],"look":{"av":null,"bd":"unstoppable","ti":"eagleeye"}},{"name":"nofunallowed","cc":"pl","lv":14,"elo":862,"eloT":862,"skill":0.35,"style":"marksman","aggr":0.44,"tr":{"cover":0.02,"edge":0.66,"dash":0.27,"charge":0.98},"gene":null,"loadouts":[["poison","sniper",0.74],["flame","sniper",0.25]],"look":{"av":null,"bd":null,"ti":"unstoppable"}},{"name":"Sorrel","cc":"lv","lv":13,"elo":861,"eloT":861,"skill":0.42,"style":"guardian","aggr":0.61,"tr":{"cover":0.37,"edge":0.58,"dash":0.37,"charge":0.35},"gene":null,"loadouts":[["blood","trapper",0.72],["flame","trapper",0.05]],"look":{"av":null,"bd":"unstoppable","ti":null}},{"name":"Ricochet_Rae","cc":"no","lv":13,"elo":859,"eloT":859,"skill":0.38,"style":"marksman","aggr":0.76,"tr":{"cover":0.49,"edge":0.5,"dash":0.13,"charge":0.38},"gene":null,"loadouts":[["flame","ranger",0.58],["flame","sniper",0.28],["frost","sniper",0.25]],"look":{"av":null,"bd":"unstoppable","ti":"unstoppable"}},{"name":"Sven_Svensson","cc":"se","lv":12,"elo":858,"eloT":858,"skill":0.44,"style":"stalker","aggr":0.7,"tr":{"cover":0.11,"edge":0,"dash":1,"charge":-0.2},"gene":null,"loadouts":[["storm","ninja",0.53],["flame","ninja",0.23],["blood","ninja",0.27]],"look":{"av":null,"bd":"eagleeye","ti":"sharpshooter"}},{"name":"PixelArrow","cc":"no","lv":12,"elo":851,"eloT":851,"skill":0.34,"style":"skirmisher","aggr":0.6,"tr":{"cover":0.09,"edge":0.15,"dash":0.61,"charge":-0.05},"gene":null,"loadouts":[["storm","warden",0.84],["storm","ranger",0.14],["frost","ranger",0.23]],"look":{"av":null,"bd":"sharpshooter","ti":"sharpshooter"}},{"name":"Pumpernickel","cc":"pt","lv":13,"elo":850,"eloT":850,"skill":0.31,"style":"stalker","aggr":0.59,"tr":{"cover":0,"edge":0,"dash":0.61,"charge":-0.24},"gene":null,"loadouts":[["storm","ranger",0.66],["frost","ranger",0.27],["poison","ranger",0.13]],"look":{"av":null,"bd":"untouchable","ti":"unstoppable"}},{"name":"Marzipan","cc":"no","lv":13,"elo":849,"eloT":849,"skill":0.22,"style":"skirmisher","aggr":0.69,"tr":{"cover":0.04,"edge":0.74,"dash":0.69,"charge":-0.05},"gene":null,"loadouts":[["frost","ranger",0.89],["stone","ranger",0.17],["flame","trickster",0.3]],"look":{"av":null,"bd":"unstoppable","ti":null}},{"name":"Sofia_","cc":"es","lv":11,"elo":848,"eloT":848,"skill":0.35,"style":"stalker","aggr":0.69,"tr":{"cover":0.4,"edge":0.52,"dash":1,"charge":0.16},"gene":null,"loadouts":[["frost","ranger",0.5],["storm","ranger",0.31],["stone","ranger",0.25]],"look":{"av":null,"bd":"untouchable","ti":null}},{"name":"ToastMalone","cc":"hu","lv":12,"elo":846,"eloT":846,"skill":0.43,"style":"stalker","aggr":0.9,"tr":{"cover":0.02,"edge":0.59,"dash":0.62,"charge":0.67},"gene":null,"loadouts":[["storm","ninja",0.71],["void","ninja",0.16],["frost","ninja",0.16]],"look":{"av":null,"bd":null,"ti":null}},{"name":"Nikos_","cc":"gr","lv":11,"elo":843,"eloT":843,"skill":0.36,"style":"stalker","aggr":0.78,"tr":{"cover":0.48,"edge":0.58,"dash":0.77,"charge":0.66},"gene":null,"loadouts":[["flame","ranger",0.66],["stone","ranger",0.2],["frost","ranger",0.32]],"look":{"av":null,"bd":"eagleeye","ti":"untouchable"}},{"name":"Stormy_Jo","cc":"ch","lv":12,"elo":841,"eloT":841,"skill":0.44,"style":"guardian","aggr":0.7,"tr":{"cover":0.19,"edge":1,"dash":0,"charge":-0.03},"gene":null,"loadouts":[["stone","trapper",0.66],["frost","trapper",0.12]],"look":{"av":null,"bd":null,"ti":null}},{"name":"Lena_","cc":"ru","lv":12,"elo":836,"eloT":836,"skill":0.37,"style":"skirmisher","aggr":0.4,"tr":{"cover":0.13,"edge":0.34,"dash":0.8,"charge":0.01},"gene":null,"loadouts":[["storm","ranger",0.85],["stone","ranger",0.21]],"look":{"av":null,"bd":"sharpshooter","ti":null}},{"name":"Fletchling","cc":"pl","lv":12,"elo":811,"eloT":811,"skill":0.29,"style":"guardian","aggr":0.15,"tr":{"cover":0.32,"edge":0.92,"dash":0.55,"charge":0.21},"gene":null,"loadouts":[["poison","warden",0.74],["stone","trapper",0.31],["frost","trapper",0.16]],"look":{"av":null,"bd":null,"ti":"onfire"}},{"name":"xX_Reaper_Xx","cc":"gb","lv":13,"elo":811,"eloT":811,"skill":0.33,"style":"skirmisher","aggr":0.3,"tr":{"cover":0,"edge":0.14,"dash":0.38,"charge":0.09},"gene":null,"loadouts":[["storm","warden",0.71],["storm","trickster",0.22],["poison","ranger",0.31]],"look":{"av":null,"bd":null,"ti":"bruiser"}},{"name":"sn1pez","cc":"nl","lv":11,"elo":808,"eloT":808,"skill":0.38,"style":"skirmisher","aggr":0.61,"tr":{"cover":0.07,"edge":0.61,"dash":0.32,"charge":-0.58},"gene":null,"loadouts":[["storm","ranger",0.88],["flame","trickster",0.34],["frost","ranger",0.12]],"look":{"av":null,"bd":"eagleeye","ti":"unstoppable"}},{"name":"moonpie77","cc":"gb","lv":11,"elo":805,"eloT":805,"skill":0.32,"style":"skirmisher","aggr":0.15,"tr":{"cover":0.19,"edge":0.53,"dash":0.68,"charge":-0.12},"gene":null,"loadouts":[["poison","ranger",0.77],["stone","ranger",0.13],["storm","trickster",0.3]],"look":{"av":null,"bd":"empowered","ti":"bruiser"}},{"name":"ElkeTheElk","cc":"de","lv":12,"elo":785,"eloT":785,"skill":0.32,"style":"skirmisher","aggr":0.44,"tr":{"cover":0.05,"edge":0.38,"dash":0.47,"charge":0.41},"gene":null,"loadouts":[["frost","ranger",0.67],["frost","warden",0.26],["flame","ranger",0.34]],"look":{"av":null,"bd":null,"ti":"sharpshooter"}},{"name":"Anouk","cc":"nl","lv":10,"elo":767,"eloT":767,"skill":0.33,"style":"marksman","aggr":0.27,"tr":{"cover":1,"edge":0.4,"dash":0.15,"charge":0.41},"gene":null,"loadouts":[["flame","warden",0.62],["flame","sniper",0.18],["flame","ranger",0.27]],"look":{"av":null,"bd":"lifeline","ti":null}},{"name":"Eilidh","cc":"gb","lv":11,"elo":767,"eloT":767,"skill":0.21,"style":"brawler","aggr":0.55,"tr":{"cover":0,"edge":0.58,"dash":0.68,"charge":0.37},"gene":null,"loadouts":[["flame","juggernaut",0.81]],"look":{"av":null,"bd":null,"ti":null}},{"name":"cosmo_k","cc":"lv","lv":12,"elo":759,"eloT":759,"skill":0.29,"style":"brawler","aggr":0.62,"tr":{"cover":0,"edge":0.54,"dash":1,"charge":-0.2},"gene":null,"loadouts":[["frost","juggernaut",0.65],["stone","juggernaut",0.25]],"look":{"av":null,"bd":"sharpshooter","ti":"unstoppable"}},{"name":"potato_aim","cc":"de","lv":10,"elo":759,"eloT":759,"skill":0.24,"style":"stalker","aggr":0.47,"tr":{"cover":0,"edge":0.37,"dash":0.91,"charge":0.54},"gene":null,"loadouts":[["frost","ranger",0.77]],"look":{"av":null,"bd":"bruiser","ti":null}},{"name":"Quillion","cc":"es","lv":10,"elo":755,"eloT":755,"skill":0.28,"style":"stalker","aggr":0.55,"tr":{"cover":0.16,"edge":0.63,"dash":0.82,"charge":-0.44},"gene":null,"loadouts":[["poison","ranger",0.7],["frost","ranger",0.22]],"look":{"av":null,"bd":"clutch","ti":"bruiser"}},{"name":"StoneColdSteve","cc":"dk","lv":11,"elo":751,"eloT":751,"skill":0.29,"style":"skirmisher","aggr":0.31,"tr":{"cover":0.21,"edge":0.6,"dash":0.66,"charge":-0.02},"gene":null,"loadouts":[["storm","ranger",0.88]],"look":{"av":null,"bd":null,"ti":"unstoppable"}},{"name":"Pablo_","cc":"es","lv":9,"elo":751,"eloT":751,"skill":0.33,"style":"stalker","aggr":0.74,"tr":{"cover":0.02,"edge":0.15,"dash":1,"charge":0.46},"gene":null,"loadouts":[["flame","ranger",0.89],["stone","ranger",0.33],["storm","ranger",0.09]],"look":{"av":null,"bd":null,"ti":"untouchable"}},{"name":"archie","cc":"gb","lv":10,"elo":736,"eloT":736,"skill":0.29,"style":"skirmisher","aggr":0.8,"tr":{"cover":0.28,"edge":0,"dash":1,"charge":-0.23},"gene":null,"loadouts":[["poison","ranger",0.89],["frost","ranger",0.25]],"look":{"av":null,"bd":null,"ti":"eagleeye"}},{"name":"Barnaby_B","cc":"ie","lv":9,"elo":733,"eloT":733,"skill":0.32,"style":"brawler","aggr":0.75,"tr":{"cover":0.06,"edge":0.05,"dash":0.52,"charge":-0.05},"gene":null,"loadouts":[["poison","juggernaut",0.69],["storm","ranger",0.25]],"look":{"av":null,"bd":"bruiser","ti":null}},{"name":"Camille_","cc":"fr","lv":9,"elo":715,"eloT":715,"skill":0.22,"style":"skirmisher","aggr":0.62,"tr":{"cover":0.41,"edge":0.34,"dash":0.83,"charge":-0.01},"gene":null,"loadouts":[["poison","ranger",0.74],["stone","ranger",0.27],["storm","ranger",0.31]],"look":{"av":null,"bd":"eagleeye","ti":null}},{"name":"R3dFeather","cc":"ie","lv":11,"elo":713,"eloT":713,"skill":0.2,"style":"brawler","aggr":0.67,"tr":{"cover":0,"edge":0.59,"dash":0.43,"charge":-0.57},"gene":null,"loadouts":[["flame","juggernaut",0.84],["storm","juggernaut",0.33]],"look":{"av":null,"bd":null,"ti":"bruiser"}},{"name":"soupy_","cc":"no","lv":10,"elo":710,"eloT":710,"skill":0.19,"style":"stalker","aggr":0.6,"tr":{"cover":0,"edge":0.68,"dash":0.71,"charge":0.15},"gene":null,"loadouts":[["poison","ranger",0.62],["storm","ranger",0.19]],"look":{"av":null,"bd":"untouchable","ti":"untouchable"}},{"name":"Bramblewick","cc":"lt","lv":8,"elo":707,"eloT":707,"skill":0.3,"style":"stalker","aggr":0.49,"tr":{"cover":0.2,"edge":0.62,"dash":0.97,"charge":0.53},"gene":null,"loadouts":[["flame","ranger",0.68],["poison","ranger",0.22],["stone","ranger",0.18]],"look":{"av":null,"bd":"champion","ti":null}},{"name":"Hugo_","cc":"fr","lv":9,"elo":704,"eloT":704,"skill":0.24,"style":"skirmisher","aggr":0.32,"tr":{"cover":0.29,"edge":0.4,"dash":0.66,"charge":0.6},"gene":null,"loadouts":[["poison","ranger",0.89],["poison","trickster",0.28],["stone","ranger",0.12]],"look":{"av":null,"bd":null,"ti":"lifeline"}},{"name":"Padraig","cc":"ie","lv":8,"elo":702,"eloT":702,"skill":0.09,"style":"brawler","aggr":0.76,"tr":{"cover":0,"edge":0.32,"dash":0.97,"charge":-0.35},"gene":null,"loadouts":[["storm","juggernaut",0.66],["frost","ranger",0.12],["storm","ranger",0.15]],"look":{"av":null,"bd":"empowered","ti":"empowered"}},{"name":"Adrian_RO","cc":"ro","lv":9,"elo":700,"eloT":700,"skill":0.29,"style":"skirmisher","aggr":0.79,"tr":{"cover":0.42,"edge":0.11,"dash":0.36,"charge":-0.03},"gene":null,"loadouts":[["frost","trickster",0.62],["stone","trickster",0.2]],"look":{"av":null,"bd":null,"ti":null}},{"name":"Callum_","cc":"gb","lv":8,"elo":697,"eloT":697,"skill":0.19,"style":"skirmisher","aggr":0.66,"tr":{"cover":0.17,"edge":0.07,"dash":0.56,"charge":-0.02},"gene":null,"loadouts":[["poison","ranger",0.84],["flame","ranger",0.24],["frost","ranger",0.17]],"look":{"av":null,"bd":null,"ti":null}},{"name":"Diogo_","cc":"pt","lv":8,"elo":691,"eloT":691,"skill":0.32,"style":"guardian","aggr":0.67,"tr":{"cover":0.43,"edge":0.5,"dash":0.22,"charge":0.08},"gene":null,"loadouts":[["frost","trapper",0.7],["storm","trapper",0.29],["frost","warden",0.22]],"look":{"av":null,"bd":"untouchable","ti":"empowered"}},{"name":"Thijs_","cc":"nl","lv":8,"elo":689,"eloT":689,"skill":0.21,"style":"brawler","aggr":0.33,"tr":{"cover":0,"edge":0.39,"dash":0.75,"charge":0.08},"gene":null,"loadouts":[["frost","juggernaut",0.82],["storm","ranger",0.2]],"look":{"av":null,"bd":"eagleeye","ti":null}},{"name":"Leonie","cc":"de","lv":8,"elo":684,"eloT":684,"skill":0.24,"style":"brawler","aggr":0.69,"tr":{"cover":0,"edge":0.55,"dash":0.91,"charge":-0.09},"gene":null,"loadouts":[["frost","ranger",0.78],["flame","juggernaut",0.2]],"look":{"av":null,"bd":null,"ti":"sharpshooter"}},{"name":"Th3o","cc":"fr","lv":8,"elo":677,"eloT":677,"skill":0.26,"style":"skirmisher","aggr":0.32,"tr":{"cover":0.18,"edge":0.42,"dash":0.62,"charge":-0.21},"gene":null,"loadouts":[["storm","ranger",0.65],["flame","ranger",0.27]],"look":{"av":null,"bd":"ringmaster","ti":null}},{"name":"Noodle_Arms","cc":"it","lv":9,"elo":671,"eloT":671,"skill":0.24,"style":"stalker","aggr":0.86,"tr":{"cover":0,"edge":0.75,"dash":0.92,"charge":0.29},"gene":null,"loadouts":[["storm","ranger",0.76],["frost","ranger",0.23],["flame","ranger",0.2]],"look":{"av":null,"bd":"onfire","ti":"eagleeye"}},{"name":"Fenwick","cc":"es","lv":8,"elo":670,"eloT":670,"skill":0.25,"style":"stalker","aggr":0.67,"tr":{"cover":0,"edge":0.77,"dash":0.55,"charge":-0.09},"gene":null,"loadouts":[["poison","ranger",0.95],["stone","ranger",0.09]],"look":{"av":null,"bd":"bruiser","ti":"untouchable"}},{"name":"Frosty_Pants","cc":"fr","lv":8,"elo":665,"eloT":665,"skill":0.2,"style":"skirmisher","aggr":0.32,"tr":{"cover":0.19,"edge":0.41,"dash":0.61,"charge":0.26},"gene":null,"loadouts":[["flame","trickster",0.69],["flame","ranger",0.14],["poison","ranger",0.25]],"look":{"av":null,"bd":"empowered","ti":"bruiser"}},{"name":"CrispyNoodle","cc":"lv","lv":8,"elo":656,"eloT":656,"skill":0.23,"style":"stalker","aggr":0.75,"tr":{"cover":0.06,"edge":0.47,"dash":0.82,"charge":0.09},"gene":null,"loadouts":[["flame","ranger",0.8],["storm","ranger",0.25]],"look":{"av":null,"bd":"bruiser","ti":"bruiser"}},{"name":"lagspike","cc":"lv","lv":7,"elo":654,"eloT":654,"skill":0.25,"style":"stalker","aggr":0.43,"tr":{"cover":0,"edge":0.4,"dash":0,"charge":0.56},"gene":null,"loadouts":[["poison","ranger",0.7],["flame","ranger",0.2]],"look":{"av":null,"bd":"empowered","ti":null}},{"name":"Giulia_","cc":"it","lv":7,"elo":650,"eloT":650,"skill":0.21,"style":"skirmisher","aggr":0.68,"tr":{"cover":0,"edge":0.3,"dash":1,"charge":-0.28},"gene":null,"loadouts":[["flame","ranger",0.8],["storm","ranger",0.33]],"look":{"av":null,"bd":null,"ti":null}},{"name":"Jonas_dk","cc":"dk","lv":7,"elo":642,"eloT":642,"skill":0.26,"style":"stalker","aggr":0.52,"tr":{"cover":0.07,"edge":0.33,"dash":0.47,"charge":0.42},"gene":null,"loadouts":[["storm","ranger",0.84],["poison","ranger",0.33],["stone","ranger",0.11]],"look":{"av":null,"bd":"clutch","ti":"bruiser"}},{"name":"Sasha_","cc":"ru","lv":7,"elo":638,"eloT":638,"skill":0.28,"style":"brawler","aggr":0.66,"tr":{"cover":0.01,"edge":0.36,"dash":0.81,"charge":-0.51},"gene":null,"loadouts":[["frost","ranger",0.81],["storm","ranger",0.27]],"look":{"av":null,"bd":"untouchable","ti":"untouchable"}},{"name":"Cian_","cc":"ie","lv":7,"elo":636,"eloT":636,"skill":0.3,"style":"brawler","aggr":0.85,"tr":{"cover":0,"edge":0.14,"dash":0.29,"charge":-0.01},"gene":null,"loadouts":[["stone","ranger",0.83],["storm","ranger",0.05],["frost","juggernaut",0.28]],"look":{"av":null,"bd":null,"ti":"eagleeye"}},{"name":"Honeybadger","cc":"lv","lv":8,"elo":616,"eloT":616,"skill":0.3,"style":"brawler","aggr":0.88,"tr":{"cover":0.54,"edge":0.75,"dash":0.65,"charge":-0.17},"gene":null,"loadouts":[["frost","ranger",0.78],["storm","ranger",0.24],["storm","juggernaut",0.2]],"look":{"av":null,"bd":"untouchable","ti":"untouchable"}},{"name":"ThatOneSniper","cc":"sk","lv":8,"elo":604,"eloT":604,"skill":0.06,"style":"skirmisher","aggr":0.24,"tr":{"cover":0.23,"edge":0.3,"dash":0.54,"charge":-0.3},"gene":null,"loadouts":[["flame","ranger",0.66],["storm","ranger",0.19]],"look":{"av":null,"bd":null,"ti":"bruiser"}},{"name":"ArrowDynamic","cc":"sk","lv":8,"elo":599,"eloT":599,"skill":0.17,"style":"stalker","aggr":0.43,"tr":{"cover":0,"edge":0.8,"dash":0.56,"charge":0.08},"gene":null,"loadouts":[["flame","ranger",0.88],["storm","ranger",0.24],["frost","ranger",0.16]],"look":{"av":null,"bd":"eagleeye","ti":"eagleeye"}},{"name":"Oksana_UA","cc":"ua","lv":8,"elo":569,"eloT":569,"skill":0.08,"style":"stalker","aggr":0.6,"tr":{"cover":0.18,"edge":0.15,"dash":0.81,"charge":-0.19},"gene":null,"loadouts":[["storm","ranger",0.84],["flame","ranger",0.2],["frost","ranger",0.27]],"look":{"av":null,"bd":null,"ti":"bruiser"}},{"name":"Mateusz99","cc":"pl","lv":6,"elo":560,"eloT":560,"skill":0.07,"style":"brawler","aggr":0.45,"tr":{"cover":0.03,"edge":0.24,"dash":0.54,"charge":-0.08},"gene":null,"loadouts":[["flame","ranger",0.81],["flame","juggernaut",0.14],["frost","ranger",0.26]],"look":{"av":null,"bd":"empowered","ti":"empowered"}},{"name":"Vlad_","cc":"ua","lv":6,"elo":560,"eloT":560,"skill":0.18,"style":"guardian","aggr":0.69,"tr":{"cover":0.06,"edge":0.32,"dash":0,"charge":-0.09},"gene":null,"loadouts":[["poison","trapper",0.73]],"look":{"av":null,"bd":"empowered","ti":"empowered"}},{"name":"Dmitry_K","cc":"ru","lv":6,"elo":550,"eloT":550,"skill":0.13,"style":"skirmisher","aggr":0.64,"tr":{"cover":0.29,"edge":0.32,"dash":0.22,"charge":0.43},"gene":null,"loadouts":[["flame","ranger",0.7],["frost","ranger",0.29],["storm","ranger",0.33]],"look":{"av":null,"bd":null,"ti":"ringmaster"}},{"name":"Wraith_07","cc":"hr","lv":6,"elo":540,"eloT":540,"skill":0.07,"style":"stalker","aggr":0.61,"tr":{"cover":0.04,"edge":0.5,"dash":0.65,"charge":-0.17},"gene":null,"loadouts":[["frost","ranger",0.86],["flame","ranger",0.18],["storm","ranger",0.3]],"look":{"av":null,"bd":"stormkeeper","ti":"empowered"}},{"name":"kappa_kev","cc":"lt","lv":7,"elo":532,"eloT":532,"skill":0.19,"style":"skirmisher","aggr":0.48,"tr":{"cover":0.8,"edge":0.18,"dash":0.65,"charge":-0.14},"gene":null,"loadouts":[["frost","ranger",0.76],["storm","trickster",0.25]],"look":{"av":null,"bd":"sharpshooter","ti":null}},{"name":"tired_archer","cc":"ro","lv":6,"elo":531,"eloT":531,"skill":0.15,"style":"marksman","aggr":0.33,"tr":{"cover":0.25,"edge":0,"dash":0.26,"charge":0.38},"gene":null,"loadouts":[["storm","sniper",0.63],["storm","ranger",0.12],["flame","sniper",0.35]],"look":{"av":null,"bd":null,"ti":"bruiser"}},{"name":"PebbleDasher","cc":"ee","lv":7,"elo":531,"eloT":531,"skill":0.15,"style":"skirmisher","aggr":0.7,"tr":{"cover":0.14,"edge":0.37,"dash":0.35,"charge":0.05},"gene":null,"loadouts":[["storm","ranger",0.64],["frost","ranger",0.13],["flame","ranger",0.11]],"look":{"av":null,"bd":"sharpshooter","ti":"untouchable"}},{"name":"Strelok_","cc":"ru","lv":6,"elo":519,"eloT":519,"skill":0.07,"style":"stalker","aggr":0.54,"tr":{"cover":0,"edge":0,"dash":0.81,"charge":-0.26},"gene":null,"loadouts":[["frost","ranger",0.62],["flame","ranger",0.14],["storm","ranger",0.12]],"look":{"av":null,"bd":"stormkeeper","ti":"empowered"}},{"name":"Grimsby","cc":"fi","lv":6,"elo":506,"eloT":506,"skill":0.08,"style":"stalker","aggr":0.48,"tr":{"cover":0.15,"edge":0.01,"dash":0.62,"charge":0.38},"gene":null,"loadouts":[["storm","ranger",0.94],["frost","ranger",0.09],["flame","ranger",0.13]],"look":{"av":null,"bd":null,"ti":null}},{"name":"slippers","cc":"cz","lv":6,"elo":505,"eloT":505,"skill":0.07,"style":"stalker","aggr":0.93,"tr":{"cover":0,"edge":0.27,"dash":0.72,"charge":0.06},"gene":null,"loadouts":[["storm","ranger",0.63]],"look":{"av":null,"bd":"bruiser","ti":null}},{"name":"Anya_Sokol","cc":"ua","lv":6,"elo":450,"eloT":450,"skill":0.21,"style":"marksman","aggr":0.64,"tr":{"cover":0.67,"edge":0.17,"dash":0.22,"charge":0.56},"gene":null,"loadouts":[["stone","sniper",0.71],["storm","sniper",0.23],["stone","ranger",0.16]],"look":{"av":null,"bd":null,"ti":null}},{"name":"Oleg_TT","cc":"ru","lv":5,"elo":449,"eloT":449,"skill":0.05,"style":"skirmisher","aggr":0.35,"tr":{"cover":0.19,"edge":0,"dash":0.18,"charge":0.22},"gene":null,"loadouts":[["flame","ranger",0.72],["frost","ranger",0.13],["storm","ranger",0.21]],"look":{"av":null,"bd":null,"ti":"clutch"}},{"name":"SaltyDog44","cc":"gr","lv":6,"elo":430,"eloT":430,"skill":0.13,"style":"marksman","aggr":0.23,"tr":{"cover":0.44,"edge":0.53,"dash":0.35,"charge":0.61},"gene":null,"loadouts":[["frost","ranger",0.65],["storm","ranger",0.12]],"look":{"av":null,"bd":"bruiser","ti":"sharpshooter"}},{"name":"Vexx","cc":"lt","lv":5,"elo":400,"eloT":400,"skill":0.09,"style":"marksman","aggr":0.27,"tr":{"cover":0.75,"edge":0,"dash":0,"charge":1},"gene":null,"loadouts":[["frost","sniper",0.47],["flame","sniper",0.49],["storm","ranger",0.24]],"look":{"av":null,"bd":"clutch","ti":"clutch"}},{"name":"Zhenya_K","cc":"ru","lv":5,"elo":400,"eloT":400,"skill":0.05,"style":"marksman","aggr":0.25,"tr":{"cover":0.24,"edge":0.32,"dash":0,"charge":0.52},"gene":null,"loadouts":[["frost","sniper",0.89],["frost","ranger",0.27]],"look":{"av":null,"bd":"bruiser","ti":"clutch"}},{"name":"Lotte_","cc":"nl","lv":5,"elo":400,"eloT":400,"skill":0.04,"style":"skirmisher","aggr":0.56,"tr":{"cover":0.51,"edge":0.44,"dash":0.27,"charge":-0.05},"gene":null,"loadouts":[["frost","ranger",0.72],["storm","ranger",0.33]],"look":{"av":null,"bd":"empowered","ti":null}}];</script>
+<script>window.BOWFALL_OFFLINE = true; window.__host = window.claude; window.BOWFALL_MIX = {"v":1,"game":"0.52.1","saved":"2026-10-11T23:08:03.438Z","master":0,"lim":{"on":1,"th":-3},"bus":{},"ch":{"found":{"db":5.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"draft":{"db":4,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"drawTick":{"db":12,"lo":0,"mid":3,"hi":10,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"autoOn":{"db":-4,"lo":-7,"mid":0,"hi":0,"semi":0,"speed":1.25,"take":"","trim":0,"mute":0,"solo":0},"snap":{"db":0,"lo":-3,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"loaded":{"db":-3,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"executed":{"db":-3.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"ripCast":{"db":0,"lo":0,"mid":0,"hi":0,"semi":-2,"speed":1.45,"take":"","trim":0,"mute":0,"solo":0},"rip":{"db":0,"lo":0,"mid":0,"hi":0,"semi":-8,"speed":0.8,"take":"","trim":0,"mute":0,"solo":0},"stun":{"db":2.5,"lo":-10.5,"mid":-2.5,"hi":12.5,"semi":-7,"speed":2,"take":"","trim":0,"mute":0,"solo":0},"hole":{"db":-7.5,"lo":-2,"mid":-5.5,"hi":-7,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"emo.angry":{"db":-1,"lo":-1,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"xbLoad":{"db":-4,"lo":-10,"mid":0,"hi":0,"semi":-1,"speed":1.45,"take":"","trim":0,"mute":0,"solo":0},"xbShot":{"db":-5,"lo":-13,"mid":-1.5,"hi":-4.5,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"ui.hover":{"db":0,"lo":0,"mid":0,"hi":0,"semi":-6,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"ui.click":{"db":0,"lo":-7,"mid":0,"hi":0,"semi":0,"speed":1.3,"take":"","trim":0,"mute":0,"solo":0},"achieve":{"db":4,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"rankMove":{"db":6.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"ratedTick":{"db":2,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"partyReady":{"db":3.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"abFail":{"db":4.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"thunk":{"db":12,"lo":15,"mid":15,"hi":15,"semi":-5,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"guardUp":{"db":0,"lo":-4,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"rush":{"db":4,"lo":-1.5,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"armed":{"db":4.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"volleyArmed":{"db":3.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"pinned":{"db":8,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"trapStart":{"db":3.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"shield":{"db":4,"lo":0,"mid":0,"hi":0,"semi":-4,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"freeze":{"db":-5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"el.blood":{"db":0,"lo":-4,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"count":{"db":6.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"streak":{"db":4.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"clutch":{"db":4,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"roundStart":{"db":5.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"killcam":{"db":0,"lo":15,"mid":0,"hi":0,"semi":-3,"speed":0.5,"take":"","trim":0,"mute":0,"solo":0},"twang":{"db":7.5,"lo":0,"mid":0,"hi":0,"semi":2,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"fall":{"db":0,"lo":0,"mid":0,"hi":7,"semi":5,"speed":0.5,"take":"","trim":0,"mute":0,"solo":0},"boom":{"db":6,"lo":3,"mid":0,"hi":6,"semi":0,"speed":0.5,"take":"","trim":0,"mute":0,"solo":0},"kill":{"db":4,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"splat":{"db":12,"lo":-9.5,"mid":0,"hi":15,"semi":0,"speed":1.15,"take":"","trim":0,"mute":0,"solo":0},"dash":{"db":0,"lo":-4.5,"mid":0,"hi":4.5,"semi":0,"speed":0.7,"take":"","trim":0,"mute":0,"solo":0},"stoneHit":{"db":12,"lo":7,"mid":6.5,"hi":10.5,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"ballKick":{"db":5.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"ballHit":{"db":5.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"shrine":{"db":6,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"fight":{"db":5.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0},"matchEnd":{"db":6.5,"lo":0,"mid":0,"hi":0,"semi":0,"speed":1,"take":"","trim":0,"mute":0,"solo":0}},"takes":{}}; window.BOWFALL_AI = [{"name":"Strelok_","cc":"ru","lv":26,"elo":1756,"eloT":1756,"skill":0.88,"loadouts":[["void","juggernaut",0.72],["flame","assassin",0.18],["void","ranger",0.16]],"look":{"av":{"el":"void","ro":"juggernaut","c":"#e9edf2"},"bd":"untouchable","ti":"flawless"}},{"name":"bowtie","cc":"de","lv":23,"elo":1746,"eloT":1746,"skill":0.79,"loadouts":[["shadow","ninja",0.81],["flame","ninja",0.13]],"look":{"av":{"el":"shadow","ro":"ninja","c":"#ff6b5a"},"bd":"untouchable","ti":"bruiser"}},{"name":"tootsie","cc":"pt","lv":22,"elo":1736,"eloT":1736,"skill":0.92,"loadouts":[["stone","juggernaut",0.7],["stone","trapper",0.29],["storm","warden",0.29]],"look":{"av":{"el":"stone","ro":"juggernaut","c":"#ff9f43"},"bd":"ringmaster","ti":"ringmaster"}},{"name":"mattyb_22","cc":"pl","lv":25,"elo":1692,"eloT":1692,"skill":1,"loadouts":[["frost","crossbow",0.61],["flame","sniper",0.13],["frost","ranger",0.24]],"look":{"av":{"el":"frost","ro":"crossbow","c":"#b38cff"},"bd":"bruiser","ti":"bruiser"}},{"name":"ohnoitsjake","cc":"be","lv":23,"elo":1672,"eloT":1672,"skill":0.91,"loadouts":[["poison","juggernaut",0.69],["poison","ninja",0.23]],"look":{"av":{"el":"poison","ro":"juggernaut","c":"#ff7ac8"},"bd":"eagleeye","ti":"untouchable"}},{"name":"tired_archer","cc":"de","lv":22,"elo":1606,"eloT":1606,"skill":0.79,"loadouts":[["void","trapper",0.64],["storm","trapper",0.13],["shadow","juggernaut",0.1]],"look":{"av":{"el":"void","ro":"trapper","c":"#7dff8a"},"bd":"bruiser","ti":"bruiser"}},{"name":"BigYew","cc":"de","lv":20,"elo":1564,"eloT":1564,"skill":1,"loadouts":[["frost","juggernaut",0.65],["stone","ranger",0.11],["frost","assassin",0.19],["frost","warden",0.11]],"look":{"av":{"el":"frost","ro":"juggernaut","c":"#ff7ac8"},"bd":"lonewolf","ti":null}},{"name":"SaltyDog44","cc":"gb","lv":23,"elo":1486,"eloT":1486,"skill":0.77,"loadouts":[["poison","juggernaut",0.72],["stone","sniper",0.12],["storm","juggernaut",0.27]],"look":{"av":{"el":"poison","ro":"juggernaut","c":"#e9edf2"},"bd":"untouchable","ti":"bruiser"}},{"name":"Wraith_07","cc":"hu","lv":17,"elo":1483,"eloT":1483,"skill":0.81,"loadouts":[["storm","sniper",0.56],["frost","ninja",0.31],["storm","assassin",0.15],["storm","trapper",0.13]],"look":{"av":{"el":"storm","ro":"sniper","c":"#e9edf2"},"bd":null,"ti":"untouchable"}},{"name":"VoidWalker13","cc":"lv","lv":18,"elo":1391,"eloT":1391,"skill":0.71,"loadouts":[["shadow","ranger",0.82],["shadow","ninja",0.23]],"look":{"av":{"el":"shadow","ro":"ranger","c":"#ffcf5a"},"bd":"eagleeye","ti":"flawless"}},{"name":"Shazam_7","cc":"be","lv":20,"elo":1382,"eloT":1382,"skill":0.72,"loadouts":[["flame","trickster",0.83],["frost","assassin",0.16]],"look":{"av":{"el":"flame","ro":"trickster","c":"#4fa8ff"},"bd":"sharpshooter","ti":"flawless"}},{"name":"Nyx_","cc":"fi","lv":22,"elo":1381,"eloT":1381,"skill":0.65,"loadouts":[["storm","ninja",0.76],["storm","juggernaut",0.15],["frost","ranger",0.12]],"look":{"av":{"el":"storm","ro":"ninja","c":"#4fa8ff"},"bd":"eagleeye","ti":null}},{"name":"Katyusha_","cc":"ru","lv":20,"elo":1379,"eloT":1379,"skill":0.74,"loadouts":[["storm","ranger",0.73],["storm","sniper",0.21],["storm","assassin",0.21],["shadow","ranger",0.28]],"look":{"av":{"el":"storm","ro":"ranger","c":"#ff7ac8"},"bd":"flawless","ti":"sharpshooter"}},{"name":"GoblinMode","cc":"se","lv":19,"elo":1343,"eloT":1343,"skill":0.74,"loadouts":[["storm","warden",0.7],["storm","assassin",0.32],["flame","trickster",0.28],["frost","crossbow",0.19]],"look":{"av":{"el":"storm","ro":"warden","c":"#ffcf5a"},"bd":"lifeline","ti":null}},{"name":"nofunallowed","cc":"no","lv":16,"elo":1290,"eloT":1290,"skill":0.71,"loadouts":[["stone","trickster",0.6],["stone","trapper",0.12]],"look":{"av":{"el":"stone","ro":"trickster","c":"#b38cff"},"bd":"unstoppable","ti":"untouchable"}},{"name":"moonpie77","cc":"pl","lv":18,"elo":1259,"eloT":1259,"skill":0.6,"loadouts":[["storm","juggernaut",0.69],["void","assassin",0.22],["storm","warden",0.14]],"look":{"av":{"el":"storm","ro":"juggernaut","c":"#3fd0c9"},"bd":null,"ti":null}},{"name":"SirPokesALot","cc":"ch","lv":20,"elo":1222,"eloT":1222,"skill":0.61,"loadouts":[["frost","juggernaut",0.75],["poison","juggernaut",0.19],["frost","trapper",0.25],["poison","ranger",0.32]],"look":{"av":{"el":"frost","ro":"juggernaut","c":"#b38cff"},"bd":"bruiser","ti":"unstoppable"}},{"name":"CrispyNoodle","cc":"nl","lv":16,"elo":1196,"eloT":1196,"skill":0.59,"loadouts":[["shadow","trickster",0.73],["flame","trickster",0.33]],"look":{"av":{"el":"shadow","ro":"trickster","c":"#3fd0c9"},"bd":null,"ti":"unstoppable"}},{"name":"slippers","cc":"is","lv":15,"elo":1184,"eloT":1184,"skill":0.67,"loadouts":[["void","trickster",0.78],["frost","trickster",0.27],["void","ninja",0.19],["void","ranger",0.3]],"look":{"av":{"el":"void","ro":"trickster","c":"#7dff8a"},"bd":"lonewolf","ti":"sharpshooter"}},{"name":"TheRealFrost","cc":"se","lv":15,"elo":1181,"eloT":1181,"skill":0.51,"loadouts":[["frost","ranger",0.56],["frost","juggernaut",0.18],["poison","ranger",0.35]],"look":{"av":{"el":"frost","ro":"ranger","c":"#e9edf2"},"bd":"untouchable","ti":"warlord"}},{"name":"kappa_kev","cc":"at","lv":16,"elo":1177,"eloT":1177,"skill":0.61,"loadouts":[["shadow","juggernaut",0.71],["flame","assassin",0.34],["storm","juggernaut",0.14]],"look":{"av":{"el":"shadow","ro":"juggernaut","c":"#7dff8a"},"bd":"unstoppable","ti":null}},{"name":"Anya_Sokol","cc":"ua","lv":19,"elo":1169,"eloT":1169,"skill":0.7,"loadouts":[["frost","ninja",0.67],["storm","crossbow",0.31],["frost","sniper",0.11]],"look":{"av":{"el":"frost","ro":"ninja","c":"#ffcf5a"},"bd":null,"ti":"flawless"}},{"name":"Ded_Moroz","cc":"ru","lv":16,"elo":1150,"eloT":1150,"skill":0.58,"loadouts":[["blood","warden",0.81],["blood","trickster",0.13],["blood","assassin",0.21]],"look":{"av":{"el":"blood","ro":"warden","c":"#ff7ac8"},"bd":"unstoppable","ti":null}},{"name":"Vexx","cc":"pt","lv":16,"elo":1145,"eloT":1145,"skill":0.62,"loadouts":[["flame","trapper",0.7],["shadow","trickster",0.17],["flame","warden",0.18],["void","trapper",0.33]],"look":{"av":{"el":"flame","ro":"trapper","c":"#a8e6ff"},"bd":"lonewolf","ti":"lonewolf"}},{"name":"Fletchling","cc":"gb","lv":14,"elo":1144,"eloT":1144,"skill":0.57,"loadouts":[["flame","trickster",0.58],["storm","crossbow",0.28]],"look":{"av":{"el":"flame","ro":"trickster","c":"#ff6b5a"},"bd":"bruiser","ti":"sharpshooter"}},{"name":"Mieze","cc":"de","lv":16,"elo":1134,"eloT":1134,"skill":0.51,"loadouts":[["poison","crossbow",0.73],["storm","warden",0.12]],"look":{"av":{"el":"poison","ro":"crossbow","c":"#b38cff"},"bd":null,"ti":"flawless"}},{"name":"QuiverQueen","cc":"es","lv":15,"elo":1116,"eloT":1116,"skill":0.56,"loadouts":[["storm","juggernaut",0.57],["frost","juggernaut",0.32],["storm","sniper",0.24]],"look":{"av":{"el":"storm","ro":"juggernaut","c":"#ff6b5a"},"bd":"lonewolf","ti":"unstoppable"}},{"name":"hazel_nut","cc":"gr","lv":17,"elo":1116,"eloT":1116,"skill":0.69,"loadouts":[["poison","sniper",0.85],["storm","ranger",0.21]],"look":{"av":{"el":"poison","ro":"sniper","c":"#b38cff"},"bd":"eagleeye","ti":"flawless"}},{"name":"DashDashBoom","cc":"de","lv":15,"elo":1107,"eloT":1107,"skill":0.68,"loadouts":[["void","ninja",0.72],["poison","ninja",0.22],["void","trapper",0.12]],"look":{"av":{"el":"void","ro":"ninja","c":"#3fd0c9"},"bd":null,"ti":"unstoppable"}},{"name":"sn1pez","cc":"se","lv":13,"elo":1092,"eloT":1092,"skill":0.55,"loadouts":[["stone","ranger",0.83],["frost","ninja",0.12],["frost","ranger",0.23]],"look":{"av":{"el":"stone","ro":"ranger","c":"#e9edf2"},"bd":null,"ti":"unstoppable"}},{"name":"Yew_Know_It","cc":"nl","lv":14,"elo":1052,"eloT":1052,"skill":0.55,"loadouts":[["shadow","warden",0.81],["stone","ranger",0.26]],"look":{"av":{"el":"shadow","ro":"warden","c":"#e9edf2"},"bd":"ringmaster","ti":null}},{"name":"Oleg_TT","cc":"ru","lv":15,"elo":1034,"eloT":1034,"skill":0.53,"loadouts":[["stone","juggernaut",0.67],["stone","ninja",0.1],["blood","juggernaut",0.33],["void","juggernaut",0.29]],"look":{"av":{"el":"stone","ro":"juggernaut","c":"#ffcf5a"},"bd":null,"ti":null}},{"name":"Vanya_Volkov","cc":"ru","lv":14,"elo":1029,"eloT":1029,"skill":0.66,"loadouts":[["stone","ranger",0.65],["shadow","warden",0.18],["stone","sniper",0.16]],"look":{"av":{"el":"stone","ro":"ranger","c":"#e9edf2"},"bd":null,"ti":null}},{"name":"TeaAndArrows","cc":"gb","lv":15,"elo":1024,"eloT":1024,"skill":0.7,"loadouts":[["shadow","sniper",0.63],["shadow","ninja",0.23],["frost","trapper",0.26]],"look":{"av":{"el":"shadow","ro":"sniper","c":"#ff9f43"},"bd":"sharpshooter","ti":"unstoppable"}},{"name":"Ricochet_Rae","cc":"bg","lv":15,"elo":1023,"eloT":1023,"skill":0.67,"loadouts":[["poison","ninja",0.62],["stone","ninja",0.24]],"look":{"av":{"el":"poison","ro":"ninja","c":"#ffcf5a"},"bd":"bruiser","ti":"eagleeye"}},{"name":"Marigold_","cc":"sk","lv":14,"elo":1007,"eloT":1007,"skill":0.42,"loadouts":[["flame","warden",0.55],["void","sniper",0.31],["stone","crossbow",0.2]],"look":{"av":{"el":"flame","ro":"warden","c":"#4fa8ff"},"bd":"untouchable","ti":"untouchable"}},{"name":"ArrowDynamic","cc":"pt","lv":14,"elo":964,"eloT":964,"skill":0.14,"loadouts":[["poison","juggernaut",0.76],["storm","trapper",0.12],["storm","juggernaut",0.17]],"look":{"av":{"el":"poison","ro":"juggernaut","c":"#ff6b5a"},"bd":"empowered","ti":"champion"}},{"name":"zenith","cc":"dk","lv":12,"elo":956,"eloT":956,"skill":0.58,"loadouts":[["stone","sniper",0.63],["stone","trickster",0.29],["storm","sniper",0.33],["void","ninja",0.21]],"look":{"av":{"el":"stone","ro":"sniper","c":"#7dff8a"},"bd":"flawless","ti":null}},{"name":"sadbowboy","cc":"fr","lv":13,"elo":940,"eloT":940,"skill":0.52,"loadouts":[["storm","trapper",0.69],["shadow","ranger",0.25]],"look":{"av":{"el":"storm","ro":"trapper","c":"#b38cff"},"bd":"eagleeye","ti":"eagleeye"}},{"name":"Cptn_Crossbow","cc":"es","lv":11,"elo":909,"eloT":909,"skill":0.38,"loadouts":[["poison","crossbow",0.59],["poison","juggernaut",0.13],["storm","assassin",0.3],["storm","sniper",0.3]],"look":{"av":{"el":"poison","ro":"crossbow","c":"#ffcf5a"},"bd":"unstoppable","ti":"flawless"}},{"name":"medved88","cc":"ru","lv":11,"elo":902,"eloT":902,"skill":0.47,"loadouts":[["frost","assassin",0.76],["frost","juggernaut",0.32]],"look":{"av":{"el":"frost","ro":"assassin","c":"#a8e6ff"},"bd":"eagleeye","ti":"flawless"}},{"name":"fox_in_socks","cc":"hr","lv":11,"elo":871,"eloT":871,"skill":0.47,"loadouts":[["stone","sniper",0.57],["poison","sniper",0.22],["stone","crossbow",0.2],["storm","juggernaut",0.21]],"look":{"av":{"el":"stone","ro":"sniper","c":"#e9edf2"},"bd":"unstoppable","ti":null}},{"name":"lagspike","cc":"rs","lv":12,"elo":848,"eloT":848,"skill":0.32,"loadouts":[["poison","crossbow",0.78],["flame","sniper",0.18],["poison","juggernaut",0.31]],"look":{"av":{"el":"poison","ro":"crossbow","c":"#b38cff"},"bd":"flawless","ti":null}},{"name":"tryhard_tim","cc":"ie","lv":10,"elo":848,"eloT":848,"skill":0.48,"loadouts":[["frost","sniper",0.68],["frost","ninja",0.31],["storm","trickster",0.27],["flame","sniper",0.24]],"look":{"av":{"el":"frost","ro":"sniper","c":"#ff9f43"},"bd":"eagleeye","ti":"champion"}},{"name":"ellie_bellie","cc":"gb","lv":12,"elo":818,"eloT":818,"skill":0.41,"loadouts":[["flame","warden",0.79],["shadow","warden",0.25]],"look":{"av":{"el":"flame","ro":"warden","c":"#ff7ac8"},"bd":"bruiser","ti":"untouchable"}},{"name":"Kipper_Kicks","cc":"cz","lv":10,"elo":813,"eloT":813,"skill":0.49,"loadouts":[["storm","trapper",0.74],["storm","ranger",0.19]],"look":{"av":{"el":"storm","ro":"trapper","c":"#ff7ac8"},"bd":"untouchable","ti":"ringmaster"}},{"name":"Grumblebow","cc":"nl","lv":11,"elo":805,"eloT":805,"skill":0.5,"loadouts":[["storm","warden",0.76],["poison","warden",0.21]],"look":{"av":{"el":"storm","ro":"warden","c":"#7dff8a"},"bd":"untouchable","ti":"untouchable"}},{"name":"BowDown99","cc":"fr","lv":10,"elo":801,"eloT":801,"skill":0.41,"loadouts":[["poison","warden",0.55],["poison","trickster",0.31]],"look":{"av":{"el":"poison","ro":"warden","c":"#b38cff"},"bd":"ringmaster","ti":"untouchable"}},{"name":"Zhenya_K","cc":"ru","lv":10,"elo":785,"eloT":785,"skill":0.36,"loadouts":[["blood","warden",0.61],["blood","trickster",0.2],["blood","trapper",0.34]],"look":{"av":{"el":"blood","ro":"warden","c":"#3fd0c9"},"bd":"eagleeye","ti":null}},{"name":"knockbackkid","cc":"gb","lv":9,"elo":782,"eloT":782,"skill":0.2,"loadouts":[["poison","crossbow",0.63],["poison","sniper",0.3],["poison","trickster",0.17],["stone","crossbow",0.21]],"look":{"av":{"el":"poison","ro":"crossbow","c":"#3fd0c9"},"bd":"champion","ti":null}},{"name":"xNocturnex","cc":"dk","lv":10,"elo":779,"eloT":779,"skill":0.41,"loadouts":[["poison","warden",0.56],["storm","assassin",0.12],["void","ninja",0.34]],"look":{"av":{"el":"poison","ro":"warden","c":"#b38cff"},"bd":"ringmaster","ti":"untouchable"}},{"name":"LowKeyLethal","cc":"ie","lv":10,"elo":771,"eloT":771,"skill":0.43,"loadouts":[["frost","ranger",0.72],["frost","ninja",0.34],["flame","trickster",0.24]],"look":{"av":{"el":"frost","ro":"ranger","c":"#ff7ac8"},"bd":"unstoppable","ti":"flawless"}},{"name":"Stormy_Jo","cc":"fi","lv":9,"elo":770,"eloT":770,"skill":0.46,"loadouts":[["shadow","warden",0.72],["shadow","sniper",0.2],["shadow","assassin",0.25]],"look":{"av":{"el":"shadow","ro":"warden","c":"#b38cff"},"bd":"untouchable","ti":"untouchable"}},{"name":"PixelArrow","cc":"gb","lv":10,"elo":720,"eloT":720,"skill":0.26,"loadouts":[["flame","crossbow",0.64],["void","crossbow",0.16],["flame","juggernaut",0.29],["stone","juggernaut",0.15]],"look":{"av":{"el":"flame","ro":"crossbow","c":"#3fd0c9"},"bd":null,"ti":"unstoppable"}},{"name":"PebbleDasher","cc":"it","lv":7,"elo":714,"eloT":714,"skill":0.21,"loadouts":[["flame","trapper",0.81],["flame","ninja",0.3]],"look":{"av":{"el":"flame","ro":"trapper","c":"#ff7ac8"},"bd":"eagleeye","ti":"unstoppable"}},{"name":"Honeybadger","cc":"ee","lv":8,"elo":704,"eloT":704,"skill":0.31,"loadouts":[["storm","ninja",0.6],["flame","ninja",0.14]],"look":{"av":{"el":"storm","ro":"ninja","c":"#b38cff"},"bd":"ringmaster","ti":"bruiser"}},{"name":"EmberLynx","cc":"fr","lv":8,"elo":642,"eloT":642,"skill":0.27,"loadouts":[["poison","crossbow",0.56],["frost","crossbow",0.15],["poison","juggernaut",0.18],["storm","crossbow",0.25]],"look":{"av":{"el":"poison","ro":"crossbow","c":"#ffcf5a"},"bd":"ringmaster","ti":"flawless"}},{"name":"archie","cc":"lt","lv":7,"elo":626,"eloT":626,"skill":0.3,"loadouts":[["poison","warden",0.61],["poison","assassin",0.31]],"look":{"av":{"el":"poison","ro":"warden","c":"#ff6b5a"},"bd":null,"ti":null}},{"name":"kotik_uwu","cc":"ru","lv":6,"elo":619,"eloT":619,"skill":0.29,"loadouts":[["shadow","ninja",0.74],["shadow","juggernaut",0.21],["shadow","trapper",0.35],["flame","ninja",0.29]],"look":{"av":{"el":"shadow","ro":"ninja","c":"#b38cff"},"bd":"untouchable","ti":"untouchable"}},{"name":"Beansprout","cc":"ro","lv":6,"elo":571,"eloT":571,"skill":0.03,"loadouts":[["shadow","ninja",0.66],["shadow","trapper",0.14]],"look":{"av":{"el":"shadow","ro":"ninja","c":"#3fd0c9"},"bd":"flawless","ti":"flawless"}},{"name":"soupy_","cc":"pt","lv":7,"elo":569,"eloT":569,"skill":0.29,"loadouts":[["stone","warden",0.58],["shadow","ninja",0.14],["stone","assassin",0.15],["poison","warden",0.11]],"look":{"av":{"el":"stone","ro":"warden","c":"#ff9f43"},"bd":"unstoppable","ti":"eagleeye"}},{"name":"lilbrambles","cc":"be","lv":6,"elo":547,"eloT":547,"skill":0.18,"loadouts":[["void","assassin",0.84],["void","warden",0.3],["frost","assassin",0.25],["shadow","assassin",0.32]],"look":{"av":{"el":"void","ro":"assassin","c":"#ff7ac8"},"bd":"ringmaster","ti":null}},{"name":"Grimsby","cc":"fr","lv":6,"elo":540,"eloT":540,"skill":0.2,"loadouts":[["void","crossbow",0.75],["stone","assassin",0.2],["void","ranger",0.23]],"look":{"av":{"el":"void","ro":"crossbow","c":"#ff7ac8"},"bd":"eagleeye","ti":"eagleeye"}},{"name":"dizzy_d","cc":"pt","lv":7,"elo":535,"eloT":535,"skill":0.26,"loadouts":[["flame","trapper",0.71],["flame","assassin",0.11],["shadow","trapper",0.1]],"look":{"av":{"el":"flame","ro":"trapper","c":"#e9edf2"},"bd":"unstoppable","ti":"flawless"}},{"name":"PitStop","cc":"pt","lv":6,"elo":528,"eloT":528,"skill":0.05,"loadouts":[["frost","crossbow",0.59],["void","ninja",0.24],["shadow","crossbow",0.32]],"look":{"av":{"el":"frost","ro":"crossbow","c":"#ff9f43"},"bd":"unstoppable","ti":null}},{"name":"WaffleIron","cc":"se","lv":6,"elo":526,"eloT":526,"skill":0.25,"loadouts":[["stone","sniper",0.82],["poison","ninja",0.18],["stone","assassin",0.19],["flame","sniper",0.21]],"look":{"av":{"el":"stone","ro":"sniper","c":"#3fd0c9"},"bd":"flawless","ti":null}},{"name":"R3dFeather","cc":"be","lv":5,"elo":523,"eloT":523,"skill":0.15,"loadouts":[["shadow","trickster",0.82],["shadow","assassin",0.25],["shadow","sniper",0.16]],"look":{"av":{"el":"shadow","ro":"trickster","c":"#ff6b5a"},"bd":"sharpshooter","ti":null}},{"name":"ThatOneSniper","cc":"ie","lv":5,"elo":387,"eloT":387,"skill":0.25,"loadouts":[["flame","sniper",0.82],["shadow","sniper",0.23]],"look":{"av":{"el":"flame","ro":"sniper","c":"#ff6b5a"},"bd":"unstoppable","ti":"flawless"}},{"name":"Quillion","cc":"be","lv":5,"elo":287,"eloT":287,"skill":0.03,"loadouts":[["storm","warden",0.8],["shadow","warden",0.22],["storm","assassin",0.27],["flame","warden",0.31]],"look":{"av":{"el":"storm","ro":"warden","c":"#a8e6ff"},"bd":"bruiser","ti":"empowered"}}];</script>
 <script>
 // Bowfall shared simulation. Runs on the server (authoritative) and in the browser (offline practice).
 // Red vs Blue: the last team standing wins a game, 2 games (best of three) take a round (a point), and points win the match.
@@ -2171,7 +2148,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.69.0';
+const VERSION = '0.64.4';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -3070,7 +3047,7 @@ const TREE = {
   blood:     { tree: 'blood', base: true, name: 'Blood Arrows', desc: 'Damage you deal heals you for 25% of it (half as much while you are poisoned). The more health you have lost, the harder your arrows knock back: up to 25% harder near death.' },
   hemorrhage:{ tree: 'blood', name: 'Hemorrhage', desc: 'Fully drawn hits make the target bleed for 8 damage over 4 seconds. The bleeding heals you too.' },
   frenzy:    { tree: 'blood', name: 'Blood Frenzy', desc: 'Below half health, your hits heal you twice as much. And the more health you have lost, the faster you draw: up to 60% faster near death.' },
-  transfusion:{ tree: 'blood', name: 'Transfusion', desc: 'A third of your healing flies to your most hurt teammate within 300px, plus any you would waste at full health. Nobody hurt nearby: it all stays yours.' },
+  transfusion:{ tree: 'blood', name: 'Transfusion', desc: 'Healing you would waste at full health goes to your most hurt teammate within 300px instead.' },
   bloodpact: { tree: 'blood', trade: true, name: 'Blood Pact', desc: 'Your hits heal you for 45% of their damage instead of 25%, but you have 10 less health.' },
   deepshade: { tree: 'shadow', trade: true, name: 'Deep Shade', desc: 'Shade bursts deal 50% more damage, but your arrows knock back 15% less.' },
 
@@ -3183,7 +3160,7 @@ const BRIEF = {
   shadowdash: "Dashing doesn't break stealth.", cloak: 'Stealth lasts 9s. −10 health.', quickfeet: '8% faster, less damage from behind.',
   deathmark: 'First hit after stealth: +30% damage taken.', shadow: 'Hits stack shades that burst for damage.', eclipse: 'Drop darkness: enemies inside see little.',
   gloom: 'Shades slow them; bursts slow more.', dread: 'Shade bursts throw them away from you.', blood: 'Damage heals you. Hit harder when hurt.',
-  hemorrhage: 'Full-draw hits make them bleed (heals you).', frenzy: 'Low health: heal more and draw faster.', transfusion: 'A third of your healing flies to a hurt teammate.',
+  hemorrhage: 'Full-draw hits make them bleed (heals you).', frenzy: 'Low health: heal more and draw faster.', transfusion: 'Spare healing flies to a hurt teammate.',
   bloodpact: 'Heal 45% of damage. −10 health.', deepshade: 'Shade bursts +50%. Knockback −15%.', sstrike: 'Teleport behind an enemy. Next 3 stars +75%.',
   clone: 'Vanish and leave a decoy that throws stars.', blossom: 'Throw 12 shuriken in a ring.', recall: 'Leave a mark; use again to snap back.',
   bladeguard: 'Block an arrow to go full auto.', sharpstar: 'Shuriken +25% damage.', flurry: 'Wind up shuriken 30% faster.',
@@ -3572,18 +3549,6 @@ function pickStyle(p) {
   if ((p.role === 'ninja' || p.role === 'crossbow') && s === 'marksman') s = 'skirmisher'; // their arrows don't reach that far
   ai.style = ai.baseStyle = s;
 }
-// Matchmaking's AI players: their personality is set by the server once their loadout is in (addBot picked a style
-// for a role they aren't playing). style: one of STYLES, or nothing for the one that fits the role; aggr, tr: see TR0.
-function setBotMind(w, id, o) {
-  const p = w.players.find(q => q.id === id); if (!p || !p.bot || !p.ai) return false;
-  let s = o.style && STYLES[o.style] ? o.style : ROLE_STYLE[p.role] || 'skirmisher';
-  if ((p.role === 'ninja' || p.role === 'crossbow') && s === 'marksman') s = 'skirmisher';
-  p.ai.style = p.ai.baseStyle = s;
-  if (o.aggr != null) p.ai.aggr = clamp(+o.aggr, 0.1, 1);
-  p.ai.tr = o.tr ? Object.assign({}, TR0, o.tr) : null;
-  if (o.gene) p.gene = Object.assign({}, o.gene);
-  return true;
-}
 function restyle(p) {
   const ai = p.ai; if (!ai.baseStyle) return;
   let best = ai.baseStyle, bestS = 1.5;
@@ -3882,15 +3847,12 @@ function hurt(w, f, dmg, kx, ky, src, by, quiet) {
 function bloodHeal(w, p, dealt) {
   const emp = p.emp && p.element === 'blood';
   let heal = dealt * (has(p, 'bloodpact') ? 0.45 : 0.25) * (has(p, 'frenzy') && p.hp < p.maxHp * 0.5 ? 2 : 1) * (emp ? 2 : 1) * (p.poisonT > 0 ? 0.5 : 1);
-  // Transfusion: a third of the healing goes to the most hurt teammate nearby (and all of what you'd waste at full health);
-  // with nobody hurt in reach it's all yours, as before
-  const mate = has(p, 'transfusion') ? w.players.filter(q => q !== p && q.team === p.team && !q.dead && q.hp < q.maxHp * 0.9 && Math.hypot(q.x - p.x, q.y - p.y) < 300).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0] : null;
-  const share = mate ? heal * 0.33 : 0;
-  const room = p.maxHp - p.hp, used = Math.min(room, heal - share);
+  const room = p.maxHp - p.hp, used = Math.min(room, heal);
   p.hp += used; p.leechAcc = (p.leechAcc || 0) + used;
   if (p.leechAcc >= 1) { ev(w, { e: 'leech', id: p.id, v: Math.round(p.leechAcc) }); p.leechAcc = 0; }
   const spare = heal - used;
-  if (spare > 0.05 && mate) {
+  if (spare > 0.05 && has(p, 'transfusion')) {
+    const mate = w.players.filter(q => q !== p && q.team === p.team && !q.dead && q.hp < q.maxHp && Math.hypot(q.x - p.x, q.y - p.y) < 300).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
     p.transAcc = Math.min(30, (p.transAcc || 0) + spare);
     if (mate && p.transAcc >= 3) {
       const a = Math.atan2(mate.y - p.y, mate.x - p.x) + (Math.random() < 0.5 ? 1 : -1) * 0.25; // a slight arc, then straight in
@@ -4094,8 +4056,6 @@ function impact(w, f, speed, side, pos) {
   const spiked = side && SPIKES.some(s => s.side === side && pos > s.a && pos < s.b);
   // best moments: slammed into walls (or thorns) by the same archer, again and again (three times inside 5 seconds)
   if ((spiked && speed > 120) || (f.knock > 0 && speed > 420)) if (f.lastHitBy && w.t - f.lastHitT < 1.5) {
-      // every slam (for the clip farm and best plays: who threw them, and whether it was into a corner)
-      if (w.t - (f.slamAt || -9) > 0.35) { f.slamAt = w.t; const cn = (f.x < WALL + 75 || f.x > AW - WALL - 75) && (f.y < WALL + 75 || f.y > AH - WALL - 75); ev(w, { e: 'slam', id: f.id, by: f.lastHitBy, x: r1(f.x), y: r1(f.y), cn: cn ? 1 : 0 }); }
       const S = f.slams && f.slams.by === f.lastHitBy && w.t - f.slams.t < 5 ? f.slams : (f.slams = { by: f.lastHitBy, n: 0, t: w.t, at: -9 });
       if (w.t - S.at > 0.35) { S.n++; S.at = w.t; const k = w.players.find(q => q.id === S.by); if (S.n >= 3 && k && k.team !== f.team) ev(w, { e: 'moment', m: 'bully', k: k.id, kn: k.name, v: f.id, vn: f.name, n: S.n, x: r1(f.x), y: r1(f.y) }); } // (one bounce off a corner is one slam)
     }
@@ -5723,41 +5683,6 @@ function botSteer(p, gx, gy) {
   const l = Math.hypot(dx, dy);
   return l < 0.05 ? [0, 0] : [dx / l, dy / l];
 }
-// A goal that points into a boulder: walk round it instead, on the side the boulder's centre isn't. Without this two
-// bots either side of a big rock push at it and get pushed back by the steering, and stand there facing each other.
-function aroundPillar(p, gx, gy) {
-  const gl = Math.hypot(gx, gy); if (gl < 0.05) return [gx, gy];
-  const ux = gx / gl, uy = gy / gl;
-  let hit = null;
-  for (const q of PILLARS) {
-    if (q.tower) continue;
-    const ex = q.x - p.x, ey = q.y - p.y, along = ex * ux + ey * uy;
-    if (along < 0 || along > q.r + p.r + 170) continue;
-    const side = -ex * uy + ey * ux; // the pillar's centre, left (+) or right (−) of our line
-    if (Math.abs(side) < q.r + p.r + 24 && (!hit || along < hit.along)) hit = { q, along, side };
-  }
-  if (!hit) return [gx, gy];
-  // sideways, away from the centre; one nearly head-on is passed on the side we're already leaning to (and that changes
-  // now and then, or two archers circling the same rock would chase each other round it for ever)
-  const s = Math.abs(hit.side) < (hit.q.r + p.r) * 0.6 ? (p.ai && p.ai.strafe ? p.ai.strafe : 1) : hit.side > 0 ? -1 : 1, tx = -uy * s, ty = ux * s;
-  const k = clamp(1 - hit.along / (hit.q.r + p.r + 170), 0.35, 1); // the closer, the more sideways
-  return [ux * (1 - k) * 0.7 + tx * k, uy * (1 - k) * 0.7 + ty * k];
-}
-// A person needs a moment to see a shot coming, and doesn't catch every one: the arrow has to have been in the air for
-// about their reaction time, and each arrow is either noticed or missed (sharper players miss fewer, nobody catches all)
-function botNotices(p, a) {
-  const ai = p.ai; if (!ai) return true;
-  const D = botD(p);
-  if (a.age < D.react * 0.5) return false;
-  ai.seen = ai.seen || {};
-  if (ai.seen[a.id] == null) { if (Object.keys(ai.seen).length > 40) ai.seen = {}; ai.seen[a.id] = Math.random() < 0.3 + 0.6 * D.dodge; }
-  return ai.seen[a.id];
-}
-// Playstyle traits matchmaking's AI players carry (plain bots have none): cover (0-1) tucks behind a boulder between
-// shots and steps out to loose; edge (0-1) works for positions where a hit throws the enemy into a hazard; dash (0-1)
-// is how freely they dash and bash (0.5 is a plain bot); charge (−1..1) leans to quick shots or full draws.
-const TR0 = { cover: 0, edge: 0, dash: 0.5, charge: 0 };
-const dashK = ai => ai.tr ? 0.4 + 1.2 * ai.tr.dash : 1;
 
 // ---- the smarter brain (used as far as a level's iq allows; Master uses all of it)
 // GENE holds the weights it balances; they were tuned by pitting variations against each other over thousands of games
@@ -5842,10 +5767,7 @@ function botPlan(w, p, T, foes, mates, D, G) {
   const pref = Math.min(reach * 0.8, (st.near + st.far) / 2 * G.pref);
   const myKb = kbTravel(0.95, T ? T.mass : 1, p.kbMul) * G.kbScale;
   const cand = [[p.x, p.y]];
-  // (a boulder in the way: look further afield too, or every spot in reach can be behind it)
-  const radii = T && !clearShot(p.x, p.y, T.x, T.y) ? [G.cand * 0.55, G.cand, G.cand * 2.3] : [G.cand * 0.55, G.cand];
-  for (let i = 0; i < 12; i++) { const a = i / 12 * TAU + (ai.planRot || 0); for (const r of radii) cand.push([p.x + Math.cos(a) * r, p.y + Math.sin(a) * r]); }
-  const edge = 1 + (ai.tr ? ai.tr.edge * 1.2 : 0);
+  for (let i = 0; i < 12; i++) { const a = i / 12 * TAU + (ai.planRot || 0); for (const r of [G.cand * 0.55, G.cand]) cand.push([p.x + Math.cos(a) * r, p.y + Math.sin(a) * r]); }
   ai.planRot = ((ai.planRot || 0) + 0.37) % TAU;
   let best = null;
   for (const [x, y] of cand) {
@@ -5871,7 +5793,7 @@ function botPlan(w, p, T, foes, mates, D, G) {
       const dl = outg > 0 && d > reach ? Math.hypot(T.x + T.vx * 0.5 - x, T.y + T.vy * 0.5 - y) : d;
       sc -= Math.abs(dl - pref) / 300 * G.pref;
       if (dl > reach) sc -= (dl - reach) / 120 * (1 + 1.5 * outg);
-      if (los) { if (ready) sc += 0.4 * G.los; sc += pushRisk(T.x, T.y, dx / d, dy / d, myKb, T.r) * 1.6 * G.push * edge; }
+      if (los) { if (ready) sc += 0.4 * G.los; sc += pushRisk(T.x, T.y, dx / d, dy / d, myKb, T.r) * 1.6 * G.push; }
       else if (d > reach && outg > 0) sc += 0.8 * outg; // cover on the way in
       else if (!ready) sc += 0.45; // reloading: a boulder to duck behind is worth more than a line of sight
       else sc -= 0.3 * G.los;
@@ -5905,7 +5827,7 @@ function botCloseIn(w, p, T, dT, reach, D, dt) {
   const outg = outranged(p, T);
   const dd = p.role === 'ninja' ? NINJA_BLINK * (has(p, 'longstep') ? 1.4 : 1) : 250;
   if (!outg || !(p.dashN > 0) || ai.closeCd > 0 || dT < reach * 0.9 || dT > reach * 0.9 + dd || !loaded(p)) return;
-  if (Math.random() > dt * (0.4 + D.dodge * 1.5 + (D.iq || 0) * 2) * outg * dashK(ai)) return;
+  if (Math.random() > dt * (0.4 + D.dodge * 1.5 + (D.iq || 0) * 2) * outg) return;
   if (incoming(w, p, 0.4)) return;
   // the sharper bots time it: not into a bow that's drawn and waiting, but the moment after it looses, while it's being drawn again
   if ((D.iq || 0) > 0.3 && T.drawing && T.charge > 0.4) return;
@@ -6009,7 +5931,7 @@ function botThink(w, p, dt) {
     const st = STYLES[ai.style] || STYLES.skirmisher, ag = ai.aggr == null ? 0.6 : ai.aggr;
     ai.bashCd = (ai.bashCd || 0) - dt;
     // a dash into them only when it would knock them into something and we'd land safely
-    if (dT < 220 && dT > 40 && p.dashN > 0 && ai.bashCd <= 0 && clearShot(p.x, p.y, T.x, T.y) && st.bash * ag * dashK(ai) > 0.1) {
+    if (dT < 220 && dT > 40 && p.dashN > 0 && ai.bashCd <= 0 && clearShot(p.x, p.y, T.x, T.y) && st.bash * ag > 0.1) {
       const ang = Math.atan2(T.y - p.y, T.x - p.x);
       if (pushRisk(T.x, T.y, Math.cos(ang), Math.sin(ang), 200, T.r) > 0.6 && lethalDist(p.x + Math.cos(ang) * (dT + 40), p.y + Math.sin(ang) * (dT + 40)) > 60) { p.wantDash = true; ai.dashAim = ang; ai.bashCd = rand(1.5, 3); }
     }
@@ -6030,16 +5952,7 @@ function botThink(w, p, dt) {
       gx = ux * fwd - uy * ai.strafe * side; gy = uy * fwd + ux * ai.strafe * side;
       botCloseIn(w, p, T, d, reach, D, dt);
     }
-    else {
-      // edge hunters work round to the side from which a hit would throw them into something
-      if (ai.tr && ai.tr.edge > 0 && (ai.edgeT = (ai.edgeT || 0) - dt) <= 0) {
-        ai.edgeT = 0.5;
-        const kb = kbTravel(0.9, T.mass, p.kbMul), risk = s => { const x = p.x - uy * s * 90, y = p.y + ux * s * 90, ddx = T.x - x, ddy = T.y - y, dd = Math.hypot(ddx, ddy) || 1; return lethalDist(x, y) < p.r + 40 ? -1 : pushRisk(T.x, T.y, ddx / dd, ddy / dd, kb, T.r); };
-        const a = risk(1), b = risk(-1);
-        if (Math.abs(a - b) > 0.15 && Math.random() < ai.tr.edge) { ai.strafe = a > b ? 1 : -1; ai.strafeT = Math.max(ai.strafeT, 0.8); }
-      }
-      gx = -uy * ai.strafe; gy = ux * ai.strafe;
-    }
+    else { gx = -uy * ai.strafe; gy = ux * ai.strafe; }
     // guardians stay close to their team
     if (st.mates && mates.length) {
       const m = mates.reduce((b, q) => { const dd = Math.hypot(q.x - p.x, q.y - p.y); return !b || dd < b.d ? { q, d: dd } : b; }, null);
@@ -6048,7 +5961,7 @@ function botThink(w, p, dt) {
     // dash-bash: brawlers (and bots with Battering Ram) dash straight into people
     ai.bashCd = (ai.bashCd || 0) - dt;
     const bashy = st.bash * ag * (has(p, 'ram') ? 1.6 : 1);
-    if (d < 240 && d > 40 && p.dashN > 0 && ai.bashCd <= 0 && clearShot(p.x, p.y, T.x, T.y) && Math.random() < bashy * dt * 3 * dashK(ai)) {
+    if (d < 240 && d > 40 && p.dashN > 0 && ai.bashCd <= 0 && clearShot(p.x, p.y, T.x, T.y) && Math.random() < bashy * dt * 3) {
       const lead = 0.25, bx = T.x + T.vx * lead, by = T.y + T.vy * lead, ang = Math.atan2(by - p.y, bx - p.x);
       if (lethalDist(p.x + Math.cos(ang) * (d + 40), p.y + Math.sin(ang) * (d + 40)) > 50) { p.wantDash = true; ai.dashAim = ang; ai.bashCd = rand(1.5, 3); }
     }
@@ -6067,25 +5980,6 @@ function botThink(w, p, dt) {
     const dx = p.x - m.x, dy = p.y - m.y, d = Math.hypot(dx, dy) || 1;
     if (d < 90) { gx += dx / d * (90 - d) / 90; gy += dy / d * (90 - d) / 90; }
   }
-  // cover ducking (a trait): after loosing, tuck in behind a nearby boulder while the bow is drawn again, then step
-  // out on the side we're already leaning to and shoot. Each shot they decide afresh, as often as the trait says.
-  if (ai.tr && ai.tr.cover > 0 && T && dT < 950 && !(p.stealthT > 0) && (ai.duck || ai.peek)) {
-    const cv = PILLARS.reduce((b, q) => { if (q.tower) return b; const d = Math.hypot(q.x - p.x, q.y - p.y) - q.r; return d < 230 && (!b || d < b.d) ? { q, d } : b; }, null);
-    if (cv) {
-      const q = cv.q, tx = q.x - T.x, ty = q.y - T.y, tl = Math.hypot(tx, ty) || 1, ux = tx / tl, uy = ty / tl, off = q.r + p.r + 16;
-      const hx = q.x + ux * off, hy = q.y + uy * off; // right behind it, seen from the target
-      const peek = ai.strafe, px = hx - uy * peek * (off + 10), py = hy + ux * peek * (off + 10); // round its shoulder
-      const ready = inp.draw && p.charge >= ai.want * 0.85;
-      const [tx2, ty2] = ready || ai.peek ? [px, py] : [hx, hy];
-      if (ready && !ai.peek) ai.peek = true; // (and stay out until the shot's gone)
-      if (lethalDist(tx2, ty2) > p.r + 30) {
-        const d = Math.hypot(tx2 - p.x, ty2 - p.y) || 1, k = Math.min(1, d / 45);
-        gx = (tx2 - p.x) / d * k - p.vx / 500; gy = (ty2 - p.y) / d * k - p.vy / 500;
-      }
-    } else ai.duck = ai.peek = false;
-  }
-  // a goal pointing into a boulder: go round it
-  if (PILLARS.length) [gx, gy] = aroundPillar(p, gx, gy);
 
   // --- dodge incoming enemy arrows
   ai.dodgeCd -= dt;
@@ -6165,7 +6059,7 @@ function botThink(w, p, dt) {
   ai.errT -= dt;
   if (ai.errT <= 0) { ai.err = rand(-1, 1) * D.aimErr * (p.shroudT > 0 ? (p.shroudR < 150 ? 3.5 : 2.2) : 1); ai.errT = rand(0.3, 0.6); }
   if (!T) { ai.lastT = null; inp.draw = false; botAbilities(w, p, null, Infinity, foes, dt); if (p.wantDash && ai.dashAim != null) inp.aim = ai.dashAim; ai.dashAim = null; return; }
-  const spd = (380 + 920 * (p.role === 'crossbow' ? 1 : Math.max(p.charge, ai.want))) * OPT('aspeed'), wasDraw = inp.draw;
+  const spd = (380 + 920 * (p.role === 'crossbow' ? 1 : Math.max(p.charge, ai.want))) * OPT('aspeed');
   // aim at where the target *appeared* to be (and to be heading) a reaction-time ago, like a person would
   const S = perceived(w, T, D.see || 0.24);
   let wantAim;
@@ -6213,17 +6107,15 @@ function botThink(w, p, dt) {
       inp.draw = true;
       const st = STYLES[ai.style];
       ai.want = lethalDist(T.x, T.y) < 130 ? 1 : dT < 150 ? 0.35 : st && st.charge ? rand(Math.max(D.minCharge * 0.7, st.charge[0]), st.charge[1]) : rand(D.minCharge, 1);
-      const lean = ai.tr ? ai.tr.charge * 0.3 : 0; // quick-shot or full-draw people
       if (iq >= 0.5) {
         const d = dT || 1, risk = pushRisk(T.x, T.y, (T.x - p.x) / d, (T.y - p.y) / d, kbTravel(1, T.mass, p.kbMul), T.r);
-        ai.want = risk > G.riskFull || dT > G.far ? 1 : dT < 140 ? G.quick : Math.max(D.minCharge, G.mid + lean);
-      } else if (lean) ai.want = clamp(ai.want + lean, 0.3, 1);
+        ai.want = risk > G.riskFull || dT > G.far ? 1 : dT < 140 ? G.quick : Math.max(D.minCharge, G.mid);
+      }
     }
   } else if ((p.charge >= ai.want || (p.momT > 0.1 && p.charge >= 0.55 && has(p, 'momentum'))) && los && onTarget && T.inv <= 0 && !(has(p, 'ballista') && ai.want >= 1 && p.over < 1 && dT > 250) && !(p.stealthT > 0.6 && dT > 170 && !(ai.ambush && Math.hypot(ai.ambush.x - p.x, ai.ambush.y - p.y) < 70))) {
     inp.draw = false;
     ai.reload = rand(0.05, 0.3) + D.react;
   }
-  if (wasDraw && !inp.draw) { ai.peek = false; ai.duck = !!(ai.tr && Math.random() < ai.tr.cover); } // shot away: duck behind cover for the next one?
   botAbilities(w, p, T, dT, foes, dt);
   if (p.wantDash && ai.dashAim != null) inp.aim = ai.dashAim; // a dodge dash points the way out
   ai.dashAim = null;
@@ -6284,12 +6176,11 @@ function botAbilities(w, p, T, dT, foes, dt) {
         use = !!T && dT < 190 && angOff(Math.atan2(T.y - p.y, T.x - p.x), p.input.aim) < 0.4;
         if (!use) { // or blow away an arrow about to hit us
           const inc = w.arrows.find(a => {
-            if (a.team === p.team || a.stuck > 0 || !sees(p, a) || !botNotices(p, a)) return false;
+            if (a.team === p.team || a.stuck > 0 || !sees(p, a)) return false;
             const rx = p.x - a.x, ry = p.y - a.y, v2 = a.vx * a.vx + a.vy * a.vy || 1, t = (rx * a.vx + ry * a.vy) / v2;
             return t > 0 && t < 0.3 && Math.hypot(rx - a.vx * t, ry - a.vy * t) < p.r + 10 && Math.hypot(rx, ry) < 240;
           });
-          // (a flick, not a reflex: the aim is a little off, and a quick one is hard to catch at all)
-          if (inc && Math.random() < dt * (3 + 9 * botD(p).dodge)) { p.input.aim = Math.atan2(inc.y - p.y, inc.x - p.x) + rand(-0.25, 0.25) * (1.1 - botD(p).dodge); use = true; }
+          if (inc) { p.input.aim = Math.atan2(inc.y - p.y, inc.x - p.x); use = true; }
         }
         break;
       }
@@ -6323,7 +6214,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
       case 'hairtrig':
       case 'bladeguard':
       case 'parry': use = (foes.some(q => botAware(p, q) && q.drawing && q.charge > 0.55 && Math.hypot(q.x - p.x, q.y - p.y) < 650 && angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.18)
-        || w.arrows.some(a => a.team !== p.team && !a.stuck && sees(p, a) && botNotices(p, a) && shotAt(a, p))) && Math.random() < dt * (2 + 5 * botD(p).dodge); break; // a bow being drawn at them, or a shot (shuriken, bolt) already on its way: the sharper, the more often they catch it
+        || w.arrows.some(a => a.team !== p.team && !a.stuck && sees(p, a) && shotAt(a, p))) && Math.random() < dt * 6; break; // a bow being drawn at them, or a shot (shuriken, bolt) already on its way
       case 'seeker': use = chg > 0.5 && !!T && dT > 220; break;
       case 'rocket': use = chg > 0.3 && !!T && dT > 160 && dT < 700 && !p.rocketArmed; break; // too slow to be worth it from across the arena
       case 'trick': use = chg > 0.55 && !!T && dT > 200 && !p.trickArmed; break;
@@ -6373,11 +6264,11 @@ function botAbilities(w, p, T, dT, foes, dt) {
       case 'stealth': use = !!T && ((dT > 260 && dT < 650 && p.hp > p.maxHp * 0.4) || (p.hp < p.maxHp * 0.35 && dT < 300)); break;
       case 'deflect': {
         const inc = w.arrows.some(a => {
-          if (a.team === p.team || a.stuck > 0 || !sees(p, a) || !botNotices(p, a)) return false;
+          if (a.team === p.team || a.stuck > 0 || !sees(p, a)) return false;
           const rx = p.x - a.x, ry = p.y - a.y, v2 = a.vx * a.vx + a.vy * a.vy || 1, t = (rx * a.vx + ry * a.vy) / v2;
           return t > 0 && t < 0.35 && Math.hypot(rx - a.vx * t, ry - a.vy * t) < p.r + 10;
         });
-        if (inc && T && Math.random() < dt * (3 + 9 * botD(p).dodge)) { p.input.aim = Math.atan2(T.y - p.y, T.x - p.x); use = true; }
+        if (inc && T) { p.input.aim = Math.atan2(T.y - p.y, T.x - p.x); use = true; }
         break;
       }
       case 'rain':
@@ -6385,7 +6276,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
         break;
       case 'wall': {
         const threat = foes.find(q => botAware(p, q) && q.drawing && q.charge > 0.6 && Math.hypot(q.x - p.x, q.y - p.y) < 600 && angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.2);
-        if (threat && Math.random() < dt * (2.5 + 6 * botD(p).dodge)) { p.input.aim = Math.atan2(threat.y - p.y, threat.x - p.x); use = true; }
+        if (threat) { p.input.aim = Math.atan2(threat.y - p.y, threat.x - p.x); use = true; }
         break;
       }
       case 'grapple': {
@@ -7164,7 +7055,7 @@ function tierSvg(k, size = 22) {
 return {
   TIERS, tierOf, tierSvg,
   MASTERY, masteryOf, takeCard, applyStats,
-  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
+  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg,
@@ -7182,7 +7073,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.69.0';
+const PAGE_VERSION = '0.64.4';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -7339,13 +7230,6 @@ if (OFFLINE) { $('onlineOn').hidden = true; $('onlineOff').hidden = false; }
 const params = new URLSearchParams(location.search);
 const EMOTE_KEYS = Object.keys(Sim.EMOTES); // 1 to 8 on the keyboard
 const SHOWCASE = params.get('showcase') === '1'; // the website's hero: bots playing on the real renderer
-// a safety net: the game is only ever one frame deep (a clip's frame in a page); a frame inside a frame is a mistake, so it stops at once
-try { if (window.parent !== window && window.parent.parent !== window.parent) { document.documentElement.innerHTML = ''; throw new Error('nested'); } } catch (e) { if (e && e.message === 'nested') throw e; }
-// a copy of the game inside another page (a clip's frame on the results or the main menu, the website's backdrop, previews,
-// avatars): it only shows things. It never connects to the server's live side (no friends, no presence, no rejoining your
-// match, no best plays of its own): a copy that did would rejoin your match, show its own results with their own clip
-// frames, each another copy... until the browser ran out of memory
-const INFRAME = (() => { try { return window.top !== window || SHOWCASE || ['clips', 'embed', 'preview', 'avatar', 'cframe', 'still'].some(k => params.has(k)); } catch (e) { return true; } })();
 if (params.get('room')) $('codeIn').value = params.get('room').toUpperCase().slice(0, 4);
 // a friend's invite link (?room=CODE): no welcome screen, no menus, straight into their game with a name picked for you
 const LINK_JOIN = !OFFLINE && /^[A-Za-z]{4}$/.test(params.get('room') || '') && !params.get('ticket');
@@ -8561,13 +8445,13 @@ function phoneCamUpdate(dt) {
   const f = Math.min(1, dt * 6); PCAM.x += (me.x - PCAM.x) * f; PCAM.y += (me.y - PCAM.y) * f;
   phoneCamApply();
 }
-const STUDIO_DEF = { both: '', frame: 'h', style: 'kc', cam: 'kc', camSpeed: 0.75, zoomMax: 2.1, speed: 1, bars: false, parts: true, text: true, shake: true, flash: true, emp: true, names: 'all', res: '1440', trimA: 0, trimB: 0 }; // (the chosen defaults: kill cam, calm, close, no black bars, 1440p)
+const STUDIO_DEF = { both: '', frame: 'h', style: 'kc', cam: 'kc', camSpeed: 1, zoomMax: 1.8, speed: 1, bars: true, parts: true, text: true, shake: true, flash: true, emp: true, names: 'all', res: '1080', trimA: 0, trimB: 0 };
 const STUDIO = { on: false, i: 0, list: [], cur: Object.assign({}, STUDIO_DEF), from: null, exporting: false, stop: false, paused: false, onlyStar: false, batch: null, g: (() => { try { return JSON.parse(localStorage.getItem('bowfall-studio') || '{}') || {}; } catch (e) { return {}; } })() };
 const stVert = () => STUDIO.on && STUDIO.cur.frame === 'v'; // (the clip studio framing for phones: 9:16)
 const STUDIO_CLIP = ['trimA', 'trimB']; // (kept with each clip; every other setting carries over from clip to clip)
 function resize() {
   const r = cv.getBoundingClientRect();
-  DPR = STUDIO.exporting || INFRAME ? 1 : FARM.on && FARM.maxq ? Math.max(1, Math.min(2, devicePixelRatio || 1)) : OPTS.res === 'fast' ? 1 : Math.max(1, Math.min(2, devicePixelRatio || 1) * (OPTS.res === 'sharp' ? 1 : RSCALE));
+  DPR = STUDIO.exporting ? 1 : FARM.on && FARM.maxq ? Math.max(1, Math.min(2, devicePixelRatio || 1)) : OPTS.res === 'fast' ? 1 : Math.max(1, Math.min(2, devicePixelRatio || 1) * (OPTS.res === 'sharp' ? 1 : RSCALE));
   W = Math.max(1, r.width); H = Math.max(1, r.height);
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
   const phone = isPhone(), play = mode !== 'menu';
@@ -9818,7 +9702,6 @@ $('roChips').addEventListener('click', pickArch);
 const isHost = () => mode === 'local' || !!(roomInfo && roomInfo.amHost);
 
 function connect(joinMsg) {
-  if (INFRAME) return; // (a copy of the game in a frame never joins a game)
   initAudio();
   const status = $('netStatus');
   status.classList.remove('err'); status.textContent = 'Connecting…';
@@ -10330,7 +10213,7 @@ document.addEventListener('click', e => {
 // a second connection, just for these, open while you're on the site (games use their own)
 const SOC = { ws: null, st: null, mode: store.get('bowfall-mm-mode', '1v1'), modes: (() => { try { const v = JSON.parse(store.get('bowfall-mm-modes', 'null')); if (Array.isArray(v) && v.length) return v; } catch (e) {} return [store.get('bowfall-mm-mode', '1v1')]; })(), retry: 0, invite: null, hideOff: store.get('bowfall-hideoff', '') === '1' };
 function socialConnect() {
-  if (OFFLINE || INFRAME || (SOC.ws && SOC.ws.readyState <= 1)) return;
+  if (OFFLINE || (SOC.ws && SOC.ws.readyState <= 1)) return;
   const sock = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
   SOC.ws = sock;
   sock.onopen = () => { SOC.retry = 0; socialHello(); if (DM.open && DM.with) socialSend({ t: 'dm', op: 'open', with: DM.with }); };
@@ -10716,7 +10599,6 @@ function setFeatured(f) {
 $('homeLive').onclick = () => { if (mode !== 'menu') return; closeSubs(); if (DM.open) dmClose(); connect({ watch: 'feat' }); };
 // dropped out of a ranked match (closed the tab, lost connection): a bar to get back in while it's still going
 function renderRejoin() {
-  if (INFRAME) return;
   const r = SOC.st && SOC.st.rejoin; $('rejoinBar').hidden = !r || mode === 'online';
   // opening the game (or reloading the page) while a ranked match you dropped out of is still going: straight back in.
   // Not after you chose to leave it (that's what the Rejoin button is for)
@@ -10724,7 +10606,6 @@ function renderRejoin() {
 }
 const AUTOREJ = { code: null, tries: 0, left: null, done: new Set() };
 function autoRejoin() {
-  if (INFRAME) return;
   if (!AUTOREJ.code || mode !== 'menu') return;
   if (AUTOREJ.tries++ >= 6) { AUTOREJ.code = null; $('netStatus').classList.add('err'); $('netStatus').textContent = 'Disconnected from the server. Use Rejoin when it\'s back.'; return; }
   notice(AUTOREJ.tries === 1 ? 'Connection lost. Reconnecting to your match…' : `Reconnecting… (try ${AUTOREJ.tries})`, false, '#ffcf5a');
@@ -10843,7 +10724,7 @@ setInterval(() => { const p = SOC.st && SOC.st.party; if (p && p.queued != null)
 // an invite link to the game itself (/play?ref=name): kept for when they make an account on the website
 if (/^[A-Za-z0-9_-]{3,16}$/.test(params.get('ref') || '')) { try { localStorage.setItem('bowfall-ref', params.get('ref')); } catch (e) {} document.cookie = 'bf_ref=' + encodeURIComponent(params.get('ref')) + '; Path=/; Max-Age=2592000; SameSite=Lax'; }
 const AVATAR_ONLY = params.get('avatar') === '1'; // the website borrows the game's archer drawing for profile pictures
-if (!OFFLINE && !AVATAR_ONLY && !SHOWCASE && !INFRAME) setTimeout(socialConnect, 400);
+if (!OFFLINE && !AVATAR_ONLY && !SHOWCASE) setTimeout(socialConnect, 400);
 // the community Discord, when the server has its invite link
 if (!OFFLINE && !AVATAR_ONLY) fetch('/api/legal').then(r => r.json()).then(d => { if (d && d.discord) { $('homeDiscord').href = d.discord; $('homeDiscord').hidden = false; } }).catch(() => {});
 
@@ -12155,7 +12036,7 @@ function myTeam() { const me = view && view.p.find(p => p.id === myId); return m
 function scoreLine(r, b) { return `Red ${r} – ${b} Blue`; }
 function handleEvents(evs) {
   if (FARM.on) for (const e of evs) if (e.e === 'fire' || e.e === 'hit' || e.e === 'dmg' || e.e === 'kill' || e.e === 'dash') for (const k of [e.id, e.by, e.k, e.v]) if (k != null) FARM.act[k] = clock; // (the clip farm's camera follows the fighting)
-  replayNote(evs); if (!FARM.on) playEvents(evs); trainEvents(evs); if (!tutOnDummy() && !TR.on) Ach.onEvents(evs);
+  replayNote(evs); trainEvents(evs); if (!tutOnDummy() && !TR.on) Ach.onEvents(evs);
   tutEvents(evs);
   for (const e of evs) eventFx(e);
 }
@@ -15188,7 +15069,7 @@ function drawReplayFrame() {
   // letterbox bars and a vignette, drawn in screen space
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   if (RP.flash > 0 && !(STUDIO.on && !STUDIO.cur.flash)) { ctx.fillStyle = `rgba(255,255,255,${0.55 * RP.flash})`; ctx.fillRect(0, 0, W, H); RP.flash = Math.max(0, RP.flash - 0.06); }
-  if ((STUDIO.on && !STUDIO.cur.bars) || (!STUDIO.on && RP.on && RP.on.noBars)) return; // (the clip studio, or a best play: no black bars or vignette)
+  if (STUDIO.on && !STUDIO.cur.bars) return; // (the clip studio: no black bars or vignette)
   const bar = Math.round(H * 0.08);
   ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0, 0, W, bar); ctx.fillRect(0, H - bar, W, bar);
   const g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.max(W, H) * 0.7);
@@ -16262,7 +16143,7 @@ function updateHud() {
       resultsView = Object.assign({}, view, { p: view.p.filter(p => !p.nk) });
       renderAwards(resultsView); renderRanking();
       $('rematchBtn').hidden = $('resLobbyBtn').hidden = !isHost();
-      if (!hunting()) $('resultsScreen').hidden = false; $('resHint').textContent = TOUCH.on ? 'Tap a column to rank by it.' : 'Click a column to rank by it.'; progShow(); renderResClips(); renderResPlays();
+      if (!hunting()) $('resultsScreen').hidden = false; $('resHint').textContent = TOUCH.on ? 'Tap a column to rank by it.' : 'Click a column to rank by it.'; progShow(); renderResClips();
       { const rb = $('ratedBox'); clearTimeout(RATED.t); rb.classList.remove('show'); rb.hidden = true; renderResRated(); } // the results show the rating themselves: no pop-up over the headline
       $('gameMenu').hidden = true; menuOpen = false; paused = false;
     }
@@ -16601,7 +16482,6 @@ function replayTick(dt) {
   if (R.real) R.rate = 1; // (the clip farm's "real time": no slow motion at all)
   else if (R.fixed) R.rate = R.fixed; // (a clip about one archer rather than one knockout: an even slow motion)
   R.cur += dt * R.rate * (R.mul || 1);
-  if (R.holdAt != null) R.cur = R.holdAt; // (a freeze frame: the picture held, the camera still settling)
   // replay the visual effects as their moment comes round
   while (R.fired < R.evs.length && R.evs[R.fired].t <= R.cur) { replayFx(R.evs[R.fired].e); R.fired++; }
   if (R.cur >= seg.t1) {
@@ -16672,7 +16552,7 @@ function replayTick(dt) {
   }
   if (!RP.cam || RP.cut) { RP.cam = { x: fx0, y: fy0, z: RP.cam && camK !== -1 ? RP.cam.z : zoom }; RP.cut = 0; }
   // the camera follows smoothly; it chases a fast arrow harder so the arrow never runs off the edge of the view
-  const spd = STUDIO.on ? (+STUDIO.cur.camSpeed || 1) : (R.camSpd || 1), C = RP.cam;
+  const spd = STUDIO.on ? (+STUDIO.cur.camSpeed || 1) : 1, C = RP.cam;
   if (camK === -1) {
     // the action camera has weight: it accelerates toward where it should be and settles without overshooting
     // (a critically damped spring), so there are no jumps at all; the zoom tightens slowly and widens quicker
@@ -16721,7 +16601,7 @@ function endReplay() {
   clipRecStop();
   if (STUDIO.on) { if (!STUDIO.exporting) studioPlay(); return; } // (the clip studio loops the clip, straight round)
   if (FARM.viewing) { farmViewEnd(); return; }
-  if (CLIP.playing) { $('cvAgain').hidden = false; if (CLIP.playing.embed) setTimeout(() => { if (!CLIP.playing || RP.on) return; if (CLIP.queue) { const Q = CLIP.queue; Q.i = (Q.i + 1) % Q.ids.length; playClip(Q.ids[Q.i], true); try { parent.postMessage({ bfPlay: Q.i }, location.origin); } catch (e) {} } else clipReplay(); }, CLIP.queue ? 1200 : 2500); return; }
+  if (CLIP.playing) { $('cvAgain').hidden = false; if (CLIP.playing.embed) setTimeout(() => { if (CLIP.playing && !RP.on) clipReplay(); }, 2500); return; }
   showPendingSummary();
 }
 // ---- kill cam clips: your own kill cams can be saved as a video, or featured on your profile (anyone can watch it there)
@@ -16863,78 +16743,16 @@ async function playClip(id, embed) {
     if (!$('pcWrap').hidden) closePlayerCard();
     $('cvTitle').textContent = (d.meta && d.meta.label) || clipLabel(c); $('cvSub').textContent = d.owner ? `${d.owner}'s highlight` : '';
     document.body.classList.add('clipmode'); $('clipView').hidden = false;
-    if (CFRAME.on) { CFRAME.has = 1; CFRAME.playing ? clipReplay() : clipHold(); } else clipReplay();
+    clipReplay();
   } catch (e) { notice(esc(e.message || "Couldn't load that replay."), false); }
 }
-// real time, then the kill cam only for the final shot (or ability): from just before it's loosed, in slow motion riding it in
-function finalShotPlan(segs, n) {
-  const lg = segs[segs.length - 1], fin = lg.subs[lg.subs.length - 1], P = replayPlan(segs, n);
-  return { speed: Math.min(P.speed, 0.5), early: 1, finFrom: Math.max(lg.t0, fin.castT != null ? fin.castT - 0.35 : fin.shotT != null ? fin.shotT - 0.45 : fin.hitT != null ? fin.hitT - 0.6 : fin.kt - 0.8), finalOnly: true };
-}
-// how best plays are shown (on the results, on profiles and in the plays of the week): from 2.5 s before, real time until the
-// final shot, which the kill cam rides in slow motion, on to ¾ s after; a calm camera, no black bars
-const PLAY_LOOK = { trimA: -2.5, trimB: 0.75, camSpd: 0.5, noBars: true };
 function clipReplay() {
   const P = CLIP.playing; if (!P) return;
-  const c = P.c; setArena(c.map); floorKey = null; myId = P.local && PLAY.watch && PLAY.watch.me === c.k ? c.k : null; fx.parts.length = 0; // ("you" only over your own play)
-  const play = P.meta && P.meta.play && c.frames.length && c.segs.length && c.segs[c.segs.length - 1].subs.some(q => q.v != null);
-  let segs = c.segs, fired = 0;
-  if (play) {
-    const f0 = c.frames[0].t, f1 = c.frames[c.frames.length - 1].t;
-    segs = c.segs.map(g => Object.assign({}, g, { subs: g.subs.slice() }));
-    segs[0].t0 = clamp(segs[0].t0 + PLAY_LOOK.trimA, f0, segs[0].t1 - 0.5);
-    const lg = segs[segs.length - 1]; lg.t1 = clamp(lg.t1 + PLAY_LOOK.trimB, lg.t0 + 0.5, f1);
-    fired = c.evs.findIndex(x => x.t >= segs[0].t0); if (fired < 0) fired = c.evs.length;
-  }
-  RP.on = Object.assign({ wait: -1e9, segs, si: 0, cur: segs[0].t0, k: c.k, n: c.n, fired, started: false, frames: c.frames, evs: c.evs }, play ? Object.assign(finalShotPlan(segs, c.n), { camSpd: PLAY_LOOK.camSpd, noBars: PLAY_LOOK.noBars }) : replayPlan(c.segs, c.n));
+  const c = P.c; setArena(c.map); floorKey = null; myId = c.k; fx.parts.length = 0;
+  RP.on = Object.assign({ wait: -1e9, segs: c.segs, si: 0, cur: c.segs[0].t0, k: c.k, n: c.n, fired: 0, started: false, frames: c.frames, evs: c.evs }, replayPlan(c.segs, c.n));
   $('cvAgain').hidden = true; $('cvSave').hidden = true;
 }
-// a freeze frame of a clip: the moment the final shot lands, held (the camera settles on it), for a preview before it plays
-function clipHold() {
-  const P = CLIP.playing; if (!P) return;
-  clipReplay(); const R = RP.on; if (!R) return;
-  const lg = R.segs[R.segs.length - 1], fin = lg.subs[lg.subs.length - 1];
-  const t = clamp((fin.hitT != null ? fin.hitT : fin.kt) - 0.12, lg.t0, lg.t1 - 0.05);
-  R.si = R.segs.length - 1; R.holdAt = t; R.cur = t; if (typeof CFRAME !== 'undefined') CFRAME.hn = 0;
-  let f = R.evs.findIndex(x => x.t >= t - 0.35); R.fired = f < 0 ? R.evs.length : f; // (only the effects of that moment)
-}
-// a clip in a small frame on another page (the results, the main menu): a freeze frame until asked to play.
-// ?cframe=1: the clip is handed over by the page; ?clip=…&still=1: one from the server
-const CFRAME = { on: params.get('cframe') === '1' || params.get('still') === '1', playing: false, has: 0 };
-if (CFRAME.on) {
-  document.body.classList.add('clipembed', 'clippreview'); muted = true;
-  if (params.get('cframe') === '1') { const g = $('gate'); if (g) g.hidden = true; }
-  addEventListener('message', e => {
-    if (e.origin !== location.origin || !e.data || !e.data.bf) return; const m = e.data;
-    if (m.bf === 'clip' && m.clip) { try { const c = clipUnpack(m.clip); if (!MAPS[c.map]) return; CLIP.playing = { c, meta: { label: m.label || '', play: 1 }, embed: true }; document.body.classList.add('clipmode'); $('clipView').hidden = false; CFRAME.has = 1; CFRAME.playing ? clipReplay() : clipHold(); } catch (err) {} }
-    else if (m.bf === 'play') { CFRAME.playing = true; if (CLIP.playing) { RP.on = null; RP.cam = null; clipReplay(); } }
-    else if (m.bf === 'still') { CFRAME.playing = false; if (CLIP.playing) { RP.on = null; RP.cam = null; clipHold(); } }
-  });
-  try { parent.postMessage({ bfReady: 1 }, location.origin); } catch (e) {}
-}
-// a clip card: a freeze frame in a little frame that grows and plays when the mouse is over it (click to watch full size)
-function clipCard(box, src, clipObj, label, onOpen) {
-  box.innerHTML = '<iframe tabindex="-1" loading="lazy" title=""></iframe>'; box.classList.add('ccard');
-  const f = box.querySelector('iframe'); let ready = false;
-  const send = m => { try { f.contentWindow.postMessage(m, location.origin); } catch (e) {} };
-  const hand = () => { if (clipObj) send({ bf: 'clip', clip: clipObj, label }); };
-  f.addEventListener('load', () => { ready = true; setTimeout(hand, 400); setTimeout(hand, 1500); });
-  f.src = src; requestAnimationFrame(() => box.style.setProperty('--cs', ((box.clientWidth || 320) / 1280).toFixed(4)));
-  const big = on => {
-    if (!on) { box.classList.remove('big'); send({ bf: 'still' }); return; }
-    const r = box.getBoundingClientRect(); if (!r.width) return;
-    const room = { l: r.right - 8, r: innerWidth - r.left - 8, d: innerHeight - r.top - 8, u: r.bottom - 8 };
-    const left = room.l > room.r, up = room.u > room.d; box.style.transformOrigin = `${left ? 'right' : 'left'} ${up ? 'bottom' : 'top'}`;
-    const k = Math.max(1, Math.min(820 / r.width, (left ? room.l : room.r) / r.width, (up ? room.u : room.d) / r.height));
-    box.style.setProperty('--pk', k.toFixed(3)); box.classList.add('big'); send({ bf: 'play' });
-  };
-  box.onpointerenter = e => { if (e.pointerType === 'mouse') big(true); };
-  box.onpointerleave = () => big(false);
-  box.onclick = () => { big(false); if (onOpen) onOpen(); };
-}
-function closeClipView() { const local = CLIP.playing && CLIP.playing.local && PLAY.watch; if (RP.on) { RP.on = null; RP.cam = null; $('replayBadge').hidden = true; document.body.classList.remove('replaying'); } clipRecStop(); CLIP.playing = null; document.body.classList.remove('clipmode'); $('clipView').hidden = true;
-  if (local) { const W2 = PLAY.watch; PLAY.watch = null; myId = W2.me; setArena(W2.map); floorKey = null; if (W2.results) { $('resultsScreen').hidden = false; renderResPlays(); } return; } // (a best play watched from the results: back to them)
-  myId = null; setArena('meadow'); floorKey = null; }
+function closeClipView() { if (RP.on) { RP.on = null; RP.cam = null; $('replayBadge').hidden = true; document.body.classList.remove('replaying'); } clipRecStop(); CLIP.playing = null; document.body.classList.remove('clipmode'); $('clipView').hidden = true; myId = null; setArena('meadow'); floorKey = null; }
 $('cvAgain').onclick = clipReplay; $('cvClose').onclick = closeClipView;
 let frameDt = 0;
 // ================= performance recording =================
@@ -17038,7 +16856,7 @@ function frame(now) {
       if (pingT <= 0) { ws.send(JSON.stringify({ t: 'ping', c: performance.now() })); pingT = 1; }
     }
   } else view = null;
-  updateMech(dt); if (FARM.on) farmTick(dt); else playTick();
+  updateMech(dt); if (FARM.on) farmTick(dt);
   statusSounds(dt); bowSounds(dt); perfTick(dt); if (TUT.on || TR.on) coachFade();
   const stHold = STUDIO.on && STUDIO.paused && !STUDIO.exporting; // (the clip studio paused: the picture holds)
   const tScale = stHold ? 0 : RP.on && RP.on.started ? (RP.on.rate || 1) * (RP.on.mul || 1) : mode === 'local' && !paused ? (fx.stop > 0 ? 0 : fx.slow > 0 ? 0.35 : 1) : 1;
@@ -17049,8 +16867,7 @@ function frame(now) {
   const rv = cbView(replayTick(stHold ? 0 : RP.on && RP.on.real ? Math.min(0.1, frameMs / 1000) : dt)); // (real time stays real even when the frame rate dips)
   // a drawing error must never freeze the game: report it and carry on with the next frame
   try { camUpdate(dt); phoneCamUpdate(dt); } catch (e) { clientError(e, 'camera'); }
-  const heldStill = CFRAME.on && !CFRAME.playing && RP.on && RP.on.holdAt != null && (CFRAME.hn = (CFRAME.hn || 0) + 1) > 90 && CFRAME.hn % 15; // (a freeze frame: once the camera has settled, redrawn only now and then)
-  try { if (heldStill) {} else if (document.hidden && FARM.on && !STUDIO.exporting) {} /* (in the background: nothing to draw) */ else if (rv) { const live = view; view = rv; try { render(true); } finally { view = live; } } else if (FARM.on && FARM.hunt && !STUDIO.on) huntDraw(); else render(); }
+  try { if (document.hidden && FARM.on && !STUDIO.exporting) {} /* (in the background: nothing to draw) */ else if (rv) { const live = view; view = rv; try { render(true); } finally { view = live; } } else if (FARM.on && FARM.hunt && !STUDIO.on) huntDraw(); else render(); }
   catch (e) { clientError(e, 'render'); if (rv) endReplay(); try { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none'; } catch (e2) {} }
   PR.lap('overlay');
   try { updateHud(); qHelp(); linkAutoJoin(); if (TOUCH.on) touchUI(); } catch (e) { clientError(e, 'hud'); }
@@ -17122,7 +16939,7 @@ async function openFarm() {
   if (!$('farmLook').querySelector('input')) { const on = new Set(store.get('bowfall-farm-look', '').split(',').filter(Boolean));
     $('farmLook').insertAdjacentHTML('beforeend', FARM_LOOK.map(([k, l]) => `<label><input type="checkbox" data-flook="${k}"${on.has(k) ? ' checked' : ''}> ${esc(l)}</label>`).join(''));
     $('farmLook').addEventListener('change', () => store.set('bowfall-farm-look', [...$('farmLook').querySelectorAll('[data-flook]')].filter(c => c.checked).map(c => c.dataset.flook).join(','))); }
-  if (!$('farmEffect').options.length) $('farmEffect').innerHTML = '<option value="none">None</option><option value="random">A random one each game</option>' + Object.keys(Sim.MUTATORS).map(k => `<option value="${k}">${esc(Sim.MUTATORS[k].name)}</option>`).join(''); $('farmEffect').value = 'random'; // (the default: a random map effect each game)
+  if (!$('farmEffect').options.length) $('farmEffect').innerHTML = '<option value="none">None</option><option value="random">A random one each game</option>' + Object.keys(Sim.MUTATORS).map(k => `<option value="${k}">${esc(Sim.MUTATORS[k].name)}</option>`).join('');
   $('farmScr').hidden = false;
   // the ranked AI players (asked again each time until it works; offline, the copy built into the page)
   if (!(FARM.ai && FARM.ai.length)) {
@@ -17203,7 +17020,6 @@ function farmStart() {
     if (!lo) lo = [pick(okE), pick(okR)];
     if (a) { bot.name = a.name; Sim.setMeta(world, bot.id, Object.assign({ cc: a.cc, lv: a.lv }, a.look || {})); } else bot.name = `${(FARM_SKILLS.find(s2 => +s2[0] === sk) || [0, 'Bot'])[1]} bot`;
     Sim.setLoadout(world, bot.id, lo[0], lo[1]);
-    if (a) Sim.setBotMind(world, bot.id, { style: a.style, aggr: a.aggr, tr: a.tr, gene: a.gene }); // (their own way of playing, as in ranked)
     bot.dparams = Sim.skillParams(sk); bot.diff = sk >= 0.9 ? 'master' : sk >= 0.78 ? 'extreme' : sk >= 0.55 ? 'hard' : sk >= 0.3 ? 'normal' : 'easy';
     let ups = r.up && r.up.length ? r.up.slice() : null;
     if (C.rndUps && !(r.lock && r.up && r.up.length)) { const cards = farmCards(lo[0], lo[1]), act = cards.filter(id => TREE[id].active), pas = cards.filter(id => !TREE[id].active), n = 3 + Math.floor(Math.random() * 3); ups = [];
@@ -17217,7 +17033,7 @@ function farmStart() {
   myId = null; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {}; TUT.on = false; TR.on = false;
   FARM.battles = (FARM.battles || 0) + 1;
   FARM.on = true; FARM.cam = null; FARM.sb = null; FARM.act = {}; FARM.overAt = 0; FARM.kc = C.kc; RP.enabled = C.kc && FARM.speed === 1 && !FARM.hunt;
-  RP.buf = []; RP.evs = []; RP.lastKill = null; FARM.pending = []; FARM.batch = []; FARM.near = new Map(); FARM.pl = new Map(); FARM.sl = new Map(); FARM.revAt = 0; FARM.held = false; FARM.match = (FARM.match || 0) + 1;
+  RP.buf = []; RP.evs = []; RP.lastKill = null; FARM.pending = []; FARM.batch = []; FARM.near = new Map(); FARM.pl = new Map(); FARM.revAt = 0; FARM.held = false; FARM.match = (FARM.match || 0) + 1;
   farmBarSync();
   document.body.classList.add('farm'); document.body.classList.toggle('farmnohud', !FARM.hud); farmBarShow(true);
   setScreens(); resize();
@@ -17236,118 +17052,10 @@ function farmStep() {
   while (FARM.pending.length && FARM.gt >= FARM.pending[0].due) farmCapture(FARM.pending.shift());
 }
 // what each archer has been up to lately: near misses dodged, dashes, damage dealt, knockouts (for the evasive and burst clips)
-
-// ---- the plays of the week on the main menu: the three best plays from ranked matches this week, playing one after
-// another in a small frame (it grows as you hover over it); click one to watch it full size
-const WEEKP = { list: null, at: 0, tab: 'week', data: null };
-async function weekPlaysLoad() {
-  // (never inside another page: the plays' own frame is this same page, and loading the card in there too would nest frames
-  // inside frames until the browser ran out of memory; nor in the website's backdrop, an avatar, a replay or a preview)
-  if (INFRAME || OFFLINE || mode !== 'menu' || Date.now() - WEEKP.at < 5 * 60 * 1000) return;
-  WEEKP.at = Date.now();
-  try { const r = await fetch('/api/weekplays', { cache: 'no-store' }); if (!r.ok) return; WEEKP.data = await r.json(); } catch (e) { return; }
-  weekPlaysShow();
-}
-function weekPlaysShow() {
-  const D = WEEKP.data || {}, wk = (D.plays || [])[0], ever = (D.all || [])[0], x = wk || ever;
-  const box = $('weekPlays'); box.hidden = false;
-  $('wpHead').textContent = wk ? 'Best play of the week' : ever ? 'Best play ever' : 'Best play of the week';
-  $('wpNote').hidden = !!x; $('wpNote').textContent = 'No plays yet. Make a big play in an online match (a multi-kill, a Rip, a set-up knockout…) and you could be the first up here.';
-  $('wpCard').hidden = !x; $('wpCap').innerHTML = x ? `<b>${x.score}</b> ${esc(x.label)} <small>${esc(x.who || '')} · ${esc((MAPS[x.map] || {}).name || '')}</small>` : '';
-  if (!x || WEEKP.shown === x.id) return; WEEKP.shown = x.id;
-  clipCard($('wpCard'), `/play?clip=${encodeURIComponent(x.id)}&embed=1&preview=1&still=1`, null, x.label, () => playClip(x.id));
-}
-setTimeout(weekPlaysLoad, 1500); setInterval(weekPlaysLoad, 60 * 1000);
-// after a ranked match: its best play is offered for the plays of the week (if it's scored highly; the server decides)
-async function weekPlayOffer(x) {
-  try {
-    let frames = x.c.frames; while (frames.length > 850) frames = frames.filter((f, i) => i % 2 === 0);
-    const data = await gzipB64(JSON.stringify(clipPack(Object.assign({}, x.c, { frames }))));
-    await fetch('/api/weekplay', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data, meta: { label: x.title, score: x.score } }) });
-  } catch (e) {}
-}
-// ---- best plays in real matches: the clip farm's eye for a good play, turned on the player's own game. Each of their
-// plays is scored as it happens; the best (if any were worth it) are shown with the results, to watch, and supporters
-// can keep them on their profile
-const PLAY = { pending: [], pl: new Map(), list: [], match: 0, get gt() { return rpNow(); } };
-let PC = FARM; // (which one the play-spotting functions below are working for: the clip farm, or the player's own match)
-const PLAY_MIN = 4.5; // (worth showing: a double kill, a set-up or ability knockout, a roast, a harpoon pull and up)
-const pcPlayer = id => { if (PC === FARM && world) return world.players.find(q => q.id === id); const p = view && view.p.find(q => q.id === id); return p ? { name: p.n, dead: p.d } : null; };
-const playOn = () => !INFRAME && !FARM.on && myId != null && (mode === 'online' || mode === 'local') && !TUT.on && !TR.on && !DESK.sim && !(roomInfo && roomInfo.spec);
-function playMine(e) { return ['moment', 'style', 'kill', 'dmg', 'clutch', 'gameEnd', 'slam'].includes(e.e) && !e.npc; } // (everyone's plays: the best of the game, and yours)
-function playEvents(evs) {
-  for (const e of evs) if (e.e === 'matchStart') { PLAY.list = []; PLAY.pending = []; PLAY.pl = new Map(); PLAY.sl = new Map(); PLAY.match++; PLAY.flushAt = 0; PLAY.offered = false; PLAY.shown = ''; }
-  if (!playOn()) return;
-  PC = PLAY; try { for (const e of evs) farmNote(e); } finally { PC = FARM; }
-  if (evs.some(e => e.e === 'matchEnd')) PLAY.flushAt = rpNow() + 1.2; // (a moment for the last knockout's aftermath, then whatever's waiting is saved)
-}
-function playTick() {
-  if (!PLAY.pending.length && !(PLAY.flushAt && !PLAY.offered)) return;
-  const now = rpNow(), all = PLAY.flushAt && now >= PLAY.flushAt;
-  PC = PLAY;
-  try { while (PLAY.pending.length && (all || now >= PLAY.pending[0].due)) farmCapture(PLAY.pending.shift()); }
-  catch (e) { PLAY.pending = []; } finally { PC = FARM; }
-  if (all && !PLAY.pending.length && !PLAY.offered) { PLAY.offered = true; const best = PLAY.list.find(x => x.k === myId); if (best && best.score >= 6 && mode === 'online' && account && !OFFLINE) weekPlayOffer(best); }
-}
-function playAdd(item, c) {
-  if (item.score < PLAY_MIN) return;
-  item.c = c;
-  // the same play caught twice: the better one, noting both
-  const dup = PLAY.list.filter(x => (item.kt.length && (x.kt || []).some(t => item.kt.includes(t))) || (item.focus != null && x.focus === item.focus && x.win[0] < item.win[1] - 1 && item.win[0] + 1 < x.win[1]));
-  if (dup.length) { const best = dup.reduce((m, x) => (x.score > m.score ? x : m)); if (best.score >= item.score) return; PLAY.list = PLAY.list.filter(x => !dup.includes(x)); }
-  PLAY.list.push(item); PLAY.list.sort((x, y) => y.score - x.score); { const mine = PLAY.list.filter(x => x.k === myId).slice(0, 3), rest = PLAY.list.filter(x => x.k !== myId).slice(0, 3); PLAY.list = mine.concat(rest).sort((x, y) => y.score - x.score); } // (the best few of everyone's, and of yours)
-  if (!$('resultsScreen').hidden) renderResPlays();
-}
-const isSupporter = () => !!(account && (account.admin || (WALLET && WALLET.status && WALLET.status.sp)));
-function renderResPlays() {
-  const box = $('resPlays'); if (!box) return;
-  if (INFRAME) { box.hidden = true; return; }
-  // two: the best play of the game (anyone's), and your best (if the best of the game isn't yours already)
-  const top = PLAY.list[0], mine = PLAY.list.find(x => x.k === myId), show = [];
-  if (top) show.push({ x: top, head: top.k === myId ? 'Best play of the game: yours!' : 'Best play of the game' });
-  if (mine && mine !== top) show.push({ x: mine, head: 'Your best play' });
-  box.hidden = !show.length; if (!show.length) { box.innerHTML = ''; PLAY.shown = ''; return; }
-  const key = show.map(o => o.x.id + (o.x.kept || '')).join(',');
-  if (PLAY.shown === key && box.innerHTML) return; PLAY.shown = key; // (the cards hold their frames: only redrawn when what's in them changes)
-  const sup = isSupporter(), online = account && !OFFLINE;
-  box.innerHTML = `<div class="rplays2">${show.map((o, i) => `<div class="rplay2"><span class="hd">${esc(o.head)}</span><div class="rpc" data-rpc="${i}"></div>
-    <div class="rpi"><span class="sc">${o.x.score}</span><span><b>${esc(o.x.title)}</b><small>${esc(o.x.line)}</small></span></div>
-    ${o.x.k === myId && online ? `<button type="button" class="${sup ? 'ghost' : 'ghost locked'} sm" data-pkeep="${i}"${o.x.kept === true ? ' disabled' : ''}>${o.x.kept === true ? 'Kept ✓' : o.x.kept === 'saving' ? 'Saving…' : sup ? 'Keep on profile' : '★ Keep (supporters)'}</button>` : ''}</div>`).join('')}</div><small class="status">Hover to play · click to watch full size</small>`;
-  show.forEach((o, i) => clipCard(box.querySelector(`[data-rpc="${i}"]`), '/play?cframe=1&preview=1', clipPack(o.x.c), o.x.title, () => playWatch(o.x)));
-  PLAY.cards = show.map(o => o.x);
-}
-$('resPlays').onclick = ev => {
-  const k = ev.target.closest('[data-pkeep]'); if (!k) return; const x = (PLAY.cards || [])[+k.dataset.pkeep]; if (!x) return;
-  if (!isSupporter()) { notice('Keeping your best plays is for supporters (it helps keep Bowfall running).', false); return; }
-  playKeep(x);
-};
-// watch a play: on the game's canvas, as a kill cam (or an even slow motion for one about the archer), then back to the results
-function playWatch(x) {
-  if (!x || RP.on) return;
-  const c = clipUnpack(JSON.parse(JSON.stringify(clipPack(x.c))));
-  PLAY.watch = { results: !$('resultsScreen').hidden, map: MAPKEY, me: myId };
-  $('resultsScreen').hidden = true;
-  CLIP.playing = { c, local: true, meta: { label: x.title, play: 1 } };
-  $('cvTitle').textContent = x.title; $('cvSub').textContent = x.line.replace(/^[^:]*: /, '');
-  document.body.classList.add('clipmode'); $('clipView').hidden = false;
-  clipReplay();
-}
-async function playKeep(x) {
-  if (x.kept) return;
-  const c = Object.assign({}, x.c, { label: x.title, play: 1, score: x.score });
-  x.kept = 'saving'; renderResPlays();
-  try {
-    let frames = c.frames; while (frames.length > 850) frames = frames.filter((f, i) => i % 2 === 0); // (the server keeps up to 900 frames)
-    const data = await gzipB64(JSON.stringify(clipPack(Object.assign({}, c, { frames }))));
-    const d = await clipPost({ data, meta: { label: x.title, play: 1, score: x.score }, feature: 0 });
-    x.kept = true; clipTake(d);
-  } catch (e) { x.kept = false; notice(esc(e.message || 'Could not keep it'), false); }
-  renderResPlays();
-}
-function farmPl(id) { let o = PC.pl.get(id); if (!o) PC.pl.set(id, o = { dodge: [], dash: [], dmg: [], kill: [], flag: -99, bflag: -99 }); const T = PC.gt - 10; for (const k of ['dodge', 'dash', 'dmg', 'kill']) while (o[k].length && (o[k][0].t != null ? o[k][0].t : o[k][0]) < T) o[k].shift(); return o; }
+function farmPl(id) { let o = FARM.pl.get(id); if (!o) FARM.pl.set(id, o = { dodge: [], dash: [], dmg: [], kill: [], flag: -99, bflag: -99 }); const T = FARM.gt - 10; for (const k of ['dodge', 'dash', 'dmg', 'kill']) while (o[k].length && (o[k][0].t != null ? o[k][0].t : o[k][0]) < T) o[k].shift(); return o; }
 // near misses: an enemy arrow that came within 60 px of an archer and went on by without hitting them
 function farmTrack() {
-  const N = FARM.near, now = PC.gt, live = new Set();
+  const N = FARM.near, now = FARM.gt, live = new Set();
   for (const a of world.arrows) {
     if (a.stuck > 0) continue; live.add(a.id);
     let m = N.get(a.id);
@@ -17367,33 +17075,22 @@ function farmDodge(pid, by, t) {
 }
 // evasive: five or more near misses in 8 seconds, dashing about, while still dealing damage or knocking someone out
 function farmEvasive(id) {
-  const P = farmPl(id), now = PC.gt, p = world.players.find(q => q.id === id); if (!p || p.dead) return;
+  const P = farmPl(id), now = FARM.gt, p = world.players.find(q => q.id === id); if (!p || p.dead) return;
   const T = now - 8, dodges = P.dodge.filter(t => t >= T).length, dashes = P.dash.filter(t => t >= T).length, dmg = P.dmg.filter(x => x.t >= T).reduce((a, x) => a + x.v, 0), kills = P.kill.filter(t => t >= T).length;
-  const same = PC.pending.find(x => x.e.e === 'evasive' && x.e.id === id);
+  const same = FARM.pending.find(x => x.e.e === 'evasive' && x.e.id === id);
   if (dodges < 6 || dashes < 2 || !kills || (!same && now - P.flag < 12)) return; // (dodging alone isn't a clip: it has to end in a knockout)
   if (!same) P.flag = now; // (one clip for a run of it; the next can't start for a while)
   const e = { e: 'evasive', id, kn: p.name, n: Math.max(dodges, same ? same.e.n : 0), dmg, kills, a0: same ? same.e.a0 : now - 8 };
-  if (same) { same.e = e; same.at = now; same.due = now + 3.4; } else PC.pending.push({ e, at: now, due: now + 3.4 });
-  PC.pending.sort((a, b) => a.due - b.due);
+  if (same) { same.e = e; same.at = now; same.due = now + 3.4; } else FARM.pending.push({ e, at: now, due: now + 3.4 });
+  FARM.pending.sort((a, b) => a.due - b.due);
 }
 // what's worth keeping: the best moments (multi-kills, roasts, bullying, long shots), clutches, game-winning knockouts,
 // harpoon pulls into hazards, bursts of damage and evasive play
 function farmNote(e) {
-  if (PC === PLAY && !playMine(e)) return; // (a real match: only the player's own plays are looked for)
-  const at = PC.gt, push = (ev, due) => { PC.pending.push({ e: ev, at, due: at + due }); };
-  if (e.e === 'moment' && e.m === 'bully') return; // (bullying is followed slam by slam below instead)
-  if (e.e === 'slam' && e.by != null && e.by !== e.id) {
-    // bullying: slammed into the walls again and again (by one archer or several), each slam within 1.8 s of the last
-    const m = PC.sl || (PC.sl = new Map()); let S = m.get(e.id);
-    if (!S || at - S.last > 1.8) { S = { list: [], last: at }; m.set(e.id, S); }
-    S.list.push({ t: at, by: e.by, cn: e.cn ? 1 : 0 }); S.last = at;
-    if (S.list.length >= 3) { const vp = pcPlayer(e.id), ev = { e: 'bully2', v: e.id, vn: vp ? vp.name : '', run: S.list.slice() }, same = PC.pending.find(x => x.e.e === 'bully2' && x.e.v === e.id && x.e.run[0].t === S.list[0].t);
-      if (same) { same.e = ev; same.at = at; same.due = at + 3; } else push(ev, 3); }
-    PC.pending.sort((a, b) => a.due - b.due); return;
-  }
+  const at = FARM.gt, push = (ev, due) => { FARM.pending.push({ e: ev, at, due: at + due }); };
   if (e.e === 'moment') {
     // a multi-kill growing (a double becoming a triple) replaces the one waiting to be saved
-    const same = PC.pending.find(x => x.e.e === 'moment' && x.e.m === e.m && x.e.k === e.k && (e.m === 'multi' || (e.m === 'bully' && x.e.v === e.v)));
+    const same = FARM.pending.find(x => x.e.e === 'moment' && x.e.m === e.m && x.e.k === e.k && (e.m === 'multi' || (e.m === 'bully' && x.e.v === e.v)));
     if (same) { same.e = e; same.at = at; same.due = at + 3.2; return; }
     push(e, 3.2);
   } else if (e.e === 'clutch') push(e, 2.8);
@@ -17402,7 +17099,7 @@ function farmNote(e) {
     const P = farmPl(e.by); P.dmg.push({ t: at, v: e.v || 0 });
     // a burst: 130 or more damage dealt inside 3 seconds
     const run = P.dmg.filter(x => x.t >= at - 3), sum = run.reduce((a, x) => a + x.v, 0);
-    if (sum >= 130 && at - P.bflag > 6) { const p = pcPlayer(e.by), ev = { e: 'burst', id: e.by, kn: p ? p.name : '', n: sum, t0: run[0].t }, same = PC.pending.find(x => x.e.e === 'burst' && x.e.id === e.by);
+    if (sum >= 130 && at - P.bflag > 6) { const p = world.players.find(q => q.id === e.by), ev = { e: 'burst', id: e.by, kn: p ? p.name : '', n: sum, t0: run[0].t }, same = FARM.pending.find(x => x.e.e === 'burst' && x.e.id === e.by);
       if (same) { if (sum > same.e.n) { same.e = Object.assign(ev, { t0: Math.min(ev.t0, same.e.t0) }); same.at = at; same.due = at + 3.4; } } else { push(ev, 3.4); P.bflag = at - 3; } }
   } else if (e.e === 'kill' && e.k != null && !e.npc) {
     farmPl(e.k).kill.push(at);
@@ -17411,8 +17108,8 @@ function farmNote(e) {
     // a knockout with some play behind it (a dash into position, a trapped or frozen target, an ability that set it up, a run of hits into a wall)
     else { const st = killStyle(e, at); if (st.score >= 2.5) push({ e: 'style', k: e.k, kn: e.kn, v: e.v, vn: e.vn, c: e.c, st }, 3); }
   }
-  if (e.e === 'gameEnd' && e.rw !== 'draw' && RP.lastKill && at - RP.lastKill.t < 1.5) PC.pending.push({ e: { e: 'winko', k: RP.lastKill.k, kn: RP.lastKill.kn, v: RP.lastKill.v, vn: RP.lastKill.vn }, at: RP.lastKill.t, due: at + 2.5 });
-  PC.pending.sort((a, b) => a.due - b.due);
+  if (e.e === 'gameEnd' && e.rw !== 'draw' && RP.lastKill && at - RP.lastKill.t < 1.5) FARM.pending.push({ e: { e: 'winko', k: RP.lastKill.k, kn: RP.lastKill.kn, v: RP.lastKill.v, vn: RP.lastKill.vn }, at: RP.lastKill.t, due: at + 2.5 });
+  FARM.pending.sort((a, b) => a.due - b.due);
 }
 // the play behind a knockout, from the events and frames just before it: what set it up, and what it's worth
 const CC_WORD = { fz: 'frozen', pn: 'pinned', hk: 'hooked', su: 'stunned', st: 'rooted' };
@@ -17434,7 +17131,7 @@ function killStyle(e, t) {
   if (ev('pinned', x => x.id === e.v && x.by === e.k, 3) && cc !== 'pn') { tags.push('pinned first'); score += 1; }
   // smashed into the walls: a run of quick hits that threw them into a wall or corner again and again
   const hits = RP.evs.filter(x => x.e.e === 'hit' && x.e.by === e.k && x.e.id === e.v && t - x.t < 3.2).length, slams = RP.evs.filter(x => (x.e.e === 'thud' || x.e.e === 'spike') && x.e.id === e.v && t - x.t < 3.2).length;
-  // (a run of slams into the walls is its own kind of clip: see 'bully2')
+  if (hits >= 3 && slams >= 2) { tags.push(`${hits} quick hits, ${slams} slams`); score += 2.5 + (hits - 3) * 0.5 + (slams - 2) * 0.5; }
   return { tags, score, cc: !!cc, dashed, hits, slams };
 }
 const FARM_KEEP = { all: 0, good: 3, best: 4.5, s6: 6, s8: 8, s10: 10, s13: 13 };
@@ -17449,7 +17146,7 @@ const FARM_LOOK = [
   ['dash', 'Dash knockout', it => it.title === 'Dash knockout' || /dash into position/.test(it.line)],
   ['ability', 'Ability knockout (Rush, Volley, Quake)', it => it.title === 'Ability knockout' || /Bull Rush|Volley|Quake/.test(it.line)],
   ['held', 'Held knockout (frozen, rooted, pinned)', it => it.title === 'Held knockout' || /(frozen|rooted|pinned|stunned|hooked) target/.test(it.line)],
-  ['bully', 'Bullied, cornered or merciless (into the walls)', it => /^(Bullied|Cornered|Merciless)/.test(it.title)],
+  ['bully', 'Bullied out', it => /^Bullied out|^Merciless/.test(it.title)],
   ['harpoon', 'Harpooned', it => it.title === 'Harpooned'],
   ['roast', 'Roasted', it => it.title === 'Roasted'],
   ['snipe', 'Long shot', it => it.title === 'Long shot' || /sniped/.test(it.line)],
@@ -17465,26 +17162,12 @@ function farmCapture(P) {
   if (e.e === 'evasive' || e.e === 'burst') {
     // about one archer rather than one knockout: the stretch it happened over, with any knockouts they made in it
     focus = e.id;
-    const a0 = Math.max(RP.buf.length ? RP.buf[0].t + 2.6 : 0, e.e === 'burst' ? e.t0 - 1.5 : Math.max(e.a0 != null ? e.a0 : T - 8, T - 13)), b0 = Math.min(PC.gt - 0.1, T + 1.2);
+    const a0 = Math.max(RP.buf.length ? RP.buf[0].t + 2.6 : 0, e.e === 'burst' ? e.t0 - 1.5 : Math.max(e.a0 != null ? e.a0 : T - 8, T - 13)), b0 = Math.min(FARM.gt - 0.1, T + 1.2);
     ks = kevs.filter(x => x.k === focus && x.t >= a0 && x.t <= b0);
     const subs = ks.map(k => replaySeg(k, false).subs[0]);
     segs = [{ t0: a0, t1: Math.max(b0, ks.length ? ks[ks.length - 1].t + 0.9 : b0), subs: subs.length ? subs : [{ kt: b0 - 0.3, v: null }] }];
     if (e.e === 'burst') { title = 'Burst'; line = `${e.kn} dealt ${e.n} damage in 3 seconds${ks.length ? ` (${ks.length} knockout${ks.length > 1 ? 's' : ''})` : ''}`; score = 3 + (e.n - 130) / 40 + ks.length; }
     else { title = 'Untouchable'; line = `${e.kn} dodged ${e.n} shots and knocked out ${e.kills}`; score = 1.5 + (e.n - 6) * 0.25 + e.kills * 1.1 + e.dmg / 200; }
-  } else if (e.e === 'bully2') {
-    // bullying: the more slams, the quicker they came, the more into a corner and the more archers joining in, the better;
-    // best of all if it ends in the knockout
-    const run = e.run, t0 = run[0].t, t1 = run[run.length - 1].t, cnt = {}; for (const r of run) cnt[r.by] = (cnt[r.by] || 0) + 1;
-    const bys = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]), K = bys[0], n = run.length, span = Math.max(0.4, t1 - t0), corners = run.filter(r => r.cn).length;
-    const ko = kevs.find(x => x.v === e.v && x.t >= t0 && x.t <= t1 + 2.5);
-    const nm = id => { const p = pcPlayer(id); return p ? p.name : ''; };
-    e.k = K; e.kn = nm(K);
-    ks = ko ? [ko] : [];
-    if (ko) { const sg = replaySeg(ko, true); sg.t0 = Math.min(sg.t0, t0 - 1.2); segs = [sg]; }
-    else segs = [{ t0: t0 - 1.2, t1: t1 + 1, subs: [{ kt: t1, v: e.v }] }];
-    score = 1 + (n - 3) * 1.3 + Math.min(3, (n - 1) / span) * 1.2 + corners * 0.7 + (bys.length - 1) * 1.2 + (ko ? 2.5 : 0);
-    title = ko ? (n >= 6 ? 'Merciless' : corners >= 2 ? 'Cornered out' : 'Bullied out') : corners >= 2 ? 'Cornered' : n >= 6 ? 'Merciless' : 'Bullied';
-    line = `${bys.map(nm).join(' and ')} slammed ${e.vn} into the walls ${n} times in ${span.toFixed(1)} s${corners ? ` (${corners} into a corner)` : ''}${ko ? ' and knocked them out' : ''}`;
   } else {
     if (e.e === 'moment' && e.m === 'multi') ks = kills.filter(k => k.t >= T - 6);
     else if (e.e === 'moment' && e.m === 'bully') {
@@ -17500,7 +17183,7 @@ function farmCapture(P) {
     if (e.e === 'style') segs[0].t0 = Math.min(segs[0].t0, T - (e.st.hits >= 3 ? 3.4 : e.st.dashed ? 2.2 : 1.8)); // (the set-up too)
     if (e.e === 'harpoon') { const h = RP.evs.find(x => x.e.e === 'hooked' && x.e.id === e.v && x.e.by === e.k && x.t >= ks[0].t - 4); if (h) segs[0].t0 = Math.min(segs[0].t0, h.t - 1); }
     const T2 = e.e === 'moment' ? momentText(e, false) : null;
-    const S = e.e === 'style' ? e.st : null, styleTitle = S ? (S.tags.some(x => /Rip, /.test(x)) ? 'Rip' : S.cc && S.dashed ? 'Set-up knockout' : S.tags.some(x => /Volley|Rush|Quake|Rip/.test(x)) ? 'Ability knockout' : S.dashed ? 'Dash knockout' : 'Held knockout') : null;
+    const S = e.e === 'style' ? e.st : null, styleTitle = S ? (S.hits >= 3 && S.slams >= 2 ? 'Bullied out' : S.tags.some(x => /Rip, /.test(x)) ? 'Rip' : S.cc && S.dashed ? 'Set-up knockout' : S.tags.some(x => /Volley|Rush|Quake|Rip/.test(x)) ? 'Ability knockout' : S.dashed ? 'Dash knockout' : 'Held knockout') : null;
     title = e.e === 'harpoon' ? 'Harpooned' : S ? styleTitle : T2 ? (e.m === 'bully' ? (e.n >= 5 ? 'Merciless' : 'Bullied') : T2.title) : e.e === 'clutch' ? `Clutch 1v${e.vs}` : 'Game-winning knockout';
     line = e.e === 'harpoon' ? `${e.kn} reeled ${e.vn} into ${HAZ_WORD[e.c] || 'trouble'}` : S ? `${e.kn} knocked out ${e.vn}: ${S.tags.join(', ')}` : T2 ? T2.line.replace(/<[^>]+>/g, '') : e.e === 'clutch' ? `${e.n} won a 1v${e.vs}` : `${e.kn} knocked out ${e.vn} to win the game`;
     score = (e.e === 'moment' ? (e.m === 'bully' ? 2 + e.n * 0.5 : momentScore(e)) : e.e === 'clutch' ? 3 + e.vs * 1.5 : e.e === 'harpoon' ? 4.5 : S ? 2 + S.score : 1.5) + extra;
@@ -17524,7 +17207,6 @@ function farmCapture(P) {
   const who = e.e === 'clutch' ? e.n : e.kn, K = e.k != null ? e.k : e.id;
   const c = { map: MAPKEY, me: K, k: K, n: Math.max(1, ks.length), segs, frames, evs };
   const item = { id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title, line, who, score: Math.round(score * 10) / 10, map: MAPKEY, at: Date.now(), match: FARM.match, kt: ks.map(k => +k.t.toFixed(2)), k: K, focus, win: [+a.toFixed(2), +b.toFixed(2)], data: clipPack(c), fresh: 1 };
-  if (PC === PLAY) { playAdd(item, c); return; } // (a real match: one of the player's own plays, for the results screen)
   if (item.score < Math.max(FARM_KEEP[(FARM.cfg || {}).keep] || 0, FARM.hunt && !((FARM.cfg || {}).look || []).length ? 6 : 0)) return; // (not good enough to keep; hunting keeps only the very best)
   const look = (FARM.cfg || {}).look || []; if (look.length) { const all = Object.assign({}, item, { title: item.title + (item.also ? ' ' + item.also.join(' ') : '') }); if (!FARM_LOOK.some(([k, , f]) => look.includes(k) && (f(item) || f(all)))) return; } // (only the plays asked for)
   FARM.found = (FARM.found || 0) + 1;
@@ -17716,7 +17398,7 @@ function studioPlay() {
   const focus = it.focus != null ? it.focus : null;
   const finSub = lg.subs[lg.subs.length - 1], hasKill = finSub && finSub.v != null;
   // real time, then the kill cam only for the final shot (or ability): from just before it's loosed, in slow motion riding it in
-  const finalPlan = () => finalShotPlan(c.segs, c.n);
+  const finalPlan = () => { const P = replayPlan(c.segs, c.n); return { speed: Math.min(P.speed, 0.5), early: 1, finFrom: Math.max(lg.t0, finSub.castT != null ? finSub.castT - 0.35 : finSub.shotT != null ? finSub.shotT - 0.45 : finSub.hitT != null ? finSub.hitT - 0.6 : finSub.kt - 0.8), finalOnly: true }; };
   const plan = E.style === 'real' ? { speed: 1, early: 1, finFrom: Infinity, real: true } : E.style === 'final' && hasKill ? finalPlan() : E.style === 'final' ? { speed: 1, early: 1, finFrom: Infinity, real: true } : focus != null ? { speed: 0.55, early: 0.55, finFrom: Infinity, fixed: 0.55 } : replayPlan(c.segs, c.n);
   // (the effects from before the start aren't replayed all at once as it begins)
   let fired = c.evs.findIndex(x => x.t >= c.segs[0].t0); if (fired < 0) fired = c.evs.length;
@@ -18051,13 +17733,6 @@ if (SHOWCASE) {
   setInterval(() => { if (!world) return; since++; if (world.match.ph === 'over') { if (!overAt) overAt = since; else if (since - overAt > 2) { since = 0; next(); } } else if (since > 150) { since = 0; next(); } }, 1000);
 }
 // a link to a featured kill cam (?clip=…), or the website showing one (&embed=1: just the replay, looping)
-// several (?clips=a,b,c&embed=1): played one after another, round and round (the main menu's plays of the week)
-if (params.get('clips') && /^[a-f0-9]{12}(,[a-f0-9]{12}){0,4}$/.test(params.get('clips'))) {
-  CLIP.queue = { ids: params.get('clips').split(','), i: 0 };
-  document.body.classList.add('clipembed'); if (params.get('preview') === '1') { document.body.classList.add('clippreview'); muted = true; }
-  $('gate').hidden = true;
-  setTimeout(() => { playClip(CLIP.queue.ids[0], true); try { parent.postMessage({ bfPlay: 0 }, location.origin); } catch (e) {} }, 300);
-}
 if (params.get('clip') && /^[a-f0-9]{12}$/.test(params.get('clip'))) {
   const embed = params.get('embed') === '1';
   if (embed) document.body.classList.add('clipembed');
