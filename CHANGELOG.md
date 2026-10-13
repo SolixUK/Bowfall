@@ -2,6 +2,10 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.70.3
+
+- **Fix: anything that lists saved clips failed on the live (Postgres) database.** `clipList` read the query's rows twice (the query helper already returns the rows), so it threw on every call: the plays of the week (list and offers), kept kill cams in Profile, Keep on my account and the clip limits. The local test database has its own version of the function, which is why it worked there. Found from the error 0.70.2 now writes to `/api/perf`.
+
 ## 0.70.2
 
 - **Fix: plays not reaching Best play of the week.** Three things in the way: the bar was a score of 6 (a double kill scores about 5), so most big plays never qualified; it's now 4.5, the same as for the results screen, and the highest of the week still wins the card. The menu only fetched the list every five minutes, so a play you'd just made didn't show on the way back; it's fetched on returning to the menu and every minute. And the list was cacheable for two minutes; it isn't now.
