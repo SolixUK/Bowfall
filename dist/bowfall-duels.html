@@ -627,12 +627,17 @@
   .weekplays .wph { display: flex; align-items: baseline; justify-content: space-between; } .weekplays .wph b { font: 700 15px 'Rajdhani', sans-serif; color: var(--gold); letter-spacing: .04em; text-transform: uppercase; } .weekplays .wph small { color: var(--muted); font-size: 11px; }
   .wpprev { position: relative; width: 234px; aspect-ratio: 16 / 9; background: #000; overflow: hidden; cursor: pointer; border: 1px solid var(--line); transition: transform .2s ease-out, box-shadow .2s; transform-origin: right top; z-index: 8; }
   .wpprev iframe { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; border: 0; transform: scale(calc(234 / 1280)); transform-origin: 0 0; pointer-events: none; }
-  .wpcap { position: absolute; left: 0; right: 0; bottom: 0; padding: 2px 5px; font: 600 8px 'Titillium Web', sans-serif; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,.7)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .wpcap b { color: var(--gold); }
+  .wpcard { width: 234px; } .wpcard[hidden] { display: none; } .ccard { transform-origin: right top; }
+  .wpcap { font-size: 12px; color: var(--text); line-height: 1.3; } .wpcap b { color: var(--gold); font: 700 15px 'Rajdhani', sans-serif; margin-right: 4px; } .wpcap small { display: block; color: var(--muted); font-size: 11px; }
   .wpprev.big { transform: scale(var(--pk, 3)); box-shadow: 0 8px 26px rgba(0,0,0,.75); border-color: var(--gold); }
+  .wptabs[hidden], .wpprev[hidden], .wpnote[hidden] { display: none !important; }
   .wptabs { display: flex; gap: 2px; } .wptabs button { background: none; border: 1px solid var(--line); color: var(--muted); font: 600 10px 'Titillium Web', sans-serif; padding: 1px 6px; cursor: pointer; } .wptabs button.on { color: #111; background: var(--gold); border-color: var(--gold); }
   .weekplays .wpnote { color: var(--muted); font-size: 11px; line-height: 1.3; }
   .wplist { display: flex; flex-direction: column; gap: 2px; } .wplist button { display: grid; grid-template-columns: 30px 1fr; gap: 6px; align-items: center; text-align: left; background: none; border: 1px solid transparent; color: var(--text); padding: 3px 5px; cursor: pointer; font: inherit; }
   .wplist button.on { border-color: var(--gold); background: rgba(255,207,90,.08); } .wplist .sc { font: 700 15px 'Rajdhani', sans-serif; color: var(--gold); text-align: center; } .wplist b { font: 700 13px 'Rajdhani', sans-serif; display: block; } .wplist small { color: var(--muted); font-size: 11px; }
+  .ccard { position: relative; aspect-ratio: 16 / 9; background: #000; overflow: hidden; cursor: pointer; border: 1px solid var(--line); transition: transform .2s ease-out, box-shadow .2s; z-index: 8; }
+  .ccard iframe { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; border: 0; transform: scale(var(--cs, .25)); transform-origin: 0 0; pointer-events: none; }
+  .ccard.big { transform: scale(var(--pk, 3)); box-shadow: 0 8px 26px rgba(0,0,0,.75); border-color: var(--gold); z-index: 30; }
   .pcprev { position: relative; width: 168px; aspect-ratio: 16 / 9; flex: none; border: 1px solid color-mix(in srgb, var(--pa) 50%, transparent); background: #000; overflow: hidden; cursor: pointer; }
   .pcprev iframe { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; border: 0; transform: scale(calc(168 / 1280)); transform-origin: 0 0; pointer-events: none; }
   .pcprev { transition: transform .18s ease-out, box-shadow .18s; transform-origin: right bottom; z-index: 5; }
@@ -964,7 +969,9 @@
   @keyframes winpop { 0% { transform: translateY(14px) scale(.6); opacity: 0; } 100% { transform: none; opacity: 1; } }
   .resrated b.ticking { color: var(--gold); }
   .resclips { display: flex; flex-direction: column; gap: 8px; }
-  .resplays { display: flex; flex-direction: column; gap: 8px; } .rplays { display: flex; flex-direction: column; gap: 6px; }
+  .resplays { display: flex; flex-direction: column; gap: 6px; } .rplays2 { display: flex; flex-wrap: wrap; gap: 16px; }
+  .rplay2 { display: flex; flex-direction: column; gap: 6px; width: 300px; } .rplay2 .ccard { width: 300px; } .rplay2 .hd { font: 700 15px 'Rajdhani', sans-serif; color: var(--gold); text-transform: uppercase; letter-spacing: .04em; }
+  .rplay2 .rpi { display: grid; grid-template-columns: 40px 1fr; gap: 8px; align-items: center; } .rplay2 .rpi .sc { font: 700 20px 'Rajdhani', sans-serif; color: var(--gold); text-align: center; } .rplay2 .rpi b { display: block; font: 700 16px 'Rajdhani', sans-serif; } .rplay2 .rpi small { color: var(--muted); font-size: 12px; } .rplay2 button { align-self: flex-start; } .rplays { display: flex; flex-direction: column; gap: 6px; }
   .rplay { display: grid; grid-template-columns: 46px 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); background: rgba(255,255,255,.03); }
   .rplay.top { border-color: var(--gold); background: rgba(255,207,90,.08); } .rplay .sc { font: 700 22px 'Rajdhani', sans-serif; color: var(--gold); text-align: center; }
   .rplay b { display: block; font: 700 17px 'Rajdhani', 'Arial Narrow', sans-serif; } .rplay b small { color: var(--gold); font-weight: 600; } .rplay > div > small { color: var(--muted); font-size: 12px; } .rplay .rcb { display: flex; gap: 5px; } .rplay .locked { opacity: .75; }
@@ -1557,7 +1564,7 @@
         </div>
         <div class="lpbox"><div class="lplist" id="lpList"></div><button type="button" class="ghost sm" id="lpAdd" title="Another player with their own controller, on this screen">+ Add player on controller</button></div>
         <div class="frpanel" id="homeFriends" hidden></div>
-        <div class="weekplays" id="weekPlays" hidden><div class="wph"><b id="wpHead">Plays of the week</b><span class="wptabs"><button type="button" data-wpt="week" class="on">Week</button><button type="button" data-wpt="all">All time</button></span></div><div class="wpprev" id="wpPrev"><iframe title="Plays of the week" loading="lazy" tabindex="-1" src="about:blank"></iframe><span class="wpcap" id="wpCap"></span></div><div class="wplist" id="wpList"></div><span class="wpnote">Make a big play in an online match to get yourself here (and on the website).</span></div>
+        <div class="weekplays" id="weekPlays" hidden><div class="wph"><b id="wpHead">Best play of the week</b></div><div class="wpcard" id="wpCard"></div><div class="wpcap" id="wpCap"></div><span class="wpnote" id="wpNote" hidden></span></div>
         <button type="button" class="homelive" id="homeLive" hidden></button>
         <a class="dclink" id="homeDiscord" href="#" target="_blank" rel="noopener" title="Join the Bowfall Discord" aria-label="Join the Bowfall Discord" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.3 4.4A19.6 19.6 0 0 0 15.5 3l-.6 1.2a18 18 0 0 0-5.8 0L8.5 3a19.6 19.6 0 0 0-4.8 1.4C.6 9 .0 13.5.3 18a19.8 19.8 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4c-.6.4-1.3.7-2 1L17.7 21a19.7 19.7 0 0 0 6-3c.4-5.2-.7-9.7-3.4-13.6zM8.5 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4zm7 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4z"/></svg></a>
       </div>
@@ -2164,7 +2171,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.67.2';
+const VERSION = '0.68.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -7091,7 +7098,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.67.2';
+const PAGE_VERSION = '0.68.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -16500,6 +16507,7 @@ function replayTick(dt) {
   if (R.real) R.rate = 1; // (the clip farm's "real time": no slow motion at all)
   else if (R.fixed) R.rate = R.fixed; // (a clip about one archer rather than one knockout: an even slow motion)
   R.cur += dt * R.rate * (R.mul || 1);
+  if (R.holdAt != null) R.cur = R.holdAt; // (a freeze frame: the picture held, the camera still settling)
   // replay the visual effects as their moment comes round
   while (R.fired < R.evs.length && R.evs[R.fired].t <= R.cur) { replayFx(R.evs[R.fired].e); R.fired++; }
   if (R.cur >= seg.t1) {
@@ -16761,7 +16769,7 @@ async function playClip(id, embed) {
     if (!$('pcWrap').hidden) closePlayerCard();
     $('cvTitle').textContent = (d.meta && d.meta.label) || clipLabel(c); $('cvSub').textContent = d.owner ? `${d.owner}'s highlight` : '';
     document.body.classList.add('clipmode'); $('clipView').hidden = false;
-    clipReplay();
+    if (CFRAME.on) { CFRAME.has = 1; CFRAME.playing ? clipReplay() : clipHold(); } else clipReplay();
   } catch (e) { notice(esc(e.message || "Couldn't load that replay."), false); }
 }
 // real time, then the kill cam only for the final shot (or ability): from just before it's loosed, in slow motion riding it in
@@ -16774,7 +16782,7 @@ function finalShotPlan(segs, n) {
 const PLAY_LOOK = { trimA: -2.5, trimB: 0.75, camSpd: 0.5, noBars: true };
 function clipReplay() {
   const P = CLIP.playing; if (!P) return;
-  const c = P.c; setArena(c.map); floorKey = null; myId = c.k; fx.parts.length = 0;
+  const c = P.c; setArena(c.map); floorKey = null; myId = P.local && PLAY.watch && PLAY.watch.me === c.k ? c.k : null; fx.parts.length = 0; // ("you" only over your own play)
   const play = P.meta && P.meta.play && c.frames.length && c.segs.length && c.segs[c.segs.length - 1].subs.some(q => q.v != null);
   let segs = c.segs, fired = 0;
   if (play) {
@@ -16786,6 +16794,49 @@ function clipReplay() {
   }
   RP.on = Object.assign({ wait: -1e9, segs, si: 0, cur: segs[0].t0, k: c.k, n: c.n, fired, started: false, frames: c.frames, evs: c.evs }, play ? Object.assign(finalShotPlan(segs, c.n), { camSpd: PLAY_LOOK.camSpd, noBars: PLAY_LOOK.noBars }) : replayPlan(c.segs, c.n));
   $('cvAgain').hidden = true; $('cvSave').hidden = true;
+}
+// a freeze frame of a clip: the moment the final shot lands, held (the camera settles on it), for a preview before it plays
+function clipHold() {
+  const P = CLIP.playing; if (!P) return;
+  clipReplay(); const R = RP.on; if (!R) return;
+  const lg = R.segs[R.segs.length - 1], fin = lg.subs[lg.subs.length - 1];
+  const t = clamp((fin.hitT != null ? fin.hitT : fin.kt) - 0.12, lg.t0, lg.t1 - 0.05);
+  R.si = R.segs.length - 1; R.holdAt = t; R.cur = t;
+  let f = R.evs.findIndex(x => x.t >= t - 0.35); R.fired = f < 0 ? R.evs.length : f; // (only the effects of that moment)
+}
+// a clip in a small frame on another page (the results, the main menu): a freeze frame until asked to play.
+// ?cframe=1: the clip is handed over by the page; ?clip=…&still=1: one from the server
+const CFRAME = { on: params.get('cframe') === '1' || params.get('still') === '1', playing: false, has: 0 };
+if (CFRAME.on) {
+  document.body.classList.add('clipembed', 'clippreview'); muted = true;
+  if (params.get('cframe') === '1') { const g = $('gate'); if (g) g.hidden = true; }
+  addEventListener('message', e => {
+    if (e.origin !== location.origin || !e.data || !e.data.bf) return; const m = e.data;
+    if (m.bf === 'clip' && m.clip) { try { const c = clipUnpack(m.clip); if (!MAPS[c.map]) return; CLIP.playing = { c, meta: { label: m.label || '', play: 1 }, embed: true }; document.body.classList.add('clipmode'); $('clipView').hidden = false; CFRAME.has = 1; CFRAME.playing ? clipReplay() : clipHold(); } catch (err) {} }
+    else if (m.bf === 'play') { CFRAME.playing = true; if (CLIP.playing) { RP.on = null; RP.cam = null; clipReplay(); } }
+    else if (m.bf === 'still') { CFRAME.playing = false; if (CLIP.playing) { RP.on = null; RP.cam = null; clipHold(); } }
+  });
+  try { parent.postMessage({ bfReady: 1 }, location.origin); } catch (e) {}
+}
+// a clip card: a freeze frame in a little frame that grows and plays when the mouse is over it (click to watch full size)
+function clipCard(box, src, clipObj, label, onOpen) {
+  box.innerHTML = '<iframe tabindex="-1" loading="lazy" title=""></iframe>'; box.classList.add('ccard');
+  const f = box.querySelector('iframe'); let ready = false;
+  const send = m => { try { f.contentWindow.postMessage(m, location.origin); } catch (e) {} };
+  const hand = () => { if (clipObj) send({ bf: 'clip', clip: clipObj, label }); };
+  f.addEventListener('load', () => { ready = true; setTimeout(hand, 400); setTimeout(hand, 1500); });
+  f.src = src; requestAnimationFrame(() => box.style.setProperty('--cs', ((box.clientWidth || 320) / 1280).toFixed(4)));
+  const big = on => {
+    if (!on) { box.classList.remove('big'); send({ bf: 'still' }); return; }
+    const r = box.getBoundingClientRect(); if (!r.width) return;
+    const room = { l: r.right - 8, r: innerWidth - r.left - 8, d: innerHeight - r.top - 8, u: r.bottom - 8 };
+    const left = room.l > room.r, up = room.u > room.d; box.style.transformOrigin = `${left ? 'right' : 'left'} ${up ? 'bottom' : 'top'}`;
+    const k = Math.max(1, Math.min(820 / r.width, (left ? room.l : room.r) / r.width, (up ? room.u : room.d) / r.height));
+    box.style.setProperty('--pk', k.toFixed(3)); box.classList.add('big'); send({ bf: 'play' });
+  };
+  box.onpointerenter = e => { if (e.pointerType === 'mouse') big(true); };
+  box.onpointerleave = () => big(false);
+  box.onclick = () => { big(false); if (onOpen) onOpen(); };
 }
 function closeClipView() { const local = CLIP.playing && CLIP.playing.local && PLAY.watch; if (RP.on) { RP.on = null; RP.cam = null; $('replayBadge').hidden = true; document.body.classList.remove('replaying'); } clipRecStop(); CLIP.playing = null; document.body.classList.remove('clipmode'); $('clipView').hidden = true;
   if (local) { const W2 = PLAY.watch; PLAY.watch = null; myId = W2.me; setArena(W2.map); floorKey = null; if (W2.results) { $('resultsScreen').hidden = false; renderResPlays(); } return; } // (a best play watched from the results: back to them)
@@ -17093,7 +17144,7 @@ function farmStep() {
 // ---- the plays of the week on the main menu: the three best plays from ranked matches this week, playing one after
 // another in a small frame (it grows as you hover over it); click one to watch it full size
 const WEEKP = { list: null, at: 0, tab: 'week', data: null };
-const INFRAME = (() => { try { return window.top !== window || SHOWCASE || ['clip', 'clips', 'embed', 'preview', 'avatar'].some(k => params.has(k)); } catch (e) { return true; } })();
+const INFRAME = (() => { try { return window.top !== window || SHOWCASE || ['clip', 'clips', 'embed', 'preview', 'avatar', 'cframe', 'still'].some(k => params.has(k)); } catch (e) { return true; } })();
 async function weekPlaysLoad() {
   // (never inside another page: the plays' own frame is this same page, and loading the card in there too would nest frames
   // inside frames until the browser ran out of memory; nor in the website's backdrop, an avatar, a replay or a preview)
@@ -17103,24 +17154,13 @@ async function weekPlaysLoad() {
   weekPlaysShow();
 }
 function weekPlaysShow() {
-  const D = WEEKP.data || {}; if (!WEEKP.picked && !(D.plays || []).length && (D.all || []).length) WEEKP.tab = 'all'; // (a new week with nothing yet: the best of all time, unless asked)
-  WEEKP.list = (WEEKP.tab === 'all' ? D.all : D.plays) || [];
-  $('weekPlays').querySelectorAll('[data-wpt]').forEach(b => b.classList.toggle('on', b.dataset.wpt === WEEKP.tab)); $('wpHead').textContent = WEEKP.tab === 'all' ? 'Best plays ever' : 'Plays of the week';
-  const box = $('weekPlays'), L = WEEKP.list; box.hidden = !(D.all || []).length; const f0 = $('wpPrev').querySelector('iframe');
-  if (!L.length) { $('wpList').innerHTML = '<span class="wpnote">Nothing yet this week. It could be you.</span>'; f0.dataset.src = ''; f0.src = 'about:blank'; $('wpCap').innerHTML = ''; return; }
-  $('wpList').innerHTML = L.map((x, i) => `<button type="button" data-wp="${i}"${i ? '' : ' class="on"'}><span class="sc">${x.score}</span><span><b>${esc(x.label)}</b><small>${esc(x.who || '')} · ${esc((MAPS[x.map] || {}).name || '')}</small></span></button>`).join('');
-  const f = $('wpPrev').querySelector('iframe'), src = `/play?clips=${L.map(x => x.id).join(',')}&embed=1&preview=1`;
-  if (f.dataset.src !== src) { f.dataset.src = src; f.src = src; wpCap(0); }
-}
-const wpCap = i => { const x = WEEKP.list && WEEKP.list[i]; $('wpCap').innerHTML = x ? `<b>#${i + 1} · ${x.score}</b> ${esc(x.label)} · ${esc(x.who || '')}` : ''; };
-addEventListener('message', e => { if (e.origin !== location.origin || !e.data || e.data.bfPlay == null) return; $('wpList').querySelectorAll('[data-wp]').forEach(b => b.classList.toggle('on', +b.dataset.wp === e.data.bfPlay)); wpCap(e.data.bfPlay); });
-{
-  const box = $('wpPrev');
-  const big = on => { if (!on) { box.classList.remove('big'); return; } const r = box.getBoundingClientRect(); if (!r.width) return; const k = Math.max(1, Math.min(820 / r.width, (r.right - 8) / r.width, (innerHeight - r.top - 8) / r.height)); box.style.setProperty('--pk', k.toFixed(3)); box.classList.add('big'); };
-  box.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') big(true); }); box.addEventListener('pointerleave', () => big(false));
-  box.addEventListener('click', () => { big(false); const on = $('wpList').querySelector('.on'); const x = WEEKP.list && WEEKP.list[on ? +on.dataset.wp : 0]; if (x) playClip(x.id); });
-  $('weekPlays').addEventListener('click', e => { const t = e.target.closest('[data-wpt]'); if (t) { WEEKP.tab = t.dataset.wpt; WEEKP.picked = 1; weekPlaysShow(); } });
-  $('wpList').addEventListener('click', e => { const b = e.target.closest('[data-wp]'); if (!b || !WEEKP.list) return; const x = WEEKP.list[+b.dataset.wp]; if (x) playClip(x.id); });
+  const D = WEEKP.data || {}, wk = (D.plays || [])[0], ever = (D.all || [])[0], x = wk || ever;
+  const box = $('weekPlays'); box.hidden = false;
+  $('wpHead').textContent = wk ? 'Best play of the week' : ever ? 'Best play ever' : 'Best play of the week';
+  $('wpNote').hidden = !!x; $('wpNote').textContent = 'No plays yet. Make a big play in an online match (a multi-kill, a Rip, a set-up knockout…) and you could be the first up here.';
+  $('wpCard').hidden = !x; $('wpCap').innerHTML = x ? `<b>${x.score}</b> ${esc(x.label)} <small>${esc(x.who || '')} · ${esc((MAPS[x.map] || {}).name || '')}</small>` : '';
+  if (!x || WEEKP.shown === x.id) return; WEEKP.shown = x.id;
+  clipCard($('wpCard'), `/play?clip=${encodeURIComponent(x.id)}&embed=1&preview=1&still=1`, null, x.label, () => playClip(x.id));
 }
 setTimeout(weekPlaysLoad, 1500); setInterval(weekPlaysLoad, 60 * 1000);
 // after a ranked match: its best play is offered for the plays of the week (if it's scored highly; the server decides)
@@ -17139,19 +17179,9 @@ let PC = FARM; // (which one the play-spotting functions below are working for: 
 const PLAY_MIN = 4.5; // (worth showing: a double kill, a set-up or ability knockout, a roast, a harpoon pull and up)
 const pcPlayer = id => { if (PC === FARM && world) return world.players.find(q => q.id === id); const p = view && view.p.find(q => q.id === id); return p ? { name: p.n, dead: p.d } : null; };
 const playOn = () => !FARM.on && myId != null && (mode === 'online' || mode === 'local') && !TUT.on && !TR.on && !DESK.sim && !(roomInfo && roomInfo.spec);
-function playMine(e) {
-  switch (e.e) {
-    case 'moment': case 'style': return e.k === myId;
-    case 'slam': return true; // (whose bullying it was is worked out when it's saved)
-    case 'kill': return e.k === myId && !e.npc;
-    case 'dmg': return e.by === myId;
-    case 'clutch': return e.id === myId;
-    case 'gameEnd': return !!(RP.lastKill && RP.lastKill.k === myId);
-  }
-  return false;
-}
+function playMine(e) { return ['moment', 'style', 'kill', 'dmg', 'clutch', 'gameEnd', 'slam'].includes(e.e) && !e.npc; } // (everyone's plays: the best of the game, and yours)
 function playEvents(evs) {
-  for (const e of evs) if (e.e === 'matchStart') { PLAY.list = []; PLAY.pending = []; PLAY.pl = new Map(); PLAY.sl = new Map(); PLAY.match++; PLAY.flushAt = 0; PLAY.offered = false; }
+  for (const e of evs) if (e.e === 'matchStart') { PLAY.list = []; PLAY.pending = []; PLAY.pl = new Map(); PLAY.sl = new Map(); PLAY.match++; PLAY.flushAt = 0; PLAY.offered = false; PLAY.shown = ''; }
   if (!playOn()) return;
   PC = PLAY; try { for (const e of evs) farmNote(e); } finally { PC = FARM; }
   if (evs.some(e => e.e === 'matchEnd')) PLAY.flushAt = rpNow() + 1.2; // (a moment for the last knockout's aftermath, then whatever's waiting is saved)
@@ -17162,30 +17192,38 @@ function playTick() {
   PC = PLAY;
   try { while (PLAY.pending.length && (all || now >= PLAY.pending[0].due)) farmCapture(PLAY.pending.shift()); }
   catch (e) { PLAY.pending = []; } finally { PC = FARM; }
-  if (all && !PLAY.pending.length && !PLAY.offered) { PLAY.offered = true; const best = PLAY.list[0]; if (best && best.score >= 6 && mode === 'online' && account && !OFFLINE) weekPlayOffer(best); }
+  if (all && !PLAY.pending.length && !PLAY.offered) { PLAY.offered = true; const best = PLAY.list.find(x => x.k === myId); if (best && best.score >= 6 && mode === 'online' && account && !OFFLINE) weekPlayOffer(best); }
 }
 function playAdd(item, c) {
-  if (item.k !== myId || item.score < PLAY_MIN) return;
+  if (item.score < PLAY_MIN) return;
   item.c = c;
   // the same play caught twice: the better one, noting both
   const dup = PLAY.list.filter(x => (item.kt.length && (x.kt || []).some(t => item.kt.includes(t))) || (item.focus != null && x.focus === item.focus && x.win[0] < item.win[1] - 1 && item.win[0] + 1 < x.win[1]));
   if (dup.length) { const best = dup.reduce((m, x) => (x.score > m.score ? x : m)); if (best.score >= item.score) return; PLAY.list = PLAY.list.filter(x => !dup.includes(x)); }
-  PLAY.list.push(item); PLAY.list.sort((x, y) => y.score - x.score); PLAY.list.length = Math.min(PLAY.list.length, 6);
+  PLAY.list.push(item); PLAY.list.sort((x, y) => y.score - x.score); { const mine = PLAY.list.filter(x => x.k === myId).slice(0, 3), rest = PLAY.list.filter(x => x.k !== myId).slice(0, 3); PLAY.list = mine.concat(rest).sort((x, y) => y.score - x.score); } // (the best few of everyone's, and of yours)
   if (!$('resultsScreen').hidden) renderResPlays();
 }
 const isSupporter = () => !!(account && (account.admin || (WALLET && WALLET.status && WALLET.status.sp)));
 function renderResPlays() {
   const box = $('resPlays'); if (!box) return;
-  const L = PLAY.list.slice(0, 3); box.hidden = !L.length; if (!L.length) { box.innerHTML = ''; return; }
+  // two: the best play of the game (anyone's), and your best (if the best of the game isn't yours already)
+  const top = PLAY.list[0], mine = PLAY.list.find(x => x.k === myId), show = [];
+  if (top) show.push({ x: top, head: top.k === myId ? 'Best play of the game: yours!' : 'Best play of the game' });
+  if (mine && mine !== top) show.push({ x: mine, head: 'Your best play' });
+  box.hidden = !show.length; if (!show.length) { box.innerHTML = ''; PLAY.shown = ''; return; }
+  const key = show.map(o => o.x.id + (o.x.kept || '')).join(',');
+  if (PLAY.shown === key && box.innerHTML) return; PLAY.shown = key; // (the cards hold their frames: only redrawn when what's in them changes)
   const sup = isSupporter(), online = account && !OFFLINE;
-  box.innerHTML = `<div class="shopbar"><h3>Your best play${L.length > 1 ? 's' : ''}</h3><span class="status">${sup ? 'Watch it again, or keep it on your profile.' : online ? 'Watch it again. Supporters can keep their best plays on their profile.' : 'Watch it again.'}</span></div><div class="rplays">` +
-    L.map((x, i) => `<div class="rplay${i ? '' : ' top'}"><span class="sc">${x.score}</span><div><b>${esc(x.title)}${x.also && x.also.length ? ` <small>+ ${esc(x.also.join(', '))}</small>` : ''}</b><small>${esc(x.line.replace(/^[^:]*: /, ''))}</small></div><div class="rcb"><button type="button" class="ghost sm" data-pwatch="${i}">Watch</button>` +
-      (online ? `<button type="button" class="${sup ? 'ghost' : 'ghost locked'} sm" data-pkeep="${i}"${x.kept === true ? ' disabled' : ''}>${x.kept === true ? 'Kept ✓' : x.kept === 'saving' ? 'Saving…' : sup ? 'Keep on profile' : '★ Keep (supporters)'}</button>` : '') + '</div></div>').join('') + '</div>';
+  box.innerHTML = `<div class="rplays2">${show.map((o, i) => `<div class="rplay2"><span class="hd">${esc(o.head)}</span><div class="rpc" data-rpc="${i}"></div>
+    <div class="rpi"><span class="sc">${o.x.score}</span><span><b>${esc(o.x.title)}</b><small>${esc(o.x.line)}</small></span></div>
+    ${o.x.k === myId && online ? `<button type="button" class="${sup ? 'ghost' : 'ghost locked'} sm" data-pkeep="${i}"${o.x.kept === true ? ' disabled' : ''}>${o.x.kept === true ? 'Kept ✓' : o.x.kept === 'saving' ? 'Saving…' : sup ? 'Keep on profile' : '★ Keep (supporters)'}</button>` : ''}</div>`).join('')}</div><small class="status">Hover to play · click to watch full size</small>`;
+  show.forEach((o, i) => clipCard(box.querySelector(`[data-rpc="${i}"]`), '/play?cframe=1&preview=1', clipPack(o.x.c), o.x.title, () => playWatch(o.x)));
+  PLAY.cards = show.map(o => o.x);
 }
 $('resPlays').onclick = ev => {
-  const w = ev.target.closest('[data-pwatch]'), k = ev.target.closest('[data-pkeep]'); const L = PLAY.list.slice(0, 3);
-  if (w) playWatch(L[+w.dataset.pwatch]);
-  else if (k) { const x = L[+k.dataset.pkeep]; if (!x) return; if (!isSupporter()) { notice('Keeping your best plays is for supporters (it helps keep Bowfall running).', false); return; } playKeep(x); }
+  const k = ev.target.closest('[data-pkeep]'); if (!k) return; const x = (PLAY.cards || [])[+k.dataset.pkeep]; if (!x) return;
+  if (!isSupporter()) { notice('Keeping your best plays is for supporters (it helps keep Bowfall running).', false); return; }
+  playKeep(x);
 };
 // watch a play: on the game's canvas, as a kill cam (or an even slow motion for one about the archer), then back to the results
 function playWatch(x) {
