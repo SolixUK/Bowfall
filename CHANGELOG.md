@@ -2,6 +2,13 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.70.2
+
+- **Fix: plays not reaching Best play of the week.** Three things in the way: the bar was a score of 6 (a double kill scores about 5), so most big plays never qualified; it's now 4.5, the same as for the results screen, and the highest of the week still wins the card. The menu only fetched the list every five minutes, so a play you'd just made didn't show on the way back; it's fetched on returning to the menu and every minute. And the list was cacheable for two minutes; it isn't now.
+- **The real culprit: the list of plays was failing on the live server** (`/api/weekplays` answered 500 every time, so the card could never show anything, and an offered play would have failed the same way). Both routes now catch the error, note its actual message for the owner at `/api/perf` (`server:weekplays` / `server:weekplay`), and the list answers with an empty list rather than an error, so the next deploy tells us exactly what's wrong.
+- When a play makes it, you're told ("Your double kill made the plays of the week!"). Every offer's outcome is noted for the owner at `/api/perf` (`mem:weekoffer`: kept or not, and why), so if one doesn't show we can see the reason.
+- **Save video** on the results screen exports at 1440p (was 1080p), the same as the clip studio's default.
+
 ## 0.70.1
 
 - **Save video** on every kill cam and best play on the results screen: the clip studio's exporter, run on that one clip as it was shown (1080p landscape, 60 fps, drawn frame by frame and encoded, with the sound rendered to match). It only runs when asked, behind a progress box with a Stop button; nothing is filmed live, and the results come back as they were.

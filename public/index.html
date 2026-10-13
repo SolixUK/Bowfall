@@ -2174,7 +2174,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.70.1"></script>
+<script src="sim.js?v=0.70.2"></script>
 <script>
 (() => {
 'use strict';
@@ -2182,7 +2182,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.70.1';
+const PAGE_VERSION = '0.70.2';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -5886,6 +5886,7 @@ function toMenu() {
   TUT.on = false; TR.on = false;
   if (AB.testing) { AB.testing = false; setTimeout(() => openSub('arenaScr'), 0); }
   mode = 'menu'; myId = null; world = null; view = null; menuOpen = false; roomInfo = null; clearChat(); MOMENTS.list = []; MOMENTS.ended = false;
+  setTimeout(() => { if (typeof weekPlaysLoad === 'function') weekPlaysLoad(); }, 400); // (a play just made shows on the way back)
   if (ws) { const s = ws; ws = null; try { s.close(); } catch (e) {} }
   for (const l of LP.list) lpLeaveGame(l);
   $('draftScr').hidden = true; $('lpPick').hidden = true;
@@ -11890,13 +11891,13 @@ function kcItem(c) { // a kill cam as a clip-studio item
 }
 function playItem(x) { return { id: x.id || 'p' + Date.now().toString(36), title: x.title, line: x.line, who: x.who || '', score: x.score || 0, map: x.map || (x.c && x.c.map), at: x.at || Date.now(), k: x.k, kt: x.kt || [], focus: x.focus, win: x.win, data: x.data || clipPack(x.c) }; }
 // Save video: the clip studio's exporter (drawn frame by frame at 60 fps and encoded, with the sound rendered to match),
-// run on this one kill cam or play, at 1080p landscape. Nothing is filmed live; it happens only when asked, behind a
+// run on this one kill cam or play, at 1440p landscape. Nothing is filmed live; it happens only when asked, behind a
 // progress box with a Stop button, and the results come back as they were.
 async function saveVideo(item, kc) {
   if (STUDIO.exporting || STUDIO.on) return;
   if (typeof VideoEncoder === 'undefined' || typeof VideoFrame === 'undefined') { notice('Saving a video needs Chrome or Edge.', false); return; }
   const keep = { cur: STUDIO.cur, map: MAPKEY, me: myId, playing: CLIP.playing, vert: document.body.classList.contains('stvert') };
-  STUDIO.solo = { item, kc }; STUDIO.cur = Object.assign({}, STUDIO_DEF, { frame: 'h', res: '1080', both: '' }); document.body.classList.remove('stvert');
+  STUDIO.solo = { item, kc }; STUDIO.cur = Object.assign({}, STUDIO_DEF, { frame: 'h', res: '1440', both: '' }); document.body.classList.remove('stvert');
   try { await studioExport1('h'); }
   finally {
     STUDIO.solo = null; STUDIO.cur = keep.cur; if (RP.on) { RP.on = null; RP.cam = null; } $('replayBadge').hidden = true; document.body.classList.remove('replaying');
@@ -12296,12 +12297,12 @@ const WEEKP = { list: null, at: 0, tab: 'week', data: null };
 async function weekPlaysLoad() {
   // (never inside another page: the plays' own frame is this same page, and loading the card in there too would nest frames
   // inside frames until the browser ran out of memory; nor in the website's backdrop, an avatar, a replay or a preview)
-  if (INFRAME || OFFLINE || mode !== 'menu' || Date.now() - WEEKP.at < 5 * 60 * 1000) return;
+  if (INFRAME || OFFLINE || mode !== 'menu' || Date.now() - WEEKP.at < 50 * 1000) return;
   WEEKP.at = Date.now();
   // (the card shows either way: with nothing to show, or the server not answering, it invites a play instead; a failure is
-  // noted for the owner at /api/perf, and tried again in a minute rather than five)
-  try { const r = await fetch('/api/weekplays', { cache: 'no-store' }); if (!r.ok) throw new Error('weekplays ' + r.status); WEEKP.data = await r.json(); }
-  catch (e) { WEEKP.at = Date.now() - 4 * 60 * 1000; clientError(e, 'mem:weekplays'); }
+  // noted for the owner at /api/perf, and tried again in a minute)
+  try { const r = await fetch('/api/weekplays', { cache: 'no-store' }); if (!r.ok) throw new Error('weekplays ' + r.status); WEEKP.data = await r.json(); if (WEEKP.data.err) clientError(new Error('weekplays: ' + WEEKP.data.err), 'mem:weekplays'); }
+  catch (e) { clientError(e, 'mem:weekplays'); }
   weekPlaysShow();
 }
 function weekPlaysShow() {
@@ -12316,11 +12317,18 @@ function weekPlaysShow() {
 setTimeout(weekPlaysLoad, 1500); setInterval(weekPlaysLoad, 60 * 1000);
 // after a ranked match: its best play is offered for the plays of the week (if it's scored highly; the server decides)
 async function weekPlayOffer(x) {
+  // (what came of it is noted for the owner at /api/perf as mem:weekoffer; a play that made it says so, and the menu's
+  // card is fetched afresh)
+  let why = '';
   try {
     let frames = x.c.frames; while (frames.length > 850) frames = frames.filter((f, i) => i % 2 === 0);
     const data = await gzipB64(JSON.stringify(clipPack(Object.assign({}, x.c, { frames }))));
-    await fetch('/api/weekplay', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data, meta: { label: x.title, score: x.score } }) });
-  } catch (e) {}
+    const r = await fetch('/api/weekplay', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data, meta: { label: x.title, score: x.score } }) });
+    const d = await r.json().catch(() => ({}));
+    why = `${r.status} ${d.kept ? 'kept' : 'not kept'} ${d.error || ''} ${d.why || ''} (score ${x.score}, ${frames.length} frames, ${Math.round(data.length / 1024)} KB)`;
+    if (d.kept) { WEEKP.at = 0; notice(`Your ${esc(x.title.toLowerCase())} made the plays of the week!`, true); }
+  } catch (e) { why = 'failed: ' + (e && e.message); }
+  clientError(new Error(why), 'mem:weekoffer');
 }
 // ---- best plays in real matches: the clip farm's eye for a good play, turned on the player's own game. Each of their
 // plays is scored as it happens; the best (if any were worth it) are shown with the results, to watch, and supporters
@@ -12343,7 +12351,7 @@ function playTick() {
   PC = PLAY;
   try { while (PLAY.pending.length && (all || now >= PLAY.pending[0].due)) farmCapture(PLAY.pending.shift()); }
   catch (e) { PLAY.pending = []; } finally { PC = FARM; }
-  if (all && !PLAY.pending.length && !PLAY.offered) { PLAY.offered = true; const best = PLAY.list.find(x => x.k === myId); if (best && best.score >= 6 && mode === 'online' && account && !OFFLINE) weekPlayOffer(best); }
+  if (all && !PLAY.pending.length && !PLAY.offered) { PLAY.offered = true; const best = PLAY.list.find(x => x.k === myId); if (mode === 'online' && account && !OFFLINE) { if (best) weekPlayOffer(best); else clientError(new Error(`no play of yours (${PLAY.list.length} in the game)`), 'mem:weekoffer'); } }
 }
 function playAdd(item, c) {
   if (item.score < PLAY_MIN) return;
