@@ -2,6 +2,10 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.70.5
+
+- **Doubles and triples "at once" show every knockout.** The final shot's camera rode the arrow in and settled on the last archer it knocked out, so a double from one shot (or one ability or blast) showed only one going down. From just before it lands, the camera now frames everyone knocked out in that moment, as close as that allows, moving at full speed to get there. The same goes for kill cams, the best plays, their freeze frames and Save video.
+
 ## 0.70.4
 
 - **AI players' plays count for Best play of the week.** After a match, your client offers your best play and the best of anyone else's; the server takes an AI player's (checked against the AI players in that match, and each match's taken once whoever sends it), never another person's. They're marked **AI** on the menu card and the website, each AI player keeps at most three a week, and a real player's play wins a tie.

@@ -2172,7 +2172,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.70.4';
+const VERSION = '0.70.5';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -7183,7 +7183,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.70.4';
+const PAGE_VERSION = '0.70.5';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -16631,8 +16631,20 @@ function replayTick(dt) {
     fx0 = (kil.x + vic.x) / 2; fy0 = (kil.y + vic.y) / 2; zoom = clamp(Math.min(AW / (Math.abs(kil.x - vic.x) + 420), AH / (Math.abs(kil.y - vic.y) + 320)), 1.15, 1.9);
   } else if (now.castT != null && now.ripT != null && R.cur < now.ripT + 0.05 && kil) { fx0 = kil.x; fy0 = kil.y; zoom = 2.0; } // Rip: on the caster until the thorns tear
   else if (now.shotT != null && R.cur < now.shotT + 0.05 && kil) { fx0 = kil.x; fy0 = kil.y; zoom = 2.2; }
-  else if (arrow && !arrow.s && (now.hitT == null || R.cur < now.hitT)) { fx0 = arrow.x; fy0 = arrow.y; zoom = 2.0; }
+  else if (arrow && !arrow.s && (now.hitT == null || R.cur < now.hitT - 0.2)) { fx0 = arrow.x; fy0 = arrow.y; zoom = 2.0; }
   else if (!vic && RP.cam) { fx0 = RP.cam.x; fy0 = RP.cam.y; }
+  // several knocked out at once (one shot, one ability, one blast): from just before it lands, every one of them in the
+  // picture, as close as that allows, rather than only the last
+  let onceNow = false;
+  if (isFinal && now.kt != null) {
+    const lg2 = R.segs[R.segs.length - 1], hitAt = now.hitT != null ? now.hitT : now.kt;
+    const once = lg2.subs.filter(q => q.v != null && Math.abs(q.kt - now.kt) < 0.35);
+    if (once.length > 1 && R.cur >= hitAt - 0.2) {
+      let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+      for (const q of once) { const p = v.p.find(z => z.id === q.v); if (p) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y); } }
+      if (x1 >= x0) { fx0 = (x0 + x1) / 2; fy0 = (y0 + y1) / 2 - 10; zoom = clamp(Math.min(AW / (x1 - x0 + 380), AH / (y1 - y0 + 300)), 1.05, 1.9); onceNow = true; }
+    }
+  }
   let camK = 0, zIn = 0, zOut = 0;
   if (RP.cut) R.sb = null;
   if (STUDIO.on && (STUDIO.cur.cam !== 'kc' || R.focus != null) && !(R.finalOnly && isFinal)) { // the clip studio's cameras (the final shot of a final-shot-only replay rides the arrow)
@@ -16675,7 +16687,7 @@ function replayTick(dt) {
   if (!RP.cam || RP.cut) { RP.cam = { x: fx0, y: fy0, z: RP.cam && camK !== -1 ? RP.cam.z : zoom }; RP.cut = 0; }
   // the camera follows smoothly; it chases a fast arrow harder so the arrow never runs off the edge of the view
   // (a best play's calm camera speeds up again while the final arrow is in the air: at half speed it fell behind a fast shot)
-  const riding = isFinal && arrow && !arrow.s && (now.hitT == null || R.cur < now.hitT);
+  const riding = (isFinal && arrow && !arrow.s && (now.hitT == null || R.cur < now.hitT)) || onceNow;
   const spd = STUDIO.on ? (+STUDIO.cur.camSpeed || 1) : (R.camSpd && !riding ? R.camSpd : 1), C = RP.cam;
   if (camK === -1) {
     // the action camera has weight: it accelerates toward where it should be and settles without overshooting
