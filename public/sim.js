@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.72.0';
+const VERSION = '0.74.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -227,28 +227,21 @@ MAPS.reach = buildMap({
     spawns: [{ x: 110, y: 420 }, { x: 110, y: 540 }, { x: 180, y: 480 }, { x: 100, y: 320 }],
     power: [{ x: 750, y: 480 }], amberY: [340, 420],
   });
-// Tidegate: a harbour where the tide comes in and goes out. Every TIDE.per seconds the flats flood (with CRACK_WARN
-// seconds of warning) and stay under water for a while, leaving the boardwalk, the spawn decks, a sandbar on each side
-// and the central pier; at the height of it the drawbridge lifts and splits the pier in two. Then it drains away again.
-const TIDE = { per: 30, from: 20, to: 28 }, BRIDGE = { per: 30, from: 22, to: 27 };
-const tide = (x, y, w, h, T, extra) => Object.assign({ type: 'pit', water: true, shape: 'rect', x, y, w, h, tide: T || TIDE }, extra || {});
-MAPS.tidegate = buildMap({
-    name: 'Tidegate', theme: 'beach',
-    desc: 'A harbour where the tide comes and goes. Every half minute the flats flood: get to the boardwalk, the pier or a sandbar before the water does. At high tide the drawbridge lifts and splits the pier in two.',
+// Moat Keep: an old keep's courtyard. A square moat rings the middle, with a gap on each side to walk across (or dash
+// over the water); the island inside holds the powerup. Boulders by the outer walls give cover for trading shots.
+MAPS.keep = buildMap({
+    name: 'Moat Keep', theme: 'keep',
+    moat: { x: 430, y: 250, w: 340, h: 300, t: 44, gap: 80 }, // (how the page paints it: one ring of water with a bridge over each gap)
+    desc: 'An old keep with a square moat round the middle. Four ways onto the island, where the powerup is: fight for it, or knock them into the water from the outside.',
     haz: [
-      { type: 'pit', water: true, shape: 'circle', x: 120, y: 120, r: 34 },
-      { type: 'tar', shape: 'circle', x: 360, y: 640, r: 42 },
+      { type: 'pit', water: true, moat: true, shape: 'rect', x: 430, y: 250, w: 130, h: 44 },
+      { type: 'pit', water: true, moat: true, shape: 'rect', x: 430, y: 294, w: 44, h: 66 },
+      { type: 'pit', water: true, moat: true, shape: 'rect', x: 430, y: 440, w: 44, h: 66 },
+      { type: 'pit', water: true, moat: true, shape: 'rect', x: 430, y: 506, w: 130, h: 44 },
     ],
-    cracks: [
-      tide(WALL, WALL, 174, 274), tide(200, WALL, 300, 134), tide(200, 160, 100, 220), tide(400, 160, 100, 220), tide(300, 260, 100, 120),
-      tide(WALL, 500, 174, 274), tide(200, 420, 300, 354),
-      tide(500, WALL, 200, 274, null, { centre: true }), tide(500, 500, 200, 274, null, { centre: true }),
-      tide(585, 300, 30, 200, BRIDGE, { centre: true, bridge: true }),
-    ],
-    pillars: [{ x: 540, y: 400, r: 20 }, { x: 350, y: 470, r: 22 }, { x: 250, y: 110, r: 20 }],
-    spikes: [],
-    spawns: [{ x: 110, y: 360 }, { x: 110, y: 440 }, { x: 170, y: 400 }, { x: 60, y: 400 }],
-    power: [{ x: 600, y: 400 }], amberY: [180, 330],
+    pillars: [{ x: 270, y: 230, r: 30 }, { x: 290, y: 590, r: 26 }, { x: 540, y: 120, r: 22 }],
+    spikes: [{ side: 'left', a: 300, b: 500 }],
+    power: [{ x: 600, y: 400 }], amberY: [WALL + 60, 200],
   });
 const CRACK_WARN = 4;
 // custom game options; def is the standard rule
@@ -337,7 +330,8 @@ MAPS.range = buildMap({
 MAPS.yard = buildMap({
     name: 'Cover Yard', theme: 'meadow', hidden: true,
     desc: 'Boulders to duck behind.',
-    haz: [], pillars: [{ x: 330, y: 300, r: 38 }, { x: 330, y: 500, r: 38 }, { x: 600, y: 400, r: 44, centre: true }], spikes: [],
+    // (peek and shoot: a line of three boulders on your side only, with gaps to step out into; the shooter stands in the open)
+    haz: [], pillars: [{ x: 330, y: 230, r: 40, centre: true }, { x: 330, y: 400, r: 40, centre: true }, { x: 330, y: 570, r: 40, centre: true }], spikes: [],
     spawns: [{ x: 250, y: 400 }, { x: 250, y: 300 }, { x: 250, y: 500 }, { x: 180, y: 400 }],
     power: [{ x: AW - 50, y: AH - 50 }], amberY: [WALL + 44, 330],
   });
@@ -429,7 +423,11 @@ const TRAIN_KNOCK = [
 ];
 const knockSpot = h => { const u = h.a * Math.PI / 180, d = h.r + h.gap; return { x: h.x - Math.cos(u) * d, y: h.y - Math.sin(u) * d }; };
 const KNOCK_KO = 50, KNOCK_BONUS = 600; // points for each dummy in, and for clearing a scene quickly
-const TRAIN_MAX = { target: 7500, dodge: 1000, peek: 3600, sink: TRAIN_KNOCK.reduce((n, R) => n + R.holes.length * KNOCK_KO + KNOCK_BONUS, 0) };
+// each drill's best score out of; TRAIN_V is the version of each drill's rules (bests from an older version don't count:
+// 0.74.0 reworked target practice, the dodge drill's shooter and peek and shoot)
+const TRAIN_V = { target: 2, dodge: 2, duel: 1, peek: 2, sink: 1 };
+const trainCurrent = (k, b) => !!b && (b.v || 1) === (TRAIN_V[k] || 1);
+const TRAIN_MAX = { target: 10000, dodge: 1000, duel: 1000, peek: 2500, sink: TRAIN_KNOCK.reduce((n, R) => n + R.holes.length * KNOCK_KO + KNOCK_BONUS, 0) };
 const TRAIN_GRADES = [['S', 0.8], ['A', 0.65], ['B', 0.5], ['C', 0.35], ['D', 0]];
 // a run that isn't clean (a missed shot, or a dummy put back on its spot in the knockout drill) can't get an S
 const trainGrade = (kind, score, clean = true) => { const m = TRAIN_MAX[kind] || 1, g = TRAIN_GRADES.find(g => score / m >= g[1])[0]; return g === 'S' && !clean ? 'A' : g; };
@@ -558,11 +556,6 @@ function updateCracks(w) {
   const el = TIMES.game - w.match.T;
   MAP.cracks.forEach((c, i) => {
     const st = w.cracks[i] || 0;
-    if (c.tide) { // comes and goes: under water from `from` to `to` in every `per` seconds, with a warning first
-      const ph = el % c.tide.per, want = ph >= c.tide.from && ph < c.tide.to ? 2 : ph >= c.tide.from - CRACK_WARN && ph < c.tide.from ? 1 : 0;
-      if (want !== st) { w.cracks[i] = want; ev(w, { e: want === 1 ? 'crackWarn' : want === 2 ? 'crackOpen' : 'crackClose', i }); }
-      return;
-    }
     if (st === 0 && el >= c.at - CRACK_WARN) { w.cracks[i] = 1; ev(w, { e: 'crackWarn', i }); }
     else if (st === 1 && el >= c.at) { w.cracks[i] = 2; ev(w, { e: 'crackOpen', i }); }
   });
@@ -5069,7 +5062,7 @@ function tierSvg(k, size = 22) {
 return {
   TIERS, tierOf, tierSvg,
   MASTERY, masteryOf, takeCard, applyStats,
-  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
+  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg, emblemCol, emblemFull,

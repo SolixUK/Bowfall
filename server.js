@@ -178,7 +178,7 @@ async function trainDist() {
   if (TRAIN.dist && Date.now() - TRAIN.at < 10 * 60 * 1000) return;
   const all = (await store.leaderboard('games', 100000).catch(() => [])).map(u => live.get(u.id) || u);
   const dist = {}; for (const k of Object.keys(Sim.TRAIN_MAX)) dist[k] = [];
-  for (const u of all) { const t = u.career && u.career.train; if (t) for (const k in dist) if (t[k]) dist[k].push(t[k].s); }
+  for (const u of all) { const t = u.career && u.career.train; if (t) for (const k in dist) if (Sim.trainCurrent(k, t[k])) dist[k].push(t[k].s); }
   for (const k in dist) dist[k].sort((a, b) => a - b);
   TRAIN.dist = dist; TRAIN.at = Date.now();
 }
@@ -622,7 +622,16 @@ async function api(req, res, url) {
   }
   if (route === '/me' && method === 'GET') {
     if (!me) return json(res, 200, { user: null });
-    return json(res, 200, { user: Object.assign(publicUser(me), { id: me.id, ach: me.ach || {}, logins: await store.loginsOf(me.id), hasPassword: !!me.passHash, email: (me.social && me.social.email) || null, mailOn: MAIL.configured(), countryRaw: me.country || null }) });
+    return json(res, 200, { user: Object.assign(publicUser(me), { id: me.id, starter: (me.social && me.social.starter) || null, ach: me.ach || {}, logins: await store.loginsOf(me.id), hasPassword: !!me.passHash, email: (me.social && me.social.email) || null, mailOn: MAIL.configured(), countryRaw: me.country || null }) });
+  }
+  // the element you chose in the tutorial: kept on your account, so the tutorial never asks again (set once)
+  if (route === '/starter' && method === 'POST') {
+    if (!me) return json(res, 401, { error: 'Sign in first.' });
+    const el = String(body.el || '');
+    if (!['frost', 'flame', 'storm'].includes(el)) return json(res, 400, { error: 'Not a starter element.' });
+    me.social = me.social || {};
+    if (!me.social.starter) { me.social.starter = el; markDirty(me); }
+    return json(res, 200, { ok: true, starter: me.social.starter });
   }
   if (route === '/version' && method === 'GET') return json(res, 200, { version: Sim.VERSION });
   // the flag next to your name: a two-letter country code, '-' to hide it, or '' to go back to your location
@@ -775,7 +784,7 @@ async function api(req, res, url) {
   if (route === '/train' && method === 'GET') {
     await trainDist();
     const mine = (me && me.career && me.career.train) || {}, out = {};
-    for (const k of Object.keys(Sim.TRAIN_MAX)) { const b = mine[k]; out[k] = Object.assign({ n: TRAIN.dist[k].length }, b ? { s: b.s, g: b.g, top: trainTop(k, b.s, true) } : {}); }
+    for (const k of Object.keys(Sim.TRAIN_MAX)) { const b = Sim.trainCurrent(k, mine[k]) ? mine[k] : null; out[k] = Object.assign({ n: TRAIN.dist[k].length }, b ? { s: b.s, g: b.g, top: trainTop(k, b.s, true) } : {}); }
     return json(res, 200, { drills: out });
   }
   if (route === '/train' && method === 'POST') {
@@ -785,12 +794,12 @@ async function api(req, res, url) {
     await trainDist();
     let best = sc, isNew = false;
     if (me) {
-      const c = me.career || (me.career = {}), t = c.train || (c.train = {}), old = t[k];
+      const c = me.career || (me.career = {}), t = c.train || (c.train = {}), old = Sim.trainCurrent(k, t[k]) ? t[k] : null; // (a best from an older version of the drill doesn't count)
       const g = Sim.trainGrade(k, sc, body.clean !== false), up = !old || sc > old.s;
       if (up || Sim.gradeBest(g, old.g) !== old.g) {
         isNew = up;
         if (up) { if (old) { const d = TRAIN.dist[k], i = d.indexOf(old.s); if (i >= 0) d.splice(i, 1); } trainInsert(k, sc); }
-        t[k] = { s: up ? sc : old.s, g: old ? Sim.gradeBest(g, old.g) : g, at: Date.now() }; markDirty(me);
+        t[k] = { s: up ? sc : old.s, g: old ? Sim.gradeBest(g, old.g) : g, at: Date.now(), v: Sim.TRAIN_V[k] || 1 }; markDirty(me);
         const got = E.earnTraining(me, k, t[k].g); if (got) walletNote(me, got, 'train');
       }
       best = t[k].s;
@@ -836,7 +845,7 @@ async function api(req, res, url) {
     res.setHeader('Cache-Control', 'no-store'); // (a new best play shows at once)
     const wk = weekKey();
     try {
-      const pool = (await store.clipList(WEEK_POOL)).map(c => ({ id: c.id, meta: typeof c.meta === 'string' ? JSON.parse(c.meta) : c.meta })).filter(c => c.meta && typeof c.meta === 'object').sort((a, b) => (+b.meta.score || 0) - (+a.meta.score || 0) || (a.meta.ai ? 1 : 0) - (b.meta.ai ? 1 : 0)), out = c => ({ id: c.id, label: c.meta.label, who: c.meta.who, score: c.meta.score, map: c.meta.map, at: c.meta.at, ai: c.meta.ai ? 1 : undefined }); // (a real player's play wins a tie with an AI player's)
+      const pool = (await store.clipList(WEEK_POOL)).map(c => ({ id: c.id, meta: typeof c.meta === 'string' ? JSON.parse(c.meta) : c.meta })).filter(c => c.meta && typeof c.meta === 'object').sort((a, b) => (+b.meta.score || 0) - (+a.meta.score || 0) || (a.meta.ai ? 1 : 0) - (b.meta.ai ? 1 : 0)), out = c => ({ id: c.id, label: c.meta.label === 'Cornered out' || c.meta.label === 'Cornered' ? 'Bullied into a corner' : c.meta.label, who: c.meta.who, score: c.meta.score, map: c.meta.map, at: c.meta.at, ai: c.meta.ai ? 1 : undefined }); // (a real player's play wins a tie with an AI player's)
       const plays = pool.filter(c => c.meta.week === wk).slice(0, 3).map(out), all = pool.slice(0, 3).map(out);
       // each maker's banner as it is now (name, level, flag, clan, frame, background, border, title, medals), for the card
       const bn = {}; for (const x of plays.concat(all)) { const c = pool.find(q => q.id === x.id); if (!c || bn[x.id] !== undefined) continue;

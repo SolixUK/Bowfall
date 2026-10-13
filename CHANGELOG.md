@@ -2,6 +2,30 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.74.0
+
+- **The drill shooter aims like a good player** (dodge drill, the new dodge and shoot, and peek and shoot). He sees you as you were 0.2 s ago (a human reaction time) and carries that forward, leads his shot properly to where it will meet you, swings his aim at a human speed with a small wobble, and stops adjusting just before he lets go. If you've just changed direction he holds his draw a moment until he can read you. Walking in a straight line now gets you hit; a dash or a change of direction as he lets go still beats him. (`SH` in `public/index.html`. Before, he led you by too little and his round-1 shots were half-drawn and often fell short, so he hardly ever hit anyone who kept moving.)
+- **Dodge drill:** an S needs a clean run: never hit and never fallen in.
+- **New drill: Dodge and shoot.** The dodge drill, but you shoot back. 600 points for hits landed (15 for full marks) plus 400 for the share of his shots you dodged, minus 100 a fall; an S needs a clean run.
+- **Peek and shoot, reworked:** one archer across the yard (no more turrets) and a line of three boulders on your side. He holds his draw waiting for you; pop out, hit him and get back into cover before his arrow lands. He stands still in round 1 and moves in rounds 2 and 3. +100 a hit, −100 for each hit you take (and his hits shove you less here, so one doesn't throw you into the open).
+- **Target practice, reworked as a reaction test:** a target pops up only once your bow is fully drawn (a random moment later), and you're scored mostly on how soon you let go after it appears, plus the hit and bullseyes, with up to 1,600 more for accuracy at the end. Three rounds of 8, your draw quicker each round. An S needs speed and 80% accuracy.
+- **Bests from the old versions** of target practice, the dodge drill and peek and shoot no longer count (they were a different test), so those boards start fresh. The knockout drill's bests are kept. (`TRAIN_V` in `public/sim.js`: bump a drill's number when its rules change.)
+
+## 0.73.0
+
+- **New arena: Moat Keep** (replaces Tidegate). An old keep's flagstone courtyard with a square moat round the middle and a plank bridge over each side; the powerup is on the island inside, and the water is a drop. Boulders out by the walls for cover. Nothing moves or floods: it's simple, just a different shape to fight over.
+- **Tidegate is gone**, and so is the coming-and-going tide it needed.
+- **Tide Cove's sand is darker and softer**, so the archers stand out against it.
+- **Your starter element goes on your account.** Chosen as a guest, it's kept in the browser and moves onto your account when you sign up or sign in; chosen while signed in, it's saved to the account straight away. Either way the tutorial never asks again, on any device. (`POST /api/starter`; `starter` in `/api/me`.)
+- **Bullying plays** that pin someone in a corner are called **Bullied into a corner** (they were "Cornered" / "Cornered out"), including one already in this week's plays.
+- **The main menu shows a random arena** behind it when you first open the game (after a game it's still the arena you last played).
+- **Sound mix:** the explosion boom is quieter and less slowed down (from the sound desk).
+
+## 0.72.1
+
+- **Choosing your element is a moment now.** In the tutorial, after your first win, the screen fades to black and your three starters rise out of the dark one by one: your own archer on each card, wrapped in its element (drifting snow and turning ice shards for Frost, a ring of fire and rising embers for Flame, crackling bolts for Storm), aiming wherever you point and loosing the odd arrow. Point at one and it comes alive. Choose one (click, 1/2/3, or the D-pad and A) and it flares, glides to the middle as the others fall away, and you're back in the game with it. It has its own sounds.
+- **Asked once.** Replay the tutorial after choosing and you keep the element you chose, without being asked again (remembered in this browser).
+
 ## 0.72.0
 
 - **New arena: Tidegate.** A harbour on a 30-second tide. At low tide it's open sand; then the tide comes in (with a 4-second warning) and for 8 seconds everything but the wooden decks floods: the spawn decks, the boardwalk, the sandbars and the central pier. The pier's drawbridge lifts for 5 of those seconds and cuts it in two. Then the water goes out and the sand is open again. Tide pools (crack hazards) can now come and go on a cycle (`tide: {per, from, to}`), not just open once.
