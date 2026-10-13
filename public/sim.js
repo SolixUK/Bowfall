@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.68.0';
+const VERSION = '0.64.4';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1917,8 +1917,6 @@ function impact(w, f, speed, side, pos) {
   const spiked = side && SPIKES.some(s => s.side === side && pos > s.a && pos < s.b);
   // best moments: slammed into walls (or thorns) by the same archer, again and again (three times inside 5 seconds)
   if ((spiked && speed > 120) || (f.knock > 0 && speed > 420)) if (f.lastHitBy && w.t - f.lastHitT < 1.5) {
-      // every slam (for the clip farm and best plays: who threw them, and whether it was into a corner)
-      if (w.t - (f.slamAt || -9) > 0.35) { f.slamAt = w.t; const cn = (f.x < WALL + 75 || f.x > AW - WALL - 75) && (f.y < WALL + 75 || f.y > AH - WALL - 75); ev(w, { e: 'slam', id: f.id, by: f.lastHitBy, x: r1(f.x), y: r1(f.y), cn: cn ? 1 : 0 }); }
       const S = f.slams && f.slams.by === f.lastHitBy && w.t - f.slams.t < 5 ? f.slams : (f.slams = { by: f.lastHitBy, n: 0, t: w.t, at: -9 });
       if (w.t - S.at > 0.35) { S.n++; S.at = w.t; const k = w.players.find(q => q.id === S.by); if (S.n >= 3 && k && k.team !== f.team) ev(w, { e: 'moment', m: 'bully', k: k.id, kn: k.name, v: f.id, vn: f.name, n: S.n, x: r1(f.x), y: r1(f.y) }); } // (one bounce off a corner is one slam)
     }

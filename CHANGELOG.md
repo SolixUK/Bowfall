@@ -2,43 +2,6 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
-## 0.68.0
-
-- **Best plays at the end of a match, as freeze frames:** two cards: **Best play of the game** (anyone's, AI players included) and **Your best play** (or one card, "Best play of the game: yours!", when they're the same). Each shows a freeze frame of the moment the final shot lands; hover over it and it grows and plays (real time, then the kill cam on the final shot); click to watch full size. Under each: the score, the play and what made it, and Keep on profile on yours (supporters).
-- **Main menu: Best play of the week**, on the right: the same kind of freeze frame card (hover to grow and play, click to watch full size), with its score, play, player and arena. With nothing this week yet it shows the best play ever, and with nothing at all an invitation to be the first. (The website keeps its plays of the week section.)
-- Your best play is still the one offered for the plays of the week.
-- A clip that isn't yours no longer shows "You" over the archer who made it.
-
-## 0.67.2
-
-- **Fix: the browser running out of memory ("Aw, Snap!") on the main menu.** The plays of the week play inside a small frame that is the game itself, and that copy of the game was loading its own plays-of-the-week frame, which loaded another, and so on, until the browser ran out of memory (it showed once there was a play of the week, so usually on returning to the menu after a match). The card now only loads on the real main menu, never inside a frame (the plays' own frame, the website's backdrop and previews, avatars or replays). Tested: the menu holds at one frame for the plays, and the website at one.
-
-## 0.67.1
-
-- **Clip farm defaults:** one battle per game, players swapped for AI players of a similar rating, any archetype (all roles and elements), random set upgrades, a random map effect each game, Hunt on, keeping clips scoring 4.5 or more; picture as before (scores and names shown, empowerment on, normal speed, no kill cams, maximum quality).
-- **Clip studio defaults:** kill cam, kill cam camera, calm, close, 1×, start and end as saved, names and health, no black bars (particles, text, shake, flash and glow on), this frame only, 1440p. Best plays on the results, profiles and the plays of the week keep their own look (real time, then the kill cam on the final shot).
-
-## 0.67.0
-
-- **Plays of the week, from everyone's online matches:** not just ranked: any online match (ranked or custom) offers its best play when it ends (score 6 or more), checked by the server as before.
-  - **All time too:** the best ten plays ever are kept for good. The main menu's card has Week and All time tabs (a new week with nothing in it yet shows the best ever), and a line on how to get on it.
-  - **On the website:** a "Plays of the week" section on the home page, the three playing one after another in a large frame beside the list (This week / All time). Click one to watch it in the game.
-- **Bullying, reworked:** it's now any run of three or more slams into the walls, each within 1.8 seconds of the last, by one archer or several together. It scores more for more slams, for slams coming faster, for each one into a corner, for each extra archer joining in, and most if it ends in the knockout. Clips are titled Bullied, Cornered (two or more into a corner), Merciless (six or more), Bullied out or Cornered out (ending in the knockout), and the line says who did it, how many slams in how long and how many into a corner. The game reports every slam (the "slam" event) so the client can follow it; the old one-archer-only rule no longer decides the clip.
-
-## 0.66.0
-
-- **Plays of the week on the main menu:** the three best plays from ranked matches this week (Monday to Sunday, UTC), in a small frame on the right that plays them one after another with a caption (rank, score, play, who). Hover over it and it grows to watch; click it, or one in the list, to watch full size.
-  - When a ranked match ends, its best play (score 6 or more) is offered for the week automatically. The server only takes it from someone who has just played a ranked match on that arena, with knockouts in it by the player they were in that match, keeps each player's best three and the week's best 30, and lets last week's go. The owner can take one off (POST /api/weekplay with drop: id).
-- **Best plays are shown your way:** on the results screen, on profiles and in the plays of the week, a best play now plays from 2.5 s before, in real time until the final shot, which the kill cam rides in slow motion, on to ¾ s after, with a calm camera and no black bars.
-- **Clip studio defaults** are the same look: real time then kill cam on the final shot, kill cam camera, slow and steady, close, start 2½ s earlier, end ¾ s later, no black bars, 1440p. (Settings you've already changed are kept.)
-
-## 0.65.0
-
-- **Your best plays, in every match:** the clip farm's eye for a good play now watches your own games too (ranked, online and against bots; not the tutorial, training or spectating). Every play you make is scored as it happens, the same way as in the farm: multi-kills (more the closer together), Rip and other ability knockouts, a held or trapped target, a dash into position, bullying into the walls, roasts, harpoon pulls, long shots, clutches and the rest. If you made one worth showing (score 4.5 or more), the results screen shows your best (up to three), best first, with its score and what made it.
-  - **Watch** plays it on the game's canvas as a kill cam (save it as a video from there), then takes you back to the results.
-  - **Keep on profile:** supporters can keep a best play on their account, alongside their kill cams (it counts toward the same limit). Others see the button and what it's for.
-- The server checks that only supporters (and the owner) keep best plays, and remembers a kept play's score.
-
 ## 0.64.4
 
 - **Ricochets aren't long shots:** an arrow that bounced on its way (Ricochet, Bank Shot, a ricochet power-up or Trick Shot) no longer counts as a long shot: not for the Long shot moment and clip, the "Long shot" knockout label, the longest-shot stat, or the Longshot and Farsight achievements. Its distance was luck, not range.
