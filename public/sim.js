@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.64.4';
+const VERSION = '0.69.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -908,7 +908,7 @@ const TREE = {
   blood:     { tree: 'blood', base: true, name: 'Blood Arrows', desc: 'Damage you deal heals you for 25% of it (half as much while you are poisoned). The more health you have lost, the harder your arrows knock back: up to 25% harder near death.' },
   hemorrhage:{ tree: 'blood', name: 'Hemorrhage', desc: 'Fully drawn hits make the target bleed for 8 damage over 4 seconds. The bleeding heals you too.' },
   frenzy:    { tree: 'blood', name: 'Blood Frenzy', desc: 'Below half health, your hits heal you twice as much. And the more health you have lost, the faster you draw: up to 60% faster near death.' },
-  transfusion:{ tree: 'blood', name: 'Transfusion', desc: 'Healing you would waste at full health goes to your most hurt teammate within 300px instead.' },
+  transfusion:{ tree: 'blood', name: 'Transfusion', desc: 'A third of your healing flies to your most hurt teammate within 300px, plus any you would waste at full health. Nobody hurt nearby: it all stays yours.' },
   bloodpact: { tree: 'blood', trade: true, name: 'Blood Pact', desc: 'Your hits heal you for 45% of their damage instead of 25%, but you have 10 less health.' },
   deepshade: { tree: 'shadow', trade: true, name: 'Deep Shade', desc: 'Shade bursts deal 50% more damage, but your arrows knock back 15% less.' },
 
@@ -1021,7 +1021,7 @@ const BRIEF = {
   shadowdash: "Dashing doesn't break stealth.", cloak: 'Stealth lasts 9s. −10 health.', quickfeet: '8% faster, less damage from behind.',
   deathmark: 'First hit after stealth: +30% damage taken.', shadow: 'Hits stack shades that burst for damage.', eclipse: 'Drop darkness: enemies inside see little.',
   gloom: 'Shades slow them; bursts slow more.', dread: 'Shade bursts throw them away from you.', blood: 'Damage heals you. Hit harder when hurt.',
-  hemorrhage: 'Full-draw hits make them bleed (heals you).', frenzy: 'Low health: heal more and draw faster.', transfusion: 'Spare healing flies to a hurt teammate.',
+  hemorrhage: 'Full-draw hits make them bleed (heals you).', frenzy: 'Low health: heal more and draw faster.', transfusion: 'A third of your healing flies to a hurt teammate.',
   bloodpact: 'Heal 45% of damage. −10 health.', deepshade: 'Shade bursts +50%. Knockback −15%.', sstrike: 'Teleport behind an enemy. Next 3 stars +75%.',
   clone: 'Vanish and leave a decoy that throws stars.', blossom: 'Throw 12 shuriken in a ring.', recall: 'Leave a mark; use again to snap back.',
   bladeguard: 'Block an arrow to go full auto.', sharpstar: 'Shuriken +25% damage.', flurry: 'Wind up shuriken 30% faster.',
@@ -1410,6 +1410,18 @@ function pickStyle(p) {
   if ((p.role === 'ninja' || p.role === 'crossbow') && s === 'marksman') s = 'skirmisher'; // their arrows don't reach that far
   ai.style = ai.baseStyle = s;
 }
+// Matchmaking's AI players: their personality is set by the server once their loadout is in (addBot picked a style
+// for a role they aren't playing). style: one of STYLES, or nothing for the one that fits the role; aggr, tr: see TR0.
+function setBotMind(w, id, o) {
+  const p = w.players.find(q => q.id === id); if (!p || !p.bot || !p.ai) return false;
+  let s = o.style && STYLES[o.style] ? o.style : ROLE_STYLE[p.role] || 'skirmisher';
+  if ((p.role === 'ninja' || p.role === 'crossbow') && s === 'marksman') s = 'skirmisher';
+  p.ai.style = p.ai.baseStyle = s;
+  if (o.aggr != null) p.ai.aggr = clamp(+o.aggr, 0.1, 1);
+  p.ai.tr = o.tr ? Object.assign({}, TR0, o.tr) : null;
+  if (o.gene) p.gene = Object.assign({}, o.gene);
+  return true;
+}
 function restyle(p) {
   const ai = p.ai; if (!ai.baseStyle) return;
   let best = ai.baseStyle, bestS = 1.5;
@@ -1708,12 +1720,15 @@ function hurt(w, f, dmg, kx, ky, src, by, quiet) {
 function bloodHeal(w, p, dealt) {
   const emp = p.emp && p.element === 'blood';
   let heal = dealt * (has(p, 'bloodpact') ? 0.45 : 0.25) * (has(p, 'frenzy') && p.hp < p.maxHp * 0.5 ? 2 : 1) * (emp ? 2 : 1) * (p.poisonT > 0 ? 0.5 : 1);
-  const room = p.maxHp - p.hp, used = Math.min(room, heal);
+  // Transfusion: a third of the healing goes to the most hurt teammate nearby (and all of what you'd waste at full health);
+  // with nobody hurt in reach it's all yours, as before
+  const mate = has(p, 'transfusion') ? w.players.filter(q => q !== p && q.team === p.team && !q.dead && q.hp < q.maxHp * 0.9 && Math.hypot(q.x - p.x, q.y - p.y) < 300).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0] : null;
+  const share = mate ? heal * 0.33 : 0;
+  const room = p.maxHp - p.hp, used = Math.min(room, heal - share);
   p.hp += used; p.leechAcc = (p.leechAcc || 0) + used;
   if (p.leechAcc >= 1) { ev(w, { e: 'leech', id: p.id, v: Math.round(p.leechAcc) }); p.leechAcc = 0; }
   const spare = heal - used;
-  if (spare > 0.05 && has(p, 'transfusion')) {
-    const mate = w.players.filter(q => q !== p && q.team === p.team && !q.dead && q.hp < q.maxHp && Math.hypot(q.x - p.x, q.y - p.y) < 300).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
+  if (spare > 0.05 && mate) {
     p.transAcc = Math.min(30, (p.transAcc || 0) + spare);
     if (mate && p.transAcc >= 3) {
       const a = Math.atan2(mate.y - p.y, mate.x - p.x) + (Math.random() < 0.5 ? 1 : -1) * 0.25; // a slight arc, then straight in
@@ -1917,6 +1932,8 @@ function impact(w, f, speed, side, pos) {
   const spiked = side && SPIKES.some(s => s.side === side && pos > s.a && pos < s.b);
   // best moments: slammed into walls (or thorns) by the same archer, again and again (three times inside 5 seconds)
   if ((spiked && speed > 120) || (f.knock > 0 && speed > 420)) if (f.lastHitBy && w.t - f.lastHitT < 1.5) {
+      // every slam (for the clip farm and best plays: who threw them, and whether it was into a corner)
+      if (w.t - (f.slamAt || -9) > 0.35) { f.slamAt = w.t; const cn = (f.x < WALL + 75 || f.x > AW - WALL - 75) && (f.y < WALL + 75 || f.y > AH - WALL - 75); ev(w, { e: 'slam', id: f.id, by: f.lastHitBy, x: r1(f.x), y: r1(f.y), cn: cn ? 1 : 0 }); }
       const S = f.slams && f.slams.by === f.lastHitBy && w.t - f.slams.t < 5 ? f.slams : (f.slams = { by: f.lastHitBy, n: 0, t: w.t, at: -9 });
       if (w.t - S.at > 0.35) { S.n++; S.at = w.t; const k = w.players.find(q => q.id === S.by); if (S.n >= 3 && k && k.team !== f.team) ev(w, { e: 'moment', m: 'bully', k: k.id, kn: k.name, v: f.id, vn: f.name, n: S.n, x: r1(f.x), y: r1(f.y) }); } // (one bounce off a corner is one slam)
     }
@@ -3544,6 +3561,41 @@ function botSteer(p, gx, gy) {
   const l = Math.hypot(dx, dy);
   return l < 0.05 ? [0, 0] : [dx / l, dy / l];
 }
+// A goal that points into a boulder: walk round it instead, on the side the boulder's centre isn't. Without this two
+// bots either side of a big rock push at it and get pushed back by the steering, and stand there facing each other.
+function aroundPillar(p, gx, gy) {
+  const gl = Math.hypot(gx, gy); if (gl < 0.05) return [gx, gy];
+  const ux = gx / gl, uy = gy / gl;
+  let hit = null;
+  for (const q of PILLARS) {
+    if (q.tower) continue;
+    const ex = q.x - p.x, ey = q.y - p.y, along = ex * ux + ey * uy;
+    if (along < 0 || along > q.r + p.r + 170) continue;
+    const side = -ex * uy + ey * ux; // the pillar's centre, left (+) or right (−) of our line
+    if (Math.abs(side) < q.r + p.r + 24 && (!hit || along < hit.along)) hit = { q, along, side };
+  }
+  if (!hit) return [gx, gy];
+  // sideways, away from the centre; one nearly head-on is passed on the side we're already leaning to (and that changes
+  // now and then, or two archers circling the same rock would chase each other round it for ever)
+  const s = Math.abs(hit.side) < (hit.q.r + p.r) * 0.6 ? (p.ai && p.ai.strafe ? p.ai.strafe : 1) : hit.side > 0 ? -1 : 1, tx = -uy * s, ty = ux * s;
+  const k = clamp(1 - hit.along / (hit.q.r + p.r + 170), 0.35, 1); // the closer, the more sideways
+  return [ux * (1 - k) * 0.7 + tx * k, uy * (1 - k) * 0.7 + ty * k];
+}
+// A person needs a moment to see a shot coming, and doesn't catch every one: the arrow has to have been in the air for
+// about their reaction time, and each arrow is either noticed or missed (sharper players miss fewer, nobody catches all)
+function botNotices(p, a) {
+  const ai = p.ai; if (!ai) return true;
+  const D = botD(p);
+  if (a.age < D.react * 0.5) return false;
+  ai.seen = ai.seen || {};
+  if (ai.seen[a.id] == null) { if (Object.keys(ai.seen).length > 40) ai.seen = {}; ai.seen[a.id] = Math.random() < 0.3 + 0.6 * D.dodge; }
+  return ai.seen[a.id];
+}
+// Playstyle traits matchmaking's AI players carry (plain bots have none): cover (0-1) tucks behind a boulder between
+// shots and steps out to loose; edge (0-1) works for positions where a hit throws the enemy into a hazard; dash (0-1)
+// is how freely they dash and bash (0.5 is a plain bot); charge (−1..1) leans to quick shots or full draws.
+const TR0 = { cover: 0, edge: 0, dash: 0.5, charge: 0 };
+const dashK = ai => ai.tr ? 0.4 + 1.2 * ai.tr.dash : 1;
 
 // ---- the smarter brain (used as far as a level's iq allows; Master uses all of it)
 // GENE holds the weights it balances; they were tuned by pitting variations against each other over thousands of games
@@ -3628,7 +3680,10 @@ function botPlan(w, p, T, foes, mates, D, G) {
   const pref = Math.min(reach * 0.8, (st.near + st.far) / 2 * G.pref);
   const myKb = kbTravel(0.95, T ? T.mass : 1, p.kbMul) * G.kbScale;
   const cand = [[p.x, p.y]];
-  for (let i = 0; i < 12; i++) { const a = i / 12 * TAU + (ai.planRot || 0); for (const r of [G.cand * 0.55, G.cand]) cand.push([p.x + Math.cos(a) * r, p.y + Math.sin(a) * r]); }
+  // (a boulder in the way: look further afield too, or every spot in reach can be behind it)
+  const radii = T && !clearShot(p.x, p.y, T.x, T.y) ? [G.cand * 0.55, G.cand, G.cand * 2.3] : [G.cand * 0.55, G.cand];
+  for (let i = 0; i < 12; i++) { const a = i / 12 * TAU + (ai.planRot || 0); for (const r of radii) cand.push([p.x + Math.cos(a) * r, p.y + Math.sin(a) * r]); }
+  const edge = 1 + (ai.tr ? ai.tr.edge * 1.2 : 0);
   ai.planRot = ((ai.planRot || 0) + 0.37) % TAU;
   let best = null;
   for (const [x, y] of cand) {
@@ -3654,7 +3709,7 @@ function botPlan(w, p, T, foes, mates, D, G) {
       const dl = outg > 0 && d > reach ? Math.hypot(T.x + T.vx * 0.5 - x, T.y + T.vy * 0.5 - y) : d;
       sc -= Math.abs(dl - pref) / 300 * G.pref;
       if (dl > reach) sc -= (dl - reach) / 120 * (1 + 1.5 * outg);
-      if (los) { if (ready) sc += 0.4 * G.los; sc += pushRisk(T.x, T.y, dx / d, dy / d, myKb, T.r) * 1.6 * G.push; }
+      if (los) { if (ready) sc += 0.4 * G.los; sc += pushRisk(T.x, T.y, dx / d, dy / d, myKb, T.r) * 1.6 * G.push * edge; }
       else if (d > reach && outg > 0) sc += 0.8 * outg; // cover on the way in
       else if (!ready) sc += 0.45; // reloading: a boulder to duck behind is worth more than a line of sight
       else sc -= 0.3 * G.los;
@@ -3688,7 +3743,7 @@ function botCloseIn(w, p, T, dT, reach, D, dt) {
   const outg = outranged(p, T);
   const dd = p.role === 'ninja' ? NINJA_BLINK * (has(p, 'longstep') ? 1.4 : 1) : 250;
   if (!outg || !(p.dashN > 0) || ai.closeCd > 0 || dT < reach * 0.9 || dT > reach * 0.9 + dd || !loaded(p)) return;
-  if (Math.random() > dt * (0.4 + D.dodge * 1.5 + (D.iq || 0) * 2) * outg) return;
+  if (Math.random() > dt * (0.4 + D.dodge * 1.5 + (D.iq || 0) * 2) * outg * dashK(ai)) return;
   if (incoming(w, p, 0.4)) return;
   // the sharper bots time it: not into a bow that's drawn and waiting, but the moment after it looses, while it's being drawn again
   if ((D.iq || 0) > 0.3 && T.drawing && T.charge > 0.4) return;
@@ -3792,7 +3847,7 @@ function botThink(w, p, dt) {
     const st = STYLES[ai.style] || STYLES.skirmisher, ag = ai.aggr == null ? 0.6 : ai.aggr;
     ai.bashCd = (ai.bashCd || 0) - dt;
     // a dash into them only when it would knock them into something and we'd land safely
-    if (dT < 220 && dT > 40 && p.dashN > 0 && ai.bashCd <= 0 && clearShot(p.x, p.y, T.x, T.y) && st.bash * ag > 0.1) {
+    if (dT < 220 && dT > 40 && p.dashN > 0 && ai.bashCd <= 0 && clearShot(p.x, p.y, T.x, T.y) && st.bash * ag * dashK(ai) > 0.1) {
       const ang = Math.atan2(T.y - p.y, T.x - p.x);
       if (pushRisk(T.x, T.y, Math.cos(ang), Math.sin(ang), 200, T.r) > 0.6 && lethalDist(p.x + Math.cos(ang) * (dT + 40), p.y + Math.sin(ang) * (dT + 40)) > 60) { p.wantDash = true; ai.dashAim = ang; ai.bashCd = rand(1.5, 3); }
     }
@@ -3813,7 +3868,16 @@ function botThink(w, p, dt) {
       gx = ux * fwd - uy * ai.strafe * side; gy = uy * fwd + ux * ai.strafe * side;
       botCloseIn(w, p, T, d, reach, D, dt);
     }
-    else { gx = -uy * ai.strafe; gy = ux * ai.strafe; }
+    else {
+      // edge hunters work round to the side from which a hit would throw them into something
+      if (ai.tr && ai.tr.edge > 0 && (ai.edgeT = (ai.edgeT || 0) - dt) <= 0) {
+        ai.edgeT = 0.5;
+        const kb = kbTravel(0.9, T.mass, p.kbMul), risk = s => { const x = p.x - uy * s * 90, y = p.y + ux * s * 90, ddx = T.x - x, ddy = T.y - y, dd = Math.hypot(ddx, ddy) || 1; return lethalDist(x, y) < p.r + 40 ? -1 : pushRisk(T.x, T.y, ddx / dd, ddy / dd, kb, T.r); };
+        const a = risk(1), b = risk(-1);
+        if (Math.abs(a - b) > 0.15 && Math.random() < ai.tr.edge) { ai.strafe = a > b ? 1 : -1; ai.strafeT = Math.max(ai.strafeT, 0.8); }
+      }
+      gx = -uy * ai.strafe; gy = ux * ai.strafe;
+    }
     // guardians stay close to their team
     if (st.mates && mates.length) {
       const m = mates.reduce((b, q) => { const dd = Math.hypot(q.x - p.x, q.y - p.y); return !b || dd < b.d ? { q, d: dd } : b; }, null);
@@ -3822,7 +3886,7 @@ function botThink(w, p, dt) {
     // dash-bash: brawlers (and bots with Battering Ram) dash straight into people
     ai.bashCd = (ai.bashCd || 0) - dt;
     const bashy = st.bash * ag * (has(p, 'ram') ? 1.6 : 1);
-    if (d < 240 && d > 40 && p.dashN > 0 && ai.bashCd <= 0 && clearShot(p.x, p.y, T.x, T.y) && Math.random() < bashy * dt * 3) {
+    if (d < 240 && d > 40 && p.dashN > 0 && ai.bashCd <= 0 && clearShot(p.x, p.y, T.x, T.y) && Math.random() < bashy * dt * 3 * dashK(ai)) {
       const lead = 0.25, bx = T.x + T.vx * lead, by = T.y + T.vy * lead, ang = Math.atan2(by - p.y, bx - p.x);
       if (lethalDist(p.x + Math.cos(ang) * (d + 40), p.y + Math.sin(ang) * (d + 40)) > 50) { p.wantDash = true; ai.dashAim = ang; ai.bashCd = rand(1.5, 3); }
     }
@@ -3841,6 +3905,25 @@ function botThink(w, p, dt) {
     const dx = p.x - m.x, dy = p.y - m.y, d = Math.hypot(dx, dy) || 1;
     if (d < 90) { gx += dx / d * (90 - d) / 90; gy += dy / d * (90 - d) / 90; }
   }
+  // cover ducking (a trait): after loosing, tuck in behind a nearby boulder while the bow is drawn again, then step
+  // out on the side we're already leaning to and shoot. Each shot they decide afresh, as often as the trait says.
+  if (ai.tr && ai.tr.cover > 0 && T && dT < 950 && !(p.stealthT > 0) && (ai.duck || ai.peek)) {
+    const cv = PILLARS.reduce((b, q) => { if (q.tower) return b; const d = Math.hypot(q.x - p.x, q.y - p.y) - q.r; return d < 230 && (!b || d < b.d) ? { q, d } : b; }, null);
+    if (cv) {
+      const q = cv.q, tx = q.x - T.x, ty = q.y - T.y, tl = Math.hypot(tx, ty) || 1, ux = tx / tl, uy = ty / tl, off = q.r + p.r + 16;
+      const hx = q.x + ux * off, hy = q.y + uy * off; // right behind it, seen from the target
+      const peek = ai.strafe, px = hx - uy * peek * (off + 10), py = hy + ux * peek * (off + 10); // round its shoulder
+      const ready = inp.draw && p.charge >= ai.want * 0.85;
+      const [tx2, ty2] = ready || ai.peek ? [px, py] : [hx, hy];
+      if (ready && !ai.peek) ai.peek = true; // (and stay out until the shot's gone)
+      if (lethalDist(tx2, ty2) > p.r + 30) {
+        const d = Math.hypot(tx2 - p.x, ty2 - p.y) || 1, k = Math.min(1, d / 45);
+        gx = (tx2 - p.x) / d * k - p.vx / 500; gy = (ty2 - p.y) / d * k - p.vy / 500;
+      }
+    } else ai.duck = ai.peek = false;
+  }
+  // a goal pointing into a boulder: go round it
+  if (PILLARS.length) [gx, gy] = aroundPillar(p, gx, gy);
 
   // --- dodge incoming enemy arrows
   ai.dodgeCd -= dt;
@@ -3920,7 +4003,7 @@ function botThink(w, p, dt) {
   ai.errT -= dt;
   if (ai.errT <= 0) { ai.err = rand(-1, 1) * D.aimErr * (p.shroudT > 0 ? (p.shroudR < 150 ? 3.5 : 2.2) : 1); ai.errT = rand(0.3, 0.6); }
   if (!T) { ai.lastT = null; inp.draw = false; botAbilities(w, p, null, Infinity, foes, dt); if (p.wantDash && ai.dashAim != null) inp.aim = ai.dashAim; ai.dashAim = null; return; }
-  const spd = (380 + 920 * (p.role === 'crossbow' ? 1 : Math.max(p.charge, ai.want))) * OPT('aspeed');
+  const spd = (380 + 920 * (p.role === 'crossbow' ? 1 : Math.max(p.charge, ai.want))) * OPT('aspeed'), wasDraw = inp.draw;
   // aim at where the target *appeared* to be (and to be heading) a reaction-time ago, like a person would
   const S = perceived(w, T, D.see || 0.24);
   let wantAim;
@@ -3968,15 +4051,17 @@ function botThink(w, p, dt) {
       inp.draw = true;
       const st = STYLES[ai.style];
       ai.want = lethalDist(T.x, T.y) < 130 ? 1 : dT < 150 ? 0.35 : st && st.charge ? rand(Math.max(D.minCharge * 0.7, st.charge[0]), st.charge[1]) : rand(D.minCharge, 1);
+      const lean = ai.tr ? ai.tr.charge * 0.3 : 0; // quick-shot or full-draw people
       if (iq >= 0.5) {
         const d = dT || 1, risk = pushRisk(T.x, T.y, (T.x - p.x) / d, (T.y - p.y) / d, kbTravel(1, T.mass, p.kbMul), T.r);
-        ai.want = risk > G.riskFull || dT > G.far ? 1 : dT < 140 ? G.quick : Math.max(D.minCharge, G.mid);
-      }
+        ai.want = risk > G.riskFull || dT > G.far ? 1 : dT < 140 ? G.quick : Math.max(D.minCharge, G.mid + lean);
+      } else if (lean) ai.want = clamp(ai.want + lean, 0.3, 1);
     }
   } else if ((p.charge >= ai.want || (p.momT > 0.1 && p.charge >= 0.55 && has(p, 'momentum'))) && los && onTarget && T.inv <= 0 && !(has(p, 'ballista') && ai.want >= 1 && p.over < 1 && dT > 250) && !(p.stealthT > 0.6 && dT > 170 && !(ai.ambush && Math.hypot(ai.ambush.x - p.x, ai.ambush.y - p.y) < 70))) {
     inp.draw = false;
     ai.reload = rand(0.05, 0.3) + D.react;
   }
+  if (wasDraw && !inp.draw) { ai.peek = false; ai.duck = !!(ai.tr && Math.random() < ai.tr.cover); } // shot away: duck behind cover for the next one?
   botAbilities(w, p, T, dT, foes, dt);
   if (p.wantDash && ai.dashAim != null) inp.aim = ai.dashAim; // a dodge dash points the way out
   ai.dashAim = null;
@@ -4037,11 +4122,12 @@ function botAbilities(w, p, T, dT, foes, dt) {
         use = !!T && dT < 190 && angOff(Math.atan2(T.y - p.y, T.x - p.x), p.input.aim) < 0.4;
         if (!use) { // or blow away an arrow about to hit us
           const inc = w.arrows.find(a => {
-            if (a.team === p.team || a.stuck > 0 || !sees(p, a)) return false;
+            if (a.team === p.team || a.stuck > 0 || !sees(p, a) || !botNotices(p, a)) return false;
             const rx = p.x - a.x, ry = p.y - a.y, v2 = a.vx * a.vx + a.vy * a.vy || 1, t = (rx * a.vx + ry * a.vy) / v2;
             return t > 0 && t < 0.3 && Math.hypot(rx - a.vx * t, ry - a.vy * t) < p.r + 10 && Math.hypot(rx, ry) < 240;
           });
-          if (inc) { p.input.aim = Math.atan2(inc.y - p.y, inc.x - p.x); use = true; }
+          // (a flick, not a reflex: the aim is a little off, and a quick one is hard to catch at all)
+          if (inc && Math.random() < dt * (3 + 9 * botD(p).dodge)) { p.input.aim = Math.atan2(inc.y - p.y, inc.x - p.x) + rand(-0.25, 0.25) * (1.1 - botD(p).dodge); use = true; }
         }
         break;
       }
@@ -4075,7 +4161,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
       case 'hairtrig':
       case 'bladeguard':
       case 'parry': use = (foes.some(q => botAware(p, q) && q.drawing && q.charge > 0.55 && Math.hypot(q.x - p.x, q.y - p.y) < 650 && angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.18)
-        || w.arrows.some(a => a.team !== p.team && !a.stuck && sees(p, a) && shotAt(a, p))) && Math.random() < dt * 6; break; // a bow being drawn at them, or a shot (shuriken, bolt) already on its way
+        || w.arrows.some(a => a.team !== p.team && !a.stuck && sees(p, a) && botNotices(p, a) && shotAt(a, p))) && Math.random() < dt * (2 + 5 * botD(p).dodge); break; // a bow being drawn at them, or a shot (shuriken, bolt) already on its way: the sharper, the more often they catch it
       case 'seeker': use = chg > 0.5 && !!T && dT > 220; break;
       case 'rocket': use = chg > 0.3 && !!T && dT > 160 && dT < 700 && !p.rocketArmed; break; // too slow to be worth it from across the arena
       case 'trick': use = chg > 0.55 && !!T && dT > 200 && !p.trickArmed; break;
@@ -4125,11 +4211,11 @@ function botAbilities(w, p, T, dT, foes, dt) {
       case 'stealth': use = !!T && ((dT > 260 && dT < 650 && p.hp > p.maxHp * 0.4) || (p.hp < p.maxHp * 0.35 && dT < 300)); break;
       case 'deflect': {
         const inc = w.arrows.some(a => {
-          if (a.team === p.team || a.stuck > 0 || !sees(p, a)) return false;
+          if (a.team === p.team || a.stuck > 0 || !sees(p, a) || !botNotices(p, a)) return false;
           const rx = p.x - a.x, ry = p.y - a.y, v2 = a.vx * a.vx + a.vy * a.vy || 1, t = (rx * a.vx + ry * a.vy) / v2;
           return t > 0 && t < 0.35 && Math.hypot(rx - a.vx * t, ry - a.vy * t) < p.r + 10;
         });
-        if (inc && T) { p.input.aim = Math.atan2(T.y - p.y, T.x - p.x); use = true; }
+        if (inc && T && Math.random() < dt * (3 + 9 * botD(p).dodge)) { p.input.aim = Math.atan2(T.y - p.y, T.x - p.x); use = true; }
         break;
       }
       case 'rain':
@@ -4137,7 +4223,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
         break;
       case 'wall': {
         const threat = foes.find(q => botAware(p, q) && q.drawing && q.charge > 0.6 && Math.hypot(q.x - p.x, q.y - p.y) < 600 && angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.2);
-        if (threat) { p.input.aim = Math.atan2(threat.y - p.y, threat.x - p.x); use = true; }
+        if (threat && Math.random() < dt * (2.5 + 6 * botD(p).dodge)) { p.input.aim = Math.atan2(threat.y - p.y, threat.x - p.x); use = true; }
         break;
       }
       case 'grapple': {
@@ -4916,7 +5002,7 @@ function tierSvg(k, size = 22) {
 return {
   TIERS, tierOf, tierSvg,
   MASTERY, masteryOf, takeCard, applyStats,
-  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, STYLES, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
+  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_GRADES, trainGrade, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg,

@@ -634,6 +634,21 @@
   .pcclipw { position: relative; display: flex; gap: 10px; align-items: stretch; }
   .pcclipw .pcclip { flex: 1; min-width: 0; }
   /* the featured kill cam playing, small beside its button; hovering it (or the button) plays it big */
+  .weekplays { width: 250px; padding: 8px; background: rgba(9,18,11,.82); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+  .weekplays .wph { display: flex; align-items: baseline; justify-content: space-between; } .weekplays .wph b { font: 700 15px 'Rajdhani', sans-serif; color: var(--gold); letter-spacing: .04em; text-transform: uppercase; } .weekplays .wph small { color: var(--muted); font-size: 11px; }
+  .wpprev { position: relative; width: 234px; aspect-ratio: 16 / 9; background: #000; overflow: hidden; cursor: pointer; border: 1px solid var(--line); transition: transform .2s ease-out, box-shadow .2s; transform-origin: right top; z-index: 8; }
+  .wpprev iframe { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; border: 0; transform: scale(calc(234 / 1280)); transform-origin: 0 0; pointer-events: none; }
+  .wpcard { width: 234px; } .wpcard[hidden] { display: none; } .ccard { transform-origin: right top; }
+  .wpcap { font-size: 12px; color: var(--text); line-height: 1.3; } .wpcap b { color: var(--gold); font: 700 15px 'Rajdhani', sans-serif; margin-right: 4px; } .wpcap small { display: block; color: var(--muted); font-size: 11px; }
+  .wpprev.big { transform: scale(var(--pk, 3)); box-shadow: 0 8px 26px rgba(0,0,0,.75); border-color: var(--gold); }
+  .wptabs[hidden], .wpprev[hidden], .wpnote[hidden] { display: none !important; }
+  .wptabs { display: flex; gap: 2px; } .wptabs button { background: none; border: 1px solid var(--line); color: var(--muted); font: 600 10px 'Titillium Web', sans-serif; padding: 1px 6px; cursor: pointer; } .wptabs button.on { color: #111; background: var(--gold); border-color: var(--gold); }
+  .weekplays .wpnote { color: var(--muted); font-size: 11px; line-height: 1.3; }
+  .wplist { display: flex; flex-direction: column; gap: 2px; } .wplist button { display: grid; grid-template-columns: 30px 1fr; gap: 6px; align-items: center; text-align: left; background: none; border: 1px solid transparent; color: var(--text); padding: 3px 5px; cursor: pointer; font: inherit; }
+  .wplist button.on { border-color: var(--gold); background: rgba(255,207,90,.08); } .wplist .sc { font: 700 15px 'Rajdhani', sans-serif; color: var(--gold); text-align: center; } .wplist b { font: 700 13px 'Rajdhani', sans-serif; display: block; } .wplist small { color: var(--muted); font-size: 11px; }
+  .ccard { position: relative; aspect-ratio: 16 / 9; background: #000; overflow: hidden; cursor: pointer; border: 1px solid var(--line); transition: transform .2s ease-out, box-shadow .2s; z-index: 8; }
+  .ccard iframe { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; border: 0; transform: scale(var(--cs, .25)); transform-origin: 0 0; pointer-events: none; }
+  .ccard.big { transform: scale(var(--pk, 3)); box-shadow: 0 8px 26px rgba(0,0,0,.75); border-color: var(--gold); z-index: 30; }
   .pcprev { position: relative; width: 168px; aspect-ratio: 16 / 9; flex: none; border: 1px solid color-mix(in srgb, var(--pa) 50%, transparent); background: #000; overflow: hidden; cursor: pointer; }
   .pcprev iframe { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; border: 0; transform: scale(calc(168 / 1280)); transform-origin: 0 0; pointer-events: none; }
   .pcprev { transition: transform .18s ease-out, box-shadow .18s; transform-origin: right bottom; z-index: 5; }
@@ -965,6 +980,12 @@
   @keyframes winpop { 0% { transform: translateY(14px) scale(.6); opacity: 0; } 100% { transform: none; opacity: 1; } }
   .resrated b.ticking { color: var(--gold); }
   .resclips { display: flex; flex-direction: column; gap: 8px; }
+  .resplays { display: flex; flex-direction: column; gap: 6px; } .rplays2 { display: flex; flex-wrap: wrap; gap: 16px; }
+  .rplay2 { display: flex; flex-direction: column; gap: 6px; width: 300px; } .rplay2 .ccard { width: 300px; } .rplay2 .hd { font: 700 15px 'Rajdhani', sans-serif; color: var(--gold); text-transform: uppercase; letter-spacing: .04em; }
+  .rplay2 .rpi { display: grid; grid-template-columns: 40px 1fr; gap: 8px; align-items: center; } .rplay2 .rpi .sc { font: 700 20px 'Rajdhani', sans-serif; color: var(--gold); text-align: center; } .rplay2 .rpi b { display: block; font: 700 16px 'Rajdhani', sans-serif; } .rplay2 .rpi small { color: var(--muted); font-size: 12px; } .rplay2 button { align-self: flex-start; } .rplays { display: flex; flex-direction: column; gap: 6px; }
+  .rplay { display: grid; grid-template-columns: 46px 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); background: rgba(255,255,255,.03); }
+  .rplay.top { border-color: var(--gold); background: rgba(255,207,90,.08); } .rplay .sc { font: 700 22px 'Rajdhani', sans-serif; color: var(--gold); text-align: center; }
+  .rplay b { display: block; font: 700 17px 'Rajdhani', 'Arial Narrow', sans-serif; } .rplay b small { color: var(--gold); font-weight: 600; } .rplay > div > small { color: var(--muted); font-size: 12px; } .rplay .rcb { display: flex; gap: 5px; } .rplay .locked { opacity: .75; }
   .moments { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; } .moments .lbl { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
   .moment { display: flex; flex-direction: column; padding: 6px 10px; border-left: 3px solid var(--line); background: rgba(255,255,255,.03); } .moment.top { border-left-color: var(--gold); background: rgba(255,207,90,.07); }
   .moment b { font: 700 16px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--gold); } .moment span { font-size: 13px; }
@@ -1558,6 +1579,7 @@
         </div>
         <div class="lpbox"><div class="lplist" id="lpList"></div><button type="button" class="ghost sm" id="lpAdd" title="Another player with their own controller, on this screen">+ Add player on controller</button></div>
         <div class="frpanel" id="homeFriends" hidden></div>
+        <div class="weekplays" id="weekPlays" hidden><div class="wph"><b id="wpHead">Best play of the week</b></div><div class="wpcard" id="wpCard"></div><div class="wpcap" id="wpCap"></div><span class="wpnote" id="wpNote" hidden></span></div>
         <button type="button" class="homelive" id="homeLive" hidden></button>
         <a class="dclink" id="homeDiscord" href="#" target="_blank" rel="noopener" title="Join the Bowfall Discord" aria-label="Join the Bowfall Discord" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.3 4.4A19.6 19.6 0 0 0 15.5 3l-.6 1.2a18 18 0 0 0-5.8 0L8.5 3a19.6 19.6 0 0 0-4.8 1.4C.6 9 .0 13.5.3 18a19.8 19.8 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4c-.6.4-1.3.7-2 1L17.7 21a19.7 19.7 0 0 0 6-3c.4-5.2-.7-9.7-3.4-13.6zM8.5 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4zm7 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4z"/></svg></a>
       </div>
@@ -1951,6 +1973,7 @@
         <div class="shopbar"><h3>Rankings</h3><span class="status" id="resHint">Click a column to rank by it.</span></div>
         <div class="tablewrap"><table class="rank" id="resTable"></table></div>
       </div>
+      <div class="resplays" id="resPlays" hidden></div>
       <div class="resclips" id="resClips" hidden></div>
       <div class="resrated" id="resRated" hidden></div>
       <div class="resclan" id="resClan" hidden></div>
@@ -1994,16 +2017,16 @@
       <section class="mode">
         <h3>Variety (each game)</h3>
         <p class="status" style="margin:0 0 4px">Tick what should change for every game. Pick Random under Match for a new arena each time.</p>
-        <div class="field"><label><input type="checkbox" id="farmEvery"> <b>One battle per game</b> (so everything below changes after every battle)</label></div>
+        <div class="field"><label><input type="checkbox" id="farmEvery" checked> <b>One battle per game</b> (so everything below changes after every battle)</label></div>
         <div class="field"><label><input type="checkbox" id="farmRndSize"> <b>Team sizes:</b> 1 to 4 a side</label></div>
-        <div class="field"><label for="farmRndWho"><b>Players</b></label><select id="farmRndWho"><option value="">The same ones every game</option><option value="near">Each swapped for a random AI player of a similar rating</option><option value="high">Each swapped for a random high-rated AI player</option><option value="low">Each swapped for a random low-rated AI player</option><option value="any">Each swapped for any random AI player</option></select></div>
-        <div class="field"><label><input type="checkbox" id="farmRndLo"> <b>Archetypes:</b> any element and role, not just their favourites</label></div>
+        <div class="field"><label for="farmRndWho"><b>Players</b></label><select id="farmRndWho"><option value="">The same ones every game</option><option value="near" selected>Each swapped for a random AI player of a similar rating</option><option value="high">Each swapped for a random high-rated AI player</option><option value="low">Each swapped for a random low-rated AI player</option><option value="any">Each swapped for any random AI player</option></select></div>
+        <div class="field"><label><input type="checkbox" id="farmRndLo" checked> <b>Archetypes:</b> any element and role, not just their favourites</label></div>
         <div class="farmmaps" id="farmRoles"><span class="status">Roles in the random pick:</span></div>
         <div class="farmmaps" id="farmEls"><span class="status">Elements in the random pick:</span></div>
-        <div class="field"><label><input type="checkbox" id="farmRndUps"> <b>Upgrades:</b> a random set each game (one ability and some passives, from the start)</label></div>
+        <div class="field"><label><input type="checkbox" id="farmRndUps" checked> <b>Upgrades:</b> a random set each game (one ability and some passives, from the start)</label></div>
         <div class="field"><label for="farmEffect"><b>Map effect</b></label><select id="farmEffect"></select></div>
-        <div class="field"><label><input type="checkbox" id="farmHunt"> <b>Hunt:</b> run flat out without drawing the game, keeping only the very best clips (score 6 or more, or just the plays ticked below). Also ⚡ on the bar. It keeps going in the background if you switch tabs.</label></div>
-        <div class="field"><label for="farmKeep">Clips to keep</label><select id="farmKeep"><option value="all">Every one</option><option value="good" selected>Score 3 or more</option><option value="best">Score 4.5 or more</option><option value="s6">Score 6 or more</option><option value="s8">Score 8 or more</option><option value="s10">Score 10 or more</option><option value="s13">Score 13 or more (rare)</option></select></div>
+        <div class="field"><label><input type="checkbox" id="farmHunt" checked> <b>Hunt:</b> run flat out without drawing the game, keeping only the very best clips (score 6 or more, or just the plays ticked below). Also ⚡ on the bar. It keeps going in the background if you switch tabs.</label></div>
+        <div class="field"><label for="farmKeep">Clips to keep</label><select id="farmKeep"><option value="all">Every one</option><option value="good">Score 3 or more</option><option value="best" selected>Score 4.5 or more</option><option value="s6">Score 6 or more</option><option value="s8">Score 8 or more</option><option value="s10">Score 10 or more</option><option value="s13">Score 13 or more (rare)</option></select></div>
         <div class="farmmaps" id="farmLook"><span class="status">Only these plays (none ticked: any):</span></div>
       </section>
       <section class="mode farmside" style="--tc:#ff6b5a">
@@ -2150,7 +2173,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.64.4"></script>
+<script src="sim.js?v=0.69.0"></script>
 <script>
 (() => {
 'use strict';
@@ -2158,7 +2181,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.64.4';
+const PAGE_VERSION = '0.69.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -2315,6 +2338,13 @@ if (OFFLINE) { $('onlineOn').hidden = true; $('onlineOff').hidden = false; }
 const params = new URLSearchParams(location.search);
 const EMOTE_KEYS = Object.keys(Sim.EMOTES); // 1 to 8 on the keyboard
 const SHOWCASE = params.get('showcase') === '1'; // the website's hero: bots playing on the real renderer
+// a safety net: the game is only ever one frame deep (a clip's frame in a page); a frame inside a frame is a mistake, so it stops at once
+try { if (window.parent !== window && window.parent.parent !== window.parent) { document.documentElement.innerHTML = ''; throw new Error('nested'); } } catch (e) { if (e && e.message === 'nested') throw e; }
+// a copy of the game inside another page (a clip's frame on the results or the main menu, the website's backdrop, previews,
+// avatars): it only shows things. It never connects to the server's live side (no friends, no presence, no rejoining your
+// match, no best plays of its own): a copy that did would rejoin your match, show its own results with their own clip
+// frames, each another copy... until the browser ran out of memory
+const INFRAME = (() => { try { return window.top !== window || SHOWCASE || ['clips', 'embed', 'preview', 'avatar', 'cframe', 'still'].some(k => params.has(k)); } catch (e) { return true; } })();
 if (params.get('room')) $('codeIn').value = params.get('room').toUpperCase().slice(0, 4);
 // a friend's invite link (?room=CODE): no welcome screen, no menus, straight into their game with a name picked for you
 const LINK_JOIN = !OFFLINE && /^[A-Za-z]{4}$/.test(params.get('room') || '') && !params.get('ticket');
@@ -3530,13 +3560,13 @@ function phoneCamUpdate(dt) {
   const f = Math.min(1, dt * 6); PCAM.x += (me.x - PCAM.x) * f; PCAM.y += (me.y - PCAM.y) * f;
   phoneCamApply();
 }
-const STUDIO_DEF = { both: '', frame: 'h', style: 'kc', cam: 'kc', camSpeed: 1, zoomMax: 1.8, speed: 1, bars: true, parts: true, text: true, shake: true, flash: true, emp: true, names: 'all', res: '1080', trimA: 0, trimB: 0 };
+const STUDIO_DEF = { both: '', frame: 'h', style: 'kc', cam: 'kc', camSpeed: 0.75, zoomMax: 2.1, speed: 1, bars: false, parts: true, text: true, shake: true, flash: true, emp: true, names: 'all', res: '1440', trimA: 0, trimB: 0 }; // (the chosen defaults: kill cam, calm, close, no black bars, 1440p)
 const STUDIO = { on: false, i: 0, list: [], cur: Object.assign({}, STUDIO_DEF), from: null, exporting: false, stop: false, paused: false, onlyStar: false, batch: null, g: (() => { try { return JSON.parse(localStorage.getItem('bowfall-studio') || '{}') || {}; } catch (e) { return {}; } })() };
 const stVert = () => STUDIO.on && STUDIO.cur.frame === 'v'; // (the clip studio framing for phones: 9:16)
 const STUDIO_CLIP = ['trimA', 'trimB']; // (kept with each clip; every other setting carries over from clip to clip)
 function resize() {
   const r = cv.getBoundingClientRect();
-  DPR = STUDIO.exporting ? 1 : FARM.on && FARM.maxq ? Math.max(1, Math.min(2, devicePixelRatio || 1)) : OPTS.res === 'fast' ? 1 : Math.max(1, Math.min(2, devicePixelRatio || 1) * (OPTS.res === 'sharp' ? 1 : RSCALE));
+  DPR = STUDIO.exporting || INFRAME ? 1 : FARM.on && FARM.maxq ? Math.max(1, Math.min(2, devicePixelRatio || 1)) : OPTS.res === 'fast' ? 1 : Math.max(1, Math.min(2, devicePixelRatio || 1) * (OPTS.res === 'sharp' ? 1 : RSCALE));
   W = Math.max(1, r.width); H = Math.max(1, r.height);
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
   const phone = isPhone(), play = mode !== 'menu';
@@ -4787,6 +4817,7 @@ $('roChips').addEventListener('click', pickArch);
 const isHost = () => mode === 'local' || !!(roomInfo && roomInfo.amHost);
 
 function connect(joinMsg) {
+  if (INFRAME) return; // (a copy of the game in a frame never joins a game)
   initAudio();
   const status = $('netStatus');
   status.classList.remove('err'); status.textContent = 'Connecting…';
@@ -5298,7 +5329,7 @@ document.addEventListener('click', e => {
 // a second connection, just for these, open while you're on the site (games use their own)
 const SOC = { ws: null, st: null, mode: store.get('bowfall-mm-mode', '1v1'), modes: (() => { try { const v = JSON.parse(store.get('bowfall-mm-modes', 'null')); if (Array.isArray(v) && v.length) return v; } catch (e) {} return [store.get('bowfall-mm-mode', '1v1')]; })(), retry: 0, invite: null, hideOff: store.get('bowfall-hideoff', '') === '1' };
 function socialConnect() {
-  if (OFFLINE || (SOC.ws && SOC.ws.readyState <= 1)) return;
+  if (OFFLINE || INFRAME || (SOC.ws && SOC.ws.readyState <= 1)) return;
   const sock = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
   SOC.ws = sock;
   sock.onopen = () => { SOC.retry = 0; socialHello(); if (DM.open && DM.with) socialSend({ t: 'dm', op: 'open', with: DM.with }); };
@@ -5684,6 +5715,7 @@ function setFeatured(f) {
 $('homeLive').onclick = () => { if (mode !== 'menu') return; closeSubs(); if (DM.open) dmClose(); connect({ watch: 'feat' }); };
 // dropped out of a ranked match (closed the tab, lost connection): a bar to get back in while it's still going
 function renderRejoin() {
+  if (INFRAME) return;
   const r = SOC.st && SOC.st.rejoin; $('rejoinBar').hidden = !r || mode === 'online';
   // opening the game (or reloading the page) while a ranked match you dropped out of is still going: straight back in.
   // Not after you chose to leave it (that's what the Rejoin button is for)
@@ -5691,6 +5723,7 @@ function renderRejoin() {
 }
 const AUTOREJ = { code: null, tries: 0, left: null, done: new Set() };
 function autoRejoin() {
+  if (INFRAME) return;
   if (!AUTOREJ.code || mode !== 'menu') return;
   if (AUTOREJ.tries++ >= 6) { AUTOREJ.code = null; $('netStatus').classList.add('err'); $('netStatus').textContent = 'Disconnected from the server. Use Rejoin when it\'s back.'; return; }
   notice(AUTOREJ.tries === 1 ? 'Connection lost. Reconnecting to your match…' : `Reconnecting… (try ${AUTOREJ.tries})`, false, '#ffcf5a');
@@ -5809,7 +5842,7 @@ setInterval(() => { const p = SOC.st && SOC.st.party; if (p && p.queued != null)
 // an invite link to the game itself (/play?ref=name): kept for when they make an account on the website
 if (/^[A-Za-z0-9_-]{3,16}$/.test(params.get('ref') || '')) { try { localStorage.setItem('bowfall-ref', params.get('ref')); } catch (e) {} document.cookie = 'bf_ref=' + encodeURIComponent(params.get('ref')) + '; Path=/; Max-Age=2592000; SameSite=Lax'; }
 const AVATAR_ONLY = params.get('avatar') === '1'; // the website borrows the game's archer drawing for profile pictures
-if (!OFFLINE && !AVATAR_ONLY && !SHOWCASE) setTimeout(socialConnect, 400);
+if (!OFFLINE && !AVATAR_ONLY && !SHOWCASE && !INFRAME) setTimeout(socialConnect, 400);
 // the community Discord, when the server has its invite link
 if (!OFFLINE && !AVATAR_ONLY) fetch('/api/legal').then(r => r.json()).then(d => { if (d && d.discord) { $('homeDiscord').href = d.discord; $('homeDiscord').hidden = false; } }).catch(() => {});
 
@@ -7121,7 +7154,7 @@ function myTeam() { const me = view && view.p.find(p => p.id === myId); return m
 function scoreLine(r, b) { return `Red ${r} – ${b} Blue`; }
 function handleEvents(evs) {
   if (FARM.on) for (const e of evs) if (e.e === 'fire' || e.e === 'hit' || e.e === 'dmg' || e.e === 'kill' || e.e === 'dash') for (const k of [e.id, e.by, e.k, e.v]) if (k != null) FARM.act[k] = clock; // (the clip farm's camera follows the fighting)
-  replayNote(evs); trainEvents(evs); if (!tutOnDummy() && !TR.on) Ach.onEvents(evs);
+  replayNote(evs); if (!FARM.on) playEvents(evs); trainEvents(evs); if (!tutOnDummy() && !TR.on) Ach.onEvents(evs);
   tutEvents(evs);
   for (const e of evs) eventFx(e);
 }
@@ -10154,7 +10187,7 @@ function drawReplayFrame() {
   // letterbox bars and a vignette, drawn in screen space
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   if (RP.flash > 0 && !(STUDIO.on && !STUDIO.cur.flash)) { ctx.fillStyle = `rgba(255,255,255,${0.55 * RP.flash})`; ctx.fillRect(0, 0, W, H); RP.flash = Math.max(0, RP.flash - 0.06); }
-  if (STUDIO.on && !STUDIO.cur.bars) return; // (the clip studio: no black bars or vignette)
+  if ((STUDIO.on && !STUDIO.cur.bars) || (!STUDIO.on && RP.on && RP.on.noBars)) return; // (the clip studio, or a best play: no black bars or vignette)
   const bar = Math.round(H * 0.08);
   ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0, 0, W, bar); ctx.fillRect(0, H - bar, W, bar);
   const g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.max(W, H) * 0.7);
@@ -11228,7 +11261,7 @@ function updateHud() {
       resultsView = Object.assign({}, view, { p: view.p.filter(p => !p.nk) });
       renderAwards(resultsView); renderRanking();
       $('rematchBtn').hidden = $('resLobbyBtn').hidden = !isHost();
-      if (!hunting()) $('resultsScreen').hidden = false; $('resHint').textContent = TOUCH.on ? 'Tap a column to rank by it.' : 'Click a column to rank by it.'; progShow(); renderResClips();
+      if (!hunting()) $('resultsScreen').hidden = false; $('resHint').textContent = TOUCH.on ? 'Tap a column to rank by it.' : 'Click a column to rank by it.'; progShow(); renderResClips(); renderResPlays();
       { const rb = $('ratedBox'); clearTimeout(RATED.t); rb.classList.remove('show'); rb.hidden = true; renderResRated(); } // the results show the rating themselves: no pop-up over the headline
       $('gameMenu').hidden = true; menuOpen = false; paused = false;
     }
@@ -11567,6 +11600,7 @@ function replayTick(dt) {
   if (R.real) R.rate = 1; // (the clip farm's "real time": no slow motion at all)
   else if (R.fixed) R.rate = R.fixed; // (a clip about one archer rather than one knockout: an even slow motion)
   R.cur += dt * R.rate * (R.mul || 1);
+  if (R.holdAt != null) R.cur = R.holdAt; // (a freeze frame: the picture held, the camera still settling)
   // replay the visual effects as their moment comes round
   while (R.fired < R.evs.length && R.evs[R.fired].t <= R.cur) { replayFx(R.evs[R.fired].e); R.fired++; }
   if (R.cur >= seg.t1) {
@@ -11637,7 +11671,7 @@ function replayTick(dt) {
   }
   if (!RP.cam || RP.cut) { RP.cam = { x: fx0, y: fy0, z: RP.cam && camK !== -1 ? RP.cam.z : zoom }; RP.cut = 0; }
   // the camera follows smoothly; it chases a fast arrow harder so the arrow never runs off the edge of the view
-  const spd = STUDIO.on ? (+STUDIO.cur.camSpeed || 1) : 1, C = RP.cam;
+  const spd = STUDIO.on ? (+STUDIO.cur.camSpeed || 1) : (R.camSpd || 1), C = RP.cam;
   if (camK === -1) {
     // the action camera has weight: it accelerates toward where it should be and settles without overshooting
     // (a critically damped spring), so there are no jumps at all; the zoom tightens slowly and widens quicker
@@ -11686,7 +11720,7 @@ function endReplay() {
   clipRecStop();
   if (STUDIO.on) { if (!STUDIO.exporting) studioPlay(); return; } // (the clip studio loops the clip, straight round)
   if (FARM.viewing) { farmViewEnd(); return; }
-  if (CLIP.playing) { $('cvAgain').hidden = false; if (CLIP.playing.embed) setTimeout(() => { if (CLIP.playing && !RP.on) clipReplay(); }, 2500); return; }
+  if (CLIP.playing) { $('cvAgain').hidden = false; if (CLIP.playing.embed) setTimeout(() => { if (!CLIP.playing || RP.on) return; if (CLIP.queue) { const Q = CLIP.queue; Q.i = (Q.i + 1) % Q.ids.length; playClip(Q.ids[Q.i], true); try { parent.postMessage({ bfPlay: Q.i }, location.origin); } catch (e) {} } else clipReplay(); }, CLIP.queue ? 1200 : 2500); return; }
   showPendingSummary();
 }
 // ---- kill cam clips: your own kill cams can be saved as a video, or featured on your profile (anyone can watch it there)
@@ -11828,16 +11862,78 @@ async function playClip(id, embed) {
     if (!$('pcWrap').hidden) closePlayerCard();
     $('cvTitle').textContent = (d.meta && d.meta.label) || clipLabel(c); $('cvSub').textContent = d.owner ? `${d.owner}'s highlight` : '';
     document.body.classList.add('clipmode'); $('clipView').hidden = false;
-    clipReplay();
+    if (CFRAME.on) { CFRAME.has = 1; CFRAME.playing ? clipReplay() : clipHold(); } else clipReplay();
   } catch (e) { notice(esc(e.message || "Couldn't load that replay."), false); }
 }
+// real time, then the kill cam only for the final shot (or ability): from just before it's loosed, in slow motion riding it in
+function finalShotPlan(segs, n) {
+  const lg = segs[segs.length - 1], fin = lg.subs[lg.subs.length - 1], P = replayPlan(segs, n);
+  return { speed: Math.min(P.speed, 0.5), early: 1, finFrom: Math.max(lg.t0, fin.castT != null ? fin.castT - 0.35 : fin.shotT != null ? fin.shotT - 0.45 : fin.hitT != null ? fin.hitT - 0.6 : fin.kt - 0.8), finalOnly: true };
+}
+// how best plays are shown (on the results, on profiles and in the plays of the week): from 2.5 s before, real time until the
+// final shot, which the kill cam rides in slow motion, on to ¾ s after; a calm camera, no black bars
+const PLAY_LOOK = { trimA: -2.5, trimB: 0.75, camSpd: 0.5, noBars: true };
 function clipReplay() {
   const P = CLIP.playing; if (!P) return;
-  const c = P.c; setArena(c.map); floorKey = null; myId = c.k; fx.parts.length = 0;
-  RP.on = Object.assign({ wait: -1e9, segs: c.segs, si: 0, cur: c.segs[0].t0, k: c.k, n: c.n, fired: 0, started: false, frames: c.frames, evs: c.evs }, replayPlan(c.segs, c.n));
+  const c = P.c; setArena(c.map); floorKey = null; myId = P.local && PLAY.watch && PLAY.watch.me === c.k ? c.k : null; fx.parts.length = 0; // ("you" only over your own play)
+  const play = P.meta && P.meta.play && c.frames.length && c.segs.length && c.segs[c.segs.length - 1].subs.some(q => q.v != null);
+  let segs = c.segs, fired = 0;
+  if (play) {
+    const f0 = c.frames[0].t, f1 = c.frames[c.frames.length - 1].t;
+    segs = c.segs.map(g => Object.assign({}, g, { subs: g.subs.slice() }));
+    segs[0].t0 = clamp(segs[0].t0 + PLAY_LOOK.trimA, f0, segs[0].t1 - 0.5);
+    const lg = segs[segs.length - 1]; lg.t1 = clamp(lg.t1 + PLAY_LOOK.trimB, lg.t0 + 0.5, f1);
+    fired = c.evs.findIndex(x => x.t >= segs[0].t0); if (fired < 0) fired = c.evs.length;
+  }
+  RP.on = Object.assign({ wait: -1e9, segs, si: 0, cur: segs[0].t0, k: c.k, n: c.n, fired, started: false, frames: c.frames, evs: c.evs }, play ? Object.assign(finalShotPlan(segs, c.n), { camSpd: PLAY_LOOK.camSpd, noBars: PLAY_LOOK.noBars }) : replayPlan(c.segs, c.n));
   $('cvAgain').hidden = true; $('cvSave').hidden = true;
 }
-function closeClipView() { if (RP.on) { RP.on = null; RP.cam = null; $('replayBadge').hidden = true; document.body.classList.remove('replaying'); } clipRecStop(); CLIP.playing = null; document.body.classList.remove('clipmode'); $('clipView').hidden = true; myId = null; setArena('meadow'); floorKey = null; }
+// a freeze frame of a clip: the moment the final shot lands, held (the camera settles on it), for a preview before it plays
+function clipHold() {
+  const P = CLIP.playing; if (!P) return;
+  clipReplay(); const R = RP.on; if (!R) return;
+  const lg = R.segs[R.segs.length - 1], fin = lg.subs[lg.subs.length - 1];
+  const t = clamp((fin.hitT != null ? fin.hitT : fin.kt) - 0.12, lg.t0, lg.t1 - 0.05);
+  R.si = R.segs.length - 1; R.holdAt = t; R.cur = t; if (typeof CFRAME !== 'undefined') CFRAME.hn = 0;
+  let f = R.evs.findIndex(x => x.t >= t - 0.35); R.fired = f < 0 ? R.evs.length : f; // (only the effects of that moment)
+}
+// a clip in a small frame on another page (the results, the main menu): a freeze frame until asked to play.
+// ?cframe=1: the clip is handed over by the page; ?clip=…&still=1: one from the server
+const CFRAME = { on: params.get('cframe') === '1' || params.get('still') === '1', playing: false, has: 0 };
+if (CFRAME.on) {
+  document.body.classList.add('clipembed', 'clippreview'); muted = true;
+  if (params.get('cframe') === '1') { const g = $('gate'); if (g) g.hidden = true; }
+  addEventListener('message', e => {
+    if (e.origin !== location.origin || !e.data || !e.data.bf) return; const m = e.data;
+    if (m.bf === 'clip' && m.clip) { try { const c = clipUnpack(m.clip); if (!MAPS[c.map]) return; CLIP.playing = { c, meta: { label: m.label || '', play: 1 }, embed: true }; document.body.classList.add('clipmode'); $('clipView').hidden = false; CFRAME.has = 1; CFRAME.playing ? clipReplay() : clipHold(); } catch (err) {} }
+    else if (m.bf === 'play') { CFRAME.playing = true; if (CLIP.playing) { RP.on = null; RP.cam = null; clipReplay(); } }
+    else if (m.bf === 'still') { CFRAME.playing = false; if (CLIP.playing) { RP.on = null; RP.cam = null; clipHold(); } }
+  });
+  try { parent.postMessage({ bfReady: 1 }, location.origin); } catch (e) {}
+}
+// a clip card: a freeze frame in a little frame that grows and plays when the mouse is over it (click to watch full size)
+function clipCard(box, src, clipObj, label, onOpen) {
+  box.innerHTML = '<iframe tabindex="-1" loading="lazy" title=""></iframe>'; box.classList.add('ccard');
+  const f = box.querySelector('iframe'); let ready = false;
+  const send = m => { try { f.contentWindow.postMessage(m, location.origin); } catch (e) {} };
+  const hand = () => { if (clipObj) send({ bf: 'clip', clip: clipObj, label }); };
+  f.addEventListener('load', () => { ready = true; setTimeout(hand, 400); setTimeout(hand, 1500); });
+  f.src = src; requestAnimationFrame(() => box.style.setProperty('--cs', ((box.clientWidth || 320) / 1280).toFixed(4)));
+  const big = on => {
+    if (!on) { box.classList.remove('big'); send({ bf: 'still' }); return; }
+    const r = box.getBoundingClientRect(); if (!r.width) return;
+    const room = { l: r.right - 8, r: innerWidth - r.left - 8, d: innerHeight - r.top - 8, u: r.bottom - 8 };
+    const left = room.l > room.r, up = room.u > room.d; box.style.transformOrigin = `${left ? 'right' : 'left'} ${up ? 'bottom' : 'top'}`;
+    const k = Math.max(1, Math.min(820 / r.width, (left ? room.l : room.r) / r.width, (up ? room.u : room.d) / r.height));
+    box.style.setProperty('--pk', k.toFixed(3)); box.classList.add('big'); send({ bf: 'play' });
+  };
+  box.onpointerenter = e => { if (e.pointerType === 'mouse') big(true); };
+  box.onpointerleave = () => big(false);
+  box.onclick = () => { big(false); if (onOpen) onOpen(); };
+}
+function closeClipView() { const local = CLIP.playing && CLIP.playing.local && PLAY.watch; if (RP.on) { RP.on = null; RP.cam = null; $('replayBadge').hidden = true; document.body.classList.remove('replaying'); } clipRecStop(); CLIP.playing = null; document.body.classList.remove('clipmode'); $('clipView').hidden = true;
+  if (local) { const W2 = PLAY.watch; PLAY.watch = null; myId = W2.me; setArena(W2.map); floorKey = null; if (W2.results) { $('resultsScreen').hidden = false; renderResPlays(); } return; } // (a best play watched from the results: back to them)
+  myId = null; setArena('meadow'); floorKey = null; }
 $('cvAgain').onclick = clipReplay; $('cvClose').onclick = closeClipView;
 let frameDt = 0;
 // ================= performance recording =================
@@ -11941,7 +12037,7 @@ function frame(now) {
       if (pingT <= 0) { ws.send(JSON.stringify({ t: 'ping', c: performance.now() })); pingT = 1; }
     }
   } else view = null;
-  updateMech(dt); if (FARM.on) farmTick(dt);
+  updateMech(dt); if (FARM.on) farmTick(dt); else playTick();
   statusSounds(dt); bowSounds(dt); perfTick(dt); if (TUT.on || TR.on) coachFade();
   const stHold = STUDIO.on && STUDIO.paused && !STUDIO.exporting; // (the clip studio paused: the picture holds)
   const tScale = stHold ? 0 : RP.on && RP.on.started ? (RP.on.rate || 1) * (RP.on.mul || 1) : mode === 'local' && !paused ? (fx.stop > 0 ? 0 : fx.slow > 0 ? 0.35 : 1) : 1;
@@ -11952,7 +12048,8 @@ function frame(now) {
   const rv = cbView(replayTick(stHold ? 0 : RP.on && RP.on.real ? Math.min(0.1, frameMs / 1000) : dt)); // (real time stays real even when the frame rate dips)
   // a drawing error must never freeze the game: report it and carry on with the next frame
   try { camUpdate(dt); phoneCamUpdate(dt); } catch (e) { clientError(e, 'camera'); }
-  try { if (document.hidden && FARM.on && !STUDIO.exporting) {} /* (in the background: nothing to draw) */ else if (rv) { const live = view; view = rv; try { render(true); } finally { view = live; } } else if (FARM.on && FARM.hunt && !STUDIO.on) huntDraw(); else render(); }
+  const heldStill = CFRAME.on && !CFRAME.playing && RP.on && RP.on.holdAt != null && (CFRAME.hn = (CFRAME.hn || 0) + 1) > 90 && CFRAME.hn % 15; // (a freeze frame: once the camera has settled, redrawn only now and then)
+  try { if (heldStill) {} else if (document.hidden && FARM.on && !STUDIO.exporting) {} /* (in the background: nothing to draw) */ else if (rv) { const live = view; view = rv; try { render(true); } finally { view = live; } } else if (FARM.on && FARM.hunt && !STUDIO.on) huntDraw(); else render(); }
   catch (e) { clientError(e, 'render'); if (rv) endReplay(); try { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none'; } catch (e2) {} }
   PR.lap('overlay');
   try { updateHud(); qHelp(); linkAutoJoin(); if (TOUCH.on) touchUI(); } catch (e) { clientError(e, 'hud'); }
@@ -12024,7 +12121,7 @@ async function openFarm() {
   if (!$('farmLook').querySelector('input')) { const on = new Set(store.get('bowfall-farm-look', '').split(',').filter(Boolean));
     $('farmLook').insertAdjacentHTML('beforeend', FARM_LOOK.map(([k, l]) => `<label><input type="checkbox" data-flook="${k}"${on.has(k) ? ' checked' : ''}> ${esc(l)}</label>`).join(''));
     $('farmLook').addEventListener('change', () => store.set('bowfall-farm-look', [...$('farmLook').querySelectorAll('[data-flook]')].filter(c => c.checked).map(c => c.dataset.flook).join(','))); }
-  if (!$('farmEffect').options.length) $('farmEffect').innerHTML = '<option value="none">None</option><option value="random">A random one each game</option>' + Object.keys(Sim.MUTATORS).map(k => `<option value="${k}">${esc(Sim.MUTATORS[k].name)}</option>`).join('');
+  if (!$('farmEffect').options.length) $('farmEffect').innerHTML = '<option value="none">None</option><option value="random">A random one each game</option>' + Object.keys(Sim.MUTATORS).map(k => `<option value="${k}">${esc(Sim.MUTATORS[k].name)}</option>`).join(''); $('farmEffect').value = 'random'; // (the default: a random map effect each game)
   $('farmScr').hidden = false;
   // the ranked AI players (asked again each time until it works; offline, the copy built into the page)
   if (!(FARM.ai && FARM.ai.length)) {
@@ -12105,6 +12202,7 @@ function farmStart() {
     if (!lo) lo = [pick(okE), pick(okR)];
     if (a) { bot.name = a.name; Sim.setMeta(world, bot.id, Object.assign({ cc: a.cc, lv: a.lv }, a.look || {})); } else bot.name = `${(FARM_SKILLS.find(s2 => +s2[0] === sk) || [0, 'Bot'])[1]} bot`;
     Sim.setLoadout(world, bot.id, lo[0], lo[1]);
+    if (a) Sim.setBotMind(world, bot.id, { style: a.style, aggr: a.aggr, tr: a.tr, gene: a.gene }); // (their own way of playing, as in ranked)
     bot.dparams = Sim.skillParams(sk); bot.diff = sk >= 0.9 ? 'master' : sk >= 0.78 ? 'extreme' : sk >= 0.55 ? 'hard' : sk >= 0.3 ? 'normal' : 'easy';
     let ups = r.up && r.up.length ? r.up.slice() : null;
     if (C.rndUps && !(r.lock && r.up && r.up.length)) { const cards = farmCards(lo[0], lo[1]), act = cards.filter(id => TREE[id].active), pas = cards.filter(id => !TREE[id].active), n = 3 + Math.floor(Math.random() * 3); ups = [];
@@ -12118,7 +12216,7 @@ function farmStart() {
   myId = null; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {}; TUT.on = false; TR.on = false;
   FARM.battles = (FARM.battles || 0) + 1;
   FARM.on = true; FARM.cam = null; FARM.sb = null; FARM.act = {}; FARM.overAt = 0; FARM.kc = C.kc; RP.enabled = C.kc && FARM.speed === 1 && !FARM.hunt;
-  RP.buf = []; RP.evs = []; RP.lastKill = null; FARM.pending = []; FARM.batch = []; FARM.near = new Map(); FARM.pl = new Map(); FARM.revAt = 0; FARM.held = false; FARM.match = (FARM.match || 0) + 1;
+  RP.buf = []; RP.evs = []; RP.lastKill = null; FARM.pending = []; FARM.batch = []; FARM.near = new Map(); FARM.pl = new Map(); FARM.sl = new Map(); FARM.revAt = 0; FARM.held = false; FARM.match = (FARM.match || 0) + 1;
   farmBarSync();
   document.body.classList.add('farm'); document.body.classList.toggle('farmnohud', !FARM.hud); farmBarShow(true);
   setScreens(); resize();
@@ -12137,10 +12235,118 @@ function farmStep() {
   while (FARM.pending.length && FARM.gt >= FARM.pending[0].due) farmCapture(FARM.pending.shift());
 }
 // what each archer has been up to lately: near misses dodged, dashes, damage dealt, knockouts (for the evasive and burst clips)
-function farmPl(id) { let o = FARM.pl.get(id); if (!o) FARM.pl.set(id, o = { dodge: [], dash: [], dmg: [], kill: [], flag: -99, bflag: -99 }); const T = FARM.gt - 10; for (const k of ['dodge', 'dash', 'dmg', 'kill']) while (o[k].length && (o[k][0].t != null ? o[k][0].t : o[k][0]) < T) o[k].shift(); return o; }
+
+// ---- the plays of the week on the main menu: the three best plays from ranked matches this week, playing one after
+// another in a small frame (it grows as you hover over it); click one to watch it full size
+const WEEKP = { list: null, at: 0, tab: 'week', data: null };
+async function weekPlaysLoad() {
+  // (never inside another page: the plays' own frame is this same page, and loading the card in there too would nest frames
+  // inside frames until the browser ran out of memory; nor in the website's backdrop, an avatar, a replay or a preview)
+  if (INFRAME || OFFLINE || mode !== 'menu' || Date.now() - WEEKP.at < 5 * 60 * 1000) return;
+  WEEKP.at = Date.now();
+  try { const r = await fetch('/api/weekplays', { cache: 'no-store' }); if (!r.ok) return; WEEKP.data = await r.json(); } catch (e) { return; }
+  weekPlaysShow();
+}
+function weekPlaysShow() {
+  const D = WEEKP.data || {}, wk = (D.plays || [])[0], ever = (D.all || [])[0], x = wk || ever;
+  const box = $('weekPlays'); box.hidden = false;
+  $('wpHead').textContent = wk ? 'Best play of the week' : ever ? 'Best play ever' : 'Best play of the week';
+  $('wpNote').hidden = !!x; $('wpNote').textContent = 'No plays yet. Make a big play in an online match (a multi-kill, a Rip, a set-up knockout…) and you could be the first up here.';
+  $('wpCard').hidden = !x; $('wpCap').innerHTML = x ? `<b>${x.score}</b> ${esc(x.label)} <small>${esc(x.who || '')} · ${esc((MAPS[x.map] || {}).name || '')}</small>` : '';
+  if (!x || WEEKP.shown === x.id) return; WEEKP.shown = x.id;
+  clipCard($('wpCard'), `/play?clip=${encodeURIComponent(x.id)}&embed=1&preview=1&still=1`, null, x.label, () => playClip(x.id));
+}
+setTimeout(weekPlaysLoad, 1500); setInterval(weekPlaysLoad, 60 * 1000);
+// after a ranked match: its best play is offered for the plays of the week (if it's scored highly; the server decides)
+async function weekPlayOffer(x) {
+  try {
+    let frames = x.c.frames; while (frames.length > 850) frames = frames.filter((f, i) => i % 2 === 0);
+    const data = await gzipB64(JSON.stringify(clipPack(Object.assign({}, x.c, { frames }))));
+    await fetch('/api/weekplay', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data, meta: { label: x.title, score: x.score } }) });
+  } catch (e) {}
+}
+// ---- best plays in real matches: the clip farm's eye for a good play, turned on the player's own game. Each of their
+// plays is scored as it happens; the best (if any were worth it) are shown with the results, to watch, and supporters
+// can keep them on their profile
+const PLAY = { pending: [], pl: new Map(), list: [], match: 0, get gt() { return rpNow(); } };
+let PC = FARM; // (which one the play-spotting functions below are working for: the clip farm, or the player's own match)
+const PLAY_MIN = 4.5; // (worth showing: a double kill, a set-up or ability knockout, a roast, a harpoon pull and up)
+const pcPlayer = id => { if (PC === FARM && world) return world.players.find(q => q.id === id); const p = view && view.p.find(q => q.id === id); return p ? { name: p.n, dead: p.d } : null; };
+const playOn = () => !INFRAME && !FARM.on && myId != null && (mode === 'online' || mode === 'local') && !TUT.on && !TR.on && !DESK.sim && !(roomInfo && roomInfo.spec);
+function playMine(e) { return ['moment', 'style', 'kill', 'dmg', 'clutch', 'gameEnd', 'slam'].includes(e.e) && !e.npc; } // (everyone's plays: the best of the game, and yours)
+function playEvents(evs) {
+  for (const e of evs) if (e.e === 'matchStart') { PLAY.list = []; PLAY.pending = []; PLAY.pl = new Map(); PLAY.sl = new Map(); PLAY.match++; PLAY.flushAt = 0; PLAY.offered = false; PLAY.shown = ''; }
+  if (!playOn()) return;
+  PC = PLAY; try { for (const e of evs) farmNote(e); } finally { PC = FARM; }
+  if (evs.some(e => e.e === 'matchEnd')) PLAY.flushAt = rpNow() + 1.2; // (a moment for the last knockout's aftermath, then whatever's waiting is saved)
+}
+function playTick() {
+  if (!PLAY.pending.length && !(PLAY.flushAt && !PLAY.offered)) return;
+  const now = rpNow(), all = PLAY.flushAt && now >= PLAY.flushAt;
+  PC = PLAY;
+  try { while (PLAY.pending.length && (all || now >= PLAY.pending[0].due)) farmCapture(PLAY.pending.shift()); }
+  catch (e) { PLAY.pending = []; } finally { PC = FARM; }
+  if (all && !PLAY.pending.length && !PLAY.offered) { PLAY.offered = true; const best = PLAY.list.find(x => x.k === myId); if (best && best.score >= 6 && mode === 'online' && account && !OFFLINE) weekPlayOffer(best); }
+}
+function playAdd(item, c) {
+  if (item.score < PLAY_MIN) return;
+  item.c = c;
+  // the same play caught twice: the better one, noting both
+  const dup = PLAY.list.filter(x => (item.kt.length && (x.kt || []).some(t => item.kt.includes(t))) || (item.focus != null && x.focus === item.focus && x.win[0] < item.win[1] - 1 && item.win[0] + 1 < x.win[1]));
+  if (dup.length) { const best = dup.reduce((m, x) => (x.score > m.score ? x : m)); if (best.score >= item.score) return; PLAY.list = PLAY.list.filter(x => !dup.includes(x)); }
+  PLAY.list.push(item); PLAY.list.sort((x, y) => y.score - x.score); { const mine = PLAY.list.filter(x => x.k === myId).slice(0, 3), rest = PLAY.list.filter(x => x.k !== myId).slice(0, 3); PLAY.list = mine.concat(rest).sort((x, y) => y.score - x.score); } // (the best few of everyone's, and of yours)
+  if (!$('resultsScreen').hidden) renderResPlays();
+}
+const isSupporter = () => !!(account && (account.admin || (WALLET && WALLET.status && WALLET.status.sp)));
+function renderResPlays() {
+  const box = $('resPlays'); if (!box) return;
+  if (INFRAME) { box.hidden = true; return; }
+  // two: the best play of the game (anyone's), and your best (if the best of the game isn't yours already)
+  const top = PLAY.list[0], mine = PLAY.list.find(x => x.k === myId), show = [];
+  if (top) show.push({ x: top, head: top.k === myId ? 'Best play of the game: yours!' : 'Best play of the game' });
+  if (mine && mine !== top) show.push({ x: mine, head: 'Your best play' });
+  box.hidden = !show.length; if (!show.length) { box.innerHTML = ''; PLAY.shown = ''; return; }
+  const key = show.map(o => o.x.id + (o.x.kept || '')).join(',');
+  if (PLAY.shown === key && box.innerHTML) return; PLAY.shown = key; // (the cards hold their frames: only redrawn when what's in them changes)
+  const sup = isSupporter(), online = account && !OFFLINE;
+  box.innerHTML = `<div class="rplays2">${show.map((o, i) => `<div class="rplay2"><span class="hd">${esc(o.head)}</span><div class="rpc" data-rpc="${i}"></div>
+    <div class="rpi"><span class="sc">${o.x.score}</span><span><b>${esc(o.x.title)}</b><small>${esc(o.x.line)}</small></span></div>
+    ${o.x.k === myId && online ? `<button type="button" class="${sup ? 'ghost' : 'ghost locked'} sm" data-pkeep="${i}"${o.x.kept === true ? ' disabled' : ''}>${o.x.kept === true ? 'Kept ✓' : o.x.kept === 'saving' ? 'Saving…' : sup ? 'Keep on profile' : '★ Keep (supporters)'}</button>` : ''}</div>`).join('')}</div><small class="status">Hover to play · click to watch full size</small>`;
+  show.forEach((o, i) => clipCard(box.querySelector(`[data-rpc="${i}"]`), '/play?cframe=1&preview=1', clipPack(o.x.c), o.x.title, () => playWatch(o.x)));
+  PLAY.cards = show.map(o => o.x);
+}
+$('resPlays').onclick = ev => {
+  const k = ev.target.closest('[data-pkeep]'); if (!k) return; const x = (PLAY.cards || [])[+k.dataset.pkeep]; if (!x) return;
+  if (!isSupporter()) { notice('Keeping your best plays is for supporters (it helps keep Bowfall running).', false); return; }
+  playKeep(x);
+};
+// watch a play: on the game's canvas, as a kill cam (or an even slow motion for one about the archer), then back to the results
+function playWatch(x) {
+  if (!x || RP.on) return;
+  const c = clipUnpack(JSON.parse(JSON.stringify(clipPack(x.c))));
+  PLAY.watch = { results: !$('resultsScreen').hidden, map: MAPKEY, me: myId };
+  $('resultsScreen').hidden = true;
+  CLIP.playing = { c, local: true, meta: { label: x.title, play: 1 } };
+  $('cvTitle').textContent = x.title; $('cvSub').textContent = x.line.replace(/^[^:]*: /, '');
+  document.body.classList.add('clipmode'); $('clipView').hidden = false;
+  clipReplay();
+}
+async function playKeep(x) {
+  if (x.kept) return;
+  const c = Object.assign({}, x.c, { label: x.title, play: 1, score: x.score });
+  x.kept = 'saving'; renderResPlays();
+  try {
+    let frames = c.frames; while (frames.length > 850) frames = frames.filter((f, i) => i % 2 === 0); // (the server keeps up to 900 frames)
+    const data = await gzipB64(JSON.stringify(clipPack(Object.assign({}, c, { frames }))));
+    const d = await clipPost({ data, meta: { label: x.title, play: 1, score: x.score }, feature: 0 });
+    x.kept = true; clipTake(d);
+  } catch (e) { x.kept = false; notice(esc(e.message || 'Could not keep it'), false); }
+  renderResPlays();
+}
+function farmPl(id) { let o = PC.pl.get(id); if (!o) PC.pl.set(id, o = { dodge: [], dash: [], dmg: [], kill: [], flag: -99, bflag: -99 }); const T = PC.gt - 10; for (const k of ['dodge', 'dash', 'dmg', 'kill']) while (o[k].length && (o[k][0].t != null ? o[k][0].t : o[k][0]) < T) o[k].shift(); return o; }
 // near misses: an enemy arrow that came within 60 px of an archer and went on by without hitting them
 function farmTrack() {
-  const N = FARM.near, now = FARM.gt, live = new Set();
+  const N = FARM.near, now = PC.gt, live = new Set();
   for (const a of world.arrows) {
     if (a.stuck > 0) continue; live.add(a.id);
     let m = N.get(a.id);
@@ -12160,22 +12366,33 @@ function farmDodge(pid, by, t) {
 }
 // evasive: five or more near misses in 8 seconds, dashing about, while still dealing damage or knocking someone out
 function farmEvasive(id) {
-  const P = farmPl(id), now = FARM.gt, p = world.players.find(q => q.id === id); if (!p || p.dead) return;
+  const P = farmPl(id), now = PC.gt, p = world.players.find(q => q.id === id); if (!p || p.dead) return;
   const T = now - 8, dodges = P.dodge.filter(t => t >= T).length, dashes = P.dash.filter(t => t >= T).length, dmg = P.dmg.filter(x => x.t >= T).reduce((a, x) => a + x.v, 0), kills = P.kill.filter(t => t >= T).length;
-  const same = FARM.pending.find(x => x.e.e === 'evasive' && x.e.id === id);
+  const same = PC.pending.find(x => x.e.e === 'evasive' && x.e.id === id);
   if (dodges < 6 || dashes < 2 || !kills || (!same && now - P.flag < 12)) return; // (dodging alone isn't a clip: it has to end in a knockout)
   if (!same) P.flag = now; // (one clip for a run of it; the next can't start for a while)
   const e = { e: 'evasive', id, kn: p.name, n: Math.max(dodges, same ? same.e.n : 0), dmg, kills, a0: same ? same.e.a0 : now - 8 };
-  if (same) { same.e = e; same.at = now; same.due = now + 3.4; } else FARM.pending.push({ e, at: now, due: now + 3.4 });
-  FARM.pending.sort((a, b) => a.due - b.due);
+  if (same) { same.e = e; same.at = now; same.due = now + 3.4; } else PC.pending.push({ e, at: now, due: now + 3.4 });
+  PC.pending.sort((a, b) => a.due - b.due);
 }
 // what's worth keeping: the best moments (multi-kills, roasts, bullying, long shots), clutches, game-winning knockouts,
 // harpoon pulls into hazards, bursts of damage and evasive play
 function farmNote(e) {
-  const at = FARM.gt, push = (ev, due) => { FARM.pending.push({ e: ev, at, due: at + due }); };
+  if (PC === PLAY && !playMine(e)) return; // (a real match: only the player's own plays are looked for)
+  const at = PC.gt, push = (ev, due) => { PC.pending.push({ e: ev, at, due: at + due }); };
+  if (e.e === 'moment' && e.m === 'bully') return; // (bullying is followed slam by slam below instead)
+  if (e.e === 'slam' && e.by != null && e.by !== e.id) {
+    // bullying: slammed into the walls again and again (by one archer or several), each slam within 1.8 s of the last
+    const m = PC.sl || (PC.sl = new Map()); let S = m.get(e.id);
+    if (!S || at - S.last > 1.8) { S = { list: [], last: at }; m.set(e.id, S); }
+    S.list.push({ t: at, by: e.by, cn: e.cn ? 1 : 0 }); S.last = at;
+    if (S.list.length >= 3) { const vp = pcPlayer(e.id), ev = { e: 'bully2', v: e.id, vn: vp ? vp.name : '', run: S.list.slice() }, same = PC.pending.find(x => x.e.e === 'bully2' && x.e.v === e.id && x.e.run[0].t === S.list[0].t);
+      if (same) { same.e = ev; same.at = at; same.due = at + 3; } else push(ev, 3); }
+    PC.pending.sort((a, b) => a.due - b.due); return;
+  }
   if (e.e === 'moment') {
     // a multi-kill growing (a double becoming a triple) replaces the one waiting to be saved
-    const same = FARM.pending.find(x => x.e.e === 'moment' && x.e.m === e.m && x.e.k === e.k && (e.m === 'multi' || (e.m === 'bully' && x.e.v === e.v)));
+    const same = PC.pending.find(x => x.e.e === 'moment' && x.e.m === e.m && x.e.k === e.k && (e.m === 'multi' || (e.m === 'bully' && x.e.v === e.v)));
     if (same) { same.e = e; same.at = at; same.due = at + 3.2; return; }
     push(e, 3.2);
   } else if (e.e === 'clutch') push(e, 2.8);
@@ -12184,7 +12401,7 @@ function farmNote(e) {
     const P = farmPl(e.by); P.dmg.push({ t: at, v: e.v || 0 });
     // a burst: 130 or more damage dealt inside 3 seconds
     const run = P.dmg.filter(x => x.t >= at - 3), sum = run.reduce((a, x) => a + x.v, 0);
-    if (sum >= 130 && at - P.bflag > 6) { const p = world.players.find(q => q.id === e.by), ev = { e: 'burst', id: e.by, kn: p ? p.name : '', n: sum, t0: run[0].t }, same = FARM.pending.find(x => x.e.e === 'burst' && x.e.id === e.by);
+    if (sum >= 130 && at - P.bflag > 6) { const p = pcPlayer(e.by), ev = { e: 'burst', id: e.by, kn: p ? p.name : '', n: sum, t0: run[0].t }, same = PC.pending.find(x => x.e.e === 'burst' && x.e.id === e.by);
       if (same) { if (sum > same.e.n) { same.e = Object.assign(ev, { t0: Math.min(ev.t0, same.e.t0) }); same.at = at; same.due = at + 3.4; } } else { push(ev, 3.4); P.bflag = at - 3; } }
   } else if (e.e === 'kill' && e.k != null && !e.npc) {
     farmPl(e.k).kill.push(at);
@@ -12193,8 +12410,8 @@ function farmNote(e) {
     // a knockout with some play behind it (a dash into position, a trapped or frozen target, an ability that set it up, a run of hits into a wall)
     else { const st = killStyle(e, at); if (st.score >= 2.5) push({ e: 'style', k: e.k, kn: e.kn, v: e.v, vn: e.vn, c: e.c, st }, 3); }
   }
-  if (e.e === 'gameEnd' && e.rw !== 'draw' && RP.lastKill && at - RP.lastKill.t < 1.5) FARM.pending.push({ e: { e: 'winko', k: RP.lastKill.k, kn: RP.lastKill.kn, v: RP.lastKill.v, vn: RP.lastKill.vn }, at: RP.lastKill.t, due: at + 2.5 });
-  FARM.pending.sort((a, b) => a.due - b.due);
+  if (e.e === 'gameEnd' && e.rw !== 'draw' && RP.lastKill && at - RP.lastKill.t < 1.5) PC.pending.push({ e: { e: 'winko', k: RP.lastKill.k, kn: RP.lastKill.kn, v: RP.lastKill.v, vn: RP.lastKill.vn }, at: RP.lastKill.t, due: at + 2.5 });
+  PC.pending.sort((a, b) => a.due - b.due);
 }
 // the play behind a knockout, from the events and frames just before it: what set it up, and what it's worth
 const CC_WORD = { fz: 'frozen', pn: 'pinned', hk: 'hooked', su: 'stunned', st: 'rooted' };
@@ -12216,7 +12433,7 @@ function killStyle(e, t) {
   if (ev('pinned', x => x.id === e.v && x.by === e.k, 3) && cc !== 'pn') { tags.push('pinned first'); score += 1; }
   // smashed into the walls: a run of quick hits that threw them into a wall or corner again and again
   const hits = RP.evs.filter(x => x.e.e === 'hit' && x.e.by === e.k && x.e.id === e.v && t - x.t < 3.2).length, slams = RP.evs.filter(x => (x.e.e === 'thud' || x.e.e === 'spike') && x.e.id === e.v && t - x.t < 3.2).length;
-  if (hits >= 3 && slams >= 2) { tags.push(`${hits} quick hits, ${slams} slams`); score += 2.5 + (hits - 3) * 0.5 + (slams - 2) * 0.5; }
+  // (a run of slams into the walls is its own kind of clip: see 'bully2')
   return { tags, score, cc: !!cc, dashed, hits, slams };
 }
 const FARM_KEEP = { all: 0, good: 3, best: 4.5, s6: 6, s8: 8, s10: 10, s13: 13 };
@@ -12231,7 +12448,7 @@ const FARM_LOOK = [
   ['dash', 'Dash knockout', it => it.title === 'Dash knockout' || /dash into position/.test(it.line)],
   ['ability', 'Ability knockout (Rush, Volley, Quake)', it => it.title === 'Ability knockout' || /Bull Rush|Volley|Quake/.test(it.line)],
   ['held', 'Held knockout (frozen, rooted, pinned)', it => it.title === 'Held knockout' || /(frozen|rooted|pinned|stunned|hooked) target/.test(it.line)],
-  ['bully', 'Bullied out', it => /^Bullied out|^Merciless/.test(it.title)],
+  ['bully', 'Bullied, cornered or merciless (into the walls)', it => /^(Bullied|Cornered|Merciless)/.test(it.title)],
   ['harpoon', 'Harpooned', it => it.title === 'Harpooned'],
   ['roast', 'Roasted', it => it.title === 'Roasted'],
   ['snipe', 'Long shot', it => it.title === 'Long shot' || /sniped/.test(it.line)],
@@ -12247,12 +12464,26 @@ function farmCapture(P) {
   if (e.e === 'evasive' || e.e === 'burst') {
     // about one archer rather than one knockout: the stretch it happened over, with any knockouts they made in it
     focus = e.id;
-    const a0 = Math.max(RP.buf.length ? RP.buf[0].t + 2.6 : 0, e.e === 'burst' ? e.t0 - 1.5 : Math.max(e.a0 != null ? e.a0 : T - 8, T - 13)), b0 = Math.min(FARM.gt - 0.1, T + 1.2);
+    const a0 = Math.max(RP.buf.length ? RP.buf[0].t + 2.6 : 0, e.e === 'burst' ? e.t0 - 1.5 : Math.max(e.a0 != null ? e.a0 : T - 8, T - 13)), b0 = Math.min(PC.gt - 0.1, T + 1.2);
     ks = kevs.filter(x => x.k === focus && x.t >= a0 && x.t <= b0);
     const subs = ks.map(k => replaySeg(k, false).subs[0]);
     segs = [{ t0: a0, t1: Math.max(b0, ks.length ? ks[ks.length - 1].t + 0.9 : b0), subs: subs.length ? subs : [{ kt: b0 - 0.3, v: null }] }];
     if (e.e === 'burst') { title = 'Burst'; line = `${e.kn} dealt ${e.n} damage in 3 seconds${ks.length ? ` (${ks.length} knockout${ks.length > 1 ? 's' : ''})` : ''}`; score = 3 + (e.n - 130) / 40 + ks.length; }
     else { title = 'Untouchable'; line = `${e.kn} dodged ${e.n} shots and knocked out ${e.kills}`; score = 1.5 + (e.n - 6) * 0.25 + e.kills * 1.1 + e.dmg / 200; }
+  } else if (e.e === 'bully2') {
+    // bullying: the more slams, the quicker they came, the more into a corner and the more archers joining in, the better;
+    // best of all if it ends in the knockout
+    const run = e.run, t0 = run[0].t, t1 = run[run.length - 1].t, cnt = {}; for (const r of run) cnt[r.by] = (cnt[r.by] || 0) + 1;
+    const bys = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]), K = bys[0], n = run.length, span = Math.max(0.4, t1 - t0), corners = run.filter(r => r.cn).length;
+    const ko = kevs.find(x => x.v === e.v && x.t >= t0 && x.t <= t1 + 2.5);
+    const nm = id => { const p = pcPlayer(id); return p ? p.name : ''; };
+    e.k = K; e.kn = nm(K);
+    ks = ko ? [ko] : [];
+    if (ko) { const sg = replaySeg(ko, true); sg.t0 = Math.min(sg.t0, t0 - 1.2); segs = [sg]; }
+    else segs = [{ t0: t0 - 1.2, t1: t1 + 1, subs: [{ kt: t1, v: e.v }] }];
+    score = 1 + (n - 3) * 1.3 + Math.min(3, (n - 1) / span) * 1.2 + corners * 0.7 + (bys.length - 1) * 1.2 + (ko ? 2.5 : 0);
+    title = ko ? (n >= 6 ? 'Merciless' : corners >= 2 ? 'Cornered out' : 'Bullied out') : corners >= 2 ? 'Cornered' : n >= 6 ? 'Merciless' : 'Bullied';
+    line = `${bys.map(nm).join(' and ')} slammed ${e.vn} into the walls ${n} times in ${span.toFixed(1)} s${corners ? ` (${corners} into a corner)` : ''}${ko ? ' and knocked them out' : ''}`;
   } else {
     if (e.e === 'moment' && e.m === 'multi') ks = kills.filter(k => k.t >= T - 6);
     else if (e.e === 'moment' && e.m === 'bully') {
@@ -12268,7 +12499,7 @@ function farmCapture(P) {
     if (e.e === 'style') segs[0].t0 = Math.min(segs[0].t0, T - (e.st.hits >= 3 ? 3.4 : e.st.dashed ? 2.2 : 1.8)); // (the set-up too)
     if (e.e === 'harpoon') { const h = RP.evs.find(x => x.e.e === 'hooked' && x.e.id === e.v && x.e.by === e.k && x.t >= ks[0].t - 4); if (h) segs[0].t0 = Math.min(segs[0].t0, h.t - 1); }
     const T2 = e.e === 'moment' ? momentText(e, false) : null;
-    const S = e.e === 'style' ? e.st : null, styleTitle = S ? (S.hits >= 3 && S.slams >= 2 ? 'Bullied out' : S.tags.some(x => /Rip, /.test(x)) ? 'Rip' : S.cc && S.dashed ? 'Set-up knockout' : S.tags.some(x => /Volley|Rush|Quake|Rip/.test(x)) ? 'Ability knockout' : S.dashed ? 'Dash knockout' : 'Held knockout') : null;
+    const S = e.e === 'style' ? e.st : null, styleTitle = S ? (S.tags.some(x => /Rip, /.test(x)) ? 'Rip' : S.cc && S.dashed ? 'Set-up knockout' : S.tags.some(x => /Volley|Rush|Quake|Rip/.test(x)) ? 'Ability knockout' : S.dashed ? 'Dash knockout' : 'Held knockout') : null;
     title = e.e === 'harpoon' ? 'Harpooned' : S ? styleTitle : T2 ? (e.m === 'bully' ? (e.n >= 5 ? 'Merciless' : 'Bullied') : T2.title) : e.e === 'clutch' ? `Clutch 1v${e.vs}` : 'Game-winning knockout';
     line = e.e === 'harpoon' ? `${e.kn} reeled ${e.vn} into ${HAZ_WORD[e.c] || 'trouble'}` : S ? `${e.kn} knocked out ${e.vn}: ${S.tags.join(', ')}` : T2 ? T2.line.replace(/<[^>]+>/g, '') : e.e === 'clutch' ? `${e.n} won a 1v${e.vs}` : `${e.kn} knocked out ${e.vn} to win the game`;
     score = (e.e === 'moment' ? (e.m === 'bully' ? 2 + e.n * 0.5 : momentScore(e)) : e.e === 'clutch' ? 3 + e.vs * 1.5 : e.e === 'harpoon' ? 4.5 : S ? 2 + S.score : 1.5) + extra;
@@ -12292,6 +12523,7 @@ function farmCapture(P) {
   const who = e.e === 'clutch' ? e.n : e.kn, K = e.k != null ? e.k : e.id;
   const c = { map: MAPKEY, me: K, k: K, n: Math.max(1, ks.length), segs, frames, evs };
   const item = { id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title, line, who, score: Math.round(score * 10) / 10, map: MAPKEY, at: Date.now(), match: FARM.match, kt: ks.map(k => +k.t.toFixed(2)), k: K, focus, win: [+a.toFixed(2), +b.toFixed(2)], data: clipPack(c), fresh: 1 };
+  if (PC === PLAY) { playAdd(item, c); return; } // (a real match: one of the player's own plays, for the results screen)
   if (item.score < Math.max(FARM_KEEP[(FARM.cfg || {}).keep] || 0, FARM.hunt && !((FARM.cfg || {}).look || []).length ? 6 : 0)) return; // (not good enough to keep; hunting keeps only the very best)
   const look = (FARM.cfg || {}).look || []; if (look.length) { const all = Object.assign({}, item, { title: item.title + (item.also ? ' ' + item.also.join(' ') : '') }); if (!FARM_LOOK.some(([k, , f]) => look.includes(k) && (f(item) || f(all)))) return; } // (only the plays asked for)
   FARM.found = (FARM.found || 0) + 1;
@@ -12483,7 +12715,7 @@ function studioPlay() {
   const focus = it.focus != null ? it.focus : null;
   const finSub = lg.subs[lg.subs.length - 1], hasKill = finSub && finSub.v != null;
   // real time, then the kill cam only for the final shot (or ability): from just before it's loosed, in slow motion riding it in
-  const finalPlan = () => { const P = replayPlan(c.segs, c.n); return { speed: Math.min(P.speed, 0.5), early: 1, finFrom: Math.max(lg.t0, finSub.castT != null ? finSub.castT - 0.35 : finSub.shotT != null ? finSub.shotT - 0.45 : finSub.hitT != null ? finSub.hitT - 0.6 : finSub.kt - 0.8), finalOnly: true }; };
+  const finalPlan = () => finalShotPlan(c.segs, c.n);
   const plan = E.style === 'real' ? { speed: 1, early: 1, finFrom: Infinity, real: true } : E.style === 'final' && hasKill ? finalPlan() : E.style === 'final' ? { speed: 1, early: 1, finFrom: Infinity, real: true } : focus != null ? { speed: 0.55, early: 0.55, finFrom: Infinity, fixed: 0.55 } : replayPlan(c.segs, c.n);
   // (the effects from before the start aren't replayed all at once as it begins)
   let fired = c.evs.findIndex(x => x.t >= c.segs[0].t0); if (fired < 0) fired = c.evs.length;
@@ -12818,6 +13050,13 @@ if (SHOWCASE) {
   setInterval(() => { if (!world) return; since++; if (world.match.ph === 'over') { if (!overAt) overAt = since; else if (since - overAt > 2) { since = 0; next(); } } else if (since > 150) { since = 0; next(); } }, 1000);
 }
 // a link to a featured kill cam (?clip=…), or the website showing one (&embed=1: just the replay, looping)
+// several (?clips=a,b,c&embed=1): played one after another, round and round (the main menu's plays of the week)
+if (params.get('clips') && /^[a-f0-9]{12}(,[a-f0-9]{12}){0,4}$/.test(params.get('clips'))) {
+  CLIP.queue = { ids: params.get('clips').split(','), i: 0 };
+  document.body.classList.add('clipembed'); if (params.get('preview') === '1') { document.body.classList.add('clippreview'); muted = true; }
+  $('gate').hidden = true;
+  setTimeout(() => { playClip(CLIP.queue.ids[0], true); try { parent.postMessage({ bfPlay: 0 }, location.origin); } catch (e) {} }, 300);
+}
 if (params.get('clip') && /^[a-f0-9]{12}$/.test(params.get('clip'))) {
   const embed = params.get('embed') === '1';
   if (embed) document.body.classList.add('clipembed');
