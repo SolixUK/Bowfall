@@ -832,7 +832,13 @@ async function api(req, res, url) {
     const wk = weekKey();
     try {
       const pool = (await store.clipList(WEEK_POOL)).map(c => ({ id: c.id, meta: typeof c.meta === 'string' ? JSON.parse(c.meta) : c.meta })).filter(c => c.meta && typeof c.meta === 'object').sort((a, b) => (+b.meta.score || 0) - (+a.meta.score || 0) || (a.meta.ai ? 1 : 0) - (b.meta.ai ? 1 : 0)), out = c => ({ id: c.id, label: c.meta.label, who: c.meta.who, score: c.meta.score, map: c.meta.map, at: c.meta.at, ai: c.meta.ai ? 1 : undefined }); // (a real player's play wins a tie with an AI player's)
-      return json(res, 200, { week: wk, plays: pool.filter(c => c.meta.week === wk).slice(0, 3).map(out), all: pool.slice(0, 3).map(out) });
+      const plays = pool.filter(c => c.meta.week === wk).slice(0, 3).map(out), all = pool.slice(0, 3).map(out);
+      // each maker's banner as it is now (name, level, flag, clan, frame, background, border, title, medals), for the card
+      const bn = {}; for (const x of plays.concat(all)) { const c = pool.find(q => q.id === x.id); if (!c || bn[x.id] !== undefined) continue;
+        let u = null; try { u = c.meta.uid ? (live.get(c.meta.uid) || (await store.usersByIds([c.meta.uid]))[0]) : (social._ai() || []).find(a => a.name === c.meta.who); } catch (e) {}
+        bn[x.id] = u ? Object.assign({ n: u.name, cc: flagOf(u), lv: levelOf(u.career).lv, ti: u.title || null }, u.career && u.career.ai ? { bd: (u.ach && u.ach.border) || null, na: Object.keys((u.ach && u.ach.got) || {}).length || null } : lookOf(u)) : null; }
+      for (const x of plays.concat(all)) x.bn = bn[x.id] || null;
+      return json(res, 200, { week: wk, plays, all });
     } catch (e) { // (noted where the owner can read it, /api/perf, and an empty list rather than an error)
       console.error('weekplays:', e); PERF.errors.unshift({ t: Date.now(), name: 'server', where: 'server:weekplays', m: String(e && e.message || e).slice(0, 300), s: String(e && e.stack || '').slice(0, 1200), v: Sim.VERSION, mode: '', ph: '', map: '', ua: '' });
       return json(res, 200, { week: wk, plays: [], all: [], err: String(e && e.message || e).slice(0, 200) });

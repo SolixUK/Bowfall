@@ -466,6 +466,8 @@
   .coach .eyebrow { font-size: 13px; }
   .coach b { font: 700 20px/1.25 'Rajdhani', 'Arial Narrow', sans-serif; }
   .coach small { color: #c9d4c6; font-size: 15px; line-height: 1.45; }
+  .coach [data-tutel] { display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: 2px; flex: 1 1 130px; border-left: 4px solid var(--elc); }
+  .coach [data-tutel] b { font: 700 17px 'Rajdhani', sans-serif; } .coach [data-tutel] small { font-size: 12px; line-height: 1.3; color: inherit; opacity: .85; text-transform: none; letter-spacing: 0; }
   .coachbar { height: 3px; background: rgba(255,255,255,.1); }
   .coachbar i { display: block; height: 100%; background: var(--gold); transition: width .3s; }
   .coach .btnrow { justify-content: flex-end; }
@@ -623,11 +625,11 @@
   .pcclipw { position: relative; display: flex; gap: 10px; align-items: stretch; }
   .pcclipw .pcclip { flex: 1; min-width: 0; }
   /* the featured kill cam playing, small beside its button; hovering it (or the button) plays it big */
-  .weekplays { width: 330px; padding: 8px; background: rgba(9,18,11,.82); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+  .weekplays { width: var(--rcw, 300px); box-sizing: border-box; padding: 8px; background: rgba(9,18,11,.82); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
   .weekplays .wph { display: flex; align-items: baseline; justify-content: space-between; } .weekplays .wph b { font: 700 15px 'Rajdhani', sans-serif; color: var(--gold); letter-spacing: .04em; text-transform: uppercase; } .weekplays .wph small { color: var(--muted); font-size: 11px; }
   .wpprev { position: relative; width: 234px; aspect-ratio: 16 / 9; background: #000; overflow: hidden; cursor: pointer; border: 1px solid var(--line); transition: transform .2s ease-out, box-shadow .2s; transform-origin: right top; z-index: 8; }
   .wpprev iframe { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; border: 0; transform: scale(calc(234 / 1280)); transform-origin: 0 0; pointer-events: none; }
-  .wpcard { width: 314px; } .wpcard[hidden] { display: none; } .ccard { transform-origin: right top; }
+  .wpcard { width: 100%; } .wpcard[hidden] { display: none; } .ccard { transform-origin: right top; }
   .wpcap { font-size: 12px; color: var(--text); line-height: 1.3; } .wpcap b { color: var(--gold); font: 700 15px 'Rajdhani', sans-serif; margin-right: 4px; } .wpcap small { display: block; color: var(--muted); font-size: 11px; }
   .wpprev.big { transform: scale(var(--pk, 3)); box-shadow: 0 8px 26px rgba(0,0,0,.75); border-color: var(--gold); }
   .wptabs[hidden], .wpprev[hidden], .wpnote[hidden] { display: none !important; }
@@ -719,6 +721,15 @@
 
   /* extra players on controllers */
   .lpbox { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  /* the menu's right column: banner, clan, friends and the best play all the same width, edges lined up */
+  .hometop { --rcw: 300px; } .hometop > .toprow, .hometop > .frpanel, .hometop > .weekplays { width: var(--rcw); box-sizing: border-box; }
+  .hometop > .toprow { align-items: stretch; } .hometop .profchip, .hometop .clanchip { width: 100%; box-sizing: border-box; }
+  .profchip .pcn.plate { flex: 1; min-width: 0; margin: 0; padding: 6px 16px 6px 10px; align-self: stretch; justify-content: center; } .profchip .pcn.plate b { flex-wrap: wrap; gap: 4px; }
+  .profchip:has(.pcn.plate) { padding: 0; gap: 0; background: transparent; border-color: transparent; clip-path: none; } .profchip:has(.pcn.plate) canvas { width: 56px; height: 56px; background: rgba(9,18,11,.86); border: 1px solid var(--line); box-sizing: border-box; } .profchip:has(.pcn.plate):hover .plate { filter: brightness(1.12); }
+  .wpcap .wpl { display: flex; gap: 8px; align-items: center; } .wpcap .wpl .sc { color: var(--gold); font: 700 18px 'Rajdhani', sans-serif; }
+  .wpcap .wpl span { display: flex; flex-direction: column; font: 700 14px 'Rajdhani', sans-serif; } .wpcap .wpl small { margin: 0; }
+  .wpcap .plate { display: flex; margin-top: 4px; max-width: 100%; box-sizing: border-box; }
+  .lpbtn-ico { width: 16px; height: 12px; margin-right: 6px; vertical-align: -1px; }
   .hometop { flex-direction: column; align-items: flex-end; gap: 8px; }
   @media (min-width: 960px) { .homewrap { position: relative; padding-top: 84px; } .hometop { position: absolute; top: 8px; right: 0; z-index: 1; } }
   .lplist { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
@@ -757,7 +768,7 @@
   .cards.mini { gap: 8px; }
   .pcard.mini { padding: 10px 12px; min-height: 0; }
   .pcard.mini b { font-size: 16px; } .pcard.mini p { font-size: 12.5px; margin: 4px 0 0; } .pcard.mini .pk-tree { font-size: 11px; }
-  .frpanel { width: 260px; max-height: 300px; overflow-y: auto; padding: 10px 12px; background: rgba(10,18,12,.82); border: 1px solid var(--line); border-top: 2px solid var(--teal); display: flex; flex-direction: column; gap: 6px; }
+  .frpanel { width: 260px; box-sizing: border-box; max-height: 300px; overflow-y: auto; padding: 10px 12px; background: rgba(10,18,12,.82); border: 1px solid var(--line); border-top: 2px solid var(--teal); display: flex; flex-direction: column; gap: 6px; }
   .frpanel .frh { display: flex; justify-content: space-between; align-items: baseline; font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; }
   .frpanel .frh span { font: 500 12px 'Titillium Web', sans-serif; color: #7dff8a; }
   .frrow { display: flex; align-items: center; gap: 8px; }
@@ -1069,6 +1080,11 @@
   .slot .plate { padding: 3px 10px 3px 8px; margin: 3px 0; background: linear-gradient(90deg, rgba(255,255,255,.07), rgba(255,255,255,.02)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
     clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%); }
   .slot .plate.bordered { box-shadow: inset 0 0 0 2px var(--bd), 0 0 12px -4px var(--bd); background: linear-gradient(90deg, color-mix(in srgb, var(--bd) 22%, transparent), rgba(255,255,255,.02)); }
+  /* the same banner on the menu: your own (the profile button) and the best play's maker */
+  .profchip .plate, .wpcap .plate { background: linear-gradient(90deg, rgba(255,255,255,.09), rgba(255,255,255,.03)), rgba(9,18,11,.86); box-shadow: inset 0 0 0 1px rgba(255,255,255,.1); clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%); }
+  .profchip .plate.bordered, .wpcap .plate.bordered { box-shadow: inset 0 0 0 2px var(--bd), 0 0 12px -4px var(--bd); background: linear-gradient(90deg, color-mix(in srgb, var(--bd) 24%, transparent), rgba(255,255,255,.03)), rgba(9,18,11,.86); }
+  .wpcap .plate { padding: 4px 14px 4px 8px; } .wpcap .plate .pl1 { display: flex; align-items: center; flex-wrap: wrap; gap: 0 4px; } .wpcap .plate .pl1 b { font: 700 16px 'Rajdhani', sans-serif; }
+  .profchip .plate.frm, .wpcap .plate.frm { clip-path: none; }
   .slot .plate .pl1 { display: flex; align-items: center; gap: 0; min-width: 0; }
   /* when the plate is short of room the title gives way first, then the name; badges keep their size */
   .slot .plate .pl1 b { flex: 0 0 auto; white-space: nowrap; }
@@ -1563,7 +1579,7 @@
           <button type="button" class="clanchip" id="clanChip" title="Your clan, and the best clans" hidden><span id="clanChipEm"></span><span class="cct"><b id="clanChipName">Clans</b><small id="clanChipSub">Join or start one</small></span><span class="pip" id="clanPip" hidden></span></button>
           <button type="button" class="profchip" id="profChip" title="Edit your profile and banner"><canvas id="profAv" width="96" height="96"></canvas><span class="pcn"><b id="profName">Archer</b><small id="profSub">Guest · edit profile</small></span></button>
         </div>
-        <div class="lpbox"><div class="lplist" id="lpList"></div><button type="button" class="ghost sm" id="lpAdd" title="Another player with their own controller, on this screen">+ Add player on controller</button></div>
+        <div class="lpbox"><div class="lplist" id="lpList"></div><button type="button" class="ghost sm" id="lpAdd" title="Another player with their own controller, on this screen"><svg class="lpbtn-ico" viewBox="0 0 24 16" aria-hidden="true"><path d="M6.5 1.5h11a5.5 5.5 0 0 1 5.4 6.6l-1 5a2.6 2.6 0 0 1-4.6 1.1L15 11.5H9l-2.3 2.7a2.6 2.6 0 0 1-4.6-1.1l-1-5A5.5 5.5 0 0 1 6.5 1.5z" fill="currentColor" opacity=".9"/><path d="M6.6 5v4M4.6 7h4" stroke="#11160f" stroke-width="1.6" stroke-linecap="round"/><circle cx="16.6" cy="5.6" r="1.1" fill="#11160f"/><circle cx="18.6" cy="8" r="1.1" fill="#11160f"/></svg>Add player on controller</button></div>
         <div class="frpanel" id="homeFriends" hidden></div>
         <button type="button" class="homelive" id="homeLive" hidden></button>
         <a class="dclink" id="homeDiscord" href="#" target="_blank" rel="noopener" title="Join the Bowfall Discord" aria-label="Join the Bowfall Discord" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.3 4.4A19.6 19.6 0 0 0 15.5 3l-.6 1.2a18 18 0 0 0-5.8 0L8.5 3a19.6 19.6 0 0 0-4.8 1.4C.6 9 .0 13.5.3 18a19.8 19.8 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4c-.6.4-1.3.7-2 1L17.7 21a19.7 19.7 0 0 0 6-3c.4-5.2-.7-9.7-3.4-13.6zM8.5 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4zm7 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4z"/></svg></a>
@@ -2172,7 +2188,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.70.5';
+const VERSION = '0.71.1';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -7183,7 +7199,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.70.5';
+const PAGE_VERSION = '0.71.1';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -7978,7 +7994,7 @@ function touchify(t) {
     .replace('Aim with the mouse. Hold the left button to draw, then let go to shoot the dummy.', 'Put your right thumb down on the right of the screen and slide to aim. It draws while held: let go to shoot the dummy.')
     .replace('Hold until the ring round your cursor turns white', 'Hold until the ring round your aim turns white')
     .replace(/Press Space to dash[^.]*\./, 'Tap the Dash button to dash the way you\'re moving.').replace('Press Space to dash out of the way.', 'Tap Dash to get out of the way.')
-    .replace('Press Q to use', 'Tap the Q button to use').replace('press 1, 2 or 3', 'tap a card');
+    .replace(/Press [QE] to use/, 'Tap the Q button to use').replace('press 1, 2 or 3', 'tap a card');
 }
 function tutHighlight(k) {
   for (const id of ['tbQ', 'tbDash']) { const b = $(id); if (b) b.classList.toggle('tuthl', TUT.on && TOUCH.on && ((id === 'tbQ' && k === 'ability') || (id === 'tbDash' && (k === 'dash' || k === 'dodge')))); }
@@ -7989,7 +8005,7 @@ function padify(t) {
   return t.replace('Move with W A S D, or the left stick.', 'Move with the left stick.')
     .replace('Aim with the mouse. Hold the left button to draw', `Aim with the right stick. Hold ${P('draw')} to draw`)
     .replace('round your cursor', 'round your crosshair')
-    .replace('Press Space to dash', `Press ${P('dash')} to dash`).replace('Press Q to use', `Press ${P('q')} to use`)
+    .replace('Press Space to dash', `Press ${P('dash')} to dash`).replace('Press Q to use', `Press ${P('q')} to use`).replace('Press E to use', `Press ${P('e')} to use`)
     .replace('press 1, 2 or 3', `press ${P('x')}, ${P('y')} or ${P('b')}`).replace('Press 1, 2 or 3, or click a card.', `Press ${P('x')}, ${P('y')} or ${P('b')} to pick a card.`)
     .replace('Scroll or press + / − to zoom.', '');
 }
@@ -8639,10 +8655,13 @@ const TUT_STEPS = [
   { k: 'dodge', title: 'Dodge', text: 'The dummy shoots back now. A white spark on its bow means a full-power shot. Press Space to dash out of the way. Dodge 5 shots.', hint: 'Dash sideways just as it lets go.{dodgeopt}' },
   { k: 'ability', title: 'Ability', text: 'Press Q to use your ability, {ab}, then shoot the dummy.', hint: 'Abilities come from your role. You pick your first before round 1, and can earn a second one later.' },
   { k: 'knock', title: 'Knockback', text: 'Knockback is your real weapon. Shoot the dummy into the pit.', hint: 'Anything that falls in a pit or water is out at once, whatever its health. Walls hurt when you\'re thrown into them, and lava burns.' },
-  { k: 'build', title: 'Your archer', info: true, text: 'Every archer is one element plus one role. You\'re a {arch}.', hint: 'Your element adds an effect to every arrow. Your role sets your health, speed and abilities. Each has its own upgrades, and you can pick any pair before a game.' },
   { k: 'pick', title: 'Your first pick', text: 'Now a real game against a bot. Choose your opening ability: press 1, 2 or 3.', hint: 'After every round you pick one of three upgrades, and they build on each other.' },
   { k: 'fight', title: 'Fight', text: 'Win a game: knock the bot out.', hint: 'Keep moving, and back it towards a pit or a wall before a full draw.' },
+  { k: 'element', title: 'Your element', info: true, choose: true, text: 'Every archer is a role plus an element. You\'re a Ranger: now choose the element your arrows carry.', hint: 'Your role sets your health, speed and abilities; your element adds an effect to every hit. There are more elements and roles to unlock as you play.' },
+  { k: 'fight2', title: 'Fight', text: 'Win a game with {el} arrows.', hint: '{elhint}' },
 ];
+// the tutorial's three starter elements, each with what it does in a few words
+const TUT_ELS = [['frost', 'slows whoever you hit, and a full draw can freeze them'], ['flame', 'sets them burning, and fire spreads'], ['storm', 'chains lightning to anyone close by']];
 const EL_VERB = { frost: 'slows', flame: 'burns', storm: 'chains lightning', poison: 'stacks poison', stone: 'staggers', void: 'pulls enemies together', shadow: 'blinds', blood: 'heals you' };
 const tutIdx = k => TUT_STEPS.findIndex(s => s.k === k);
 const tutStep = () => TUT_STEPS[TUT.step] ? TUT_STEPS[TUT.step].k : 'done';
@@ -8665,7 +8684,7 @@ function startTutorial() {
   { const m = world.players.find(q => q.id === me.id); m.up = m.up.filter(id => !Sim.TREE[id] || !Sim.TREE[id].active).concat('volley'); Sim.applyStats(m); m.abCd = [0, 0]; } // the ability step uses Volley: easy to see working
   dummy.bot = false; dummy.input = { mx: 0, my: 0, aim: Math.PI, draw: false, tx: 0, ty: 0 };
   world.events.length = 0; world.records.length = 0;
-  TUT = { on: true, step: 0, dummy: dummy.id, start: { x: me.x, y: me.y }, full: false, abUsed: false, t: 0, doneT: null, shots: [], dodged: 0 };
+  TUT = { plain: true, on: true, step: 0, dummy: dummy.id, start: { x: me.x, y: me.y }, full: false, abUsed: false, t: 0, doneT: null, shots: [], dodged: 0 };
   myId = me.id; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {};
   placeTutDummy(true);
   setScreens(); renderCoach();
@@ -8721,7 +8740,7 @@ function startTutFight() {
   // (it carries on from where it left off last time: the skill check from Find game, or the tutorial again)
   let sv = null; try { sv = JSON.parse(store.get('bowfall-tutad', 'null')); } catch (e) {}
   TUT.ad = Object.assign({ s: 0.04, step: 0.14, last: 0, games: [], flip: null }, sv && Array.isArray(sv.games) ? sv : {}, { w: world, bot: bot.id }); bot.dparams = Sim.skillParams(TUT.ad.s);
-  Sim.startMatch(world);
+  Sim.startMatch(world); tutPlain();
   world.events.length = 0; world.records.length = 0;
   myId = me.id; prevPos = null; hc = {}; acc = 0; RP.buf = []; RP.evs = []; RP.on = null; pendingSummary = null;
   $('gameSum').hidden = true; $('replayBadge').hidden = true; document.body.classList.remove('replaying');
@@ -8804,14 +8823,29 @@ function tutEvents(evs) {
     if (k === 'ability' && e.e === 'hit' && e.by === myId && TUT.abUsed) return tutLater(1);
     if (k === 'knock' && e.e === 'kill' && e.v === TUT.dummy && !TUT.fightAt) { TUT.fightAt = clock + 1.6; notice('Ring out!', true, '#7dff8a'); }
     if (k === 'pick' && e.e === 'phase' && e.ph === 'play') return tutNext();
-    if (k === 'fight' && e.e === 'gameEnd') {
-      if (e.rw === 'red') tutDone();
+    if ((k === 'fight' || k === 'fight2') && e.e === 'gameEnd') {
+      if (e.rw === 'red') { if (k === 'fight') { notice('You won! Now for your element.', true, '#7dff8a'); tutLater(1.2); } else tutDone(); }
       else { renderCoach(); $('coachHint').textContent = 'The bot took that one, so it eases off a little. Try backing it towards a pit before your full draw.'; }
     }
   }
 }
+// the tutorial is played as a plain Ranger, the dummy and the bot plain too, until you choose an element
+function tutPlain() {
+  if (!TUT.on || !TUT.plain || TUT.skill || !world) return;
+  for (const p of world.players) if (p.up.some(id => Sim.ELEMENTS[id])) { p.up = p.up.filter(id => !Sim.ELEMENTS[id]); Sim.applyStats(p); }
+}
+function tutChooseEl(el) {
+  if (!world || !Sim.ELEMENTS[el]) return;
+  TUT.plain = false; TUT.el = el;
+  const me = world.players.find(q => q.id === myId), bot = world.players.find(q => q.id !== myId), others = TUT_ELS.map(x => x[0]).filter(x => x !== el);
+  for (const [p, e] of [[me, el], [bot, others[Math.floor(Math.random() * others.length)]]]) if (p) { p.element = e; p.up = [e].concat(p.up.filter(id => !Sim.ELEMENTS[id])); Sim.applyStats(p); }
+  store.set('bowfall-tut-el', el);
+  tutNext();
+}
+addEventListener('keydown', e => { if (TUT.on && tutStep() === 'element' && /^Digit[123]$/.test(e.code)) { e.preventDefault(); tutChooseEl(TUT_ELS[+e.code.slice(5) - 1][0]); } });
 function tutTick(dt) {
   if (!TUT.on || !world) return;
+  tutPlain();
   const me = world.players.find(q => q.id === myId), k = tutStep();
   if (TUT.nextAt && clock >= TUT.nextAt) return tutNext();
   if (k === 'move' && me && Math.hypot(me.x - TUT.start.x, me.y - TUT.start.y) > 160 && !TUT.nextAt) tutLater(0.4);
@@ -8826,7 +8860,7 @@ function tutTick(dt) {
 }
 // on the dummy the coach sits big at the bottom middle; in the real game it shrinks into the bottom-left corner
 // and fades almost away whenever an archer is behind it, so it never hides the fight
-const coachMini = () => TUT.on ? TUT.step >= tutIdx('fight') : TR.on ? !TR.done : false; // (the finished tutorial keeps playing, so its note stays small too)
+const coachMini = () => TUT.on ? TUT.step >= tutIdx('fight') && tutStep() !== 'element' : TR.on ? !TR.done : false; // (the finished tutorial keeps playing, so its note stays small too)
 function placeCoach() {
   const c = $('coach'); if (!c) return;
   c.classList.toggle('mini', coachMini());
@@ -8860,20 +8894,28 @@ function renderCoach() {
   }
   const S = TUT_STEPS[TUT.step], me = world && world.players.find(q => q.id === myId);
   const ab = me && me.slots && me.slots[0] ? Sim.TREE[me.slots[0]].name : 'your ability';
+  // (the key your ability is really on: the slot it's in, your key bindings, and whether you've swapped Q and E)
+  const abI = me && me.slots ? Math.max(0, me.slots.findIndex(id => id && Sim.TREE[id] && Sim.TREE[id].active)) : 0, keyI = abSwapped() ? 1 - abI : abI;
+  const raw = S.text.replace('Press Q to use', keyI ? 'Press E to use' : 'Press Q to use');
   const list = a => a.slice(0, -1).join(', ') + ' or ' + a[a.length - 1];
   const fill = t => t.replace('{ab}', ab).replace('{dashdir}', !TOUCH.on && !dashMove() ? 'where you\'re aiming' : 'the way you\'re moving')
     .replace('{dodgeopt}', TOUCH.on ? '' : ' Dash goes the way you move; you can make it go where you aim in Options › Controls.').replace('{arch}', ELEMENTS[TUT_LOADOUT.el].name + ' ' + ROLES[TUT_LOADOUT.ro].name)
     .replace('{els}', 'Your element adds an effect to every arrow: ' + list(Object.keys(ELEMENTS).map(k => ELEMENTS[k].name + ' ' + (EL_VERB[k] || 'hits'))) + '.')
-    .replace('{ros}', list(Object.values(ROLES).map(r => r.name)));
+    .replace('{ros}', list(Object.values(ROLES).map(r => r.name)))
+    .replace('{el}', TUT.el && ELEMENTS[TUT.el] ? ELEMENTS[TUT.el].name : 'your')
+    .replace('{elhint}', TUT.el ? `${ELEMENTS[TUT.el].name} ${(TUT_ELS.find(x => x[0] === TUT.el) || [0, 'adds an effect to every hit'])[1]}. The bot has an element now too.` : '');
   $('coachStep').textContent = `Tutorial · step ${TUT.step + 1} of ${TUT_STEPS.length} · ${S.title}${S.k === 'fight' && TUT.ad ? ` · bot: ${SKILL_NAME(TUT.ad.s)}` : ''}`;
-  $('coachText').textContent = fill(touchify(padify(S.text)));
+  const said = fill(touchify(padify(raw)));
+  $('coachText').textContent = !usingPad() && !TOUCH.on ? said.replace(/Press [QE] to use/, `Press ${abKey(keyI)} to use`) : said;
   tutHighlight(S.k);
   $('coachHint').textContent = fill(S.hint);
   TUT.pad = usingPad();
   const dummy = TUT.step < tutIdx('pick');
-  $('coachBtns').innerHTML = (S.info ? '<button class="cta" type="button" id="coachSkip">Next</button>' : dummy ? '<button class="ghost sm" type="button" id="coachSkip">Skip this step</button>' : '') +
+  $('coachBtns').innerHTML = S.choose ? TUT_ELS.map(([k, w], i) => `<button class="cta sm" type="button" data-tutel="${k}" style="--elc:${ELEMENTS[k].color}"><b>${i + 1}</b> ${ELEMENTS[k].name}<small>${esc(w)}</small></button>`).join('') + '<button class="ghost sm" type="button" id="coachQuit">Leave tutorial</button>'
+    : (S.info ? '<button class="cta" type="button" id="coachSkip">Next</button>' : dummy ? '<button class="ghost sm" type="button" id="coachSkip">Skip this step</button>' : '') +
     (dummy ? '<button class="ghost sm" type="button" id="coachMatch">Skip to the match</button>' : '') + '<button class="ghost sm" type="button" id="coachQuit">Leave tutorial</button>';
   if ($('coachSkip')) $('coachSkip').onclick = e => { e.currentTarget.blur(); tutNext(); };
+  $('coachBtns').querySelectorAll('[data-tutel]').forEach(b => { b.onclick = e => { e.currentTarget.blur(); tutChooseEl(b.dataset.tutel); }; });
   if ($('coachMatch')) $('coachMatch').onclick = e => { e.currentTarget.blur(); tutSkipToMatch(); };
   $('coachQuit').onclick = () => toMenu();
   const b = $('coachBar'); if (b) b.style.width = Math.round(TUT.step / TUT_STEPS.length * 100) + '%';
@@ -11913,12 +11955,18 @@ function saveAvatar(a) {
 function drawProfChip() {
   const a = myAvatar();
   try { drawPreview($('profAv'), a.el, a.ro, a.c); } catch (e) {}
-  $('profName').innerHTML = (account ? rankHtml(account.level && account.level.lv) + flagHtml(account.country) : '') + esc(account ? account.name : ($('nameIn').value.trim() || 'Archer')) + (account ? ownHtml(account.admin) + statusHtml(WALLET && WALLET.status) : '');
+  // the button is your banner: its frame, background, border, clan, title and medals, as everyone else sees it
+  const me = myLook(), box = $('profName').parentNode;
+  box.className = 'pcn nm plate' + plateClass(me); box.style.cssText = me.bd && BORDERS[me.bd] ? `--bd:${BORDERS[me.bd]}` : '';
+  $('profName').innerHTML = idHtml(me) + esc(me.n) + (account ? ownHtml(account.admin) + statusHtml(WALLET && WALLET.status) : '') + trophyHtml(me.na) + (me.ti ? ` <em class="ttl">${esc(titleName(me.ti))}</em>` : '');
   $('profSub').innerHTML = account ? `${account.placed === false ? 'Unranked' : `1v1 ${Math.round((account.career || {}).elo || 800)} · Team ${Math.round((account.career || {}).eloT != null ? account.career.eloT : (account.career || {}).elo || 800)}`}${WALLET && !WALLET.guest ? ' · ' + crestTxt(WALLET.crests) : ''}` : 'Guest · edit profile';
 }
-function myPlateHtml() {
+function myLook() {
   const bd = Ach.d.border && Ach.d.got[Ach.d.border] ? Ach.d.border : null, na = Object.keys(Ach.d.got || {}).length, bn = Ach.banner();
-  const me = { n: account ? account.name : ($('nameIn').value.trim() || 'Archer'), cc: account && account.country, lv: account && account.level && account.level.lv, ct: CLAN.mine && CLAN.mine.tag, cl: CLAN.mine && CLAN.mine.col, ce: CLAN.mine && CLAN.mine.em, bd, na, sc: bn.sc, fin: bn.fin, ti: Ach.d.title && Ach.d.got[Ach.d.title] ? Ach.d.title : null };
+  return { n: account ? account.name : ($('nameIn').value.trim() || 'Archer'), cc: account && account.country, lv: account && account.level && account.level.lv, ct: CLAN.mine && CLAN.mine.tag, cl: CLAN.mine && CLAN.mine.col, ce: CLAN.mine && CLAN.mine.em, bd, na, sc: bn.sc, fin: bn.fin, fr: bn.fr, ti: Ach.d.title && Ach.d.got[Ach.d.title] ? Ach.d.title : null };
+}
+function myPlateHtml() {
+  const me = myLook(), na = me.na;
   return `<span class="nm plate${plateClass(me)}"${plateStyle(me)}><span class="pl1">${idHtml(me)}<b>${esc(me.n)}</b>${trophyHtml(na)}${medalsHtml(me.sc)}${me.ti ? ` <em class="ttl">${esc(titleName(me.ti))}</em>` : ''}</span><small>${esc(ELEMENTS[myLoadout().el].name + ' ' + ROLES[myLoadout().ro].name)}</small></span>`;
 }
 let COUNTRIES = null;
@@ -14355,9 +14403,17 @@ function drawEyes(p, R) {
   const per = 2.6 + (h % 23) / 10, ph = ((gclock + h * 0.37) % per), blink = ph < 0.13 ? 1 - Math.abs(ph - 0.065) / 0.065 : 0;
   const hurtK = EYE.hurt[id] != null ? Math.max(0, 1 - (gclock - EYE.hurt[id]) / 0.38) : 0;
   const x = R * 0.45, ys = [-R * 0.28, R * 0.28];
-  if (hurtK > 0 || p.su || p.fz) { // scrunched: little chevrons (> <) pointing in, squeezed shut
-    ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1.8; ctx.lineCap = 'round';
-    for (const y of ys) { const s = y < 0 ? 1 : -1; ctx.beginPath(); ctx.moveTo(x - 2.6, y - 2.2 * s); ctx.lineTo(x + 1.6, y + 0.4 * s); ctx.lineTo(x - 2.6, y + 2.4 * s); ctx.stroke(); }
+  // (the face looks along +x: the two eyes sit side by side across it, at ys)
+  if (hurtK > 0 || p.su || p.fz) { // screwed shut, XD style: each eye a chevron pointing at the other ( > < )
+    ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1.8; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    for (const y of ys) { const s = y < 0 ? 1 : -1; ctx.beginPath(); ctx.moveTo(x - 2.4, y - 2.1 * s); ctx.lineTo(x, y + 1.7 * s); ctx.lineTo(x + 2.4, y - 2.1 * s); ctx.stroke(); }
+    return;
+  }
+  const aim = p.dr ? Math.min(1, (p.ch || 0) * 1.6) : 0;
+  if (aim > 0.15) { // taking aim: one eye shut (a short line across), the other narrowed to a slit, the more the fuller the draw
+    ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1.7; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x, ys[1] - 2.4); ctx.lineTo(x, ys[1] + 2.4); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(x, ys[0], Math.max(0.9, 2.2 - 1.1 * aim), 2.1, 0, 0, TAU); ctx.fill();
     return;
   }
   const sq = 1 - 0.85 * blink; // a blink squashes the eye flat across the line of sight
@@ -16997,9 +17053,11 @@ function clipCard(box, src, clipObj, label, onOpen, kc) { // kc: a kill cam (pla
     const k = Math.max(1, Math.min(820 / r.width, (left ? room.l : room.r) / r.width, (up ? room.u : room.d) / r.height));
     box.style.setProperty('--pk', k.toFixed(3)); box.classList.add('big'); send({ bf: 'play' });
   };
-  box.onpointerenter = e => { if (e.pointerType === 'mouse') big(true); };
-  box.onpointerleave = () => big(false);
-  box.onclick = () => { big(false); if (onOpen) onOpen(); };
+  // (half a second's hover before it grows, so a mouse passing over doesn't set it jumping about)
+  let hov = 0;
+  box.onpointerenter = e => { if (e.pointerType !== 'mouse') return; clearTimeout(hov); hov = setTimeout(() => big(true), 500); };
+  box.onpointerleave = () => { clearTimeout(hov); big(false); };
+  box.onclick = () => { clearTimeout(hov); big(false); if (onOpen) onOpen(); };
 }
 function closeClipView() { const local = CLIP.playing && CLIP.playing.local && PLAY.watch; if (RP.on) { RP.on = null; RP.cam = null; $('replayBadge').hidden = true; document.body.classList.remove('replaying'); } clipRecStop(); CLIP.playing = null; document.body.classList.remove('clipmode'); $('clipView').hidden = true;
   if (local) { const W2 = PLAY.watch; PLAY.watch = null; myId = W2.me; setArena(W2.map); floorKey = null; if (W2.results) { $('resultsScreen').hidden = false; renderResPlays(); } return; } // (a best play watched from the results: back to them)
@@ -17327,7 +17385,8 @@ function weekPlaysShow() {
   const box = $('weekPlays'); box.hidden = false;
   $('wpHead').textContent = wk ? 'Best play of the week' : ever ? 'Best play ever' : 'Best play of the week';
   $('wpNote').hidden = !!x; $('wpNote').textContent = 'No plays yet. Make a big play in an online match (a multi-kill, a Rip, a set-up knockout…) and you could be the first up here.';
-  $('wpCard').hidden = !x; $('wpCap').innerHTML = x ? `<b>${x.score}</b> ${esc(x.label)} <small>${esc(x.who || '')}${x.ai ? ' <span class="aitag">AI</span>' : ''} · ${esc((MAPS[x.map] || {}).name || '')}</small>` : '';
+  $('wpCard').hidden = !x; $('wpCap').innerHTML = x ? (() => { const L = x.bn || { n: x.who || '' };
+    return `<div class="wpl"><b class="sc">${x.score}</b><span>${esc(x.label)}<small>${esc((MAPS[x.map] || {}).name || '')}</small></span></div><span class="nm plate${plateClass(L)}"${plateStyle(L)}><span class="pl1">${idHtml(L)}<b>${esc(L.n)}</b>${ownHtml(L.ow)}${statusHtml(L)}${x.ai ? '<span class="aitag">AI</span>' : ''}${trophyHtml(L.na)}${L.ti ? ` <em class="ttl">${esc(titleName(L.ti))}</em>` : ''}</span></span>`; })() : '';
   if (!x || WEEKP.shown === x.id) return; WEEKP.shown = x.id;
   clipCard($('wpCard'), `/play?clip=${encodeURIComponent(x.id)}&embed=1&preview=1&still=1`, null, x.label, () => playClip(x.id));
 }

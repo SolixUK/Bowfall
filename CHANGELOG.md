@@ -2,6 +2,23 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.71.1
+
+- **Archers' eyes, taking aim:** while drawing, one eye shuts (a short line) and the other narrows to a slit, the more the fuller the draw.
+- **Archers' eyes, hurt:** screwed shut XD style, each eye a chevron pointing at the other ( > < ), instead of both pointing the way they face. (Stunned and frozen archers too.)
+
+## 0.71.0
+
+- **Your banner is the profile button.** The main menu's top-right button is now your name banner as everyone sees it: frame, background, border colour, level, flag, clan, title and trophies, with your archer beside it and your ratings and Crests under your name.
+- **Best play of the week shows the maker's banner** (as it is now) instead of just their name, with **AI** on an AI player's.
+- **The menu's right column lines up:** banner, clan, friends and the best play are all the same width, edges aligned. **Add player on controller** has a controller icon.
+- **Previews wait half a second.** A best play or kill cam card only grows and plays after the mouse has rested on it for half a second, so passing over one doesn't set it jumping about (menu and results).
+- **Tutorial, reworked:**
+  - You start as a plain **Ranger, with no element**; the dummy and the bot are plain too. Once you've won your first game against the bot, the game pauses and you **choose your element** from Frost, Flame and Storm (each with what it does; click or press 1, 2 or 3), then win a game with it (the bot gets one of the others).
+  - **The ability step names the key your ability is really on:** your key bindings, the slot it landed in, and whether you've swapped Q and E (it said "press Q" while the ability was on E).
+  - The tutorial bot still never changes a rating: its results only help place a brand-new player before their first ranked match, as before.
+- **Website:** "Draw. Shoot. Knock them off the map." Every hit shoves, with damage still counting; and the ways to play: with friends online or on one screen with controllers, custom games against each other, clans.
+
 ## 0.70.5
 
 - **Doubles and triples "at once" show every knockout.** The final shot's camera rode the arrow in and settled on the last archer it knocked out, so a double from one shot (or one ability or blast) showed only one going down. From just before it lands, the camera now frames everyone knocked out in that moment, as close as that allows, moving at full speed to get there. The same goes for kill cams, the best plays, their freeze frames and Save video.

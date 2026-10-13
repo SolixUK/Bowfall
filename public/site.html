@@ -15,7 +15,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/archer-32.png?v=3">
 <link rel="icon" type="image/png" sizes="16x16" href="/icons/archer-16.png?v=3">
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/archer-192.png?v=4">
-<meta name="description" content="Bowfall: team knockback archery in your browser. Pick an element and a role, knock the other team into the lava.">
+<meta name="description" content="Bowfall: fast team archery in your browser. Every hit shoves: knock rivals into lava and pits, with friends online or on one screen, on computer, phone or tablet.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Titillium+Web:wght@400;600;700&display=swap">
@@ -236,6 +236,8 @@
   .hx-line { font: 700 clamp(24px, 3.4vw, 40px)/1.05 var(--display); text-transform: uppercase; letter-spacing: .03em; margin: 0 0 14px; }
   .hx-line em { font-style: normal; color: #ff6a2b; }
   .hx p.lead { font-size: clamp(17px, 1.6vw, 20px); color: #dfe8d6; max-width: 560px; margin: 0; }
+  .hx-ways { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 6px; max-width: 560px; font-size: 15px; color: #cfdac6; }
+  .hx-ways li { position: relative; padding-left: 20px; } .hx-ways li::before { content: ''; position: absolute; left: 2px; top: .55em; width: 8px; height: 8px; background: #ff6a2b; transform: rotate(45deg); }
   .hx-cta { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 28px; align-items: center; }
   .btn.mega { font-size: 26px; padding: 18px 40px; box-shadow: 0 10px 40px rgba(255,180,40,.35); position: relative; }
   .btn.mega::after { content: '▶'; font-size: 16px; margin-left: 4px; }
@@ -519,8 +521,9 @@ const pages = {
         <div class="wrap">
           <span class="hx-kick"><i></i>${rooms.online ? `${rooms.online} playing right now` : 'Free to play · in your browser'}</span>
           <h1 class="hx-word">Bowfall</h1>
-          <p class="hx-line">Draw. Loose. <em>Knock them off the map.</em></p>
-          <p class="lead">A fast team archery brawler where knockback is the weapon. Shove rivals into lava, pits, water and saw blades, build your archer from ${E.length} elements and ${R.length} roles, and climb the ranked ladder.</p>
+          <p class="hx-line">Draw. Shoot. <em>Knock them off the map.</em></p>
+          <p class="lead">A fast team archery brawler where every hit shoves. Damage them, or knock them into lava, pits, water and saw blades. Build your archer from ${E.length} elements and ${R.length} roles and climb the ranked ladder.</p>
+          <ul class="hx-ways"><li>Team up with friends online, or on the same screen with controllers</li><li>Host custom games and take each other on</li><li>Start a clan and climb the ranks together</li></ul>
           <div class="hx-cta"><a class="btn mega" href="/play">Play now</a><a class="btn ghost big" href="#/leaderboard">Leaderboard</a></div>
           <p class="hx-note" style="margin-top:12px">No download. Plays on a computer, phone or tablet, with mouse, touch or a controller.</p>
           <div class="hx-stats"><div><b>${E.length * R.length}</b><span>archetypes</span></div><div><b>${Sim.MAP_KEYS.length}</b><span>arenas</span></div><div><b>${Object.keys(Sim.TREE).length}</b><span>upgrades</span></div><div><b>1v1 · 2v2 · 3v3</b><span>ranked</span></div></div>
