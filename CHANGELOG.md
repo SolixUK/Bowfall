@@ -2,6 +2,24 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.78.4
+
+- **Fixed: the results screen flickering between full size and fitted** on laptop-sized windows. Two bits of code were both scaling the same card: the older one for phones held sideways (which also reset the results card back to full size on every check), and the newer fit-to-window one. They fought every frame. The older one now only undoes its own scaling and leaves bigger screens to the fit-to-window code, and that code no longer runs on phones held sideways. As a backstop, a screen that has just been made smaller won't grow straight back again until the window is resized or the screen is reopened, so two sizes can't keep swapping.
+- **Aim line settings (Options → Gameplay):** sliders for the aim line's **opacity** (30–250%; past 100% it gets closer to solid), **colour strength** (0% grey to 200% deep amber) and **thickness** (50–300%), with a live preview on grass and on pale sand, and **Reset aim line**. They work on top of On / Bold. The red end (when a shot will hit a wall or boulder) follows them too.
+
+## 0.78.3
+
+- **The clip farm's stop counts this run's clips, not the whole reel.** The reel is kept between visits and holds the best 150, so once it had filled up in earlier runs, 0.78.1 stopped the farm after the very next clip. Now a run stops after it has saved 150 new clips (a better take of a clip it already has doesn't count). "Carry on" starts another 150; the reel still keeps the best 150, starred ones first. The reel shows "N of 150 new this run".
+
+## 0.78.2
+
+- **Bullying is scored on how many slams and how fast they came.** Each slam after the first is worth 0.6 plus 0.5 for every slam a second the run kept up (capped at three a second), so the most and the quickest score the most. The share that went into a corner adds up to 1, each extra archer joining in 0.3, and the knockout at the end 1 (these were 0.7 per corner, 1.2 and 2.5). Held targets and other set-up no longer add to a bullying's moment score. For example: 3 slams in 2.2 s with a knockout is about 4 now (it was about 7); 6 slams in 1.5 s with a knockout is about 11.5.
+
+## 0.78.1
+
+- **No more menu flashing in replay previews.** A replay in a small frame (the menu's play and moment of the week, the gallery, the results, the website) is a copy of the game running inside the frame. Before, it briefly showed that copy's main menu while the replay loaded, and its menu arena in the gap between loops. Now the frame hides the menu from the very first paint (a tiny check in the page's `<head>`), starts on a plain dark background, and holds the last picture of the replay between loops instead of drawing the menu's arena.
+- **The clip farm stops when the reel is full.** At 150 clips (`FARM_MAX`) the battles pause, hunting switches off, and a notice says so. "Carry on" won't restart it until you delete some clips or clear the reel, so no more time goes on clips there's no room for. Starting the farm with a full reel says the same.
+
 ## 0.78.0
 
 - **Plays and moments are scored separately now.** A *play* is about skill (multi-kills, long shots, dash and set-up knockouts, ability knockouts, being outnumbered, dodging while you do it). A *moment* is about spectacle (bursts, held knockouts, roasts, bullying, game-winning knockouts). Some count for both: two or more knockouts at once (with extra on the moment side, since there's often some luck in it), harpoon pulls and bank shots. A Rip no longer gets its own extra on top of "at once".
