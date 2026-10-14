@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.79.4';
+const VERSION = '0.79.6';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -3412,7 +3412,7 @@ function updateArrows(w, dt) {
             a.hit.push(f.id); root(f, BRIAR.root, a.own); hurt(w, f, BRIAR.dmg, 0, 0, 'briar', a.owner);
             if (a.own && !a.counted) { a.counted = true; a.own.stats.hits++; }
             if (a.own && has(a.own, 'rip') && !f.dead) { if (f.thornBy !== a.owner) f.thornN = 0; f.thornBy = a.owner; f.thornN = Math.min(5, (f.thornN || 0) + 1); f.thornT = 10; }
-            ev(w, { e: 'trapHit', x: r1(f.x), y: r1(f.y) });
+            ev(w, { e: 'trapHit', x: r1(f.x), y: r1(f.y), id: f.id, by: a.owner, aid: a.id }); // (who it caught, and with which bramble)
             continue;
           }
           if (f.parryT > 0) {

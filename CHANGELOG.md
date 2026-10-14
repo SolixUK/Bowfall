@@ -2,6 +2,23 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.79.6
+
+- **Boomerang scoring, simplified.** When a boomerang knocks someone out, everyone that one throw hit counts: each archer hit going out counts 1, each hit coming back 1.5. The total H gives 0.6 × (H − 1)^1.5, compounding, all of it on the moment side and 40% of it on the play side. Hit 2 going out: 0.6 moment. Hit 4 going out: 3.1. Hit 3 going out and all 3 coming back: 11.4. Hit going out and knocked out coming back adds a small 1.5 moment, 0.5 play. Several knocked out by one boomerang counts as at once (as before), and a multi-kill as usual. It replaces the old boomerang bonuses ("there and back" 2 play / 4 moment, "caught N with one shot" for boomerangs, and the extra for several hit going out and taken out coming back), which could all land on the same throw.
+- **At once leans to moment:** 2 play and 6 moment for each knockout past the first (was 4 and 6). It's quite a sight, but often down to luck. The multi-kill itself (3 / 8 / 14 / 21) stays on the play side.
+
+## 0.79.5
+
+- **Multi-kills compound:** a double kill is 3, a triple 8, a quad 14, a penta 21 (each extra knockout worth more than the last; was 5 / 8 / 11 / 14).
+- **Catching several with one shot or ability counts, when it leads to a knockout:** an arrow through two, a split, a Rip, a rolling bramble (Bramble Toss), a Quake or a Flash that caught several archers adds 1 play and 1 moment for each one past the first, on the knockout it led to ("caught 3 with one bramble"). Catching several without a knockout is no clip. Bramble hits now say who they caught (`trapHit` has `id`, `by`, `aid`).
+- **Boomerang:**
+  - Scores only when it knocks someone out: hit going out and taken out coming back is 2 play, 4 moment.
+  - Anyone else it caught counts as above (1 each).
+  - Several knocked out by one boomerang count as "at once", even seconds apart (out and back).
+  - Several hit going out *and* taken out coming back by the same boomerang: +2 play and +4 moment for each past the first.
+  - It no longer adds its own extra per archer it went through (that was counted twice).
+- A Quake only counts toward a knockout (the "Quake" tag) when it's the knocker's own.
+
 ## 0.79.4
 
 - **"At once" tightened further.** An archer knocked into someone only shares a knockout with them when the one sent flying also went out, from that same shot, close in time; someone knocked into an archer who survives is a combo shot, scored on that one knockout. Knockouts must also come within 1.5 seconds of each other to count as one cause. A Quake only counts as the cause for the archer who cast it (the `quake` event now says who), and a blast only alongside their own hit on the victim.
