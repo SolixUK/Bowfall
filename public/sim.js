@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.79.3';
+const VERSION = '0.79.4';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -2662,7 +2662,7 @@ function useAbility(w, p, id) {
       return true;
     }
     case 'quake': {
-      ev(w, { e: 'quake', x: r1(p.x), y: r1(p.y) });
+      ev(w, { e: 'quake', id: p.id, x: r1(p.x), y: r1(p.y) });
       for (const q of w.players) {
         if (q.team === p.team || q.dead || q.falling > 0) continue;
         const dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy) || 1;

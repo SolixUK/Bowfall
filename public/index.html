@@ -2276,7 +2276,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.79.3"></script>
+<script src="sim.js?v=0.79.4"></script>
 <script>
 (() => {
 'use strict';
@@ -2284,7 +2284,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.79.3';
+const PAGE_VERSION = '0.79.4';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -13443,9 +13443,9 @@ const FARM_LOOK = [
 // what knocked someone out, as a key: the shot (all its arrows), the Rip, the Quake or the blast; anything else is its own
 function killCause(k) {
   if (k.how === 'rip' || k.c === 'rip') { const r = [...RP.evs].reverse().find(x => x.e.e === 'ripCast' && x.e.by === k.k && x.t <= k.t && k.t - x.t < 3); return r ? 'rip' + r.t.toFixed(2) : 'rip' + k.t.toFixed(1); }
-  const q = [...RP.evs].reverse().find(x => x.e.e === 'quake' && x.t <= k.t && k.t - x.t < 1.5 && Math.hypot(x.e.x - k.x, x.e.y - k.y) < 320); if (q && k.c !== 'arrow') return 'q' + q.t.toFixed(2);
+  const q = [...RP.evs].reverse().find(x => x.e.e === 'quake' && (x.e.id == null || x.e.id === k.k) && x.t <= k.t && k.t - x.t < 1.5 && Math.hypot(x.e.x - k.x, x.e.y - k.y) < 320); if (q && k.c !== 'arrow') return 'q' + q.t.toFixed(2); // (their own Quake)
   const h = [...RP.evs].reverse().find(x => x.e.e === 'hit' && x.e.id === k.v && x.e.by === k.k && x.t <= k.t + 0.02 && k.t - x.t < 4);
-  const b = [...RP.evs].reverse().find(x => x.e.e === 'boom' && x.t <= k.t + 0.02 && k.t - x.t < 0.3 && Math.hypot(x.e.x - k.x, x.e.y - k.y) < 220); if (b && (!h || b.t >= h.t - 0.05)) return 'b' + b.t.toFixed(2);
+  const b = h ? [...RP.evs].reverse().find(x => x.e.e === 'boom' && x.t <= k.t + 0.02 && k.t - x.t < 0.3 && x.t >= h.t - 0.05 && Math.hypot(x.e.x - k.x, x.e.y - k.y) < 220) : null; if (b) return 'b' + b.t.toFixed(2); // (a blast that came with their own hit on them)
   if (h && h.e.aid != null) return 's' + shotOf(h.e.aid);
   return 'k' + k.v + '@' + k.t.toFixed(2);
 }
@@ -13550,13 +13550,20 @@ function farmCapture(P) {
     const S2 = ks.slice().sort((x, y) => x.t - y.t), key = new Map();
     for (const k of S2) key.set(k, killCause(k));
     // knocked into someone who was knocked out by the same thing (and the bowling credited to the same archer): same cause
-    for (const k of S2) { const bw = [...RP.evs].reverse().find(x => x.e.e === 'bowl' && x.e.id === k.v && x.t <= k.t && k.t - x.t < 2.5); if (bw) { const src = S2.find(o => o.v === bw.e.by && o !== k); if (src) key.set(k, key.get(src)); } }
-    const groups = new Map(); for (const k of S2) groups.set(key.get(k), (groups.get(key.get(k)) || 0) + 1);
-    const same = Math.max(...groups.values());
-    let tight = 0, quick = 0;
-    for (let i2 = 1; i2 < S2.length; i2++) { const a2 = S2[i2 - 1], b2 = S2[i2], gap = b2.t - a2.t; if (key.get(a2) === key.get(b2)) tight += 4; else quick += gap < 1 ? 2 - gap : Math.max(0, 1.2 - gap * 0.3); }
+    // (only if the one sent flying went too, from that same shot, and close in time: an archer knocked into someone who
+    // survives is a combo shot, scored on that knockout, not a second knockout)
+    for (const k of S2) {
+      const bw = [...RP.evs].reverse().find(x => x.e.e === 'bowl' && x.e.id === k.v && x.t <= k.t && k.t - x.t < 2.5); if (!bw) continue;
+      const src = S2.find(o => o.v === bw.e.by && o !== k && Math.abs(o.t - bw.t) < 2.5); if (!src) continue;
+      const launch = [...RP.evs].reverse().find(x => x.e.e === 'hit' && x.e.id === src.v && x.e.by === k.k && x.t <= bw.t && bw.t - x.t < 2);
+      if (launch && launch.e.aid != null && key.get(src) === 's' + shotOf(launch.e.aid)) key.set(k, key.get(src));
+    }
+    // a group: the same cause, and close together (one cause can't knock people out seconds apart)
+    let tight = 0, quick = 0, run = 1, same = 1;
+    for (let i2 = 1; i2 < S2.length; i2++) { const a2 = S2[i2 - 1], b2 = S2[i2], gap = b2.t - a2.t; if (key.get(a2) === key.get(b2) && gap < 1.5) { tight += 4; run++; same = Math.max(same, run); } else { run = 1; quick += gap < 1 ? 2 - gap : Math.max(0, 1.2 - gap * 0.3); } }
     score += tight + quick; mo += tight * 1.5 + quick * 0.5; // (at once: a good shot and quite a sight, often with luck in it; a quick double: mostly skill)
-    if (same >= 2) { title = `${MULTI_WORD[Math.min(5, same)] || same + ' knockouts'} at once`; line += ` · ${same} in one`; }
+    if (same >= 2) { const kk = [...key.values()].find(v => [...key.values()].filter(x => x === v).length >= 2) || '', what = kk[0] === 's' ? 'shot' : kk[0] === 'q' ? 'Quake' : kk.startsWith('rip') ? 'Rip' : kk[0] === 'b' ? 'blast' : 'go';
+      title = `${MULTI_WORD[Math.min(5, same)] || same + ' knockouts'} at once`; line += ` · ${same} with one ${what}`; }
   }
   // outnumbered: knockouts made while your side had fewer archers standing than theirs (1v2, 1v3, 2v3) are worth more,
   // the more the odds were against you and the more you took out. If it won the game, that's a clutch: a little more

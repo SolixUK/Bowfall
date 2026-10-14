@@ -2,6 +2,11 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.79.4
+
+- **"At once" tightened further.** An archer knocked into someone only shares a knockout with them when the one sent flying also went out, from that same shot, close in time; someone knocked into an archer who survives is a combo shot, scored on that one knockout. Knockouts must also come within 1.5 seconds of each other to count as one cause. A Quake only counts as the cause for the archer who cast it (the `quake` event now says who), and a blast only alongside their own hit on the victim.
+- The line now says what did it: "2 with one shot", "with one Quake", "with one Rip", "with one blast".
+
 ## 0.79.3
 
 - **Pinned in the flames is about the flames finishing them.** If the burning ground knocks them out: a moment of 4 + up to 3 for how long they were held + 2, titled **Burned at the stake** (pinned) or **Burned out** (rooted). Held there and knocked out some other way: 3.5 + up to 1.5. Held and got away: 1.5 + up to 1.5, which never makes a clip on its own (Flame with Pin does that all the time).
