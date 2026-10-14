@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.74.3';
+const VERSION = '0.76.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -745,6 +745,8 @@ const BANNER_FINISH = {
   founder: { name: 'Founder',      sneed: 'fd', label: 'Founders', how: 'A Bowfall founder' },
   rose:    { name: 'Patron rose',  sneed: 'pt', label: 'Patrons', how: 'A Bowfall patron' },
 };
+// each season's pass comes with that season's banner finish, kept for good (the page gives each its own colours)
+for (let n = 1; n <= 40; n++) BANNER_FINISH['ps' + n] = { name: `Season ${n}`, sneed: 'ps' + n, label: `Season ${n} pass`, how: `Held the Season ${n} pass`, pass: n };
 const BANNER_FRAME = {
   none:      { name: 'None' },
   // an element's frame: games won with it

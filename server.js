@@ -25,6 +25,7 @@ const { rateGame, keyFor, ratingOf, seedRating, START: ELO_START } = require('./
 const PORT = process.env.PORT || 3000;
 const PUBLIC = path.join(__dirname, 'public');
 const TICK = 1 / 60;          // simulation step
+const CIRCLE_MIN = 2;          // your circle: friends of at least this many of your friends join it (see /api/circle)
 const SNAP_EVERY = 2;         // send a snapshot every 2 ticks (30 per second)
 const MAX_ROOMS = 50;
 const MAX_PEOPLE = 16;        // players plus spectators in one room
@@ -44,6 +45,7 @@ fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
 const live = new Map();   // user id -> user object
 const dirty = new Set();
 const SEASON = require('./lib/season')({ store, Sim, live, track: u => track(u), markDirty: u => markDirty(u), give: (u, n, why) => E.give(u, n, why), START: ELO_START });
+E.setSeason(() => { const s = SEASON.info(); return s ? s.n : 0; }); // (the season pass follows the ranked seasons)
 setInterval(() => SEASON.check().catch(e => console.error('Season:', e.message)), 60 * 60 * 1000).unref();
 function track(u) { if (!u) return null; const have = live.get(u.id); if (have) return have; u.admin = isOwner(u); u.ach = Sim.achSeed(Sim.achMigrate(u.ach || {}), u.career); live.set(u.id, u); return u; }
 function markDirty(u) { if (!u) return; if (u.guest) guestDirty.add(u); else dirty.add(u.id); }
@@ -201,7 +203,7 @@ async function loadSettings() {
   SETTINGS.foundersOff = !!(await store.getSetting('foundersOff').catch(() => null));
 }
 const rot = () => E.rotation(Date.now(), SETTINGS.rotPin);
-const walletOf = u => Object.assign(E.wallet(u, SETTINGS.locks, rot()), { payments: PAY.configured() });
+const walletOf = u => Object.assign(E.wallet(u, SETTINGS.locks, rot()), { payments: PAY.configured(), foundersClosed: !foundersOpen() });
 // tell someone online that their Crests, unlocks or status changed (and refresh how their name looks in games)
 function walletNote(u, gained, why) {
   const w = walletOf(u);
@@ -227,8 +229,25 @@ async function stripeEvent(ev) {
   if (ev.type === 'checkout.session.completed') {
     if (o.payment_status && o.payment_status !== 'paid' && o.mode !== 'subscription') return; // not paid yet (e.g. bank transfer): wait for the next event
     if (o.customer) bill.cust = o.customer;
-    const kind = (o.metadata || {}).kind, item = (o.metadata || {}).item;
-    if (kind === 'supporter') { bill.sub = o.subscription || bill.sub; const sp = c.sup || (c.sup = {}); sp.active = true; sp.cancelling = false; sp.since = sp.since || Date.now(); sp.until = Math.max(sp.until || 0, Date.now() + 32 * 86400000); why = 'supporter'; }
+    const kind = (o.metadata || {}).kind, item = (o.metadata || {}).item, toId = +((o.metadata || {}).to || 0);
+    if (o.mode !== 'subscription') c.spent = (c.spent || 0) + (o.amount_total || 0); // (what they've spent in all: the supporter emblem's tier)
+    if (toId) { // a gift: it goes to the friend; the buyer gets the thanks (and the spending toward their emblem)
+      const to = track(await store.userById(toId).catch(() => null));
+      if (to) {
+        const tc = to.career || (to.career = {}), ts = to.social || (to.social = {});
+        let tg = 0;
+        if (kind === 'pass') tg = E.grantPass(to, +item || undefined);
+        else if (kind === 'supporter') tg = E.grantSupporter(to);
+        else if (kind === 'founder' && !tc.founder) { tc.founder = Date.now(); tg = E.give(to, E.FOUNDER_CRESTS, 'founder'); }
+        (ts.giftsIn = ts.giftsIn || []).unshift({ t: Date.now(), from: u.name, kind, n: +item || null, id: o.id }); ts.giftsIn.length = Math.min(ts.giftsIn.length, 30);
+        markDirty(to); walletNote(to, tg, 'gift');
+      }
+      (soc.giftsOut = soc.giftsOut || []).unshift({ t: Date.now(), to: to ? to.name : toId, kind }); soc.giftsOut.length = Math.min(soc.giftsOut.length, 30);
+      why = 'gave';
+    }
+    else if (kind === 'pass') { gained = E.grantPass(u, +item || undefined); why = 'pass'; }
+    else if (kind === 'supporter' && o.mode !== 'subscription') { gained = E.grantSupporter(u); why = 'supporter'; }
+    else if (kind === 'supporter') { bill.sub = o.subscription || bill.sub; const sp = c.sup || (c.sup = {}); sp.active = true; sp.cancelling = false; sp.since = sp.since || Date.now(); sp.until = Math.max(sp.until || 0, Date.now() + 32 * 86400000); why = 'supporter'; }
     else if (kind === 'founder') { if (!c.founder) { c.founder = Date.now(); gained = E.give(u, E.FOUNDER_CRESTS, 'founder'); } why = 'founder'; }
     else if (kind === 'donate') { c.patron = true; bill.donated = (bill.donated || 0) + (o.amount_total || 0); why = 'donate'; }
     else if (kind === 'unlock') { E.unlock(u, item); why = 'unlock'; }
@@ -704,9 +723,22 @@ async function api(req, res, url) {
   if (route === '/checkout' && method === 'POST') {
     if (!me) return json(res, 401, { error: 'Sign in first, so the purchase goes on your account.' });
     if (!PAY.configured()) return json(res, 503, { error: 'Payments aren\'t set up on this server yet.' });
-    const kind = String(body.kind || ''), P = E.PRICES, bill = (me.social && me.social.bill) || {};
+    const kind = String(body.kind || ''), P = E.PRICES, bill = (me.social && me.social.bill) || {}, sn = (SEASON.info() || {}).n || 0;
     let o = null;
-    if (kind === 'supporter') { if (E.supActive(me)) return json(res, 400, { error: 'You\'re already a supporter. Thank you!' }); o = { mode: 'subscription', name: 'Bowfall Supporter (monthly)', amount: P.supporter }; }
+    // a gift: for a friend (only friends, so nobody can shower strangers with presents)
+    let to = null;
+    if (body.gift) {
+      to = track(await store.userByName(String(body.gift)).catch(() => null));
+      if (!to || to.guest || (to.career && to.career.ai)) return json(res, 400, { error: 'No player with that name.' });
+      if (to.id === me.id) return json(res, 400, { error: 'That\'s you! Buy it for yourself instead.' });
+      if (!((me.social && me.social.friends) || []).includes(to.id)) return json(res, 400, { error: 'You can only send gifts to friends.' });
+      const why = E.giftBlock(to, kind); if (why) return json(res, 400, { error: why });
+      if (kind === 'founder' && !foundersOpen()) return json(res, 400, { error: 'The founder pack is no longer available.' });
+      if (kind === 'pass' && !sn) return json(res, 400, { error: 'There\'s no season running yet.' });
+      o = { mode: 'payment', name: `Gift for ${to.name}: ${kind === 'pass' ? `Bowfall Season ${sn} pass` : kind === 'supporter' ? 'Bowfall Supporter' : 'Bowfall Founder pack'}`, amount: P[kind], item: kind === 'pass' ? String(sn) : '', to: to.id };
+    }
+    else if (kind === 'supporter') { if (me.career && me.career.supporter) return json(res, 400, { error: 'You\'re already a supporter. Thank you!' }); o = { mode: 'payment', name: 'Bowfall Supporter', amount: P.supporter }; }
+    else if (kind === 'pass') { if (!sn) return json(res, 400, { error: 'There\'s no season running yet.' }); if (E.passOwned(me, sn)) return json(res, 400, { error: 'You already have this season\'s pass.' }); o = { mode: 'payment', name: `Bowfall Season ${sn} pass`, amount: P.pass, item: String(sn) }; }
     else if (kind === 'founder') { if (me.career && me.career.founder) return json(res, 400, { error: 'You\'re already a founder.' }); if (!foundersOpen()) return json(res, 400, { error: 'The founder pack is no longer available.' }); o = { mode: 'payment', name: 'Bowfall Founder pack', amount: P.founder }; }
     else if (kind === 'donate') { const a = Math.round(+body.amount); if (!(a >= P.donateMin && a <= P.donateMax)) return json(res, 400, { error: 'Pick an amount between £1 and £200.' }); o = { mode: 'payment', name: 'Support Bowfall', amount: a }; }
     else if (kind === 'unlock') { const k = String(body.item || ''); if (!E.isPremium(k)) return json(res, 400, { error: 'That one is free for everyone.' }); if ((me.career.unlocks || []).includes(k) || me.career.founder) return json(res, 400, { error: 'You already own that.' }); o = { mode: 'payment', name: 'Unlock ' + ((Sim.ELEMENTS[k] || Sim.ROLES[k]).name), amount: P.unlock, item: k }; }
@@ -714,6 +746,12 @@ async function api(req, res, url) {
     const base = process.env.PUBLIC_URL ? process.env.PUBLIC_URL.replace(/\/$/, '') : (req.headers['x-forwarded-proto'] || 'http') + '://' + req.headers.host;
     try { const sess = await PAY.checkout(Object.assign(o, { uid: me.id, kind, base, customer: bill.cust })); return json(res, 200, { url: sess.url }); }
     catch (e) { console.error('Checkout:', e.message); return json(res, 502, { error: 'Could not start the payment. Try again in a moment.' }); }
+  }
+  // gifts you've been sent: shown once, then marked as seen
+  if (route === '/gifts/seen' && method === 'POST') {
+    if (!me) return json(res, 401, { error: 'Sign in first.' });
+    for (const g of (me.social && me.social.giftsIn) || []) g.seen = 1;
+    markDirty(me); return json(res, 200, { ok: true });
   }
   if (route === '/billing' && method === 'POST') {
     if (!me) return json(res, 401, { error: 'Sign in first.' });
@@ -950,6 +988,26 @@ async function api(req, res, url) {
     let rows = (await store.leaderboard(by, 50)).map(u => live.get(u.id) || u).filter(u => (u.career || {}).games > 0 && (by !== 'eloT' || (u.career || {}).eloT != null));
     if (by === 'elo' || by === 'eloT') rows = rows.filter(placedOf); // ratings stay hidden until the 5 placement matches are done
     return board({ by, rows: rows.map(u => ({ name: u.name, ai: social.isAI(u) ? 1 : undefined, own: u.admin ? 1 : undefined, ...stOf(u), title: u.title, country: flagOf(u), level: levelOf(u.career).lv, value: by === 'elo' || by === 'eloT' ? Math.round((u.career || {})[by] || ELO_START) : (u.career || {})[by] || 0, games: (u.career || {}).matches || 0, wins: (u.career || {}).matchWins || 0, kills: (u.career || {}).kills || 0, pl: placedOf(u) ? 1 : 0, rate: (u.career || {}).matches ? Math.round(((u.career || {}).matchWins || 0) / u.career.matches * 100) : 0 })) }); // "games" here are whole matches (a match is several rounds of short fights)
+  }
+  // ---- your circle: your friends, plus anyone who's friends with at least CIRCLE_MIN of your friends (so people who
+  // share a school or a group show up, but one friend-of-a-friend from somewhere else doesn't, and it can't chain on)
+  if (route === '/circle' && method === 'POST') {
+    if (!me) return json(res, 401, { error: 'Sign in first.' });
+    const S = me.social || (me.social = {}); S.hideCircle = !!body.hide; markDirty(me);
+    return json(res, 200, { hide: S.hideCircle });
+  }
+  if (route === '/circle' && method === 'GET') {
+    if (!me) return json(res, 200, { rows: [], signedOut: 1 });
+    const S = me.social || {}, F = (S.friends || []).slice(0, 300), blocked = new Set(S.blocked || []);
+    const friends = (await store.usersByIds(F).catch(() => [])).map(u => live.get(u.id) || u);
+    const count = new Map();
+    for (const f of friends) for (const g of ((f.social && f.social.friends) || []).slice(0, 300)) if (g !== me.id && !F.includes(g) && !blocked.has(g)) count.set(g, (count.get(g) || 0) + 1);
+    const near = [...count.entries()].filter(([, n]) => n >= CIRCLE_MIN).sort((a, b) => b[1] - a[1]).slice(0, 200);
+    const others = near.length ? (await store.usersByIds(near.map(x => x[0])).catch(() => [])).map(u => live.get(u.id) || u) : [];
+    const rowOf = (u, mutual) => { const c = u.career || {}; return { name: u.name, own: u.admin ? 1 : undefined, ...stOf(u), country: flagOf(u), level: levelOf(c).lv, elo: placedOf(u) ? Math.round(c.elo || ELO_START) : null, eloT: placedOf(u) && c.eloT != null ? Math.round(c.eloT) : null, wins: c.matchWins || 0, kills: c.kills || 0, games: c.matches || 0, me: u.id === me.id ? 1 : undefined, friend: mutual == null && u.id !== me.id ? 1 : undefined, mutual: mutual || undefined }; };
+    const ok = u => u && !u.guest && !(u.career && u.career.ai) && !(u.career && u.career.deleted);
+    const rows = [rowOf(me)].concat(friends.filter(ok).map(u => rowOf(u)), others.filter(u => ok(u) && !(u.social && u.social.hideCircle)).map(u => rowOf(u, count.get(u.id))));
+    return json(res, 200, { rows, min: CIRCLE_MIN, hide: !!S.hideCircle, friends: friends.length, others: rows.length - 1 - friends.filter(ok).length });
   }
   // ---- clans
   if (route === '/clans' && method === 'GET') {
@@ -1396,7 +1454,7 @@ const CMD_HELP = {
     '/ban <name> – ban an account (or a guest, until the server restarts) and kick them from every game', '/unban <name>',
     '/announce <text> – message every game on the server', '/host <name> – hand this game to someone', '/start – start the match', '/end – end the match and go back to the lobby',
     '/locks on|off – whether ranked drafts respect unlocks (off: everything free)', '/rotation [element role|clear] – show or pin this week\'s free picks', '/founders on|off – open or close Founder pack sales',
-    '/grant <name> supporter <months>|founder|patron|crests <n>|unlock <key>|revoke <supporter|founder|patron> – for testing and support',
+    '/grant <name> supporter|pass|founder|patron|crests <n>|spent <pence>|unlock <key>|revoke <supporter|pass|founder|patron> – for testing and support',
     '/feature <arena code> [ranked|off] – feature a player arena (ranked: also in the ranked map pool)',
     '/perf – how hard the server is working right now, and the last lag reports from players', '/rooms – list the games running on the server', '/who <name> – ratings, games and where they are playing', '/setelo <name> <rating> [team] – set an account\'s 1v1 (or team) rating', '/clan disband <tag> – remove a clan', '/season [end] – the ranked season, or end it now (ratings soften, rewards paid)', '/profile [seconds] – record what the server spends its CPU on (default 120s), downloadable at /api/profile'],
 };
@@ -1455,18 +1513,20 @@ async function chatCommand(room, ws, text) {
     }
     case 'grant': {
       const name = args[0], what = (args[1] || '').toLowerCase(), n = args[2];
-      if (!name || !what) return tell('Usage: /grant <name> supporter <months>|founder|patron|crests <n>|unlock <key>|revoke <what>');
+      if (!name || !what) return tell('Usage: /grant <name> supporter|pass|founder|patron|crests <n>|spent <pence>|unlock <key>|revoke <what>');
       const u = track(await store.userByName(name).catch(() => null)); if (!u) return tell(`No account called "${name}".`);
       const c = u.career || (u.career = {});
-      if (what === 'supporter') { const sp = c.sup || (c.sup = {}); sp.active = true; sp.since = sp.since || Date.now(); sp.months = Math.max(0, parseInt(n, 10) || 1); sp.until = Date.now() + 31 * 86400000; }
+      if (what === 'supporter') E.grantSupporter(u);
+      else if (what === 'pass') { if (!E.grantPass(u) && !E.passOwned(u)) return tell('No season is running.'); }
+      else if (what === 'spent') { const k = parseInt(n, 10); if (!isFinite(k)) return tell('Usage: /grant <name> spent <pence> (moves their supporter emblem tier)'); c.spent = Math.max(0, (c.spent || 0) + k); }
       else if (what === 'founder') { if (!c.founder) { c.founder = Date.now(); E.give(u, E.FOUNDER_CRESTS, 'founder'); } }
       else if (what === 'patron') c.patron = true;
       else if (what === 'crests') { const k = parseInt(n, 10); if (!isFinite(k)) return tell('Usage: /grant <name> crests <n> (can be negative)'); E.give(u, k, 'admin'); }
       else if (what === 'unlock') { if (!E.unlock(u, String(n || ''))) return tell('Not a premium element or role, or already owned.'); }
-      else if (what === 'revoke') { if (n === 'supporter' && c.sup) c.sup.active = false; else if (n === 'founder') c.founder = null; else if (n === 'patron') c.patron = false; else return tell('Usage: /grant <name> revoke supporter|founder|patron'); }
+      else if (what === 'revoke') { if (n === 'supporter') { c.supporter = null; if (c.sup) c.sup.active = false; } else if (n === 'pass') { const sn = (SEASON.info() || {}).n; c.passes = (c.passes || []).filter(x => x !== sn); } else if (n === 'founder') c.founder = null; else if (n === 'patron') c.patron = false; else return tell('Usage: /grant <name> revoke supporter|founder|patron'); }
       else return tell('Unknown grant. Try supporter, founder, patron, crests, unlock or revoke.');
       markDirty(u); flushUsers(); walletNote(u, 0, null);
-      const w = walletOf(u); return tell(`${u.name}: ${w.crests} Crests · unlocks ${w.unlocks.join(', ') || 'none'}${w.founder ? ' · founder' : ''}${w.sup.active ? ` · supporter (${w.sup.months} months)` : ''}${w.patron ? ' · patron' : ''}.`);
+      const w = walletOf(u); return tell(`${u.name}: ${w.crests} Crests · unlocks ${w.unlocks.join(', ') || 'none'}${w.founder ? ' · founder' : ''}${w.sup.active ? ` · supporter (£${(w.spent / 100).toFixed(2)} spent)` : ''}${w.pass.owned ? ` · season ${w.pass.n} pass (tier ${w.pass.tier})` : ''}${w.patron ? ' · patron' : ''}.`);
     }
     case 'feature': {
       const id = Sim.arenaId(args[0]); const a = id ? await store.arenaGet(id) : null; if (!a) return tell('Usage: /feature <arena code> [ranked|off]');

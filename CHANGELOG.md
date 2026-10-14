@@ -2,6 +2,22 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.76.0
+
+- **Your circle (new):** the first Highscores tab when you're signed in. A leaderboard of your friends, plus anyone who's friends with at least 2 of your friends, ranked by 1v1 rating, team rating, wins or knockouts, with you highlighted and each person marked friend or "3 mutual friends". A group that knows each other (a school, a club) fills each other's circles without anyone having to add everyone; someone linked through a single friend doesn't appear, and it never looks further than two steps, so it can't chain on across everyone. Names, levels and ratings only; no school or place is ever named or guessed. Untick "Show me in other players' circles" to leave other people's circles (friends always see each other). The 2 is `CIRCLE_MIN` in `server.js`.
+
+## 0.75.0
+
+- **No more monthly payments.** Everything in the store is a one-off purchase.
+- **Season pass (new), £5 once per ranked season.** 30 tiers, climbed by playing: every Crest a ranked or custom game earns (before boosts) is a pass point, 300 a tier, so about five matches a tier and the whole track in roughly 150 matches over the three-month season. Everyone gets the free track (150 Crests every 5th tier, 900 in all). The pass adds 100 Crests every tier and 1,000 at the last (4,000 in all; buy it mid-season and every tier you've already reached pays out at once), 25% more Crests from games for the rest of the season, and that season's own banner finish (**Season 1**, **Season 2**...: a slow sheen in that season's colours), kept for good. A new season starts the track again. The store shows your tier and the track.
+- **Supporter is now £5 once, for good** (was £4 a month): the emblem, the Aurora finish, 1,000 Crests, more kept kill cams and arenas, publishing arenas. The emblem now climbs with everything you've spent in Bowfall, gifts included: silver at £15, gold at £40, diamond at £100. Anyone with a monthly membership keeps it until they cancel it (manage it from the store as before), and each month they paid counts as £4 toward their emblem. The 25% Crest boost now comes with the season pass (old memberships keep theirs while they last).
+- **Gifts (new):** the season pass, Supporter and the Founder pack can be bought for a friend from the store (Gift to a friend). Friends only, so nobody can send presents to strangers. They get it the moment it's paid, with a note saying who it's from (shown once, even if they were offline); it counts toward the buyer's supporter emblem.
+- Admin: `/grant <name> pass` (this season's pass), `/grant <name> supporter`, `/grant <name> spent <pence>` (moves an emblem tier), `/grant <name> revoke pass`.
+
+## 0.74.4
+
+- **Main menu:** Training, Store, Highscores, Tutorial and Options are just their titles now (the names say it); only Find game and Custom games keep a line under them. The menu is shorter, so it needs less scaling on smaller windows (about 98% at 1536×864).
+
 ## 0.74.3
 
 - **Menus fit the window.** On a laptop, or a screen set to 125% or 150% scaling, the browser has less room (a 1920×1080 screen at 125% is 1536×864 to a web page), so the main menu and several screens ran off the bottom and needed scrolling. Now any menu taller than the window (the main menu, Find game, Training, the store, highscores, options, and the in-game screens too) is scaled down just enough to show whole: the main menu at about 87% on 1536×864 and 73% on 1280×720. It never goes below 72%; past that a screen scrolls instead, so text stays readable. Phones keep their own layout. (`fitOverlay` in `public/index.html`.)
