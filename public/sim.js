@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.78.4';
+const VERSION = '0.79.3';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1961,7 +1961,7 @@ function fire(w, p, ang, c, burst, vol, x3) { // burst: 1-2 a Volley's shots, 4 
   const snare = p.snare; p.snare = false;
   // Harpoon: one big barbed arrow on a rope, slower than an arrow; whoever it hits is reeled in (see onArrowEffects)
   const hpn = !burst && p.harpoonArmed; if (hpn) { p.harpoonArmed = false; spread = [0]; speed = (300 + 420 * c) * OPT('aspeed'); dmg = Math.max(6, dmg * 0.8); kb *= 0.25; }
-  p.stats.shots += spread.length;
+  p.stats.shots += spread.length; const a0 = w.nid;
   for (const s of spread) {
     const a = ang + s;
     w.arrows.push({
@@ -1972,13 +1972,13 @@ function fire(w, p, ang, c, burst, vol, x3) { // burst: 1-2 a Volley's shots, 4 
       burst: false, pierce: rail || boom || bri ? 99 : full && has(p, 'pierce') && !hpn ? 1 : 0, hit: [], grav: has(p, 'gravity') && !bri && !boom,
       split: full && !boom && !bri && has(p, 'split'),
       bounces: boom || bri || hpn ? 0 : (p.pw.ricochet > 0 ? 2 : 0) + (has(p, 'ricochet') ? 1 : 0) + (has(p, 'bankshot') ? 1 : 0) + (trick ? 3 : 0), trick, explosive: p.pw.explosive > 0 || rocket, life: rocket ? ROCKET.life : boom ? 6 : bri ? BRIAR.range * (0.55 + 0.45 * c) / Math.max(1, speed) : p.role === 'ninja' ? 0.5 : 2.4, stuck: 0,
-      vol: vol || null, sneak, xb, maxDist: xb && !rail && !bri && !boom && !rocket ? p.xbowRange : 0,
+      vol: vol || null, sneak, xb, auto, maxDist: xb && !rail && !bri && !boom && !rocket ? p.xbowRange : 0,
     });
     if (xb && !rocket && !boom && !bri) { const A = w.arrows[w.arrows.length - 1]; A.drag = 0.12; }
   }
   p.over = 0;
   if (recoil) { p.vx -= Math.cos(ang) * 640; p.vy -= Math.sin(ang) * 640; p.knock = Math.max(p.knock, 0.3); ev(w, { e: 'recoil', id: p.id, x: r1(p.x), y: r1(p.y) }); }
-  ev(w, { e: 'fire', id: p.id, x: r1(p.x), y: r1(p.y), c: r2(c), b: bolt ? 1 : 0, xb: xb ? 1 : 0, au: auto ? 1 : 0 });
+  ev(w, { e: 'fire', id: p.id, x: r1(p.x), y: r1(p.y), c: r2(c), b: bolt ? 1 : 0, xb: xb ? 1 : 0, au: auto ? 1 : 0, a0, n: spread.length }); // (a0, n: the arrows' ids, for accuracy)
 }
 
 
@@ -2411,9 +2411,10 @@ function throwStar(w, p, ang, auto, c = 0.6) {
   const kb = 430 * (0.5 + 0.5 * k) * (p.kbMul || 1) * (p.pw.heavy > 0 ? 1.9 : 1) * (p.emp && p.element === 'stone' ? 1.35 : 1) * (auto ? 0.6 : 1);
   const el = Object.keys(ELEMENTS).find(e => has(p, e)) || null;
   const spread = p.pw.multi > 0 ? [-0.14, 0, 0.14] : [0];
-  for (const off of spread) makeStar(w, p, p.x, p.y, ang + off, { dmg, kb, el, dbl, life: 0.45, sp: 0.6 + 0.4 * k, fullDraw: full });
+  const a0 = w.nid;
+  for (const off of spread) makeStar(w, p, p.x, p.y, ang + off, { dmg, kb, el, dbl, life: 0.45, sp: 0.6 + 0.4 * k, fullDraw: full, auto });
   p.stats.shots += spread.length;
-  ev(w, { e: 'throw', id: p.id, d: dbl ? 1 : 0 });
+  ev(w, { e: 'throw', id: p.id, d: dbl ? 1 : 0, a0, n: spread.length, au: auto ? 1 : 0 }); // (a0, n: the stars' ids, for accuracy)
 }
 function makeStar(w, p, x, y, a, o) {
   const sp = 1050 * OPT('aspeed') * (o.sp || 1);
@@ -2421,7 +2422,7 @@ function makeStar(w, p, x, y, a, o) {
     x: x + Math.cos(a) * (p.r + 6), y: y + Math.sin(a) * (p.r + 6), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, v0: sp, ang: a, dist: 0, age: 0,
     dmg: o.dmg, kb: o.kb, full: false, crit: false, heavy: false, el: o.el || null, bolt: false, snare: false, rail: false, big: false,
     drag: 2.4, burst: false, burstOK: false, pierce: 0, hit: [], split: false,
-    bounces: p.pw.ricochet > 0 ? 2 : 0, explosive: p.pw.explosive > 0 && !o.weak, life: o.life || 0.5, stuck: 0, shur: true, star: true, dbl: o.dbl });
+    bounces: p.pw.ricochet > 0 ? 2 : 0, explosive: p.pw.explosive > 0 && !o.weak, life: o.life || 0.5, stuck: 0, shur: true, star: true, dbl: o.dbl, auto: !!o.auto });
 }
 function nearestFoeTo(w, p, x, y, maxD) {
   let best = null, bd = maxD;
@@ -2593,6 +2594,7 @@ function useAbility(w, p, id) {
       return true;
     }
     case 'shuriken': {
+      const a0 = w.nid; // (the fan's ids, for accuracy and dodging: one throw)
       for (const off of [-0.34, -0.17, 0, 0.17, 0.34]) {
         const a = p.aim + off, sp = 950 * OPT('aspeed');
         w.arrows.push({ id: w.nid++, owner: p.id, team: p.team, color: p.color, own: p,
@@ -2600,7 +2602,7 @@ function useAbility(w, p, id) {
           dmg: 6 * (p.dmgMul || 1), kb: 240 * (p.kbMul || 1), full: false, crit: false, heavy: false, el: null, bolt: false, snare: false, rail: false, big: false,
           drag: 1.2, burst: false, pierce: 0, hit: [], split: false, curve: false, bounces: 0, explosive: false, life: 0.42, stuck: 0, shur: true });
       }
-      ev(w, { e: 'shuriken', id: p.id, x: r1(p.x), y: r1(p.y) });
+      ev(w, { e: 'shuriken', id: p.id, x: r1(p.x), y: r1(p.y) }); ev(w, { e: 'throw', id: p.id, d: 0, a0, n: 5, au: 0, q: 1 }); // (q: silent, the fan has its own sound)
       return true;
     }
     case 'caltrops':
@@ -3217,7 +3219,7 @@ function arrowHit(w, a, f) {
   if (!landed) return;
   if (f.stealthT > 0) breakStealth(w, f); // only an arrow hit breaks stealth; burns, poison and blasts don't
   if (a.own && !a.counted) { a.counted = true; a.own.stats.hits++; if (!a.bnc) a.own.stats.longest = Math.max(a.own.stats.longest, a.dist); }
-  ev(w, { e: 'hit', x: r1(a.x), y: r1(a.y), cr: a.crit ? 1 : 0, fd: a.full ? 1 : 0, id: f.id, by: a.owner, el: a.el, b: a.bolt ? 1 : 0, ls: range > 0.3 ? 1 : 0 });
+  ev(w, { e: 'hit', x: r1(a.x), y: r1(a.y), cr: a.crit ? 1 : 0, fd: a.full ? 1 : 0, id: f.id, by: a.owner, el: a.el, b: a.bolt ? 1 : 0, ls: range > 0.3 ? 1 : 0, aid: a.id, bm: a.boom ? (a.back ? 2 : 1) : undefined, au: a.auto ? 1 : undefined }); // (aid: which arrow; bm: a boomerang going out (1) or coming back (2); au: a full-auto shot)
   if (a.crit && a.own) a.own.stats.bull = (a.own.stats.bull || 0) + 1;
   if (a.sneak && !f.dead) { a.sneak = false; stun(w, f, 1); ev(w, { e: 'ambushHit', id: f.id, by: a.owner, x: r1(f.x), y: r1(f.y) }); }
   if (a.vol && a.own && !a.vol.done) {

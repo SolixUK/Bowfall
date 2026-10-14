@@ -527,7 +527,7 @@ async function circleIds(me) {
 }
 const SELF_POOL = -2; // (each player's own best play and best moment: of all time, and of this week, for their circle to see)
 // plays (skill) and moments (spectacle): older entries didn't say which, so their name decides
-const kindOf = m => (m.kind === 'moment' || m.kind === 'play' ? m.kind : /^(Bullied|Merciless|Roasted|Burst|Held knockout|Game-winning|Cornered|Pinned in|Stuck in|Launched|Combo)/.test(m.label || '') ? 'moment' : 'play');
+const kindOf = m => (m.kind === 'moment' || m.kind === 'play' ? m.kind : /^(Bullied|Merciless|Roasted|Burst|Held knockout|Game-winning|Cornered|Pinned in|Stuck in|Burned|Launched|Combo)/.test(m.label || '') ? 'moment' : 'play');
 const monthKey = t => new Date(t || 0).toISOString().slice(0, 7), yearKey = t => new Date(t || 0).toISOString().slice(0, 4);
 const metaOf = c => ({ id: c.id, meta: typeof c.meta === 'string' ? JSON.parse(c.meta) : c.meta });
 const weekKey = (t = Date.now()) => { const d = new Date(t), day = (d.getUTCDay() + 6) % 7; d.setUTCDate(d.getUTCDate() - day); return d.toISOString().slice(0, 10); }; // (the Monday the week began, UTC)
@@ -985,6 +985,9 @@ async function api(req, res, url) {
     const score = Math.max(0, Math.min(60, Math.round((+meta.score || 0) * 10) / 10)); if (score < WEEK_MIN) return json(res, 200, { ok: true, kept: false, why: 'score' });
     const wk = weekKey(), now = Date.now(), label = cleanText(meta.label, 60) || (kind === 'moment' ? 'Best moment' : 'Best play');
     const base = { map: clip.map, n: Math.max(1, Math.min(9, +clip.n || 1)), label, line: cleanText(meta.line, 160) || undefined, score, kind, week: wk, play: 1, at: now };
+    // the play or moment of the game (the client says so; once a match, the better of the two offered first): Crests
+    let bonus = 0;
+    if (own && meta.top && !done.bonus) { done.bonus = true; bonus = E.earnPlay(me, score); if (bonus) { markDirty(me); walletNote(me, bonus, 'play'); } }
     // your own best play and best moment (of all time, and of this week): for your circle. Kept lighter (fewer frames)
     if (own) { try {
       const mineAll = (await store.clipList(SELF_POOL)).map(metaOf).filter(c => c.meta && c.meta.uid === me.id && c.meta.kind === kind);
@@ -998,7 +1001,7 @@ async function api(req, res, url) {
     } catch (e) { console.error('selfplay:', e); } }
     const pool = (await store.clipList(WEEK_POOL)).map(metaOf).filter(c => c.meta && typeof c.meta === 'object'), same = pool.filter(c => kindOf(c.meta) === kind);
     const cur = same.filter(c => c.meta.week === wk), mine = cur.filter(c => own ? c.meta.uid === me.id : c.meta.ai && c.meta.who === aiName[1]).sort((a, b) => a.meta.score - b.meta.score);
-    if (mine.length >= 3 && mine[0].meta.score >= score) return json(res, 200, { ok: true, kept: false, why: 'not your best three' }); // (each player's best three of each)
+    if (mine.length >= 3 && mine[0].meta.score >= score) return json(res, 200, { ok: true, kept: false, why: 'not your best three', bonus }); // (each player's best three of each)
     const id = crypto.randomBytes(6).toString('hex');
     await store.clipSet(WEEK_POOL, id, data, Object.assign({}, base, own ? { who: me.name, uid: me.id } : { who: aiName[1], ai: 1 }));
     // what's kept: this week's (each player's best three, the week's best 30 of each kind), each month's best five, each
@@ -1012,7 +1015,7 @@ async function api(req, res, url) {
       top(monthKey); top(yearKey);
     }
     for (const c of fresh) if (!keep.has(c.id)) await store.clipDrop(WEEK_POOL, c.id);
-    return json(res, 200, { ok: true, kept: keep.has(id) });
+    return json(res, 200, { ok: true, kept: keep.has(id), bonus });
   } catch (e) { console.error('weekplay:', e); PERF.errors.unshift({ t: Date.now(), name: me ? me.name : 'guest', where: 'server:weekplay', m: String(e && e.message || e).slice(0, 300), s: String(e && e.stack || '').slice(0, 1200), v: Sim.VERSION, mode: '', ph: '', map: '', ua: '' }); return json(res, 500, { error: 'Something went wrong on the server.', why: String(e && e.message || e).slice(0, 200) }); } }
   if (route === '/clips' && method === 'GET') { if (!me) return json(res, 401, { error: 'Sign in first.' }); return json(res, 200, await clipsOut(me)); }
   if (route === '/clip' && method === 'POST') {

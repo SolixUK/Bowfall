@@ -2,6 +2,41 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.79.3
+
+- **Pinned in the flames is about the flames finishing them.** If the burning ground knocks them out: a moment of 4 + up to 3 for how long they were held + 2, titled **Burned at the stake** (pinned) or **Burned out** (rooted). Held there and knocked out some other way: 3.5 + up to 1.5. Held and got away: 1.5 + up to 1.5, which never makes a clip on its own (Flame with Pin does that all the time).
+- **Bank shots must really bank:** the hit, a slam into a wall or boulder, then in, and their path has to turn at least 40° at the slam (a slam on the way that didn't change where they were going doesn't count). 2.5 play and 2.5 moment (was 3 and 3), so a bank shot on its own just makes a clip.
+- **Aimbot replaces the accuracy bonus** rather than adding to it (the same shots counted once), and both now look at the same shots, so a line can't say "4/4 shots hit" and "Aimbot (5 shots)" at once.
+- Clip farm: "Score 16 or more" and "Score 20 or more" keep options, for keeping only the very best.
+
+## 0.79.2
+
+- **"At once" means one cause now, not the same instant.** Knockouts count as at once (4 points each, ×1.5 on the moment side, and the "Double kill at once" title) only when the same thing did them: one shot (an arrow through two, a split, a Volley), one Rip, one Quake, one blast, or an archer knocked into another who goes too. Two knockouts that only happen to land together (one falling down a hole while the next is shot) are a quick double: up to 2 points within a second, a little within 4 seconds, mostly on the play side. It used to be any two knockouts within a tenth of a second, so a hole's fall delay lining up with the next kill scored like a perfect multi-kill.
+
+## 0.79.1
+
+A rebalance of plays and moments, after the first clips from 0.79.0 scored too high for too little. The aim: a *play* scores for skill and outplaying (the harder and the more precise, the higher); a *moment* for how good it looks.
+
+- **A dodge is only a dodge if you got out of the way.** A shot counts as dodged only when it was coming for you and you moved across its line (22 px or more) or dashed or blinked while it flew. Standing still while arrows go past isn't a dodge any more.
+- **One shot, one dodge; one shot, one miss.** A Volley, a split or a fan looses several arrows at once; they're one shot now, for dodging and for accuracy. Before, every three-way shot gave the target two "dodges" for the two arrows that were never going to hit, and two "misses" against the shooter. Shots loosed within 0.3 s of each other (a burst of bolts, a full auto, two archers firing together) are one volley to get out of the way of.
+- **Dodging is worth less:** 0.6 a volley aimed straight at you, 0.3 for one merely on course for where you were heading, up to 2 (up to 4 when outnumbered). It was 0.7 each up to 4, up to 8 outnumbered. A Matrix is scored on its own and no longer gets the dodge bonus on top.
+- **Matrix needs real dodging:** four or more separate volleys aimed straight at where you stood, each one moved out of the way of, inside 3 seconds, nothing hitting you. The line says how many were dodged by dashing. It's rare now, as it should be. Moment 4 + 1.5 per extra volley (+2 and more for a knockout after); play 1.5 + 0.6 a volley.
+- **Aimbot needs plenty of shots:** five or more, all landing, with a multi-kill: 1.5, +0.5 for each shot past five (up to 3.5). Two shots for a double kill is just a double kill. Accuracy needs four or more shots before it changes a score.
+- **Outnumbered** a touch lower (1.3 + 1.0 per extra knockout, times the odds, was 1.5 + 1.2); **dash into position** 1 (was 1.5), 3 in all for a set-up (dash in to finish a held target, was 4): bots dash before most shots, and the set-up is the play.
+- The ninja's shuriken fan now reports as one throw (for accuracy and dodging).
+
+## 0.79.0
+
+- **Crests for the play of the game.** After an online match, if your play or moment is the best of the whole game and scores 12 or more, you get Crests: 20 at 12+, 40 at 16+, 75 at 22+ (`EARN.play` in `lib/economy.js`). Once a match (the better of the two if both are yours), at most 5 a day (`EARN.playDaily`), accounts only. The usual "+N Crests" notice says "for the play of the game".
+- **Accuracy counts.** A play now looks at every shot the playmaker loosed over it: more hits than misses lifts the score (up to +2.5), a spray of misses lowers it a little (down to −1). The line says "7/8 shots hit". The sim now gives each shot's ids on `fire`/`throw` and the arrow's id on `hit` (`a0`, `n`, `aid`), so every arrow can be matched to whether it landed.
+- **Aimbot:** a multi-kill without a single missed shot in between: +2.5 and "Aimbot (no misses)" on the line.
+- **Boomerang (moment and play):** a boomerang that hits them on the way out and again on the way back, with the way back doing it. More for each other archer it went through. Hits now say whether a boomerang was going out or coming back (`bm`).
+- **Matrix (moment):** four or more shots dodged inside 3 seconds, each passing within 40 px of the archer, without any shot hitting them. More for each extra shot, and more again if they knock someone out straight after. Its replay rides the first arrow in, then holds close on the dodger, in deep slow motion (0.3×) for the whole hail of shots, then plays on to any knockout.
+- **From the shadows (play and moment):** a knockout from a shot loosed within 1.6 seconds of coming out of stealth.
+- **Not fair (play and moment):** a full auto (Hair Trigger, Blade Guard) where every bolt or shuriken hit, six shots or more. Full-auto shots are now marked on their hits (`au`).
+- **Fixed: combo shots, bank shots and clutches were never being spotted.** The events they look for (archers knocked into each other, slams into walls, the game ending) weren't kept with the replay. They are now (but play no effects in replays).
+- Clip farm: new "only these" filters for Aimbot, accurate plays (80%+ of 4 or more shots), Matrix, Boomerang, From the shadows and Not fair.
+
 ## 0.78.4
 
 - **Fixed: the results screen flickering between full size and fitted** on laptop-sized windows. Two bits of code were both scaling the same card: the older one for phones held sideways (which also reset the results card back to full size on every check), and the newer fit-to-window one. They fought every frame. The older one now only undoes its own scaling and leaves bigger screens to the fit-to-window code, and that code no longer runs on phones held sideways. As a backstop, a screen that has just been made smaller won't grow straight back again until the window is resized or the screen is reopened, so two sizes can't keep swapping.

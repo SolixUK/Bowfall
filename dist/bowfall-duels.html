@@ -2114,7 +2114,7 @@
         <div class="field"><label for="farmEffect"><b>Map effect</b></label><select id="farmEffect"></select></div>
         <div class="field"><label><input type="checkbox" id="farmHunt" checked> <b>Hunt:</b> run flat out without drawing the game, keeping only the very best clips (score 6 or more, or just the plays ticked below). Also ⚡ on the bar. It keeps going in the background if you switch tabs.</label></div>
         <div class="field"><label for="farmBasis">Score by</label><select id="farmBasis"><option value="both">Plays and moments (both added)</option><option value="play">Plays (skill)</option><option value="moment">Moments (spectacle)</option></select></div>
-        <div class="field"><label for="farmKeep">Clips to keep</label><select id="farmKeep"><option value="all">Every one</option><option value="good">Score 3 or more</option><option value="best" selected>Score 4.5 or more</option><option value="s6">Score 6 or more</option><option value="s8">Score 8 or more</option><option value="s10">Score 10 or more</option><option value="s13">Score 13 or more (rare)</option></select></div>
+        <div class="field"><label for="farmKeep">Clips to keep</label><select id="farmKeep"><option value="all">Every one</option><option value="good">Score 3 or more</option><option value="best" selected>Score 4.5 or more</option><option value="s6">Score 6 or more</option><option value="s8">Score 8 or more</option><option value="s10">Score 10 or more</option><option value="s13">Score 13 or more</option><option value="s16">Score 16 or more (rare)</option><option value="s20">Score 20 or more (very rare)</option></select></div>
         <div class="farmmaps" id="farmLook"><span class="status">Only these plays (none ticked: any):</span></div>
       </section>
       <section class="mode farmside" style="--tc:#ff6b5a">
@@ -2274,7 +2274,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.78.4';
+const VERSION = '0.79.3';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -4226,7 +4226,7 @@ function fire(w, p, ang, c, burst, vol, x3) { // burst: 1-2 a Volley's shots, 4 
   const snare = p.snare; p.snare = false;
   // Harpoon: one big barbed arrow on a rope, slower than an arrow; whoever it hits is reeled in (see onArrowEffects)
   const hpn = !burst && p.harpoonArmed; if (hpn) { p.harpoonArmed = false; spread = [0]; speed = (300 + 420 * c) * OPT('aspeed'); dmg = Math.max(6, dmg * 0.8); kb *= 0.25; }
-  p.stats.shots += spread.length;
+  p.stats.shots += spread.length; const a0 = w.nid;
   for (const s of spread) {
     const a = ang + s;
     w.arrows.push({
@@ -4237,13 +4237,13 @@ function fire(w, p, ang, c, burst, vol, x3) { // burst: 1-2 a Volley's shots, 4 
       burst: false, pierce: rail || boom || bri ? 99 : full && has(p, 'pierce') && !hpn ? 1 : 0, hit: [], grav: has(p, 'gravity') && !bri && !boom,
       split: full && !boom && !bri && has(p, 'split'),
       bounces: boom || bri || hpn ? 0 : (p.pw.ricochet > 0 ? 2 : 0) + (has(p, 'ricochet') ? 1 : 0) + (has(p, 'bankshot') ? 1 : 0) + (trick ? 3 : 0), trick, explosive: p.pw.explosive > 0 || rocket, life: rocket ? ROCKET.life : boom ? 6 : bri ? BRIAR.range * (0.55 + 0.45 * c) / Math.max(1, speed) : p.role === 'ninja' ? 0.5 : 2.4, stuck: 0,
-      vol: vol || null, sneak, xb, maxDist: xb && !rail && !bri && !boom && !rocket ? p.xbowRange : 0,
+      vol: vol || null, sneak, xb, auto, maxDist: xb && !rail && !bri && !boom && !rocket ? p.xbowRange : 0,
     });
     if (xb && !rocket && !boom && !bri) { const A = w.arrows[w.arrows.length - 1]; A.drag = 0.12; }
   }
   p.over = 0;
   if (recoil) { p.vx -= Math.cos(ang) * 640; p.vy -= Math.sin(ang) * 640; p.knock = Math.max(p.knock, 0.3); ev(w, { e: 'recoil', id: p.id, x: r1(p.x), y: r1(p.y) }); }
-  ev(w, { e: 'fire', id: p.id, x: r1(p.x), y: r1(p.y), c: r2(c), b: bolt ? 1 : 0, xb: xb ? 1 : 0, au: auto ? 1 : 0 });
+  ev(w, { e: 'fire', id: p.id, x: r1(p.x), y: r1(p.y), c: r2(c), b: bolt ? 1 : 0, xb: xb ? 1 : 0, au: auto ? 1 : 0, a0, n: spread.length }); // (a0, n: the arrows' ids, for accuracy)
 }
 
 
@@ -4676,9 +4676,10 @@ function throwStar(w, p, ang, auto, c = 0.6) {
   const kb = 430 * (0.5 + 0.5 * k) * (p.kbMul || 1) * (p.pw.heavy > 0 ? 1.9 : 1) * (p.emp && p.element === 'stone' ? 1.35 : 1) * (auto ? 0.6 : 1);
   const el = Object.keys(ELEMENTS).find(e => has(p, e)) || null;
   const spread = p.pw.multi > 0 ? [-0.14, 0, 0.14] : [0];
-  for (const off of spread) makeStar(w, p, p.x, p.y, ang + off, { dmg, kb, el, dbl, life: 0.45, sp: 0.6 + 0.4 * k, fullDraw: full });
+  const a0 = w.nid;
+  for (const off of spread) makeStar(w, p, p.x, p.y, ang + off, { dmg, kb, el, dbl, life: 0.45, sp: 0.6 + 0.4 * k, fullDraw: full, auto });
   p.stats.shots += spread.length;
-  ev(w, { e: 'throw', id: p.id, d: dbl ? 1 : 0 });
+  ev(w, { e: 'throw', id: p.id, d: dbl ? 1 : 0, a0, n: spread.length, au: auto ? 1 : 0 }); // (a0, n: the stars' ids, for accuracy)
 }
 function makeStar(w, p, x, y, a, o) {
   const sp = 1050 * OPT('aspeed') * (o.sp || 1);
@@ -4686,7 +4687,7 @@ function makeStar(w, p, x, y, a, o) {
     x: x + Math.cos(a) * (p.r + 6), y: y + Math.sin(a) * (p.r + 6), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, v0: sp, ang: a, dist: 0, age: 0,
     dmg: o.dmg, kb: o.kb, full: false, crit: false, heavy: false, el: o.el || null, bolt: false, snare: false, rail: false, big: false,
     drag: 2.4, burst: false, burstOK: false, pierce: 0, hit: [], split: false,
-    bounces: p.pw.ricochet > 0 ? 2 : 0, explosive: p.pw.explosive > 0 && !o.weak, life: o.life || 0.5, stuck: 0, shur: true, star: true, dbl: o.dbl });
+    bounces: p.pw.ricochet > 0 ? 2 : 0, explosive: p.pw.explosive > 0 && !o.weak, life: o.life || 0.5, stuck: 0, shur: true, star: true, dbl: o.dbl, auto: !!o.auto });
 }
 function nearestFoeTo(w, p, x, y, maxD) {
   let best = null, bd = maxD;
@@ -4858,6 +4859,7 @@ function useAbility(w, p, id) {
       return true;
     }
     case 'shuriken': {
+      const a0 = w.nid; // (the fan's ids, for accuracy and dodging: one throw)
       for (const off of [-0.34, -0.17, 0, 0.17, 0.34]) {
         const a = p.aim + off, sp = 950 * OPT('aspeed');
         w.arrows.push({ id: w.nid++, owner: p.id, team: p.team, color: p.color, own: p,
@@ -4865,7 +4867,7 @@ function useAbility(w, p, id) {
           dmg: 6 * (p.dmgMul || 1), kb: 240 * (p.kbMul || 1), full: false, crit: false, heavy: false, el: null, bolt: false, snare: false, rail: false, big: false,
           drag: 1.2, burst: false, pierce: 0, hit: [], split: false, curve: false, bounces: 0, explosive: false, life: 0.42, stuck: 0, shur: true });
       }
-      ev(w, { e: 'shuriken', id: p.id, x: r1(p.x), y: r1(p.y) });
+      ev(w, { e: 'shuriken', id: p.id, x: r1(p.x), y: r1(p.y) }); ev(w, { e: 'throw', id: p.id, d: 0, a0, n: 5, au: 0, q: 1 }); // (q: silent, the fan has its own sound)
       return true;
     }
     case 'caltrops':
@@ -5482,7 +5484,7 @@ function arrowHit(w, a, f) {
   if (!landed) return;
   if (f.stealthT > 0) breakStealth(w, f); // only an arrow hit breaks stealth; burns, poison and blasts don't
   if (a.own && !a.counted) { a.counted = true; a.own.stats.hits++; if (!a.bnc) a.own.stats.longest = Math.max(a.own.stats.longest, a.dist); }
-  ev(w, { e: 'hit', x: r1(a.x), y: r1(a.y), cr: a.crit ? 1 : 0, fd: a.full ? 1 : 0, id: f.id, by: a.owner, el: a.el, b: a.bolt ? 1 : 0, ls: range > 0.3 ? 1 : 0 });
+  ev(w, { e: 'hit', x: r1(a.x), y: r1(a.y), cr: a.crit ? 1 : 0, fd: a.full ? 1 : 0, id: f.id, by: a.owner, el: a.el, b: a.bolt ? 1 : 0, ls: range > 0.3 ? 1 : 0, aid: a.id, bm: a.boom ? (a.back ? 2 : 1) : undefined, au: a.auto ? 1 : undefined }); // (aid: which arrow; bm: a boomerang going out (1) or coming back (2); au: a full-auto shot)
   if (a.crit && a.own) a.own.stats.bull = (a.own.stats.bull || 0) + 1;
   if (a.sneak && !f.dead) { a.sneak = false; stun(w, f, 1); ev(w, { e: 'ambushHit', id: f.id, by: a.owner, x: r1(f.x), y: r1(f.y) }); }
   if (a.vol && a.own && !a.vol.done) {
@@ -7369,7 +7371,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.78.4';
+const PAGE_VERSION = '0.79.3';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -9330,7 +9332,7 @@ function setWallet(w, gained, why) {
   giftNotes(w);
   if (why === 'pass' && !(gained > 0)) notice('Season pass unlocked. Thank you!', true, '#ffcf5a');
   if (why === 'gave') notice('Your gift is on its way. Thank you!', true, '#ff9ad5');
-  if (gained > 0) notice(`+${gained.toLocaleString()} Crests${why === 'ach' ? ' for an achievement tier' : why === 'train' ? ' for your training grade' : why === 'renewal' ? ': thanks for supporting Bowfall!' : why === 'founder' ? ': welcome, Founder!' : why === 'invite' ? ' for inviting a friend' : why === 'season' ? ' for your season rank' : why === 'pass' ? ' from the season pass' : why === 'supporter' ? ': thanks for supporting Bowfall!' : why === 'gift' ? ' from a gift' : ''}<small>You have ${Math.round(w.crests).toLocaleString()}</small>`, false, '#ffcf5a');
+  if (gained > 0) notice(`+${gained.toLocaleString()} Crests${why === 'ach' ? ' for an achievement tier' : why === 'train' ? ' for your training grade' : why === 'play' ? ' for the play of the game' : why === 'renewal' ? ': thanks for supporting Bowfall!' : why === 'founder' ? ': welcome, Founder!' : why === 'invite' ? ' for inviting a friend' : why === 'season' ? ' for your season rank' : why === 'pass' ? ' from the season pass' : why === 'supporter' ? ': thanks for supporting Bowfall!' : why === 'gift' ? ' from a gift' : ''}<small>You have ${Math.round(w.crests).toLocaleString()}</small>`, false, '#ffcf5a');
   if (why === 'supporter') notice('You\'re a Bowfall supporter. Thank you!', true, '#8ff3ff');
   if (why === 'donate') notice('Thank you for supporting Bowfall!', true, '#ff6f91');
   if (why === 'unlock' && gained == null) notice('Unlocked!', false, '#7dff8a');
@@ -12967,7 +12969,7 @@ function eventFx(e) {
       case 'picked': if (e.id === myId) { lastPick = e.card; sfx.kill(); } break;
       case 'loaded': if (e.id === myId) { play('loaded'); const m = view && view.p.find(p => p.id === myId); if (m) floater(m.x, m.y - 40, 'Bolt loaded', '#ffcf5a', 14); } break;
       case 'throw':
-        play('throw', e.id !== myId ? 'other' : e.d ? 'dash' : 'mine');
+        if (!e.q) play('throw', e.id !== myId ? 'other' : e.d ? 'dash' : 'mine');
         break;
       case 'sstrike': {
         burst(e.x1, e.y1, '#1c1a2e', 14, 110, 3); burst(e.x2, e.y2, '#aab0e0', 14, 150, 2.5);
@@ -17227,10 +17229,12 @@ function replayRecord() {
 }
 // events the kill cam keeps; those in REPLAY_LIVE are played exactly as they looked live
 const REPLAY_LIVE = new Set(['hooked', 'reel', 'orbHeal', 'transfuse', 'stagger', 'shade', 'shadeUp', 'shadeBurst', 'ripCast', 'rip', 'boomTurn', 'catch', 'eclipse', 'mend', 'mended', 'flashpoint', 'smoke', 'totem', 'harpoon', 'blink', 'recoil', 'rush', 'wind', 'gust', 'deflect', 'deflectUp', 'blocked', 'snared', 'stagger', 'execute', 'backstab', 'volleyReset', 'echo', 'disarm', 'blossom', 'clone', 'grapple', 'leech', 'bleed', 'split', 'drop', 'thunk', 'shield', 'rainMark', 'rainHit', 'trapSet', 'wallUp', 'marked', 'fortify', 'shove', 'stuck', 'zone', 'thunder', 'caltrops', 'stealthOn', 'stealthOff', 'smark', 'shuriken', 'transfuse', 'revive', 'overload', 'sstrike', 'recall', 'nblink', 'flash', 'swap', 'quake', 'collapse', 'aftershock', 'trapHit', 'chain', 'burst', 'pinned', 'freeze', 'spike', 'thud']);
+// kept with the replay for spotting plays (combo shots, bank shots, clutches), but nothing to show for them
+const REPLAY_META = new Set(['bowl', 'slam', 'gameEnd']);
 const REPLAY_FX = { throw: 1, sstrike: 1, recall: 1, nblink: 1, flash: 1, swap: 1, fire: 1, hit: 1, dmg: 1, fall: 1, boom: 1, freeze: 1, spike: 1, thud: 1, pinned: 1, chain: 1, burst: 1, trapHit: 1, quake: 1, collapse: 1, aftershock: 1, dash: 1, saw: 1, bump: 1, portal: 1, parry: 1, parried: 1, warp: 1, stun: 1, ambushHit: 1 };
 function replayNote(evs) {
   const t = RP.evT != null ? RP.evT : rpNow(); RP.evT = null;
-  for (const e of evs) { if (REPLAY_FX[e.e] || REPLAY_LIVE.has(e.e) || e.e === 'kill') RP.evs.push({ t, e }); if (e.e === 'kill') RP.lastKill = { t, k: e.k, v: e.v, how: e.how, kn: e.kn, vn: e.vn }; }
+  for (const e of evs) { if (REPLAY_FX[e.e] || REPLAY_LIVE.has(e.e) || REPLAY_META.has(e.e) || e.e === 'kill') RP.evs.push({ t, e }); if (e.e === 'kill') RP.lastKill = { t, k: e.k, v: e.v, how: e.how, kn: e.kn, vn: e.vn }; }
 }
 // one knockout's piece of the replay: from just before the arrow was loosed to just after the knockout
 function replaySeg(K, last) {
@@ -17363,9 +17367,11 @@ function replayTick(dt) {
   // slower still as the arrow lands and at the knockout itself (eased, so the speed never jumps)
   const base = isFinal ? R.speed : R.early;
   const near = isFinal ? ((sub.hitT != null && Math.abs(R.cur - sub.hitT) < 0.25) || Math.abs(R.cur - sub.kt) < 0.25) : !R.finalOnly && Math.abs(R.cur - sub.kt) < 0.2; // (final-shot-only: everything before it in real time)
-  R.rate += ((near ? base * (isFinal ? 0.45 : 0.6) : base) - R.rate) * (1 - Math.exp(-dt * 10));
+  // a Matrix: the whole hail of shots in deep slow motion
+  const MX = seg.mx, inMx = !!MX && R.cur >= MX.t0 - 0.15 && R.cur <= MX.t1 + 0.3;
+  R.rate += ((inMx ? 0.3 : near ? base * (isFinal ? 0.45 : 0.6) : base) - R.rate) * (1 - Math.exp(-dt * (inMx ? 6 : 10)));
   if (R.real) R.rate = 1; // (the clip farm's "real time": no slow motion at all)
-  else if (R.fixed) R.rate = R.fixed; // (a clip about one archer rather than one knockout: an even slow motion)
+  else if (R.fixed && !inMx) R.rate = R.fixed; // (a clip about one archer rather than one knockout: an even slow motion)
   R.cur += dt * R.rate * (R.mul || 1);
   if (R.holdAt != null) R.cur = R.holdAt; // (a freeze frame: the picture held, the camera still settling)
   // replay the visual effects as their moment comes round
@@ -17408,6 +17414,12 @@ function replayTick(dt) {
       for (const q of once) { const p = v.p.find(z => z.id === q.v); if (p) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y); } }
       if (x1 >= x0) { fx0 = (x0 + x1) / 2; fy0 = (y0 + y1) / 2 - 10; zoom = clamp(Math.min(AW / (x1 - x0 + 380), AH / (y1 - y0 + 300)), 1.05, 1.9); onceNow = true; }
     }
+  }
+  // a Matrix: ride the first shot in, then stay close on the archer dodging the rest
+  if (inMx && !(STUDIO.on && STUDIO.cur.cam !== 'kc')) {
+    const dg = v.p.find(p => p.id === MX.id), fa = v.a.find(a => a.id === MX.aid && !a.s);
+    if (fa && R.cur < MX.aT + 0.05) { fx0 = fa.x; fy0 = fa.y; zoom = 2.0; }
+    else if (dg) { fx0 = dg.x; fy0 = dg.y; zoom = 1.9; }
   }
   let camK = 0, zIn = 0, zOut = 0;
   if (RP.cut) R.sb = null;
@@ -17473,6 +17485,7 @@ function replayTick(dt) {
   return v;
 }
 function replayFx(e) {
+  if (REPLAY_META.has(e.e)) return;
   if (mechFx(e)) return;
   if (REPLAY_LIVE.has(e.e)) { try { eventFx(e); } catch (err) {} return; }
   switch (e.e) {
@@ -18155,14 +18168,14 @@ function galCard(el, x) { clipCard(el, `/play?clip=${encodeURIComponent(x.id)}&e
 $('wpGal').onclick = galleryOpen;
 setTimeout(weekPlaysLoad, 1500); setInterval(weekPlaysLoad, 60 * 1000);
 // after a ranked match: its best play is offered for the plays of the week (if it's scored highly; the server decides)
-async function weekPlayOffer(x, kind) {
+async function weekPlayOffer(x, kind, top) {
   // (what came of it is noted for the owner at /api/perf as mem:weekoffer; a play that made it says so, and the menu's
   // card is fetched afresh)
   let why = '';
   try {
     let frames = x.c.frames; while (frames.length > 850) frames = frames.filter((f, i) => i % 2 === 0);
     const data = await gzipB64(JSON.stringify(clipPack(Object.assign({}, x.c, { frames }))));
-    const r = await fetch('/api/weekplay', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data, meta: { label: x.title, score: playVal(x, kind), kind, line: x.line } }) });
+    const r = await fetch('/api/weekplay', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data, meta: { label: x.title, score: playVal(x, kind), kind, line: x.line, top: top ? 1 : 0 } }) });
     const d = await r.json().catch(() => ({}));
     why = `${r.status} ${kind} ${d.kept ? 'kept' : 'not kept'} ${d.error || ''} ${d.why || ''} (score ${playVal(x, kind)}, ${frames.length} frames, ${Math.round(data.length / 1024)} KB)`;
     if (d.kept && x.k === myId) { WEEKP.at = 0; notice(`Your ${esc(x.title.toLowerCase())} made the ${kind === 'moment' ? 'moments' : 'plays'} of the week!`, true); } else if (d.kept) WEEKP.at = 0;
@@ -18177,7 +18190,7 @@ let PC = FARM; // (which one the play-spotting functions below are working for: 
 const PLAY_MIN = 4.5; // (worth showing: a double kill, a set-up or ability knockout, a roast, a harpoon pull and up)
 const pcPlayer = id => { if (PC === FARM && world) return world.players.find(q => q.id === id); const p = view && view.p.find(q => q.id === id); return p ? { name: p.n, dead: p.d } : null; };
 const playOn = () => !INFRAME && !FARM.on && myId != null && (mode === 'online' || mode === 'local') && !TUT.on && !TR.on && !DESK.sim && !(roomInfo && (roomInfo.spec || []).some(c => c.you)); // (roomInfo.spec is the list of spectators; it was read as 'am I one', which it always was, so no play was ever caught online)
-function playMine(e) { return ['moment', 'style', 'kill', 'dmg', 'clutch', 'gameEnd', 'slam', 'deflect', 'catch'].includes(e.e) && !e.npc; } // (everyone's plays: the best of the game, and yours)
+function playMine(e) { return ['moment', 'style', 'kill', 'dmg', 'clutch', 'gameEnd', 'slam', 'deflect', 'catch', 'fire', 'throw'].includes(e.e) && !e.npc; } // (everyone's plays: the best of the game, and yours)
 function playEvents(evs) {
   for (const e of evs) if (e.e === 'matchStart') { PLAY.list = []; PLAY.pending = []; PLAY.pl = new Map(); PLAY.sl = new Map(); PLAY.near = new Map(); PLAY.fp = new Map(); PLAY.match++; PLAY.flushAt = 0; PLAY.offered = false; PLAY.shown = ''; }
   if (!playOn()) return;
@@ -18192,7 +18205,10 @@ function playTick() {
   catch (e) { PLAY.pending = []; } finally { PC = FARM; }
   if (all && !PLAY.pending.length && !PLAY.offered) { PLAY.offered = true; if (mode === 'online' && account && !OFFLINE) { // (yours, and the best of anyone else's: the server takes an AI player's, never another person's)
     const offers = []; for (const mine of [true, false]) for (const kind of ['play', 'moment']) { const x = playBest(PLAY.list.filter(q => (q.k === myId) === mine), kind); if (x) offers.push([x, kind]); }
-    for (const [x, kind] of offers) weekPlayOffer(x, kind); if (!offers.length) clientError(new Error('no plays in the game'), 'mem:weekoffer'); } }
+    // yours, if it's the play or the moment of the whole game: the better of the two is marked for the Crest bonus, and sent first
+    const tops = offers.filter(([x, kind]) => x.k === myId && playBest(PLAY.list, kind) === x).sort((a, b) => playVal(b[0], b[1]) - playVal(a[0], a[1]));
+    if (tops.length) { tops[0][2] = 1; offers.sort((a, b) => (b[2] || 0) - (a[2] || 0)); }
+    (async () => { for (const [x, kind, top] of offers) await weekPlayOffer(x, kind, top); })(); if (!offers.length) clientError(new Error('no plays in the game'), 'mem:weekoffer'); } }
 }
 // plays (skill: score) and moments (spectacle: ms); one clip can be both
 const playVal = (x, kind) => (kind === 'moment' ? x.ms || 0 : kind === 'play' ? x.score : Math.max(x.score, x.ms || 0));
@@ -18293,7 +18309,7 @@ async function playKeep(x) {
   } catch (e) { x.kept = false; notice(esc(e.message || 'Could not keep it'), false); }
   renderResPlays();
 }
-function farmPl(id) { let o = PC.pl.get(id); if (!o) PC.pl.set(id, o = { dodge: [], dash: [], dmg: [], kill: [], flag: -99, bflag: -99 }); const T = PC.gt - 10; for (const k of ['dodge', 'dash', 'dmg', 'kill']) while (o[k].length && (o[k][0].t != null ? o[k][0].t : o[k][0]) < T) o[k].shift(); return o; }
+function farmPl(id) { let o = PC.pl.get(id); if (!o) PC.pl.set(id, o = { dodge: [], dash: [], dmg: [], kill: [], mx: [], flag: -99, bflag: -99 }); const T = PC.gt - 10; for (const k of ['dodge', 'dash', 'dmg', 'kill', 'mx']) while (o[k].length && (o[k][0].t != null ? o[k][0].t : o[k][0]) < T) o[k].shift(); return o; }
 // near misses: an enemy arrow that came within 60 px of an archer and went on by without hitting them
 // Dodges: a shot that was really coming for them and didn't land. When an arrow is first seen (and while it flies),
 // it counts as a threat to an archer if it was on course for them: aimed at where they stood, or at where they were
@@ -18317,19 +18333,25 @@ function dodgeTrack(S, now, pc) {
         if (p.d || p.f || p.nk || p.tm === m.team) continue;
         const R = (p.rz || 24) + 8, rx = p.x - a.x, ry = p.y - a.y, along = rx * ux + ry * uy;
         let st = m.ps.get(p.id);
-        if (!st) { st = { threat: false, seen: 0, done: false }; m.ps.set(p.id, st); }
+        if (!st) { st = { threat: false, seen: 0, done: false, t0: now }; m.ps.set(p.id, st); }
         if (st.done) continue;
         if (along > R + 50 && along < 950) {
           const tA = along / spd, still = Math.abs(rx * uy - ry * ux), px = rx + (p.vx || 0) * tA, py = ry + (p.vy || 0) * tA, pred = Math.abs(px * uy - py * ux);
           // on course: for where they stand (only judged the first time the shot is seen: the aim), or for where they're heading
           const onCourse = ((st.seen === 0 && still < R) || pred < R) && !blocked(a.x, a.y, p.x, p.y);
-          if (onCourse && !st.threat) { st.threat = true; st.at = now + tA; }
+          if (onCourse && !st.threat) { st.threat = true; st.at = now + tA; st.x = p.x; st.y = p.y; st.dead = st.seen === 0 && still < R * 0.8; } // (dead: aimed straight at them, where they stood)
           st.seen++;
-        } else if (along <= -R && st.threat) { st.done = true; farmDodge(p.id, m.o, now); }
+        } else if (along <= -R && st.threat) {
+          // it's gone by. Did they get out of its way? How far they moved across its line since it was first coming for
+          // them (or a dash or blink in that time); standing still while it flies past isn't a dodge
+          st.done = true;
+          const moved = Math.abs((p.x - st.x) * uy - (p.y - st.y) * ux), dashed = RP.evs.some(x => (x.e.e === 'dash' || x.e.e === 'blink') && x.e.id === p.id && x.t >= st.t0 - 0.05 && x.t <= now);
+          if (moved >= 22 || dashed) farmDodge(p.id, m.o, now, { aid: a.id, t0: st.t0, dead: st.dead, moved, dashed });
+        }
       }
     }
     // shots gone (stuck in a boulder, a wall, or the end of their flight): the ones still coming for someone missed them
-    for (const [id, m] of N) if (!live.has(id)) { for (const [pid, st] of m.ps) if (st.threat && !st.done) { st.done = true; farmDodge(pid, m.o, now); } N.delete(id); }
+    for (const [id, m] of N) if (!live.has(id)) { for (const [pid, st] of m.ps) if (st.threat && !st.done) { st.done = true; const p = S.p.find(q => q.id === pid); const moved = p ? Math.hypot(p.x - st.x, p.y - st.y) : 0; if (moved >= 22) farmDodge(pid, m.o, now, { aid: id, t0: st.t0, dead: st.dead, moved }); } N.delete(id); }
     // pinned or rooted on an enemy's burning ground for a second or more: a moment (caught when it ends)
     const FP = pc.fp || (pc.fp = new Map()), fz = (S.z || []).filter(z => z.ty === 'fire');
     for (const p of S.p) {
@@ -18341,9 +18363,36 @@ function dodgeTrack(S, now, pc) {
     }
   } finally { PC = keep; }
 }
-function farmDodge(pid, by, t) {
+// the shot an arrow belongs to: a Volley, a split or a fan looses several at once, and they're one shot for dodging and
+// for accuracy (dodging one of three that were never all going to hit isn't three dodges, and two flying wide isn't two misses)
+function shotOf(aid) { for (let i = RP.evs.length - 1; i >= 0; i--) { const e = RP.evs[i].e; if ((e.e === 'fire' || e.e === 'throw') && e.a0 != null && aid >= e.a0 && aid < e.a0 + (e.n || 1)) return e.a0; } return aid; }
+// shots loosed within 0.3 s of each other (a burst of bolts, a full auto, two archers firing together) are one volley:
+// one thing to get out of the way of, however many arrows were in it
+function volleys(L) { const S = L.map(x => x.s != null ? x.s : x.t).sort((a, b) => a - b); let n = 0, last = -1e9; for (const t of S) { if (t - last > 0.3) n++; last = t; } return n; }
+function farmDodge(pid, by, t, o) {
   if (RP.evs.some(x => x.e.e === 'hit' && x.e.id === pid && x.e.by === by && Math.abs(x.t - t) < 0.6)) return; // (it hit them)
-  farmPl(pid).dodge.push(t);
+  const P = farmPl(pid), g = o && o.aid != null ? shotOf(o.aid) : null;
+  if (g != null && P.dodge.some(x => x.g === g)) return; // (the same shot's other arrows: one dodge)
+  P.dodge.push({ t, g, s: o && o.t0 != null ? o.t0 : t, dead: !!(o && o.dead), dashed: !!(o && o.dashed) });
+  // Matrix: four or more shots aimed straight at where they stood, each got out of the way of (moving, not standing
+  // there while they fly past), inside 3 seconds, with nothing hitting them
+  if (!o || !o.dead) return;
+  P.mx.push({ t, aid: g, s: o.t0, dashed: !!o.dashed });
+  let run = P.mx.filter(x => x.t >= t - 3);
+  const t0 = Math.min(...run.map(x => x.s));
+  if (RP.evs.some(x => x.e.e === 'hit' && x.e.id === pid && x.t >= t0 && x.t <= t + 0.02)) { P.mx = P.mx.filter(x => x.t > t); return; } // (one got them: the run starts again)
+  if (volleys(run) < 4) return; // (four separate volleys got out of the way of, not one burst dodged with one dash)
+  const same = PC.pending.find(x => x.e.e === 'matrix' && x.e.id === pid && x.e.run[0].t >= run[0].t - 3.1 && t - x.e.run[x.e.run.length - 1].t < 3);
+  if (same) { run = [...new Map(same.e.run.concat(run).map(x => [x.aid, x])).values()].sort((a, b) => a.t - b.t); same.e.run = run; same.at = t; same.due = t + 3.4; }
+  else PC.pending.push({ e: { e: 'matrix', id: pid, run }, at: t, due: t + 3.4 });
+  PC.pending.sort((a, b) => a.due - b.due);
+}
+// the projectiles an archer loosed between two times, and how many of them hit someone
+function shotsBy(K, a, b) { // (one shot = one fire or throw, however many arrows it loosed; it hit if any of them did)
+  const shots = new Map(), hit = new Set();
+  for (const x of RP.evs) if ((x.e.e === 'fire' || x.e.e === 'throw') && x.e.id === K && x.e.a0 != null && x.t >= a && x.t <= b) for (let i = 0; i < (x.e.n || 1); i++) shots.set(x.e.a0 + i, x.e.a0);
+  for (const x of RP.evs) if (x.e.e === 'hit' && x.e.by === K && shots.has(x.e.aid)) hit.add(shots.get(x.e.aid));
+  return { n: new Set(shots.values()).size, h: hit.size };
 }
 // what's worth keeping: the best moments (multi-kills, roasts, bullying, long shots), clutches, game-winning knockouts,
 // harpoon pulls into hazards, bursts of damage and evasive play
@@ -18351,7 +18400,17 @@ function farmNote(e) {
   if (PC === PLAY && !playMine(e)) return; // (a real match: only the player's own plays are looked for)
   const at = PC.gt, push = (ev, due) => { PC.pending.push({ e: ev, at, due: at + due }); };
   if (e.e === 'moment' && e.m === 'bully') return; // (bullying is followed slam by slam below instead)
-  if ((e.e === 'deflect' || e.e === 'catch') && e.id != null) { farmPl(e.id).dodge.push(at); return; } // (a shot turned away: a dodge too)
+  // full auto (Hair Trigger, Blade Guard): the run of shots, judged once it ends ("Not fair" if every one hit)
+  if ((e.e === 'fire' || e.e === 'throw') && e.au && e.id != null && e.a0 != null) {
+    const m = PC.au || (PC.au = new Map()); let R = m.get(e.id);
+    if (!R || at - R.t1 > 0.45) { R = { ids: [], t0: at, t1: at, star: e.e === 'throw' }; m.set(e.id, R); }
+    for (let i = 0; i < (e.n || 1); i++) R.ids.push(e.a0 + i); R.t1 = at;
+    const same = PC.pending.find(x => x.e.e === 'notfair' && x.e.run === R);
+    if (same) { same.at = at; same.due = at + 1.6; } else push({ e: 'notfair', id: e.id, run: R }, 1.6);
+    PC.pending.sort((a, b) => a.due - b.due); return;
+  }
+  if (e.e === 'fire' || e.e === 'throw') return;
+  if ((e.e === 'deflect' || e.e === 'catch') && e.id != null) { farmPl(e.id).dodge.push({ t: at, g: null, s: at, dead: true, dashed: false }); return; } // (a shot turned away: a dodge too)
   if (e.e === 'slam' && e.by != null && e.by !== e.id) {
     // bullying: slammed into the walls again and again (by one archer or several), each slam within 1.8 s of the last
     const m = PC.sl || (PC.sl = new Map()); let S = m.get(e.id);
@@ -18395,13 +18454,25 @@ function killStyle(e, t) {
   // the shooter dashed (or blinked) into position just before the shot
   const shotT = (() => { for (let i = RP.evs.length - 1; i >= 0; i--) { const x = RP.evs[i]; if (x.t > t) continue; if (x.e.e === 'hit' && x.e.id === e.v && x.e.by === e.k) return x.t; if (t - x.t > 3) break; } return t; })();
   const dashed = ev('dash', x => x.id === e.k, (t - shotT) + 1.6) || ev('blink', x => x.id === e.k, (t - shotT) + 1.6);
-  if (dashed) { tags.push('dash into position'); score += 1.5; if (cc) score += 2.5; }
+  if (dashed) { tags.push('dash into position'); score += 1; if (cc) score += 2; } // (a dash before a shot is common; dashing in to finish a held target is the play)
   // abilities that made it: Bull Rush, a Volley's three arrows, a Rip (more if it took several), a Quake into a hazard, a Pin before the finish
   if (ev('rush', x => x.id === e.k, 1.3)) { tags.push('Bull Rush'); score += 1.5; }
   if (ev('volleyArmed', x => x.id === e.k, 2.6)) { const hits = RP.evs.filter(x => x.e.e === 'hit' && x.e.by === e.k && x.e.id === e.v && t - x.t < 1.2).length; if (hits >= 3) { tags.push('full Volley'); score += 2; } else if (hits >= 2) { tags.push('Volley'); score += 1; } }
   if (e.how === 'rip' || e.c === 'rip') { const others = RP.evs.filter(x => x.e.e === 'kill' && x.e.k === e.k && x.e.how === 'rip' && x.e.v !== e.v && Math.abs(x.t - t) < 0.1).length; tags.push('Rip'); score += 1; void others; } // (several at once is scored as "at once", like any other)
   if (ev('quake', () => true, 1.2) && e.c !== 'arrow' && ev('quake', x => Math.hypot(x.x - e.x, x.y - e.y) < 300, 1.2)) { tags.push('Quake'); score += 1.5; }
   if (ev('pinned', x => x.id === e.v && x.by === e.k, 3) && cc !== 'pn') { tags.push('pinned first'); score += 1; }
+  // a boomerang that hit them on the way out and again on the way back, and the way back did it (more for anyone else it went through)
+  let boom = false;
+  { const back = [...RP.evs].reverse().find(x => x.e.e === 'hit' && x.e.bm === 2 && x.e.id === e.v && x.e.by === e.k && x.t <= t + 0.02 && t - x.t < 1.8);
+    if (back && RP.evs.some(x => x.e.e === 'hit' && x.e.bm === 1 && x.e.aid === back.e.aid && x.e.id === e.v)) {
+      const lastHit = [...RP.evs].reverse().find(x => x.e.e === 'hit' && x.e.id === e.v && x.e.by === e.k && x.t <= t + 0.02);
+      if (lastHit && lastHit.e.aid === back.e.aid) { boom = true; const others = new Set(RP.evs.filter(x => x.e.e === 'hit' && x.e.aid === back.e.aid && x.e.id !== e.v).map(x => x.e.id)).size;
+        tags.push(`boomerang there and back${others ? `, through ${others} more` : ''}`); mo += 4 + others * 1.5; score += 2 + others; } } }
+  // out of the shadows: the shot came moments after they left stealth
+  let shadow = false;
+  { const shot = (() => { for (let i = RP.evs.length - 1; i >= 0; i--) { const x = RP.evs[i]; if (x.t > t + 0.02) continue; if (x.e.e === 'hit' && x.e.id === e.v && x.e.by === e.k) return x.t; if (t - x.t > 3) break; } return t; })();
+    for (const f of RP.buf) { if (f.t < shot - 1.6 || f.t > shot) continue; const kp = f.v.p.find(q => q.id === e.k); if (kp && (kp.sth || kp.amb)) { shadow = true; break; } }
+    if (shadow) { tags.push('out of the shadows'); score += 2; mo += 2; } }
   // smashed into the walls: a run of quick hits that threw them into a wall or corner again and again
   const hits = RP.evs.filter(x => x.e.e === 'hit' && x.e.by === e.k && x.e.id === e.v && t - x.t < 3.2).length, slams = RP.evs.filter(x => (x.e.e === 'thud' || x.e.e === 'spike') && x.e.id === e.v && t - x.t < 3.2).length;
   // (a run of slams into the walls is its own kind of clip: see 'bully2')
@@ -18411,13 +18482,22 @@ function killStyle(e, t) {
   if (e.c === 'pit' || e.c === 'water' || e.c === 'lava') {
     const bw = [...RP.evs].reverse().find(x => x.e.e === 'bowl' && x.e.id === e.v && x.e.k === e.k && x.t >= t - 2.5 && x.t <= t);
     if (bw && !RP.evs.some(x => x.e.e === 'hit' && x.e.id === e.v && x.e.by === e.k && x.t > bw.t && x.t <= t)) { const by = pcPlayer(bw.e.by); combo = true; tags.push(`combo shot${by && by.name ? ` off ${by.name}` : ''}`); mo += 5; score += 1.5; }
-    if (!combo && shotT < t && RP.evs.some(x => x.e.e === 'slam' && x.e.id === e.v && x.t > shotT && x.t <= t && t - x.t < 1.6)) { bank = true; tags.push('off the wall'); score += 3; mo += 3; }
+    // a bank shot: hit, off a wall or boulder, and in, where the bounce is what sent them in: their path turned at least
+    // 40 degrees at the slam (a slam on the way that didn't change where they were going isn't one)
+    if (!combo && shotT < t) {
+      const hE = RP.evs.find(x => x.e.e === 'hit' && x.e.id === e.v && x.e.by === e.k && Math.abs(x.t - shotT) < 0.01);
+      const sl = RP.evs.find(x => x.e.e === 'slam' && x.e.id === e.v && x.t > shotT && x.t <= t && t - x.t < 1.6);
+      if (hE && sl && hE.e.x != null && sl.e.x != null && e.x != null) {
+        const ax = sl.e.x - hE.e.x, ay = sl.e.y - hE.e.y, bx = e.x - sl.e.x, by = e.y - sl.e.y, la = Math.hypot(ax, ay), lb = Math.hypot(bx, by);
+        if (la > 30 && lb > 20 && (ax * bx + ay * by) / (la * lb) < Math.cos(40 * Math.PI / 180)) { bank = true; tags.push('off the wall'); score += 2.5; mo += 2.5; }
+      }
+    }
     const hitE = [...RP.evs].reverse().find(x => x.e.e === 'hit' && x.e.id === e.v && x.e.by === e.k && x.t <= t && x.t >= t - 1.5);
     if (!combo && hitE && hitE.e.x != null) { const d = Math.hypot(e.x - hitE.e.x, e.y - hitE.e.y); if (d >= 380 && t - hitE.t <= 1.5) { launch = true; tags.push(`launched ${Math.round(d / 50)} m`); mo += 3 + Math.min(3, (d - 380) / 100); } } // (launched: a long way, fast, about 8 m or more)
   }
-  return { tags, score, mo, cc: !!cc, dashed, hits, slams, combo, bank, launch };
+  return { tags, score, mo, cc: !!cc, dashed, hits, slams, combo, bank, launch, boom, shadow };
 }
-const FARM_KEEP = { all: 0, good: 3, best: 4.5, s6: 6, s8: 8, s10: 10, s13: 13 };
+const FARM_KEEP = { all: 0, good: 3, best: 4.5, s6: 6, s8: 8, s10: 10, s13: 13, s16: 16, s20: 20 };
 // the kinds of play a clip can be, for the farm's "only these plays" filter: [key, label, test on the clip]
 const FARM_LOOK = [
   ['once', 'Two or more at once (one hit or ability)', it => / at once$/.test(it.title)],
@@ -18433,14 +18513,29 @@ const FARM_LOOK = [
   ['combo', 'Combo shot (knocked into another archer and in)', it => it.title === 'Combo shot' || /combo shot/.test(it.line)],
   ['bank', 'Bank shot (off a wall and in)', it => it.title === 'Bank shot' || /off the wall/.test(it.line)],
   ['launch', 'Launched (thrown a long way into a hole)', it => it.title === 'Launched' || /launched \d+ m/.test(it.line)],
-  ['firepin', 'Pinned in the flames', it => /^(Pinned in the flames|Stuck in the fire)$/.test(it.title)],
+  ['firepin', 'Pinned in the flames (or burned out)', it => /^(Pinned in the flames|Stuck in the fire|Burned at the stake|Burned out)$/.test(it.title)],
   ['bully', 'Bullied, cornered or merciless (into the walls)', it => /^(Bullied|Cornered|Merciless)/.test(it.title)],
   ['harpoon', 'Harpooned', it => it.title === 'Harpooned'],
   ['roast', 'Roasted', it => it.title === 'Roasted'],
   ['snipe', 'Long shot', it => it.title === 'Long shot' || /sniped/.test(it.line)],
   ['burst', 'Burst', it => it.title === 'Burst'],
   ['winko', 'Game-winning knockout', it => it.title === 'Game-winning knockout'],
+  ['aimbot', 'Aimbot (a multi-kill with no misses)', it => /Aimbot/.test(it.line)],
+  ['accurate', 'Accurate (most shots hit)', it => { const m = /(\d+)\/(\d+) shots hit/.exec(it.line); return !!m && +m[2] >= 4 && +m[1] / +m[2] >= 0.8; }],
+  ['matrix', 'Matrix (dodging a hail of shots)', it => it.title === 'Matrix'],
+  ['boomerang', 'Boomerang there and back', it => it.title === 'Boomerang' || /boomerang there and back/.test(it.line)],
+  ['shadow', 'From the shadows (out of stealth)', it => it.title === 'From the shadows' || /out of the shadows/.test(it.line)],
+  ['notfair', 'Not fair (every full-auto shot hit)', it => it.title === 'Not fair'],
 ];
+// what knocked someone out, as a key: the shot (all its arrows), the Rip, the Quake or the blast; anything else is its own
+function killCause(k) {
+  if (k.how === 'rip' || k.c === 'rip') { const r = [...RP.evs].reverse().find(x => x.e.e === 'ripCast' && x.e.by === k.k && x.t <= k.t && k.t - x.t < 3); return r ? 'rip' + r.t.toFixed(2) : 'rip' + k.t.toFixed(1); }
+  const q = [...RP.evs].reverse().find(x => x.e.e === 'quake' && x.t <= k.t && k.t - x.t < 1.5 && Math.hypot(x.e.x - k.x, x.e.y - k.y) < 320); if (q && k.c !== 'arrow') return 'q' + q.t.toFixed(2);
+  const h = [...RP.evs].reverse().find(x => x.e.e === 'hit' && x.e.id === k.v && x.e.by === k.k && x.t <= k.t + 0.02 && k.t - x.t < 4);
+  const b = [...RP.evs].reverse().find(x => x.e.e === 'boom' && x.t <= k.t + 0.02 && k.t - x.t < 0.3 && Math.hypot(x.e.x - k.x, x.e.y - k.y) < 220); if (b && (!h || b.t >= h.t - 0.05)) return 'b' + b.t.toFixed(2);
+  if (h && h.e.aid != null) return 's' + shotOf(h.e.aid);
+  return 'k' + k.v + '@' + k.t.toFixed(2);
+}
 const HAZ_WORD = { pit: 'a hole', water: 'the water', lava: 'the lava', burn: 'the lava', spikes: 'the thorns', saw: 'a saw', wall: 'a wall', crush: 'a wall' };
 function farmCapture(P) {
   const e = P.e, T = P.at, kevs = RP.evs.filter(x => x.e.e === 'kill' && !x.e.npc).map(x => ({ t: x.t, k: x.e.k, v: x.e.v, how: x.e.how, kn: x.e.kn, vn: x.e.vn, c: x.e.c, x: x.e.x, y: x.e.y }));
@@ -18473,6 +18568,27 @@ function farmCapture(P) {
     mo = (n - 1) * (0.6 + 0.5 * rate) + (corners / n) * 1 + (bys.length - 1) * 0.3 + (ko ? 1 : 0);
     title = ko ? (n >= 6 ? 'Merciless' : corners >= 2 ? 'Bullied into a corner' : 'Bullied out') : corners >= 2 ? 'Bullied into a corner' : n >= 6 ? 'Merciless' : 'Bullied';
     line = `${bys.map(nm).join(' and ')} slammed ${e.vn} into the walls ${n} times in ${span.toFixed(1)} s${corners ? ` (${corners} into a corner)` : ''}${ko ? ' and knocked them out' : ''}`;
+  } else if (e.e === 'notfair') {
+    // full auto with every shot landing
+    const R = e.run, groups = new Map(R.ids.map(id => [id, shotOf(id)])), n = new Set(groups.values()).size, hit = new Set(), vs = new Set();
+    for (const x of RP.evs) if (x.e.e === 'hit' && x.e.by === e.id && groups.has(x.e.aid)) { hit.add(groups.get(x.e.aid)); vs.add(x.e.id); }
+    if (n < 6 || hit.size < n) return;
+    const p = pcPlayer(e.id); e.k = e.id; e.kn = p ? p.name : ''; focus = e.id;
+    ks = kevs.filter(x => x.k === e.id && x.t >= R.t0 && x.t <= R.t1 + 1.6);
+    const subs = ks.map(k => replaySeg(k, false).subs[0]);
+    segs = [{ t0: R.t0 - 1, t1: Math.max(R.t1 + 1, ks.length ? ks[ks.length - 1].t + 0.9 : 0), subs: subs.length ? subs : [{ kt: R.t1, v: [...vs][0] }] }];
+    title = 'Not fair'; line = `${e.kn} landed all ${n} ${R.star ? 'shurikens' : 'bolts'} of a full auto${vs.size > 1 ? ` on ${vs.size} archers` : ''}${ks.length ? ` (${ks.length} knockout${ks.length > 1 ? 's' : ''})` : ''}`;
+    score = 3 + n * 0.2 + ks.length * 1.5; mo = 3 + n * 0.25;
+  } else if (e.e === 'matrix') {
+    // dodging a hail of arrows that all but hit them; better still if they then knocked someone out
+    const run = e.run, n = volleys(run), t0 = Math.min(...run.map(x => x.s)), t1 = run[run.length - 1].t, first = run.reduce((m, x) => (x.s < m.s ? x : m));
+    const p = pcPlayer(e.id); e.k = e.id; e.kn = p ? p.name : ''; focus = e.id;
+    ks = kevs.filter(x => x.k === e.id && x.t >= t0 && x.t <= t1 + 3);
+    segs = [{ t0: t0 - 0.8, t1: t1 + 0.6, subs: [{ kt: t1, v: e.id }], mx: { id: e.id, t0, t1, aid: first.aid, aT: first.t } }];
+    for (const k of ks) { const sg = replaySeg(k, k === ks[ks.length - 1]), prev = segs[segs.length - 1]; if (sg.t0 <= prev.t1 + RP_JOIN) { prev.t1 = Math.max(prev.t1, sg.t1); prev.subs.push(...sg.subs); } else segs.push(sg); }
+    const dashes = Math.min(n, run.filter(x => x.dashed).length);
+    title = 'Matrix'; line = `${e.kn} moved out of the way of ${n} volleys aimed right at them in ${(t1 - t0).toFixed(1)} s${dashes ? ` (${dashes} by dashing)` : ''}${ks.length ? ` and then knocked out ${ks.map(k => k.vn).join(' and ')}` : ''}`;
+    mo = 4 + (n - 4) * 1.5 + (ks.length ? 2 + ks.length : 0); score = 1.5 + n * 0.6 + ks.length;
   } else if (e.e === 'firepin') {
     // pinned or rooted on burning ground: the longer they were held in the flames the better, best if it finished them
     const nm = id => { const p = pcPlayer(id); return p ? p.name : ''; };
@@ -18483,7 +18599,12 @@ function farmCapture(P) {
     else segs = [{ t0: e.t0 - 1.2, t1: e.t1 + 1, subs: [{ kt: e.t1, v: e.v }] }];
     title = e.pn ? 'Pinned in the flames' : 'Stuck in the fire';
     line = `${e.kn ? e.kn + ' held ' : ''}${e.vn} ${e.kn ? '' : 'held '}in the fire for ${e.s.toFixed(1)} s${ko ? ' and knocked them out' : ''}`;
-    mo = 3 + Math.min(3, e.s * 1.2) + (ko ? 2 : 0);
+    // the flames finishing them is the moment; held there and knocked out some other way, a smaller one; held and got
+    // away, not much on its own (Flame with Pin does it all the time)
+    const burnt = ko && (ko.c === 'burn' || ko.c === 'lava');
+    mo = burnt ? 4 + Math.min(3, e.s * 1.2) + 2 : ko ? 3.5 + Math.min(1.5, e.s * 0.5) : 1.5 + Math.min(1.5, e.s * 0.5);
+    if (burnt) title = e.pn ? 'Burned at the stake' : 'Burned out';
+    if (burnt) line = line.replace(' and knocked them out', ' and the flames finished them');
   } else {
     if (e.e === 'moment' && e.m === 'multi') ks = kills.filter(k => k.t >= T - 6);
     else if (e.e === 'moment' && e.m === 'bully') {
@@ -18498,7 +18619,7 @@ function farmCapture(P) {
     if (e.e === 'style') segs[0].t0 = Math.min(segs[0].t0, T - (e.st.hits >= 3 ? 3.4 : e.st.dashed ? 2.2 : 1.8)); // (the set-up too)
     if (e.e === 'harpoon') { const h = RP.evs.find(x => x.e.e === 'hooked' && x.e.id === e.v && x.e.by === e.k && x.t >= ks[0].t - 4); if (h) segs[0].t0 = Math.min(segs[0].t0, h.t - 1); }
     const T2 = e.e === 'moment' ? momentText(e, false) : null;
-    const S = e.e === 'style' ? e.st : null, styleTitle = S ? (S.combo ? 'Combo shot' : S.bank ? 'Bank shot' : S.launch ? 'Launched' : S.cc && S.dashed ? 'Set-up knockout' : S.tags.some(x => /Volley|Rush|Quake|Rip/.test(x)) ? 'Ability knockout' : S.dashed ? 'Dash knockout' : 'Held knockout') : null;
+    const S = e.e === 'style' ? e.st : null, styleTitle = S ? (S.combo ? 'Combo shot' : S.boom ? 'Boomerang' : S.bank ? 'Bank shot' : S.launch ? 'Launched' : S.shadow ? 'From the shadows' : S.cc && S.dashed ? 'Set-up knockout' : S.tags.some(x => /Volley|Rush|Quake|Rip/.test(x)) ? 'Ability knockout' : S.dashed ? 'Dash knockout' : 'Held knockout') : null;
     title = e.e === 'harpoon' ? 'Harpooned' : S ? styleTitle : T2 ? (e.m === 'bully' ? (e.n >= 5 ? 'Merciless' : 'Bullied') : T2.title) : 'Game-winning knockout';
     line = e.e === 'harpoon' ? `${e.kn} reeled ${e.vn} into ${HAZ_WORD[e.c] || 'trouble'}` : S ? `${e.kn} knocked out ${e.vn}: ${S.tags.join(', ')}` : T2 ? T2.line.replace(/<[^>]+>/g, '') : `${e.kn} knocked out ${e.vn} to win the game`;
     // skill: multi-kills, long shots, the play behind a knockout; spectacle: roasts, bullying, held knockouts, game winners;
@@ -18508,12 +18629,20 @@ function farmCapture(P) {
     else if (S) { score = S.score > 0 ? 2 + S.score : 0; mo = S.mo > 0 ? 2 + S.mo : 0; }
     else mo = 2.5;
   }
-  // knockouts close together score more the closer they are: several from one hit, one ability or one blast is the best
-  // there is (each extra knockout within a tenth of a second is worth 4, within a second about 2.5, within 4 seconds a little)
+  // "at once": several knocked out by the same thing: one shot (an arrow through two, a split, a Volley), one ability (a Rip,
+  // a Quake), one blast, or one archer sent flying into another. That's worth 4 each and the title. Knockouts that only
+  // happen to land together (one falling down a hole while the next is shot) are a quick double, scored on the gap
+  // between them like any other: up to 2 within a second, a little within 4 seconds
   if (ks.length >= 2 && ks.every(k => k.kn != null || k.how !== 'wall')) {
-    const ts = ks.map(k => k.t).sort((x, y) => x - y); let tight = 0, same = 1, run = 1;
-    for (let i2 = 1; i2 < ts.length; i2++) { const gap = ts[i2] - ts[i2 - 1]; tight += gap < 0.12 ? 4 : gap < 1 ? 2.5 - gap : Math.max(0, 1.2 - gap * 0.3); run = gap < 0.12 ? run + 1 : 1; same = Math.max(same, run); }
-    score += tight; mo += tight * 1.5; // (both: it takes a good shot, and it's quite a sight, often with some luck in it)
+    const S2 = ks.slice().sort((x, y) => x.t - y.t), key = new Map();
+    for (const k of S2) key.set(k, killCause(k));
+    // knocked into someone who was knocked out by the same thing (and the bowling credited to the same archer): same cause
+    for (const k of S2) { const bw = [...RP.evs].reverse().find(x => x.e.e === 'bowl' && x.e.id === k.v && x.t <= k.t && k.t - x.t < 2.5); if (bw) { const src = S2.find(o => o.v === bw.e.by && o !== k); if (src) key.set(k, key.get(src)); } }
+    const groups = new Map(); for (const k of S2) groups.set(key.get(k), (groups.get(key.get(k)) || 0) + 1);
+    const same = Math.max(...groups.values());
+    let tight = 0, quick = 0;
+    for (let i2 = 1; i2 < S2.length; i2++) { const a2 = S2[i2 - 1], b2 = S2[i2], gap = b2.t - a2.t; if (key.get(a2) === key.get(b2)) tight += 4; else quick += gap < 1 ? 2 - gap : Math.max(0, 1.2 - gap * 0.3); }
+    score += tight + quick; mo += tight * 1.5 + quick * 0.5; // (at once: a good shot and quite a sight, often with luck in it; a quick double: mostly skill)
     if (same >= 2) { title = `${MULTI_WORD[Math.min(5, same)] || same + ' knockouts'} at once`; line += ` · ${same} in one`; }
   }
   // outnumbered: knockouts made while your side had fewer archers standing than theirs (1v2, 1v3, 2v3) are worth more,
@@ -18527,19 +18656,32 @@ function farmCapture(P) {
       const up = fr.p.filter(q => !q.d && !q.f && !q.npc), mates = up.filter(q => q.tm === me0.tm).length, foes = up.filter(q => q.tm !== me0.tm).length;
       if (mates >= 1 && foes > mates) {
         const mine = ks.filter(k => k.k === K0).length; onum = (foes - mates) / mates;
-        score += Math.min(3, (foes - mates) / mates) * (1.5 + 1.2 * Math.max(0, mine - 1));
+        score += Math.min(3, (foes - mates) / mates) * (1.3 + 1.0 * Math.max(0, mine - 1));
         const kl = ks[ks.length - 1].t; clutch = RP.evs.some(x => x.e.e === 'gameEnd' && x.e.rw === kTm && x.t >= kl - 0.05 && x.t <= kl + 1.5);
         if (clutch) score += 1.5;
         line += ` · outnumbered ${mates}v${foes}${clutch ? ' · clutch' : ''}`;
       }
     }
   }
+  // accuracy: of the shots they loosed over the play, how many landed (more hits than misses lifts it, a spray of misses
+  // lowers it a little); and Aimbot: a multi-kill without a single miss in between
+  if (ks.length && e.e !== 'matrix') {
+    const K0 = e.k != null ? e.k : e.id, mine = ks.filter(k => k.k === K0);
+    if (mine.length) {
+      const A = shotsBy(K0, Math.max(segs[0].t0, mine[0].t - 4), mine[mine.length - 1].t);
+      // Aimbot: a multi-kill with every shot landing, and plenty of them (two shots for two knockouts is just a double kill);
+      // it takes the place of the accuracy bonus (same shots, counted once)
+      if (mine.length >= 2 && A.n >= 5 && A.h === A.n && e.e !== 'notfair') { score += 1.5 + Math.min(2, (A.n - 5) * 0.5); line += ` · Aimbot (${A.n} shots, no misses)`; }
+      else if (A.n >= 4 && e.e !== 'notfair') { score += clamp((A.h / A.n - 0.5) * Math.min(4, A.n * 0.5), -1, 2.5); line += ` · ${A.h}/${A.n} shots hit`; }
+    }
+  }
   // dodging while you did it: real dodges (shots that were coming for you) from a few seconds before the first knockout
   // to the last, worth more when outnumbered: a 1v3 is more impressive if you weren't hit doing it
-  if (ks.length) {
-    const K0 = e.k != null ? e.k : e.id, d0 = Math.max(segs[0].t0, ks[0].t - 6), d1 = ks[ks.length - 1].t + 0.5;
-    const n = ((PC.pl && PC.pl.get(K0)) || { dodge: [] }).dodge.filter(t => t >= d0 && t <= d1).length;
-    if (n) { score += Math.min(4, n * 0.7) * (1 + Math.min(1, onum * 0.5)); line += ` · dodged ${n} shot${n === 1 ? '' : 's'}`; }
+  if (ks.length && e.e !== 'matrix') {
+    const K0 = e.k != null ? e.k : e.id, d0 = Math.max(segs[0].t0, ks[0].t - 5), d1 = ks[ks.length - 1].t + 0.5;
+    const D = ((PC.pl && PC.pl.get(K0)) || { dodge: [] }).dodge.filter(x => x.t >= d0 && x.t <= d1), n = volleys(D), dead = Math.min(n, volleys(D.filter(x => x.dead)));
+    // (a shot aimed straight at them counts full, one merely on course for where they were heading half; up to 2, up to 4 when outnumbered)
+    if (n) { score += Math.min(2, dead * 0.6 + (n - dead) * 0.3) * (1 + Math.min(1, onum * 0.5)); line += ` · dodged ${n} shot${n === 1 ? '' : 's'}`; }
   }
   // any play behind the knockouts counts toward every kind of clip (a game-winning knockout from a dash, a double kill off a Rip)
   let tags = [];
