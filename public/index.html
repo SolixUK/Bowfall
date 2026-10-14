@@ -683,6 +683,16 @@
   .wptabs[hidden], .wpprev[hidden], .wpnote[hidden] { display: none !important; }
   .wptabs { display: flex; gap: 2px; } .wptabs button { background: none; border: 1px solid var(--line); color: var(--muted); font: 600 10px 'Titillium Web', sans-serif; padding: 1px 6px; cursor: pointer; } .wptabs button.on { color: #111; background: var(--gold); border-color: var(--gold); }
   .weekplays .wpnote { color: var(--muted); font-size: 11px; line-height: 1.3; }
+  .wp2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; } .wpone { min-width: 0; display: flex; flex-direction: column; gap: 3px; } .wpone[hidden] { display: none; }
+  .wpk { font: 700 11px 'Rajdhani', sans-serif; color: var(--gold); text-transform: uppercase; letter-spacing: .05em; } .wpk.mo, .galx .mo { color: #ff8fd0; }
+  .wp2 .wpcap { font-size: 11px; } .wp2 .wpcap b { font-size: 13px; } .wp2 .wpcap .wpl { display: block; } .wp2 .wpcap .who { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--muted); font-size: 11px; }
+  .weekplays .wph .linkbtn { font-size: 11px; color: var(--gold); text-decoration: underline; background: none; border: 0; cursor: pointer; padding: 0; }
+  .galpop { position: fixed; inset: 0; z-index: 74; display: grid; place-items: center; background: rgba(0,0,0,.6); padding: 16px; }
+  .galpop .card { width: min(760px, 100%); max-height: calc(100vh - 32px); overflow: auto; gap: 10px; }
+  .galbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; } .galbar .wptabs button { font-size: 12px; padding: 3px 9px; }
+  .galbody { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; } @media (max-width: 640px) { .galbody { grid-template-columns: 1fr; } }
+  .galx { display: flex; flex-direction: column; gap: 4px; } .galx h4 { margin: 0; font: 700 14px 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: .05em; color: var(--gold); }
+  .galx .wplist .sc.mo { color: #ff8fd0; } .galx .ccard { width: 100%; } .galx .wplist small { display: block; }
   .wplist { display: flex; flex-direction: column; gap: 2px; } .wplist button { display: grid; grid-template-columns: 30px 1fr; gap: 6px; align-items: center; text-align: left; background: none; border: 1px solid transparent; color: var(--text); padding: 3px 5px; cursor: pointer; font: inherit; }
   .wplist button.on { border-color: var(--gold); background: rgba(255,207,90,.08); } .wplist .sc { font: 700 15px 'Rajdhani', sans-serif; color: var(--gold); text-align: center; } .wplist b { font: 700 13px 'Rajdhani', sans-serif; display: block; } .wplist small { color: var(--muted); font-size: 11px; }
   .ccard { position: relative; aspect-ratio: 16 / 9; background: #000; overflow: hidden; cursor: pointer; border: 1px solid var(--line); transition: transform .2s ease-out, box-shadow .2s; z-index: 8; }
@@ -1032,6 +1042,7 @@
   .resclips { display: flex; flex-direction: column; gap: 8px; }
   .resplays { display: flex; flex-direction: column; gap: 6px; } .rplays2 { display: flex; flex-wrap: wrap; gap: 16px; }
   .rplay2 { display: flex; flex-direction: column; gap: 6px; width: 300px; } .rplay2 .ccard { width: 300px; } .rplay2 .hd { font: 700 15px 'Rajdhani', sans-serif; color: var(--gold); text-transform: uppercase; letter-spacing: .04em; }
+  .rplay2 .rpi .sc.mo { color: #ff8fd0; }
   .rplay2 .rpi { display: grid; grid-template-columns: 40px 1fr; gap: 8px; align-items: center; } .rplay2 .rpi .sc { font: 700 20px 'Rajdhani', sans-serif; color: var(--gold); text-align: center; } .rplay2 .rpi b { display: block; font: 700 16px 'Rajdhani', sans-serif; } .rplay2 .rpi small { color: var(--muted); font-size: 12px; } .rplay2 button { align-self: flex-start; } .rplays { display: flex; flex-direction: column; gap: 6px; }
   .rplay { display: grid; grid-template-columns: 46px 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); background: rgba(255,255,255,.03); }
   .rplay.top { border-color: var(--gold); background: rgba(255,207,90,.08); } .rplay .sc { font: 700 22px 'Rajdhani', sans-serif; color: var(--gold); text-align: center; }
@@ -1222,6 +1233,15 @@
   #stMember { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); } @media (min-width: 900px) { #stMember { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .passbar i { display: block; width: auto; min-width: 0; margin: 0; border: 0; height: 9px; background: rgba(255,255,255,.08); border-radius: 1px; } .passbar i.fr { height: 13px; align-self: end; } .passbar i.last { height: 16px; align-self: end; }
   .passbar i.got { background: linear-gradient(180deg, var(--sa), var(--sb)); }
+  .sharepop { position: fixed; inset: 0; z-index: 75; display: grid; place-items: center; background: rgba(0,0,0,.6); padding: 16px; }
+  .sharepop .card { max-width: 460px; gap: 12px; }
+  .shurl { display: flex; gap: 6px; } .shurl input { flex: 1; min-width: 0; }
+  .shbtns { display: flex; flex-wrap: wrap; gap: 6px; } .shbtns a { text-decoration: none; }
+  .savepop a, .sharepop a, #fnBtn { text-decoration: none; }
+  .sharepop .linkbtn { color: var(--gold); text-decoration: underline; }
+  .savepop { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; background: rgba(0,0,0,.65); padding: 16px; }
+  .savepop .card { max-width: 460px; gap: 12px; }
+  .savepop .linkbtn { align-self: center; color: var(--muted); }
   .giftpop { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; background: rgba(0,0,0,.6); padding: 16px; }
   .giftpop .card { max-width: 420px; }
   .giftlist { display: flex; flex-wrap: wrap; gap: 6px; max-height: 260px; overflow: auto; }
@@ -1654,7 +1674,9 @@
         <div class="frpanel" id="homeFriends" hidden></div>
         <button type="button" class="homelive" id="homeLive" hidden></button>
         <a class="dclink" id="homeDiscord" href="#" target="_blank" rel="noopener" title="Join the Bowfall Discord" aria-label="Join the Bowfall Discord" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.3 4.4A19.6 19.6 0 0 0 15.5 3l-.6 1.2a18 18 0 0 0-5.8 0L8.5 3a19.6 19.6 0 0 0-4.8 1.4C.6 9 .0 13.5.3 18a19.8 19.8 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4c-.6.4-1.3.7-2 1L17.7 21a19.7 19.7 0 0 0 6-3c.4-5.2-.7-9.7-3.4-13.6zM8.5 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4zm7 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4z"/></svg></a>
-        <div class="weekplays" id="weekPlays" hidden><div class="wph"><b id="wpHead">Best play of the week</b></div><div class="wpcard" id="wpCard"></div><div class="wpcap" id="wpCap"></div><span class="wpnote" id="wpNote" hidden></span></div>
+        <div class="weekplays" id="weekPlays" hidden><div class="wph"><b id="wpHead">Best of the week</b><button type="button" class="linkbtn" id="wpGal">Gallery</button></div>
+          <div class="wp2"><div class="wpone" id="wpP"><span class="wpk" id="wpKP">Play</span><div class="wpcard" id="wpCard"></div><div class="wpcap" id="wpCap"></div></div><div class="wpone" id="wpM"><span class="wpk mo" id="wpKM">Moment</span><div class="wpcard" id="wpCardM"></div><div class="wpcap" id="wpCapM"></div></div></div>
+          <span class="wpnote" id="wpNote" hidden></span></div>
       </div>
       <div class="hometitle"><span class="eyebrow">Knockback archery · Team rounds</span><h1>Bow<span>fall</span></h1><div class="homelinks"><div class="online" id="homeOnline" hidden><i></i><b id="homeOnlineN">0</b> online</div></div></div>
       <nav class="mainmenu" aria-label="Main menu">
@@ -1667,7 +1689,7 @@
         <button class="mm" id="mOpts" type="button"><span class="mmk">07</span><b>Options</b></button>
       </nav>
       <div class="homefoot">
-        <div class="btnrow"><button class="ghost sm" id="helpBtn" type="button">How to play</button><button class="ghost sm" id="achBtn" type="button">Achievements</button><button class="ghost sm" id="balBtn" type="button">Balance data</button><button class="ghost sm" id="sndBtn" type="button" hidden>Sound desk</button><button class="ghost sm" id="farmBtn" type="button" hidden title="AI players fight each other for you to record: trailers, promos, highlight clips">Clip farm</button></div>
+        <div class="btnrow"><button class="ghost sm" id="helpBtn" type="button">How to play</button><button class="ghost sm" id="achBtn" type="button">Achievements</button><button class="ghost sm" id="balBtn" type="button">Balance data</button><a class="ghost sm" id="fnBtn" href="/api/funnel?html=1" target="_blank" rel="noopener" hidden>Funnel</a><button class="ghost sm" id="sndBtn" type="button" hidden>Sound desk</button><button class="ghost sm" id="farmBtn" type="button" hidden title="AI players fight each other for you to record: trailers, promos, highlight clips">Clip farm</button></div>
         <div class="sitelinks" id="siteLinks" hidden><a href="/">Website</a><a href="/#/leaderboard">Leaderboard</a><a href="/#/forum">Forum</a></div>
         <span class="ver" id="verHome"></span>
       </div>
@@ -1752,7 +1774,7 @@
   <div class="msheet" id="msSheet" hidden><div class="mshead"><b id="msTitle"></b><button type="button" class="cta sm" id="msDone">Done</button></div><div class="msbody" id="msBody"></div></div>
   <div class="rotatehint" id="rotateHint" hidden>Turn your phone sideways to play</div>
   <div class="clipbar" id="clipBar" hidden><span id="clipTxt">Your kill cam</span><button class="ghost sm" type="button" id="clipSave">Save video</button><button class="ghost sm" type="button" id="clipFeat">Show on my profile</button><button class="ghost sm" type="button" id="clipX" aria-label="Close">×</button></div>
-  <div class="clipview" id="clipView" hidden><div class="cvhead"><b id="cvTitle">Kill cam</b><small id="cvSub"></small></div><div class="cvbtns"><button class="ghost sm" type="button" id="cvAgain" hidden>Watch again</button><button class="ghost sm" type="button" id="cvSave" hidden>Save video</button><button class="cta sm" type="button" id="cvClose">Close</button></div></div>
+  <div class="clipview" id="clipView" hidden><div class="cvhead"><b id="cvTitle">Kill cam</b><small id="cvSub"></small></div><div class="cvbtns"><button class="ghost sm" type="button" id="cvAgain" hidden>Watch again</button><button class="ghost sm" type="button" id="cvSave" hidden>Save video</button><button class="ghost sm" type="button" id="cvShare" hidden>Share</button><button class="cta sm" type="button" id="cvClose">Close</button></div></div>
   <button type="button" class="dmmini" id="dmMini" hidden>Messages <i class="dmn" id="dmMiniN" hidden>0</i></button>
   <div class="rejoinbar" id="rejoinBar" hidden><span>Your ranked match is still going.</span><button class="cta sm" type="button" id="rejoinGo">Rejoin</button></div>
   <div class="invite" id="inviteToast" hidden><span id="inviteText"></span><div class="btnrow"><button class="cta sm" id="inviteYes" type="button">Join party</button><button class="ghost sm" id="inviteNo" type="button">No thanks</button></div></div>
@@ -2099,6 +2121,7 @@
         <div class="field"><label><input type="checkbox" id="farmRndUps" checked> <b>Upgrades:</b> a random set each game (one ability and some passives, from the start)</label></div>
         <div class="field"><label for="farmEffect"><b>Map effect</b></label><select id="farmEffect"></select></div>
         <div class="field"><label><input type="checkbox" id="farmHunt" checked> <b>Hunt:</b> run flat out without drawing the game, keeping only the very best clips (score 6 or more, or just the plays ticked below). Also ⚡ on the bar. It keeps going in the background if you switch tabs.</label></div>
+        <div class="field"><label for="farmBasis">Score by</label><select id="farmBasis"><option value="both">Plays and moments (both added)</option><option value="play">Plays (skill)</option><option value="moment">Moments (spectacle)</option></select></div>
         <div class="field"><label for="farmKeep">Clips to keep</label><select id="farmKeep"><option value="all">Every one</option><option value="good">Score 3 or more</option><option value="best" selected>Score 4.5 or more</option><option value="s6">Score 6 or more</option><option value="s8">Score 8 or more</option><option value="s10">Score 10 or more</option><option value="s13">Score 13 or more (rare)</option></select></div>
         <div class="farmmaps" id="farmLook"><span class="status">Only these plays (none ticked: any):</span></div>
       </section>
@@ -2246,7 +2269,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.76.0"></script>
+<script src="sim.js?v=0.78.0"></script>
 <script>
 (() => {
 'use strict';
@@ -2254,7 +2277,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.76.0';
+const PAGE_VERSION = '0.78.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -5261,6 +5284,8 @@ function connect(joinMsg) {
       afkWarn(m);
     } else if (m.t === 'clanRated') {
       clanRated(m);
+    } else if (m.t === 'gcrests') {
+      guestCrests(m);
     } else if (m.t === 'wallet') {
       setWallet(m, m.gained, m.why);
     } else if (m.t === 'ach') {
@@ -5724,6 +5749,7 @@ function socialConnect() {
     else if (m.t === 'invite') showInvite(m);
     else if (m.t === 'ach') Ach.fromServer(m);
     else if (m.t === 'wallet') setWallet(m, m.gained, m.why);
+    else if (m.t === 'gcrests') guestCrests(m);
     else if (m.t === 'linkcode') lpLinkAll(m);
     else if (m.t === 'elsewhere') { SOC.elsewhere = true; if (SOC.st && SOC.st.party) SOC.st.party.queued = null; findBadge(); renderFind(); }
     else if (m.t === 'matched') {
@@ -6265,6 +6291,7 @@ function toMenu() {
   if (AB.testing) { AB.testing = false; setTimeout(() => openSub('arenaScr'), 0); }
   mode = 'menu'; myId = null; world = null; view = null; menuOpen = false; roomInfo = null; clearChat(); MOMENTS.list = []; MOMENTS.ended = false;
   setTimeout(() => { if (typeof weekPlaysLoad === 'function') weekPlaysLoad(); }, 400); // (a play just made shows on the way back)
+  setTimeout(() => savePrompt(), 900);
   if (ws) { const s = ws; ws = null; try { s.close(); } catch (e) {} }
   for (const l of LP.list) lpLeaveGame(l);
   $('draftScr').hidden = true; $('lpPick').hidden = true;
@@ -6491,7 +6518,7 @@ function balCsv() {
 }
 // balance data is for the game's owner only (and the offline copy, which is yours anyway)
 // the owner's extras: balance data, and Strongholds (on hold, so only the owner and the offline copy can open it)
-function adminBits() { const on = OFFLINE || !!(account && account.admin); for (const id of ['balBtn', 'gmBalBtn', 'resBalBtn', 'cqBtn', 'sndBtn', 'farmBtn']) if ($(id)) $(id).hidden = !on; }
+function adminBits() { const on = OFFLINE || !!(account && account.admin); for (const id of ['balBtn', 'gmBalBtn', 'resBalBtn', 'cqBtn', 'sndBtn', 'farmBtn']) if ($(id)) $(id).hidden = !on; if ($('fnBtn')) $('fnBtn').hidden = OFFLINE || !(account && account.admin); }
 $('balBtn').onclick = openBalance; $('gmBalBtn').onclick = openBalance; $('resBalBtn').onclick = openBalance;
 $('balClose').onclick = closeBalance;
 ['balWho', 'balMap', 'balSrc', 'balSize', 'balRules', 'balVer'].forEach(id => $(id).addEventListener('change', renderBalance));
@@ -7319,6 +7346,60 @@ async function loadAccount() {
   }
 }
 // not signed in: ask once per visit whether to quick play or sign in
+// ---- saving your progress: a guest is asked to make a free account after their first few games (at the results or
+// back on the menu, never mid-match): it's how their progress, rating and Crests are kept and how they work toward
+// unlocks. Asked after 3 games, again after 8 and 15 if they say later, then only the line on the menu.
+const SAVEP_AT = [3, 8, 15];
+const iPlay = () => !!(myId && view && view.p.some(q => q.id === myId)) && !RP.on;
+function gamePlayed() {
+  if (!iPlay()) return;
+  const n = (+store.get('bowfall-gp', '0') || 0) + 1; store.set('bowfall-gp', String(n));
+  if (n === 1) funnel('game1'); if (n === 3) funnel('game3');
+}
+function guestCrests(m) {
+  store.set('bowfall-gcrests', String(m.total || 0));
+  if (m.gained > 0) notice(`+${m.gained} Crests<small>Make a free account to keep them: you have ${Math.round(m.total || 0).toLocaleString()} waiting</small>`, false, '#ffcf5a');
+}
+function savePrompt(force) {
+  if (OFFLINE || account || AVATAR_ONLY || document.querySelector('.savepop')) return;
+  const n = +store.get('bowfall-gp', '0') || 0, shown = +store.get('bowfall-savep', '0') || 0;
+  if (!force && (shown >= SAVEP_AT.length || n < SAVEP_AT[shown])) return;
+  store.set('bowfall-savep', String(shown + 1)); funnel('prompt');
+  const back = encodeURIComponent('/play'), cr = +store.get('bowfall-gcrests', '0') || 0, ach = Object.keys((Ach.d && Ach.d.got) || {}).length;
+  const have = [`<li><b>${n} game${n === 1 ? '' : 's'}</b> played${RATED && RATED.now ? `, and your rating` : ''}</li>`, cr ? `<li><b>${cr.toLocaleString()} Crests</b> earned, waiting for you</li>` : '', ach ? `<li><b>${ach} achievement${ach === 1 ? '' : 's'}</b></li>` : ''].join('');
+  const box = document.createElement('div'); box.className = 'savepop';
+  box.innerHTML = `<div class="card"><span class="eyebrow">Free, takes a few seconds</span><h2>Save your progress</h2>
+    <p class="status">You're playing as a guest, so everything you've done so far lives only in this browser. Make a free account to keep it, and to work toward unlocking new elements and roles.</p>
+    <ul class="perks">${have}<li>Earn <b>Crests</b> from every game toward unlocks</li><li>Play on any device, add friends, join a clan, climb the leaderboards</li></ul>
+    <div class="gateprov" id="saveProv"></div>
+    <div class="btnrow"><a class="cta" href="/#/register?next=${back}">Create free account</a><a class="ghost" href="/#/login?next=${back}">I have one: sign in</a></div>
+    <button type="button" class="linkbtn" data-sclose>Maybe later</button></div>`;
+  document.body.appendChild(box);
+  fetch('/api/auth-providers').then(r => r.json()).then(d => { const el = box.querySelector('#saveProv'); if (el) el.innerHTML = (d.providers || []).map(pv => `<a href="/auth/${esc(pv.key)}?next=${back}">Continue with ${esc(pv.name)}</a>`).join(''); }).catch(() => {});
+  box.onclick = e => { if (e.target === box || e.target.closest('[data-sclose]')) box.remove(); };
+}
+// ---- the funnel: which steps this visitor has reached (each sent once), with where they first came from. Anonymous:
+// it uses the same random id as guest play. The admin sees the totals at /api/funnel?html=1.
+const FUNNEL_SRC = (() => {
+  let s = store.get('bowfall-src', '');
+  if (!s) {
+    const p = new URLSearchParams(location.search), ref = (document.referrer || '').toLowerCase(), host = (() => { try { return new URL(document.referrer).hostname; } catch (e) { return ''; } })();
+    s = p.get('src') || p.get('utm_source') || (p.get('ref') || store.get('bowfall-ref', '') ? 'friend' : '') || (p.get('room') || LINK_JOIN ? 'link' : '') || (p.get('clip') && p.get('embed') !== '1' ? 'share' : '')
+      || (/steam/.test(host) ? 'steam' : /poki/.test(host) ? 'poki' : /crazygames/.test(host) ? 'crazygames' : /itch\.io/.test(host) ? 'itch' : /tiktok/.test(host) ? 'tiktok' : /youtube|youtu\.be/.test(host) ? 'youtube' : /discord/.test(host) ? 'discord' : /reddit/.test(host) ? 'reddit' : /google|bing|duckduckgo|yahoo/.test(host) ? 'search' : host && !host.endsWith(location.hostname.replace(/^www\./, '')) ? 'other' : '')
+      || 'direct';
+    s = String(s).toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 24) || 'direct'; store.set('bowfall-src', s);
+    void ref;
+  }
+  return s;
+})();
+function funnel(step) {
+  if (OFFLINE || AVATAR_ONLY || params.get('cframe') === '1') return;
+  const done = (() => { try { return JSON.parse(store.get('bowfall-fn', '{}')) || {}; } catch (e) { return {}; } })(), today = new Date().toISOString().slice(0, 10);
+  if (step === 'open' ? done.open === today : done[step]) return;
+  done[step] = step === 'open' ? today : 1; store.set('bowfall-fn', JSON.stringify(done));
+  fetch('/api/funnel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ gt: GUEST_TOKEN, s: step, src: FUNNEL_SRC }), keepalive: true }).catch(() => {});
+}
+setTimeout(() => funnel('open'), 1500);
 function showGate(back) {
   let seen = null; try { seen = sessionStorage.getItem('bowfall-gate'); } catch (e) {}
   if (seen || mode !== 'menu') return;
@@ -7374,7 +7455,8 @@ function fitOverlay(ov) {
 }
 const fitAll = () => { for (const ov of document.querySelectorAll('.overlay')) fitOverlay(ov); };
 if (typeof ResizeObserver !== 'undefined') {
-  const ro = new ResizeObserver(es => { const seen = new Set(); for (const e of es) { const ov = e.target.classList.contains('overlay') ? e.target : e.target.parentElement; if (ov && !seen.has(ov)) { seen.add(ov); fitOverlay(ov); } } });
+  // (fitted on the next frame, not inside the observer's own callback, so a resize it causes isn't a loop)
+  const ro = new ResizeObserver(es => { const seen = new Set(); for (const e of es) { const ov = e.target.classList.contains('overlay') ? e.target : e.target.parentElement; if (ov) seen.add(ov); } requestAnimationFrame(() => seen.forEach(fitOverlay)); });
   for (const ov of document.querySelectorAll('.overlay')) { ro.observe(ov); for (const k of ov.children) ro.observe(k); }
 }
 addEventListener('resize', () => requestAnimationFrame(fitAll));
@@ -7757,11 +7839,11 @@ function eventFx(e) {
           play('roundStart');
           if (m && m.mut && !m.cq && e.gm === 1 && e.rd === 1) setTimeout(() => announceMuts(m.mut), 250); // this match's map effects, once as it starts
         }
-        else if (e.ph === 'play') { banner('Fight!'); play('fight'); }
+        else if (e.ph === 'play') { banner('Fight!'); play('fight'); if (iPlay()) funnel('start'); }
         else if (e.ph === 'pick') { sfx.pick(); }
         break;
       }
-      case 'gameEnd': if (tutOnDummy() || TR.on) break; if (replayQueue(e)) pendingSummary = e; else showGameSummary(e); if (!e.rwon) { if (e.rw === myTeam()) sfx.kill(); else if (e.rw !== 'draw') sfx.hurt(); } break;
+      case 'gameEnd': if (tutOnDummy() || TR.on) break; gamePlayed(); if (replayQueue(e)) pendingSummary = e; else showGameSummary(e); if (!e.rwon) { if (e.rw === myTeam()) sfx.kill(); else if (e.rw !== 'draw') sfx.hurt(); } break;
       case 'roundEnd': if (e.rw === myTeam()) sfx.win(); else sfx.hurt(); break;
       case 'matchStart': $('gameSum').hidden = true; $('resultsScreen').hidden = true; resultsFor = null; hc = {}; progSnap(); for (const c of CLIP.list) if (c.url) URL.revokeObjectURL(c.url); CLIP.list = []; break;
       case 'map': break;
@@ -9833,7 +9915,7 @@ function drawPreview(cvs, el, ro, color) {
 }
 let MATE_DIM = 1;
 // eyes: they blink now and then (each archer on their own rhythm) and screw shut for a moment when hurt
-const EYE = { hp: {}, hurt: {} };
+const EYE = { hp: {}, hurt: {}, dot: {}, len: {} };
 // Stone: a hit cracks off rock chunks and kicks up a ring of dust (heavier on a full draw)
 function stoneHit(x, y, big, mine) {
   const n = big ? 12 : 7;
@@ -9890,11 +9972,16 @@ const ORB_TRAIL = new Map(), HEALFX = {}; // Transfusion orb trails; when each a
 setInterval(() => { if (ORB_TRAIL.size > 30) ORB_TRAIL.clear(); }, 5000);
 function drawEyes(p, R) {
   const id = String(p.id), last = EYE.hp[id];
-  if (last != null && p.hp < last - 0.5) EYE.hurt[id] = gclock;
+  if (last != null && p.hp < last - 0.5) {
+    // a real hit screws the eyes shut; burning, poison and bleeding only make them wince now and then (every 0.75 s)
+    const dot = p.bu || p.bl || p.po > 0, hit = p.hp < last - 3;
+    if (hit || !dot) { EYE.hurt[id] = gclock; EYE.len[id] = 0.38; }
+    else if (gclock - (EYE.dot[id] || -9) >= 0.75) { EYE.hurt[id] = gclock; EYE.dot[id] = gclock; EYE.len[id] = 0.2; }
+  }
   EYE.hp[id] = p.hp;
   let h = 0; for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 997;
   const per = 2.6 + (h % 23) / 10, ph = ((gclock + h * 0.37) % per), blink = ph < 0.13 ? 1 - Math.abs(ph - 0.065) / 0.065 : 0;
-  const hurtK = EYE.hurt[id] != null ? Math.max(0, 1 - (gclock - EYE.hurt[id]) / 0.38) : 0;
+  const hurtK = EYE.hurt[id] != null ? Math.max(0, 1 - (gclock - EYE.hurt[id]) / (EYE.len[id] || 0.38)) : 0;
   const x = R * 0.45, ys = [-R * 0.28, R * 0.28];
   // (the face looks along +x: the two eyes sit side by side across it, at ys)
   if (hurtK > 0 || p.su || p.fz) { // screwed shut, XD style: each eye a chevron pointing at the other ( > < )
@@ -9943,7 +10030,10 @@ function drawPlayer(p, isMe, bare) {
   ctx.translate(p.x, p.y);
   if (p.f > 0) ctx.rotate(p.f * 8);
   ctx.scale(sc, sc);
-  if (!p.f) { ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(3, 5, R, R * 0.8, 0, 0, TAU); ctx.fill(); }
+  if (!p.f) { // a soft shadow under each archer (a little down and to the right), so they stand off the floor
+    const sg = ctx.createRadialGradient(4, 7, R * 0.35, 4, 7, R * 1.3); sg.addColorStop(0, 'rgba(0,0,0,0.5)'); sg.addColorStop(0.65, 'rgba(0,0,0,0.3)'); sg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = sg; ctx.beginPath(); ctx.ellipse(4, 7, R * 1.3, R * 1.1, 0, 0, TAU); ctx.fill();
+  }
   if (!p.f && !bare) {
     // a glow in the team's colour, so you can tell sides apart at a glance. "Living": it breathes slowly, leans the way
     // the archer is moving (like light trailing behind them), tightens and brightens as a bow is drawn and flares on a hit
@@ -11813,7 +11903,7 @@ function updateHud() {
       resultsView = Object.assign({}, view, { p: view.p.filter(p => !p.nk) });
       renderAwards(resultsView); renderRanking();
       $('rematchBtn').hidden = $('resLobbyBtn').hidden = !isHost();
-      if (!hunting()) $('resultsScreen').hidden = false; $('resHint').textContent = TOUCH.on ? 'Tap a column to rank by it.' : 'Click a column to rank by it.'; progShow(); renderResClips(); renderResPlays();
+      if (!hunting()) { $('resultsScreen').hidden = false; setTimeout(() => savePrompt(), 1800); } $('resHint').textContent = TOUCH.on ? 'Tap a column to rank by it.' : 'Click a column to rank by it.'; progShow(); renderResClips(); renderResPlays();
       memReport('results'); for (const t of [2, 4, 7, 10, 15, 20]) setTimeout(() => memReport(`results+${t}s`), t * 1000); // (a trail, should the page crash here)
       { const rb = $('ratedBox'); clearTimeout(RATED.t); rb.classList.remove('show'); rb.hidden = true; renderResRated(); } // the results show the rating themselves: no pop-up over the headline
       $('gameMenu').hidden = true; menuOpen = false; paused = false;
@@ -11999,6 +12089,7 @@ function replaySnap(k, s) {
   const tt = k / 60;
   if (RP.koff == null || Math.abs(tt + RP.koff - clock) > 0.5) RP.koff = clock - tt; // line the server's clock up with ours
   RP.buf.push({ t: tt + RP.koff, v: s }); RP.evT = tt + RP.koff; // this update's events get the same (server) time as its frame
+  if (s.m.ph === 'play' && playOn()) dodgeTrack(s, tt + RP.koff, PLAY);
   while (RP.buf.length && RP.buf[0].t < clock - RP_KEEP) RP.buf.shift();
   while (RP.evs.length && RP.evs[0].t < clock - RP_KEEP) RP.evs.shift();
 }
@@ -12008,6 +12099,7 @@ function replayRecord() {
   if (mode === 'online' || FARM.on) return; // recorded from the server's updates instead (replaySnap), or by the clip farm each step
   if (!view || view.m.ph === 'lobby' || view.m.ph === 'pick' || (RP.on && RP.on.started)) return;
   RP.buf.push({ t: clock, v: view });
+  if (view.m.ph === 'play' && playOn()) dodgeTrack(view, clock, PLAY);
   while (RP.buf.length && RP.buf[0].t < clock - RP_KEEP) RP.buf.shift();
   while (RP.evs.length && RP.evs[0].t < clock - RP_KEEP) RP.evs.shift();
 }
@@ -12475,7 +12567,10 @@ async function playClip(id, embed) {
     const r = await fetch('/api/clip/' + encodeURIComponent(id)); const d = await r.json(); if (!r.ok) throw new Error(d.error || 'Not found');
     const c = clipUnpack(JSON.parse(await gunzipB64(d.data)));
     if (!MAPS[c.map]) throw new Error('That arena is gone');
-    CLIP.playing = { c, owner: d.owner, meta: d.meta || {}, embed: !!embed };
+    CLIP.playing = { c, owner: d.owner, meta: d.meta || {}, embed: !!embed, id };
+    $('cvShare').hidden = !!embed || OFFLINE;
+    // someone who came from a shared link and hasn't played yet: the way out is into the game
+    if (!embed && !(+store.get('bowfall-gp', '0'))) $('cvClose').textContent = 'Play Bowfall';
     if (!$('pcWrap').hidden) closePlayerCard();
     $('cvTitle').textContent = (d.meta && d.meta.label) || clipLabel(c); $('cvSub').textContent = d.owner ? `${d.owner}'s highlight` : '';
     document.body.classList.add('clipmode'); $('clipView').hidden = false;
@@ -12553,10 +12648,11 @@ function clipCard(box, src, clipObj, label, onOpen, kc) { // kc: a kill cam (pla
   box.onpointerleave = () => { clearTimeout(hov); big(false); };
   box.onclick = () => { clearTimeout(hov); big(false); if (onOpen) onOpen(); };
 }
-function closeClipView() { const local = CLIP.playing && CLIP.playing.local && PLAY.watch; if (RP.on) { RP.on = null; RP.cam = null; $('replayBadge').hidden = true; document.body.classList.remove('replaying'); } clipRecStop(); CLIP.playing = null; document.body.classList.remove('clipmode'); $('clipView').hidden = true;
+function closeClipView() { const local = CLIP.playing && CLIP.playing.local && PLAY.watch; $('cvShare').hidden = true; $('cvClose').textContent = 'Close'; if (RP.on) { RP.on = null; RP.cam = null; $('replayBadge').hidden = true; document.body.classList.remove('replaying'); } clipRecStop(); CLIP.playing = null; document.body.classList.remove('clipmode'); $('clipView').hidden = true;
   if (local) { const W2 = PLAY.watch; PLAY.watch = null; myId = W2.me; setArena(W2.map); floorKey = null; if (W2.results) { $('resultsScreen').hidden = false; renderResPlays(); } return; } // (a best play watched from the results: back to them)
-  myId = null; setArena('meadow'); floorKey = null; }
+  myId = null; setArena('meadow'); floorKey = null; if (GAL.reopen) { GAL.reopen = false; galleryOpen(); } }
 $('cvAgain').onclick = clipReplay; $('cvClose').onclick = closeClipView;
+$('cvShare').onclick = () => { const P = CLIP.playing; if (P && P.id) shareSheet(P.id, (P.meta && P.meta.label) || 'A play', CLIP.video ? () => clipSaveVideo() : null); };
 let frameDt = 0;
 // ================= performance recording =================
 // F9 (or Options) starts and stops a recording of how long each part of every frame takes, what's on screen, the
@@ -12737,6 +12833,7 @@ async function openFarm() {
     const off = new Set(store.get('bowfall-farm-maps', '').split(',').filter(Boolean)); // (arenas left out of the random pick, remembered)
     $('farmMaps').insertAdjacentHTML('beforeend', MAP_KEYS.filter(k => !MAPS[k].big).map(k => `<label><input type="checkbox" data-fmap="${k}"${off.has(k) ? '' : ' checked'}> ${esc(MAPS[k].name)}</label>`).join(''));
     $('farmMaps').addEventListener('change', () => store.set('bowfall-farm-maps', [...$('farmMaps').querySelectorAll('[data-fmap]')].filter(c => !c.checked).map(c => c.dataset.fmap).join(','))); }
+  if (!FARM.basisInit) { FARM.basisInit = 1; const bv = store.get('bowfall-farm-basis', ''); if (['both', 'play', 'moment'].includes(bv)) $('farmBasis').value = bv; $('farmBasis').addEventListener('change', () => store.set('bowfall-farm-basis', $('farmBasis').value)); }
   if (!FARM.keepInit) { FARM.keepInit = 1; const kv = store.get('bowfall-farm-keep', ''); if (kv && FARM_KEEP[kv] != null) $('farmKeep').value = kv; $('farmKeep').addEventListener('change', () => store.set('bowfall-farm-keep', $('farmKeep').value)); }
   if (!$('farmRoles').querySelector('input')) { // (roles and elements left out of the random picks, remembered)
     const mk = (box, keys, name, key) => { const off = new Set(store.get(key, '').split(',').filter(Boolean)); $(box).insertAdjacentHTML('beforeend', keys.map(k => `<label><input type="checkbox" data-fpick="${k}"${off.has(k) ? '' : ' checked'}> ${esc(name(k))}</label>`).join('')); $(box).addEventListener('change', () => store.set(key, [...$(box).querySelectorAll('[data-fpick]')].filter(c => !c.checked).map(c => c.dataset.fpick).join(','))); };
@@ -12776,7 +12873,7 @@ $('farmScr').addEventListener('change', e => {
 });
 $('farmGo').onclick = () => {
   if (!FARM.team.red.length || !FARM.team.blue.length) { notice('Put someone on each side.', false); return; }
-  FARM.cfg = { roles: [...$('farmRoles').querySelectorAll('[data-fpick]')].filter(c => c.checked).map(c => c.dataset.fpick), els: [...$('farmEls').querySelectorAll('[data-fpick]')].filter(c => c.checked).map(c => c.dataset.fpick), look: [...$('farmLook').querySelectorAll('[data-flook]')].filter(c => c.checked).map(c => c.dataset.flook), map: $('farmMap').value, maps: [...$('farmMaps').querySelectorAll('[data-fmap]')].filter(c => c.checked).map(c => c.dataset.fmap), pts: +$('farmPts').value, rndWho: $('farmRndWho').value, rndMains: !$('farmRndLo').checked, rndLo: $('farmRndLo').checked, rndSize: $('farmRndSize').checked, every: $('farmEvery').checked, rndUps: $('farmRndUps').checked, effect: $('farmEffect').value || 'none', keep: $('farmKeep').value, red: FARM.team.red.map(x => Object.assign({}, x)), blue: FARM.team.blue.map(x => Object.assign({}, x)), kc: $('farmKc').checked, rec: $('farmRec').checked };
+  FARM.cfg = { roles: [...$('farmRoles').querySelectorAll('[data-fpick]')].filter(c => c.checked).map(c => c.dataset.fpick), els: [...$('farmEls').querySelectorAll('[data-fpick]')].filter(c => c.checked).map(c => c.dataset.fpick), look: [...$('farmLook').querySelectorAll('[data-flook]')].filter(c => c.checked).map(c => c.dataset.flook), map: $('farmMap').value, maps: [...$('farmMaps').querySelectorAll('[data-fmap]')].filter(c => c.checked).map(c => c.dataset.fmap), pts: +$('farmPts').value, rndWho: $('farmRndWho').value, rndMains: !$('farmRndLo').checked, rndLo: $('farmRndLo').checked, rndSize: $('farmRndSize').checked, every: $('farmEvery').checked, rndUps: $('farmRndUps').checked, effect: $('farmEffect').value || 'none', keep: $('farmKeep').value, basis: $('farmBasis').value, red: FARM.team.red.map(x => Object.assign({}, x)), blue: FARM.team.blue.map(x => Object.assign({}, x)), kc: $('farmKc').checked, rec: $('farmRec').checked };
   if (FARM.camMode == null) { FARM.follow = true; FARM.camMode = 'follow'; } // (the live camera: smooth follow; the bar's Camera button changes it) FARM.hud = $('farmHud').value === '1'; FARM.maxq = $('farmMaxq').checked; FARM.loop = $('farmLoop').checked;
   FARM.tags = $('farmTags').value; FARM.emp = $('farmEmp').value; FARM.speed = +$('farmSpeed').value || 1; FARM.review = false; FARM.hunt = $('farmHunt').checked; FARM.huntN = 400; FARM.found = 0; FARM.battles = 0;
   $('farmScr').hidden = true; if (document.activeElement) document.activeElement.blur(); farmStart();
@@ -12840,7 +12937,7 @@ function farmStart() {
   myId = null; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {}; TUT.on = false; TR.on = false;
   FARM.battles = (FARM.battles || 0) + 1;
   FARM.on = true; FARM.cam = null; FARM.sb = null; FARM.act = {}; FARM.overAt = 0; FARM.kc = C.kc; RP.enabled = C.kc && FARM.speed === 1 && !FARM.hunt;
-  RP.buf = []; RP.evs = []; RP.lastKill = null; FARM.pending = []; FARM.batch = []; FARM.near = new Map(); FARM.pl = new Map(); FARM.sl = new Map(); FARM.revAt = 0; FARM.held = false; FARM.match = (FARM.match || 0) + 1;
+  RP.buf = []; RP.evs = []; RP.lastKill = null; FARM.pending = []; FARM.batch = []; FARM.near = new Map(); FARM.fp = new Map(); FARM.pl = new Map(); FARM.sl = new Map(); FARM.revAt = 0; FARM.held = false; FARM.match = (FARM.match || 0) + 1;
   farmBarSync();
   document.body.classList.add('farm'); document.body.classList.toggle('farmnohud', !FARM.hud); farmBarShow(true);
   setScreens(); resize();
@@ -12875,28 +12972,78 @@ async function weekPlaysLoad() {
   weekPlaysShow();
 }
 function weekPlaysShow() {
-  const D = WEEKP.data || {}, wk = (D.plays || [])[0], ever = (D.all || [])[0], x = wk || ever;
-  const box = $('weekPlays'); box.hidden = false;
-  $('wpHead').textContent = wk ? 'Best play of the week' : ever ? 'Best play ever' : 'Best play of the week';
-  $('wpNote').hidden = !!x; $('wpNote').textContent = 'No plays yet. Make a big play in an online match (a multi-kill, a Rip, a set-up knockout…) and you could be the first up here.';
-  $('wpCard').hidden = !x; $('wpCap').innerHTML = x ? (() => { const L = x.bn || { n: x.who || '' };
-    return `<div class="wpl"><b class="sc">${x.score}</b><span>${esc(x.label)}<small>${esc((MAPS[x.map] || {}).name || '')}</small></span></div><span class="nm plate${plateClass(L)}"${plateStyle(L)}><span class="pl1">${idHtml(L)}<b>${esc(L.n)}</b>${ownHtml(L.ow)}${statusHtml(L)}${x.ai ? '<span class="aitag">AI</span>' : ''}${trophyHtml(L.na)}${L.ti ? ` <em class="ttl">${esc(titleName(L.ti))}</em>` : ''}</span></span>`; })() : '';
-  if (!x || WEEKP.shown === x.id) return; WEEKP.shown = x.id;
-  clipCard($('wpCard'), `/play?clip=${encodeURIComponent(x.id)}&embed=1&preview=1&still=1`, null, x.label, () => playClip(x.id));
+  // the best play (skill) and the best moment (spectacle) of the week, side by side (or the best ever, before there are any)
+  const D = WEEKP.data || {}, box = $('weekPlays'); box.hidden = false;
+  const P = (D.plays || [])[0] || (D.all || [])[0], M = (D.moments || [])[0] || (D.mall || [])[0];
+  $('wpKP').textContent = (D.plays || [])[0] || !P ? 'Play' : 'Best play ever'; $('wpKM').textContent = (D.moments || [])[0] || !M ? 'Moment' : 'Best moment ever';
+  $('wpNote').hidden = !!(P || M); $('wpNote').textContent = 'Nothing yet this week. Make a big play (a multi-kill, a bank shot, a set-up knockout) or a big moment (a roast, a combo shot, someone launched into a hole) in an online match and it could be up here.';
+  $('wpP').hidden = !P && !!M; $('wpM').hidden = !M && !!P;
+  const cap = (x, kind) => x ? `<span class="wpl"><b class="sc">${x.score}</b>${esc(x.label)}</span><span class="who">${esc(x.who || '')}${x.ai ? ' <span class="aitag">AI</span>' : ''}${(MAPS[x.map] || {}).name ? ' · ' + esc(MAPS[x.map].name) : ''}</span>` : `<span class="who">No ${kind} yet this week</span>`;
+  $('wpCap').innerHTML = cap(P, 'play'); $('wpCapM').innerHTML = cap(M, 'moment');
+  const key = (P ? P.id : '') + '|' + (M ? M.id : ''); if (WEEKP.shown === key) return; WEEKP.shown = key;
+  for (const [x, el] of [[P, $('wpCard')], [M, $('wpCardM')]]) { if (!x) { el.innerHTML = ''; el.hidden = true; continue; } el.hidden = false; clipCard(el, `/play?clip=${encodeURIComponent(x.id)}&embed=1&preview=1&still=1`, null, x.label, () => playClip(x.id)); }
 }
+// ---- the gallery: the top five plays and moments of the week, the month, the year and all time, and your circle's best
+const GAL = { kind: 'play', per: 'week', data: null, circle: null, sel: 0, reopen: false };
+async function galleryOpen() {
+  if (OFFLINE) { notice('The gallery needs the Bowfall server.', false); return; }
+  document.querySelector('.galpop') && document.querySelector('.galpop').remove();
+  const box = document.createElement('div'); box.className = 'galpop'; box.id = 'galPop';
+  box.innerHTML = `<div class="card"><div class="wph" style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Plays &amp; moments</h3><button type="button" class="ghost sm" data-galx>Close</button></div>
+    <p class="status" style="margin:0">Plays are about skill (multi-kills, long shots, bank shots, set-ups); moments are about spectacle (roasts, combo shots, launches, bullying). Some are both.</p>
+    <div class="galbar"><div class="wptabs" data-g="kind"><button type="button" data-v="play">Plays</button><button type="button" data-v="moment">Moments</button></div>
+    <div class="wptabs" data-g="per"><button type="button" data-v="week">Week</button><button type="button" data-v="month">Month</button><button type="button" data-v="year">Year</button><button type="button" data-v="all">All time</button><button type="button" data-v="circle">Your circle</button></div></div>
+    <div class="galbody" id="galBody"><span class="status">Loading…</span></div></div>`;
+  document.body.appendChild(box);
+  box.onclick = e => {
+    if (e.target === box || e.target.closest('[data-galx]')) { box.remove(); return; }
+    const t = e.target.closest('.wptabs button'); if (t) { GAL[t.parentElement.dataset.g] = t.dataset.v; GAL.sel = 0; galleryRender(); return; }
+    const it = e.target.closest('[data-gi]'); if (it) { GAL.sel = +it.dataset.gi; galleryRender(); }
+  };
+  galleryRender();
+  try { const r = await fetch('/api/gallery', { cache: 'no-store' }); GAL.data = await r.json(); } catch (e) { GAL.data = { play: {}, moment: {} }; }
+  if (account) { try { const r = await fetch('/api/circleplays', { cache: 'no-store' }); GAL.circle = await r.json(); } catch (e) { GAL.circle = null; } }
+  galleryRender();
+}
+function galleryRender() {
+  const box = $('galPop'); if (!box) return;
+  for (const g of box.querySelectorAll('.wptabs')) for (const b of g.children) b.classList.toggle('on', GAL[g.dataset.g] === b.dataset.v);
+  const body = $('galBody'), kind = GAL.kind, word = kind === 'moment' ? 'moment' : 'play';
+  if (!GAL.data) { body.innerHTML = '<span class="status">Loading…</span>'; return; }
+  const row = (x, i) => `<button type="button" data-gi="${i}" class="${i === GAL.sel ? 'on' : ''}"><span class="sc${kind === 'moment' ? ' mo' : ''}">${x.score}</span><span><b>${esc(x.label)}</b><small>${esc(x.who || '')}${x.ai ? ' (AI)' : ''} · ${esc((MAPS[x.map] || {}).name || '')}${x.at ? ' · ' + new Date(x.at).toLocaleDateString() : ''}</small></span></button>`;
+  let list, head, empty;
+  if (GAL.per === 'circle') {
+    if (!account) { body.innerHTML = '<span class="status">Sign in to see the best of your circle: you, your friends, and the people most of them know.</span>'; return; }
+    const C = (GAL.circle || {})[kind] || {}; list = null;
+    const wk = C.week || [], al = C.all || [];
+    const sec = (h, L, off) => `<div class="galx"><h4 class="${kind === 'moment' ? 'mo' : ''}">${h}</h4>${L.length ? `<div class="wplist">${L.map((x, i) => row(x, i + off)).join('')}</div>` : `<span class="status">None yet.</span>`}</div>`;
+    const all = wk.concat(al), x = all[GAL.sel] || all[0];
+    body.innerHTML = `<div class="galx"><div class="galcard"></div>${x ? `<small class="status">Click it to watch full size</small>` : `<span class="status">No ${word}s in your circle yet. Your best ${word}s from online matches show here for your friends (and theirs for you).</span>`}</div><div class="galx">${sec(`Your circle: this week`, wk, 0)}${sec(`Your circle: all time`, al, wk.length)}</div>`;
+    if (x) galCard(body.querySelector('.galcard'), x);
+    return;
+  }
+  list = ((GAL.data[kind] || {})[GAL.per]) || [];
+  head = { week: 'this week', month: 'this month', year: 'this year', all: 'of all time' }[GAL.per];
+  const x = list[GAL.sel] || list[0];
+  empty = `No ${word}s ${head} yet. The best from online matches are kept here.`;
+  body.innerHTML = `<div class="galx"><div class="galcard"></div>${x ? `<small class="status">Click it to watch full size</small>` : `<span class="status">${empty}</span>`}</div><div class="galx"><h4 class="${kind === 'moment' ? 'mo' : ''}">Top ${word}s ${head}</h4><div class="wplist">${list.map(row).join('')}</div></div>`;
+  if (x) galCard(body.querySelector('.galcard'), x);
+}
+function galCard(el, x) { clipCard(el, `/play?clip=${encodeURIComponent(x.id)}&embed=1&preview=1&still=1`, null, x.label, () => { const p = $('galPop'); if (p) p.remove(); GAL.reopen = true; playClip(x.id); }); }
+$('wpGal').onclick = galleryOpen;
 setTimeout(weekPlaysLoad, 1500); setInterval(weekPlaysLoad, 60 * 1000);
 // after a ranked match: its best play is offered for the plays of the week (if it's scored highly; the server decides)
-async function weekPlayOffer(x) {
+async function weekPlayOffer(x, kind) {
   // (what came of it is noted for the owner at /api/perf as mem:weekoffer; a play that made it says so, and the menu's
   // card is fetched afresh)
   let why = '';
   try {
     let frames = x.c.frames; while (frames.length > 850) frames = frames.filter((f, i) => i % 2 === 0);
     const data = await gzipB64(JSON.stringify(clipPack(Object.assign({}, x.c, { frames }))));
-    const r = await fetch('/api/weekplay', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data, meta: { label: x.title, score: x.score } }) });
+    const r = await fetch('/api/weekplay', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data, meta: { label: x.title, score: playVal(x, kind), kind, line: x.line } }) });
     const d = await r.json().catch(() => ({}));
-    why = `${r.status} ${d.kept ? 'kept' : 'not kept'} ${d.error || ''} ${d.why || ''} (score ${x.score}, ${frames.length} frames, ${Math.round(data.length / 1024)} KB)`;
-    if (d.kept && x.k === myId) { WEEKP.at = 0; notice(`Your ${esc(x.title.toLowerCase())} made the plays of the week!`, true); } else if (d.kept) WEEKP.at = 0;
+    why = `${r.status} ${kind} ${d.kept ? 'kept' : 'not kept'} ${d.error || ''} ${d.why || ''} (score ${playVal(x, kind)}, ${frames.length} frames, ${Math.round(data.length / 1024)} KB)`;
+    if (d.kept && x.k === myId) { WEEKP.at = 0; notice(`Your ${esc(x.title.toLowerCase())} made the ${kind === 'moment' ? 'moments' : 'plays'} of the week!`, true); } else if (d.kept) WEEKP.at = 0;
   } catch (e) { why = 'failed: ' + (e && e.message); }
   clientError(new Error(why), 'mem:weekoffer');
 }
@@ -12908,9 +13055,9 @@ let PC = FARM; // (which one the play-spotting functions below are working for: 
 const PLAY_MIN = 4.5; // (worth showing: a double kill, a set-up or ability knockout, a roast, a harpoon pull and up)
 const pcPlayer = id => { if (PC === FARM && world) return world.players.find(q => q.id === id); const p = view && view.p.find(q => q.id === id); return p ? { name: p.n, dead: p.d } : null; };
 const playOn = () => !INFRAME && !FARM.on && myId != null && (mode === 'online' || mode === 'local') && !TUT.on && !TR.on && !DESK.sim && !(roomInfo && (roomInfo.spec || []).some(c => c.you)); // (roomInfo.spec is the list of spectators; it was read as 'am I one', which it always was, so no play was ever caught online)
-function playMine(e) { return ['moment', 'style', 'kill', 'dmg', 'clutch', 'gameEnd', 'slam'].includes(e.e) && !e.npc; } // (everyone's plays: the best of the game, and yours)
+function playMine(e) { return ['moment', 'style', 'kill', 'dmg', 'clutch', 'gameEnd', 'slam', 'deflect', 'catch'].includes(e.e) && !e.npc; } // (everyone's plays: the best of the game, and yours)
 function playEvents(evs) {
-  for (const e of evs) if (e.e === 'matchStart') { PLAY.list = []; PLAY.pending = []; PLAY.pl = new Map(); PLAY.sl = new Map(); PLAY.match++; PLAY.flushAt = 0; PLAY.offered = false; PLAY.shown = ''; }
+  for (const e of evs) if (e.e === 'matchStart') { PLAY.list = []; PLAY.pending = []; PLAY.pl = new Map(); PLAY.sl = new Map(); PLAY.near = new Map(); PLAY.fp = new Map(); PLAY.match++; PLAY.flushAt = 0; PLAY.offered = false; PLAY.shown = ''; }
   if (!playOn()) return;
   PC = PLAY; try { for (const e of evs) farmNote(e); } finally { PC = FARM; }
   if (evs.some(e => e.e === 'matchEnd')) PLAY.flushAt = rpNow() + 1.2; // (a moment for the last knockout's aftermath, then whatever's waiting is saved)
@@ -12921,37 +13068,46 @@ function playTick() {
   PC = PLAY;
   try { while (PLAY.pending.length && (all || now >= PLAY.pending[0].due)) farmCapture(PLAY.pending.shift()); }
   catch (e) { PLAY.pending = []; } finally { PC = FARM; }
-  if (all && !PLAY.pending.length && !PLAY.offered) { PLAY.offered = true; const best = PLAY.list.find(x => x.k === myId), top = PLAY.list.find(x => x.k !== myId); if (mode === 'online' && account && !OFFLINE) { if (best) weekPlayOffer(best); if (top) weekPlayOffer(top); if (!best && !top) clientError(new Error('no plays in the game'), 'mem:weekoffer'); } } // (yours, and the best of anyone else's: the server takes an AI player's, never another person's)
+  if (all && !PLAY.pending.length && !PLAY.offered) { PLAY.offered = true; if (mode === 'online' && account && !OFFLINE) { // (yours, and the best of anyone else's: the server takes an AI player's, never another person's)
+    const offers = []; for (const mine of [true, false]) for (const kind of ['play', 'moment']) { const x = playBest(PLAY.list.filter(q => (q.k === myId) === mine), kind); if (x) offers.push([x, kind]); }
+    for (const [x, kind] of offers) weekPlayOffer(x, kind); if (!offers.length) clientError(new Error('no plays in the game'), 'mem:weekoffer'); } }
 }
+// plays (skill: score) and moments (spectacle: ms); one clip can be both
+const playVal = (x, kind) => (kind === 'moment' ? x.ms || 0 : kind === 'play' ? x.score : Math.max(x.score, x.ms || 0));
+const playBest = (L, kind) => { const c = L.filter(x => playVal(x, kind) >= PLAY_MIN).sort((x, y) => playVal(y, kind) - playVal(x, kind)); return c[0] || null; };
 function playAdd(item, c) {
-  if (item.score < PLAY_MIN) return;
+  if (item.score < PLAY_MIN && (item.ms || 0) < PLAY_MIN) return;
   item.c = c;
-  // the same play caught twice: the better one, noting both
+  // the same play caught twice: the better one
   const dup = PLAY.list.filter(x => (item.kt.length && (x.kt || []).some(t => item.kt.includes(t))) || (item.focus != null && x.focus === item.focus && x.win[0] < item.win[1] - 1 && item.win[0] + 1 < x.win[1]));
-  if (dup.length) { const best = dup.reduce((m, x) => (x.score > m.score ? x : m)); if (best.score >= item.score) return; PLAY.list = PLAY.list.filter(x => !dup.includes(x)); }
-  PLAY.list.push(item); PLAY.list.sort((x, y) => y.score - x.score); { const mine = PLAY.list.filter(x => x.k === myId).slice(0, 3), rest = PLAY.list.filter(x => x.k !== myId).slice(0, 3); PLAY.list = mine.concat(rest).sort((x, y) => y.score - x.score); } // (the best few of everyone's, and of yours)
+  if (dup.length) { const best = dup.reduce((m, x) => (playVal(x) > playVal(m) ? x : m)); if (playVal(best) >= playVal(item)) return; PLAY.list = PLAY.list.filter(x => !dup.includes(x)); }
+  PLAY.list.push(item);
+  { const top = (L, k) => L.slice().sort((x, y) => playVal(y, k) - playVal(x, k)).slice(0, 3), mine = PLAY.list.filter(x => x.k === myId), rest = PLAY.list.filter(x => x.k !== myId);
+    PLAY.list = [...new Set([...top(mine, 'play'), ...top(mine, 'moment'), ...top(rest, 'play'), ...top(rest, 'moment')])].sort((x, y) => playVal(y) - playVal(x)); } // (the best few plays and moments of everyone's, and of yours)
   if (!$('resultsScreen').hidden) renderResPlays();
 }
 const isSupporter = () => !!(account && (account.admin || (WALLET && WALLET.status && WALLET.status.sp)));
 function renderResPlays() {
   const box = $('resPlays'); if (!box) return;
   if (INFRAME) { box.hidden = true; return; }
-  // two: the best play of the game (anyone's), and your best (if the best of the game isn't yours already)
-  const top = PLAY.list[0], mine = PLAY.list.find(x => x.k === myId), show = [];
-  if (top) show.push({ x: top, head: top.k === myId ? 'Best play of the game: yours!' : 'Best play of the game' });
-  if (mine && mine !== top) show.push({ x: mine, head: 'Your best play' });
+  // the best play of the game (skill), the best moment (spectacle), and your best (if neither is yours already)
+  const tp = playBest(PLAY.list, 'play'), tm = playBest(PLAY.list, 'moment'), show = [];
+  if (tp && tp === tm) show.push({ x: tp, kind: 'play', both: 1, head: tp.k === myId ? 'Best play and moment of the game: yours!' : 'Best play and moment of the game' });
+  else { if (tp) show.push({ x: tp, kind: 'play', head: tp.k === myId ? 'Best play of the game: yours!' : 'Best play of the game' }); if (tm) show.push({ x: tm, kind: 'moment', head: tm.k === myId ? 'Best moment of the game: yours!' : 'Best moment of the game' }); }
+  if (!show.some(o => o.x.k === myId)) { const mp = playBest(PLAY.list.filter(x => x.k === myId), 'play'), mm = playBest(PLAY.list.filter(x => x.k === myId), 'moment'), m = mp && (!mm || mp.score >= mm.ms) ? { x: mp, kind: 'play', head: 'Your best play' } : mm ? { x: mm, kind: 'moment', head: 'Your best moment' } : null; if (m) show.push(m); }
   box.hidden = !show.length; if (!show.length) { box.innerHTML = ''; PLAY.shown = ''; return; }
-  const key = show.map(o => o.x.id + (o.x.kept || '')).join(',');
+  const key = show.map(o => o.x.id + o.kind + (o.x.kept || '')).join(',');
   if (PLAY.shown === key && box.innerHTML) return; PLAY.shown = key; // (the cards hold their frames: only redrawn when what's in them changes)
   const sup = isSupporter(), online = account && !OFFLINE;
   box.innerHTML = `<div class="rplays2">${show.map((o, i) => `<div class="rplay2"><span class="hd">${esc(o.head)}</span><div class="rpc" data-rpc="${i}"></div>
-    <div class="rpi"><span class="sc">${o.x.score}</span><span><b>${esc(o.x.title)}</b><small>${esc(o.x.line)}</small></span></div>
-    <div class="rcb"><button type="button" class="ghost sm" data-pdl="${i}">Save video</button>${o.x.k === myId && online ? `<button type="button" class="${sup ? 'ghost' : 'ghost locked'} sm" data-pkeep="${i}"${o.x.kept === true ? ' disabled' : ''}>${o.x.kept === true ? 'Kept ✓' : o.x.kept === 'saving' ? 'Saving…' : sup ? 'Keep on profile' : '★ Keep (supporters)'}</button>` : ''}</div></div>`).join('')}</div><small class="status">Hover to play · click to watch full size</small>`;
+    <div class="rpi"><span class="sc${o.kind === 'moment' ? ' mo' : ''}" title="${o.kind === 'moment' ? 'Moment score (spectacle)' : 'Play score (skill)'}">${playVal(o.x, o.kind)}</span><span><b>${esc(o.x.title)}</b><small>${esc(o.x.line)}</small></span></div>
+    <div class="rcb"><button type="button" class="cta sm" data-pshare="${i}">Share</button><button type="button" class="ghost sm" data-pdl="${i}">Save video</button>${o.x.k === myId && online ? `<button type="button" class="${sup ? 'ghost' : 'ghost locked'} sm" data-pkeep="${i}"${o.x.kept === true ? ' disabled' : ''}>${o.x.kept === true ? 'Kept ✓' : o.x.kept === 'saving' ? 'Saving…' : sup ? 'Keep on profile' : '★ Keep (supporters)'}</button>` : ''}</div></div>`).join('')}</div><small class="status">Hover to play · click to watch full size</small>`;
   show.forEach((o, i) => clipCard(box.querySelector(`[data-rpc="${i}"]`), '/play?cframe=1&preview=1', clipPack(o.x.c), o.x.title, () => playWatch(o.x)));
   PLAY.cards = show.map(o => o.x);
 }
 $('resPlays').onclick = ev => {
   const dl = ev.target.closest('[data-pdl]'); if (dl) { const x = (PLAY.cards || [])[+dl.dataset.pdl]; if (x) saveVideo(playItem(x), false); return; }
+  const sh = ev.target.closest('[data-pshare]'); if (sh) { const x = (PLAY.cards || [])[+sh.dataset.pshare]; if (x) sharePlay(x); return; }
   const k = ev.target.closest('[data-pkeep]'); if (!k) return; const x = (PLAY.cards || [])[+k.dataset.pkeep]; if (!x) return;
   if (!isSupporter()) { notice('Keeping your best plays is for supporters (it helps keep Bowfall running).', false); return; }
   playKeep(x);
@@ -12967,6 +13123,42 @@ function playWatch(x) {
   document.body.classList.add('clipmode'); $('clipView').hidden = false;
   clipReplay();
 }
+// ---- sharing: a play becomes a link anyone can open (it plays in the browser, with Bowfall a click away), and the
+// share sheet sends it to WhatsApp, Snapchat, Messenger, X, Reddit and so on (on phones, the phone's own share menu).
+// Instagram and TikTok take videos rather than links: save it as a video and post that.
+async function sharePlay(x) {
+  if (OFFLINE) { notice('Sharing needs the Bowfall server.', false); return; }
+  try {
+    if (!x.shareId) {
+      notice('Making a link…', false);
+      let frames = x.c.frames; while (frames.length > 850) frames = frames.filter((f, i) => i % 2 === 0);
+      const data = await gzipB64(JSON.stringify(clipPack(Object.assign({}, x.c, { frames, label: x.title }))));
+      const r = await fetch('/api/share', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ data, label: x.title }) });
+      const d = await r.json(); if (!r.ok || !d.id) throw new Error(d.error || 'Could not make a link');
+      x.shareId = d.id;
+    }
+    shareSheet(x.shareId, x.title, () => saveVideo(playItem(x), false));
+  } catch (e) { notice(esc(e.message || 'Could not make a link'), false); }
+}
+function shareSheet(id, title, saveVid) {
+  const url = location.origin + '/play?clip=' + id, text = `${title || 'My play'} in Bowfall. Watch it, then play me:`;
+  const u = encodeURIComponent(url), t = encodeURIComponent(text);
+  document.querySelector('.sharepop') && document.querySelector('.sharepop').remove();
+  const box = document.createElement('div'); box.className = 'sharepop';
+  const links = [['WhatsApp', `https://wa.me/?text=${t}%20${u}`], ['X', `https://twitter.com/intent/tweet?text=${t}&url=${u}`], ['Facebook', `https://www.facebook.com/sharer/sharer.php?u=${u}`], ['Reddit', `https://www.reddit.com/submit?url=${u}&title=${encodeURIComponent((title || 'My play') + ' in Bowfall')}`], ['Messenger', `https://www.facebook.com/dialog/send?link=${u}&app_id=&redirect_uri=${u}`]].filter(l => l[0] !== 'Messenger');
+  box.innerHTML = `<div class="card"><h3>Share this play</h3><p class="status">Anyone with the link can watch it in their browser, with Bowfall a click away.</p>
+    <div class="shurl"><input readonly value="${esc(url)}"><button type="button" class="cta sm" data-shcopy>Copy link</button></div>
+    <div class="shbtns">${navigator.share ? '<button type="button" class="cta sm" data-shnative>Share…</button>' : ''}${links.map(([n, h]) => `<a class="ghost sm" href="${h}" target="_blank" rel="noopener">${n}</a>`).join('')}</div>
+    ${saveVid ? '<p class="status">Instagram and TikTok take videos: <button type="button" class="linkbtn" data-shvid>save it as a video</button> and post that.</p>' : ''}
+    <div class="btnrow"><button type="button" class="ghost sm" data-shclose>Done</button></div></div>`;
+  document.body.appendChild(box);
+  box.onclick = async e => {
+    if (e.target === box || e.target.closest('[data-shclose]')) { box.remove(); return; }
+    if (e.target.closest('[data-shcopy]')) { try { await navigator.clipboard.writeText(url); notice('Link copied', false, '#7dff8a'); } catch (er) { box.querySelector('input').select(); } }
+    if (e.target.closest('[data-shnative]')) { try { await navigator.share({ title: 'Bowfall', text, url }); } catch (er) {} }
+    if (e.target.closest('[data-shvid]') && saveVid) { box.remove(); saveVid(); }
+  };
+}
 async function playKeep(x) {
   if (x.kept) return;
   const c = Object.assign({}, x.c, { label: x.title, play: 1, score: x.score });
@@ -12981,35 +13173,55 @@ async function playKeep(x) {
 }
 function farmPl(id) { let o = PC.pl.get(id); if (!o) PC.pl.set(id, o = { dodge: [], dash: [], dmg: [], kill: [], flag: -99, bflag: -99 }); const T = PC.gt - 10; for (const k of ['dodge', 'dash', 'dmg', 'kill']) while (o[k].length && (o[k][0].t != null ? o[k][0].t : o[k][0]) < T) o[k].shift(); return o; }
 // near misses: an enemy arrow that came within 60 px of an archer and went on by without hitting them
-function farmTrack() {
-  const N = FARM.near, now = PC.gt, live = new Set();
-  for (const a of world.arrows) {
-    if (a.stuck > 0) continue; live.add(a.id);
-    let m = N.get(a.id);
-    if (!m) { const o = world.players.find(q => q.id === a.owner); if (!o) continue; N.set(a.id, m = { o: o.id, team: o.team, ps: new Map() }); }
-    for (const p of world.players) {
-      if (p.dead || p.falling || p.npc || p.team === m.team) continue;
-      const d = Math.hypot(a.x - p.x, a.y - p.y), st = m.ps.get(p.id);
-      if (d < 60) { if (!st) m.ps.set(p.id, { d, t: now }); else if (!st.done && d < st.d) { st.d = d; st.t = now; } }
-      else if (st && !st.done && d > st.d + 50) { st.done = 1; farmDodge(p.id, m.o, st.t); }
+// Dodges: a shot that was really coming for them and didn't land. When an arrow is first seen (and while it flies),
+// it counts as a threat to an archer if it was on course for them: aimed at where they stood, or at where they were
+// heading if they kept going, with no boulder in the way. If it then misses them (they turned, dashed, ducked behind
+// cover) or they deflect or catch it, that's a dodge. A badly aimed shot that was never going to hit isn't one.
+// Dodges aren't a play on their own: they add to the play they happen in (more when outnumbered).
+function farmTrack() { if (RP.buf.length) dodgeTrack(RP.buf[RP.buf.length - 1].v, FARM.gt, FARM); }
+function dodgeTrack(S, now, pc) {
+  if (!S || !S.p || !S.a || (S.m && S.m.ph !== 'play')) return;
+  const keep = PC; PC = pc;
+  try {
+    const N = pc.near || (pc.near = new Map()), live = new Set(), pil = (MAPS[MAPKEY] && MAPS[MAPKEY].pillars) || [];
+    const blocked = (x0, y0, x1, y1) => pil.some(c => { const ex = x1 - x0, ey = y1 - y0, L = ex * ex + ey * ey || 1, u = Math.max(0, Math.min(1, ((c.x - x0) * ex + (c.y - y0) * ey) / L)); return Math.hypot(x0 + ex * u - c.x, y0 + ey * u - c.y) < c.r + 4; });
+    for (const a of S.a) {
+      if (a.s) continue; live.add(a.id);
+      let m = N.get(a.id);
+      if (!m) { const o = S.p.find(q => q.id === a.o); if (!o) continue; N.set(a.id, m = { o: o.id, team: o.tm, ps: new Map(), x: a.x, y: a.y, t: now, v: 0 }); }
+      else { const dt = now - m.t; if (dt > 0.005) { const v = Math.hypot(a.x - m.x, a.y - m.y) / dt; if (v > 50) m.v = m.v ? m.v * 0.5 + v * 0.5 : v; m.x = a.x; m.y = a.y; m.t = now; } }
+      const ux = Math.cos(a.g || 0), uy = Math.sin(a.g || 0), spd = m.v || 1400;
+      for (const p of S.p) {
+        if (p.d || p.f || p.nk || p.tm === m.team) continue;
+        const R = (p.rz || 24) + 8, rx = p.x - a.x, ry = p.y - a.y, along = rx * ux + ry * uy;
+        let st = m.ps.get(p.id);
+        if (!st) { st = { threat: false, seen: 0, done: false }; m.ps.set(p.id, st); }
+        if (st.done) continue;
+        if (along > R + 50 && along < 950) {
+          const tA = along / spd, still = Math.abs(rx * uy - ry * ux), px = rx + (p.vx || 0) * tA, py = ry + (p.vy || 0) * tA, pred = Math.abs(px * uy - py * ux);
+          // on course: for where they stand (only judged the first time the shot is seen: the aim), or for where they're heading
+          const onCourse = ((st.seen === 0 && still < R) || pred < R) && !blocked(a.x, a.y, p.x, p.y);
+          if (onCourse && !st.threat) { st.threat = true; st.at = now + tA; }
+          st.seen++;
+        } else if (along <= -R && st.threat) { st.done = true; farmDodge(p.id, m.o, now); }
+      }
     }
-  }
-  for (const [id, m] of N) if (!live.has(id)) { for (const [pid, st] of m.ps) if (!st.done) farmDodge(pid, m.o, st.t); N.delete(id); }
+    // shots gone (stuck in a boulder, a wall, or the end of their flight): the ones still coming for someone missed them
+    for (const [id, m] of N) if (!live.has(id)) { for (const [pid, st] of m.ps) if (st.threat && !st.done) { st.done = true; farmDodge(pid, m.o, now); } N.delete(id); }
+    // pinned or rooted on an enemy's burning ground for a second or more: a moment (caught when it ends)
+    const FP = pc.fp || (pc.fp = new Map()), fz = (S.z || []).filter(z => z.ty === 'fire');
+    for (const p of S.p) {
+      if (p.nk) continue;
+      const z = !p.d && !p.f && (p.pn || p.st) ? fz.find(q => q.tm !== p.tm && Math.hypot(p.x - q.x, p.y - q.y) < q.r + (p.rz || 24) * 0.4) : null;
+      let o = FP.get(p.id);
+      if (z) { if (!o) FP.set(p.id, o = { t0: now, by: z.o, pn: false }); o.last = now; if (p.pn) o.pn = true; }
+      else if (o && (now - o.last > 0.3 || p.d || p.f)) { FP.delete(p.id); const s2 = o.last - o.t0; if (s2 >= 1 && !(S.p.find(q => q.id === o.by) || {}).nk) { pc.pending.push({ e: { e: 'firepin', v: p.id, k: o.by, s: s2, t0: o.t0, t1: o.last, pn: o.pn }, at: o.last, due: now + 2.6 }); pc.pending.sort((x, y) => x.due - y.due); } }
+    }
+  } finally { PC = keep; }
 }
 function farmDodge(pid, by, t) {
-  if (RP.evs.some(x => x.e.e === 'hit' && x.e.id === pid && x.e.by === by && Math.abs(x.t - t) < 0.4)) return; // (it hit them)
-  const P = farmPl(pid); P.dodge.push(t); farmEvasive(pid);
-}
-// evasive: five or more near misses in 8 seconds, dashing about, while still dealing damage or knocking someone out
-function farmEvasive(id) {
-  const P = farmPl(id), now = PC.gt, p = world.players.find(q => q.id === id); if (!p || p.dead) return;
-  const T = now - 8, dodges = P.dodge.filter(t => t >= T).length, dashes = P.dash.filter(t => t >= T).length, dmg = P.dmg.filter(x => x.t >= T).reduce((a, x) => a + x.v, 0), kills = P.kill.filter(t => t >= T).length;
-  const same = PC.pending.find(x => x.e.e === 'evasive' && x.e.id === id);
-  if (dodges < 6 || dashes < 2 || !kills || (!same && now - P.flag < 12)) return; // (dodging alone isn't a clip: it has to end in a knockout)
-  if (!same) P.flag = now; // (one clip for a run of it; the next can't start for a while)
-  const e = { e: 'evasive', id, kn: p.name, n: Math.max(dodges, same ? same.e.n : 0), dmg, kills, a0: same ? same.e.a0 : now - 8 };
-  if (same) { same.e = e; same.at = now; same.due = now + 3.4; } else PC.pending.push({ e, at: now, due: now + 3.4 });
-  PC.pending.sort((a, b) => a.due - b.due);
+  if (RP.evs.some(x => x.e.e === 'hit' && x.e.id === pid && x.e.by === by && Math.abs(x.t - t) < 0.6)) return; // (it hit them)
+  farmPl(pid).dodge.push(t);
 }
 // what's worth keeping: the best moments (multi-kills, roasts, bullying, long shots), clutches, game-winning knockouts,
 // harpoon pulls into hazards, bursts of damage and evasive play
@@ -13017,6 +13229,7 @@ function farmNote(e) {
   if (PC === PLAY && !playMine(e)) return; // (a real match: only the player's own plays are looked for)
   const at = PC.gt, push = (ev, due) => { PC.pending.push({ e: ev, at, due: at + due }); };
   if (e.e === 'moment' && e.m === 'bully') return; // (bullying is followed slam by slam below instead)
+  if ((e.e === 'deflect' || e.e === 'catch') && e.id != null) { farmPl(e.id).dodge.push(at); return; } // (a shot turned away: a dodge too)
   if (e.e === 'slam' && e.by != null && e.by !== e.id) {
     // bullying: slammed into the walls again and again (by one archer or several), each slam within 1.8 s of the last
     const m = PC.sl || (PC.sl = new Map()); let S = m.get(e.id);
@@ -13031,7 +13244,7 @@ function farmNote(e) {
     const same = PC.pending.find(x => x.e.e === 'moment' && x.e.m === e.m && x.e.k === e.k && (e.m === 'multi' || (e.m === 'bully' && x.e.v === e.v)));
     if (same) { same.e = e; same.at = at; same.due = at + 3.2; return; }
     push(e, 3.2);
-  } else if (e.e === 'clutch') push(e, 2.8);
+  } else if (e.e === 'clutch') { /* (a clutch is scored as outnumbered, on the play itself) */ }
   else if (e.e === 'dash' || e.e === 'blink') farmPl(e.id).dash.push(at);
   else if (e.e === 'dmg' && e.by != null && e.by !== e.id) {
     const P = farmPl(e.by); P.dmg.push({ t: at, v: e.v || 0 });
@@ -13044,7 +13257,7 @@ function farmNote(e) {
     // reeled in by a harpoon and straight into a hole, water, lava or thorns
     if (e.c !== 'arrow' && RP.evs.some(x => x.e.e === 'reel' && x.e.id === e.v && x.e.by === e.k && at - x.t < 3)) push({ e: 'harpoon', k: e.k, kn: e.kn, v: e.v, vn: e.vn, c: e.c }, 3);
     // a knockout with some play behind it (a dash into position, a trapped or frozen target, an ability that set it up, a run of hits into a wall)
-    else { const st = killStyle(e, at); if (st.score >= 2.5) push({ e: 'style', k: e.k, kn: e.kn, v: e.v, vn: e.vn, c: e.c, st }, 3); }
+    else { const st = killStyle(e, at); if (st.score >= 2.5 || st.mo >= 3) push({ e: 'style', k: e.k, kn: e.kn, v: e.v, vn: e.vn, c: e.c, st }, 3); }
   }
   if (e.e === 'gameEnd' && e.rw !== 'draw' && RP.lastKill && at - RP.lastKill.t < 1.5) PC.pending.push({ e: { e: 'winko', k: RP.lastKill.k, kn: RP.lastKill.kn, v: RP.lastKill.v, vn: RP.lastKill.vn }, at: RP.lastKill.t, due: at + 2.5 });
   PC.pending.sort((a, b) => a.due - b.due);
@@ -13053,24 +13266,34 @@ function farmNote(e) {
 const CC_WORD = { fz: 'frozen', pn: 'pinned', hk: 'hooked', su: 'stunned', st: 'rooted' };
 function killStyle(e, t) {
   const tags = [], ev = (name, test, back) => RP.evs.some(x => x.e.e === name && x.t >= t - back && x.t <= t + 0.02 && test(x.e));
-  let score = 0, cc = null;
+  let score = 0, mo = 0, cc = null;
   // the victim held in place in the moment before (frozen, rooted by a trap or thorns, pinned, stunned, on a harpoon's rope)
   for (const f of RP.buf) { if (f.t < t - 1.4 || f.t > t) continue; const v = f.v.p.find(q => q.id === e.v); if (!v) continue; for (const k in CC_WORD) if (v[k]) { cc = k; break; } if (cc) break; }
-  if (cc) { tags.push(`${CC_WORD[cc]} target`); score += 1.5; }
+  if (cc) { tags.push(`${CC_WORD[cc]} target`); mo += 1.5; } // (held by someone: a moment; held and then a dash in to finish it: the set-up, below, is skill)
   // the shooter dashed (or blinked) into position just before the shot
   const shotT = (() => { for (let i = RP.evs.length - 1; i >= 0; i--) { const x = RP.evs[i]; if (x.t > t) continue; if (x.e.e === 'hit' && x.e.id === e.v && x.e.by === e.k) return x.t; if (t - x.t > 3) break; } return t; })();
   const dashed = ev('dash', x => x.id === e.k, (t - shotT) + 1.6) || ev('blink', x => x.id === e.k, (t - shotT) + 1.6);
-  if (dashed) { tags.push('dash into position'); score += 1.5; if (cc) score += 1; }
+  if (dashed) { tags.push('dash into position'); score += 1.5; if (cc) score += 2.5; }
   // abilities that made it: Bull Rush, a Volley's three arrows, a Rip (more if it took several), a Quake into a hazard, a Pin before the finish
   if (ev('rush', x => x.id === e.k, 1.3)) { tags.push('Bull Rush'); score += 1.5; }
   if (ev('volleyArmed', x => x.id === e.k, 2.6)) { const hits = RP.evs.filter(x => x.e.e === 'hit' && x.e.by === e.k && x.e.id === e.v && t - x.t < 1.2).length; if (hits >= 3) { tags.push('full Volley'); score += 2; } else if (hits >= 2) { tags.push('Volley'); score += 1; } }
-  if (e.how === 'rip' || e.c === 'rip') { const others = RP.evs.filter(x => x.e.e === 'kill' && x.e.k === e.k && x.e.how === 'rip' && x.e.v !== e.v && Math.abs(x.t - t) < 0.1).length; tags.push(others ? `Rip, ${others + 1} at once` : 'Rip'); score += 1 + others * 3.5; }
+  if (e.how === 'rip' || e.c === 'rip') { const others = RP.evs.filter(x => x.e.e === 'kill' && x.e.k === e.k && x.e.how === 'rip' && x.e.v !== e.v && Math.abs(x.t - t) < 0.1).length; tags.push('Rip'); score += 1; void others; } // (several at once is scored as "at once", like any other)
   if (ev('quake', () => true, 1.2) && e.c !== 'arrow' && ev('quake', x => Math.hypot(x.x - e.x, x.y - e.y) < 300, 1.2)) { tags.push('Quake'); score += 1.5; }
   if (ev('pinned', x => x.id === e.v && x.by === e.k, 3) && cc !== 'pn') { tags.push('pinned first'); score += 1; }
   // smashed into the walls: a run of quick hits that threw them into a wall or corner again and again
   const hits = RP.evs.filter(x => x.e.e === 'hit' && x.e.by === e.k && x.e.id === e.v && t - x.t < 3.2).length, slams = RP.evs.filter(x => (x.e.e === 'thud' || x.e.e === 'spike') && x.e.id === e.v && t - x.t < 3.2).length;
   // (a run of slams into the walls is its own kind of clip: see 'bully2')
-  return { tags, score, cc: !!cc, dashed, hits, slams };
+  // knockout moments (into a hole, water or lava): knocked into by another archer, like a pool combination; off a wall or a
+  // boulder and in, a bank shot (skill and a moment); or launched: thrown a long way, fast, straight in
+  let combo = false, bank = false, launch = false;
+  if (e.c === 'pit' || e.c === 'water' || e.c === 'lava') {
+    const bw = [...RP.evs].reverse().find(x => x.e.e === 'bowl' && x.e.id === e.v && x.e.k === e.k && x.t >= t - 2.5 && x.t <= t);
+    if (bw && !RP.evs.some(x => x.e.e === 'hit' && x.e.id === e.v && x.e.by === e.k && x.t > bw.t && x.t <= t)) { const by = pcPlayer(bw.e.by); combo = true; tags.push(`combo shot${by && by.name ? ` off ${by.name}` : ''}`); mo += 5; score += 1.5; }
+    if (!combo && shotT < t && RP.evs.some(x => x.e.e === 'slam' && x.e.id === e.v && x.t > shotT && x.t <= t && t - x.t < 1.6)) { bank = true; tags.push('off the wall'); score += 3; mo += 3; }
+    const hitE = [...RP.evs].reverse().find(x => x.e.e === 'hit' && x.e.id === e.v && x.e.by === e.k && x.t <= t && x.t >= t - 1.5);
+    if (!combo && hitE && hitE.e.x != null) { const d = Math.hypot(e.x - hitE.e.x, e.y - hitE.e.y); if (d >= 380 && t - hitE.t <= 1.5) { launch = true; tags.push(`launched ${Math.round(d / 50)} m`); mo += 3 + Math.min(3, (d - 380) / 100); } } // (launched: a long way, fast, about 8 m or more)
+  }
+  return { tags, score, mo, cc: !!cc, dashed, hits, slams, combo, bank, launch };
 }
 const FARM_KEEP = { all: 0, good: 3, best: 4.5, s6: 6, s8: 8, s10: 10, s13: 13 };
 // the kinds of play a clip can be, for the farm's "only these plays" filter: [key, label, test on the clip]
@@ -13080,33 +13303,36 @@ const FARM_LOOK = [
   ['triple', 'Triple kill or more', it => /^(Triple|Quad|Penta|\d+ knockouts)/.test(it.title) || /(Triple|Quad|Penta)/.test(it.line)],
   ['double', 'Double kill', it => /^Double/.test(it.title)],
   ['outnum', 'Outnumbered (fewer standing on your side)', it => /outnumbered \d+v\d+/.test(it.line)],
-  ['rip', 'Rip knockouts', it => /Rip/.test(it.title + it.line)],
+  ['clutch', 'Clutch (outnumbered, and it won the game)', it => / · clutch/.test(it.line)],
   ['setup', 'Set-up knockout (held, then dash in)', it => it.title === 'Set-up knockout'],
   ['dash', 'Dash knockout', it => it.title === 'Dash knockout' || /dash into position/.test(it.line)],
-  ['ability', 'Ability knockout (Rush, Volley, Quake)', it => it.title === 'Ability knockout' || /Bull Rush|Volley|Quake/.test(it.line)],
+  ['ability', 'Ability knockout (Rush, Volley, Quake, Rip)', it => it.title === 'Ability knockout' || /Bull Rush|Volley|Quake|Rip/.test(it.line)],
   ['held', 'Held knockout (frozen, rooted, pinned)', it => it.title === 'Held knockout' || /(frozen|rooted|pinned|stunned|hooked) target/.test(it.line)],
+  ['combo', 'Combo shot (knocked into another archer and in)', it => it.title === 'Combo shot' || /combo shot/.test(it.line)],
+  ['bank', 'Bank shot (off a wall and in)', it => it.title === 'Bank shot' || /off the wall/.test(it.line)],
+  ['launch', 'Launched (thrown a long way into a hole)', it => it.title === 'Launched' || /launched \d+ m/.test(it.line)],
+  ['firepin', 'Pinned in the flames', it => /^(Pinned in the flames|Stuck in the fire)$/.test(it.title)],
   ['bully', 'Bullied, cornered or merciless (into the walls)', it => /^(Bullied|Cornered|Merciless)/.test(it.title)],
   ['harpoon', 'Harpooned', it => it.title === 'Harpooned'],
   ['roast', 'Roasted', it => it.title === 'Roasted'],
   ['snipe', 'Long shot', it => it.title === 'Long shot' || /sniped/.test(it.line)],
-  ['clutch', 'Clutch', it => /^Clutch/.test(it.title)],
   ['burst', 'Burst', it => it.title === 'Burst'],
-  ['untouch', 'Untouchable', it => it.title === 'Untouchable'],
+  ['winko', 'Game-winning knockout', it => it.title === 'Game-winning knockout'],
 ];
 const HAZ_WORD = { pit: 'a hole', water: 'the water', lava: 'the lava', burn: 'the lava', spikes: 'the thorns', saw: 'a saw', wall: 'a wall', crush: 'a wall' };
 function farmCapture(P) {
   const e = P.e, T = P.at, kevs = RP.evs.filter(x => x.e.e === 'kill' && !x.e.npc).map(x => ({ t: x.t, k: x.e.k, v: x.e.v, how: x.e.how, kn: x.e.kn, vn: x.e.vn, c: x.e.c, x: x.e.x, y: x.e.y }));
   const kills = kevs.filter(x => x.k === e.k && x.t <= T + 0.3);
-  let ks, focus = null, segs = [], title, line, score, extra = 0;
-  if (e.e === 'evasive' || e.e === 'burst') {
+  // two scores: skill (a play: what it took) and spectacle (a moment: how it looked); a knockout can be both
+  let ks, focus = null, segs = [], title, line, score = 0, mo = 0, onum = 0, kTm = null, clutch = false;
+  if (e.e === 'burst') {
     // about one archer rather than one knockout: the stretch it happened over, with any knockouts they made in it
     focus = e.id;
     const a0 = Math.max(RP.buf.length ? RP.buf[0].t + 2.6 : 0, e.e === 'burst' ? e.t0 - 1.5 : Math.max(e.a0 != null ? e.a0 : T - 8, T - 13)), b0 = Math.min(PC.gt - 0.1, T + 1.2);
     ks = kevs.filter(x => x.k === focus && x.t >= a0 && x.t <= b0);
     const subs = ks.map(k => replaySeg(k, false).subs[0]);
     segs = [{ t0: a0, t1: Math.max(b0, ks.length ? ks[ks.length - 1].t + 0.9 : b0), subs: subs.length ? subs : [{ kt: b0 - 0.3, v: null }] }];
-    if (e.e === 'burst') { title = 'Burst'; line = `${e.kn} dealt ${e.n} damage in 3 seconds${ks.length ? ` (${ks.length} knockout${ks.length > 1 ? 's' : ''})` : ''}`; score = 3 + (e.n - 130) / 40 + ks.length; }
-    else { title = 'Untouchable'; line = `${e.kn} dodged ${e.n} shots and knocked out ${e.kills}`; score = 1.5 + (e.n - 6) * 0.25 + e.kills * 1.1 + e.dmg / 200; }
+    title = 'Burst'; line = `${e.kn} dealt ${e.n} damage in 3 seconds${ks.length ? ` (${ks.length} knockout${ks.length > 1 ? 's' : ''})` : ''}`; mo = 3 + (e.n - 130) / 40 + ks.length;
   } else if (e.e === 'bully2') {
     // bullying: the more slams, the quicker they came, the more into a corner and the more archers joining in, the better;
     // best of all if it ends in the knockout
@@ -13118,9 +13344,20 @@ function farmCapture(P) {
     ks = ko ? [ko] : [];
     if (ko) { const sg = replaySeg(ko, true); sg.t0 = Math.min(sg.t0, t0 - 1.2); segs = [sg]; }
     else segs = [{ t0: t0 - 1.2, t1: t1 + 1, subs: [{ kt: t1, v: e.v }] }];
-    score = 1 + (n - 3) * 1.3 + Math.min(3, (n - 1) / span) * 1.2 + corners * 0.7 + (bys.length - 1) * 1.2 + (ko ? 2.5 : 0);
+    mo = 1 + (n - 3) * 1.3 + Math.min(3, (n - 1) / span) * 1.2 + corners * 0.7 + (bys.length - 1) * 1.2 + (ko ? 2.5 : 0);
     title = ko ? (n >= 6 ? 'Merciless' : corners >= 2 ? 'Bullied into a corner' : 'Bullied out') : corners >= 2 ? 'Bullied into a corner' : n >= 6 ? 'Merciless' : 'Bullied';
     line = `${bys.map(nm).join(' and ')} slammed ${e.vn} into the walls ${n} times in ${span.toFixed(1)} s${corners ? ` (${corners} into a corner)` : ''}${ko ? ' and knocked them out' : ''}`;
+  } else if (e.e === 'firepin') {
+    // pinned or rooted on burning ground: the longer they were held in the flames the better, best if it finished them
+    const nm = id => { const p = pcPlayer(id); return p ? p.name : ''; };
+    const ko = kevs.find(x => x.v === e.v && x.t >= e.t0 && x.t <= e.t1 + 2.5);
+    e.kn = nm(e.k); e.vn = nm(e.v);
+    ks = ko ? [ko] : [];
+    if (ko) { const sg = replaySeg(ko, true); sg.t0 = Math.min(sg.t0, e.t0 - 1.2); segs = [sg]; }
+    else segs = [{ t0: e.t0 - 1.2, t1: e.t1 + 1, subs: [{ kt: e.t1, v: e.v }] }];
+    title = e.pn ? 'Pinned in the flames' : 'Stuck in the fire';
+    line = `${e.kn ? e.kn + ' held ' : ''}${e.vn} ${e.kn ? '' : 'held '}in the fire for ${e.s.toFixed(1)} s${ko ? ' and knocked them out' : ''}`;
+    mo = 3 + Math.min(3, e.s * 1.2) + (ko ? 2 : 0);
   } else {
     if (e.e === 'moment' && e.m === 'multi') ks = kills.filter(k => k.t >= T - 6);
     else if (e.e === 'moment' && e.m === 'bully') {
@@ -13128,7 +13365,6 @@ function farmCapture(P) {
       if (kevs.some(k => k.k === e.k && k.v === e.v && k.t >= T - 1 && k.t <= T + 2.8)) return;
       ks = [{ t: T, k: e.k, v: e.v, how: 'wall' }];
     }
-    else if (e.e === 'clutch') ks = kills.filter(k => k.t >= T - 8).slice(-3);
     else ks = kevs.filter(k => k.k === e.k && k.v === e.v && k.t >= T - 1.5 && k.t <= T + 0.3).slice(-1);
     if (!ks.length) return;
     for (const k of ks) { const sg = replaySeg(k, k === ks[ks.length - 1]), prev = segs[segs.length - 1]; if (prev && sg.t0 <= prev.t1 + RP_JOIN) { prev.t1 = Math.max(prev.t1, sg.t1); prev.subs.push(...sg.subs); } else segs.push(sg); }
@@ -13136,46 +13372,65 @@ function farmCapture(P) {
     if (e.e === 'style') segs[0].t0 = Math.min(segs[0].t0, T - (e.st.hits >= 3 ? 3.4 : e.st.dashed ? 2.2 : 1.8)); // (the set-up too)
     if (e.e === 'harpoon') { const h = RP.evs.find(x => x.e.e === 'hooked' && x.e.id === e.v && x.e.by === e.k && x.t >= ks[0].t - 4); if (h) segs[0].t0 = Math.min(segs[0].t0, h.t - 1); }
     const T2 = e.e === 'moment' ? momentText(e, false) : null;
-    const S = e.e === 'style' ? e.st : null, styleTitle = S ? (S.tags.some(x => /Rip, /.test(x)) ? 'Rip' : S.cc && S.dashed ? 'Set-up knockout' : S.tags.some(x => /Volley|Rush|Quake|Rip/.test(x)) ? 'Ability knockout' : S.dashed ? 'Dash knockout' : 'Held knockout') : null;
-    title = e.e === 'harpoon' ? 'Harpooned' : S ? styleTitle : T2 ? (e.m === 'bully' ? (e.n >= 5 ? 'Merciless' : 'Bullied') : T2.title) : e.e === 'clutch' ? `Clutch 1v${e.vs}` : 'Game-winning knockout';
-    line = e.e === 'harpoon' ? `${e.kn} reeled ${e.vn} into ${HAZ_WORD[e.c] || 'trouble'}` : S ? `${e.kn} knocked out ${e.vn}: ${S.tags.join(', ')}` : T2 ? T2.line.replace(/<[^>]+>/g, '') : e.e === 'clutch' ? `${e.n} won a 1v${e.vs}` : `${e.kn} knocked out ${e.vn} to win the game`;
-    score = (e.e === 'moment' ? (e.m === 'bully' ? 2 + e.n * 0.5 : momentScore(e)) : e.e === 'clutch' ? 3 + e.vs * 1.5 : e.e === 'harpoon' ? 4.5 : S ? 2 + S.score : 1.5) + extra;
+    const S = e.e === 'style' ? e.st : null, styleTitle = S ? (S.combo ? 'Combo shot' : S.bank ? 'Bank shot' : S.launch ? 'Launched' : S.cc && S.dashed ? 'Set-up knockout' : S.tags.some(x => /Volley|Rush|Quake|Rip/.test(x)) ? 'Ability knockout' : S.dashed ? 'Dash knockout' : 'Held knockout') : null;
+    title = e.e === 'harpoon' ? 'Harpooned' : S ? styleTitle : T2 ? (e.m === 'bully' ? (e.n >= 5 ? 'Merciless' : 'Bullied') : T2.title) : 'Game-winning knockout';
+    line = e.e === 'harpoon' ? `${e.kn} reeled ${e.vn} into ${HAZ_WORD[e.c] || 'trouble'}` : S ? `${e.kn} knocked out ${e.vn}: ${S.tags.join(', ')}` : T2 ? T2.line.replace(/<[^>]+>/g, '') : `${e.kn} knocked out ${e.vn} to win the game`;
+    // skill: multi-kills, long shots, the play behind a knockout; spectacle: roasts, bullying, held knockouts, game winners;
+    // a harpoon pull is both
+    if (e.e === 'moment') { if (e.m === 'multi' || e.m === 'snipe') score = momentScore(e); else mo = e.m === 'bully' ? 2 + e.n * 0.5 : momentScore(e); }
+    else if (e.e === 'harpoon') { score = 4.5; mo = 4.5; }
+    else if (S) { score = S.score > 0 ? 2 + S.score : 0; mo = S.mo > 0 ? 2 + S.mo : 0; }
+    else mo = 2.5;
   }
   // knockouts close together score more the closer they are: several from one hit, one ability or one blast is the best
   // there is (each extra knockout within a tenth of a second is worth 4, within a second about 2.5, within 4 seconds a little)
   if (ks.length >= 2 && ks.every(k => k.kn != null || k.how !== 'wall')) {
     const ts = ks.map(k => k.t).sort((x, y) => x - y); let tight = 0, same = 1, run = 1;
     for (let i2 = 1; i2 < ts.length; i2++) { const gap = ts[i2] - ts[i2 - 1]; tight += gap < 0.12 ? 4 : gap < 1 ? 2.5 - gap : Math.max(0, 1.2 - gap * 0.3); run = gap < 0.12 ? run + 1 : 1; same = Math.max(same, run); }
-    score += tight;
+    score += tight; mo += tight * 1.5; // (both: it takes a good shot, and it's quite a sight, often with some luck in it)
     if (same >= 2) { title = `${MULTI_WORD[Math.min(5, same)] || same + ' knockouts'} at once`; line += ` · ${same} in one`; }
   }
   // outnumbered: knockouts made while your side had fewer archers standing than theirs (1v2, 1v3, 2v3) are worth more,
-  // the more the odds were against you and the more you took out (a clutch is scored on that already)
-  if (ks.length && e.e !== 'clutch') {
+  // the more the odds were against you and the more you took out. If it won the game, that's a clutch: a little more
+  if (ks.length) {
     const K0 = e.k != null ? e.k : e.id, t0 = ks[0].t - 0.6; let fr = null;
     for (let i2 = RP.buf.length - 1; i2 >= 0; i2--) if (RP.buf[i2].t <= t0) { fr = RP.buf[i2].v; break; }
     const me0 = fr && fr.p.find(q => q.id === K0);
     if (me0) {
+      kTm = me0.tm;
       const up = fr.p.filter(q => !q.d && !q.f && !q.npc), mates = up.filter(q => q.tm === me0.tm).length, foes = up.filter(q => q.tm !== me0.tm).length;
       if (mates >= 1 && foes > mates) {
-        const mine = ks.filter(k => k.k === K0).length;
+        const mine = ks.filter(k => k.k === K0).length; onum = (foes - mates) / mates;
         score += Math.min(3, (foes - mates) / mates) * (1.5 + 1.2 * Math.max(0, mine - 1));
-        line += ` · outnumbered ${mates}v${foes}`;
+        const kl = ks[ks.length - 1].t; clutch = RP.evs.some(x => x.e.e === 'gameEnd' && x.e.rw === kTm && x.t >= kl - 0.05 && x.t <= kl + 1.5);
+        if (clutch) score += 1.5;
+        line += ` · outnumbered ${mates}v${foes}${clutch ? ' · clutch' : ''}`;
       }
     }
   }
+  // dodging while you did it: real dodges (shots that were coming for you) from a few seconds before the first knockout
+  // to the last, worth more when outnumbered: a 1v3 is more impressive if you weren't hit doing it
+  if (ks.length) {
+    const K0 = e.k != null ? e.k : e.id, d0 = Math.max(segs[0].t0, ks[0].t - 6), d1 = ks[ks.length - 1].t + 0.5;
+    const n = ((PC.pl && PC.pl.get(K0)) || { dodge: [] }).dodge.filter(t => t >= d0 && t <= d1).length;
+    if (n) { score += Math.min(4, n * 0.7) * (1 + Math.min(1, onum * 0.5)); line += ` · dodged ${n} shot${n === 1 ? '' : 's'}`; }
+  }
   // any play behind the knockouts counts toward every kind of clip (a game-winning knockout from a dash, a double kill off a Rip)
   let tags = [];
-  if (e.e !== 'style' && e.e !== 'harpoon') { const sc = []; for (const k of ks) { if (k.how === 'wall' && !k.kn) continue; const st = killStyle({ k: k.k, v: k.v, how: k.how, c: k.c, x: k.x || 0, y: k.y || 0 }, k.t); if (st.score > 0) { sc.push(st.score); tags.push(...st.tags); } } if (sc.length) { const mx = Math.max(...sc); score += mx * 0.7 + (sc.reduce((a2, b2) => a2 + b2, 0) - mx) * 0.3; } }
+  if (e.e !== 'style' && e.e !== 'harpoon') { const sc = [], sm = [], add = (L, v) => { if (!L.length) return; const mx = Math.max(...L); v(mx * 0.7 + (L.reduce((a2, b2) => a2 + b2, 0) - mx) * 0.3); };
+    for (const k of ks) { if (k.how === 'wall' && !k.kn) continue; const st = killStyle({ k: k.k, v: k.v, how: k.how, c: k.c, x: k.x || 0, y: k.y || 0 }, k.t); if (st.score > 0 || st.mo > 0) { sc.push(st.score); sm.push(e.e === 'firepin' && st.cc ? st.mo - 1.5 : st.mo); tags.push(...st.tags); } }
+    add(sc, v => { score += v; }); add(sm, v => { mo += Math.max(0, v); }); }
   if (tags.length) line += ` · ${[...new Set(tags)].join(', ')}`;
   // a little room either side (for moving the start and end in the clip studio)
   const a = segs[0].t0, b = segs[segs.length - 1].t1, frames = RP.buf.filter(f => f.t >= a - 2.6 && f.t <= b + 2.6);
   if (frames.length < 8) return;
   const evs = RP.evs.filter(x => x.t >= a - 2.6 && x.t <= b + 2.6);
-  const who = e.e === 'clutch' ? e.n : e.kn, K = e.k != null ? e.k : e.id;
+  const who = e.kn, K = e.k != null ? e.k : e.id;
   const c = { map: MAPKEY, me: K, k: K, n: Math.max(1, ks.length), segs, frames, evs };
-  const item = { id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title, line, who, score: Math.round(score * 10) / 10, map: MAPKEY, at: Date.now(), match: FARM.match, kt: ks.map(k => +k.t.toFixed(2)), k: K, focus, win: [+a.toFixed(2), +b.toFixed(2)], data: clipPack(c), fresh: 1 };
+  const item = { id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title, line, who, score: Math.round(score * 10) / 10, ms: Math.round(mo * 10) / 10, map: MAPKEY, at: Date.now(), match: FARM.match, kt: ks.map(k => +k.t.toFixed(2)), k: K, focus, win: [+a.toFixed(2), +b.toFixed(2)], data: clipPack(c), fresh: 1 };
   if (PC === PLAY) { playAdd(item, c); return; } // (a real match: one of the player's own plays, for the results screen)
+  // the farm keeps plays, moments or both (both: the two scores added), as it's set to
+  { const b = (FARM.cfg || {}).basis || 'both'; item.sk = item.score; item.score = b === 'play' ? item.sk : b === 'moment' ? item.ms : Math.round((item.sk + item.ms) * 10) / 10; }
   if (item.score < Math.max(FARM_KEEP[(FARM.cfg || {}).keep] || 0, FARM.hunt && !((FARM.cfg || {}).look || []).length ? 6 : 0)) return; // (not good enough to keep; hunting keeps only the very best)
   const look = (FARM.cfg || {}).look || []; if (look.length) { const all = Object.assign({}, item, { title: item.title + (item.also ? ' ' + item.also.join(' ') : '') }); if (!FARM_LOOK.some(([k, , f]) => look.includes(k) && (f(item) || f(all)))) return; } // (only the plays asked for)
   FARM.found = (FARM.found || 0) + 1;
@@ -13196,7 +13451,7 @@ function farmReelRender() {
   const L = FARM.reel.slice().sort($('frSort').value === 'new' ? (x, y) => y.at - x.at : (x, y) => y.score - x.score || y.at - x.at);
   $('frInfo').textContent = `${L.length} saved${FARM.reel.length >= 80 ? ' (the best 80 are kept)' : ''}`;
   const ago = t => { const s2 = Math.round((Date.now() - t) / 1000); return s2 < 60 ? s2 + 's ago' : s2 < 3600 ? Math.round(s2 / 60) + ' min ago' : new Date(t).toLocaleString(); };
-  $('frList').innerHTML = L.length ? L.map(x => `<div class="fritem${x.fresh ? ' new' : ''}"><b>${esc(x.title)}${x.also && x.also.length ? ` <span class="also">+ ${esc(x.also.join(', '))}</span>` : ''}</b><span class="sc">${x.score}</span><small>${esc(x.line)} · ${esc((MAPS[x.map] || {}).name || '')} · ${ago(x.at)}</small>` +
+  $('frList').innerHTML = L.length ? L.map(x => `<div class="fritem${x.fresh ? ' new' : ''}"><b>${esc(x.title)}${x.also && x.also.length ? ` <span class="also">+ ${esc(x.also.join(', '))}</span>` : ''}</b><span class="sc">${x.score}</span><small>${esc(x.line)} · ${esc((MAPS[x.map] || {}).name || '')} · ${ago(x.at)}${x.sk != null ? ` · play ${x.sk}, moment ${x.ms}` : ''}</small>` +
     `<div class="btnrow"><button type="button" class="cta sm" data-frkc="${x.id}">▶ Kill cam</button><button type="button" class="ghost sm" data-frrt="${x.id}">▶ Real time</button><button type="button" class="ghost sm" data-frsv="${x.id}" title="Plays it as a kill cam and saves that as a video">Save video</button><button type="button" class="ghost sm" data-frdl="${x.id}" aria-label="Delete">×</button></div></div>`).join('')
     : '<span class="status" style="padding:8px">Nothing yet. Multi-kills, roasts on lava, bullying into walls, long shots, clutches and game-winning knockouts are saved here as they happen.</span>';
 }

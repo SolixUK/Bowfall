@@ -252,7 +252,7 @@
   @keyframes hxdrop { 0% { transform: scaleY(0); transform-origin: top; } 50% { transform: scaleY(1); transform-origin: top; } 51% { transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } }
   .wkp { display: grid; grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr); gap: 18px; align-items: start; }
   .wkpv { position: relative; aspect-ratio: 16 / 9; background: #000; border: 1px solid rgba(255,201,74,.45); overflow: hidden; } .wkpv iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; }
-  .wkps { display: flex; flex-direction: column; gap: 8px; } .wkpt { display: flex; gap: 4px; } .wkpt button { font: 600 13px var(--display); text-transform: uppercase; letter-spacing: .04em; background: none; color: inherit; border: 1px solid rgba(255,255,255,.2); padding: 5px 12px; cursor: pointer; } .wkpt button.on { background: var(--gold); color: #221a08; border-color: var(--gold); }
+  .wkps { display: flex; flex-direction: column; gap: 8px; } .wkpt { display: flex; flex-wrap: wrap; gap: 4px; } .wkpt button { font: 600 13px var(--display); text-transform: uppercase; letter-spacing: .04em; background: none; color: inherit; border: 1px solid rgba(255,255,255,.2); padding: 5px 12px; cursor: pointer; } .wkpt button.on { background: var(--gold); color: #221a08; border-color: var(--gold); }
   .wkpi { display: grid; grid-template-columns: 30px 44px 1fr; gap: 8px; align-items: center; padding: 8px 10px; border: 1px solid rgba(255,255,255,.1); color: inherit; } .wkpi:hover { text-decoration: none; border-color: rgba(255,201,74,.6); } .wkpi.on { border-color: var(--gold); background: rgba(255,201,74,.08); }
   .wkpi .rk { opacity: .6; font: 600 14px var(--display); } .wkpi .sc { font: 700 22px var(--display); color: var(--gold); } .wkpi b { display: block; font: 600 17px var(--display); } .wkpi small { opacity: .7; font-size: 13px; }
   @media (max-width: 760px) { .wkp { grid-template-columns: 1fr; } }
@@ -533,7 +533,7 @@ const pages = {
 
       <section class="sx rv" id="sxPlays" hidden>
         <div class="sx-h"><div><span class="k">From real matches</span><h2 id="wkpH">Plays of the week</h2></div><p>The biggest plays from everyone's online matches, scored as they happen: knockouts at once, set-ups, Rips, roasts and more. Make one and it could be you up here, and on the game's main menu.</p></div>
-        <div class="wkp"><div class="wkpv"><iframe id="wkpF" title="Plays of the week" loading="lazy" tabindex="-1"></iframe></div><div class="wkps"><div class="wkpt"><button type="button" data-wkt="week" class="on">This week</button><button type="button" data-wkt="all">All time</button></div><div class="wkpl" id="wkpL"></div><a class="btn" href="/play">Make your play</a></div></div>
+        <div class="wkp"><div class="wkpv"><iframe id="wkpF" title="Plays of the week" loading="lazy" tabindex="-1"></iframe></div><div class="wkps"><div class="wkpt"><button type="button" data-wkt="week" class="on">Plays this week</button><button type="button" data-wkt="all">All time</button><button type="button" data-wkt="mweek">Moments this week</button><button type="button" data-wkt="mall">All time</button></div><div class="wkpl" id="wkpL"></div><a class="btn" href="/play">Make your play</a></div></div>
       </section>
 
       <section class="sx rv">
@@ -591,12 +591,12 @@ const pages = {
     (async () => {
       let D = null, tab = 'week';
       try { const r = await fetch('/api/weekplays', { cache: 'no-store' }); if (r.ok) D = await r.json(); } catch (e) {}
-      if (!D || !(D.all || []).length) return;
-      if (!(D.plays || []).length) tab = 'all';
+      if (!D || !((D.all || []).length || (D.mall || []).length)) return;
+      if (!(D.plays || []).length) tab = (D.all || []).length ? 'all' : (D.moments || []).length ? 'mweek' : 'mall';
       const sec = $('sxPlays'); if (!sec) return; sec.hidden = false;
       const show = () => {
-        const L = (tab === 'all' ? D.all : D.plays) || [];
-        sec.querySelectorAll('[data-wkt]').forEach(b => b.classList.toggle('on', b.dataset.wkt === tab)); $('wkpH').textContent = tab === 'all' ? 'The best plays ever' : 'Plays of the week';
+        const L = ({ all: D.all, week: D.plays, mweek: D.moments, mall: D.mall })[tab] || [];
+        sec.querySelectorAll('[data-wkt]').forEach(b => b.classList.toggle('on', b.dataset.wkt === tab)); $('wkpH').textContent = ({ all: 'The best plays ever', week: 'Plays of the week', mweek: 'Moments of the week', mall: 'The best moments ever' })[tab];
         $('wkpL').innerHTML = L.length ? L.map((x, i) => `<a class="wkpi${i ? '' : ' on'}" data-wki="${i}" href="/play?clip=${encodeURIComponent(x.id)}"><span class="rk">#${i + 1}</span><span class="sc">${x.score}</span><span class="tx"><b>${esc(x.label)}</b><small>${esc(x.who || '')}${x.ai ? ' (AI)' : ''} · ${esc((Sim.MAPS[x.map] || {}).name || '')}</small></span></a>`).join('') : '<p class="muted">Nothing yet this week. It could be you.</p>';
         $('wkpF').src = L.length ? `/play?clips=${L.map(x => x.id).join(',')}&embed=1&preview=1` : 'about:blank';
       };

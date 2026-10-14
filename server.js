@@ -35,6 +35,7 @@ const isOwner = u => !!(u && !u.guest && u.name && u.name.toLowerCase() === OWNE
 let nextCid = 1;
 
 const store = createStore();
+const FUNNEL = require('./lib/funnel')(store); // (where new players stop: /api/funnel?html=1 for the admin)
 
 // every finished game is appended here (one JSON object per line) for balance stats
 const DATA_FILE = process.env.BOWFALL_DATA || path.join(__dirname, 'data', 'games.jsonl');
@@ -71,6 +72,8 @@ async function loadGuest(tok, name) {
   if (name) g.name = String(name).slice(0, 16);
   return g;
 }
+// a new account: the funnel's "made an account" step for the visitor it came from (and kept, for "bought something")
+function funnelSignup(u, tok) { const k = guestKey(tok); if (!k || !u) return; FUNNEL.record(k, 'signup').catch(() => {}); u.social = u.social || {}; u.social.vk = k; markDirty(u); }
 // signing up or in: a guest's record becomes the account's, if the account hasn't played yet
 async function adoptGuest(u, tok) {
   const key = guestKey(tok); if (!key || !u) return null;
@@ -191,6 +194,8 @@ function trainTop(k, v, inList) {
   const better = d.filter(x => x > v).length;
   return Math.max(0.1, Math.round((better + 1) / Math.max(1, n) * 1000) / 10);
 }
+const funnelHits = new Map(); // (at most 60 funnel reports a minute from one address)
+function funnelLimit(k) { const now = Date.now(), h = (funnelHits.get(k) || []).filter(t => now - t < 60000); if (h.length >= 60) return false; h.push(now); funnelHits.set(k, h); if (funnelHits.size > 5000) funnelHits.clear(); return true; }
 const trainHits = new Map();
 function trainLimit(key) { const now = Date.now(), h = (trainHits.get(key) || []).filter(t => now - t < 60000); h.push(now); trainHits.set(key, h); return h.length <= 20; }
 // the look of a signed-in player's name banner: the border they picked (if they've earned it) and how many achievements they have
@@ -230,7 +235,8 @@ async function stripeEvent(ev) {
     if (o.payment_status && o.payment_status !== 'paid' && o.mode !== 'subscription') return; // not paid yet (e.g. bank transfer): wait for the next event
     if (o.customer) bill.cust = o.customer;
     const kind = (o.metadata || {}).kind, item = (o.metadata || {}).item, toId = +((o.metadata || {}).to || 0);
-    if (o.mode !== 'subscription') c.spent = (c.spent || 0) + (o.amount_total || 0); // (what they've spent in all: the supporter emblem's tier)
+    if (o.mode !== 'subscription') c.spent = (c.spent || 0) + (o.amount_total || 0);
+    if (soc.vk) FUNNEL.record(soc.vk, 'buy').catch(() => {}); // (what they've spent in all: the supporter emblem's tier)
     if (toId) { // a gift: it goes to the friend; the buyer gets the thanks (and the spending toward their emblem)
       const to = track(await store.userById(toId).catch(() => null));
       if (to) {
@@ -289,6 +295,8 @@ function arenaInfo(key) { const M = Sim.MAPS[key]; if (!M || !M.custom) return u
 let RANKED_ARENAS = [];
 async function loadRankedArenas() { const list = await store.arenasWhere('ranked').catch(() => []); RANKED_ARENAS = list.filter(useArenaRow).map(a => arenaKey(a.id)); }
 const rankedMaps = () => Sim.MAP_KEYS.concat(RANKED_ARENAS.filter(k => Sim.MAPS[k]));
+// accounts and guests both earn Crests from games (a guest's wait on their guest record for when they make an account)
+const isEarner = (room, u) => !!u && !(u.career && u.career.ai) && [...room.clients].some(c => c.user === u || c.guest === u);
 const isAccount = (room, u) => !!u && !u.guest && !(u.career && u.career.ai) && [...room.clients].some(c => c.user === u);
 
 function careerAdd(u, rec, team) {
@@ -341,7 +349,7 @@ function saveRecords(room) {
         const team = r.p.filter(q => q.tm === p.tm);
         careerAdd(u, { type: 'game', pl: p, teamDmg: team.reduce((s2, q) => s2 + q.dmg, 0), teamSize: team.length });
         if (room.ranked && p.w === 1 && r.size && r.size[0] === 1 && r.size[1] === 1 && r.dur >= 3) bestUp(u, 'fast', Math.round(r.dur * 10) / 10, true); // the quickest 1v1 game won
-        if (counts && isAccount(room, u)) { const n = E.earnGame(u, p.w === 1); (room.crestGain || (room.crestGain = new Map())).set(u, ((room.crestGain.get(u)) || 0) + n); }
+        if (counts && isEarner(room, u)) { const n = E.earnGame(u, p.w === 1); (room.crestGain || (room.crestGain = new Map())).set(u, ((room.crestGain.get(u)) || 0) + n); }
         if (counts) achNote(u, Sim.achApply(u.ach || (u.ach = {}), Sim.achFromGame(r, p.id, (u.ach.stats || {}))));
       }
       // ratings only change when the whole match is decided, so remember who played (and as what) for then
@@ -397,7 +405,7 @@ function saveRecords(room) {
         const q = room.world.players.find(q2 => q2.id === pid), t = T.p[pid]; if (!q) continue;
         careerAdd(u, r, q.team);
         const won = r.win === q.team, opp = q.team === 'red' ? 'blue' : 'red', x = rated.get(u.id);
-        if (counts && isAccount(room, u)) { const n = E.earnMatch(u, won); (room.crestGain || (room.crestGain = new Map())).set(u, ((room.crestGain.get(u)) || 0) + n); }
+        if (counts && isEarner(room, u)) { const n = E.earnMatch(u, won); (room.crestGain || (room.crestGain = new Map())).set(u, ((room.crestGain.get(u)) || 0) + n); }
         if (counts) achNote(u, Sim.achApply(u.ach || (u.ach = {}), Sim.achFromMatch(won, { lostGames: T.gw[opp], ring: t ? t.ring : 0, giant: !!(x && x.opp - x.mine >= 150) }, (u.ach.stats || {}))));
         if (room.ranked && t && !(x && x.afk)) {
           const c = u.career; c.ws = won ? (c.ws || 0) + 1 : 0; bestUp(u, 'ws', c.ws); // ranked matches won in a row
@@ -413,7 +421,7 @@ function saveRecords(room) {
       }
     }
   }
-  if (room.crestGain && recs.some(r => r.type === 'match')) { for (const [u, n] of room.crestGain) { markDirty(u); walletNote(u, n, 'match'); } room.crestGain = null; }
+  if (room.crestGain && recs.some(r => r.type === 'match')) { for (const [u, n] of room.crestGain) { markDirty(u); if (u.guest) { for (const c of room.clients) if (c.guest === u) send(c, { t: 'gcrests', gained: n, total: Math.round(u.career.crests || 0) }); } else walletNote(u, n, 'match'); } room.crestGain = null; }
   for (const ws of room.clients) if ((ws.user || ws.guest) && ws.pid) { const u = ws.user || ws.guest; Object.assign(ws, lookOf(u)); Sim.setMeta(room.world, ws.pid, Object.assign({ lv: levelOf(u.career).lv }, lookOf(u))); }
   if (room.ai) for (const [pid, u] of room.ai) Sim.setMeta(room.world, pid, Object.assign({ lv: levelOf(u.career).lv }, lookOf(u)));
   if (recs.some(r => r.type === 'game')) sendRoom(room); // fresh stats for the hover cards
@@ -505,7 +513,23 @@ const ip = req => String(req.headers['x-forwarded-for'] || req.socket.remoteAddr
 const forgotLimit = A.limiter(5, 15 * 60 * 1000), authLimit = A.limiter(12, 60 * 1000), postLimit = A.limiter(6, 60 * 1000), threadLimit = A.limiter(3, 5 * 60 * 1000);
 const CLIP_MAX = { free: 3, sup: 12 };
 // the plays of the week: kept in the clips store under the pool's own id; offered after ranked matches (score WEEK_MIN and up)
+const SHARE_POOL = -1, SHARE_MAX = 5000; // (shared plays: kept under no one's account)
 const WEEK_POOL = 0, WEEK_MIN = 4.5, RECENT_RANKED = new Map(), WEEK_AI_MATCH = new Set(); // (RECENT_RANKED: who's just finished an online match, ranked or not)
+// your circle's ids: you, your friends, and anyone friends with at least CIRCLE_MIN of your friends (unless they hide)
+async function circleIds(me) {
+  const S = me.social || {}, F = (S.friends || []).slice(0, 300), blocked = new Set(S.blocked || []);
+  const friends = (await store.usersByIds(F).catch(() => [])).map(u => live.get(u.id) || u), count = new Map();
+  for (const f of friends) for (const g of ((f.social && f.social.friends) || []).slice(0, 300)) if (g !== me.id && !F.includes(g) && !blocked.has(g)) count.set(g, (count.get(g) || 0) + 1);
+  const near = [...count.entries()].filter(([, n]) => n >= CIRCLE_MIN).sort((a, b) => b[1] - a[1]).slice(0, 200);
+  const others = near.length ? (await store.usersByIds(near.map(x => x[0])).catch(() => [])).map(u => live.get(u.id) || u) : [];
+  const ok = u => u && !u.guest && !(u.career && u.career.ai) && !(u.career && u.career.deleted);
+  return [me.id].concat(friends.filter(ok).map(u => u.id), others.filter(u => ok(u) && !(u.social && u.social.hideCircle)).map(u => u.id));
+}
+const SELF_POOL = -2; // (each player's own best play and best moment: of all time, and of this week, for their circle to see)
+// plays (skill) and moments (spectacle): older entries didn't say which, so their name decides
+const kindOf = m => (m.kind === 'moment' || m.kind === 'play' ? m.kind : /^(Bullied|Merciless|Roasted|Burst|Held knockout|Game-winning|Cornered|Pinned in|Stuck in|Launched|Combo)/.test(m.label || '') ? 'moment' : 'play');
+const monthKey = t => new Date(t || 0).toISOString().slice(0, 7), yearKey = t => new Date(t || 0).toISOString().slice(0, 4);
+const metaOf = c => ({ id: c.id, meta: typeof c.meta === 'string' ? JSON.parse(c.meta) : c.meta });
 const weekKey = (t = Date.now()) => { const d = new Date(t), day = (d.getUTCDay() + 6) % 7; d.setUTCDate(d.getUTCDate() - day); return d.toISOString().slice(0, 10); }; // (the Monday the week began, UTC)
 const clipLimit = A.limiter(12, 60 * 1000), clanLimit = A.limiter(40, 60 * 1000), clanNewLimit = A.limiter(6, 10 * 60 * 1000);
 const cleanText = (s, max) => String(s || '').replace(/\r\n/g, '\n').replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '').trim().slice(0, max);
@@ -515,7 +539,7 @@ async function api(req, res, url) {
   const method = req.method;
   let m;
   const me = await userFromReq(req);
-  const body = method === 'POST' ? await readBody(req, route === '/clip' || route === '/weekplay' ? 700 * 1024 : undefined).catch(() => null) : null;
+  const body = method === 'POST' ? await readBody(req, route === '/clip' || route === '/weekplay' || route === '/share' ? 700 * 1024 : undefined).catch(() => null) : null;
   if (method === 'POST' && !body) return json(res, 400, { error: 'Bad request.' });
 
   // balance data for the in-game screen
@@ -549,6 +573,7 @@ async function api(req, res, url) {
     if (!isTest) await noteReferral(u, req, body);
     await store.saveUser(u);
     if (isTest) { const r = await login(req, res, u, [clearCookie('bf_ref', req)], null); return r; }
+    funnelSignup(u, body.guest);
     return login(req, res, u, [clearCookie('bf_ref', req)], await adoptGuest(u, body.guest));
   }
   // forgotten password: email a one-use link that lasts an hour (the reply is the same whether or not the account exists)
@@ -683,6 +708,7 @@ async function api(req, res, url) {
     await store.addLogin(pend.p, pend.id, u.id);
     if (pend.email && !(await userWithEmail(pend.email))) u.social = Object.assign(u.social || {}, { email: pend.email });
     await noteReferral(u, req, body); await store.saveUser(u);
+    funnelSignup(u, body.guest);
     return login(req, res, u, [clearCookie('bf_pending', req), clearCookie('bf_ref', req)], await adoptGuest(u, body.guest));
   }
   if (route === '/unlink' && method === 'POST') {
@@ -746,6 +772,18 @@ async function api(req, res, url) {
     const base = process.env.PUBLIC_URL ? process.env.PUBLIC_URL.replace(/\/$/, '') : (req.headers['x-forwarded-proto'] || 'http') + '://' + req.headers.host;
     try { const sess = await PAY.checkout(Object.assign(o, { uid: me.id, kind, base, customer: bill.cust })); return json(res, 200, { url: sess.url }); }
     catch (e) { console.error('Checkout:', e.message); return json(res, 502, { error: 'Could not start the payment. Try again in a moment.' }); }
+  }
+  // ---- the new-player funnel: the page reports steps for its anonymous visitor id; the admin reads the totals
+  if (route === '/funnel' && method === 'POST') {
+    const k = guestKey(body.gt); if (!k || !funnelLimit(ip(req))) return json(res, 200, { ok: false });
+    await FUNNEL.record(k, String(body.s || ''), String(body.src || '').toLowerCase().slice(0, 24));
+    return json(res, 200, { ok: true });
+  }
+  if (route === '/funnel' && method === 'GET') {
+    if (!me || !me.admin) return json(res, 403, { error: 'Admin only.' });
+    const R = await FUNNEL.report(Math.max(1, Math.min(180, +url.searchParams.get('days') || 28)), url.searchParams.get('src') || null);
+    if (url.searchParams.get('html')) { res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }); return res.end(FUNNEL.html(R)); }
+    return json(res, 200, R);
   }
   // gifts you've been sent: shown once, then marked as seen
   if (route === '/gifts/seen' && method === 'POST') {
@@ -879,22 +917,51 @@ async function api(req, res, url) {
   // ---- the plays of the week: the best plays from ranked matches, shown on the main menu. A player's game offers its best
   // play when a ranked match ends (if it's scored highly); the server checks they've just played a ranked match on that
   // arena and keeps the best of the week (each player's best few), in the clips store under the pool's own id (0)
+  // a play's card: who made it and their banner as it is now (name, level, flag, clan, frame, background, border, title, medals)
+  const playOut = c => ({ id: c.id, label: c.meta.label === 'Cornered out' || c.meta.label === 'Cornered' ? 'Bullied into a corner' : c.meta.label, who: c.meta.who, score: c.meta.score, map: c.meta.map, at: c.meta.at, kind: kindOf(c.meta), ai: c.meta.ai ? 1 : undefined });
+  const playBanners = async (list, pool) => { const bn = {}; for (const x of list) { const c = pool.find(q => q.id === x.id); if (!c || bn[x.id] !== undefined) continue;
+      let u = null; try { u = c.meta.uid ? (live.get(c.meta.uid) || (await store.usersByIds([c.meta.uid]))[0]) : (social._ai() || []).find(a => a.name === c.meta.who); } catch (e) {}
+      bn[x.id] = u ? Object.assign({ n: u.name, cc: flagOf(u), lv: levelOf(u.career).lv, ti: u.title || null }, u.career && u.career.ai ? { bd: (u.ach && u.ach.border) || null, na: Object.keys((u.ach && u.ach.got) || {}).length || null } : lookOf(u)) : null; }
+    for (const x of list) x.bn = bn[x.id] || null; };
+  const byScore = (a, b) => (+b.meta.score || 0) - (+a.meta.score || 0) || (a.meta.ai ? 1 : 0) - (b.meta.ai ? 1 : 0); // (a real player's play wins a tie with an AI player's)
   if (route === '/weekplays' && method === 'GET') {
     res.setHeader('Cache-Control', 'no-store'); // (a new best play shows at once)
     const wk = weekKey();
     try {
-      const pool = (await store.clipList(WEEK_POOL)).map(c => ({ id: c.id, meta: typeof c.meta === 'string' ? JSON.parse(c.meta) : c.meta })).filter(c => c.meta && typeof c.meta === 'object').sort((a, b) => (+b.meta.score || 0) - (+a.meta.score || 0) || (a.meta.ai ? 1 : 0) - (b.meta.ai ? 1 : 0)), out = c => ({ id: c.id, label: c.meta.label === 'Cornered out' || c.meta.label === 'Cornered' ? 'Bullied into a corner' : c.meta.label, who: c.meta.who, score: c.meta.score, map: c.meta.map, at: c.meta.at, ai: c.meta.ai ? 1 : undefined }); // (a real player's play wins a tie with an AI player's)
-      const plays = pool.filter(c => c.meta.week === wk).slice(0, 3).map(out), all = pool.slice(0, 3).map(out);
-      // each maker's banner as it is now (name, level, flag, clan, frame, background, border, title, medals), for the card
-      const bn = {}; for (const x of plays.concat(all)) { const c = pool.find(q => q.id === x.id); if (!c || bn[x.id] !== undefined) continue;
-        let u = null; try { u = c.meta.uid ? (live.get(c.meta.uid) || (await store.usersByIds([c.meta.uid]))[0]) : (social._ai() || []).find(a => a.name === c.meta.who); } catch (e) {}
-        bn[x.id] = u ? Object.assign({ n: u.name, cc: flagOf(u), lv: levelOf(u.career).lv, ti: u.title || null }, u.career && u.career.ai ? { bd: (u.ach && u.ach.border) || null, na: Object.keys((u.ach && u.ach.got) || {}).length || null } : lookOf(u)) : null; }
-      for (const x of plays.concat(all)) x.bn = bn[x.id] || null;
-      return json(res, 200, { week: wk, plays, all });
+      const pool = (await store.clipList(WEEK_POOL)).map(metaOf).filter(c => c.meta && typeof c.meta === 'object').sort(byScore);
+      const P = pool.filter(c => kindOf(c.meta) === 'play'), M = pool.filter(c => kindOf(c.meta) === 'moment');
+      const plays = P.filter(c => c.meta.week === wk).slice(0, 3).map(playOut), all = P.slice(0, 3).map(playOut), moments = M.filter(c => c.meta.week === wk).slice(0, 3).map(playOut), mall = M.slice(0, 3).map(playOut);
+      await playBanners(plays.concat(all, moments, mall), pool);
+      return json(res, 200, { week: wk, plays, all, moments, mall });
     } catch (e) { // (noted where the owner can read it, /api/perf, and an empty list rather than an error)
       console.error('weekplays:', e); PERF.errors.unshift({ t: Date.now(), name: 'server', where: 'server:weekplays', m: String(e && e.message || e).slice(0, 300), s: String(e && e.stack || '').slice(0, 1200), v: Sim.VERSION, mode: '', ph: '', map: '', ua: '' });
-      return json(res, 200, { week: wk, plays: [], all: [], err: String(e && e.message || e).slice(0, 200) });
+      return json(res, 200, { week: wk, plays: [], all: [], moments: [], mall: [], err: String(e && e.message || e).slice(0, 200) });
     }
+  }
+  // the gallery: the top five plays and the top five moments of this week, this month, this year and of all time
+  if (route === '/gallery' && method === 'GET') {
+    res.setHeader('Cache-Control', 'no-store');
+    try {
+      const now = Date.now(), wk = weekKey(), mk = monthKey(now), yk = yearKey(now);
+      const pool = (await store.clipList(WEEK_POOL)).map(metaOf).filter(c => c.meta && typeof c.meta === 'object').sort(byScore), out = {}, shown = [];
+      for (const kind of ['play', 'moment']) { const L = pool.filter(c => kindOf(c.meta) === kind), o = out[kind] = {};
+        o.week = L.filter(c => c.meta.week === wk).slice(0, 5).map(playOut); o.month = L.filter(c => monthKey(c.meta.at) === mk).slice(0, 5).map(playOut); o.year = L.filter(c => yearKey(c.meta.at) === yk).slice(0, 5).map(playOut); o.all = L.slice(0, 5).map(playOut);
+        shown.push(...o.week, ...o.month, ...o.year, ...o.all); }
+      await playBanners(shown, pool);
+      return json(res, 200, out);
+    } catch (e) { console.error('gallery:', e); return json(res, 200, { play: {}, moment: {}, err: String(e && e.message || e).slice(0, 200) }); }
+  }
+  // your circle's best: the best play and best moment among you, your friends and your circle (this week, and of all time)
+  if (route === '/circleplays' && method === 'GET') {
+    res.setHeader('Cache-Control', 'no-store');
+    if (!me) return json(res, 200, { signedOut: 1 });
+    try {
+      const ids = new Set(await circleIds(me)), wk = weekKey();
+      const pool = (await store.clipList(SELF_POOL)).map(metaOf).filter(c => c.meta && ids.has(c.meta.uid)).sort(byScore), out = {}, shown = [];
+      for (const kind of ['play', 'moment']) { const L = pool.filter(c => c.meta.kind === kind); out[kind] = { week: L.filter(c => c.meta.week === wk).slice(0, 3).map(playOut), all: L.slice(0, 3).map(playOut) }; shown.push(...out[kind].week, ...out[kind].all); }
+      await playBanners(shown, pool);
+      return json(res, 200, Object.assign(out, { n: ids.size }));
+    } catch (e) { console.error('circleplays:', e); return json(res, 200, { play: {}, moment: {}, err: String(e && e.message || e).slice(0, 200) }); }
   }
   if (route === '/weekplay' && method === 'POST') { try {
     if (!me) return json(res, 401, { error: 'Sign in first.' });
@@ -908,21 +975,44 @@ async function api(req, res, url) {
     // it has to be theirs: the knockouts in it are by the player the server had them as in that match
     // it has to be theirs, or an AI player's from that match (each match's AI play taken once, whoever sends it)
     const aiName = (rec.ai || []).find(([pid]) => pid === clip.k), own = clip.k === rec.pid;
+    // a play (skill) needs a knockout in it; a moment (a burst, a bullying, someone held in the fire) needn't
+    const kind = meta.kind === 'moment' ? 'moment' : 'play';
     const kos = (clip.ev || []).filter(x => x && x.e && x.e.e === 'kill' && x.e.k === clip.k).length;
-    if ((!own && !aiName) || !kos) return json(res, 400, { error: 'Bad replay.', why: `k ${clip.k} vs ${rec.pid}, ${kos} knockouts` });
-    if (own ? rec.ownDone : rec.aiDone || WEEK_AI_MATCH.has(rec.mid)) return json(res, 200, { ok: true, kept: false, why: 'already offered' });
-    const score = Math.max(0, Math.min(40, Math.round((+meta.score || 0) * 10) / 10)); if (score < WEEK_MIN) return json(res, 200, { ok: true, kept: false, why: 'score' });
-    const wk = weekKey(), pool = await store.clipList(WEEK_POOL);
-    const allTop = new Set(pool.filter(c => c.meta).sort((a, b) => b.meta.score - a.meta.score).slice(0, 10).map(c => c.id)); // (the best ten of all time stay for good)
-    for (const c of pool) if ((!c.meta || c.meta.week !== wk) && !allTop.has(c.id)) await store.clipDrop(WEEK_POOL, c.id); // (the rest of last week's are let go)
-    const cur = pool.filter(c => c.meta && c.meta.week === wk), mine = cur.filter(c => own ? c.meta.uid === me.id : c.meta.ai && c.meta.who === aiName[1]).sort((a, b) => a.meta.score - b.meta.score);
-    if (mine.length >= 3) { if (mine[0].meta.score >= score) return json(res, 200, { ok: true, kept: false }); await store.clipDrop(WEEK_POOL, mine[0].id); } // (each player's best three)
-    const rest = (await store.clipList(WEEK_POOL)).filter(c => c.meta && c.meta.week === wk).sort((a, b) => a.meta.score - b.meta.score); // (the week's, at most 30)
-    if (rest.length >= 30) { if (rest[0].meta.score >= score) return json(res, 200, { ok: true, kept: false }); if (!allTop.has(rest[0].id)) await store.clipDrop(WEEK_POOL, rest[0].id); }
+    if ((!own && !aiName) || (kind === 'play' && !kos)) return json(res, 400, { error: 'Bad replay.', why: `k ${clip.k} vs ${rec.pid}, ${kos} knockouts` });
+    const done = rec.done || (rec.done = {}), dk = (own ? 'own:' : 'ai:') + kind;
+    if (done[dk] || (!own && WEEK_AI_MATCH.has(rec.mid + ':' + kind))) return json(res, 200, { ok: true, kept: false, why: 'already offered' });
+    done[dk] = true; if (!own) { WEEK_AI_MATCH.add(rec.mid + ':' + kind); if (WEEK_AI_MATCH.size > 1000) WEEK_AI_MATCH.clear(); } // (one offer of each per match)
+    const score = Math.max(0, Math.min(60, Math.round((+meta.score || 0) * 10) / 10)); if (score < WEEK_MIN) return json(res, 200, { ok: true, kept: false, why: 'score' });
+    const wk = weekKey(), now = Date.now(), label = cleanText(meta.label, 60) || (kind === 'moment' ? 'Best moment' : 'Best play');
+    const base = { map: clip.map, n: Math.max(1, Math.min(9, +clip.n || 1)), label, line: cleanText(meta.line, 160) || undefined, score, kind, week: wk, play: 1, at: now };
+    // your own best play and best moment (of all time, and of this week): for your circle. Kept lighter (fewer frames)
+    if (own) { try {
+      const mineAll = (await store.clipList(SELF_POOL)).map(metaOf).filter(c => c.meta && c.meta.uid === me.id && c.meta.kind === kind);
+      const bestAll = mineAll.reduce((m, c) => Math.max(m, +c.meta.score || 0), 0), bestWk = mineAll.filter(c => c.meta.week === wk).reduce((m, c) => Math.max(m, +c.meta.score || 0), 0);
+      if (score > bestAll || score > bestWk) {
+        let sdata = data; if (clip.f.length > 450) { const c2 = Object.assign({}, clip, { f: clip.f.filter((f, i) => i % 2 === 0) }); sdata = zlib.gzipSync(Buffer.from(JSON.stringify(c2))).toString('base64'); }
+        const sid = crypto.randomBytes(6).toString('hex'); await store.clipSet(SELF_POOL, sid, sdata, Object.assign({}, base, { who: me.name, uid: me.id }));
+        const L = mineAll.concat([{ id: sid, meta: Object.assign({}, base) }]).sort((a, b) => (+b.meta.score || 0) - (+a.meta.score || 0)), keep = new Set([L[0].id]); const w0 = L.find(c => c.meta.week === wk); if (w0) keep.add(w0.id);
+        for (const c of L) if (!keep.has(c.id)) await store.clipDrop(SELF_POOL, c.id);
+      }
+    } catch (e) { console.error('selfplay:', e); } }
+    const pool = (await store.clipList(WEEK_POOL)).map(metaOf).filter(c => c.meta && typeof c.meta === 'object'), same = pool.filter(c => kindOf(c.meta) === kind);
+    const cur = same.filter(c => c.meta.week === wk), mine = cur.filter(c => own ? c.meta.uid === me.id : c.meta.ai && c.meta.who === aiName[1]).sort((a, b) => a.meta.score - b.meta.score);
+    if (mine.length >= 3 && mine[0].meta.score >= score) return json(res, 200, { ok: true, kept: false, why: 'not your best three' }); // (each player's best three of each)
     const id = crypto.randomBytes(6).toString('hex');
-    await store.clipSet(WEEK_POOL, id, data, Object.assign({ map: clip.map, n: Math.max(1, Math.min(9, +clip.n || 1)), label: cleanText(meta.label, 60) || 'Best play', score, week: wk, play: 1, at: Date.now() }, own ? { who: me.name, uid: me.id } : { who: aiName[1], ai: 1 }));
-    if (own) rec.ownDone = true; else { rec.aiDone = true; WEEK_AI_MATCH.add(rec.mid); if (WEEK_AI_MATCH.size > 500) WEEK_AI_MATCH.clear(); } // (one offer of each per match)
-    return json(res, 200, { ok: true, kept: true });
+    await store.clipSet(WEEK_POOL, id, data, Object.assign({}, base, own ? { who: me.name, uid: me.id } : { who: aiName[1], ai: 1 }));
+    // what's kept: this week's (each player's best three, the week's best 30 of each kind), each month's best five, each
+    // year's best five and the best ten of all time (of each kind). The rest are let go
+    const fresh = pool.concat([{ id, meta: Object.assign({}, base, own ? { uid: me.id } : { ai: 1, who: aiName[1] }) }]), keep = new Set();
+    for (const k of ['play', 'moment']) {
+      const L = fresh.filter(c => kindOf(c.meta) === k).sort((a, b) => (+b.meta.score || 0) - (+a.meta.score || 0)), per = {}, wkL = [];
+      for (const c of L) if (c.meta.week === wk) { const who = c.meta.uid != null ? 'u' + c.meta.uid : 'a' + c.meta.who; per[who] = (per[who] || 0) + 1; if (per[who] <= 3 && wkL.length < 30) wkL.push(c); }
+      wkL.forEach(c => keep.add(c.id)); L.slice(0, 10).forEach(c => keep.add(c.id));
+      const top = f => { const g = {}; for (const c of L) { const key = f(c.meta.at); g[key] = (g[key] || 0) + 1; if (g[key] <= 5) keep.add(c.id); } };
+      top(monthKey); top(yearKey);
+    }
+    for (const c of fresh) if (!keep.has(c.id)) await store.clipDrop(WEEK_POOL, c.id);
+    return json(res, 200, { ok: true, kept: keep.has(id) });
   } catch (e) { console.error('weekplay:', e); PERF.errors.unshift({ t: Date.now(), name: me ? me.name : 'guest', where: 'server:weekplay', m: String(e && e.message || e).slice(0, 300), s: String(e && e.stack || '').slice(0, 1200), v: Sim.VERSION, mode: '', ph: '', map: '', ua: '' }); return json(res, 500, { error: 'Something went wrong on the server.', why: String(e && e.message || e).slice(0, 200) }); } }
   if (route === '/clips' && method === 'GET') { if (!me) return json(res, 401, { error: 'Sign in first.' }); return json(res, 200, await clipsOut(me)); }
   if (route === '/clip' && method === 'POST') {
@@ -956,6 +1046,22 @@ async function api(req, res, url) {
     if (body.feature || !me.ach.clip) me.ach.clip = Object.assign({ id }, m2); // the first one saved goes on the profile
     markDirty(me);
     return json(res, 200, Object.assign({ ok: true, id, clip: me.ach.clip }, await clipsOut(me)));
+  }
+  // ---- sharing a play: anyone (guests too) can turn a play into a link (/play?clip=<id>) to send round. The same play
+  // always gets the same link; the oldest shares are let go once there are SHARE_MAX of them.
+  if (route === '/share' && method === 'POST') {
+    if (!clipLimit(ip(req))) return json(res, 429, { error: 'Slow down a little.' });
+    const data = String((body && body.data) || '');
+    if (!/^[A-Za-z0-9+/=]+$/.test(data) || data.length > 650 * 1024) return json(res, 400, { error: 'That replay is too big to share.' });
+    let clip; try { clip = JSON.parse(zlib.gunzipSync(Buffer.from(data, 'base64'), { maxOutputLength: 8 * 1024 * 1024 }).toString('utf8')); } catch (e) { return json(res, 400, { error: 'Bad replay.' }); }
+    if (!clip || clip.v !== 1 || !Sim.MAPS[clip.map] || !Array.isArray(clip.f) || clip.f.length < 10 || clip.f.length > 900 || !Array.isArray(clip.segs)) return json(res, 400, { error: 'Bad replay.' });
+    const id = crypto.createHash('sha256').update(data).digest('hex').slice(0, 12);
+    if (!(await store.clipGet(id).catch(() => null))) {
+      const all = await store.clipList(SHARE_POOL).catch(() => []);
+      if (all.length >= SHARE_MAX) for (const c of all.slice(SHARE_MAX - 50)) await store.clipDrop(SHARE_POOL, c.id).catch(() => {}); // (newest first: drop the oldest)
+      await store.clipSet(SHARE_POOL, id, data, { map: clip.map, n: Math.max(1, Math.min(9, +clip.n || 1)), label: cleanText(body.label, 60) || 'Bowfall play', who: me ? me.name : null, shared: 1, at: Date.now() });
+    }
+    return json(res, 200, { id, url: '/play?clip=' + id });
   }
   if ((m = route.match(/^\/clip\/([a-f0-9]{12})$/)) && method === 'GET') {
     const c = await store.clipGet(m[1]); if (!c) return json(res, 404, { error: 'That replay is gone.' });

@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.76.0';
+const VERSION = '0.78.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1836,6 +1836,12 @@ function howKilled(f, cause) {
   if (a.crit) return 'crit';
   return 'arrow';
 }
+// A knockout by the arena (a hole, water, lava, thorns, a saw, a wall) is credited to whoever last hit them only if
+// that hit put them there: they were hit in the last PUSH_CREDIT seconds, or were still flying from a knock (up to
+// PUSH_FLY seconds after it). Someone who walks or dashes in on their own later is a self-knockout: nobody's kill.
+const PUSH_CREDIT = 1.5, PUSH_FLY = 4;
+const ENV_KO = { pit: 1, water: 1, lava: 1, spikes: 1, saw: 1, crush: 1, wall: 1 };
+const pushedBy = (w, f) => f.lastHitBy && (w.t - f.lastHitT < PUSH_CREDIT || (f.knock > 0 && w.t - f.lastHitT < PUSH_FLY)) ? f.lastHitBy : null;
 function kill(w, f, cause) {
   if (f.dead) return;
   if (f.npc) { // an NPC: out until its stronghold sends it back; whoever did it gets the credit
@@ -1852,6 +1858,8 @@ function kill(w, f, cause) {
   f.drawing = false; f.charge = 0; f.over = 0; f.falling = 0; f.lastCause = cause; f.grap = null; f.revP = 0; f.nblink = null;
   let killer = null;
   if (f.lastHitBy && w.t - f.lastHitT < 5) killer = w.players.find(q => q.id === f.lastHitBy && q.team !== f.team) || null;
+  // the arena took them: only theirs if their hit sent them in (as they started to fall, or as they went onto the lava)
+  if (killer && ENV_KO[cause]) { const by = cause === 'pit' || cause === 'water' ? f.fallBy : cause === 'lava' ? (f.lavaBy || pushedBy(w, f)) : pushedBy(w, f); if (by !== killer.id) killer = null; }
   f.killedBy = killer ? killer.name : null;
   // best moments: two or more knockouts in quick succession, someone held on lava until they burnt, a long shot
   if (killer) {
@@ -2182,6 +2190,7 @@ function stepBody(w, f, mx, my, dt) {
   f.inTar = inTar;
   // lava is thick: anyone flung onto it slows to a crawl instead of sliding across (and walking out takes a while too)
   if (inLava) { const e = Math.exp(-(f.sure ? 1.2 : 2.6) * dt); f.vx *= e; f.vy *= e; }
+  if (inLava) { const r = pushedBy(w, f); if (r) f.lavaBy = r; else if (!f.onLava) f.lavaBy = null; } // (who put them on the lava, if anyone)
   f.onLava = inLava; f.lavaT = inLava ? (f.lavaT || 0) + dt : Math.max(0, (f.lavaT || 0) - dt * 0.5); // (how long they've been cooking, for best moments)
   if (inLava) { hurt(w, f, 30 * dt, 0, 0, 'lava', null, true); f.burn = Math.max(f.burn, 1.5); }
   else if (f.burn > 0) { f.burn -= dt; hurt(w, f, (f.burnDps || 5) * dt, 0, 0, 'burn', null, true); if (f.burn <= 0) f.burnDps = 5; }
@@ -2193,7 +2202,7 @@ function stepBody(w, f, mx, my, dt) {
   if (!f.dead && f.poisonT > 0) { f.poisonT -= dt; hurt(w, f, f.poisonN * 1.6 * f.poisonMul * dt, 0, 0, 'poison', null, true); if (f.poisonT <= 0) f.poisonN = 0; }
   if (f.dead) return;
   if (inPit) {
-    f.falling = 0.001; f.drawing = false; f.charge = 0; f.stuck = 0;
+    f.falling = 0.001; f.drawing = false; f.charge = 0; f.stuck = 0; f.fallBy = pushedBy(w, f); // (who sent them in, if anyone)
     ev(w, { e: 'fall', id: f.id, x: r1(f.x), y: r1(f.y) });
   }
 }
@@ -2918,13 +2927,15 @@ function separate(w) {
       if ((a.knock > 0 || b.knock > 0) && !pa && !pb) {
         const rel = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny;
         if (rel > 260) {
+          // the body that was flying passes the hit (and the credit for it) on: who was knocked decides, before both are
+          const aFly = a.knock > 0 && (!(b.knock > 0) || (a.lastHitT || -9) >= (b.lastHitT || -9)), credit = aFly ? a.lastHitBy : b.lastHitBy;
           const j2 = rel * 0.85;
           a.vx -= nx * j2 * b.mass / tm; a.vy -= ny * j2 * b.mass / tm;
           b.vx += nx * j2 * a.mass / tm; b.vy += ny * j2 * a.mass / tm;
           a.knock = Math.max(a.knock, 0.35); b.knock = Math.max(b.knock, 0.35);
           const dmg = 2 + rel * 0.01;
-          const credit = a.knock > 0 && a.lastHitBy ? a.lastHitBy : b.lastHitBy;
           ev(w, { e: 'thud', x: r1((a.x + b.x) / 2), y: r1((a.y + b.y) / 2) });
+          if (credit) ev(w, { e: 'bowl', id: aFly ? b.id : a.id, by: aFly ? a.id : b.id, k: credit }); // (for best moments: one archer knocked into another, like a pool combination)
           if (credit !== b.id) { b.lastHitBy = credit; b.lastHitT = w.t; }
           if (credit !== a.id) { a.lastHitBy = credit; a.lastHitT = w.t; }
           hurt(w, a, dmg, 0, 0, 'crush', null); hurt(w, b, dmg, 0, 0, 'crush', null);
