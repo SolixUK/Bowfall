@@ -2,6 +2,19 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.74.3
+
+- **Menus fit the window.** On a laptop, or a screen set to 125% or 150% scaling, the browser has less room (a 1920×1080 screen at 125% is 1536×864 to a web page), so the main menu and several screens ran off the bottom and needed scrolling. Now any menu taller than the window (the main menu, Find game, Training, the store, highscores, options, and the in-game screens too) is scaled down just enough to show whole: the main menu at about 87% on 1536×864 and 73% on 1280×720. It never goes below 72%; past that a screen scrolls instead, so text stays readable. Phones keep their own layout. (`fitOverlay` in `public/index.html`.)
+- **Training shows its five drills in two rows** (three across) on wider screens, and says what you really play them as (a plain Frost Trapper).
+
+## 0.74.2
+
+- **Mend heals 45** (was 25), still half on anyone poisoned (`MEND_HEAL` in `public/sim.js`).
+
+## 0.74.1
+
+- **Mend you can see:** casting it sends a green pulse out from the healer, and a glowing healing mote with a medical cross flies to the teammate (on a slight curve, homing on where they are, with a green trail; about 650 px a second, 0.15 to 0.6 s). The heal lands when the mote arrives, not when it's cast: a green pulse on them, a white-and-green medical cross rising over their head and the amount healed. Mending yourself is still instant, with both pulses at once. Its own cast sound, and the old chime when it lands. (A teammate who falls before it arrives doesn't get it.)
+
 ## 0.74.0
 
 - **The drill shooter aims like a good player** (dodge drill, the new dodge and shoot, and peek and shoot). He sees you as you were 0.2 s ago (a human reaction time) and carries that forward, leads his shot properly to where it will meet you, swings his aim at a human speed with a small wobble, and stops adjusting just before he lets go. If you've just changed direction he holds his draw a moment until he can read you. Walking in a straight line now gets you hit; a dash or a change of direction as he lets go still beats him. (`SH` in `public/index.html`. Before, he led you by too little and his round-1 shots were half-drawn and often fell short, so he hardly ever hit anyone who kept moving.)

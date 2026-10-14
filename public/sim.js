@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.74.0';
+const VERSION = '0.74.3';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1037,7 +1037,7 @@ const TREE = {
   totem:     { tree: 'warden', active: { cd: 16 }, name: 'Mending Totem', desc: 'Plant a totem at your feet for 5 seconds. You and teammates within 120px heal 8 health a second.' },
   wall:      { tree: 'warden', active: { cd: 10 }, name: 'Shield Wall', desc: "Raise a short wall in front of you for 6 seconds. It blocks enemy arrows; your team's pass through." },
   gust:      { tree: 'warden', active: { cd: 8 }, name: 'Gust', desc: 'Blast a wide cone of wind in front of you that shoves enemies away hard and blows enemy arrows out of the air.', excl: ['wall'] },
-  mend:      { tree: 'warden', active: { cd: 12 }, name: 'Mend', desc: 'Heal the most hurt teammate within 350px for 25 health, or yourself if no one is hurt more (half as much on anyone poisoned).' },
+  mend:      { tree: 'warden', active: { cd: 12 }, name: 'Mend', desc: 'Send a healing mote to the most hurt teammate within 350px: it flies to them and heals 45 health when it arrives. Or heal yourself at once if no one is hurt more. Half as much on anyone poisoned.' },
   oath:      { tree: 'warden', trade: true, name: "Guardian's Oath", desc: 'Teammates near you take 20% less damage, but you take 5% more.' },
   revive:    { tree: 'warden', cap: true, name: 'Revive', desc: 'Once per round, stand over a knocked-out teammate for 3 seconds to bring them back with half health.' },
 
@@ -1101,7 +1101,7 @@ const BRIEF = {
   split: 'Full-draw arrows split into three.', bankshot: 'One more bounce; bounced arrows hit harder.', scatter: 'Full-draw shots fire a fan of three.',
   smoke: 'Smoke cloud that hides you.', rain: 'Call a volley onto a spot.', rally: 'You and nearby teammates move faster.', bond: 'You and nearby teammates take less knockback.',
   totem: 'Totem that heals your team nearby.', wall: 'Short wall that blocks enemy arrows.', gust: 'Cone of wind: shoves enemies and arrows away.',
-  mend: 'Heal the most hurt teammate 25.', oath: 'Teammates near you take 20% less damage.', revive: 'Once a round, revive a fallen teammate.',
+  mend: 'Heal the most hurt teammate 45.', oath: 'Teammates near you take 20% less damage.', revive: 'Once a round, revive a fallen teammate.',
   barbs: 'Rooted or frozen enemies fly 50% further.', repeater: 'Instant bolt, then reload 3× faster.', fanbolt: 'Next shot: five bolts in a fan.',
   hairtrig: 'Block an arrow to go full auto.', windlass: 'Reload 25% faster.', tribolt: 'Shots fire 3 bolts. Reload slower.', heavybolt: 'Bolts knock back 20% harder.',
   pointblank: 'Close bolts hit 30% harder.', longstock: 'Bolts reach 40% further. Reload slower.', twinload: 'Hold two bolts.',
@@ -2533,8 +2533,11 @@ function useAbility(w, p, id) {
         const k = q.hp / q.maxHp; if (k < bk) { bk = k; best = q; }
       }
       if (best.hp >= best.maxHp) { if (!p.bot) ev(w, { e: 'abFail', id: p.id, why: 'No one needs healing' }); return false; }
-      best.hp = Math.min(best.maxHp, best.hp + 25 * (best.poisonT > 0 ? 0.5 : 1));
-      ev(w, { e: 'mend', id: p.id, to: best.id, x1: r1(p.x), y1: r1(p.y), x2: r1(best.x), y2: r1(best.y) });
+      // on yourself it's instant; on a teammate a mote of healing flies over and heals them when it arrives
+      if (best === p) { const n = mendHeal(p); ev(w, { e: 'mend', id: p.id, to: p.id, x1: r1(p.x), y1: r1(p.y), x2: r1(p.x), y2: r1(p.y), tt: 0 }); ev(w, { e: 'mended', id: p.id, to: p.id, x: r1(p.x), y: r1(p.y), n }); return true; }
+      const tt = clamp(Math.hypot(best.x - p.x, best.y - p.y) / MEND_SPEED, 0.15, 0.6);
+      w.later.push({ t: tt, ty: 'mend', owner: p.id, target: best.id });
+      ev(w, { e: 'mend', id: p.id, to: best.id, x1: r1(p.x), y1: r1(p.y), x2: r1(best.x), y2: r1(best.y), tt: r1(tt) });
       return true;
     }
     case 'execute': p.execArmed = true; ev(w, { e: 'armed', id: p.id, k: 'execute' }); return true;
@@ -2966,6 +2969,9 @@ function shadeTick(w, f, dt) {
   ev(w, { e: 'shadeBurst', id: f.id, x: r1(f.x), y: r1(f.y), n: s.n });
   hurt(w, f, shadeDmg(s.n) * big, kx, ky, 'shade', s.by);
 }
+// Mend: 45 health (half on anyone poisoned), carried to a teammate at MEND_SPEED px/s
+const MEND_HEAL = 45, MEND_SPEED = 650;
+const mendHeal = q => { const was = q.hp; q.hp = Math.min(q.maxHp, q.hp + MEND_HEAL * (q.poisonT > 0 ? 0.5 : 1)); return Math.round(q.hp - was); };
 const RIP_DELAY = 1, SHROUD_R = 140, ECLIPSE_R = 150, MEND_RANGE = 350, BRIAR = { speed: 350, range: 760, r: 22, root: 1.8, dmg: 8 }; // r: the same size as a Bramble Trap
 function root(f, t, by) { if (by && has(by, 'deeproots')) t *= 2; f.stuck = Math.max(f.stuck, f.sure ? t * 0.4 : t); }
 // elemental and trapper effects when an arrow lands
@@ -4823,6 +4829,11 @@ function step(w, dt) {
   for (let i = w.later.length - 1; i >= 0; i--) {
     const L = w.later[i]; L.t -= dt; if (L.t > 0) continue;
     w.later.splice(i, 1);
+    if (L.ty === 'mend') { // the healing mote arrives (if they're still there to catch it)
+      const q = w.players.find(o => o.id === L.target && !o.dead && o.falling <= 0);
+      if (q) { const n = mendHeal(q); ev(w, { e: 'mended', id: L.owner, to: q.id, x: r1(q.x), y: r1(q.y), n }); }
+      continue;
+    }
     if (L.ty === 'xburst') { // the rest of a crossbow burst: along your aim as it is now, with a little scatter
       const p = w.players.find(q => q.id === L.owner && !q.dead && q.falling <= 0 && q.disarm <= 0);
       if (p) fire(w, p, p.aim + (Math.random() - 0.5) * 2 * XB3.spread, 1, 4);
