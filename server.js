@@ -779,6 +779,20 @@ async function api(req, res, url) {
     await FUNNEL.record(k, String(body.s || ''), String(body.src || '').toLowerCase().slice(0, 24));
     return json(res, 200, { ok: true });
   }
+  // who's online right now (admin): accounts and guests, where they are (menu, searching, in which game), since when
+  if (route === '/online' && method === 'GET') {
+    if (!me || !me.admin) return json(res, 403, { error: 'Admin only.' });
+    const L = social.whoOnline();
+    if (!url.searchParams.get('html')) return json(res, 200, { n: L.length, list: L });
+    const e2 = x => String(x == null ? '' : x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+    const ago = t => { if (!t) return ''; const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + (m % 60) + ' min'; };
+    const acc = L.filter(x => !x.guest).length, inGame = L.filter(x => !/^(Main menu|Searching)/.test(x.where)).length;
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+    return res.end(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="refresh" content="20"><title>Online now</title>
+<style>body{margin:0;padding:20px 16px;background:#0d150f;color:#e7ece4;font:14px/1.4 system-ui,sans-serif}h1{font-size:22px;margin:0 0 4px}p{color:#9aa79b;margin:0 0 16px}table{border-collapse:collapse;width:100%;max-width:900px}th,td{text-align:left;padding:7px 10px;border-bottom:1px solid #26352a}th{color:#9aa79b;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}.g{color:#9aa79b}.tag{font-size:11px;padding:1px 6px;border:1px solid #3a4c3e;border-radius:3px;color:#9aa79b;margin-left:6px}</style></head><body>
+<h1>Online now: ${L.length}</h1><p>${acc} with ${acc === 1 ? 'an account' : 'accounts'}, ${L.length - acc} ${L.length - acc === 1 ? 'guest' : 'guests'} · ${inGame} in a game · refreshes every 20 seconds</p>
+<table><tr><th>Name</th><th>Level</th><th>Where</th><th>Online for</th></tr>${L.map(x => `<tr><td${x.guest ? ' class="g"' : ''}>${e2(x.name)}${x.guest ? '<span class="tag">guest</span>' : ''}${x.admin ? '<span class="tag">you</span>' : ''}</td><td>${x.lv != null ? x.lv : ''}</td><td>${e2(x.where)}</td><td>${ago(x.since)}</td></tr>`).join('') || '<tr><td colspan="4" class="g">Nobody right now.</td></tr>'}</table></body></html>`);
+  }
   if (route === '/funnel' && method === 'GET') {
     if (!me || !me.admin) return json(res, 403, { error: 'Admin only.' });
     const R = await FUNNEL.report(Math.max(1, Math.min(180, +url.searchParams.get('days') || 28)), url.searchParams.get('src') || null);

@@ -49,6 +49,7 @@
   .hp { width: 180px; height: 10px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; }
   .hp-fill { height: 100%; background: var(--teal); transition: width .12s; }
   .hp-fill.low { background: var(--red); }
+  .hp { position: relative; } .hp-rc { position: absolute; top: 0; height: 100%; background: rgba(190,255,215,.45); transition: width .12s, left .12s; pointer-events: none; }
   .dash { width: 54px; height: 6px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; }
   .dash-fill { height: 100%; background: var(--gold); }
   .center-stat { align-items: center; text-align: center; }
@@ -262,6 +263,13 @@
   @keyframes gsLine { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   .pchip.meter { flex-direction: row; align-items: center; gap: 8px; }
   .pips { display: flex; gap: 4px; }
+  .termhud { display: none; flex-direction: column; align-items: center; gap: 3px; width: 360px; margin-top: 2px; }
+  body.termfight .termhud { display: flex; } body.termfight .pips, body.termfight .tside { display: none; }
+  .termhud .tname { font: 700 15px 'Rajdhani', sans-serif; letter-spacing: .08em; color: #ff6a5a; text-transform: uppercase; } .termhud .tname small { color: var(--muted); font: 600 12px 'Titillium Web', sans-serif; letter-spacing: 0; text-transform: none; margin-left: 8px; }
+  .termhud .tbar { width: 100%; height: 12px; background: rgba(0,0,0,.55); border: 1px solid rgba(255,90,70,.5); position: relative; overflow: hidden; }
+  .termhud .tbar i { position: absolute; left: 0; top: 0; height: 100%; background: linear-gradient(90deg, #ff3b2b, #ff8a5a); transition: width .2s; } .termhud .tbar i.shift { background: #8ad0ff; }
+  .termhud .tbar b { position: absolute; inset: 0; font: 700 10px 'Rajdhani', sans-serif; color: #fff; text-align: center; line-height: 12px; }
+  .termhud .tlives { font: 600 12px 'Titillium Web', sans-serif; color: var(--text); } .termhud .tlives em { color: var(--gold); font-style: normal; font-weight: 700; } .termhud .tlives.low em { color: var(--red); }
   .pips i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--ec); box-sizing: border-box; }
   .pips i.on { background: var(--ec); }
   .chip2 em.new { color: #7dff8a; margin-left: 6px; }
@@ -1240,7 +1248,7 @@
   .sharepop .card { max-width: 460px; gap: 12px; }
   .shurl { display: flex; gap: 6px; } .shurl input { flex: 1; min-width: 0; }
   .shbtns { display: flex; flex-wrap: wrap; gap: 6px; } .shbtns a { text-decoration: none; }
-  .savepop a, .sharepop a, #fnBtn { text-decoration: none; }
+  .savepop a, .sharepop a, #fnBtn, #onBtn { text-decoration: none; }
   .sharepop .linkbtn { color: var(--gold); text-decoration: underline; }
   .savepop { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; background: rgba(0,0,0,.65); padding: 16px; }
   .savepop .card { max-width: 460px; gap: 12px; }
@@ -1600,13 +1608,13 @@
 
   <div class="hud" id="hud" hidden>
     <div class="hud-l">
-      <div class="stat"><span class="lbl">Health <span id="hpText"></span></span><div class="hp"><div class="hp-fill" id="hpFill"></div></div></div>
+      <div class="stat"><span class="lbl">Health <span id="hpText"></span></span><div class="hp"><div class="hp-fill" id="hpFill"></div><div class="hp-rc" id="hpRc" hidden></div></div></div>
       <div class="stat"><span class="lbl" id="dashLbl">Dash</span><div class="dash"><div class="dash-fill" id="dashFill"></div></div></div>
       <div class="stat amber-stat" style="display:none"><span class="lbl">Amber</span><span class="num" id="amberN">0</span></div>
     </div>
     <div class="score">
       <div class="tside"><span class="tscore red" id="scR">0</span><div class="gdots" id="gdR"></div></div>
-      <div class="stat center-stat"><span class="lbl" id="rdText">Round 1</span><span class="mutchip" id="mutChip" hidden></span><span class="num" id="timer">2:00</span><div class="pips" id="pips"></div></div>
+      <div class="stat center-stat"><span class="lbl" id="rdText">Round 1</span><span class="mutchip" id="mutChip" hidden></span><span class="num" id="timer">2:00</span><div class="pips" id="pips"></div><div class="termhud" id="termHud"><span class="tname" id="thName">Terminator</span><div class="tbar"><i id="thFill"></i><b id="thPct"></b></div><span class="tlives" id="thLives"></span></div></div>
       <div class="tside"><span class="tscore blue" id="scB">0</span><div class="gdots" id="gdB"></div></div>
     </div>
     <div class="hud-r">
@@ -1692,7 +1700,7 @@
         <button class="mm" id="mOpts" type="button"><span class="mmk">07</span><b>Options</b></button>
       </nav>
       <div class="homefoot">
-        <div class="btnrow"><button class="ghost sm" id="helpBtn" type="button">How to play</button><button class="ghost sm" id="achBtn" type="button">Achievements</button><button class="ghost sm" id="balBtn" type="button">Balance data</button><a class="ghost sm" id="fnBtn" href="/api/funnel?html=1" target="_blank" rel="noopener" hidden>Funnel</a><button class="ghost sm" id="sndBtn" type="button" hidden>Sound desk</button><button class="ghost sm" id="farmBtn" type="button" hidden title="AI players fight each other for you to record: trailers, promos, highlight clips">Clip farm</button></div>
+        <div class="btnrow"><button class="ghost sm" id="helpBtn" type="button">How to play</button><button class="ghost sm" id="achBtn" type="button">Achievements</button><button class="ghost sm" id="balBtn" type="button">Balance data</button><a class="ghost sm" id="fnBtn" href="/api/funnel?html=1" target="_blank" rel="noopener" hidden>Funnel</a><a class="ghost sm" id="onBtn" href="/api/online?html=1" target="_blank" rel="noopener" hidden>Online now</a><button class="ghost sm" id="sndBtn" type="button" hidden>Sound desk</button><button class="ghost sm" id="farmBtn" type="button" hidden title="AI players fight each other for you to record: trailers, promos, highlight clips">Clip farm</button></div>
         <div class="sitelinks" id="siteLinks" hidden><a href="/">Website</a><a href="/#/leaderboard">Leaderboard</a><a href="/#/forum">Forum</a></div>
         <span class="ver" id="verHome"></span>
       </div>
@@ -1784,7 +1792,7 @@
   <div class="overlay sub" id="customScr" hidden>
     <div class="card wide">
       <div class="shopbar"><div class="stat"><span class="eyebrow">Play</span><h2>Custom games</h2></div>
-        <div class="btnrow" data-navsec><button class="cta" type="button" data-ol="host" id="hostBtn">Host custom game</button><button class="ghost" type="button" id="pracBtn" title="Play against bots right here in your browser, no server needed">Practice vs bots</button><button class="ghost" type="button" id="cqBtn" hidden title="A big map of four castles held by NPCs: capture them to win. A preview you can try on your own (and with players on controllers)">Strongholds (preview)</button><button class="ghost" type="button" id="arenaBtn" title="Build your own arena, test it against bots, share it with a code, or play the community's">Arena builder</button><button class="ghost" type="button" data-back>Back</button></div></div>
+        <div class="btnrow" data-navsec><button class="cta" type="button" data-ol="host" id="hostBtn">Host custom game</button><button class="ghost" type="button" id="pracBtn" title="Play against bots right here in your browser, no server needed">Practice vs bots</button><button class="ghost" type="button" id="cqBtn" hidden title="A big map of four castles held by NPCs: capture them to win. A preview you can try on your own (and with players on controllers)">Strongholds (preview)</button><button class="ghost" type="button" id="tmBtn" hidden title="You and three AI teammates against one machine with five modes. A preview, admin only for now">Terminator (preview)</button><button class="ghost" type="button" id="arenaBtn" title="Build your own arena, test it against bots, share it with a code, or play the community's">Arena builder</button><button class="ghost" type="button" data-back>Back</button></div></div>
       <div id="onlineOn" class="olpane">
         <div id="olHost" class="olpane hostpanel" data-navsec hidden>
           <h3>Host custom game</h3>
@@ -2276,7 +2284,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.79.6"></script>
+<script src="sim.js?v=0.81.1"></script>
 <script>
 (() => {
 'use strict';
@@ -2284,7 +2292,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.79.6';
+const PAGE_VERSION = '0.81.1';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -2948,6 +2956,16 @@ defSnd('mend', 'ability', 'Mend: healed', () => fanfare([523, 784], 'sine', 0.04
 defSnd('execute', 'ability', 'Coup de grâce', () => tone(110, 0.25, 'sawtooth', 0.05, -40), { ab: 'execute' });
 defSnd('dance', 'ability', 'Shadow Dance', () => fanfare([440, 660, 880], 'sine', 0.04, 60), { ab: 'dance' });
 defSnd('railArmed', 'ability', 'Railshot ready', () => { os('sawtooth', 300, 1200, 0.25, 0.03); os('sine', 1200, 1800, 0.2, 0.03, 0.18); }, { ab: 'railshot' });
+defSnd('termShift', 'match', 'Terminator changes mode', () => { nz(0.4, 0.08, 'lowpass', 300, 1200, 1); os('sawtooth', 80, 160, 0.5, 0.05); setTimeout(() => os('square', 440, 660, 0.12, 0.04), 300); });
+defSnd('termRush', 'match', 'Terminator rush tell', () => { os('sawtooth', 120, 60, 0.5, 0.06); nz(0.3, 0.05, 'lowpass', 500, 200, 1); });
+defSnd('termClap', 'match', 'Terminator clap tell', () => { os('square', 220, 440, 0.4, 0.05); });
+defSnd('termPull', 'match', 'Terminator pull', () => { os('sine', 60, 240, 0.9, 0.06); nz(0.6, 0.03, 'bandpass', 400, 1600, 2); });
+defSnd('termSummon', 'match', 'Terminator summons', () => { os('square', 660, 990, 0.25, 0.035); setTimeout(() => os('square', 880, 1320, 0.2, 0.03), 150); });
+defSnd('termJet', 'match', 'Terminator jets back', () => { nz(0.5, 0.1, 'highpass', 1500, 4000, 1); os('sawtooth', 300, 90, 0.5, 0.05); });
+defSnd('termAnchor', 'match', 'Terminator anchors', () => { os('square', 110, 55, 0.5, 0.06); nz(0.2, 0.08, 'lowpass', 300, 100, 1); });
+defSnd('alarm', 'match', 'Hatch warning', () => { os('square', 520, 520, 0.12, 0.03); setTimeout(() => os('square', 520, 520, 0.12, 0.03), 180); });
+defSnd('hatch', 'match', 'Hatch opens', () => { nz(0.35, 0.09, 'lowpass', 600, 150, 1); os('sawtooth', 90, 50, 0.4, 0.05); });
+defSnd('secondwind', 'ability', 'Second Wind', (v = 1) => { fanfare([392, 523, 659], 'sine', 0.04 * v, 55); nz(0.25, 0.04 * v, 'bandpass', 900, 2600, 1); }, { ab: 'secondwind', vol: vMine });
 defSnd('blink', 'ability', 'Blink', (v = 1) => { os('sine', 1400, 300, 0.14, 0.05 * v); nz(0.1, 0.05, 'highpass', 3000, 6000, 1); }, { ab: 'blink', vol: vMine });
 defSnd('harpoon', 'ability', 'Harpoon', (hit = false) => { nz(0.15, 0.08, 'bandpass', 1400, 500, 2); if (hit) tone(180, 0.12, 'square', 0.04, -60); }, { ab: 'harpoon', vars: [['Thrown', [false]], ['Hooks someone', [true]]] });
 defSnd('totem', 'ability', 'Mending Totem', () => fanfare([392, 523, 659], 'sine', 0.045, 70), { ab: 'totem' });
@@ -6527,7 +6545,7 @@ function balCsv() {
 }
 // balance data is for the game's owner only (and the offline copy, which is yours anyway)
 // the owner's extras: balance data, and Strongholds (on hold, so only the owner and the offline copy can open it)
-function adminBits() { const on = OFFLINE || !!(account && account.admin); for (const id of ['balBtn', 'gmBalBtn', 'resBalBtn', 'cqBtn', 'sndBtn', 'farmBtn']) if ($(id)) $(id).hidden = !on; if ($('fnBtn')) $('fnBtn').hidden = OFFLINE || !(account && account.admin); }
+function adminBits() { const on = OFFLINE || !!(account && account.admin); for (const id of ['balBtn', 'gmBalBtn', 'resBalBtn', 'cqBtn', 'tmBtn', 'sndBtn', 'farmBtn']) if ($(id)) $(id).hidden = !on; for (const id of ['fnBtn', 'onBtn']) if ($(id)) $(id).hidden = OFFLINE || !(account && account.admin); }
 $('balBtn').onclick = openBalance; $('gmBalBtn').onclick = openBalance; $('resBalBtn').onclick = openBalance;
 $('balClose').onclick = closeBalance;
 ['balWho', 'balMap', 'balSrc', 'balSize', 'balRules', 'balVer'].forEach(id => $(id).addEventListener('change', renderBalance));
@@ -7320,6 +7338,7 @@ $('mTrain').onclick = () => openSub('trainScr');
 $('mStore').onclick = () => openSub('storeScr');
 $('arenaBtn').onclick = () => openSub('arenaScr');
 $('cqBtn').onclick = () => { if (OFFLINE || (account && account.admin)) startStrongholds(); };
+$('tmBtn').onclick = () => { if (OFFLINE || (account && account.admin)) startTerminator(); };
 // the builder lives inside Custom games, so its Back button goes back there
 { const b = $('arenaScr').querySelector('[data-back]'); if (b) b.onclick = () => openSub('customScr'); }
 $('pracBtn').onclick = () => { closeSubs(); startPractice(); };
@@ -7459,11 +7478,12 @@ addEventListener('resize', () => requestAnimationFrame(alignHomeTop)); if (docum
 // Menus that are taller than the window (a laptop, or a screen at 125% or 150% scaling) are scaled down to fit, so the
 // main menu and the other screens show whole without scrolling. Never below FIT_MIN: past that a screen scrolls instead
 // (at a reduced size) so the text stays readable. Phones keep their own layout.
-const FIT_MIN = 0.72;
+const FIT_MIN = 0.72, FIT_NOSHRINK = ['resultsScreen'];
 function fitOverlay(ov) {
   if (!ov) return;
   if (ov.hidden) { ov._fit = null; return; } // (shown again: measured afresh)
   if (innerHeight < 520 && innerWidth >= 700) return; // (short screens, phones held sideways: fitCards scales those)
+  if (FIT_NOSHRINK.includes(ov.id)) { for (const k of ov.children) if (k.style && k.style.zoom) k.style.zoom = ''; return; } // (long screens that scroll instead: shrunk, they're too small to read)
   const kids = [...ov.children].filter(k => !k.hidden && /^(static|relative)$/.test(getComputedStyle(k).position) && getComputedStyle(k).display !== 'none'); // (what's in the flow)
   if (!kids.length) return;
   const narrow = innerWidth < 700;
@@ -7845,6 +7865,14 @@ function eventFx(e) {
         break;
       }
       case 'npcBack': burst(e.x, e.y, '#d9d2bd', 12, 150, 2.5); break;
+      case 'termMode': { const nm = Sim.TM_NAMES[e.mode] || e.mode; burst(e.x, e.y, '#ff3b2b', 30, 260, 3.5); fx.rings.push({ x: e.x, y: e.y, r: 20, life: 0, col: '255,60,40', max: 160 }); shake(5); play('termShift');
+        callout({ kicker: e.n ? 'The machine changes' : 'The machine wakes', title: nm.toUpperCase(), sub: TERM_HINT[e.mode] || '', color: '#ff5a4a', tier: 2, plain: `Terminator: ${nm}<small>${TERM_HINT[e.mode] || ''}</small>` }); break; }
+      case 'termTell': { if (e.k === 'rush') play('termRush'); else if (e.k === 'clap') play('termClap'); else if (e.k === 'pull') play('termPull'); else if (e.k === 'barrage') play('alarm'); else if (e.k === 'summon') play('termSummon'); else if (e.k === 'wave') play('termPull'); break; }
+      case 'termJet': burst(e.x, e.y, '#ff7a22', 24, 220, 3); fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '255,140,60', max: 90 }); play('termJet'); break;
+      case 'termWinded': burst(e.x, e.y, '#ffe066', 18, 180, 3); floater(e.x, e.y - 50, 'Winded!', '#ffe066', 18); shake(6); play('thud'); break;
+      case 'termAnchor': burst(e.x, e.y, '#ffcf5a', 16, 150, 3); floater(e.x, e.y - 50, 'Anchored', '#ffcf5a', 16); play('termAnchor'); break;
+      case 'termHeal': fx.bolts.push({ x1: e.x, y1: e.y, x2: e.x2, y2: e.y2, life: 0, col: '125,255,138' }); break;
+      case 'termSummon': burst(e.x, e.y, '#8ad0ff', 12, 140, 2.5); break;
       case 'chest': burst(e.x, e.y, '#ffe9a8', 22, 220, 3); fx.rings.push({ x: e.x, y: e.y, r: 8, life: 0, col: '255,215,120', max: 70 }); if (e.id === myId) { sfx.pick(); hc['chest' + e.s] = myId; } break;
       case 'respawn': burst(e.x, e.y, '#ffffff', 18, 180, 3); if (e.id === myId) { play('respawn'); CAM.init = false; } break;
       case 'streak': case 'shutdown': case 'empowered': case 'unpowered': case 'clutch': onCallout(e); break;
@@ -7854,8 +7882,9 @@ function eventFx(e) {
         floater(e.x, e.y - 40, e.n > 1 ? `Overload ×${e.n}` : 'Overload', '#fff27a', 14); sfx.zap(0.8);
         break;
       case 'autoPicked': if (e.id === myId) notice(`Time's up. You got <b>${esc(cardInfo(e.card).name)}</b> at random`); break;
-      case 'crackWarn': crackT[e.i] = clock; if (crackT.warned !== view.m.gm) { crackT.warned = view.m.gm; notice(THEME.beach ? 'The tide is coming in!' : 'The ice is cracking!', false); } play('crack', !!THEME.beach); break;
-      case 'crackOpen': { const h = Sim.MAPS[MAPKEY].cracks[e.i]; if (h) { const [cx, cy] = hazCentre(h); burst(cx, cy, '#e6f7ff', 40, 260, 4); burst(cx, cy, '#5aa9d6', 20, 180, 3); } sfx.splash(); shake(5); break; }
+      case 'hatchClose': { const h = Sim.MAPS[MAPKEY].cracks[e.i]; if (h) burst(h.x, h.y, '#6a6f78', 10, 120, 2); break; }
+      case 'crackWarn': crackT[e.i] = clock; if (THEME.hatch) { const h = Sim.MAPS[MAPKEY].cracks[e.i]; if (h) burst(h.x, h.y, '#ff6a2b', 8, 100, 2); play('alarm'); break; } if (crackT.warned !== view.m.gm) { crackT.warned = view.m.gm; notice(THEME.beach ? 'The tide is coming in!' : 'The ice is cracking!', false); } play('crack', !!THEME.beach); break;
+      case 'crackOpen': { if (THEME.hatch) { const h = Sim.MAPS[MAPKEY].cracks[e.i]; if (h) { burst(h.x, h.y, '#ff7a22', 30, 220, 3); shake(3); play('hatch'); } break; } const h = Sim.MAPS[MAPKEY].cracks[e.i]; if (h) { const [cx, cy] = hazCentre(h); burst(cx, cy, '#e6f7ff', 40, 260, 4); burst(cx, cy, '#5aa9d6', 20, 180, 3); } sfx.splash(); shake(5); break; }
       case 'phase': {
         const m = view && view.m;
         if (e.ph !== 'post') { $('gameSum').hidden = true; praiseTimers.forEach(clearTimeout); praiseTimers = []; if (RP.on) endReplay(); pendingSummary = null; }
@@ -7891,7 +7920,12 @@ function eventFx(e) {
         if (e.id === myId) { const m = view && view.p.find(p => p.id === myId); if (m) floater(e.x2, e.y2 - 40, 'Double damage ×3', '#ff4d5e', 13); }
         break;
       }
-      case 'clone': burst(e.x, e.y, '#2a2a3a', 18, 140, 3); play('clone'); break;
+      case 'clone': burst(e.x, e.y, '#2a2a3a', e.q ? 8 : 18, 140, 3); if (!e.q) play('clone'); break; // (q: an afterimage, quietly)
+      case 'secondwind': {
+        fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '125,255,154', max: 56 }); burst(e.x, e.y, '#7dff9a', 22, 170, 3);
+        floater(e.x, e.y - 34, `+${e.n}`, '#7dff9a', 18, e.id === myId); play('secondwind', e.id === myId ? 1 : 0.6);
+        break;
+      }
       case 'blossom': fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '215,221,229', max: 90 }); play('blossom'); break;
       case 'smark': if (e.id === myId) play('smark'); break;
       case 'recall': {
@@ -9469,6 +9503,21 @@ function crackPattern(i, h) {
   }
   return (crackLines[MAPKEY + i] = lines);
 }
+// the Terminator arena's floor hatches: steel plates that slide open onto lava (a red warning first), then close again
+function drawHatches(c) {
+  const cr = (view && view.m && view.m.cr) || '', list = (MAPS[MAPKEY] && MAPS[MAPKEY].cracks) || [];
+  list.forEach((h, i) => {
+    const st = +cr[i] || 0;
+    if (st === 2) { drawLava(h, c); ctx.strokeStyle = 'rgba(255,120,60,0.8)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(h.x, h.y, h.r + 6, 0, TAU); ctx.stroke(); return; }
+    // the plate: dark steel, a grille across it, a rim
+    ctx.save(); ctx.beginPath(); ctx.arc(h.x, h.y, h.r, 0, TAU); ctx.fillStyle = '#202329'; ctx.fill();
+    ctx.clip(); ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 3; for (let y = -h.r; y <= h.r; y += 18) { ctx.beginPath(); ctx.moveTo(h.x - h.r, h.y + y); ctx.lineTo(h.x + h.r, h.y + y); ctx.stroke(); }
+    if (st === 1) { const k = 0.5 + 0.5 * Math.sin(c * 10); ctx.fillStyle = `rgba(255,70,30,${0.12 + 0.25 * k})`; ctx.fillRect(h.x - h.r, h.y - h.r, h.r * 2, h.r * 2); }
+    ctx.restore();
+    ctx.strokeStyle = st === 1 ? `rgba(255,90,40,${0.6 + 0.4 * Math.sin(c * 10)})` : 'rgba(90,96,106,0.9)'; ctx.lineWidth = st === 1 ? 4 : 3; ctx.beginPath(); ctx.arc(h.x, h.y, h.r + 3, 0, TAU); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.08)'; for (let k = 0; k < 4; k++) { const a = k / 4 * TAU + Math.PI / 4; ctx.beginPath(); ctx.arc(h.x + Math.cos(a) * (h.r - 10), h.y + Math.sin(a) * (h.r - 10), 3, 0, TAU); ctx.fill(); }
+  });
+}
 function drawCracks(c) {
   const cr = (view && view.m && view.m.cr) || '', list = (MAPS[MAPKEY] && MAPS[MAPKEY].cracks) || [];
   list.forEach((h, i) => {
@@ -9731,6 +9780,7 @@ function drawArena() {
   for (const h of HAZ) if (h.type === 'lava') drawLava(h, c);
   for (const h of HAZ) if (h.type === 'pit' && (THEME.water || h.water)) drawWaterGlints(h, c);
   if (THEME.water) drawCracks(c);
+  if (THEME.hatch) drawHatches(c);
   if (HEAL) drawSpring(c);
   drawMapMech(ctx, mechDrawT, false);
   if (THEME.night) drawNightLights(c);
@@ -10297,6 +10347,15 @@ function drawPlayer(p, isMe, bare) {
       for (let i = 0; i < 1; i++) if (Math.random() < n) fx.parts.push({ x: p.x + rand(-R, R) * 0.8 - (p.vx || 0) * 0.04, y: p.y + rand(-R, R) * 0.8 - (p.vy || 0) * 0.04, vx: -(p.vx || 0) * 0.15 + rand(-10, 10), vy: -(p.vy || 0) * 0.15 + rand(-12, 6), life: 0, max: rand(0.5, 0.9), color: Math.random() < 0.7 ? 'rgba(220,244,255,0.32)' : 'rgba(255,255,255,0.45)', r: rand(1.6, 3.2) * (0.7 + 0.5 * k) });
     }
   }
+  if (p.swd && !p.f) { // Second Wind: a green rush, and a trail behind as they run
+    ctx.strokeStyle = `rgba(125,255,154,${0.35 + 0.25 * Math.sin(gclock * 16)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, R + 4, 0, TAU); ctx.stroke();
+    const sp = Math.hypot(p.vx || 0, p.vy || 0); if (sp > 60 && Math.random() < 0.6) fx.parts.push({ x: p.x - (p.vx / sp) * R + rand(-4, 4), y: p.y - (p.vy / sp) * R + rand(-4, 4), vx: -p.vx * 0.15, vy: -p.vy * 0.15, life: 0, max: 0.35, color: '#7dff9a', r: rand(1.5, 3) });
+  }
+  if (p.hr > 0 && p.hrx != null && !p.f) { // Hit and Run: a faint line back to where they'll snap to, and the spot itself
+    ctx.save(); ctx.setTransform(DPR * VS, 0, 0, DPR * VS, OX, OY);
+    ctx.strokeStyle = 'rgba(201,179,255,0.35)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 8]); ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.hrx, p.hry); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle = `rgba(201,179,255,${0.5 + 0.3 * Math.sin(gclock * 8)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(p.hrx, p.hry, R * 0.8, 0, TAU); ctx.stroke(); ctx.restore();
+  }
   if (p.bu && !p.f) {
     ctx.strokeStyle = `rgba(255,138,61,${0.4 + 0.3 * Math.sin(gclock * 20)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, R + 3, 0, TAU); ctx.stroke();
     if (Math.random() < 0.3) fx.parts.push({ x: p.x + rand(-8, 8), y: p.y + rand(-8, 8), vx: rand(-20, 20), vy: rand(-60, -20), life: 0, max: 0.5, color: Math.random() < 0.5 ? '#ff6a2b' : '#ffcf5a', r: rand(1, 2.5) });
@@ -10307,6 +10366,7 @@ function drawPlayer(p, isMe, bare) {
     const w = 38, y = p.y - R - 12, farmBars = tagMode() === 'bars';
     ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(p.x - w / 2, y, w, 4);
     ctx.fillStyle = TEAM_COL[p.tm] || p.c; ctx.fillRect(p.x - w / 2, y, w * clamp(p.hp / (p.mh || 100), 0, 1), 4);
+    if (p.rc > 0) { const h0 = clamp(p.hp / (p.mh || 100), 0, 1); ctx.fillStyle = 'rgba(190,255,215,0.5)'; ctx.fillRect(p.x - w / 2 + w * h0, y, w * clamp(p.rc / (p.mh || 100), 0, 1 - h0), 4); } // (Second Wind: reclaimable)
     if (p.hp < 30) { ctx.fillStyle = `rgba(255,255,255,${0.35 + 0.3 * Math.sin(gclock * 10)})`; ctx.fillRect(p.x - w / 2, y, w * clamp(p.hp / (p.mh || 100), 0, 1), 4); }
     if (farmBars) { /* the clip farm, health bars only */ } else {
     ctx.font = "600 12px 'Titillium Web', 'Segoe UI', sans-serif"; ctx.textAlign = 'center';
@@ -11199,6 +11259,17 @@ const BIO_ART = {
   beach: { wall: '#8a6440', wallHi: '#b08758', wallLo: '#5c4128', floor: 'rgba(214,190,140,0.5)', roof: '#6b4a2c', trim: '#f2e6cc', style: 'palisade', house: '#c9a36c', roofA: '#a67c4e', roofB: '#8a6440', tint: 'rgba(255,240,200,0.18)' },
   desert: { wall: '#d7b27a', wallHi: '#efd3a0', wallLo: '#a8834e', floor: 'rgba(230,200,150,0.55)', roof: '#f3ead6', trim: '#3f6fb0', style: 'sandstone', house: '#d9b483', roofA: '#e6c797', roofB: '#c9a26c', tint: 'rgba(255,200,120,0.24)' },
 };
+// the Terminator's arena: dark steel and grit, lava in the sumps, embers in the air
+THEMES.factory = Object.assign({}, THEMES.rift, {
+  forest: '#0c0d10', canopy: ['#15171c', '#1b1e24', '#22262d', '#101216'], canopyHi: 'rgba(255,80,30,0.05)',
+  ground: '#2b2e34', patchA: 'rgba(70,74,82,0.28)', patchB: 'rgba(10,11,14,0.4)', patchBase: 'rgba(43,46,52,0)', sun: 'rgba(255,120,40,0.03)',
+  blades: ['#1c1e23', '#3a3d45', '#44474f', '#15171b'], ground2: 'pebbles', flowers: 0, fairy: false,
+  dirt: '#1d1f24', dirtDark: '#0e0f12', pitIn: '#000000', pitOut: '#1a0906', roots: 'rgba(255,90,30,0.25)',
+  rock: '#2a2d33', rockLight: '#454951', basalt: '#17191d', scorch: 'rgba(0,0,0,0.6)',
+  boulder: '#3c4049', boulderLight: '#5a5f69', moss: null, metal: true,
+  border: 'rock', wall: '#111317', wallMid: '#1c1f25', wallLight: '#2e323a',
+  ambient: 'embers', leafCols: ['#ff8a3d', '#ffcf5a', '#ff6a2b', '#ff4d2b'], hatch: true,
+});
 THEMES.jungle = Object.assign({}, THEMES.meadow, {
   forest: '#0e2412', canopy: ['#17401c', '#1d5222', '#246128', '#133618'], canopyHi: 'rgba(160,230,120,0.10)',
   ground: '#3e7a2e', patchA: 'rgba(90,160,60,0.28)', patchB: 'rgba(20,60,20,0.30)', patchBase: 'rgba(62,122,46,0)',
@@ -11581,13 +11652,93 @@ function drawChest(h, own) {
   if (mine && !had) { ctx.font = "700 12px 'Rajdhani', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center'; ctx.fillStyle = '#ffe9a8'; ctx.fillText('UPGRADE CHEST', 0, -20); }
   ctx.restore();
 }
+// the Terminator and its machines: steel, a red eye, and the mode's own gear
+function drawMachine(p) {
+  const R = p.rz || 16, tm = view && view.m.tm, boss = p.nk === 'term', mode = p.nm;
+  let sc = p.f > 0 ? Math.max(0, 1 - p.f / 0.6) : 1; if (sc <= 0) return;
+  const spin = clock * 2;
+  // tells, on the ground round it (before the save, so they're in world space)
+  if (boss && !p.f) {
+    const pulse = 0.35 + 0.25 * Math.sin(clock * 20);
+    ctx.save(); ctx.translate(p.x, p.y);
+    if (p.nw === 'rush' || p.nw === 'dash') { ctx.rotate(p.a); ctx.fillStyle = `rgba(255,70,60,${p.nw === 'dash' ? 0.2 : pulse})`; ctx.fillRect(R, -R * 0.8, 470, R * 1.6); ctx.strokeStyle = 'rgba(255,90,70,0.9)'; ctx.lineWidth = 2; ctx.strokeRect(R, -R * 0.8, 470, R * 1.6); }
+    else if (p.nw === 'clap') { ctx.rotate(p.a); ctx.fillStyle = `rgba(255,70,60,${pulse})`; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, 190, -1.1, 1.1); ctx.closePath(); ctx.fill(); }
+    else if (p.nw === 'summon') { ctx.strokeStyle = `rgba(120,200,255,${0.5 + 0.4 * Math.sin(clock * 12)})`; ctx.lineWidth = 3; ctx.setLineDash([8, 10]); ctx.beginPath(); ctx.arc(0, 0, R + 40 + 10 * Math.sin(clock * 6), 0, TAU); ctx.stroke(); ctx.setLineDash([]); }
+    else if (p.nw === 'barrage') { ctx.strokeStyle = `rgba(255,170,60,${0.5 + 0.4 * Math.sin(clock * 14)})`; ctx.lineWidth = 3; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(0, 0, R + 14 + i * 14 + (clock * 60) % 14, 0, TAU); ctx.stroke(); } }
+    if (tm && tm.pl) { const ph = tm.pl, k = ph === 'wave' ? 1 : 0.6; ctx.strokeStyle = ph === 'wave' ? `rgba(255,80,60,${0.5 + 0.4 * Math.sin(clock * 18)})` : `rgba(140,120,255,${0.4 + 0.3 * Math.sin(clock * 10)})`; ctx.lineWidth = 3; ctx.setLineDash([10, 12]); ctx.beginPath(); ctx.arc(0, 0, ph === 'wave' ? 250 : 620, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+      if (ph === 'pull') for (let i = 0; i < 12; i++) { const a = i / 12 * TAU + spin, d = 620 - ((clock * 400 + i * 50) % 560); ctx.fillStyle = 'rgba(160,140,255,0.6)'; ctx.beginPath(); ctx.arc(Math.cos(a) * d, Math.sin(a) * d, 3, 0, TAU); ctx.fill(); } void k; }
+    if (tm && tm.an) { ctx.strokeStyle = `rgba(255,200,80,${0.6 + 0.3 * Math.sin(clock * 6)})`; ctx.lineWidth = 4; for (let i = 0; i < 4; i++) { const a = i / 4 * TAU + Math.PI / 4; ctx.beginPath(); ctx.moveTo(Math.cos(a) * (R + 4), Math.sin(a) * (R + 4)); ctx.lineTo(Math.cos(a) * (R + 30), Math.sin(a) * (R + 30)); ctx.stroke(); } }
+    ctx.restore();
+  }
+  ctx.save(); ctx.translate(p.x, p.y); if (p.f > 0) { ctx.rotate(p.f * 8); ctx.globalAlpha = Math.pow(sc, 1.4); } ctx.scale(sc, sc);
+  if (p.iv) ctx.globalAlpha *= 0.6;
+  if (!p.f) { ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(4, 7, R * 1.15, R * 0.85, 0, 0, TAU); ctx.fill(); }
+  // the shield (Artillery) and the winded flash (Juggernaut)
+  if (boss && tm && tm.sd) { ctx.fillStyle = `rgba(120,200,255,${0.12 + 0.06 * Math.sin(clock * 5)})`; ctx.strokeStyle = 'rgba(140,210,255,0.6)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, R + 14, 0, TAU); ctx.fill(); ctx.stroke(); }
+  if (boss && tm && tm.wd) { ctx.fillStyle = `rgba(255,220,80,${0.25 + 0.2 * Math.sin(clock * 16)})`; ctx.beginPath(); ctx.arc(0, 0, R + 10, 0, TAU); ctx.fill(); }
+  ctx.save(); ctx.rotate(p.a);
+  const steel = '#6d737d', dark = '#2b2f36', lit = '#9aa3ad', red = '#ff3b2b';
+  if (boss) {
+    if (mode === 'juggernaut') { // shoulder plates and a ram
+      ctx.fillStyle = dark; ctx.strokeStyle = '#0d0e10'; ctx.lineWidth = 2;
+      for (const sgn of [-1, 1]) { ctx.beginPath(); ctx.ellipse(-R * 0.2, sgn * R * 0.95, R * 0.55, R * 0.4, 0, 0, TAU); ctx.fill(); ctx.stroke(); }
+      ctx.fillStyle = lit; ctx.beginPath(); ctx.moveTo(R * 0.6, -R * 0.5); ctx.lineTo(R + 16, -R * 0.25); ctx.lineTo(R + 16, R * 0.25); ctx.lineTo(R * 0.6, R * 0.5); ctx.closePath(); ctx.fill(); ctx.stroke();
+    } else if (mode === 'hunter') { // a long bow out front, and a crossbow on each arm
+      const pull = p.dr ? 6 + 12 * (p.ch || 0) : 0;
+      ctx.strokeStyle = '#3a3d45'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(R * 0.4, 0, R + 8, -1.15, 1.15); ctx.stroke();
+      const ex = R * 0.4 + Math.cos(1.15) * (R + 8), ey = Math.sin(1.15) * (R + 8);
+      ctx.strokeStyle = 'rgba(255,120,80,0.9)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ex, -ey); ctx.lineTo(ex - pull, 0); ctx.lineTo(ex, ey); ctx.stroke();
+      ctx.restore(); ctx.save();
+      for (const [a, sgn] of [[p.a, -1], [p.na != null ? p.na : p.a, 1]]) { ctx.save(); ctx.rotate(a); ctx.translate(R * 0.3, sgn * (R + 4)); ctx.fillStyle = dark; ctx.fillRect(-4, -3, R + 6, 6); ctx.fillStyle = lit; ctx.fillRect(R - 4, -7, 4, 14); ctx.restore(); }
+      ctx.rotate(p.a);
+    } else if (mode === 'artillery') { // launcher tubes on the back
+      ctx.fillStyle = dark; ctx.strokeStyle = '#0d0e10'; ctx.lineWidth = 1.5;
+      for (const sgn of [-1, 1]) { ctx.beginPath(); ctx.rect(-R * 1.1, sgn * R * 0.45 - 5, R * 0.9, 10); ctx.fill(); ctx.stroke(); ctx.fillStyle = red; ctx.beginPath(); ctx.arc(-R * 1.1, sgn * R * 0.45, 3, 0, TAU); ctx.fill(); ctx.fillStyle = dark; }
+    } else if (mode === 'summoner') { // an antenna and a ring of ports
+      ctx.strokeStyle = lit; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-R * 0.5, 0); ctx.lineTo(-R - 18, 0); ctx.stroke(); ctx.fillStyle = `rgba(120,200,255,${0.6 + 0.4 * Math.sin(clock * 8)})`; ctx.beginPath(); ctx.arc(-R - 18, 0, 4, 0, TAU); ctx.fill();
+    } else if (mode === 'magnet') { // a coil ring
+      ctx.strokeStyle = `rgba(160,140,255,${0.7 + 0.3 * Math.sin(clock * 6)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, R + 7, 0, TAU); ctx.stroke();
+      for (let i = 0; i < 8; i++) { const a = i / 8 * TAU + spin; ctx.fillStyle = '#b8a8ff'; ctx.beginPath(); ctx.arc(Math.cos(a) * (R + 7), Math.sin(a) * (R + 7), 2.5, 0, TAU); ctx.fill(); }
+    }
+  } else if (p.nk === 'drone') { // a small archer
+    const pull = p.dr ? 4 + 8 * (p.ch || 0) : 0;
+    ctx.strokeStyle = '#3a3d45'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(R * 0.3, 0, R + 3, -1.1, 1.1); ctx.stroke();
+    const ex = R * 0.3 + Math.cos(1.1) * (R + 3), ey = Math.sin(1.1) * (R + 3); ctx.strokeStyle = 'rgba(255,120,80,0.9)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ex, -ey); ctx.lineTo(ex - pull, 0); ctx.lineTo(ex, ey); ctx.stroke();
+  } else if (p.nk === 'scuttler') { // legs
+    ctx.strokeStyle = dark; ctx.lineWidth = 2; for (let i = 0; i < 3; i++) { const a = 0.5 + i * 0.5, w = Math.sin(clock * 18 + i) * 3; for (const sgn of [-1, 1]) { ctx.beginPath(); ctx.moveTo(Math.cos(a) * R * 0.6, sgn * Math.sin(a) * R * 0.6); ctx.lineTo(Math.cos(a) * (R + 7) + w, sgn * Math.sin(a) * (R + 7)); ctx.stroke(); } }
+  }
+  ctx.restore();
+  // the body: a steel disc with a dark plate and one red eye; the medic has a green cross
+  ctx.fillStyle = boss ? steel : p.nk === 'medic' ? '#7f8a96' : '#5e656e'; ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.fill();
+  ctx.strokeStyle = '#0d0e10'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = dark; ctx.beginPath(); ctx.arc(0, 0, R * 0.62, 0, TAU); ctx.fill();
+  if (boss) { ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 1; for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; ctx.beginPath(); ctx.moveTo(Math.cos(a) * R * 0.62, Math.sin(a) * R * 0.62); ctx.lineTo(Math.cos(a) * R, Math.sin(a) * R); ctx.stroke(); } }
+  ctx.save(); ctx.rotate(p.a);
+  if (p.nk === 'medic') { ctx.fillStyle = '#7dff8a'; ctx.fillRect(-2, -R * 0.4, 4, R * 0.8); ctx.fillRect(-R * 0.4, -2, R * 0.8, 4); }
+  else if (boss) { // two eyes, red and lit, narrowed when it's about to strike
+    const nar = p.nw ? 0.55 : 1, e = R * 0.19; ctx.shadowColor = red; ctx.shadowBlur = 14;
+    for (const sgn of [-1, 1]) { ctx.fillStyle = '#2a0806'; ctx.beginPath(); ctx.ellipse(R * 0.32, sgn * R * 0.3, e * 1.5, e * 1.15 * nar, 0, 0, TAU); ctx.fill(); ctx.fillStyle = red; ctx.beginPath(); ctx.ellipse(R * 0.36, sgn * R * 0.3, e * 1.05, e * 0.75 * nar, 0, 0, TAU); ctx.fill(); ctx.fillStyle = '#ffd0c0'; ctx.beginPath(); ctx.arc(R * 0.44, sgn * R * 0.3 - e * 0.25, e * 0.28, 0, TAU); ctx.fill(); }
+    ctx.shadowBlur = 0;
+  } else { const eye = 3; ctx.fillStyle = red; ctx.shadowColor = red; ctx.shadowBlur = 10; ctx.beginPath(); ctx.ellipse(R * 0.3, 0, eye * 1.6, eye, 0, 0, TAU); ctx.fill(); ctx.shadowBlur = 0; }
+  ctx.restore();
+  if (p.bu && !p.f) { ctx.strokeStyle = `rgba(255,138,61,${0.4 + 0.3 * Math.sin(gclock * 20)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, R + 3, 0, TAU); ctx.stroke(); }
+  ctx.restore();
+  // name and health (the boss's health is on the big bar at the top instead)
+  if (!p.f && !boss && tagMode() !== 'none') {
+    const w = 30, y = p.y - R - 10;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(p.x - w / 2, y, w, 3); ctx.fillStyle = '#ff6a5a'; ctx.fillRect(p.x - w / 2, y, w * clamp(p.hp / (p.mh || 100), 0, 1), 3);
+  }
+  if (boss && !p.f) { ctx.font = "700 13px 'Rajdhani', sans-serif"; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillText(p.n.toUpperCase(), p.x + 1, p.y - R - 10); ctx.fillStyle = '#ff6a5a'; ctx.fillText(p.n.toUpperCase(), p.x, p.y - R - 11); }
+}
 const FACTION = {
   castle: { body: '#9aa3b2', trim: '#3d5a9e', head: 'helm' },
   jungle: { body: '#5c8a3a', trim: '#c9a227', head: 'leaves' },
   beach: { body: '#2f6f8f', trim: '#e8e2d0', head: 'bandana' },
   desert: { body: '#efe2c4', trim: '#2f4f9e', head: 'wrap' },
 };
+const TERM_HINT = { hunter: 'Light and quick. Hits from behind hurt it; knock it into the lava', summoner: 'Kill the repair drones. It\'s open while it calls machines in', juggernaut: 'Armoured in front: get behind it. A rush into a wall winds it', artillery: 'Shielded, except while it calls a barrage in', magnet: 'Put a pillar between you and it' };
 function drawNpc(p) {
+  if (p.nk === 'term' || p.nk === 'scuttler' || p.nk === 'drone' || p.nk === 'medic') return drawMachine(p);
   const R = p.rz || 16, F = FACTION[p.bi] || FACTION.castle;
   if (p.tw && !p.f) { ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(p.x + 2, p.y + 3, R + 3, R * 0.8, 0, 0, TAU); ctx.fill(); }
   let sc = p.f > 0 ? Math.max(0, 1 - p.f / 0.6) : 1; if (sc <= 0) return;
@@ -11746,6 +11897,28 @@ function drawMinimap(v, me) {
   ctx.strokeRect(mx + (-OX / VS) * k, my + (-OY / VS + 64 / VS) * k, (W - camRight()) / VS * k, (H - 64) / VS * k);
   ctx.restore();
 }
+// the Terminator (a preview, admin only): you, any local players, and hard AI teammates to make four, against the machine.
+// Its level comes from your rating (1 to 5 across the rating range) unless ?termlv= says otherwise
+function startTerminator() {
+  initAudio(); closeSubs();
+  notice('Powering up the machine…', true, '#ff6a5a');
+  setTimeout(() => {
+    const elo = (account && account.career && (account.career.elo || account.career.eloT)) || 1000, lv = clamp(+params.get('termlv') || Math.round(1 + (elo - 900) / 150), 1, 5);
+    const mapKey = MAPS[params.get('termmap')] ? params.get('termmap') : 'terminator'; // (?termmap=reach: the machine on another arena, for testing)
+    world = Sim.createWorld({ map: mapKey, diff: 'hard', term: true, termLv: lv, termOnly: params.get('termonly') || null, opt: { mspeed: 100, effect: 'none' } });
+    setArena(mapKey);
+    try { buildFloor(); } catch (e) { clientError(e, 'paint'); }
+    const me = Sim.join(world, { name: playerName(), team: 'red', element: myLoadout().el, role: myLoadout().ro });
+    for (const l of LP.list) { l.pid = null; l.team = null; lpJoinLocal(l); }
+    for (const p of world.players) if (!p.npc && p.id !== me.id) Sim.setTeam(world, p.id, 'red');
+    while (world.players.filter(p => !p.npc).length < 4) { const b = Sim.addBot(world, 'red'); b.dparams = Sim.skillParams(1); }
+    Sim.startMatch(world);
+    world.events.length = 0;
+    myId = me.id; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {}; CAM.init = false; CAM.uz = 1;
+    setScreens();
+    setTimeout(() => notice(`Terminator, level ${lv}: it changes mode every 40 seconds, and each mode has a weakness. Your team shares ${Sim.TM.LIVES + 4} lives; any teammate can revive you. Scroll or press + / − to zoom.`, true, '#ff6a5a'), 600);
+  }, 40);
+}
 function startStrongholds() {
   initAudio(); closeSubs();
   notice('Raising the strongholds…', true, '#ffcf5a');
@@ -11805,7 +11978,9 @@ function updateHud() {
   if (draft) { renderDraft(view); $('death').hidden = $('countdown').hidden = $('pickScreen').hidden = true; return; }
   if (lobby) { renderLobby(view); $('death').hidden = $('countdown').hidden = $('pickScreen').hidden = true; return; }
   if (menuOpen) renderMenu(view);
-  setC('hp', me.hp + '/' + me.mh, () => { const pct = clamp(me.hp / me.mh * 100, 0, 100); $('hpFill').style.width = pct + '%'; $('hpFill').classList.toggle('low', pct < 30); $('hpText').textContent = me.hp; });
+  setC('hp', me.hp + '/' + me.mh + '/' + (me.rc || 0), () => { const pct = clamp(me.hp / me.mh * 100, 0, 100); $('hpFill').style.width = pct + '%'; $('hpFill').classList.toggle('low', pct < 30); $('hpText').textContent = me.hp;
+    // Second Wind: what's still there to be had back, pale, just past the health
+    const rc = $('hpRc'); if (me.rc > 0) { rc.hidden = false; rc.style.left = pct + '%'; rc.style.width = clamp(me.rc / me.mh * 100, 0, 100 - pct) + '%'; } else rc.hidden = true; });
   const dashFrac = me.dk ? (me.dn + (me.dn < me.dk ? 1 - me.dc / (me.dm || 1.1) : 0)) / me.dk : 1 - me.dc / (me.dm || 1.1);
   const noDash = !!(view.m.opt && view.m.opt.dash === 'off');
   setC('dashLbl', me.ro + noDash, () => { $('dashLbl').textContent = (me.ro === 'ninja' ? 'Blink' : 'Dash') + (noDash ? ' (off)' : ''); $('dashFill').parentElement.style.opacity = noDash ? 0.3 : ''; });
@@ -11868,7 +12043,15 @@ function updateHud() {
   setC('mutChip', m.mut || '', () => { const ks = Sim.mutKeys(m.mut), c = $('mutChip'); c.hidden = !ks.length; if (ks.length) { const Ms = ks.map(k => Sim.MUTATORS[k]); c.textContent = Ms.map(M => M.name).join(' + '); c.title = Ms.map(M => M.name + ': ' + M.desc).join('\n'); c.style.setProperty('--mc', Ms[0].color); } });
   if (m.cq) setC('rd', 'cq' + m.ph, () => { $('rdText').textContent = m.ph === 'over' ? 'Match over' : `Strongholds · first to ${m.cq.tg}`; $('rdText').title = `Each stronghold you hold scores a point a second. First to ${m.cq.tg}, or hold all four at once, wins.`; });
   else setC('rd', m.ph === 'pick' ? (m.op ? 'Opening pick' : 'Choosing upgrades') : m.ph === 'over' ? 'Match over' : (m.ptw > 1 && m.wr === m.ptw - 1 && m.wb === m.ptw - 1 ? (m.gr === m.gtw - 1 && m.gb === m.gtw - 1 ? 'Last Arrow' : `Deciding round · Game ${m.gm}`) : `Round ${m.rd} · Game ${m.gm}`), v => { $('rdText').textContent = v; $('rdText').title = `First to ${m.gtw} games wins a round. First to ${m.ptw} points wins the match.`; });
-  setC('timer', m.cq ? m.cq.el : m.T, v => { $('timer').textContent = fmtT(v); });
+  setC('timer', m.cq ? m.cq.el : m.tm ? m.tm.el : m.T, v => { $('timer').textContent = fmtT(v); });
+  setC('termfight', !!m.tm, x => document.body.classList.toggle('termfight', x));
+  if (m.tm) { const T = m.tm;
+    setC('th', [T.hp, T.mode, T.sh, T.lives, T.mn, T.mt, m.ph].join(':'), () => {
+      const nm = Sim.TM_NAMES[T.mode] || T.mode; $('thName').innerHTML = `Terminator <small>${T.sh ? 'changing…' : esc(nm) + ' · ' + T.mt + 's'}${T.mn ? ' · ' + T.mn + ' machine' + (T.mn > 1 ? 's' : '') : ''} · level ${T.lv}</small>`;
+      $('thFill').style.width = clamp(T.hp / T.mh * 100, 0, 100) + '%'; $('thFill').className = T.sh ? 'shift' : ''; $('thPct').textContent = Math.ceil(T.hp / T.mh * 100) + '%';
+      $('thLives').innerHTML = m.ph === 'over' ? '' : `Lives left: <em>${T.lives}</em>`; $('thLives').classList.toggle('low', T.lives <= 2);
+      $('rdText').textContent = m.ph === 'over' ? 'Match over' : 'Terminator'; });
+  }
   setC('pips', view.p.map(p => p.tm + p.d).join(''), () => {
     $('pips').innerHTML = TEAMS.map(t => '<span>' + view.p.filter(p => p.tm === t && !p.nk).map(p => `<i class="pip${p.d ? ' out' : ''}" style="background:${TEAM_COL[t]}"></i>`).join('') + '</span>').join('');
   });
@@ -11904,7 +12087,12 @@ function updateHud() {
 
   const dead = !!me.d && m.ph === 'play';
   $('death').hidden = !dead;
-  if (dead && m.cq) setC('dsmall', 'cq' + me.rs + (me.kb || '') + me.lc, () => {
+  if (dead && m.tm) setC('dsmall', 'tm' + me.rs + (me.kb || '') + me.lc + m.tm.lives, () => {
+    const how = (myDeath && myDeath.how) || me.lh || me.lc;
+    $('deathBig').textContent = 'Knocked out';
+    $('deathSmall').innerHTML = (me.lc && me.lc !== 'join' ? howText(how, me.kb, 'you', false, true, myDeath && myDeath.m) + '.<br>' : '') + (m.tm.lives > 0 ? `<span class="dim">A teammate can revive you (3 s beside you), or you're back in ${me.rs || 0}s for one of the team's ${m.tm.lives} lives.</span>` : `<span class="dim">No lives left: only a teammate can revive you now.</span>`);
+  });
+  else if (dead && m.cq) setC('dsmall', 'cq' + me.rs + (me.kb || '') + me.lc, () => {
     const how = (myDeath && myDeath.how) || me.lh || me.lc;
     $('deathBig').textContent = 'Knocked out';
     $('deathSmall').innerHTML = (me.lc && me.lc !== 'join' ? howText(how, me.kb, 'you', false, true, myDeath && myDeath.m) + '.<br>' : '') + `<span class="dim">Back in ${me.rs || 0}s, at the stronghold you hold nearest where you fell (or your camp).</span>`;
@@ -11930,11 +12118,11 @@ function updateHud() {
       const ranked = mode === 'online' && !!(roomInfo && roomInfo.ranked), mine = !!me && !LP.list.length;
       // ranked: Victory or Defeat (yours); everywhere else the colour that won
       const head = $('resHead'); head.style.setProperty('--wc', ranked && mine ? (won ? 'var(--gold)' : '#c9d1dc') : TEAM_COL[m.mw]);
-      $('resTitle').textContent = ranked && mine ? (won ? 'Victory' : 'Defeat') : `${teamName(m.mw)} wins`;
+      $('resTitle').textContent = m.tm ? (m.mw === 'red' ? 'Terminated' : 'Defeat') : ranked && mine ? (won ? 'Victory' : 'Defeat') : `${teamName(m.mw)} wins`;
       $('resTitle').classList.toggle('defeat', ranked && mine && !won);
       $('resTitle').style.animation = 'none'; void $('resTitle').offsetWidth; $('resTitle').style.animation = '';
-      $('resSub').innerHTML = (ranked && mine ? `<b>${esc(teamName(m.mw))}</b> ` : mine ? (won ? '<b>Your team</b> · ' : '') : '') + (allFour ? 'holding all four strongholds' : `<b>${pts[0]}–${pts[1]}</b> on points`);
-      const winners = view.p.filter(p => p.tm === m.mw && !p.nk);
+      $('resSub').innerHTML = m.tm ? (m.mw === 'red' ? `The machine is down · ${fmtT(m.tm.el)} · level ${m.tm.lv}` : `The machine stands at <b>${Math.ceil(m.tm.hp / m.tm.mh * 100)}%</b> · ${fmtT(m.tm.el)} · level ${m.tm.lv}`) : (ranked && mine ? `<b>${esc(teamName(m.mw))}</b> ` : mine ? (won ? '<b>Your team</b> · ' : '') : '') + (allFour ? 'holding all four strongholds' : `<b>${pts[0]}–${pts[1]}</b> on points`);
+      const winners = view.p.filter(p => (m.tm ? p.tm === 'red' : p.tm === m.mw) && !p.nk);
       $('resWinners').innerHTML = winners.map((p, i) => `<div class="wn" style="--i:${i}"><canvas data-wn="${p.id}" width="168" height="168"></canvas><span>${esc(p.n)}${p.id === myId ? ' (you)' : ''}</span><small>${esc(archName(p))}</small></div>`).join('');
       $('resWinners').querySelectorAll('canvas[data-wn]').forEach(c => { const p = winners.find(q => String(q.id) === c.dataset.wn); if (p) try { drawPreview(c, p.el, p.ro, p.c); } catch (e) {} });
       if (mine) setTimeout(() => play('matchEnd', !!won), 250);
@@ -12687,8 +12875,12 @@ function clipCard(box, src, clipObj, label, onOpen, kc) { // kc: a kill cam (pla
     let P = { left: 0, top: 0, right: innerWidth, bottom: innerHeight };
     for (let el = box.parentElement; el && el !== document.body; el = el.parentElement) { const st = getComputedStyle(el); if (/(auto|scroll|hidden)/.test(st.overflow + st.overflowX + st.overflowY) || (st.clipPath && st.clipPath !== 'none')) { const q = el.getBoundingClientRect(); P = { left: Math.max(0, q.left), top: Math.max(0, q.top), right: Math.min(innerWidth, q.right), bottom: Math.min(innerHeight, q.bottom) }; break; } }
     const room = { l: r.right - P.left - 8, r: P.right - r.left - 8, d: P.bottom - r.top - 8, u: r.bottom - P.top - 8 };
-    const left = room.l > room.r, up = room.u > room.d; box.style.transformOrigin = `${left ? 'right' : 'left'} ${up ? 'bottom' : 'top'}`;
-    const k = Math.max(1, Math.min(820 / r.width, (left ? room.l : room.r) / r.width, (up ? room.u : room.d) / r.height));
+    // grow toward whichever side has the most room: leftward, rightward, or out from the middle (a card in the middle of
+    // a row has little room either side, but plenty both ways at once)
+    const cx = (r.left + r.right) / 2, mid = 2 * Math.min(cx - P.left - 8, P.right - cx - 8);
+    const hx = Math.max(room.l, room.r, mid), hor = hx === mid && mid > Math.max(room.l, room.r) ? 'center' : room.l > room.r ? 'right' : 'left', up = room.u > room.d;
+    box.style.transformOrigin = `${hor} ${up ? 'bottom' : 'top'}`;
+    const k = Math.max(1, Math.min(820 / r.width, hx / r.width, (up ? room.u : room.d) / r.height));
     box.style.setProperty('--pk', k.toFixed(3)); box.classList.add('big'); send({ bf: 'play' });
   };
   // (half a second's hover before it grows, so a mouse passing over doesn't set it jumping about)
@@ -13103,7 +13295,7 @@ const PLAY = { pending: [], pl: new Map(), list: [], match: 0, get gt() { return
 let PC = FARM; // (which one the play-spotting functions below are working for: the clip farm, or the player's own match)
 const PLAY_MIN = 4.5; // (worth showing: a double kill, a set-up or ability knockout, a roast, a harpoon pull and up)
 const pcPlayer = id => { if (PC === FARM && world) return world.players.find(q => q.id === id); const p = view && view.p.find(q => q.id === id); return p ? { name: p.n, dead: p.d } : null; };
-const playOn = () => !INFRAME && !FARM.on && myId != null && (mode === 'online' || mode === 'local') && !TUT.on && !TR.on && !DESK.sim && !(roomInfo && (roomInfo.spec || []).some(c => c.you)); // (roomInfo.spec is the list of spectators; it was read as 'am I one', which it always was, so no play was ever caught online)
+const playOn = () => !INFRAME && !FARM.on && myId != null && (mode === 'online' || mode === 'local') && !TUT.on && !TR.on && !DESK.sim && MAPKEY !== 'terminator' && !(roomInfo && (roomInfo.spec || []).some(c => c.you)); // (roomInfo.spec is the list of spectators; it was read as 'am I one', which it always was, so no play was ever caught online)
 function playMine(e) { return ['moment', 'style', 'kill', 'dmg', 'clutch', 'gameEnd', 'slam', 'deflect', 'catch', 'fire', 'throw'].includes(e.e) && !e.npc; } // (everyone's plays: the best of the game, and yours)
 function playEvents(evs) {
   for (const e of evs) if (e.e === 'matchStart') { PLAY.list = []; PLAY.pending = []; PLAY.pl = new Map(); PLAY.sl = new Map(); PLAY.near = new Map(); PLAY.fp = new Map(); PLAY.match++; PLAY.flushAt = 0; PLAY.offered = false; PLAY.shown = ''; }

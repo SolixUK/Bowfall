@@ -38,6 +38,7 @@
   .hp { width: 180px; height: 10px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; }
   .hp-fill { height: 100%; background: var(--teal); transition: width .12s; }
   .hp-fill.low { background: var(--red); }
+  .hp { position: relative; } .hp-rc { position: absolute; top: 0; height: 100%; background: rgba(190,255,215,.45); transition: width .12s, left .12s; pointer-events: none; }
   .dash { width: 54px; height: 6px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; }
   .dash-fill { height: 100%; background: var(--gold); }
   .center-stat { align-items: center; text-align: center; }
@@ -251,6 +252,13 @@
   @keyframes gsLine { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   .pchip.meter { flex-direction: row; align-items: center; gap: 8px; }
   .pips { display: flex; gap: 4px; }
+  .termhud { display: none; flex-direction: column; align-items: center; gap: 3px; width: 360px; margin-top: 2px; }
+  body.termfight .termhud { display: flex; } body.termfight .pips, body.termfight .tside { display: none; }
+  .termhud .tname { font: 700 15px 'Rajdhani', sans-serif; letter-spacing: .08em; color: #ff6a5a; text-transform: uppercase; } .termhud .tname small { color: var(--muted); font: 600 12px 'Titillium Web', sans-serif; letter-spacing: 0; text-transform: none; margin-left: 8px; }
+  .termhud .tbar { width: 100%; height: 12px; background: rgba(0,0,0,.55); border: 1px solid rgba(255,90,70,.5); position: relative; overflow: hidden; }
+  .termhud .tbar i { position: absolute; left: 0; top: 0; height: 100%; background: linear-gradient(90deg, #ff3b2b, #ff8a5a); transition: width .2s; } .termhud .tbar i.shift { background: #8ad0ff; }
+  .termhud .tbar b { position: absolute; inset: 0; font: 700 10px 'Rajdhani', sans-serif; color: #fff; text-align: center; line-height: 12px; }
+  .termhud .tlives { font: 600 12px 'Titillium Web', sans-serif; color: var(--text); } .termhud .tlives em { color: var(--gold); font-style: normal; font-weight: 700; } .termhud .tlives.low em { color: var(--red); }
   .pips i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--ec); box-sizing: border-box; }
   .pips i.on { background: var(--ec); }
   .chip2 em.new { color: #7dff8a; margin-left: 6px; }
@@ -1229,7 +1237,7 @@
   .sharepop .card { max-width: 460px; gap: 12px; }
   .shurl { display: flex; gap: 6px; } .shurl input { flex: 1; min-width: 0; }
   .shbtns { display: flex; flex-wrap: wrap; gap: 6px; } .shbtns a { text-decoration: none; }
-  .savepop a, .sharepop a, #fnBtn { text-decoration: none; }
+  .savepop a, .sharepop a, #fnBtn, #onBtn { text-decoration: none; }
   .sharepop .linkbtn { color: var(--gold); text-decoration: underline; }
   .savepop { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; background: rgba(0,0,0,.65); padding: 16px; }
   .savepop .card { max-width: 460px; gap: 12px; }
@@ -1585,13 +1593,13 @@
 
   <div class="hud" id="hud" hidden>
     <div class="hud-l">
-      <div class="stat"><span class="lbl">Health <span id="hpText"></span></span><div class="hp"><div class="hp-fill" id="hpFill"></div></div></div>
+      <div class="stat"><span class="lbl">Health <span id="hpText"></span></span><div class="hp"><div class="hp-fill" id="hpFill"></div><div class="hp-rc" id="hpRc" hidden></div></div></div>
       <div class="stat"><span class="lbl" id="dashLbl">Dash</span><div class="dash"><div class="dash-fill" id="dashFill"></div></div></div>
       <div class="stat amber-stat" style="display:none"><span class="lbl">Amber</span><span class="num" id="amberN">0</span></div>
     </div>
     <div class="score">
       <div class="tside"><span class="tscore red" id="scR">0</span><div class="gdots" id="gdR"></div></div>
-      <div class="stat center-stat"><span class="lbl" id="rdText">Round 1</span><span class="mutchip" id="mutChip" hidden></span><span class="num" id="timer">2:00</span><div class="pips" id="pips"></div></div>
+      <div class="stat center-stat"><span class="lbl" id="rdText">Round 1</span><span class="mutchip" id="mutChip" hidden></span><span class="num" id="timer">2:00</span><div class="pips" id="pips"></div><div class="termhud" id="termHud"><span class="tname" id="thName">Terminator</span><div class="tbar"><i id="thFill"></i><b id="thPct"></b></div><span class="tlives" id="thLives"></span></div></div>
       <div class="tside"><span class="tscore blue" id="scB">0</span><div class="gdots" id="gdB"></div></div>
     </div>
     <div class="hud-r">
@@ -1677,7 +1685,7 @@
         <button class="mm" id="mOpts" type="button"><span class="mmk">07</span><b>Options</b></button>
       </nav>
       <div class="homefoot">
-        <div class="btnrow"><button class="ghost sm" id="helpBtn" type="button">How to play</button><button class="ghost sm" id="achBtn" type="button">Achievements</button><button class="ghost sm" id="balBtn" type="button">Balance data</button><a class="ghost sm" id="fnBtn" href="/api/funnel?html=1" target="_blank" rel="noopener" hidden>Funnel</a><button class="ghost sm" id="sndBtn" type="button" hidden>Sound desk</button><button class="ghost sm" id="farmBtn" type="button" hidden title="AI players fight each other for you to record: trailers, promos, highlight clips">Clip farm</button></div>
+        <div class="btnrow"><button class="ghost sm" id="helpBtn" type="button">How to play</button><button class="ghost sm" id="achBtn" type="button">Achievements</button><button class="ghost sm" id="balBtn" type="button">Balance data</button><a class="ghost sm" id="fnBtn" href="/api/funnel?html=1" target="_blank" rel="noopener" hidden>Funnel</a><a class="ghost sm" id="onBtn" href="/api/online?html=1" target="_blank" rel="noopener" hidden>Online now</a><button class="ghost sm" id="sndBtn" type="button" hidden>Sound desk</button><button class="ghost sm" id="farmBtn" type="button" hidden title="AI players fight each other for you to record: trailers, promos, highlight clips">Clip farm</button></div>
         <div class="sitelinks" id="siteLinks" hidden><a href="/">Website</a><a href="/#/leaderboard">Leaderboard</a><a href="/#/forum">Forum</a></div>
         <span class="ver" id="verHome"></span>
       </div>
@@ -1769,7 +1777,7 @@
   <div class="overlay sub" id="customScr" hidden>
     <div class="card wide">
       <div class="shopbar"><div class="stat"><span class="eyebrow">Play</span><h2>Custom games</h2></div>
-        <div class="btnrow" data-navsec><button class="cta" type="button" data-ol="host" id="hostBtn">Host custom game</button><button class="ghost" type="button" id="pracBtn" title="Play against bots right here in your browser, no server needed">Practice vs bots</button><button class="ghost" type="button" id="cqBtn" hidden title="A big map of four castles held by NPCs: capture them to win. A preview you can try on your own (and with players on controllers)">Strongholds (preview)</button><button class="ghost" type="button" id="arenaBtn" title="Build your own arena, test it against bots, share it with a code, or play the community's">Arena builder</button><button class="ghost" type="button" data-back>Back</button></div></div>
+        <div class="btnrow" data-navsec><button class="cta" type="button" data-ol="host" id="hostBtn">Host custom game</button><button class="ghost" type="button" id="pracBtn" title="Play against bots right here in your browser, no server needed">Practice vs bots</button><button class="ghost" type="button" id="cqBtn" hidden title="A big map of four castles held by NPCs: capture them to win. A preview you can try on your own (and with players on controllers)">Strongholds (preview)</button><button class="ghost" type="button" id="tmBtn" hidden title="You and three AI teammates against one machine with five modes. A preview, admin only for now">Terminator (preview)</button><button class="ghost" type="button" id="arenaBtn" title="Build your own arena, test it against bots, share it with a code, or play the community's">Arena builder</button><button class="ghost" type="button" data-back>Back</button></div></div>
       <div id="onlineOn" class="olpane">
         <div id="olHost" class="olpane hostpanel" data-navsec hidden>
           <h3>Host custom game</h3>
@@ -2274,7 +2282,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.79.6';
+const VERSION = '0.81.1';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -2820,6 +2828,7 @@ function updateCracks(w) {
   if (!MAP.cracks.length) return;
   const el = TIMES.game - w.match.T;
   MAP.cracks.forEach((c, i) => {
+    if (c.hatch) return; // (the Terminator arena's hatches open and close on their own cycle)
     const st = w.cracks[i] || 0;
     if (st === 0 && el >= c.at - CRACK_WARN) { w.cracks[i] = 1; ev(w, { e: 'crackWarn', i }); }
     else if (st === 1 && el >= c.at) { w.cracks[i] = 2; ev(w, { e: 'crackOpen', i }); }
@@ -3178,7 +3187,7 @@ const ROLES = {
     trait: { name: 'Hunter', desc: 'Abilities recharge 40% faster, and hits on rooted, stuck or frozen enemies deal 25% more damage and knock back 30% harder.' } },
 };
 ROLES.assassin = { name: 'Assassin', cat: 'Agility', blurb: 'Vanish, get close, and strike first.', premium: true,
-  trait: { name: 'Backstab', desc: 'Arrows that hit an enemy from behind deal 40% more damage and knock back 30% harder. Your first arrow out of stealth deals 50% more damage and stuns for 1 second. 10 less health.' } };
+  trait: { name: 'Backstab', desc: 'Arrows that hit an enemy from behind deal 40% more damage and knock back 30% harder. 10 less health.' } };
 ROLES.ninja = { name: 'Ninja', cat: 'Agility', blurb: 'Blink in, strike fast, blink out.', premium: true,
   trait: { name: 'Shadowstep', desc: "No bow: hold to wind up a shuriken and let go to throw it (a full wind-up takes under half a second). The longer you wind up, the faster, further and harder it flies. Shuriken are for close range: they slow down fast and hurt less the further they fly (about 300px at full wind-up); a fully wound shuriken, or any bullseye, counts as a fully drawn shot for your upgrades. Your dash is a near-instant blink toward your cursor instead: about 150px, straight over pits and lava, and it recharges in under a second. 10 less health, and you take 10% more knockback." } };
 ROLES.crossbow = { name: 'Crossbowman', cat: 'Power', blurb: 'Point and shoot: no drawing, shorter reach.', premium: true,
@@ -3222,7 +3231,12 @@ const TREE = {
   nullfield: { tree: 'void', name: 'Null Field', desc: "Enemies inside your rifts can't dash.", req: ['rift'] },
   unstable:  { tree: 'void', trade: true, name: 'Unstable Rift', desc: 'Rifts are 50% bigger, but your arrows deal 8% less damage.', req: ['rift'] },
   blink:     { tree: 'assassin', active: { cd: 8 }, name: 'Blink', desc: "Vanish and reappear up to 300px toward your cursor, straight over pits and lava, and draw three times as fast for 1.5 seconds. Doesn't break stealth." },
-  stealth:   { tree: 'assassin', active: { cd: 14 }, name: 'Stealth', desc: 'Vanish for 6 seconds and move 30% faster. Enemies only see a faint shimmer when close. Shooting, abilities, dashing or being hit by an arrow ends it (burns and poison don\'t).' },
+  stealth:   { tree: 'assassin', active: { cd: 14 }, name: 'Stealth', desc: 'Vanish for 6 seconds and move 30% faster (using it lets your bow down, so it never cancels on a half-drawn shot). Enemies only see a faint shimmer when close. Shooting, abilities, dashing or being hit by an arrow ends it (burns and poison don\'t). Your first arrow out of stealth deals 50% more damage and stuns for 1 second.' },
+  hitrun:    { tree: 'assassin', active: { cd: 14 }, name: 'Hit and Run', desc: 'Blink up to 300px along your aim and loose arrows as fast as you can pull the string for 2.5 seconds (one every 0.25 seconds, each half a full draw\'s damage and knockback), then blink straight back to where you cast it.' },
+  secondwind:{ tree: 'assassin', active: { cd: 12 }, name: 'Second Wind', desc: 'Damage you took in the last 2 seconds shows pale on your health bar, draining away. Use it to get all of that health back at once, and move 35% faster for 2.5 seconds.' },
+  escape:    { tree: 'assassin', name: 'Escape Artist', desc: 'The first time each round you drop below 25% health, you drop a smoke cloud where you stand (120px across each way, 4 seconds).' },
+  afterimage:{ tree: 'assassin', name: 'Afterimage', desc: 'Going into stealth leaves a shadow of you that keeps walking the way you were going for 1.5 seconds.', req: ['stealth'] },
+  vanish:    { tree: 'assassin', name: 'Vanishing Act', desc: 'A knockout takes 6 seconds off your Stealth cooldown.', req: ['stealth'] },
   ambush:    { tree: 'assassin', name: 'Ambush', desc: 'For 2.5 seconds after stealth ends, your bow draws 60% faster.', req: ['stealth'] },
   shadowdash:{ tree: 'assassin', name: 'Shadow Dash', desc: "Dashing doesn't end stealth, and your dash recharges twice as fast while stealthed.", req: ['stealth'] },
   cloak:     { tree: 'assassin', trade: true, name: 'Cloak and Dagger', desc: 'Stealth lasts 9 seconds, but you have 10 less health.', req: ['stealth'] },
@@ -3344,7 +3358,8 @@ const BRIEF = {
   stone: 'Hits stagger: less draw, more knockback.', boulder: 'Full-draw arrows knock back 30% harder.', aftershock: 'Full-draw hits shove nearby enemies away.',
   petrify: "Staggered enemies can't dash.", obsidian: 'Knockback +30%. Arrows 8% slower.', void: 'Hits mark them; your arrows curve toward marks.', rift: 'Full-draw hits open a rift that pulls enemies in.', gravity: 'Your arrows pull nearby enemies toward them.',
   horizon: 'Bigger, stronger, longer rifts.', collapse: 'Rifts burst outward when they end.', nullfield: "Enemies in your rifts can't dash.", unstable: 'Rifts 50% bigger. Arrows −8% damage.',
-  blink: 'Teleport 300px and draw 3× faster briefly.', stealth: 'Vanish for 6s and move faster.', ambush: 'Draw 60% faster right after stealth.',
+  blink: 'Teleport 300px and draw 3× faster briefly.', stealth: 'Vanish for 6s and move faster; first arrow out stuns.', ambush: 'Draw 60% faster right after stealth.',
+  hitrun: 'Blink in, rapid-fire 2.5s, blink back.', secondwind: 'Regain the last 2s of damage, and speed.', escape: 'Below 25% health: drop a smoke cloud.', afterimage: 'Stealth leaves a walking shadow.', vanish: 'Knockouts cut Stealth cooldown by 6s.',
   shadowdash: "Dashing doesn't break stealth.", cloak: 'Stealth lasts 9s. −10 health.', quickfeet: '8% faster, less damage from behind.',
   deathmark: 'First hit after stealth: +30% damage taken.', shadow: 'Hits stack shades that burst for damage.', eclipse: 'Drop darkness: enemies inside see little.',
   gloom: 'Shades slow them; bursts slow more.', dread: 'Shade bursts throw them away from you.', blood: 'Damage heals you. Hit harder when hurt.',
@@ -3452,7 +3467,7 @@ function createWorld(cfg = {}) {
     t: 0, nid: 1, players: [], arrows: [], pickups: [], zones: [], events: [], amberT: 2, puT: 8,
     cfg: {
       pointsToWin: cfg.pointsToWin === 5 ? 5 : 3, gamesToWin: 2, // each round is best of three games
-      diff: DIFF[cfg.diff] ? cfg.diff : 'normal', map: MAPS[cfg.map] ? cfg.map : 'meadow',
+      diff: DIFF[cfg.diff] ? cfg.diff : 'normal', map: MAPS[cfg.map] ? cfg.map : 'meadow', termLv: clamp(+cfg.termLv || 3, 1, 5), termOnly: cfg.termOnly || null, term: !!cfg.term, // (termLv: the Terminator's difficulty; termOnly: one mode, for testing; term: the Terminator on any arena)
       opt: Object.assign(optDefaults(), cfg.opt || {}), mut: null,
     },
     // a match is won on points; each round (1 point) is won by the first team to win 2 games (best of three)
@@ -3629,6 +3644,8 @@ function setPointsToWin(w, n) { if (w.match.ph !== 'lobby' || ![3, 5].includes(+
 function canStart(w) { useMap(w); return MAP.mode === 'conquest' ? w.players.some(p => !p.npc && TEAMS.includes(p.team)) : teamCount(w, 'red') > 0 && teamCount(w, 'blue') > 0; }
 function startMatch(w) {
   useMap(w);
+  if ((MAP.mode === 'terminator' || w.cfg.term) && w.match.ph === 'lobby' && w.players.some(p => !p.npc)) { tmStart(w); return true; }
+  useMap(w);
   if (w.match.ph !== 'lobby' || !canStart(w)) return false;
   resetMatch(w);
   return true;
@@ -3638,7 +3655,7 @@ function toLobby(w) {
   const M = w.match;
   M.ph = 'lobby'; M.T = 0; M.rd = 1; M.gm = 1; M.wins = { red: 0, blue: 0 }; M.gw = { red: 0, blue: 0 }; M.picks = 0; M.opening = false; M.rw = null; M.mw = null;
   w.arrows = []; w.pickups = []; w.zones = []; w.cracks = []; useMap(w);
-  w.players = w.players.filter(p => !p.npc); w.cq = null; rollMut(w);
+  w.players = w.players.filter(p => !p.npc); w.cq = null; w.tm = null; rollMut(w);
   for (const p of w.players) { p.kills = 0; p.deaths = 0; p.amber = 0; p.earned = 0; p.up = []; p.hones = {}; p.offer = null; p.ready = false; p.streak = 0; p.emp = false; p.empPts = 0; placeForRound(w, p); }
   ev(w, { e: 'phase', ph: 'lobby' });
 }
@@ -3726,7 +3743,7 @@ const STYLES = {
   marksman:   { name: 'Marksman',   near: 420, far: 660, charge: [0.92, 1],   bash: 0.05, cards: ['railshot', 'recoil', 'spot', 'steady', 'longbow', 'deadeye', 'pierce', 'ballista', 'glass', 'heavy', 'pin', 'holdline'] },
   guardian:   { name: 'Guardian',   near: 240, far: 420, charge: null,        bash: 0.15, mates: true, cards: ['totem', 'mend', 'harpoon', 'rally', 'bond', 'wall', 'oath', 'revive', 'snare', 'trap', 'briar', 'rip', 'deeproots', 'gust'] },
 };
-STYLES.stalker = { name: 'Stalker', near: 140, far: 320, charge: [0.75, 1], bash: 0.35, cards: ['sstrike', 'clone', 'blossom', 'recall', 'bladeguard', 'sharpstar', 'flurry', 'execution', 'swiftstep', 'echostep', 'phase', 'dance', 'execute', 'blink', 'smoke', 'stealth', 'ambush', 'shadowdash', 'deathmark', 'cloak', 'quickfeet', 'momentum', 'dash', 'fleet'] };
+STYLES.stalker = { name: 'Stalker', near: 140, far: 320, charge: [0.75, 1], bash: 0.35, cards: ['sstrike', 'clone', 'blossom', 'recall', 'bladeguard', 'sharpstar', 'flurry', 'execution', 'swiftstep', 'echostep', 'phase', 'dance', 'execute', 'blink', 'smoke', 'stealth', 'ambush', 'shadowdash', 'deathmark', 'cloak', 'quickfeet', 'momentum', 'dash', 'fleet', 'hitrun', 'secondwind', 'escape', 'afterimage', 'vanish'] };
 const ROLE_STYLE = { crossbow: 'skirmisher', ninja: 'stalker', assassin: 'stalker', juggernaut: 'brawler', sniper: 'marksman', warden: 'guardian', trapper: 'guardian', ranger: 'skirmisher', trickster: 'skirmisher' };
 function pickStyle(p) {
   const ai = p.ai;
@@ -3871,6 +3888,7 @@ function freshBody(p, x, y) {
     pinSafe: 0, volleyArmed: false, railArmed: false, recoilArmed: false, seekArmed: false, rocketArmed: false, swapArmed: false, boomArmed: false, execArmed: false, briarArmed: false,
     windT: 0, parryT: 0, focusT: 0, riposteT: 0, riposteUsed: false, parryRefunded: false, sawCd: 0, bumpCd: 0, portCd: 0, fortT: 0, phaseT: 0, shroudT: 0, blinkGap: 0, caltT: 0, rush: null, nblink: null, trickArmed: false, throwCd: 0, wasDraw: false, bolts: null, reloadT: 0, repeatT: 0, fanArmed: false, autoT: 0, parryAuto: false, wantThrow: false, throwQ: 0, nockT: 0, strikeN: 0, strikeT: 0, markPos: null, staggerT: 0, markT: 0, stealthT: 0, ambushT: 0, markReady: 0, slowK: 0.5, fallCause: 'pit', coat: {},
     abCd: [0, 0], wantAb: [false, false], reviveUsed: false, revT: 0, revOf: null, revP: 0,
+    escapeUsed: false, hurtLog: [], hrT: 0, hrFrom: null, swT: 0, holdOff: false,
   });
   p.aim = Math.atan2(AH / 2 - y, AW / 2 - x);
   p.input.draw = false;
@@ -3967,7 +3985,7 @@ function resetMatch(w) {
   for (const p of w.players) { p.kills = 0; p.deaths = 0; p.amber = 0; p.earned = 0; p.up = [p.element]; p.hones = {}; p.offer = null; p.picked = false; p.ready = false; p.streak = 0; p.emp = false; p.empPts = 0; p.stats = { shots: 0, hits: 0, dmg: 0, taken: 0, ring: 0, longest: 0 }; applyStats(p); }
   ev(w, { e: 'matchStart' });
   if (MAP.mode === 'conquest') return cqStart(w); // Strongholds: straight to the countdown, NPCs at their posts
-  w.cq = null;
+  w.cq = null; w.tm = null;
   // everyone makes one opening pick before round 1
   for (const p of w.players) placeForRound(w, p);
   M.opening = true;
@@ -3985,7 +4003,7 @@ function afterPost(w) {
 }
 function alive(w, team) { return members(w, team).filter(p => !p.dead).length; }
 function checkRoundEnd(w) {
-  if (w.cq) return; // Strongholds has no rounds: the knocked out come back
+  if (w.cq || w.tm) return; // Strongholds and the Terminator have no rounds: the knocked out come back
   const r = alive(w, 'red'), b = alive(w, 'blue');
   if (r && b) return;
   endRound(w, r ? 'red' : b ? 'blue' : null);
@@ -3999,6 +4017,8 @@ function timeoutRound(w) {
 }
 
 // ---------------- combat ----------------
+// Second Wind: the damage taken in the last 2 seconds, still there to be had back
+function reclaimable(w, p) { const L = p.hurtLog || []; let n = 0; for (const h of L) if (w.t - h.t <= 2) n += h.v; return Math.min(n, p.maxHp - p.hp); }
 function hurt(w, f, dmg, kx, ky, src, by, quiet) {
   if (f.dead || f.falling > 0) return false;
   const hazard = !!LETHAL[src] || src === 'poison';
@@ -4010,6 +4030,8 @@ function hurt(w, f, dmg, kx, ky, src, by, quiet) {
   // Guardian's Oath: the Warden takes a little more so the team around them takes less
   if (has(f, 'oath')) dmg *= 1.05;
   else if (w.players.some(q => q !== f && q.team === f.team && !q.dead && has(q, 'oath') && Math.hypot(q.x - f.x, q.y - f.y) < 170)) dmg *= 0.8;
+  if (w.tm && !f.npc && by != null) { const k = w.players.find(q => q.id === by); if (k && k.npc) dmg *= 0.7 + 0.1 * w.tm.lv; } // (the machines hit harder at higher levels)
+  if (f.npc && f.npc.k === 'term' && w.tm) { dmg *= tmDamageMul(w, f, src, by); if (dmg > 0) w.tm.dmgLog.push({ t: w.t, v: dmg }); if (f.npc.anchor > 0) kx = ky = 0; } // (the Terminator's weaknesses)
   if (f.markT > 0) dmg *= 1.3; // Death Mark / Spotter's Mark
   if (f.fortT > 0) dmg *= 0.7; // Fortify
   if (f.role === 'crossbow' && !hazard) dmg *= 0.85; // Crossbowman: braced
@@ -4022,7 +4044,13 @@ function hurt(w, f, dmg, kx, ky, src, by, quiet) {
   if (credit && !hazard && src !== 'wall' && applied > 0 && !credit.dead && has(credit, 'blood')) bloodHeal(w, credit, applied);
   f.stats.taken += applied;
   f.hp -= dmg;
-  if (!quiet) { f.flash = 0.12; ev(w, { e: 'dmg', id: f.id, by: creditId || undefined, x: r1(f.x), y: r1(f.y - f.r - 8), v: Math.round(dmg) }); }
+  if (applied > 0 && has(f, 'secondwind')) { const L = f.hurtLog || (f.hurtLog = []); L.push({ t: w.t, v: applied }); while (L.length && w.t - L[0].t > 2) L.shift(); }
+  // Escape Artist: the first time each round they drop under a quarter, a smoke cloud
+  if (applied > 0 && f.hp > 0 && f.hp < f.maxHp * 0.25 && has(f, 'escape') && !f.escapeUsed) {
+    f.escapeUsed = true; const tx = clamp(f.x, WALL + 30, AW - WALL - 30), ty = clamp(f.y, WALL + 30, AH - WALL - 30);
+    w.zones.push({ id: w.nid++, ty: 'smoke', x: tx, y: ty, r: 120, t: 4, team: f.team, owner: f.id }); ev(w, { e: 'smoke', id: f.id, x: r1(tx), y: r1(ty) });
+  }
+  if (!quiet) { f.flash = 0.12; ev(w, { e: 'dmg', id: f.id, by: creditId || undefined, x: r1(f.x), y: r1(f.y - f.r - 8), v: Math.round(dmg), s: src }); }
   if (f.pinned > 0) kx = ky = 0; // pinned to the wall: nothing moves them
   if (kx || ky) {
     kx *= OPT('kb'); ky *= OPT('kb');
@@ -4118,7 +4146,7 @@ function kill(w, f, cause) {
   }
   const left = Math.max(0, f.hp); // health lost to a pit or other instant knockout still counts as damage
   f.dead = true; f.hp = 0; f.deaths++;
-  if (w.cq) f.respAt = w.t + CQ.RESPAWN;
+  if (w.cq) f.respAt = w.t + CQ.RESPAWN; if (w.tm && !f.npc) f.respAt = w.t + TM.RESPAWN;
   f.stats.taken += left;
   f.drawing = false; f.charge = 0; f.over = 0; f.falling = 0; f.lastCause = cause; f.grap = null; f.revP = 0; f.nblink = null;
   let killer = null;
@@ -4163,6 +4191,7 @@ function kill(w, f, cause) {
   const dist = cause === 'arrow' && f.lastArrow && f.lastArrow.dist && !f.lastArrow.bnc ? Math.round(f.lastArrow.dist / 50) : 0;
   ev(w, { e: 'kill', k: killer ? killer.id : null, kn: killer ? killer.name : null, kc: killer ? killer.color : null,
     v: f.id, vn: f.name, vc: f.color, vt: f.team, c: cause, how, m: dist, x: r1(f.x), y: r1(f.y), am: gain, ks: killer ? killer.streak + 1 : undefined });
+  if (killer && has(killer, 'vanish')) { const si = killer.slots.indexOf('stealth'); if (si >= 0) killer.abCd[si] = Math.max(0, killer.abCd[si] - 6); } // Vanishing Act
   // streaks: knockouts in a row without being knocked out
   const wasEmp = f.emp;
   if ((f.streak >= 3 || wasEmp) && killer) ev(w, { e: 'shutdown', k: killer.id, kn: killer.name, v: f.id, vn: f.name, n: f.streak, emp: wasEmp ? 1 : 0 });
@@ -4205,7 +4234,7 @@ function fire(w, p, ang, c, burst, vol, x3) { // burst: 1-2 a Volley's shots, 4 
   let kb = (120 + 680 * Math.pow(c, 1.3)) * (heavy ? 1.9 : 1) * (has(p, 'heavy') ? 1.25 : 1) * (p.kbMul || 1);
   if (bolt) { dmg *= 1.5; kb *= 2; }
   if (xb) { dmg *= 0.85; kb *= 0.85 * (has(p, 'heavybolt') ? 1.2 : 1); }
-  const auto = xb && p.autoT > 0; if (auto) { dmg *= 0.5; kb *= 0.5; }
+  const auto = (xb && p.autoT > 0) || p.hrT > 0; if (auto) { dmg *= 0.5; kb *= 0.5; } // (a crossbow's full auto, or Hit and Run)
   if (burst && burst !== 4) { dmg *= 0.65; kb *= 0.65; }
   if (x3 || burst === 4) { dmg *= XB3.dmg; kb *= XB3.kb; }
   const rail = !burst && p.railArmed; if (rail) { p.railArmed = false; dmg *= 1.35; kb *= 1.3; }
@@ -4466,6 +4495,7 @@ function stepBody(w, f, mx, my, dt) {
   if (f.thornT > 0) { f.thornT -= dt; if (f.thornT <= 0) f.thornN = 0; }
   if (!f.dead && f.poisonT > 0) { f.poisonT -= dt; hurt(w, f, f.poisonN * 1.6 * f.poisonMul * dt, 0, 0, 'poison', null, true); if (f.poisonT <= 0) f.poisonN = 0; }
   if (f.dead) return;
+  if (inPit && f.npc && f.npc.k === 'term' && w.tm) { tmJet(w, f); return; } // (the Terminator never falls: it jets back to the middle, for a chunk of its health)
   if (inPit) {
     f.falling = 0.001; f.drawing = false; f.charge = 0; f.stuck = 0; f.fallBy = pushedBy(w, f); // (who sent them in, if anyone)
     ev(w, { e: 'fall', id: f.id, x: r1(f.x), y: r1(f.y) });
@@ -4594,7 +4624,13 @@ function updatePlayer(w, p, dt) {
       }
     }
     p.wasDraw = !!inp.draw; p.drawing = false; p.charge = 0; p.over = 0;
-  } else if (inp.draw && p.falling <= 0 && p.disarm <= 0 && !(p.nockT > 0) && !roped(w, p)) {
+  } else if (p.hrT > 0) {
+    // Hit and Run: no draw, a half-draw arrow every quarter second while the button's held; then back to where it was cast
+    p.drawing = false; p.charge = 0; p.throwCd = Math.max(0, (p.throwCd || 0) - dt);
+    if (inp.draw && !p.holdOff && p.throwCd <= 0 && p.falling <= 0 && p.disarm <= 0) { p.throwCd = 0.25; fire(w, p, p.aim, 0.5); }
+    p.hrT -= dt;
+    if (p.hrT <= 0 && p.hrFrom && !p.dead) { const x0 = p.x, y0 = p.y; p.x = clamp(p.hrFrom.x, WALL + p.r, AW - WALL - p.r); p.y = clamp(p.hrFrom.y, WALL + p.r, AH - WALL - p.r); p.falling = 0; p.vx *= 0.3; p.vy *= 0.3; p.knock = 0; p.hrFrom = null; ev(w, { e: 'blink', id: p.id, x1: r1(x0), y1: r1(y0), x2: r1(p.x), y2: r1(p.y), st: p.stealthT > 0 ? 1 : 0, hr: 2 }); }
+  } else if (inp.draw && !p.holdOff && p.falling <= 0 && p.disarm <= 0 && !(p.nockT > 0) && !roped(w, p)) {
     const prev = p.charge;
     p.drawing = true;
     p.charge = p.riposteT > 0 && !p.riposteUsed ? 1 : Math.min(1, p.charge + dt * p.drawMul * frenzyDraw(p) * (p.pw.quick > 0 ? 2.2 : 1) * (p.quickT > 0 ? 3 : 1) * (p.ambushT > 0 ? 1.6 : 1) * (p.focusT > 0 ? 2 : 1));
@@ -4606,6 +4642,8 @@ function updatePlayer(w, p, dt) {
     p.drawing = false; p.charge = 0; p.over = 0;
   }
   if (p.nockT > 0) p.nockT -= dt;
+  if (p.holdOff && !inp.draw) p.holdOff = false; // (let go: the bow can be drawn again)
+  if (p.swT > 0) p.swT -= dt;
   // p.noWalk (the dodge drill): the stick still aims your dashes, but you can only walk to wade out of a bog
   const walk = !p.noWalk || p.inTar;
   stepBody(w, p, walk ? mx : 0, walk ? my : 0, dt);
@@ -4616,7 +4654,7 @@ function updatePlayer(w, p, dt) {
     p.hp = Math.min(p.maxHp, p.hp + HEAL.rate * dt * (p.poisonT > 0 ? 0.5 : 1)); p.healing = true;
   }
   // Revive: stand over a knocked-out teammate
-  if (((has(p, 'revive') && !p.reviveUsed) || (w.cq && !p.npc)) && w.match.ph === 'play') {
+  if (((has(p, 'revive') && !p.reviveUsed) || ((w.cq || w.tm) && !p.npc)) && w.match.ph === 'play') {
     // progress builds while you're close and drains (rather than resetting) if you drift off
     const t = w.players.find(q => q.team === p.team && !q.npc && q.dead && q.lastCause !== 'join' && q.lastCause !== 'switch' && Math.hypot(q.x - p.x, q.y - p.y) < 56);
     if (t && p.revOf !== t.id) { p.revOf = t.id; p.revT = 0; }
@@ -4626,7 +4664,7 @@ function updatePlayer(w, p, dt) {
     if (t && p.revT >= 3) {
       Object.assign(t, { dead: false, hp: t.maxHp * 0.5, inv: 1, vx: 0, vy: 0, falling: 0, stuck: 0, burn: 0, slow: 0, knock: 0,
         frozen: 0, grap: null, lastHitBy: null, lastCause: '', killedBy: null, revP: 0, thr: 0 });
-      if (!w.cq) p.reviveUsed = true; p.revT = 0; p.revOf = null; t.respAt = null; p.stats.rev = (p.stats.rev || 0) + 1;
+      if (!w.cq && !w.tm) p.reviveUsed = true; p.revT = 0; p.revOf = null; t.respAt = null; p.stats.rev = (p.stats.rev || 0) + 1;
       ev(w, { e: 'revive', id: t.id, n: t.name, by: p.id, bn: p.name, x: r1(t.x), y: r1(t.y) });
     }
   }
@@ -4889,7 +4927,28 @@ function useAbility(w, p, id) {
     case 'volley':
       p.volleyArmed = true; ev(w, { e: 'volleyArmed', id: p.id }); return true;
     case 'stealth':
-      p.stealthT = has(p, 'cloak') ? 9 : 6; ev(w, { e: 'stealthOn', id: p.id, x: r1(p.x), y: r1(p.y) }); return true;
+      p.stealthT = has(p, 'cloak') ? 9 : 6; p.drawing = false; p.charge = 0; p.over = 0; p.holdOff = true; // (the bow is let down: a held button has to be let go and pressed again)
+      if (has(p, 'afterimage')) { const sp = Math.hypot(p.vx, p.vy), ux = sp > 20 ? p.vx / sp : Math.cos(p.aim), uy = sp > 20 ? p.vy / sp : Math.sin(p.aim);
+        w.zones.push({ id: w.nid++, ty: 'clone', x: p.x, y: p.y, r: p.r, t: 1.5, team: p.team, owner: p.id, fireT: 99, aim: p.aim, walk: { vx: ux * p.baseSpeed, vy: uy * p.baseSpeed } }); ev(w, { e: 'clone', id: p.id, x: r1(p.x), y: r1(p.y), q: 1 }); }
+      ev(w, { e: 'stealthOn', id: p.id, x: r1(p.x), y: r1(p.y) }); return true;
+    case 'hitrun': {
+      // blink along the aim, rapid fire for a while, then back to where it was cast
+      const d0 = BLINK_RANGE; let reach = d0, nx = p.x, ny = p.y;
+      for (; reach > 10; reach -= 8) {
+        nx = clamp(p.x + Math.cos(p.aim) * reach, WALL + p.r, AW - WALL - p.r); ny = clamp(p.y + Math.sin(p.aim) * reach, WALL + p.r, AH - WALL - p.r);
+        if (!PILLARS.some(q => Math.hypot(nx - q.x, ny - q.y) < q.r + p.r)) break;
+      }
+      p.hrFrom = { x: p.x, y: p.y }; const x0 = p.x, y0 = p.y; p.x = nx; p.y = ny; p.falling = 0; p.vx *= 0.3; p.vy *= 0.3; p.knock = 0;
+      p.hrT = 2.5; p.drawing = false; p.charge = 0; p.over = 0;
+      ev(w, { e: 'blink', id: p.id, x1: r1(x0), y1: r1(y0), x2: r1(nx), y2: r1(ny), st: 0, hr: 1 });
+      return true;
+    }
+    case 'secondwind': {
+      const back = reclaimable(w, p); if (back < 1) return false;
+      p.hp = Math.min(p.maxHp, p.hp + back); p.hurtLog = []; p.swT = 2.5;
+      ev(w, { e: 'secondwind', id: p.id, x: r1(p.x), y: r1(p.y), n: Math.round(back) });
+      return true;
+    }
     case 'deflect':
       p.deflectT = 1; ev(w, { e: 'deflectUp', id: p.id, x: r1(p.x), y: r1(p.y) }); return true;
     case 'trap': {
@@ -5038,6 +5097,7 @@ function updateZones(w, dt) {
     } else if (z.ty === 'clone') {
       const o = w.players.find(q => q.id === z.owner);
       z.fireT -= dt;
+      if (z.walk) { const nx = z.x + z.walk.vx * dt, ny = z.y + z.walk.vy * dt; if (nx > WALL + z.r && nx < AW - WALL - z.r && ny > WALL + z.r && ny < AH - WALL - z.r && !PILLARS.some(q => Math.hypot(nx - q.x, ny - q.y) < q.r + z.r) && lethalDist(nx, ny) > z.r) { z.x = nx; z.y = ny; } else z.walk = null; } // (an afterimage walks on until something's in the way)
       if (!o || o.dead) { z.t = 0; }
       else if (z.fireT <= 0) {
         z.fireT = 0.6;
@@ -5106,8 +5166,8 @@ function updateZones(w, dt) {
         if (q.team === z.team || q.dead || q.falling > 0) continue;
         const dx = q.x - z.x, dy = q.y - z.y, d = Math.hypot(dx, dy);
         if (d > z.r + q.r) continue;
-        const n = d || 1, f = 260 + 240 * (1 - d / z.r);
-        hurt(w, q, 10, dx / n * f, dy / n * f, 'rain', z.owner);
+        const n = d || 1, f = (z.art ? 420 : 260) + 240 * (1 - d / z.r);
+        hurt(w, q, z.art ? 22 : 10, dx / n * f, dy / n * f, 'rain', z.owner);
       }
     }
     if (z.t <= 0) w.zones.splice(i, 1);
@@ -5821,7 +5881,7 @@ function updatePickups(w, dt) {
   w.amberT -= dt; w.puT -= dt;
   w.chT = (w.chT == null ? 20 : w.chT) - dt;
   if (w.chT <= 0) { w.chT = rand(30, 40); spawnChannel(w); }
-  if (w.amberT <= 0 && !w.cq) { w.amberT = rand(3.5, 5); if (w.pickups.filter(u => u.type === 'amber').length < 6) spawnAmberPair(w); }
+  if (w.amberT <= 0 && !w.cq && !w.tm) { w.amberT = rand(3.5, 5); if (w.pickups.filter(u => u.type === 'amber').length < 6) spawnAmberPair(w); }
   const bounty = mutHas(CFG.mut, 'bounty');
   if (w.puT <= 0) { w.puT = bounty ? rand(5, 7.5) : rand(12, 16); spawnCenterPower(w, bounty); }
   for (let i = w.pickups.length - 1; i >= 0; i--) {
@@ -5840,7 +5900,7 @@ function updatePickups(w, dt) {
           p.abCd = p.abCd.map(c => Math.max(0, c - AMBER_BOOST.ability));
         }
         else if (u.type === 'heal') p.hp = Math.min(p.maxHp, p.hp + 40);
-        else p.pw[u.type] = PU[u.type].dur;
+        else p.pw[u.type] = PU[u.type].dur * (w.tm ? 2 : 1); // (the Terminator arena: stronger power-ups)
         ev(w, { e: 'pick', id: p.id, ty: u.type, x: r1(u.x), y: r1(u.y) });
         w.pickups.splice(i, 1);
         break;
@@ -6126,6 +6186,50 @@ function ballThreat(w, p, horizon) {
   if (cd > p.r + b.r + 14) return null;
   return { t, cx, cy, cd, b, along, sp };
 }
+// --- hidden enemies: a stealthed Assassin, or someone in a smoke cloud. A bot that was watching them as they vanished
+// keeps a guess of where they are (a ghost); one that wasn't looking never saw them go. A stealthed Assassin wants to
+// get round behind us, or to where a shot would throw us into a hole, so the guess follows that path at their speed,
+// round anything they can't cross; someone in smoke is guessed near where they went in. Sharper bots guess tighter.
+function botHidden(w, p, foes, iq) {
+  const ai = p.ai, seen = ai.seen || (ai.seen = {});
+  for (const q of foes) seen[q.id] = { x: q.x, y: q.y, vx: q.vx, vy: q.vy, t: w.t, aware: botAware(p, q) };
+  for (const q of w.players) {
+    if (q.team === p.team || q.dead || q.falling > 0 || foes.includes(q)) continue;
+    const kind = q.stealthT > 0 ? 'stealth' : inSmoke(w, q, p.x, p.y) ? 'smoke' : null; if (!kind) continue;
+    const sn = seen[q.id]; if (!sn || w.t - sn.t > 0.3 || !sn.aware) continue;
+    if (!ai.ghost || ai.ghost.id !== q.id) ai.ghost = { id: q.id, kind, x: sn.x, y: sn.y, vx: sn.vx, vy: sn.vy, t0: w.t, probeT: rand(0.4, 0.9) };
+  }
+  const g = ai.ghost; if (!g) { ai.ghostPt = null; return; }
+  const q = w.players.find(z => z.id === g.id), el = w.t - g.t0;
+  if (!q || q.dead || q.falling > 0 || foes.includes(q) || el > (g.kind === 'smoke' ? 6 : 10) || !(q.stealthT > 0 || inSmoke(w, q, p.x, p.y))) { ai.ghost = null; ai.ghostPt = null; return; }
+  let x, y;
+  if (g.kind === 'smoke') {
+    // drifting on from where they went in, but still inside the cloud
+    const k = Math.min(el, 0.5); x = g.x + g.vx * k; y = g.y + g.vy * k;
+    const z = w.zones.filter(o => o.ty === 'smoke').sort((a, b) => Math.hypot(a.x - g.x, a.y - g.y) - Math.hypot(b.x - g.x, b.y - g.y))[0];
+    if (z) { const dx = x - z.x, dy = y - z.y, d = Math.hypot(dx, dy); if (d > z.r * 0.8) { x = z.x + dx / d * z.r * 0.8; y = z.y + dy / d * z.r * 0.8; } }
+  } else {
+    // along the path to where they'd want to be, as far as they could have got (they can't cross holes, water, lava or
+    // boulders, so a straight line that does is walked round: the last clear point before it, or the goal once there's
+    // been time to go round)
+    const goal = ambushPoint(q, p), sp = (q.baseSpeed || 235) * 1.3 * (0.8 + 0.2 * iq), gone = sp * el;
+    const dx = goal.x - g.x, dy = goal.y - g.y, dist = Math.hypot(dx, dy) || 1, ux = dx / dist, uy = dy / dist;
+    const along = Math.min(dist, gone); x = g.x + ux * along; y = g.y + uy * along;
+    let blocked = false;
+    for (let t = 24; t <= along; t += 24) { const sx = g.x + ux * t, sy = g.y + uy * t; if (lethalDist(sx, sy) < q.r + 6 || PILLARS.some(c => Math.hypot(sx - c.x, sy - c.y) < c.r + q.r)) { blocked = true; x = g.x + ux * (t - 24); y = g.y + uy * (t - 24); break; } }
+    if (blocked && gone > dist * 1.5) { x = goal.x; y = goal.y; } // (long enough to have gone round)
+  }
+  // the guess spreads the longer they've been gone, less for sharper bots
+  ai.ghostPt = { x, y, spread: (g.kind === 'smoke' ? 30 : 35 + 22 * Math.min(el, 5)) * (1.2 - 0.7 * iq), el };
+}
+// a step toward safer ground: the way that gets furthest from holes, water, lava and spikes
+function safeWay(p) {
+  let best = null;
+  for (let i = 0; i < 8; i++) { const a = i / 8 * TAU, x = p.x + Math.cos(a) * 110, y = p.y + Math.sin(a) * 110;
+    if (x < WALL + p.r || x > AW - WALL - p.r || y < WALL + p.r || y > AH - WALL - p.r || PILLARS.some(c => Math.hypot(x - c.x, y - c.y) < c.r + p.r + 10)) continue;
+    const d = Math.min(lethalDist(x, y), 400); if (!best || d > best.d) best = { d, x: Math.cos(a), y: Math.sin(a) }; }
+  return best;
+}
 function botThink(w, p, dt) {
   const ai = p.ai, inp = p.input, D = botD(p), G = p.gene ? (p.geneSrc === p.gene ? p.geneAll : (p.geneSrc = p.gene, p.geneAll = Object.assign({}, GENE, p.gene))) : GENE, iq = D.iq || 0;
   if (p.dead || p.falling > 0) { inp.draw = false; inp.mx = inp.my = 0; return; }
@@ -6149,8 +6253,11 @@ function botThink(w, p, dt) {
     }
     ai.target = T ? T.id : null;
     ai.retarget = rand(0.8, 1.6);
+    if (w.tm) { const med = foes.find(q => q.npc && q.npc.k === 'medic'); if (med && iq >= 0.3) T = med; else if (iq >= 0.3 && foes.some(q => q.npc && q.npc.k === 'term')) T = foes.find(q => q.npc && q.npc.k === 'term'); ai.target = T ? T.id : null; } // (the Terminator: repair drones first, else the machine itself)
   }
   botAttention(p, foes, T, dt);
+  botHidden(w, p, foes, iq);
+  const GP = ai.ghostPt, hunting = !T && GP && ai.ghost.kind === 'stealth';
 
   // --- movement goal
   let gx = 0, gy = 0;
@@ -6236,9 +6343,15 @@ function botThink(w, p, dt) {
       const lead = 0.25, bx = T.x + T.vx * lead, by = T.y + T.vy * lead, ang = Math.atan2(by - p.y, bx - p.x);
       if (lethalDist(p.x + Math.cos(ang) * (d + 40), p.y + Math.sin(ang) * (d + 40)) > 50) { p.wantDash = true; ai.dashAim = ang; ai.bashCd = rand(1.5, 3); }
     }
+  } else if (hunting) {
+    // an Assassin somewhere about: keep off the edges (that's the shot they want), and shuffle a little rather than stand still
+    const sw = lethalDist(p.x, p.y) < 170 ? safeWay(p) : null;
+    if (sw) { gx = sw.x; gy = sw.y; } else { gx = -(GP.y - p.y) / (Math.hypot(GP.x - p.x, GP.y - p.y) || 1) * ai.strafe * 0.35; gy = (GP.x - p.x) / (Math.hypot(GP.x - p.x, GP.y - p.y) || 1) * ai.strafe * 0.35; }
   } else {
     gx = (AW / 2 - p.x) / 300; gy = (AH / 2 - p.y) / 300;
   }
+  // an Assassin unaccounted for while we fight someone else: don't stand right on an edge for them
+  if (ai.ghost && ai.ghost.kind === 'stealth' && T && lethalDist(p.x, p.y) < 110 && iq >= 0.3) { const sw = safeWay(p); if (sw) { gx = gx * 0.4 + sw.x * (0.6 + 0.4 * iq); gy = gy * 0.4 + sw.y * (0.6 + 0.4 * iq); } }
   // stealthed: circle round to the far side of the target, so the shot throws them into a hazard or wall (or at least hits their back)
   if (p.stealthT > 0 && T) {
     const pt = ambushPoint(p, T); ai.ambush = pt;
@@ -6271,6 +6384,8 @@ function botThink(w, p, dt) {
   // a goal pointing into a boulder: go round it
   if (PILLARS.length) [gx, gy] = aroundPillar(p, gx, gy);
 
+  // --- the Terminator fight: get out of a rush's way, behind a pillar for the pull, off a barrage mark, round the back of the Juggernaut
+  if (w.tm && iq >= 0.3) { const o = botTerminator(w, p, T, dt); if (o) { gx = o[0]; gy = o[1]; } }
   // --- dodge incoming enemy arrows
   ai.dodgeCd -= dt;
   if (iq >= 0.5) {
@@ -6348,6 +6463,7 @@ function botThink(w, p, dt) {
   ai.reload -= dt;
   ai.errT -= dt;
   if (ai.errT <= 0) { ai.err = rand(-1, 1) * D.aimErr * (p.shroudT > 0 ? (p.shroudR < 150 ? 3.5 : 2.2) : 1); ai.errT = rand(0.3, 0.6); }
+  if (!T && GP) { botProbe(w, p, GP, D, iq, dt); botAbilities(w, p, null, Infinity, foes, dt); if (p.wantDash && ai.dashAim != null) inp.aim = ai.dashAim; ai.dashAim = null; return; }
   if (!T) { ai.lastT = null; inp.draw = false; botAbilities(w, p, null, Infinity, foes, dt); if (p.wantDash && ai.dashAim != null) inp.aim = ai.dashAim; ai.dashAim = null; return; }
   const spd = (380 + 920 * (p.role === 'crossbow' ? 1 : Math.max(p.charge, ai.want))) * OPT('aspeed'), wasDraw = inp.draw;
   // aim at where the target *appeared* to be (and to be heading) a reaction-time ago, like a person would
@@ -6414,6 +6530,46 @@ function botThink(w, p, dt) {
 }
 
 
+function botTerminator(w, p, T, dt) {
+  const b = tmBoss(w); if (!b || b.dead) return null;
+  const N = b.npc, d = Math.hypot(b.x - p.x, b.y - p.y), ux = (b.x - p.x) / (d || 1), uy = (b.y - p.y) / (d || 1);
+  // a barrage mark under or near us: step off it
+  for (const z of w.zones) if (z.ty === 'rain' && z.team !== p.team) { const dx = p.x - z.x, dy = p.y - z.y, dd = Math.hypot(dx, dy); if (dd < z.r + p.r + 30) { const l = dd || 1; return [dx / l * 2, dy / l * 2]; } }
+  if (N.wind === 'rush' || N.charge) { // in its path: sideways, whichever side is safer
+    const a = N.charge ? Math.atan2(N.charge.dy, N.charge.dx) : b.aim, rx = p.x - b.x, ry = p.y - b.y, along = rx * Math.cos(a) + ry * Math.sin(a), side = rx * -Math.sin(a) + ry * Math.cos(a);
+    if (along > -40 && along < 520 && Math.abs(side) < 90) { let px = -Math.sin(a), py = Math.cos(a); if (side < 0) { px = -px; py = -py; } if (lethalDist(p.x + px * 100, p.y + py * 100) < 50) { px = -px; py = -py; } if (p.dashN > 0 && Math.abs(side) < 50) { p.wantDash = true; p.ai.dashAim = Math.atan2(py, px); } return [px * 2, py * 2]; }
+  }
+  if (N.pull && (N.pull.ph === 'warn' || N.pull.ph === 'pull') && d < 700) { // behind the nearest pillar, seen from the machine
+    const pil = PILLARS.reduce((best, q) => { const dd = Math.hypot(q.x - p.x, q.y - p.y); return dd < 420 && (!best || dd < best.d) ? { q, d: dd } : best; }, null);
+    if (pil) { const q = pil.q, tx = q.x - b.x, ty = q.y - b.y, tl = Math.hypot(tx, ty) || 1, hx = q.x + tx / tl * (q.r + p.r + 14), hy = q.y + ty / tl * (q.r + p.r + 14), dx = hx - p.x, dy = hy - p.y, l = Math.hypot(dx, dy) || 1; return [dx / l * 2, dy / l * 2]; }
+    return [-ux * 2, -uy * 2]; // (no pillar near: run)
+  }
+  if (N.pull && N.pull.ph === 'wave' && d < 300) return [-ux * 2.5, -uy * 2.5];
+  if (N.mode === 'juggernaut' && N.anchor <= 0 && !N.winded && T === b && d < 420) { // round to its back
+    const ang = angOff(Math.atan2(p.y - b.y, p.x - b.x), b.aim); if (ang < 2.2) { const side = (p.x - b.x) * -Math.sin(b.aim) + (p.y - b.y) * Math.cos(b.aim) >= 0 ? 1 : -1, tx = b.x - Math.cos(b.aim) * 200, ty = b.y - Math.sin(b.aim) * 200, dx = tx - p.x, dy = ty - p.y, l = Math.hypot(dx, dy) || 1; const gx = dx / l * 1.2 - Math.sin(b.aim) * side * 0.4, gy = dy / l * 1.2 + Math.cos(b.aim) * side * 0.4; return [gx, gy]; }
+    if (d < 150) return [-ux, -uy]; // (and not within its reach)
+  }
+  return null;
+}
+// probing shots at where a hidden enemy probably is: a quick half draw every second or so (quicker for sharper bots),
+// each at a fresh guess within the spread, to find them and break their stealth; the bow stays turned that way
+function botProbe(w, p, GP, D, iq, dt) {
+  const ai = p.ai, inp = p.input;
+  ai.lastT = null;
+  ai.probeT = (ai.probeT == null ? 0.3 : ai.probeT) - dt;
+  if (!ai.probeAt || ai.probeT <= 0) { const a = rand(0, TAU), r = Math.sqrt(Math.random()) * GP.spread; ai.probeAt = { x: GP.x + Math.cos(a) * r, y: GP.y + Math.sin(a) * r }; ai.probeT = rand(0.7, 1.3) / (0.6 + 0.8 * iq); ai.probeGo = true; }
+  else { ai.probeAt.x += (GP.x - ai.probeAt.x) * Math.min(1, dt * 2); ai.probeAt.y += (GP.y - ai.probeAt.y) * Math.min(1, dt * 2); } // (the guess moves with them)
+  const want = Math.atan2(ai.probeAt.y - p.y, ai.probeAt.x - p.x);
+  if (ai.aimA == null) ai.aimA = p.aim;
+  const diff = ((want - ai.aimA + Math.PI) % TAU + TAU) % TAU - Math.PI, step = (D.turn || 5.5) * dt;
+  ai.aimA += clamp(diff, -step, step); inp.aim = ai.aimA;
+  const lined = Math.abs(diff) < 0.08, clear = clearShot(p.x, p.y, ai.probeAt.x, ai.probeAt.y);
+  if (!ai.probeGo || !clear) { if (p.role !== 'crossbow' && p.role !== 'ninja') inp.draw = p.drawing && p.charge < 0.6; else inp.draw = false; return; }
+  if (p.role === 'crossbow') { if (lined && p.bolts > 0) { inp.draw = !inp.draw; if (!inp.draw) ai.probeGo = false; } else inp.draw = false; return; }
+  if (p.role === 'ninja') { if (!inp.draw) { inp.draw = true; ai.want = 0.7; } else if (p.charge >= 0.7 && lined) { inp.draw = false; ai.probeGo = false; } return; }
+  if (!inp.draw) { inp.draw = true; ai.want = 0.6; }
+  else if (p.charge >= 0.6 && lined) { inp.draw = false; ai.probeGo = false; }
+}
 // aim at the incoming ball (where it will be when the shot gets there) and loose a quick shot into it. Returns false
 // when this archer can't shoot right now, so the bot carries on as normal.
 function botShootBall(w, p, bt, D, dt) {
@@ -6555,6 +6711,8 @@ function botAbilities(w, p, T, dT, foes, dt) {
         }
         break;
       case 'stealth': use = !!T && ((dT > 260 && dT < 650 && p.hp > p.maxHp * 0.4) || (p.hp < p.maxHp * 0.35 && dT < 300)); break;
+      case 'hitrun': use = !!T && dT > 200 && dT < 520 && p.hp > p.maxHp * 0.35 && clearShot(p.x, p.y, T.x, T.y) && angOff(Math.atan2(T.y - p.y, T.x - p.x), p.input.aim) < 0.3 && lethalDist(p.x + Math.cos(p.input.aim) * Math.min(BLINK_RANGE, dT - 120), p.y + Math.sin(p.input.aim) * Math.min(BLINK_RANGE, dT - 120)) > 60; break;
+      case 'secondwind': use = reclaimable(w, p) >= 25 || (reclaimable(w, p) >= 12 && p.hp < p.maxHp * 0.4); break;
       case 'deflect': {
         const inc = w.arrows.some(a => {
           if (a.team === p.team || a.stuck > 0 || !sees(p, a) || !botNotices(p, a)) return false;
@@ -7062,6 +7220,354 @@ function cqSnap(w) {
     s: C.s.map(S => [S.own ? (S.own === 'red' ? 1 : 2) : 0, S.ct ? (S.ct === 'red' ? 1 : 2) : 0, r2(S.cp), S.chest ? 1 : 0]) };
 }
 
+// ================= Terminator (admin only for now): four or five archers against one machine =================
+// A big circular arena (dark, industrial, lava and holes round the outside, hatches in the floor that open onto lava
+// now and then). The Terminator starts in the middle with a lot of health and cycles through modes, each with its own
+// weapons and its own weakness; the team has a pool of lives and can revive each other. Difficulty 1–5 (from the
+// team's average rating) scales its health and how quick its tells are.
+const TM = {
+  R: 1250,            // the arena's radius (the map is 2 * (R + 120) square)
+  MODE_T: 38,         // seconds a mode lasts
+  SHIFT_T: 1.6,       // the change between modes: a tell, invulnerable
+  RESPAWN: 10, LIVES: 3, HP: 4000, HP_PER: 900, // (health: HP + HP_PER per archer, times the difficulty)
+  MODES: ['hunter', 'summoner', 'juggernaut', 'artillery', 'magnet'],
+  MAX_MINIONS: 8,
+};
+const TM_PU_K = 2; // (power-ups in the Terminator arena last twice as long)
+const TM_NAMES = { hunter: 'Hunter', summoner: 'Summoner', juggernaut: 'Juggernaut', artillery: 'Artillery', magnet: 'Magnet' };
+const TM_MINIONS = {
+  scuttler: { hp: 26, r: 10, mass: 0.5, speed: 1.35, name: 'Scuttler' },
+  drone:    { hp: 48, r: 13, mass: 0.8, speed: 0.85, name: 'Drone' },
+  medic:    { hp: 70, r: 14, mass: 0.9, speed: 0.95, name: 'Repair drone' },
+};
+function buildTerminator() {
+  // Highland Reach's size. Lava sumps in the corners, holes on the long sides, a ring of steel pillars round the middle
+  // for cover (the machine's and yours), and four floor hatches that open onto lava on a cycle
+  const W = 1500, H = 960, cx = W / 2, cy = H / 2;
+  const m = buildMap({
+    name: 'Terminator', theme: 'factory', hidden: true, mode: 'terminator', w: W, h: H,
+    desc: 'Your team against one machine. Admin only for now.',
+    haz: [
+      { type: 'lava', shape: 'circle', x: 150, y: 150, r: 110 },
+      { type: 'lava', shape: 'circle', x: 150, y: H - 150, r: 110 },
+      { type: 'pit', shape: 'rect', x: cx - 60, y: WALL - 20, w: 120, h: 150, centre: true },
+      { type: 'pit', shape: 'rect', x: cx - 60, y: H - WALL - 130, w: 120, h: 150, centre: true },
+      { type: 'pit', shape: 'circle', x: 430, y: cy, r: 54 },
+    ],
+    pillars: [
+      { x: cx - 150, y: cy - 120, r: 34 }, { x: cx - 150, y: cy + 120, r: 34 }, { x: cx - 260, y: cy, r: 30 },
+      { x: cx, y: cy - 210, r: 28, centre: true }, { x: cx, y: cy + 210, r: 28, centre: true },
+      { x: 330, y: 170, r: 26 }, { x: 330, y: H - 170, r: 26 }, { x: 560, y: 110, r: 22 }, { x: 560, y: H - 110, r: 22 },
+    ],
+    cracks: [{ type: 'lava', shape: 'circle', x: cx - 330, y: cy - 250, r: 70, at: Infinity, hatch: true }, { type: 'lava', shape: 'circle', x: cx - 330, y: cy + 250, r: 70, at: Infinity, hatch: true }],
+    lights: [{ x: 150, y: 150, big: true }, { x: 150, y: H - 150, big: true }],
+    spikes: [],
+  });
+  m.power = [{ x: cx, y: cy - 300 }, { x: cx, y: cy + 300 }, { x: 330, y: cy }, { x: W - 330, y: cy }];
+  m.centre = { x: cx, y: cy };
+  return m;
+}
+MAPS.terminator = buildTerminator();
+const tmDiffK = lv => 0.75 + 0.125 * clamp(lv || 3, 1, 5); // 0.875 .. 1.375
+function tmStart(w) {
+  const M = w.match, lv = clamp(+w.cfg.termLv || 3, 1, 5), team = w.players.filter(p => !p.npc);
+  w.cfg.opt.effect = 'none'; w.cfg.mut = null; // (no map effects here: the machine is tuned without them)
+  w.players = w.players.filter(p => !p.npc);
+  for (const p of team) p.team = 'red';
+  w.tm = { lv, lives: TM.LIVES + team.length, modeI: -1, order: [], mode: null, modeT: 0, shift: 0, kills: 0, t0: w.t, hatch: { t: 14, open: [], warn: [] }, won: null, dmgLog: [] };
+  const c = MAP.centre || { x: AW / 2, y: AH / 2 };
+  const b = makePlayer(w, { name: 'Terminator', team: 'npc', role: 'juggernaut', element: 'stone' });
+  b.npc = { k: 'term', s: -1, bio: 'machine', px: c.x, py: c.y, cd: 2, wind: null, windT: 0, charge: null, mode: null, aim2: 0, tgt: null, abT: {}, drawT: 0 };
+  b.up = []; applyStats(b);
+  b.maxHp = Math.round((TM.HP + TM.HP_PER * team.length) * tmDiffK(lv)); b.r = 24; b.mass = 5; b.color = '#9aa3ad';
+  freshBody(b, c.x, c.y); b.hp = b.maxHp; b.dashN = 0; b.dashMaxN = 0;
+  w.players.push(b); w.tm.boss = b.id;
+  M.ph = 'pre'; M.T = TIMES.pre; M.opening = false; M.rw = null; M.clutch = {}; M.first = null;
+  w.arrows = []; w.pickups = []; w.zones = []; w.later = []; w.cracks = MAP.cracks.map(() => 0); w.ball = null;
+  for (const p of w.players) if (!p.npc) { placeForRound(w, p); p.respAt = null; p.offer = null; p.picked = false; }
+  if (w.cfg.term && MAP.mode !== 'terminator') for (const p of w.players) if (!p.npc) p.x = Math.min(p.x, AW * 0.3); // (another arena: the team starts on the left, the machine in the middle)
+  tmNextMode(w, b);
+  ev(w, { e: 'phase', ph: 'pre', rd: 1, gm: 1 });
+}
+const tmBoss = w => w.tm && w.players.find(p => p.id === w.tm.boss);
+// knocked into a hole or the lava: the machine loses a chunk of its health and jets back to the middle
+function tmJet(w, b) { const c = MAP.centre || { x: AW / 2, y: AH / 2 }; b.hp -= b.maxHp * 0.06; b.burn = 0; b.x = c.x; b.y = c.y; b.vx = b.vy = 0; b.knock = 0; b.falling = 0; b.inv = 1.2; b.npc.charge = null; b.npc.wind = null; ev(w, { e: 'termJet', x: r1(c.x), y: r1(c.y) }); if (b.hp <= 0) kill(w, b, 'pit'); }
+function tmNextMode(w, b) {
+  const T = w.tm, N = b.npc;
+  if (w.cfg.termOnly && TM.MODES.includes(w.cfg.termOnly)) { T.order = [w.cfg.termOnly, w.cfg.termOnly]; T.modeI = -1; } // (testing: one mode only)
+  else if (!T.order.length || T.modeI >= T.order.length - 1) { const o = TM.MODES.slice(); for (let i = o.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [o[i], o[j]] = [o[j], o[i]]; } if (T.mode && o[0] === T.mode) o.push(o.shift()); T.order = o; T.modeI = -1; }
+  T.modeI++; const mode = T.order[T.modeI];
+  T.mode = N.mode = mode; T.modeT = TM.MODE_T; T.shift = TM.SHIFT_T; N.wind = null; N.charge = null; N.anchor = 0; N.shield = 0; N.pull = null; N.cd = TM.SHIFT_T + 1; N.abT = {};
+  const look = { hunter: [17, 1.2, 1.35], summoner: [24, 3, 0.8], juggernaut: [34, 9, 0.85], artillery: [24, 5, 0.65], magnet: [24, 6, 0.75] }[mode];
+  if (N.base0 == null) N.base0 = 250; b.r = look[0]; b.mass = look[1]; b.baseSpeed = N.base0 * look[2]; b.speed = b.baseSpeed; N.spd = look[2];
+  b.vx = b.vy = 0; b.knock = 0; b.inv = TM.SHIFT_T;
+  ev(w, { e: 'termMode', mode, x: r1(b.x), y: r1(b.y), n: T.modeI });
+}
+// damage to the Terminator: each mode's weakness (and the shift between modes takes none)
+function tmDamageMul(w, b, src, by) {
+  const N = b.npc, T = w.tm; if (!T || T.shift > 0) return 0;
+  const q = by != null ? w.players.find(p => p.id === by) : null;
+  const ang = q ? angOff(Math.atan2(q.y - b.y, q.x - b.x), b.aim) : 0, behind = q && ang > 2.3, front = q && ang < 1.1;
+  switch (N.mode) {
+    case 'hunter': return behind ? 1.5 : 0.65;                                // (light and quick, hard to hit square on; but he only looks one way)
+    case 'summoner': return N.wind === 'summon' ? 1.8 : 1;                     // (open while he calls his machines)
+    case 'juggernaut': return N.winded > 0 ? 2 : N.anchor > 0 ? (behind ? 1.3 : 0.6) : front ? 0.35 : behind ? 1.8 : 1; // (armoured in front; winded after a rush into a wall)
+    case 'artillery': return N.wind === 'barrage' ? 1.6 : 0.5;                 // (shielded, except while the barrage is called in)
+    case 'magnet': return N.pull ? 1.5 : 1;                                    // (stands still to pull)
+  }
+  return 1;
+}
+function tmSummon(w, b, kind, n) {
+  const K = TM_MINIONS[kind], have = w.players.filter(p => p.npc && p.npc.k !== 'term' && !p.dead).length;
+  for (let i = 0; i < n && have + i < TM.MAX_MINIONS; i++) {
+    const a = Math.random() * TAU, x = clamp(b.x + Math.cos(a) * (b.r + 40), WALL + 20, AW - WALL - 20), y = clamp(b.y + Math.sin(a) * (b.r + 40), WALL + 20, AH - WALL - 20);
+    const m = makePlayer(w, { name: K.name, team: 'npc', role: kind === 'drone' ? 'ranger' : 'juggernaut', element: 'stone' });
+    m.npc = { k: kind, s: -1, bio: 'machine', px: x, py: y, cd: rand(0.6, 1.4), wind: null, windT: 0, charge: null, hop: 0, dir: Math.random() * TAU };
+    m.up = []; applyStats(m); m.maxHp = K.hp; m.r = K.r; m.mass = K.mass; m.baseSpeed *= K.speed; m.speed = m.baseSpeed; m.color = '#8f98a3';
+    freshBody(m, x, y); m.hp = m.maxHp; m.dashN = 0; m.dashMaxN = 0; m.inv = 0.6;
+    w.players.push(m);
+    ev(w, { e: 'termSummon', k: kind, x: r1(x), y: r1(y) });
+  }
+}
+const tmFoes = (w, n) => w.players.filter(q => !q.npc && !q.dead && q.falling <= 0 && q.team !== n.team);
+function tmNearest(w, n, max) { let best = null, bd = max || Infinity; for (const q of tmFoes(w, n)) { const d = Math.hypot(q.x - n.x, q.y - n.y); if (d < bd) { bd = d; best = q; } } return best; }
+// an arrow of the machine's own
+function tmArrow(w, b, ang, o) {
+  const sp = o.speed || 1100;
+  w.arrows.push({ id: w.nid++, owner: b.id, team: b.team, color: b.color, own: b, x: b.x + Math.cos(ang) * (b.r + 8), y: b.y + Math.sin(ang) * (b.r + 8), vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, v0: sp, ang, dist: 0, age: 0,
+    dmg: o.dmg, kb: o.kb, full: !!o.full, crit: false, heavy: false, el: null, bolt: !!o.bolt, snare: false, rail: !!o.rail, big: !!o.big, seek: !!o.seek, rocket: !!o.rocket, drag: o.drag != null ? o.drag : 0.2, burst: false,
+    pierce: o.pierce || 0, hit: [], grav: false, split: false, bounces: 0, explosive: !!o.rocket, life: o.life || 3, stuck: 0, maxDist: o.maxDist || 0, assistT: o.target != null ? o.target : undefined });
+  ev(w, { e: 'fire', id: b.id, x: r1(b.x), y: r1(b.y), c: 1, b: o.bolt ? 1 : 0, xb: o.bolt ? 1 : 0, a0: w.nid - 1, n: 1 });
+}
+function tmWalk(n, tx, ty, k) {
+  const dx = tx - n.x, dy = ty - n.y, d = Math.hypot(dx, dy); if (d < 6) { n.input.mx = n.input.my = 0; return true; }
+  const [mx, my] = botSteer(n, dx / d, dy / d), l = Math.hypot(mx, my) || 1, s = (k || 1) * Math.min(1, d / 40);
+  n.input.mx = mx / l * s; n.input.my = my / l * s; return false;
+}
+// ---- what every mode shares: a quick, accurate bow; sidestepping shots; and cover, like a good player
+// a shot coming: step out of its line (a burst of speed), to whichever side is safer. Sharper levels judge more of them
+function tmEvade(w, b, N, lv, quick) {
+  if (N.abT.dodge > 0) return false;
+  const hit = incoming(w, b, 0.5); if (!hit) return false;
+  if (Math.random() > 0.4 + 0.11 * lv) { N.abT.dodge = 0.3; return false; } // (saw it too late)
+  let px = -hit.a.vy, py = hit.a.vx; const l = Math.hypot(px, py) || 1; px /= l; py /= l;
+  if (px * hit.cx + py * hit.cy < 0) { px = -px; py = -py; }
+  const sa = lethalDist(b.x + px * 150, b.y + py * 150), sb = lethalDist(b.x - px * 150, b.y - py * 150);
+  if (sb > sa + 20) { px = -px; py = -py; }
+  if (Math.max(sa, sb) < 80) return false;
+  b.vx += px * 460; b.vy += py * 460; b.knock = Math.max(b.knock, 0.12); N.abT.dodge = 0.85 / quick;
+  ev(w, { e: 'dash', id: b.id, x: r1(b.x), y: r1(b.y), dx: r2(px), dy: r2(py) });
+  return true;
+}
+// cover: a pillar near us, between us and the nearest archer. Behind it while the bow is reloading; out round its
+// shoulder to shoot. Returns where to stand, or null when there's no cover worth using
+function tmCover(w, b, N, tgt, ready) {
+  if (!tgt) return null;
+  const pil = PILLARS.reduce((best, q) => { if (q.tower) return best; const d = Math.hypot(q.x - b.x, q.y - b.y) - q.r; return d < 240 && (!best || d < best.d) ? { q, d } : best; }, null);
+  if (!pil) { N.peek = 0; return null; }
+  const q = pil.q, tx = q.x - tgt.x, ty = q.y - tgt.y, tl = Math.hypot(tx, ty) || 1, ux = tx / tl, uy = ty / tl, off = q.r + b.r + 12;
+  const hx = q.x + ux * off, hy = q.y + uy * off; // right behind it, seen from them
+  if (!N.peek) N.peek = Math.random() < 0.5 ? 1 : -1;
+  const px = hx - uy * N.peek * (off + 8), py = hy + ux * N.peek * (off + 8); // round its shoulder
+  const spot = ready ? { x: px, y: py } : { x: hx, y: hy };
+  if (lethalDist(spot.x, spot.y) < b.r + 20) return null;
+  return spot;
+}
+// the bow: a quick draw (the tell), lead on the target, loosed when lined up with a clear line. Returns true when it fired
+function tmBow(w, b, N, tgt, dT, quick, lv, dt, o) {
+  N.bowCd = (N.bowCd || 0) - dt;
+  const lead = dT / (o.speed || 1250), ax = tgt.x + tgt.vx * lead, ay = tgt.y + tgt.vy * lead, want = Math.atan2(ay - b.y, ax - b.x);
+  const diff = ((want - b.aim + Math.PI) % TAU + TAU) % TAU - Math.PI, rate = (8 + lv) * dt; b.aim += clamp(diff, -rate, rate); b.input.aim = b.aim;
+  if (N.bowCd > 0) { N.drawT = 0; return false; }
+  N.drawT += dt; N.drawMax = o.draw;
+  if (N.drawT >= o.draw && Math.abs(diff) < 0.1 && clearShot(b.x, b.y, tgt.x, tgt.y)) { tmArrow(w, b, b.aim, { dmg: o.dmg, kb: o.kb, full: true, speed: o.speed || 1250, drag: 0.2 }); N.bowCd = o.cd / quick; N.drawT = 0; return true; }
+  return false;
+}
+// the Terminator's brain, one mode at a time
+function tmThink(w, b, dt) {
+  const T = w.tm, N = b.npc, inp = b.input, lv = T.lv, quick = 1 - 0.08 * (lv - 3); // (tells a little quicker at higher levels)
+  inp.draw = false; inp.mx = inp.my = 0;
+  if (b.dead) return;
+  if (T.shift > 0) { b.vx = b.vy = 0; b.inv = Math.max(b.inv, 0.1); return; }
+  if (b.falling > 0) return;
+  N.cd -= dt; for (const k in N.abT) N.abT[k] -= dt;
+  const foes = tmFoes(w, b);
+  let tgt = tmNearest(w, b);
+  if (N.mode === 'hunter' && tgt && !clearShot(b.x, b.y, tgt.x, tgt.y)) { const seen = foes.filter(q => clearShot(b.x, b.y, q.x, q.y)).sort((p, q) => Math.hypot(p.x - b.x, p.y - b.y) - Math.hypot(q.x - b.x, q.y - b.y))[0]; if (seen) tgt = seen; } // (the Hunter shoots whoever it can see)
+  N.tgt = tgt ? tgt.id : null;
+  // fell in a hole or the lava (the Hunter can, being light): a chunk of health, and back to the middle
+  const c = MAP.centre || { x: AW / 2, y: AH / 2 };
+  if (lethalDist(b.x, b.y) < -4 || b.burn > 0) { tmJet(w, b); return; }
+  if (!tgt) { tmWalk(b, c.x, c.y, 0.6); return; }
+  const dT = Math.hypot(tgt.x - b.x, tgt.y - b.y), aimAt = Math.atan2(tgt.y - b.y, tgt.x - b.x);
+  if (!(N.mode === 'juggernaut' && (N.charge || N.anchor > 0 || N.winded > 0)) && !N.pull && N.wind !== 'summon' && N.wind !== 'barrage') tmEvade(w, b, N, lv, quick);
+  // between abilities: fight with the bow from cover (summoner, artillery, magnet); the hunter has its own weapons
+  const skirmish = (far) => {
+    const ready = N.bowCd <= 0.3, cv = tmCover(w, b, N, tgt, ready);
+    if (cv) { const d = Math.hypot(cv.x - b.x, cv.y - b.y); if (d > 10) tmWalk(b, cv.x, cv.y, 1); else { inp.mx = inp.my = 0; } }
+    else { const ux = (tgt.x - b.x) / (dT || 1), uy = (tgt.y - b.y) / (dT || 1), side = Math.sin(w.t * 0.8) > 0 ? 1 : -1; let gx = dT > far ? ux : dT < far * 0.55 ? -ux : -uy * side, gy = dT > far ? uy : dT < far * 0.55 ? -uy : ux * side;
+      if (lethalDist(b.x + gx * 90, b.y + gy * 90) < 50) { gx = (c.x - b.x) / 400; gy = (c.y - b.y) / 400; } const [mx, my] = botSteer(b, gx, gy); inp.mx = mx; inp.my = my; }
+    tmBow(w, b, N, tgt, dT, quick, lv, dt, { draw: 0.5, dmg: 14, kb: 520, cd: 0.9 });
+  };
+  const turn = (want, rate) => { const diff = ((want - b.aim + Math.PI) % TAU + TAU) % TAU - Math.PI; b.aim += clamp(diff, -rate * dt, rate * dt); inp.aim = b.aim; return Math.abs(diff); };
+  switch (N.mode) {
+    case 'hunter': {
+      // light and quick: keeps its distance, dodges, pierces from range, and at close quarters a crossbow in each hand
+      // keeps its distance and its cover: behind a pillar while the long bow reloads, out round it to shoot
+      const cv = tmCover(w, b, N, tgt, N.cd <= 0.3);
+      if (cv && dT > 200) { const d = Math.hypot(cv.x - b.x, cv.y - b.y); if (d > 10) tmWalk(b, cv.x, cv.y, 1); else inp.mx = inp.my = 0; }
+      else { const want = dT < 230 ? 1 : dT > 520 ? 0.9 : 0.3, ux = (tgt.x - b.x) / (dT || 1), uy = (tgt.y - b.y) / (dT || 1), side = Math.sin(w.t * 0.9) > 0 ? 1 : -1;
+        let gx = dT < 230 ? -ux : dT > 520 ? ux : -uy * side, gy = dT < 230 ? -uy : dT > 520 ? uy : ux * side;
+        if (lethalDist(b.x + gx * 90, b.y + gy * 90) < 50) { gx = (c.x - b.x) / 600; gy = (c.y - b.y) / 600; }
+        const [mx, my] = botSteer(b, gx, gy); inp.mx = mx * want; inp.my = my * want; }
+      const lead = dT / 1500, ax = tgt.x + tgt.vx * lead, ay = tgt.y + tgt.vy * lead, off = turn(Math.atan2(ay - b.y, ax - b.x), 8 + lv);
+      // the long bow: every few seconds, a piercing shot through everyone in its line (a 1.1 s draw is the tell)
+      if (N.cd <= 0) N.drawT += dt;
+      if (N.cd <= 0 && N.drawT >= 1.1 && off < 0.14 && clearShot(b.x, b.y, tgt.x, tgt.y)) { tmArrow(w, b, b.aim, { dmg: 24, kb: 420, full: true, rail: true, pierce: 99, speed: 1600, drag: 0, life: 2.5 }); N.cd = 2.0 / quick; N.drawT = 0; }
+      // and between them, twin crossbows: a bolt from one hand, then the other, each at its own target within reach
+      N.abT.bolt = N.abT.bolt == null ? 0.5 : N.abT.bolt;
+      if (N.abT.bolt <= 0) { const near = foes.filter(q => Math.hypot(q.x - b.x, q.y - b.y) < 460 && clearShot(b.x, b.y, q.x, q.y)).sort((p, q) => Math.hypot(p.x - b.x, p.y - b.y) - Math.hypot(q.x - b.x, q.y - b.y)).slice(0, 2);
+        N.hand = 1 - (N.hand || 0); const q = near[N.hand] || near[0];
+        if (q) { const d = Math.hypot(q.x - b.x, q.y - b.y), a = Math.atan2(q.y + q.vy * d / 1100 - b.y, q.x + q.vx * d / 1100 - b.x); N.aim2 = a; tmArrow(w, b, a, { dmg: 8, kb: 300, bolt: true, speed: 1350, drag: 0.1, maxDist: 600 }); N.abT.bolt = 0.32 / quick; } }
+      break;
+    }
+    case 'summoner': {
+      // stays near the middle calling in machines; shoots a little between calls
+      if (N.wind === 'summon') { turn(aimAt, 4); N.windT -= dt; if (N.windT <= 0) { N.wind = null; const med = w.players.filter(p => p.npc && p.npc.k === 'medic' && !p.dead).length; const pick = med < 2 && Math.random() < 0.4 ? 'medic' : Math.random() < 0.55 ? 'scuttler' : 'drone'; tmSummon(w, b, pick, pick === 'scuttler' ? 3 : pick === 'drone' ? 2 : 1); N.cd = 5.5 / quick; } break; }
+      if (N.cd <= 0 && w.players.filter(p => p.npc && p.npc.k !== 'term' && !p.dead).length < TM.MAX_MINIONS) { N.wind = 'summon'; N.windT = 1.5; b.vx *= 0.5; b.vy *= 0.5; ev(w, { e: 'termTell', k: 'summon', x: r1(b.x), y: r1(b.y) }); break; }
+      skirmish(420);
+      break;
+    }
+    case 'juggernaut': {
+      // no bow: the rush, the clap and the anchor
+      if (N.winded > 0) { N.winded -= dt; b.vx *= 0.8; b.vy *= 0.8; break; }
+      if (N.charge) {
+        N.charge.t -= dt; b.vx = N.charge.dx * 820; b.vy = N.charge.dy * 820; b.aim = inp.aim = Math.atan2(N.charge.dy, N.charge.dx);
+        for (const q of foes) if (!N.charge.hit.includes(q.id) && Math.hypot(q.x - b.x, q.y - b.y) < q.r + b.r + 6) { const d = Math.hypot(q.x - b.x, q.y - b.y) || 1; N.charge.hit.push(q.id); hurt(w, q, 28, (q.x - b.x) / d * 1050 + N.charge.dx * 350, (q.y - b.y) / d * 1050 + N.charge.dy * 350, 'npc', b.id); ev(w, { e: 'npcSwing', id: b.id, x: r1(b.x), y: r1(b.y), a: r2(b.aim), k: 'charge', h: 1 }); }
+        const nx = b.x + N.charge.dx * (b.r + 10), ny = b.y + N.charge.dy * (b.r + 10);
+        const wall = nx < WALL + b.r || nx > AW - WALL - b.r || ny < WALL + b.r || ny > AH - WALL - b.r || PILLARS.some(p => Math.hypot(nx - p.x, ny - p.y) < p.r + b.r);
+        if (wall) { N.charge = null; N.winded = 1.6; b.vx = b.vy = 0; N.cd = 1; ev(w, { e: 'termWinded', x: r1(b.x), y: r1(b.y) }); }
+        else if (N.charge.t <= 0 || lethalDist(nx, ny) < 10) { N.charge = null; b.vx *= 0.3; b.vy *= 0.3; N.cd = 1.0 / quick; }
+        break;
+      }
+      if (N.wind) {
+        N.windT -= dt; if (N.windT > 0) { b.vx *= 0.7; b.vy *= 0.7; break; }
+        const kind = N.wind; N.wind = null;
+        if (kind === 'rush') N.charge = { t: 0.55, dx: Math.cos(b.aim), dy: Math.sin(b.aim), hit: [] };
+        else if (kind === 'clap') { // everyone in front and close is slapped together
+          const px = b.x + Math.cos(b.aim) * 90, py = b.y + Math.sin(b.aim) * 90; let n = 0;
+          for (const q of foes) { if (Math.hypot(q.x - b.x, q.y - b.y) > 190 || angOff(Math.atan2(q.y - b.y, q.x - b.x), b.aim) > 1.1) continue; const d = Math.hypot(px - q.x, py - q.y) || 1; hurt(w, q, 24, (px - q.x) / d * 700, (py - q.y) / d * 700, 'npc', b.id); stun(w, q, 0.7); n++; }
+          ev(w, { e: 'npcSwing', id: b.id, x: r1(px), y: r1(py), a: r2(b.aim), k: 'slam', h: n }); N.cd = 2 / quick; }
+        break;
+      }
+      if (N.anchor > 0) { N.anchor -= dt; b.vx = b.vy = 0; b.knock = 0; b.hp = Math.min(b.maxHp, b.hp + b.maxHp * 0.02 * dt); turn(aimAt, 1.5); break; }
+      // anchor when it's being hurt fast or thrown about
+      T.dmgLog = T.dmgLog.filter(x => w.t - x.t < 3); const recent = T.dmgLog.reduce((s, x) => s + x.v, 0);
+      if (N.abT.anchor <= 0 || N.abT.anchor == null) { if (recent > b.maxHp * 0.1 || (b.knock > 0 && lethalDist(b.x, b.y) < 160)) { N.anchor = 4; N.abT.anchor = 14 / quick; ev(w, { e: 'termAnchor', x: r1(b.x), y: r1(b.y) }); break; } }
+      turn(aimAt, 3.2 + lv * 0.4);
+      if (N.cd <= 0) {
+        const near = foes.filter(q => Math.hypot(q.x - b.x, q.y - b.y) < 180 && angOff(Math.atan2(q.y - b.y, q.x - b.x), b.aim) < 1.0).length;
+        if (near >= 2) { N.wind = 'clap'; N.windT = 0.7 / quick; ev(w, { e: 'termTell', k: 'clap', x: r1(b.x), y: r1(b.y) }); break; }
+        // the rush: the direction that runs through the most archers (and doesn't end in a hole)
+        let best = null;
+        for (let i = 0; i < 24; i++) { const a = i / 24 * TAU, ux = Math.cos(a), uy = Math.sin(a); let n = 0, ok = true;
+          for (const q of foes) { const rx = q.x - b.x, ry = q.y - b.y, al = rx * ux + ry * uy, sd = Math.abs(rx * uy - ry * ux); if (al > 0 && al < 450 && sd < b.r + q.r + 10) n++; }
+          for (let t = 60; t <= 450; t += 60) if (lethalDist(b.x + ux * t, b.y + uy * t) < b.r) { ok = false; break; }
+          if (ok && n > 0 && (!best || n > best.n || (n === best.n && Math.random() < 0.3))) best = { a, n }; }
+        if (best && (best.n >= 2 || dT < 420 || Math.random() < 0.35)) { b.aim = inp.aim = best.a; N.wind = 'rush'; N.windT = 0.6 / quick; ev(w, { e: 'termTell', k: 'rush', x: r1(b.x), y: r1(b.y), a: r2(best.a) }); break; }
+      }
+      tmWalk(b, tgt.x, tgt.y, 1);
+      break;
+    }
+    case 'artillery': {
+      // holds the middle behind a shield; calls barrages down on where everyone is heading, and sends a rocket after each archer
+      if (N.wind === 'barrage') { turn(aimAt, 3); N.windT -= dt; if (N.windT <= 0) { N.wind = null; N.cd = 7 / quick; } break; }
+      if (N.cd <= 0) { N.wind = 'barrage'; N.windT = 2.2; ev(w, { e: 'termTell', k: 'barrage', x: r1(b.x), y: r1(b.y) });
+        for (const q of foes) for (let i = 0; i < 2; i++) { const lead = i ? 1.2 : 0.5, tx = clamp(q.x + q.vx * lead + rand(-50, 50), WALL + 40, AW - WALL - 40), ty = clamp(q.y + q.vy * lead + rand(-50, 50), WALL + 40, AH - WALL - 40);
+          w.zones.push({ id: w.nid++, ty: 'rain', x: tx, y: ty, r: 96, t: 1.6 + i * 0.5, team: b.team, owner: b.id, art: 1 }); ev(w, { e: 'rainMark', x: r1(tx), y: r1(ty) }); }
+        break; }
+      N.abT.rocket = N.abT.rocket == null ? 2 : N.abT.rocket;
+      if (N.abT.rocket <= 0) { for (const q of foes) tmArrow(w, b, Math.atan2(q.y - b.y, q.x - b.x), { dmg: 4, kb: 200, rocket: true, seek: true, big: true, speed: ROCKET.speed, drag: 0, life: ROCKET.life, target: q.id }); N.abT.rocket = 4.5 / quick; }
+      skirmish(480);
+      break;
+    }
+    case 'magnet': {
+      // the pull: a warning ring, then everyone in the open is dragged in, then a shockwave. Behind a pillar you're safe from both
+      if (N.pull) { turn(aimAt, 3);
+        const P = N.pull; P.t -= dt; b.vx = b.vy = 0;
+        if (P.ph === 'warn' && P.t <= 0) { P.ph = 'pull'; P.t = 1.6; }
+        else if (P.ph === 'pull') { for (const q of foes) { const d = Math.hypot(q.x - b.x, q.y - b.y); if (d < 620 && d > b.r + 40 && clearShot(b.x, b.y, q.x, q.y)) { q.vx += (b.x - q.x) / d * 1500 * dt; q.vy += (b.y - q.y) / d * 1500 * dt; q.knock = Math.max(q.knock, 0.1); } } if (P.t <= 0) { P.ph = 'wave'; P.t = 0.9; ev(w, { e: 'termTell', k: 'wave', x: r1(b.x), y: r1(b.y) }); } }
+        else if (P.ph === 'wave' && P.t <= 0) { for (const q of foes) { const d = Math.hypot(q.x - b.x, q.y - b.y) || 1; if (d < 250 && clearShot(b.x, b.y, q.x, q.y)) hurt(w, q, 22, (q.x - b.x) / d * 1000, (q.y - b.y) / d * 1000, 'npc', b.id); } ev(w, { e: 'quake', id: b.id, x: r1(b.x), y: r1(b.y) }); N.pull = null; N.cd = 6 / quick; }
+        break;
+      }
+      if (N.cd <= 0 && foes.some(q => Math.hypot(q.x - b.x, q.y - b.y) < 620)) { N.pull = { ph: 'warn', t: 1.2 / quick }; ev(w, { e: 'termTell', k: 'pull', x: r1(b.x), y: r1(b.y) }); break; }
+      skirmish(380);
+      break;
+    }
+  }
+}
+// the machines the Summoner calls in
+function tmMinionThink(w, n, dt) {
+  const N = n.npc, inp = n.input, b = tmBoss(w);
+  inp.draw = false; inp.mx = inp.my = 0;
+  if (n.dead || n.falling > 0) return;
+  N.cd -= dt;
+  const tgt = tmNearest(w, n, N.k === 'drone' ? 900 : 700);
+  if (N.k === 'medic') { // keeps near the boss and mends him; runs from archers
+    if (!b || b.dead) { n.hp = 0; n.dead = true; return; }
+    const d = Math.hypot(b.x - n.x, b.y - n.y), nearFoe = tmNearest(w, n, 160);
+    if (nearFoe) { const dx = n.x - nearFoe.x, dy = n.y - nearFoe.y, l = Math.hypot(dx, dy) || 1; const [mx, my] = botSteer(n, dx / l, dy / l); inp.mx = mx; inp.my = my; }
+    else if (d > 150) tmWalk(n, b.x, b.y, 0.9); else if (d < 90) { const dx = n.x - b.x, dy = n.y - b.y, l = Math.hypot(dx, dy) || 1; inp.mx = dx / l * 0.5; inp.my = dy / l * 0.5; }
+    if (d < 320 && b.hp < b.maxHp) { b.hp = Math.min(b.maxHp, b.hp + 11 * dt); N.healT = (N.healT || 0) + dt; if (N.healT > 0.5) { N.healT = 0; ev(w, { e: 'termHeal', x: r1(n.x), y: r1(n.y), x2: r1(b.x), y2: r1(b.y) }); } }
+    n.aim = inp.aim = Math.atan2(b.y - n.y, b.x - n.x);
+    return;
+  }
+  if (!tgt) { if (b && Math.hypot(b.x - n.x, b.y - n.y) > 220) tmWalk(n, b.x, b.y, 0.7); return; }
+  const d = Math.hypot(tgt.x - n.x, tgt.y - n.y);
+  if (N.k === 'drone') { // a small archer: keeps its distance and shoots
+    const lead = d / 1100, want = Math.atan2(tgt.y + tgt.vy * lead - n.y, tgt.x + tgt.vx * lead - n.x), diff = ((want - n.aim + Math.PI) % TAU + TAU) % TAU - Math.PI; n.aim += clamp(diff, -4 * dt, 4 * dt); inp.aim = n.aim;
+    if (d < 220) { const ux = (n.x - tgt.x) / d, uy = (n.y - tgt.y) / d; if (lethalDist(n.x + ux * 60, n.y + uy * 60) > 30) { const [mx, my] = botSteer(n, ux, uy); inp.mx = mx; inp.my = my; } } else if (d > 420) tmWalk(n, tgt.x, tgt.y, 0.9);
+    if (N.cd <= 0 && Math.abs(diff) < 0.15 && clearShot(n.x, n.y, tgt.x, tgt.y)) { tmArrow(w, n, n.aim, { dmg: 7, kb: 300, speed: 1000 }); N.cd = rand(1.4, 2); }
+    return;
+  }
+  // scuttlers: a hop at the target, a bite, and a bounce back off
+  n.aim = inp.aim = Math.atan2(tgt.y - n.y, tgt.x - n.x);
+  if (N.hop > 0) { N.hop -= dt; return; }
+  if (d < tgt.r + n.r + 8 && N.cd <= 0) { const ux = (tgt.x - n.x) / d, uy = (tgt.y - n.y) / d; hurt(w, tgt, 8, ux * 460, uy * 460, 'npc', n.id); n.vx = -ux * 520; n.vy = -uy * 520; n.knock = 0.3; N.hop = 0.35; N.cd = 0.9; ev(w, { e: 'npcSwing', id: n.id, x: r1(n.x), y: r1(n.y), a: r2(n.aim), k: 'swing', h: 1 }); return; }
+  tmWalk(n, tgt.x, tgt.y, 1);
+}
+function tmUpdate(w, dt) {
+  const T = w.tm, M = w.match, b = tmBoss(w);
+  if (T.shift > 0) { T.shift -= dt; if (T.shift <= 0 && b) b.inv = 0; }
+  else { T.modeT -= dt; if (T.modeT <= 0 && b && !b.dead) tmNextMode(w, b); }
+  // the floor hatches: a warning, then a pair open onto lava for a while, then close
+  const H = T.hatch; H.t -= dt;
+  if (H.t <= 0) {
+    const hatches = MAP.cracks.map((c, i) => (c.hatch ? i : -1)).filter(i => i >= 0);
+    if (!hatches.length) H.t = 1e9;
+    else if (H.warn.length) { for (const i of H.warn) { w.cracks[i] = 2; ev(w, { e: 'crackOpen', i }); } H.open = H.warn; H.warn = []; H.t = 9; }
+    else if (H.open.length) { for (const i of H.open) { w.cracks[i] = 0; ev(w, { e: 'hatchClose', i }); } H.open = []; H.t = rand(6, 10); }
+    else { H.warn = [hatches[Math.floor(Math.random() * hatches.length)]]; for (const i of H.warn) { w.cracks[i] = 1; ev(w, { e: 'crackWarn', i }); } H.t = 3; }
+    useMap(w);
+  }
+  // knocked-out archers: a teammate can revive them; otherwise they come back after a while, for a life
+  for (const p of w.players) {
+    if (p.npc || !p.dead) continue;
+    if (p.respAt == null) p.respAt = w.t + TM.RESPAWN;
+    if (w.t >= p.respAt && T.lives > 0) { T.lives--; const sp = MAP.spawns || SPAWNS.red, s = sp[Math.floor(Math.random() * sp.length)]; applyStats(p); freshBody(p, s.x, s.y); p.inv = 2; p.respAt = null; ev(w, { e: 'respawn', id: p.id, x: r1(s.x), y: r1(s.y) }); }
+  }
+  // dead machines are cleared away after a moment
+  w.players = w.players.filter(p => !(p.npc && p.npc.k !== 'term' && p.dead && (p.npc.deadT = (p.npc.deadT || 0) + dt) > 1.5));
+  // the end: the machine down, or the team out of lives and all down
+  const team = w.players.filter(p => !p.npc);
+  if (b && b.dead && !T.won) { T.won = 'red'; M.ph = 'over'; M.T = 0; M.mw = 'red'; ev(w, { e: 'matchEnd', mw: 'red', tm: 'win', secs: Math.round(w.t - T.t0), lv: T.lv }); }
+  else if (!T.won && team.length && team.every(p => p.dead) && T.lives <= 0) { T.won = 'npc'; M.ph = 'over'; M.T = 0; M.mw = 'npc'; ev(w, { e: 'matchEnd', mw: 'npc', tm: 'lose', secs: Math.round(w.t - T.t0), lv: T.lv, hp: Math.round(b ? b.hp / b.maxHp * 100 : 0) }); }
+}
+function tmSnap(w) {
+  const T = w.tm; if (!T) return undefined; const b = tmBoss(w), N = b && b.npc;
+  return { hp: b ? Math.max(0, Math.round(b.hp)) : 0, mh: b ? b.maxHp : 1, mode: T.mode, mt: Math.round(T.modeT), sh: T.shift > 0 ? 1 : 0, lv: T.lv, lives: T.lives, el: Math.max(0, Math.floor(w.t - T.t0)), mn: w.players.filter(p => p.npc && p.npc.k !== 'term' && !p.dead).length, an: N && N.anchor > 0 ? 1 : 0, wd: N && N.winded > 0 ? 1 : 0, sd: N && N.mode === 'artillery' && N.wind !== 'barrage' ? 1 : 0, pl: N && N.pull ? N.pull.ph : undefined };
+}
+
 function step(w, dt) {
   useMap(w);
   w.t += dt;
@@ -7070,7 +7576,7 @@ function step(w, dt) {
   M.T -= dt;
   if (M.ph === 'pre') {
     for (const p of w.players) { if (p.bot) p.aim = Math.atan2(AH / 2 - p.y, AW / 2 - p.x); else p.aim = p.input.aim; p.wantDash = false; }
-    if (M.T <= 0) { M.ph = 'play'; M.T = w.cq ? 1e6 : TIMES.game; M.gStart = w.t; w.amberT = 0.4; w.puT = 6; w.chT = rand(18, 26); ev(w, { e: 'phase', ph: 'play', rd: M.rd, gm: M.gm }); }
+    if (M.T <= 0) { M.ph = 'play'; M.T = w.cq || w.tm ? 1e6 : TIMES.game; M.gStart = w.t; w.amberT = 0.4; w.puT = 6; w.chT = rand(18, 26); ev(w, { e: 'phase', ph: 'play', rd: M.rd, gm: M.gm }); }
     return;
   }
   if (M.ph === 'post') { if (M.T <= 0) afterPost(w); return; }
@@ -7085,7 +7591,7 @@ function step(w, dt) {
   for (const p of w.players) {
     if (p.dead) { p.revP = 0; continue; }
     const rallied = w.players.some(q => q.team === p.team && !q.dead && has(q, 'rally') && Math.hypot(q.x - p.x, q.y - p.y) < 170);
-    p.speed = p.baseSpeed * (p.windT > 0 ? 1.4 : 1) * (p.fortT > 0 ? 0.6 : 1) * (p.trapSet ? 0.5 : 1) * (rallied ? 1.2 : 1) * (p.stealthT > 0 ? 1.3 : 1) * (p.shade && p.shade.slow ? 1 - 0.06 * p.shade.n : 1) * (p.thornN > 0 ? 1 - 0.05 * p.thornN : 1) * (p.bot ? botD(p).speed : 1);
+    p.speed = p.baseSpeed * (p.windT > 0 ? 1.4 : 1) * (p.fortT > 0 ? 0.6 : 1) * (p.trapSet ? 0.5 : 1) * (rallied ? 1.2 : 1) * (p.stealthT > 0 ? 1.3 : 1) * (p.swT > 0 ? 1.35 : 1) * (p.shade && p.shade.slow ? 1 - 0.06 * p.shade.n : 1) * (p.thornN > 0 ? 1 - 0.05 * p.thornN : 1) * (p.bot ? botD(p).speed : 1);
     p.rallied = rallied;
   }
   // what bots perceive lags reality: remember where everyone was over the last half second
@@ -7103,6 +7609,7 @@ function step(w, dt) {
     if ((w.tk + p.thinkPar) % 2 === 0 || p.thinkAcc > dt * 2.5) { botThink(w, p, p.thinkAcc); p.thinkAcc = 0; }
   }
   if (w.cq) for (const p of w.players) if (p.npc) npcThink(w, p, dt);
+  if (w.tm) for (const p of w.players) if (p.npc) { if (p.npc.k === 'term') tmThink(w, p, dt); else tmMinionThink(w, p, dt); }
   updateCracks(w);
   updateMapMech(w, dt);
   // things that happen a moment later (Echo Strike)
@@ -7158,6 +7665,7 @@ function step(w, dt) {
   updateContagion(w, dt);
   updatePickups(w, dt);
   if (w.cq) { if (M.ph === 'play') updateConquest(w, dt); return; }
+  if (w.tm) { if (M.ph === 'play') tmUpdate(w, dt); return; }
   if (M.ph === 'play') checkRoundEnd(w);
   if (M.ph === 'play' && M.T <= 0) timeoutRound(w);
 }
@@ -7170,14 +7678,14 @@ function snapshot(w) {
     t: r3(w.t),
     m: { ph: M.ph, rd: M.rd, gm: M.gm, T: Math.max(0, Math.ceil(M.T)), wr: M.wins.red, wb: M.wins.blue, gr: M.gw.red, gb: M.gw.blue, rw: M.rw, mw: M.mw,
       op: M.opening ? 1 : 0, opt: Object.assign({}, w.cfg.opt), mut: w.cfg.mut || undefined, ptw: w.cfg.pointsToWin, gtw: w.cfg.gamesToWin, df: w.cfg.diff, map: w.cfg.map, cs: canStart(w) ? 1 : 0,
-      cr: w.cracks && w.cracks.length ? w.cracks.join('') : '', gt: r2(gameTime(w)), pw: powerWarn(w), cq: cqSnap(w), ban: w.cfg.ban && w.cfg.ban.length ? w.cfg.ban.slice() : undefined },
+      cr: w.cracks && w.cracks.length ? w.cracks.join('') : '', gt: r2(gameTime(w)), pw: powerWarn(w), cq: cqSnap(w), tm: tmSnap(w), ban: w.cfg.ban && w.cfg.ban.length ? w.cfg.ban.slice() : undefined },
     p: w.players.map(p => {
       const pw = {};
       for (const k in p.pw) if (p.pw[k] > 0) pw[k] = r1(p.pw[k]);
       return {
-        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, nk: p.npc ? p.npc.k : undefined, hd: p.hid ? 1 : 0, tw: p.elev ? 1 : 0, rs: w.cq && p.dead && !p.npc && p.respAt != null ? Math.max(0, Math.ceil(p.respAt - w.t)) : undefined, bi: p.npc ? p.npc.bio : undefined, nw: p.npc && (p.npc.wind || p.npc.charge) ? (p.npc.charge ? 'dash' : p.npc.wind) : undefined, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, ct: p.ct || undefined, cl: p.cl || undefined, ce: p.ce || undefined, sp: p.sp || undefined, fd: p.fd || undefined, pt: p.pt || undefined, fin: p.fin || undefined, fr: p.fr || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
+        id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, nk: p.npc ? p.npc.k : undefined, nm: p.npc && p.npc.mode ? p.npc.mode : undefined, na: p.npc && p.npc.k === 'term' ? r2(p.npc.aim2) : undefined, hd: p.hid ? 1 : 0, tw: p.elev ? 1 : 0, rs: (w.cq || w.tm) && p.dead && !p.npc && p.respAt != null ? Math.max(0, Math.ceil(p.respAt - w.t)) : undefined, bi: p.npc ? p.npc.bio : undefined, nw: p.npc && (p.npc.wind || p.npc.charge) ? (p.npc.charge ? 'dash' : p.npc.wind) : undefined, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, ct: p.ct || undefined, cl: p.cl || undefined, ce: p.ce || undefined, sp: p.sp || undefined, fd: p.fd || undefined, pt: p.pt || undefined, fin: p.fin || undefined, fr: p.fr || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
         x: r1(p.x), y: r1(p.y), vx: Math.round(p.vx), vy: Math.round(p.vy), a: r3(p.aim),
-        hp: Math.max(0, Math.ceil(p.hp)), mh: p.maxHp, ch: r2(p.charge), dr: p.drawing ? 1 : 0,
+        hp: Math.max(0, Math.ceil(p.hp)), mh: p.maxHp, ch: p.npc && p.npc.k === 'term' ? r2(Math.min(1, (p.npc.drawT || 0) / (p.npc.mode === 'hunter' ? 1.1 : p.npc.drawMax || 0.5))) : r2(p.charge), dr: p.npc && p.npc.k === 'term' ? (p.npc.drawT > 0 ? 1 : 0) : p.drawing ? 1 : 0,
         f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, bu: p.burn > 0 ? 1 : 0, bl: p.bleedT > 0 ? 1 : 0, vd: p.voidT > w.t && p.voidN ? p.voidN : undefined, vb: p.voidT > w.t && p.voidN ? p.voidBy : undefined, sl: p.slow > 0 || p.iceSlow > 0 ? 1 : 0, sw: p.slow > 0 || p.iceSlow > 0 ? r2(Math.max(p.slow > 0 ? 1 - (p.sure ? 0.85 : p.slowK || 0.5) : 0, p.iceSlow > 0 ? (p.sure ? 0.15 : 0.35) : 0)) : undefined, iv: p.inv > 0 ? 1 : 0,
         da: p.dashT > 0 ? 1 : 0, hl: p.healing ? 1 : 0, dn: p.dashN, dk: p.dashMaxN, ra: p.rallied ? 1 : 0, shd: p.shade ? p.shade.n : undefined, sht: p.shade ? r2(p.shade.t / SHADE.t) : undefined, th: p.thornN > 0 ? p.thornN : undefined,
         ab: p.slots.slice(), ac: p.abCd.map(r1), fz: p.frozen > 0 ? 1 : 0, sx: p.dashLock > 0 ? 1 : 0, ov: p.over >= 1 ? 1 : 0,
@@ -7185,7 +7693,7 @@ function snapshot(w) {
         arm: p.recoilArmed ? 'recoil' : p.rocketArmed ? 'rocket' : p.seekArmed ? 'seeker' : p.trickArmed ? 'trick' : p.boomArmed ? 'boomerang' : p.execArmed ? 'execute' : p.briarArmed ? 'briar' : undefined,
         sr: p.shroudT > 0 ? p.shroudR : undefined, rsh: p.rush ? 1 : 0, sk: p.strikeN || 0, nb: p.nblink ? 1 : 0, ft: p.fortT > 0 ? 1 : 0, wd: p.windT > 0 ? 1 : 0, ph: p.phaseT > 0 ? 1 : 0, gr: p.grap ? [r1(p.grap.x), r1(p.grap.y)] : 0, rp: r2(p.revP || 0), rv: p.reviveUsed ? 1 : 0, fl: p.flash > 0 ? 1 : 0, dc: r2(p.dashCd), dm: p.dashCdMax, d: p.dead ? 1 : 0,
         k: p.kills, de: p.deaths, am: p.amber, er: p.earned, up: p.up.slice(), hn: p.hones ? Object.assign({}, p.hones) : p.hones, el: p.element, ro: p.role,
-        of: p.offer ? JSON.parse(JSON.stringify(p.offer)) : p.offer, pk: p.picked ? 1 : 0, po: p.poisonN, dz: p.disarm > 0 ? 1 : 0, hc: p.hcap || 0, dfl: p.deflectT > 0 ? 1 : 0, pr: p.parryT > 0 ? (p.parryAuto ? 2 : 1) : 0, su: p.stunT > 0 ? 1 : 0, rg: rangeOf(w, p) || undefined, sm: p.role === 'ninja' || p.role === 'crossbow' ? undefined : r2(shotSpeed(p, 1) / 1300), dg: p.role === 'ninja' || p.role === 'crossbow' ? undefined : (p.railArmed ? 0 : has(p, 'longbow') ? 0.2 : 0.45), xr: p.role === 'crossbow' ? (p.bolts >= p.xbowMax ? 1 : r2(p.reloadT)) : undefined, xn: p.role === 'crossbow' ? p.bolts : undefined, xm: p.role === 'crossbow' ? p.xbowMax : undefined, xf: p.fanArmed ? 1 : 0, rpt: p.repeatT > 0 ? 1 : 0, au: p.autoT > 0 ? r2(p.autoT) : 0, fo: p.focusT > 0 ? 1 : 0, ts: p.trapSet ? [r1(p.trapSet.x), r1(p.trapSet.y), r2(1 - p.trapSet.t / TRAP_SET)] : undefined, ti: p.title || undefined, pn: p.pinned > 0 && p.stuck > 0 ? 1 : 0, pa: p.pinned > 0 ? r2(p.pinAng || 0) : undefined, sg: p.staggerT > 0 ? 1 : 0, mk: p.markT > 0 ? 1 : 0, sth: p.stealthT > 0 ? 1 : 0, amb: p.ambushT > 0 ? 1 : 0, bs: p.bot && p.ai.style ? p.ai.style : undefined, dv: p.bot && !p.dparams ? p.diff : undefined, em: p.emp ? 1 : 0, sk: p.streak, lh: p.lastHow, ep: Math.min(p.empPts, EMPOWER_AT), rz: r1(p.r),
+        of: p.offer ? JSON.parse(JSON.stringify(p.offer)) : p.offer, pk: p.picked ? 1 : 0, po: p.poisonN, dz: p.disarm > 0 ? 1 : 0, hc: p.hcap || 0, dfl: p.deflectT > 0 ? 1 : 0, pr: p.parryT > 0 ? (p.parryAuto ? 2 : 1) : 0, su: p.stunT > 0 ? 1 : 0, rg: rangeOf(w, p) || undefined, sm: p.role === 'ninja' || p.role === 'crossbow' ? undefined : r2(shotSpeed(p, 1) / 1300), dg: p.role === 'ninja' || p.role === 'crossbow' ? undefined : (p.railArmed ? 0 : has(p, 'longbow') ? 0.2 : 0.45), xr: p.role === 'crossbow' ? (p.bolts >= p.xbowMax ? 1 : r2(p.reloadT)) : undefined, xn: p.role === 'crossbow' ? p.bolts : undefined, xm: p.role === 'crossbow' ? p.xbowMax : undefined, xf: p.fanArmed ? 1 : 0, rpt: p.repeatT > 0 ? 1 : 0, au: p.autoT > 0 ? r2(p.autoT) : 0, fo: p.focusT > 0 ? 1 : 0, ts: p.trapSet ? [r1(p.trapSet.x), r1(p.trapSet.y), r2(1 - p.trapSet.t / TRAP_SET)] : undefined, ti: p.title || undefined, pn: p.pinned > 0 && p.stuck > 0 ? 1 : 0, rc: has(p, 'secondwind') ? Math.round(reclaimable(w, p)) || undefined : undefined, hr: p.hrT > 0 ? r2(p.hrT) : undefined, hrx: p.hrT > 0 && p.hrFrom ? r1(p.hrFrom.x) : undefined, hry: p.hrT > 0 && p.hrFrom ? r1(p.hrFrom.y) : undefined, swd: p.swT > 0 ? 1 : 0, pa: p.pinned > 0 ? r2(p.pinAng || 0) : undefined, sg: p.staggerT > 0 ? 1 : 0, mk: p.markT > 0 ? 1 : 0, sth: p.stealthT > 0 ? 1 : 0, amb: p.ambushT > 0 ? 1 : 0, bs: p.bot && p.ai.style ? p.ai.style : undefined, dv: p.bot && !p.dparams ? p.diff : undefined, em: p.emp ? 1 : 0, sk: p.streak, lh: p.lastHow, ep: Math.min(p.empPts, EMPOWER_AT), rz: r1(p.r),
         ss: [p.stats.shots, p.stats.hits, Math.round(p.stats.dmg), Math.round(p.stats.taken), p.stats.ring, Math.round(p.stats.longest)],
         pw, lc: p.lastCause, kb: p.killedBy,
       };
@@ -7352,7 +7860,7 @@ function tierSvg(k, size = 22) {
 }
 return {
   TIERS, tierOf, tierSvg,
-  MASTERY, masteryOf, takeCard, applyStats,
+  TM, TM_NAMES, TM_MINIONS, MASTERY, masteryOf, takeCard, applyStats,
   AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
@@ -7371,7 +7879,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.79.6';
+const PAGE_VERSION = '0.81.1';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -8035,6 +8543,16 @@ defSnd('mend', 'ability', 'Mend: healed', () => fanfare([523, 784], 'sine', 0.04
 defSnd('execute', 'ability', 'Coup de grâce', () => tone(110, 0.25, 'sawtooth', 0.05, -40), { ab: 'execute' });
 defSnd('dance', 'ability', 'Shadow Dance', () => fanfare([440, 660, 880], 'sine', 0.04, 60), { ab: 'dance' });
 defSnd('railArmed', 'ability', 'Railshot ready', () => { os('sawtooth', 300, 1200, 0.25, 0.03); os('sine', 1200, 1800, 0.2, 0.03, 0.18); }, { ab: 'railshot' });
+defSnd('termShift', 'match', 'Terminator changes mode', () => { nz(0.4, 0.08, 'lowpass', 300, 1200, 1); os('sawtooth', 80, 160, 0.5, 0.05); setTimeout(() => os('square', 440, 660, 0.12, 0.04), 300); });
+defSnd('termRush', 'match', 'Terminator rush tell', () => { os('sawtooth', 120, 60, 0.5, 0.06); nz(0.3, 0.05, 'lowpass', 500, 200, 1); });
+defSnd('termClap', 'match', 'Terminator clap tell', () => { os('square', 220, 440, 0.4, 0.05); });
+defSnd('termPull', 'match', 'Terminator pull', () => { os('sine', 60, 240, 0.9, 0.06); nz(0.6, 0.03, 'bandpass', 400, 1600, 2); });
+defSnd('termSummon', 'match', 'Terminator summons', () => { os('square', 660, 990, 0.25, 0.035); setTimeout(() => os('square', 880, 1320, 0.2, 0.03), 150); });
+defSnd('termJet', 'match', 'Terminator jets back', () => { nz(0.5, 0.1, 'highpass', 1500, 4000, 1); os('sawtooth', 300, 90, 0.5, 0.05); });
+defSnd('termAnchor', 'match', 'Terminator anchors', () => { os('square', 110, 55, 0.5, 0.06); nz(0.2, 0.08, 'lowpass', 300, 100, 1); });
+defSnd('alarm', 'match', 'Hatch warning', () => { os('square', 520, 520, 0.12, 0.03); setTimeout(() => os('square', 520, 520, 0.12, 0.03), 180); });
+defSnd('hatch', 'match', 'Hatch opens', () => { nz(0.35, 0.09, 'lowpass', 600, 150, 1); os('sawtooth', 90, 50, 0.4, 0.05); });
+defSnd('secondwind', 'ability', 'Second Wind', (v = 1) => { fanfare([392, 523, 659], 'sine', 0.04 * v, 55); nz(0.25, 0.04 * v, 'bandpass', 900, 2600, 1); }, { ab: 'secondwind', vol: vMine });
 defSnd('blink', 'ability', 'Blink', (v = 1) => { os('sine', 1400, 300, 0.14, 0.05 * v); nz(0.1, 0.05, 'highpass', 3000, 6000, 1); }, { ab: 'blink', vol: vMine });
 defSnd('harpoon', 'ability', 'Harpoon', (hit = false) => { nz(0.15, 0.08, 'bandpass', 1400, 500, 2); if (hit) tone(180, 0.12, 'square', 0.04, -60); }, { ab: 'harpoon', vars: [['Thrown', [false]], ['Hooks someone', [true]]] });
 defSnd('totem', 'ability', 'Mending Totem', () => fanfare([392, 523, 659], 'sine', 0.045, 70), { ab: 'totem' });
@@ -11614,7 +12132,7 @@ function balCsv() {
 }
 // balance data is for the game's owner only (and the offline copy, which is yours anyway)
 // the owner's extras: balance data, and Strongholds (on hold, so only the owner and the offline copy can open it)
-function adminBits() { const on = OFFLINE || !!(account && account.admin); for (const id of ['balBtn', 'gmBalBtn', 'resBalBtn', 'cqBtn', 'sndBtn', 'farmBtn']) if ($(id)) $(id).hidden = !on; if ($('fnBtn')) $('fnBtn').hidden = OFFLINE || !(account && account.admin); }
+function adminBits() { const on = OFFLINE || !!(account && account.admin); for (const id of ['balBtn', 'gmBalBtn', 'resBalBtn', 'cqBtn', 'tmBtn', 'sndBtn', 'farmBtn']) if ($(id)) $(id).hidden = !on; for (const id of ['fnBtn', 'onBtn']) if ($(id)) $(id).hidden = OFFLINE || !(account && account.admin); }
 $('balBtn').onclick = openBalance; $('gmBalBtn').onclick = openBalance; $('resBalBtn').onclick = openBalance;
 $('balClose').onclick = closeBalance;
 ['balWho', 'balMap', 'balSrc', 'balSize', 'balRules', 'balVer'].forEach(id => $(id).addEventListener('change', renderBalance));
@@ -12407,6 +12925,7 @@ $('mTrain').onclick = () => openSub('trainScr');
 $('mStore').onclick = () => openSub('storeScr');
 $('arenaBtn').onclick = () => openSub('arenaScr');
 $('cqBtn').onclick = () => { if (OFFLINE || (account && account.admin)) startStrongholds(); };
+$('tmBtn').onclick = () => { if (OFFLINE || (account && account.admin)) startTerminator(); };
 // the builder lives inside Custom games, so its Back button goes back there
 { const b = $('arenaScr').querySelector('[data-back]'); if (b) b.onclick = () => openSub('customScr'); }
 $('pracBtn').onclick = () => { closeSubs(); startPractice(); };
@@ -12546,11 +13065,12 @@ addEventListener('resize', () => requestAnimationFrame(alignHomeTop)); if (docum
 // Menus that are taller than the window (a laptop, or a screen at 125% or 150% scaling) are scaled down to fit, so the
 // main menu and the other screens show whole without scrolling. Never below FIT_MIN: past that a screen scrolls instead
 // (at a reduced size) so the text stays readable. Phones keep their own layout.
-const FIT_MIN = 0.72;
+const FIT_MIN = 0.72, FIT_NOSHRINK = ['resultsScreen'];
 function fitOverlay(ov) {
   if (!ov) return;
   if (ov.hidden) { ov._fit = null; return; } // (shown again: measured afresh)
   if (innerHeight < 520 && innerWidth >= 700) return; // (short screens, phones held sideways: fitCards scales those)
+  if (FIT_NOSHRINK.includes(ov.id)) { for (const k of ov.children) if (k.style && k.style.zoom) k.style.zoom = ''; return; } // (long screens that scroll instead: shrunk, they're too small to read)
   const kids = [...ov.children].filter(k => !k.hidden && /^(static|relative)$/.test(getComputedStyle(k).position) && getComputedStyle(k).display !== 'none'); // (what's in the flow)
   if (!kids.length) return;
   const narrow = innerWidth < 700;
@@ -12932,6 +13452,14 @@ function eventFx(e) {
         break;
       }
       case 'npcBack': burst(e.x, e.y, '#d9d2bd', 12, 150, 2.5); break;
+      case 'termMode': { const nm = Sim.TM_NAMES[e.mode] || e.mode; burst(e.x, e.y, '#ff3b2b', 30, 260, 3.5); fx.rings.push({ x: e.x, y: e.y, r: 20, life: 0, col: '255,60,40', max: 160 }); shake(5); play('termShift');
+        callout({ kicker: e.n ? 'The machine changes' : 'The machine wakes', title: nm.toUpperCase(), sub: TERM_HINT[e.mode] || '', color: '#ff5a4a', tier: 2, plain: `Terminator: ${nm}<small>${TERM_HINT[e.mode] || ''}</small>` }); break; }
+      case 'termTell': { if (e.k === 'rush') play('termRush'); else if (e.k === 'clap') play('termClap'); else if (e.k === 'pull') play('termPull'); else if (e.k === 'barrage') play('alarm'); else if (e.k === 'summon') play('termSummon'); else if (e.k === 'wave') play('termPull'); break; }
+      case 'termJet': burst(e.x, e.y, '#ff7a22', 24, 220, 3); fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '255,140,60', max: 90 }); play('termJet'); break;
+      case 'termWinded': burst(e.x, e.y, '#ffe066', 18, 180, 3); floater(e.x, e.y - 50, 'Winded!', '#ffe066', 18); shake(6); play('thud'); break;
+      case 'termAnchor': burst(e.x, e.y, '#ffcf5a', 16, 150, 3); floater(e.x, e.y - 50, 'Anchored', '#ffcf5a', 16); play('termAnchor'); break;
+      case 'termHeal': fx.bolts.push({ x1: e.x, y1: e.y, x2: e.x2, y2: e.y2, life: 0, col: '125,255,138' }); break;
+      case 'termSummon': burst(e.x, e.y, '#8ad0ff', 12, 140, 2.5); break;
       case 'chest': burst(e.x, e.y, '#ffe9a8', 22, 220, 3); fx.rings.push({ x: e.x, y: e.y, r: 8, life: 0, col: '255,215,120', max: 70 }); if (e.id === myId) { sfx.pick(); hc['chest' + e.s] = myId; } break;
       case 'respawn': burst(e.x, e.y, '#ffffff', 18, 180, 3); if (e.id === myId) { play('respawn'); CAM.init = false; } break;
       case 'streak': case 'shutdown': case 'empowered': case 'unpowered': case 'clutch': onCallout(e); break;
@@ -12941,8 +13469,9 @@ function eventFx(e) {
         floater(e.x, e.y - 40, e.n > 1 ? `Overload ×${e.n}` : 'Overload', '#fff27a', 14); sfx.zap(0.8);
         break;
       case 'autoPicked': if (e.id === myId) notice(`Time's up. You got <b>${esc(cardInfo(e.card).name)}</b> at random`); break;
-      case 'crackWarn': crackT[e.i] = clock; if (crackT.warned !== view.m.gm) { crackT.warned = view.m.gm; notice(THEME.beach ? 'The tide is coming in!' : 'The ice is cracking!', false); } play('crack', !!THEME.beach); break;
-      case 'crackOpen': { const h = Sim.MAPS[MAPKEY].cracks[e.i]; if (h) { const [cx, cy] = hazCentre(h); burst(cx, cy, '#e6f7ff', 40, 260, 4); burst(cx, cy, '#5aa9d6', 20, 180, 3); } sfx.splash(); shake(5); break; }
+      case 'hatchClose': { const h = Sim.MAPS[MAPKEY].cracks[e.i]; if (h) burst(h.x, h.y, '#6a6f78', 10, 120, 2); break; }
+      case 'crackWarn': crackT[e.i] = clock; if (THEME.hatch) { const h = Sim.MAPS[MAPKEY].cracks[e.i]; if (h) burst(h.x, h.y, '#ff6a2b', 8, 100, 2); play('alarm'); break; } if (crackT.warned !== view.m.gm) { crackT.warned = view.m.gm; notice(THEME.beach ? 'The tide is coming in!' : 'The ice is cracking!', false); } play('crack', !!THEME.beach); break;
+      case 'crackOpen': { if (THEME.hatch) { const h = Sim.MAPS[MAPKEY].cracks[e.i]; if (h) { burst(h.x, h.y, '#ff7a22', 30, 220, 3); shake(3); play('hatch'); } break; } const h = Sim.MAPS[MAPKEY].cracks[e.i]; if (h) { const [cx, cy] = hazCentre(h); burst(cx, cy, '#e6f7ff', 40, 260, 4); burst(cx, cy, '#5aa9d6', 20, 180, 3); } sfx.splash(); shake(5); break; }
       case 'phase': {
         const m = view && view.m;
         if (e.ph !== 'post') { $('gameSum').hidden = true; praiseTimers.forEach(clearTimeout); praiseTimers = []; if (RP.on) endReplay(); pendingSummary = null; }
@@ -12978,7 +13507,12 @@ function eventFx(e) {
         if (e.id === myId) { const m = view && view.p.find(p => p.id === myId); if (m) floater(e.x2, e.y2 - 40, 'Double damage ×3', '#ff4d5e', 13); }
         break;
       }
-      case 'clone': burst(e.x, e.y, '#2a2a3a', 18, 140, 3); play('clone'); break;
+      case 'clone': burst(e.x, e.y, '#2a2a3a', e.q ? 8 : 18, 140, 3); if (!e.q) play('clone'); break; // (q: an afterimage, quietly)
+      case 'secondwind': {
+        fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '125,255,154', max: 56 }); burst(e.x, e.y, '#7dff9a', 22, 170, 3);
+        floater(e.x, e.y - 34, `+${e.n}`, '#7dff9a', 18, e.id === myId); play('secondwind', e.id === myId ? 1 : 0.6);
+        break;
+      }
       case 'blossom': fx.rings.push({ x: e.x, y: e.y, r: 10, life: 0, col: '215,221,229', max: 90 }); play('blossom'); break;
       case 'smark': if (e.id === myId) play('smark'); break;
       case 'recall': {
@@ -14556,6 +15090,21 @@ function crackPattern(i, h) {
   }
   return (crackLines[MAPKEY + i] = lines);
 }
+// the Terminator arena's floor hatches: steel plates that slide open onto lava (a red warning first), then close again
+function drawHatches(c) {
+  const cr = (view && view.m && view.m.cr) || '', list = (MAPS[MAPKEY] && MAPS[MAPKEY].cracks) || [];
+  list.forEach((h, i) => {
+    const st = +cr[i] || 0;
+    if (st === 2) { drawLava(h, c); ctx.strokeStyle = 'rgba(255,120,60,0.8)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(h.x, h.y, h.r + 6, 0, TAU); ctx.stroke(); return; }
+    // the plate: dark steel, a grille across it, a rim
+    ctx.save(); ctx.beginPath(); ctx.arc(h.x, h.y, h.r, 0, TAU); ctx.fillStyle = '#202329'; ctx.fill();
+    ctx.clip(); ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 3; for (let y = -h.r; y <= h.r; y += 18) { ctx.beginPath(); ctx.moveTo(h.x - h.r, h.y + y); ctx.lineTo(h.x + h.r, h.y + y); ctx.stroke(); }
+    if (st === 1) { const k = 0.5 + 0.5 * Math.sin(c * 10); ctx.fillStyle = `rgba(255,70,30,${0.12 + 0.25 * k})`; ctx.fillRect(h.x - h.r, h.y - h.r, h.r * 2, h.r * 2); }
+    ctx.restore();
+    ctx.strokeStyle = st === 1 ? `rgba(255,90,40,${0.6 + 0.4 * Math.sin(c * 10)})` : 'rgba(90,96,106,0.9)'; ctx.lineWidth = st === 1 ? 4 : 3; ctx.beginPath(); ctx.arc(h.x, h.y, h.r + 3, 0, TAU); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.08)'; for (let k = 0; k < 4; k++) { const a = k / 4 * TAU + Math.PI / 4; ctx.beginPath(); ctx.arc(h.x + Math.cos(a) * (h.r - 10), h.y + Math.sin(a) * (h.r - 10), 3, 0, TAU); ctx.fill(); }
+  });
+}
 function drawCracks(c) {
   const cr = (view && view.m && view.m.cr) || '', list = (MAPS[MAPKEY] && MAPS[MAPKEY].cracks) || [];
   list.forEach((h, i) => {
@@ -14818,6 +15367,7 @@ function drawArena() {
   for (const h of HAZ) if (h.type === 'lava') drawLava(h, c);
   for (const h of HAZ) if (h.type === 'pit' && (THEME.water || h.water)) drawWaterGlints(h, c);
   if (THEME.water) drawCracks(c);
+  if (THEME.hatch) drawHatches(c);
   if (HEAL) drawSpring(c);
   drawMapMech(ctx, mechDrawT, false);
   if (THEME.night) drawNightLights(c);
@@ -15384,6 +15934,15 @@ function drawPlayer(p, isMe, bare) {
       for (let i = 0; i < 1; i++) if (Math.random() < n) fx.parts.push({ x: p.x + rand(-R, R) * 0.8 - (p.vx || 0) * 0.04, y: p.y + rand(-R, R) * 0.8 - (p.vy || 0) * 0.04, vx: -(p.vx || 0) * 0.15 + rand(-10, 10), vy: -(p.vy || 0) * 0.15 + rand(-12, 6), life: 0, max: rand(0.5, 0.9), color: Math.random() < 0.7 ? 'rgba(220,244,255,0.32)' : 'rgba(255,255,255,0.45)', r: rand(1.6, 3.2) * (0.7 + 0.5 * k) });
     }
   }
+  if (p.swd && !p.f) { // Second Wind: a green rush, and a trail behind as they run
+    ctx.strokeStyle = `rgba(125,255,154,${0.35 + 0.25 * Math.sin(gclock * 16)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, R + 4, 0, TAU); ctx.stroke();
+    const sp = Math.hypot(p.vx || 0, p.vy || 0); if (sp > 60 && Math.random() < 0.6) fx.parts.push({ x: p.x - (p.vx / sp) * R + rand(-4, 4), y: p.y - (p.vy / sp) * R + rand(-4, 4), vx: -p.vx * 0.15, vy: -p.vy * 0.15, life: 0, max: 0.35, color: '#7dff9a', r: rand(1.5, 3) });
+  }
+  if (p.hr > 0 && p.hrx != null && !p.f) { // Hit and Run: a faint line back to where they'll snap to, and the spot itself
+    ctx.save(); ctx.setTransform(DPR * VS, 0, 0, DPR * VS, OX, OY);
+    ctx.strokeStyle = 'rgba(201,179,255,0.35)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 8]); ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.hrx, p.hry); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle = `rgba(201,179,255,${0.5 + 0.3 * Math.sin(gclock * 8)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(p.hrx, p.hry, R * 0.8, 0, TAU); ctx.stroke(); ctx.restore();
+  }
   if (p.bu && !p.f) {
     ctx.strokeStyle = `rgba(255,138,61,${0.4 + 0.3 * Math.sin(gclock * 20)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, R + 3, 0, TAU); ctx.stroke();
     if (Math.random() < 0.3) fx.parts.push({ x: p.x + rand(-8, 8), y: p.y + rand(-8, 8), vx: rand(-20, 20), vy: rand(-60, -20), life: 0, max: 0.5, color: Math.random() < 0.5 ? '#ff6a2b' : '#ffcf5a', r: rand(1, 2.5) });
@@ -15394,6 +15953,7 @@ function drawPlayer(p, isMe, bare) {
     const w = 38, y = p.y - R - 12, farmBars = tagMode() === 'bars';
     ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(p.x - w / 2, y, w, 4);
     ctx.fillStyle = TEAM_COL[p.tm] || p.c; ctx.fillRect(p.x - w / 2, y, w * clamp(p.hp / (p.mh || 100), 0, 1), 4);
+    if (p.rc > 0) { const h0 = clamp(p.hp / (p.mh || 100), 0, 1); ctx.fillStyle = 'rgba(190,255,215,0.5)'; ctx.fillRect(p.x - w / 2 + w * h0, y, w * clamp(p.rc / (p.mh || 100), 0, 1 - h0), 4); } // (Second Wind: reclaimable)
     if (p.hp < 30) { ctx.fillStyle = `rgba(255,255,255,${0.35 + 0.3 * Math.sin(gclock * 10)})`; ctx.fillRect(p.x - w / 2, y, w * clamp(p.hp / (p.mh || 100), 0, 1), 4); }
     if (farmBars) { /* the clip farm, health bars only */ } else {
     ctx.font = "600 12px 'Titillium Web', 'Segoe UI', sans-serif"; ctx.textAlign = 'center';
@@ -16286,6 +16846,17 @@ const BIO_ART = {
   beach: { wall: '#8a6440', wallHi: '#b08758', wallLo: '#5c4128', floor: 'rgba(214,190,140,0.5)', roof: '#6b4a2c', trim: '#f2e6cc', style: 'palisade', house: '#c9a36c', roofA: '#a67c4e', roofB: '#8a6440', tint: 'rgba(255,240,200,0.18)' },
   desert: { wall: '#d7b27a', wallHi: '#efd3a0', wallLo: '#a8834e', floor: 'rgba(230,200,150,0.55)', roof: '#f3ead6', trim: '#3f6fb0', style: 'sandstone', house: '#d9b483', roofA: '#e6c797', roofB: '#c9a26c', tint: 'rgba(255,200,120,0.24)' },
 };
+// the Terminator's arena: dark steel and grit, lava in the sumps, embers in the air
+THEMES.factory = Object.assign({}, THEMES.rift, {
+  forest: '#0c0d10', canopy: ['#15171c', '#1b1e24', '#22262d', '#101216'], canopyHi: 'rgba(255,80,30,0.05)',
+  ground: '#2b2e34', patchA: 'rgba(70,74,82,0.28)', patchB: 'rgba(10,11,14,0.4)', patchBase: 'rgba(43,46,52,0)', sun: 'rgba(255,120,40,0.03)',
+  blades: ['#1c1e23', '#3a3d45', '#44474f', '#15171b'], ground2: 'pebbles', flowers: 0, fairy: false,
+  dirt: '#1d1f24', dirtDark: '#0e0f12', pitIn: '#000000', pitOut: '#1a0906', roots: 'rgba(255,90,30,0.25)',
+  rock: '#2a2d33', rockLight: '#454951', basalt: '#17191d', scorch: 'rgba(0,0,0,0.6)',
+  boulder: '#3c4049', boulderLight: '#5a5f69', moss: null, metal: true,
+  border: 'rock', wall: '#111317', wallMid: '#1c1f25', wallLight: '#2e323a',
+  ambient: 'embers', leafCols: ['#ff8a3d', '#ffcf5a', '#ff6a2b', '#ff4d2b'], hatch: true,
+});
 THEMES.jungle = Object.assign({}, THEMES.meadow, {
   forest: '#0e2412', canopy: ['#17401c', '#1d5222', '#246128', '#133618'], canopyHi: 'rgba(160,230,120,0.10)',
   ground: '#3e7a2e', patchA: 'rgba(90,160,60,0.28)', patchB: 'rgba(20,60,20,0.30)', patchBase: 'rgba(62,122,46,0)',
@@ -16668,13 +17239,93 @@ function drawChest(h, own) {
   if (mine && !had) { ctx.font = "700 12px 'Rajdhani', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center'; ctx.fillStyle = '#ffe9a8'; ctx.fillText('UPGRADE CHEST', 0, -20); }
   ctx.restore();
 }
+// the Terminator and its machines: steel, a red eye, and the mode's own gear
+function drawMachine(p) {
+  const R = p.rz || 16, tm = view && view.m.tm, boss = p.nk === 'term', mode = p.nm;
+  let sc = p.f > 0 ? Math.max(0, 1 - p.f / 0.6) : 1; if (sc <= 0) return;
+  const spin = clock * 2;
+  // tells, on the ground round it (before the save, so they're in world space)
+  if (boss && !p.f) {
+    const pulse = 0.35 + 0.25 * Math.sin(clock * 20);
+    ctx.save(); ctx.translate(p.x, p.y);
+    if (p.nw === 'rush' || p.nw === 'dash') { ctx.rotate(p.a); ctx.fillStyle = `rgba(255,70,60,${p.nw === 'dash' ? 0.2 : pulse})`; ctx.fillRect(R, -R * 0.8, 470, R * 1.6); ctx.strokeStyle = 'rgba(255,90,70,0.9)'; ctx.lineWidth = 2; ctx.strokeRect(R, -R * 0.8, 470, R * 1.6); }
+    else if (p.nw === 'clap') { ctx.rotate(p.a); ctx.fillStyle = `rgba(255,70,60,${pulse})`; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, 190, -1.1, 1.1); ctx.closePath(); ctx.fill(); }
+    else if (p.nw === 'summon') { ctx.strokeStyle = `rgba(120,200,255,${0.5 + 0.4 * Math.sin(clock * 12)})`; ctx.lineWidth = 3; ctx.setLineDash([8, 10]); ctx.beginPath(); ctx.arc(0, 0, R + 40 + 10 * Math.sin(clock * 6), 0, TAU); ctx.stroke(); ctx.setLineDash([]); }
+    else if (p.nw === 'barrage') { ctx.strokeStyle = `rgba(255,170,60,${0.5 + 0.4 * Math.sin(clock * 14)})`; ctx.lineWidth = 3; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(0, 0, R + 14 + i * 14 + (clock * 60) % 14, 0, TAU); ctx.stroke(); } }
+    if (tm && tm.pl) { const ph = tm.pl, k = ph === 'wave' ? 1 : 0.6; ctx.strokeStyle = ph === 'wave' ? `rgba(255,80,60,${0.5 + 0.4 * Math.sin(clock * 18)})` : `rgba(140,120,255,${0.4 + 0.3 * Math.sin(clock * 10)})`; ctx.lineWidth = 3; ctx.setLineDash([10, 12]); ctx.beginPath(); ctx.arc(0, 0, ph === 'wave' ? 250 : 620, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+      if (ph === 'pull') for (let i = 0; i < 12; i++) { const a = i / 12 * TAU + spin, d = 620 - ((clock * 400 + i * 50) % 560); ctx.fillStyle = 'rgba(160,140,255,0.6)'; ctx.beginPath(); ctx.arc(Math.cos(a) * d, Math.sin(a) * d, 3, 0, TAU); ctx.fill(); } void k; }
+    if (tm && tm.an) { ctx.strokeStyle = `rgba(255,200,80,${0.6 + 0.3 * Math.sin(clock * 6)})`; ctx.lineWidth = 4; for (let i = 0; i < 4; i++) { const a = i / 4 * TAU + Math.PI / 4; ctx.beginPath(); ctx.moveTo(Math.cos(a) * (R + 4), Math.sin(a) * (R + 4)); ctx.lineTo(Math.cos(a) * (R + 30), Math.sin(a) * (R + 30)); ctx.stroke(); } }
+    ctx.restore();
+  }
+  ctx.save(); ctx.translate(p.x, p.y); if (p.f > 0) { ctx.rotate(p.f * 8); ctx.globalAlpha = Math.pow(sc, 1.4); } ctx.scale(sc, sc);
+  if (p.iv) ctx.globalAlpha *= 0.6;
+  if (!p.f) { ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(4, 7, R * 1.15, R * 0.85, 0, 0, TAU); ctx.fill(); }
+  // the shield (Artillery) and the winded flash (Juggernaut)
+  if (boss && tm && tm.sd) { ctx.fillStyle = `rgba(120,200,255,${0.12 + 0.06 * Math.sin(clock * 5)})`; ctx.strokeStyle = 'rgba(140,210,255,0.6)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, R + 14, 0, TAU); ctx.fill(); ctx.stroke(); }
+  if (boss && tm && tm.wd) { ctx.fillStyle = `rgba(255,220,80,${0.25 + 0.2 * Math.sin(clock * 16)})`; ctx.beginPath(); ctx.arc(0, 0, R + 10, 0, TAU); ctx.fill(); }
+  ctx.save(); ctx.rotate(p.a);
+  const steel = '#6d737d', dark = '#2b2f36', lit = '#9aa3ad', red = '#ff3b2b';
+  if (boss) {
+    if (mode === 'juggernaut') { // shoulder plates and a ram
+      ctx.fillStyle = dark; ctx.strokeStyle = '#0d0e10'; ctx.lineWidth = 2;
+      for (const sgn of [-1, 1]) { ctx.beginPath(); ctx.ellipse(-R * 0.2, sgn * R * 0.95, R * 0.55, R * 0.4, 0, 0, TAU); ctx.fill(); ctx.stroke(); }
+      ctx.fillStyle = lit; ctx.beginPath(); ctx.moveTo(R * 0.6, -R * 0.5); ctx.lineTo(R + 16, -R * 0.25); ctx.lineTo(R + 16, R * 0.25); ctx.lineTo(R * 0.6, R * 0.5); ctx.closePath(); ctx.fill(); ctx.stroke();
+    } else if (mode === 'hunter') { // a long bow out front, and a crossbow on each arm
+      const pull = p.dr ? 6 + 12 * (p.ch || 0) : 0;
+      ctx.strokeStyle = '#3a3d45'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(R * 0.4, 0, R + 8, -1.15, 1.15); ctx.stroke();
+      const ex = R * 0.4 + Math.cos(1.15) * (R + 8), ey = Math.sin(1.15) * (R + 8);
+      ctx.strokeStyle = 'rgba(255,120,80,0.9)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ex, -ey); ctx.lineTo(ex - pull, 0); ctx.lineTo(ex, ey); ctx.stroke();
+      ctx.restore(); ctx.save();
+      for (const [a, sgn] of [[p.a, -1], [p.na != null ? p.na : p.a, 1]]) { ctx.save(); ctx.rotate(a); ctx.translate(R * 0.3, sgn * (R + 4)); ctx.fillStyle = dark; ctx.fillRect(-4, -3, R + 6, 6); ctx.fillStyle = lit; ctx.fillRect(R - 4, -7, 4, 14); ctx.restore(); }
+      ctx.rotate(p.a);
+    } else if (mode === 'artillery') { // launcher tubes on the back
+      ctx.fillStyle = dark; ctx.strokeStyle = '#0d0e10'; ctx.lineWidth = 1.5;
+      for (const sgn of [-1, 1]) { ctx.beginPath(); ctx.rect(-R * 1.1, sgn * R * 0.45 - 5, R * 0.9, 10); ctx.fill(); ctx.stroke(); ctx.fillStyle = red; ctx.beginPath(); ctx.arc(-R * 1.1, sgn * R * 0.45, 3, 0, TAU); ctx.fill(); ctx.fillStyle = dark; }
+    } else if (mode === 'summoner') { // an antenna and a ring of ports
+      ctx.strokeStyle = lit; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-R * 0.5, 0); ctx.lineTo(-R - 18, 0); ctx.stroke(); ctx.fillStyle = `rgba(120,200,255,${0.6 + 0.4 * Math.sin(clock * 8)})`; ctx.beginPath(); ctx.arc(-R - 18, 0, 4, 0, TAU); ctx.fill();
+    } else if (mode === 'magnet') { // a coil ring
+      ctx.strokeStyle = `rgba(160,140,255,${0.7 + 0.3 * Math.sin(clock * 6)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, R + 7, 0, TAU); ctx.stroke();
+      for (let i = 0; i < 8; i++) { const a = i / 8 * TAU + spin; ctx.fillStyle = '#b8a8ff'; ctx.beginPath(); ctx.arc(Math.cos(a) * (R + 7), Math.sin(a) * (R + 7), 2.5, 0, TAU); ctx.fill(); }
+    }
+  } else if (p.nk === 'drone') { // a small archer
+    const pull = p.dr ? 4 + 8 * (p.ch || 0) : 0;
+    ctx.strokeStyle = '#3a3d45'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(R * 0.3, 0, R + 3, -1.1, 1.1); ctx.stroke();
+    const ex = R * 0.3 + Math.cos(1.1) * (R + 3), ey = Math.sin(1.1) * (R + 3); ctx.strokeStyle = 'rgba(255,120,80,0.9)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ex, -ey); ctx.lineTo(ex - pull, 0); ctx.lineTo(ex, ey); ctx.stroke();
+  } else if (p.nk === 'scuttler') { // legs
+    ctx.strokeStyle = dark; ctx.lineWidth = 2; for (let i = 0; i < 3; i++) { const a = 0.5 + i * 0.5, w = Math.sin(clock * 18 + i) * 3; for (const sgn of [-1, 1]) { ctx.beginPath(); ctx.moveTo(Math.cos(a) * R * 0.6, sgn * Math.sin(a) * R * 0.6); ctx.lineTo(Math.cos(a) * (R + 7) + w, sgn * Math.sin(a) * (R + 7)); ctx.stroke(); } }
+  }
+  ctx.restore();
+  // the body: a steel disc with a dark plate and one red eye; the medic has a green cross
+  ctx.fillStyle = boss ? steel : p.nk === 'medic' ? '#7f8a96' : '#5e656e'; ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.fill();
+  ctx.strokeStyle = '#0d0e10'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = dark; ctx.beginPath(); ctx.arc(0, 0, R * 0.62, 0, TAU); ctx.fill();
+  if (boss) { ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 1; for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; ctx.beginPath(); ctx.moveTo(Math.cos(a) * R * 0.62, Math.sin(a) * R * 0.62); ctx.lineTo(Math.cos(a) * R, Math.sin(a) * R); ctx.stroke(); } }
+  ctx.save(); ctx.rotate(p.a);
+  if (p.nk === 'medic') { ctx.fillStyle = '#7dff8a'; ctx.fillRect(-2, -R * 0.4, 4, R * 0.8); ctx.fillRect(-R * 0.4, -2, R * 0.8, 4); }
+  else if (boss) { // two eyes, red and lit, narrowed when it's about to strike
+    const nar = p.nw ? 0.55 : 1, e = R * 0.19; ctx.shadowColor = red; ctx.shadowBlur = 14;
+    for (const sgn of [-1, 1]) { ctx.fillStyle = '#2a0806'; ctx.beginPath(); ctx.ellipse(R * 0.32, sgn * R * 0.3, e * 1.5, e * 1.15 * nar, 0, 0, TAU); ctx.fill(); ctx.fillStyle = red; ctx.beginPath(); ctx.ellipse(R * 0.36, sgn * R * 0.3, e * 1.05, e * 0.75 * nar, 0, 0, TAU); ctx.fill(); ctx.fillStyle = '#ffd0c0'; ctx.beginPath(); ctx.arc(R * 0.44, sgn * R * 0.3 - e * 0.25, e * 0.28, 0, TAU); ctx.fill(); }
+    ctx.shadowBlur = 0;
+  } else { const eye = 3; ctx.fillStyle = red; ctx.shadowColor = red; ctx.shadowBlur = 10; ctx.beginPath(); ctx.ellipse(R * 0.3, 0, eye * 1.6, eye, 0, 0, TAU); ctx.fill(); ctx.shadowBlur = 0; }
+  ctx.restore();
+  if (p.bu && !p.f) { ctx.strokeStyle = `rgba(255,138,61,${0.4 + 0.3 * Math.sin(gclock * 20)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, R + 3, 0, TAU); ctx.stroke(); }
+  ctx.restore();
+  // name and health (the boss's health is on the big bar at the top instead)
+  if (!p.f && !boss && tagMode() !== 'none') {
+    const w = 30, y = p.y - R - 10;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(p.x - w / 2, y, w, 3); ctx.fillStyle = '#ff6a5a'; ctx.fillRect(p.x - w / 2, y, w * clamp(p.hp / (p.mh || 100), 0, 1), 3);
+  }
+  if (boss && !p.f) { ctx.font = "700 13px 'Rajdhani', sans-serif"; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillText(p.n.toUpperCase(), p.x + 1, p.y - R - 10); ctx.fillStyle = '#ff6a5a'; ctx.fillText(p.n.toUpperCase(), p.x, p.y - R - 11); }
+}
 const FACTION = {
   castle: { body: '#9aa3b2', trim: '#3d5a9e', head: 'helm' },
   jungle: { body: '#5c8a3a', trim: '#c9a227', head: 'leaves' },
   beach: { body: '#2f6f8f', trim: '#e8e2d0', head: 'bandana' },
   desert: { body: '#efe2c4', trim: '#2f4f9e', head: 'wrap' },
 };
+const TERM_HINT = { hunter: 'Light and quick. Hits from behind hurt it; knock it into the lava', summoner: 'Kill the repair drones. It\'s open while it calls machines in', juggernaut: 'Armoured in front: get behind it. A rush into a wall winds it', artillery: 'Shielded, except while it calls a barrage in', magnet: 'Put a pillar between you and it' };
 function drawNpc(p) {
+  if (p.nk === 'term' || p.nk === 'scuttler' || p.nk === 'drone' || p.nk === 'medic') return drawMachine(p);
   const R = p.rz || 16, F = FACTION[p.bi] || FACTION.castle;
   if (p.tw && !p.f) { ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(p.x + 2, p.y + 3, R + 3, R * 0.8, 0, 0, TAU); ctx.fill(); }
   let sc = p.f > 0 ? Math.max(0, 1 - p.f / 0.6) : 1; if (sc <= 0) return;
@@ -16833,6 +17484,28 @@ function drawMinimap(v, me) {
   ctx.strokeRect(mx + (-OX / VS) * k, my + (-OY / VS + 64 / VS) * k, (W - camRight()) / VS * k, (H - 64) / VS * k);
   ctx.restore();
 }
+// the Terminator (a preview, admin only): you, any local players, and hard AI teammates to make four, against the machine.
+// Its level comes from your rating (1 to 5 across the rating range) unless ?termlv= says otherwise
+function startTerminator() {
+  initAudio(); closeSubs();
+  notice('Powering up the machine…', true, '#ff6a5a');
+  setTimeout(() => {
+    const elo = (account && account.career && (account.career.elo || account.career.eloT)) || 1000, lv = clamp(+params.get('termlv') || Math.round(1 + (elo - 900) / 150), 1, 5);
+    const mapKey = MAPS[params.get('termmap')] ? params.get('termmap') : 'terminator'; // (?termmap=reach: the machine on another arena, for testing)
+    world = Sim.createWorld({ map: mapKey, diff: 'hard', term: true, termLv: lv, termOnly: params.get('termonly') || null, opt: { mspeed: 100, effect: 'none' } });
+    setArena(mapKey);
+    try { buildFloor(); } catch (e) { clientError(e, 'paint'); }
+    const me = Sim.join(world, { name: playerName(), team: 'red', element: myLoadout().el, role: myLoadout().ro });
+    for (const l of LP.list) { l.pid = null; l.team = null; lpJoinLocal(l); }
+    for (const p of world.players) if (!p.npc && p.id !== me.id) Sim.setTeam(world, p.id, 'red');
+    while (world.players.filter(p => !p.npc).length < 4) { const b = Sim.addBot(world, 'red'); b.dparams = Sim.skillParams(1); }
+    Sim.startMatch(world);
+    world.events.length = 0;
+    myId = me.id; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {}; CAM.init = false; CAM.uz = 1;
+    setScreens();
+    setTimeout(() => notice(`Terminator, level ${lv}: it changes mode every 40 seconds, and each mode has a weakness. Your team shares ${Sim.TM.LIVES + 4} lives; any teammate can revive you. Scroll or press + / − to zoom.`, true, '#ff6a5a'), 600);
+  }, 40);
+}
 function startStrongholds() {
   initAudio(); closeSubs();
   notice('Raising the strongholds…', true, '#ffcf5a');
@@ -16892,7 +17565,9 @@ function updateHud() {
   if (draft) { renderDraft(view); $('death').hidden = $('countdown').hidden = $('pickScreen').hidden = true; return; }
   if (lobby) { renderLobby(view); $('death').hidden = $('countdown').hidden = $('pickScreen').hidden = true; return; }
   if (menuOpen) renderMenu(view);
-  setC('hp', me.hp + '/' + me.mh, () => { const pct = clamp(me.hp / me.mh * 100, 0, 100); $('hpFill').style.width = pct + '%'; $('hpFill').classList.toggle('low', pct < 30); $('hpText').textContent = me.hp; });
+  setC('hp', me.hp + '/' + me.mh + '/' + (me.rc || 0), () => { const pct = clamp(me.hp / me.mh * 100, 0, 100); $('hpFill').style.width = pct + '%'; $('hpFill').classList.toggle('low', pct < 30); $('hpText').textContent = me.hp;
+    // Second Wind: what's still there to be had back, pale, just past the health
+    const rc = $('hpRc'); if (me.rc > 0) { rc.hidden = false; rc.style.left = pct + '%'; rc.style.width = clamp(me.rc / me.mh * 100, 0, 100 - pct) + '%'; } else rc.hidden = true; });
   const dashFrac = me.dk ? (me.dn + (me.dn < me.dk ? 1 - me.dc / (me.dm || 1.1) : 0)) / me.dk : 1 - me.dc / (me.dm || 1.1);
   const noDash = !!(view.m.opt && view.m.opt.dash === 'off');
   setC('dashLbl', me.ro + noDash, () => { $('dashLbl').textContent = (me.ro === 'ninja' ? 'Blink' : 'Dash') + (noDash ? ' (off)' : ''); $('dashFill').parentElement.style.opacity = noDash ? 0.3 : ''; });
@@ -16955,7 +17630,15 @@ function updateHud() {
   setC('mutChip', m.mut || '', () => { const ks = Sim.mutKeys(m.mut), c = $('mutChip'); c.hidden = !ks.length; if (ks.length) { const Ms = ks.map(k => Sim.MUTATORS[k]); c.textContent = Ms.map(M => M.name).join(' + '); c.title = Ms.map(M => M.name + ': ' + M.desc).join('\n'); c.style.setProperty('--mc', Ms[0].color); } });
   if (m.cq) setC('rd', 'cq' + m.ph, () => { $('rdText').textContent = m.ph === 'over' ? 'Match over' : `Strongholds · first to ${m.cq.tg}`; $('rdText').title = `Each stronghold you hold scores a point a second. First to ${m.cq.tg}, or hold all four at once, wins.`; });
   else setC('rd', m.ph === 'pick' ? (m.op ? 'Opening pick' : 'Choosing upgrades') : m.ph === 'over' ? 'Match over' : (m.ptw > 1 && m.wr === m.ptw - 1 && m.wb === m.ptw - 1 ? (m.gr === m.gtw - 1 && m.gb === m.gtw - 1 ? 'Last Arrow' : `Deciding round · Game ${m.gm}`) : `Round ${m.rd} · Game ${m.gm}`), v => { $('rdText').textContent = v; $('rdText').title = `First to ${m.gtw} games wins a round. First to ${m.ptw} points wins the match.`; });
-  setC('timer', m.cq ? m.cq.el : m.T, v => { $('timer').textContent = fmtT(v); });
+  setC('timer', m.cq ? m.cq.el : m.tm ? m.tm.el : m.T, v => { $('timer').textContent = fmtT(v); });
+  setC('termfight', !!m.tm, x => document.body.classList.toggle('termfight', x));
+  if (m.tm) { const T = m.tm;
+    setC('th', [T.hp, T.mode, T.sh, T.lives, T.mn, T.mt, m.ph].join(':'), () => {
+      const nm = Sim.TM_NAMES[T.mode] || T.mode; $('thName').innerHTML = `Terminator <small>${T.sh ? 'changing…' : esc(nm) + ' · ' + T.mt + 's'}${T.mn ? ' · ' + T.mn + ' machine' + (T.mn > 1 ? 's' : '') : ''} · level ${T.lv}</small>`;
+      $('thFill').style.width = clamp(T.hp / T.mh * 100, 0, 100) + '%'; $('thFill').className = T.sh ? 'shift' : ''; $('thPct').textContent = Math.ceil(T.hp / T.mh * 100) + '%';
+      $('thLives').innerHTML = m.ph === 'over' ? '' : `Lives left: <em>${T.lives}</em>`; $('thLives').classList.toggle('low', T.lives <= 2);
+      $('rdText').textContent = m.ph === 'over' ? 'Match over' : 'Terminator'; });
+  }
   setC('pips', view.p.map(p => p.tm + p.d).join(''), () => {
     $('pips').innerHTML = TEAMS.map(t => '<span>' + view.p.filter(p => p.tm === t && !p.nk).map(p => `<i class="pip${p.d ? ' out' : ''}" style="background:${TEAM_COL[t]}"></i>`).join('') + '</span>').join('');
   });
@@ -16991,7 +17674,12 @@ function updateHud() {
 
   const dead = !!me.d && m.ph === 'play';
   $('death').hidden = !dead;
-  if (dead && m.cq) setC('dsmall', 'cq' + me.rs + (me.kb || '') + me.lc, () => {
+  if (dead && m.tm) setC('dsmall', 'tm' + me.rs + (me.kb || '') + me.lc + m.tm.lives, () => {
+    const how = (myDeath && myDeath.how) || me.lh || me.lc;
+    $('deathBig').textContent = 'Knocked out';
+    $('deathSmall').innerHTML = (me.lc && me.lc !== 'join' ? howText(how, me.kb, 'you', false, true, myDeath && myDeath.m) + '.<br>' : '') + (m.tm.lives > 0 ? `<span class="dim">A teammate can revive you (3 s beside you), or you're back in ${me.rs || 0}s for one of the team's ${m.tm.lives} lives.</span>` : `<span class="dim">No lives left: only a teammate can revive you now.</span>`);
+  });
+  else if (dead && m.cq) setC('dsmall', 'cq' + me.rs + (me.kb || '') + me.lc, () => {
     const how = (myDeath && myDeath.how) || me.lh || me.lc;
     $('deathBig').textContent = 'Knocked out';
     $('deathSmall').innerHTML = (me.lc && me.lc !== 'join' ? howText(how, me.kb, 'you', false, true, myDeath && myDeath.m) + '.<br>' : '') + `<span class="dim">Back in ${me.rs || 0}s, at the stronghold you hold nearest where you fell (or your camp).</span>`;
@@ -17017,11 +17705,11 @@ function updateHud() {
       const ranked = mode === 'online' && !!(roomInfo && roomInfo.ranked), mine = !!me && !LP.list.length;
       // ranked: Victory or Defeat (yours); everywhere else the colour that won
       const head = $('resHead'); head.style.setProperty('--wc', ranked && mine ? (won ? 'var(--gold)' : '#c9d1dc') : TEAM_COL[m.mw]);
-      $('resTitle').textContent = ranked && mine ? (won ? 'Victory' : 'Defeat') : `${teamName(m.mw)} wins`;
+      $('resTitle').textContent = m.tm ? (m.mw === 'red' ? 'Terminated' : 'Defeat') : ranked && mine ? (won ? 'Victory' : 'Defeat') : `${teamName(m.mw)} wins`;
       $('resTitle').classList.toggle('defeat', ranked && mine && !won);
       $('resTitle').style.animation = 'none'; void $('resTitle').offsetWidth; $('resTitle').style.animation = '';
-      $('resSub').innerHTML = (ranked && mine ? `<b>${esc(teamName(m.mw))}</b> ` : mine ? (won ? '<b>Your team</b> · ' : '') : '') + (allFour ? 'holding all four strongholds' : `<b>${pts[0]}–${pts[1]}</b> on points`);
-      const winners = view.p.filter(p => p.tm === m.mw && !p.nk);
+      $('resSub').innerHTML = m.tm ? (m.mw === 'red' ? `The machine is down · ${fmtT(m.tm.el)} · level ${m.tm.lv}` : `The machine stands at <b>${Math.ceil(m.tm.hp / m.tm.mh * 100)}%</b> · ${fmtT(m.tm.el)} · level ${m.tm.lv}`) : (ranked && mine ? `<b>${esc(teamName(m.mw))}</b> ` : mine ? (won ? '<b>Your team</b> · ' : '') : '') + (allFour ? 'holding all four strongholds' : `<b>${pts[0]}–${pts[1]}</b> on points`);
+      const winners = view.p.filter(p => (m.tm ? p.tm === 'red' : p.tm === m.mw) && !p.nk);
       $('resWinners').innerHTML = winners.map((p, i) => `<div class="wn" style="--i:${i}"><canvas data-wn="${p.id}" width="168" height="168"></canvas><span>${esc(p.n)}${p.id === myId ? ' (you)' : ''}</span><small>${esc(archName(p))}</small></div>`).join('');
       $('resWinners').querySelectorAll('canvas[data-wn]').forEach(c => { const p = winners.find(q => String(q.id) === c.dataset.wn); if (p) try { drawPreview(c, p.el, p.ro, p.c); } catch (e) {} });
       if (mine) setTimeout(() => play('matchEnd', !!won), 250);
@@ -17774,8 +18462,12 @@ function clipCard(box, src, clipObj, label, onOpen, kc) { // kc: a kill cam (pla
     let P = { left: 0, top: 0, right: innerWidth, bottom: innerHeight };
     for (let el = box.parentElement; el && el !== document.body; el = el.parentElement) { const st = getComputedStyle(el); if (/(auto|scroll|hidden)/.test(st.overflow + st.overflowX + st.overflowY) || (st.clipPath && st.clipPath !== 'none')) { const q = el.getBoundingClientRect(); P = { left: Math.max(0, q.left), top: Math.max(0, q.top), right: Math.min(innerWidth, q.right), bottom: Math.min(innerHeight, q.bottom) }; break; } }
     const room = { l: r.right - P.left - 8, r: P.right - r.left - 8, d: P.bottom - r.top - 8, u: r.bottom - P.top - 8 };
-    const left = room.l > room.r, up = room.u > room.d; box.style.transformOrigin = `${left ? 'right' : 'left'} ${up ? 'bottom' : 'top'}`;
-    const k = Math.max(1, Math.min(820 / r.width, (left ? room.l : room.r) / r.width, (up ? room.u : room.d) / r.height));
+    // grow toward whichever side has the most room: leftward, rightward, or out from the middle (a card in the middle of
+    // a row has little room either side, but plenty both ways at once)
+    const cx = (r.left + r.right) / 2, mid = 2 * Math.min(cx - P.left - 8, P.right - cx - 8);
+    const hx = Math.max(room.l, room.r, mid), hor = hx === mid && mid > Math.max(room.l, room.r) ? 'center' : room.l > room.r ? 'right' : 'left', up = room.u > room.d;
+    box.style.transformOrigin = `${hor} ${up ? 'bottom' : 'top'}`;
+    const k = Math.max(1, Math.min(820 / r.width, hx / r.width, (up ? room.u : room.d) / r.height));
     box.style.setProperty('--pk', k.toFixed(3)); box.classList.add('big'); send({ bf: 'play' });
   };
   // (half a second's hover before it grows, so a mouse passing over doesn't set it jumping about)
@@ -18190,7 +18882,7 @@ const PLAY = { pending: [], pl: new Map(), list: [], match: 0, get gt() { return
 let PC = FARM; // (which one the play-spotting functions below are working for: the clip farm, or the player's own match)
 const PLAY_MIN = 4.5; // (worth showing: a double kill, a set-up or ability knockout, a roast, a harpoon pull and up)
 const pcPlayer = id => { if (PC === FARM && world) return world.players.find(q => q.id === id); const p = view && view.p.find(q => q.id === id); return p ? { name: p.n, dead: p.d } : null; };
-const playOn = () => !INFRAME && !FARM.on && myId != null && (mode === 'online' || mode === 'local') && !TUT.on && !TR.on && !DESK.sim && !(roomInfo && (roomInfo.spec || []).some(c => c.you)); // (roomInfo.spec is the list of spectators; it was read as 'am I one', which it always was, so no play was ever caught online)
+const playOn = () => !INFRAME && !FARM.on && myId != null && (mode === 'online' || mode === 'local') && !TUT.on && !TR.on && !DESK.sim && MAPKEY !== 'terminator' && !(roomInfo && (roomInfo.spec || []).some(c => c.you)); // (roomInfo.spec is the list of spectators; it was read as 'am I one', which it always was, so no play was ever caught online)
 function playMine(e) { return ['moment', 'style', 'kill', 'dmg', 'clutch', 'gameEnd', 'slam', 'deflect', 'catch', 'fire', 'throw'].includes(e.e) && !e.npc; } // (everyone's plays: the best of the game, and yours)
 function playEvents(evs) {
   for (const e of evs) if (e.e === 'matchStart') { PLAY.list = []; PLAY.pending = []; PLAY.pl = new Map(); PLAY.sl = new Map(); PLAY.near = new Map(); PLAY.fp = new Map(); PLAY.match++; PLAY.flushAt = 0; PLAY.offered = false; PLAY.shown = ''; }

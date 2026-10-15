@@ -2,6 +2,60 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.81.1
+
+Terminator, second pass: a smaller arena and a machine that plays like a very good archer.
+
+- **The arena is Highland Reach's size now** (1500 × 960), not a big map: lava sumps in the four corners, holes top and bottom in the middle and one on each side, a ring of steel pillars round the middle for cover (the machine's and yours), lanterns in the corners, and four floor hatches that open onto lava on a cycle (one at a time now). Power-ups on four spots.
+- **The machine has a bow in every mode but the Juggernaut's:** a quick half-second draw, lead on the target, loosed when lined up with a clear line (14 damage, a full draw's knockback), about one a second. The Hunter keeps its piercing long bow and twin crossbows.
+- **It uses cover like a player:** between shots it tucks behind the nearest pillar, seen from whoever's nearest, and steps out round its shoulder to shoot; without cover it keeps its distance and strafes. **It sidesteps shots** in every mode (a burst to whichever side is safer), judging more of them at higher levels; not while it's mid-rush, anchored, pulling or channelling.
+- **Eyes:** two red eyes, lit, that narrow when it's about to strike.
+- **On any arena, for testing:** `?termmap=reach` (or any arena key) on the link puts the machine in the middle of that arena, your team on the left.
+- The modes' sizes are scaled down for the smaller arena (Juggernaut 34 px, the others 17–24).
+- Balance (hard AI teams of four, this arena): level 1 is won in 3–4 minutes; level 3 is lost in about 4 minutes with the machine at 35–55%; level 5 is lost.
+
+## 0.81.0
+
+**Terminator (preview, admin only):** you and three AI teammates (or local players) against one machine. The **Terminator (preview)** button on the admin's main menu, next to Strongholds. `public/sim.js` (`TM`, `tmThink`), `MAPS.terminator`.
+
+- **The arena:** a big round floor of dark steel and grit, a ring of lava all the way round with eight holes just inside it, two rings of pillars (eight inner, six outer) and twelve floor hatches that slide open onto lava on a cycle (a red warning for 3 seconds, open for 9, then closed again; a different pair each time). Power-ups appear on six spots round the arena and last twice as long as usual. No amber.
+- **The machine:** a lot of health (4,000 + 900 per archer, times the level), and five modes it cycles through in a random order, 38 seconds each, with a short invulnerable change between them (a callout names the mode and its weakness). Each has its own gear and its own weakness:
+  - **Hunter:** small, fast, dodges shots; a long bow that fires a piercing shot through everyone in its line every 2 seconds (a 1.1 s draw is the tell), and a crossbow on each arm, a bolt from one hand then the other at anyone within reach, each aimed at its own target. It takes only 65% damage from the front, but 150% from behind, and it's light: knock it into the lava or a hole and it loses 6% of its health and jets back to the middle.
+  - **Summoner:** holds the middle and calls in machines every 5 seconds (a 1.5 s channel): scuttlers (small, fast, hop in and bite), drones (small archers) and repair drones (keep near it and mend it, 11 a second each; kill them first). Up to eight at once. It takes 180% damage while it's calling.
+  - **Juggernaut:** big and heavy, no bow. A rush along whichever line runs through the most archers (a 0.6 s tell), a clap that slaps everyone close in front together and stuns them, and an anchor (immune to knockback, heals 2% a second for 4 s) when it's being hurt fast or thrown toward an edge. Takes 35% damage from the front, 180% from behind; a rush into a pillar or the wall leaves it winded for 1.6 s, taking double.
+  - **Artillery:** holds the middle behind a shield (50% damage). Every 7 seconds it calls a barrage: two marks on where each archer is heading, hitting hard 1.6–2.1 s later (the shield is down while it calls, 160% damage). Every 4.5 seconds a slow homing rocket after each archer.
+  - **Magnet:** a warning ring, then everyone within 620 px in the open is pulled in for 1.6 s, then a shockwave (22 damage and a big throw within 250 px). A pillar between you and it blocks both. It stands still to pull and takes 150%.
+- **Lives:** the team shares 3 + one per archer. A knocked-out archer can be revived by a teammate (3 s beside them) for nothing, or comes back after 10 s for a life. With no lives left, only revives. The match ends when the machine is down or the whole team is down with no lives.
+- **Levels 1–5:** from your rating (1 at 900, 5 at 1500+), or `?termlv=N` on the link. Health scales 0.875× to 1.375×, the machines' hits 0.8× to 1.2×, and its tells get a little quicker. `?termonly=hunter` (or any mode) for testing one mode.
+- **AI teammates** know the fight a little: repair drones first, out of a rush's path (dashing if they're right in it), behind a pillar for the pull, off a barrage mark, and round the back of the Juggernaut.
+- The Terminator and its machines have their own look (steel, one red eye, the mode's gear: shoulder plates and a ram, bow and twin crossbows, launcher tubes, an antenna, a coil) and their tells drawn on the floor. A boss bar at the top shows its health, mode, time left in the mode, machines out and the lives left.
+- No plays or moments are recorded in this mode.
+- **Balance so far** (hard AI teams of four): a lv 3 fight runs 2½–4 minutes and the team loses about two in three, usually with the machine between 10% and 50%; lv 5 is lost nearly always. The knobs are in `TM` and in `tmThink` in `public/sim.js`; `node` with `termOnly` in a world's cfg tests one mode.
+
+## 0.80.0
+
+**The Assassin gets more to do, and the AI gets wise to stealth.**
+
+- **AI vs stealth and smoke:** a bot that was *watching* an enemy when they vanished (into stealth, or into a smoke cloud) keeps a guess of where they are; one that wasn't looking never saw them go (the bots' existing focus and glancing decide this). For a stealthed Assassin the guess follows the path to where they'd want to be (behind the bot, or where a shot would throw it into a hole) at an Assassin's speed, walked round holes, water, lava and boulders. For someone in smoke it stays near where they went in. The bot turns to face the guess and fires probing shots into it, a quick half draw every second or so (quicker and tighter for sharper bots), to find them and break their stealth. The guess spreads the longer they've been gone.
+- **Bots keep off the edges while an Assassin is about:** with no one visible and a stealther unaccounted for, a bot moves to safer ground away from holes, water, lava and spikes rather than wandering to the middle for power-ups, and while fighting someone else it still won't stand right on an edge. (Before, a bot that lost sight of you simply walked to the middle; on Highland Reach that meant standing between the water and the holes every time.)
+- **Stealth lets your bow down:** using it drops any half-drawn shot and ignores the held button until it's let go, so it never cancels itself on a draw you'd started. The Ambush Shot (first arrow out of stealth: +50% damage and a 1 s stun) is now part of Stealth rather than the role; the role trait is Backstab and 10 less health.
+- **New Assassin abilities:**
+  - **Hit and Run** (14 s): blink up to 300 px along your aim, loose a half-draw arrow every 0.25 s for 2.5 s while the button's held, then blink straight back to where you cast it (a faint line and ring show the way back).
+  - **Second Wind** (12 s): the damage you took in the last 2 seconds shows as a pale chunk on your health bar, draining away; use it to get all of that back at once (a green burst and "+N"), and move 35% faster for 2.5 s (a green trail).
+  - **Escape Artist** (passive): the first time each round you drop under 25% health, a smoke cloud where you stand (4 s).
+  - **Afterimage** (passive, needs Stealth): going into stealth leaves a shadow of you that keeps walking the way you were going for 1.5 s (it stops at anything it can't cross). Bots that saw you vanish hunt the real you, not the shadow, but they shoot at where they think you are, which is near it.
+  - **Vanishing Act** (passive, needs Stealth): a knockout takes 6 s off Stealth's cooldown.
+- Bots use Hit and Run (when the target's 200–520 px off and the landing spot is safe) and Second Wind (when there's 25 or more to get back, or 12 when low).
+
+## 0.79.8
+
+- **The results screen is full size again.** It was being shrunk to fit the window (down to 72%) like the menus, which made it hard to read; it's a long screen, so it now stays full size and scrolls (`FIT_NOSHRINK`).
+- **Hover previews in the middle of a row grow as big as the others.** A clip card grows toward the side with the most room; one in the middle of a row (the second of three kill cams) had little room either side, so it stayed small. It can now grow out from its middle too, and takes whichever of the three gives the biggest picture.
+
+## 0.79.7
+
+- **Online now (admin):** a new button on your main menu, next to Funnel, opens `/api/online?html=1`: everyone connected right now, accounts and guests, with their level, where they are (main menu, searching, a ranked game and its arena, a custom game or lobby, watching) and how long they've been on. It refreshes itself every 20 seconds. `/api/online` gives the same as JSON. Only the admin can open it. AI players aren't listed (they aren't connections).
+
 ## 0.79.6
 
 - **Boomerang scoring, simplified.** When a boomerang knocks someone out, everyone that one throw hit counts: each archer hit going out counts 1, each hit coming back 1.5. The total H gives 0.6 × (H − 1)^1.5, compounding, all of it on the moment side and 40% of it on the play side. Hit 2 going out: 0.6 moment. Hit 4 going out: 3.1. Hit 3 going out and all 3 coming back: 11.4. Hit going out and knocked out coming back adds a small 1.5 moment, 0.5 play. Several knocked out by one boomerang counts as at once (as before), and a multi-kill as usual. It replaces the old boomerang bonuses ("there and back" 2 play / 4 moment, "caught N with one shot" for boomerangs, and the extra for several hit going out and taken out coming back), which could all land on the same throw.
