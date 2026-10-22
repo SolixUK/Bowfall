@@ -2,6 +2,16 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.81.3
+
+- **Shorter tutorial.** Each step is now one short line in bigger text ("Move with W A S D", "Press Space to dash", "Knock the dummy into the pit"), with the explanations gone. Controller and touch players get their own short versions.
+- **Fairer first ratings.** The tutorial bot's guess at your level never actually reached the server (it was dropped when the page said hello), so every new player started near 800 whatever happened in the tutorial. It's passed through now, and trusted much more: once the bot turns (your first loss after a run of wins, or your first win after a run of losses) that sets your starting rating at 80–90%, and a few games all won or all lost count for half. The range is now 300–1300.
+- **The tutorial bot can go below Easy**, down to a Beginner level for brand-new players who keep losing, so it can find their level instead of bottoming out. Losing three or more in a row with no win yet guesses a little below the bot that beat you.
+
+## 0.81.2
+
+- Thorny vines only wrap an archer when a plant actually holds them: the Trapper's trap, Bramble Toss, snare arrows, thorns ripped out, and the Bramble Coat. Stuns (the Terminator's clap, an ambush shot), frost, tar and harpoons keep their own look instead of showing brambles.
+
 ## 0.81.1
 
 Terminator, second pass: a smaller arena and a machine that plays like a very good archer.

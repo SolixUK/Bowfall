@@ -537,6 +537,9 @@
   .coach.mini #coachHint, .coach.mini .coachesc { display: none; }
   .coach.mini.done #coachHint { display: block; }
   .coach.faded { opacity: .15; pointer-events: none; }
+  .coach #coachHint:empty { display: none; }
+  .coach.tut b#coachText { font-size: 32px; line-height: 1.15; } .coach.tut.mini b#coachText { font-size: 24px; }
+  body.touchmode .coach.tut b#coachText { font-size: 22px; } body.touchmode .coach.tut.mini b#coachText { font-size: 18px; }
   body.touchmode .coach { width: min(380px, 46vw); padding: 8px 12px; gap: 4px; } body.touchmode .coach b { font-size: 15px; line-height: 1.25; } body.touchmode .coach small { font-size: 12px; line-height: 1.35; } body.touchmode .coach .eyebrow { font-size: 11px; } body.touchmode .coach .coachesc { display: none; } body.touchmode .coach .btnrow button { padding: 5px 9px; font-size: 12px; }
   body.touchmode .coach.mini { width: min(260px, 36vw); }
   @media (max-width: 720px) { .profgrid { grid-template-columns: 1fr; } .mm b { font-size: 21px; } }
@@ -1640,7 +1643,7 @@
   <div class="notices" id="notices"></div>
   <div class="callouts" id="callouts" aria-live="polite"></div>
   <div class="netstats" id="netStats" hidden></div>
-  <div class="coach" id="coach" hidden><span class="eyebrow" id="coachStep"></span><b id="coachText"></b><small id="coachHint"></small><div class="coachbar"><i id="coachBar"></i></div><div class="btnrow" id="coachBtns"></div><small class="coachesc">Press <kbd>Esc</kbd> (or Start on a controller) for the menu, where you can leave at any time.</small></div>
+  <div class="coach" id="coach" hidden><span class="eyebrow" id="coachStep"></span><b id="coachText"></b><small id="coachHint"></small><div class="coachbar"><i id="coachBar"></i></div><div class="btnrow" id="coachBtns"></div><small class="coachesc"><kbd>Esc</kbd> for the menu</small></div>
   <div class="starter" id="starterScr" hidden><div class="stbg"></div><div class="stflash" id="stFlash"></div>
     <div class="stin"><span class="eyebrow sttop">Tutorial · your element</span><h2 id="stTitle">Choose your element</h2><p id="stSub">Every arrow you shoot will carry it. You can unlock more as you play.</p>
       <div class="stcards" id="stCards"></div><p class="stfoot" id="stFoot">Click one, or press 1, 2 or 3</p></div>
@@ -2284,7 +2287,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.81.1"></script>
+<script src="sim.js?v=0.81.3"></script>
 <script>
 (() => {
 'use strict';
@@ -2292,7 +2295,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.81.1';
+const PAGE_VERSION = '0.81.3';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -3098,11 +3101,10 @@ const abKey = i => (usingPad() ? padBtn(i ? 'e' : 'q') : keyName(BINDS[i ? 'ab2'
 // the tutorial's words for touch screens (the buttons it means also light up)
 function touchify(t) {
   if (!TOUCH.on || !t) return t;
-  return t.replace('Move with W A S D, or the left stick.', 'Move with your left thumb: touch anywhere on the left of the screen and slide.')
-    .replace('Aim with the mouse. Hold the left button to draw, then let go to shoot the dummy.', 'Put your right thumb down on the right of the screen and slide to aim. It draws while held: let go to shoot the dummy.')
-    .replace('Hold until the ring round your cursor turns white', 'Hold until the ring round your aim turns white')
-    .replace(/Press Space to dash[^.]*\./, 'Tap the Dash button to dash the way you\'re moving.').replace('Press Space to dash out of the way.', 'Tap Dash to get out of the way.')
-    .replace(/Press [QE] to use/, 'Tap the Q button to use').replace('press 1, 2 or 3', 'tap a card');
+  return t.replace('Move with W A S D', 'Slide your left thumb to move')
+    .replace('Hold left click to draw, let go to shoot', 'Hold your right thumb to draw, let go to shoot')
+    .replace('Press Space to dash', 'Tap Dash').replace('Dodge 5 shots with Space', 'Dodge 5 shots with Dash')
+    .replace(/Press [QE] for/, 'Tap Q for').replace('press 1, 2 or 3', 'tap a card');
 }
 function tutHighlight(k) {
   for (const id of ['tbQ', 'tbDash']) { const b = $(id); if (b) b.classList.toggle('tuthl', TUT.on && TOUCH.on && ((id === 'tbQ' && k === 'ability') || (id === 'tbDash' && (k === 'dash' || k === 'dodge')))); }
@@ -3110,10 +3112,9 @@ function tutHighlight(k) {
 function padify(t) {
   if (!usingPad() || !t) return t;
   const P = n => padBtn(n);
-  return t.replace('Move with W A S D, or the left stick.', 'Move with the left stick.')
-    .replace('Aim with the mouse. Hold the left button to draw', `Aim with the right stick. Hold ${P('draw')} to draw`)
-    .replace('round your cursor', 'round your crosshair')
-    .replace('Press Space to dash', `Press ${P('dash')} to dash`).replace('Press Q to use', `Press ${P('q')} to use`).replace('Press E to use', `Press ${P('e')} to use`)
+  return t.replace('Move with W A S D', 'Move with the left stick')
+    .replace('Hold left click to draw', `Aim with the right stick, hold ${P('draw')} to draw`)
+    .replace('Press Space to dash', `Press ${P('dash')} to dash`).replace('Dodge 5 shots with Space', `Dodge 5 shots with ${P('dash')}`).replace('Press Q for', `Press ${P('q')} for`).replace('Press E for', `Press ${P('e')} for`)
     .replace('press 1, 2 or 3', `press ${P('x')}, ${P('y')} or ${P('b')}`).replace('Press 1, 2 or 3, or click a card.', `Press ${P('x')}, ${P('y')} or ${P('b')} to pick a card.`)
     .replace('Scroll or press + / − to zoom.', '');
 }
@@ -3757,18 +3758,19 @@ function playerName() { const n = $('nameIn').value.trim().slice(0, 16) || 'Arch
 let TUT = { on: false };
 const DRILL_LOADOUT = { el: 'frost', ro: 'trapper' };
 const TUT_LOADOUT = { el: 'frost', ro: 'ranger' }; // the all-rounder, and the easiest element to see working
+// each step is one short line: what to do, nothing more (the game shows the rest as you go)
 const TUT_STEPS = [
-  { k: 'move', title: 'Move', text: 'Move with W A S D, or the left stick.', hint: 'You take a moment to get up to speed and slide a little when you let go. Momentum matters: plan your stops.' },
-  { k: 'shoot', title: 'Shoot', text: 'Aim with the mouse. Hold the left button to draw, then let go to shoot the dummy.', hint: 'The longer you hold, the faster and harder the arrow flies. You move slower while drawing.' },
-  { k: 'full', title: 'Full draw', text: 'Hold until the ring round your cursor turns white, then hit the dummy with a full draw.', hint: 'Full draws hit hardest and knock back furthest. An arrow through the middle of a target is a bullseye: 1.5× damage.' },
-  { k: 'dash', title: 'Dash', text: 'Press Space to dash {dashdir}.', hint: 'Dashing jumps pits, lava and water, and shoves anyone you run into. It recharges in about a second.' },
-  { k: 'dodge', title: 'Dodge', text: 'The dummy shoots back now. A white spark on its bow means a full-power shot. Press Space to dash out of the way. Dodge 5 shots.', hint: 'Dash sideways just as it lets go.{dodgeopt}' },
-  { k: 'ability', title: 'Ability', text: 'Press Q to use your ability, {ab}, then shoot the dummy.', hint: 'Abilities come from your role. You pick your first before round 1, and can earn a second one later.' },
-  { k: 'knock', title: 'Knockback', text: 'Knockback is your real weapon. Shoot the dummy into the pit.', hint: 'Anything that falls in a pit or water is out at once, whatever its health. Walls hurt when you\'re thrown into them, and lava burns.' },
-  { k: 'pick', title: 'Your first pick', text: 'Now a real game against a bot. Choose your opening ability: press 1, 2 or 3.', hint: 'After every round you pick one of three upgrades, and they build on each other.' },
-  { k: 'fight', title: 'Fight', text: 'Win a game: knock the bot out.', hint: 'Keep moving, and back it towards a pit or a wall before a full draw.' },
-  { k: 'element', title: 'Your element', info: true, choose: true, text: 'Every archer is a role plus an element. You\'re a Ranger: now choose the element your arrows carry.', hint: 'Your role sets your health, speed and abilities; your element adds an effect to every hit. There are more elements and roles to unlock as you play.' },
-  { k: 'fight2', title: 'Fight', text: 'Win a game with {el} arrows.', hint: '{elhint}' },
+  { k: 'move', title: 'Move', text: 'Move with W A S D' },
+  { k: 'shoot', title: 'Shoot', text: 'Hold left click to draw, let go to shoot' },
+  { k: 'full', title: 'Full draw', text: 'Hold until the ring turns white' },
+  { k: 'dash', title: 'Dash', text: 'Press Space to dash' },
+  { k: 'dodge', title: 'Dodge', text: 'Dodge 5 shots with Space' },
+  { k: 'ability', title: 'Ability', text: 'Press Q for {ab}, then shoot' },
+  { k: 'knock', title: 'Knockback', text: 'Knock the dummy into the pit' },
+  { k: 'pick', title: 'Your first pick', text: 'Pick an ability: press 1, 2 or 3' },
+  { k: 'fight', title: 'Fight', text: 'Knock the bot out' },
+  { k: 'element', title: 'Your element', info: true, choose: true, text: 'Choose your element' },
+  { k: 'fight2', title: 'Fight', text: 'Win with {el} arrows' },
 ];
 // the tutorial's three starter elements, each with what it does in a few words
 const TUT_ELS = [['frost', 'slows whoever you hit, and a full draw can freeze them'], ['flame', 'sets them burning, and fire spreads'], ['storm', 'chains lightning to anyone close by']];
@@ -3871,9 +3873,9 @@ function startSkillCheck() {
 const tutGames = () => { try { const v = JSON.parse(store.get('bowfall-tutad', 'null')); return v && v.games ? v.games.length : 0; } catch (e) { return 0; } };
 // a bot skill (0 easy … 1 master) as a rating, between the bot levels' ratings
 // (measured: 2,400 games of this Flame Ranger at each skill against matchmaking's AI players, on their rating scale)
-const SKILL_ELO = [[0, 470], [0.1, 555], [0.2, 630], [0.3, 675], [0.42, 865], [0.55, 1140], [0.66, 1360], [0.78, 1545], [0.9, 1800], [1, 1850]];
+const SKILL_ELO = [[-0.5, 265], [-0.3, 350], [0, 470], [0.1, 555], [0.2, 630], [0.3, 675], [0.42, 865], [0.55, 1140], [0.66, 1360], [0.78, 1545], [0.9, 1800], [1, 1850]];
 function skillElo(s) { let i = 0; while (i < SKILL_ELO.length - 2 && s > SKILL_ELO[i + 1][0]) i++; const [a, ea] = SKILL_ELO[i], [b, eb] = SKILL_ELO[i + 1]; return ea + (eb - ea) * (s - a) / (b - a); }
-const SKILL_NAME = s => s < 0.15 ? 'Easy' : s < 0.42 ? 'Normal' : s < 0.66 ? 'Hard' : s < 0.9 ? 'Extreme' : 'Master';
+const SKILL_NAME = s => s < -0.05 ? 'Beginner' : s < 0.15 ? 'Easy' : s < 0.42 ? 'Normal' : s < 0.66 ? 'Hard' : s < 0.9 ? 'Extreme' : 'Master';
 // away during a game against it (another tab or window, or no input for a few seconds while the fight is on): that game
 // doesn't count, so a loss while you weren't there neither lowers the bot nor your first rating guess
 const TUT_AFK_IDLE = 3000; // 3 seconds without moving, aiming, drawing, dashing or an ability
@@ -3896,22 +3898,24 @@ function tutAdapt(evs) {
     A.games.push({ s: A.s, w: won ? 1 : 0 });
     const dir = won ? 1 : -1;
     if (A.last && dir !== A.last) A.step = Math.max(0.04, A.step * 0.6); // overshot: smaller steps from here
-    A.last = dir; A.s = clamp(A.s + dir * A.step, 0, 1);
+    A.last = dir; A.s = clamp(A.s + dir * A.step, Sim.SKILL_MIN, 1); // (it can go below Easy for someone brand new)
     const b = world.players.find(q => q.id === A.bot); if (b) b.dparams = Sim.skillParams(A.s);
     // a first guess at a rating. The easy early games say little (everyone wins them), so only the games from the first
     // time the bot overshoots count: the rating that best explains those results against bots of those ratings (Elo,
     // solved numerically). Until it has overshot, all we know is you're at least as good as the bot it's climbed to.
     if (A.flip == null && A.games.length >= 2 && A.games[A.games.length - 1].w !== A.games[A.games.length - 2].w) A.flip = A.games.length - 2;
     const G = A.flip == null ? [] : A.games.slice(A.flip);
+    // no turn yet: winning every game says you're at least as good as the bot it's climbed to; losing every game (3 or
+    // more) says you're weaker than even the one you just lost to
     let est;
-    if (!G.length) est = Math.round(skillElo(A.s));
+    if (!G.length) est = Math.round(A.games.every(g => !g.w) && A.games.length >= 3 ? skillElo(A.games[A.games.length - 1].s) - 80 : skillElo(A.s));
     else {
       const W = G.reduce((t, g) => t + g.w, 0) + 0.5, L = G.length - W + 1; // half a win and half a loss of prior, so all-wins doesn't run off to infinity
       let lo = 200, hi = 2200;
       for (let k = 0; k < 30; k++) { const R = (lo + hi) / 2, exp = G.reduce((t, g) => t + 1 / (1 + Math.pow(10, (skillElo(g.s) - R) / 400)), 0) + 0.5 / (1 + Math.pow(10, (skillElo(A.s) - R) / 400)); if (exp < W) lo = R; else hi = R; }
       est = Math.round(lo); void L;
     }
-    store.set('bowfall-tutest', JSON.stringify({ est, n: G.length, all: A.games.length }));
+    store.set('bowfall-tutest', JSON.stringify({ est, n: G.length, all: A.games.length, fl: A.flip != null ? 1 : 0 }));
     if (A.games.length > 40) { A.games = A.games.slice(-40); if (A.flip != null) A.flip = Math.max(0, A.flip - 1); } // the recent ones matter
     store.set('bowfall-tutad', JSON.stringify({ s: A.s, step: A.step, last: A.last, games: A.games, flip: A.flip }));
     if (!OFFLINE && G.length >= 2 && SOC.ws && SOC.ws.readyState === 1) socialHello(); // so a first rating can use it
@@ -3927,16 +3931,16 @@ function tutEvents(evs) {
     if (k === 'shoot' && e.e === 'hit' && e.by === myId) return tutLater(0.9);
     if (k === 'full' && e.e === 'fire' && e.id === myId) TUT.full = e.c >= 0.99;
     if (k === 'full' && e.e === 'hit' && e.by === myId && TUT.full) return tutLater(0.9);
-    if (k === 'full' && e.e === 'hit' && e.by === myId && !TUT.full) notice('Nearly: hold until the ring turns white.', false);
+    if (k === 'full' && e.e === 'hit' && e.by === myId && !TUT.full) notice('Hold longer: wait for white', false);
     if (k === 'dash' && e.e === 'dash' && e.id === myId) { TUT.dashes = (TUT.dashes || 0) + 1; return tutLater(1.3); }
     if (k === 'dodge' && e.e === 'fire' && e.id === TUT.dummy) TUT.shots.push({ t: clock, hit: false });
-    if (k === 'dodge' && e.e === 'hit' && e.id === myId) { const s = TUT.shots[TUT.shots.length - 1]; if (s && !s.hit) { s.hit = true; notice('Hit! Dash sideways just as it lets go.', false); } }
+    if (k === 'dodge' && e.e === 'hit' && e.id === myId) { const s = TUT.shots[TUT.shots.length - 1]; if (s && !s.hit) { s.hit = true; notice('Dash just as it shoots', false); } }
     if (k === 'ability' && e.e === 'hit' && e.by === myId && TUT.abUsed) return tutLater(1);
     if (k === 'knock' && e.e === 'kill' && e.v === TUT.dummy && !TUT.fightAt) { TUT.fightAt = clock + 1.6; notice('Ring out!', true, '#7dff8a'); }
     if (k === 'pick' && e.e === 'phase' && e.ph === 'play') return tutNext();
     if ((k === 'fight' || k === 'fight2') && e.e === 'gameEnd') {
       if (e.rw === 'red') { if (k === 'fight') { notice('You won! Now for your element.', true, '#7dff8a'); tutLater(1.2); } else tutDone(); }
-      else { renderCoach(); $('coachHint').textContent = 'The bot took that one, so it eases off a little. Try backing it towards a pit before your full draw.'; }
+      else { renderCoach(); $('coachHint').textContent = 'The bot eases off a little. Try knocking it towards a pit.'; }
     }
   }
 }
@@ -4171,12 +4175,12 @@ function renderCoach() {
   const c = $('coach'); if (!c) return;
   c.hidden = !TUT.on || mode === 'menu' || STARTER.on;
   placeCoach();
-  c.classList.toggle('done', TUT.step >= TUT_STEPS.length);
+  c.classList.toggle('done', TUT.step >= TUT_STEPS.length); c.classList.toggle('tut', !!TUT.on && !TR.on);
   if (TUT.step >= TUT_STEPS.length) {
     const A = TUT.ad, n = A ? A.games.length : 0;
     $('coachStep').textContent = `${TUT.skill ? 'Skill check' : 'Tutorial complete'}${A ? ` · game ${n + 1} · bot: ${SKILL_NAME(A.s)}` : ''}`;
     $('coachText').textContent = TUT.skill ? (n >= 6 ? 'That\'s plenty to go on. Play on, or find a match.' : `Play a few games: ${Math.max(0, 6 - n)} more helps match you fairly.`) : 'You won! Keep practising as long as you like.';
-    $('coachHint').textContent = 'The bot adjusts to how you play after every game. When you\'re ready, find a real match.';
+    $('coachHint').textContent = 'The bot adjusts to you after every game.';
     $('coachBtns').innerHTML = `${OFFLINE ? '' : '<button class="cta sm" type="button" id="coachFind">Find a match</button>'}<button class="ghost sm" type="button" id="coachQuit">Main menu</button>`;
     if ($('coachFind')) $('coachFind').onclick = () => { toMenu(); openSub('findScr'); };
     $('coachQuit').onclick = () => toMenu();
@@ -4186,7 +4190,7 @@ function renderCoach() {
   const ab = me && me.slots && me.slots[0] ? Sim.TREE[me.slots[0]].name : 'your ability';
   // (the key your ability is really on: the slot it's in, your key bindings, and whether you've swapped Q and E)
   const abI = me && me.slots ? Math.max(0, me.slots.findIndex(id => id && Sim.TREE[id] && Sim.TREE[id].active)) : 0, keyI = abSwapped() ? 1 - abI : abI;
-  const raw = S.text.replace('Press Q to use', keyI ? 'Press E to use' : 'Press Q to use');
+  const raw = S.text.replace('Press Q for', keyI ? 'Press E for' : 'Press Q for');
   const list = a => a.slice(0, -1).join(', ') + ' or ' + a[a.length - 1];
   const fill = t => t.replace('{ab}', ab).replace('{dashdir}', !TOUCH.on && !dashMove() ? 'where you\'re aiming' : 'the way you\'re moving')
     .replace('{dodgeopt}', TOUCH.on ? '' : ' Dash goes the way you move; you can make it go where you aim in Options › Controls.').replace('{arch}', ELEMENTS[TUT_LOADOUT.el].name + ' ' + ROLES[TUT_LOADOUT.ro].name)
@@ -4196,9 +4200,9 @@ function renderCoach() {
     .replace('{elhint}', TUT.el ? `${ELEMENTS[TUT.el].name} ${(TUT_ELS.find(x => x[0] === TUT.el) || [0, 'adds an effect to every hit'])[1]}. The bot has an element now too.` : '');
   $('coachStep').textContent = `Tutorial · step ${TUT.step + 1} of ${TUT_STEPS.length} · ${S.title}${S.k === 'fight' && TUT.ad ? ` · bot: ${SKILL_NAME(TUT.ad.s)}` : ''}`;
   const said = fill(touchify(padify(raw)));
-  $('coachText').textContent = !usingPad() && !TOUCH.on ? said.replace(/Press [QE] to use/, `Press ${abKey(keyI)} to use`) : said;
+  $('coachText').textContent = !usingPad() && !TOUCH.on ? said.replace(/Press [QE] for/, `Press ${abKey(keyI)} for`) : said;
   tutHighlight(S.k);
-  $('coachHint').textContent = fill(S.hint);
+  $('coachHint').textContent = S.hint ? fill(S.hint) : '';
   TUT.pad = usingPad();
   const dummy = TUT.step < tutIdx('pick');
   $('coachBtns').innerHTML = S.choose ? TUT_ELS.map(([k, w], i) => `<button class="cta sm" type="button" data-tutel="${k}" style="--elc:${ELEMENTS[k].color}"><b>${i + 1}</b> ${ELEMENTS[k].name}<small>${esc(w)}</small></button>`).join('') + '<button class="ghost sm" type="button" id="coachQuit">Leave tutorial</button>'
@@ -5788,7 +5792,7 @@ function socialConnect() {
   };
   sock.onclose = () => { if (SOC.ws === sock) { SOC.ws = null; SOC.st = null; renderFind(); setTimeout(socialConnect, Math.min(15000, 1000 * 2 ** SOC.retry++)); } };
 }
-function socialHello() { SOC.elsewhere = false; socialSend({ t: 'hello', hb: 1, hid: document.hidden ? 1 : 0, s: mode === 'local' ? (TUT.on ? 'tutorial' : 'practice') : 'menu', away: AWAY.on ? 1 : 0, name: playerName(), gt: GUEST_TOKEN, el: myLoadout().el, ro: myLoadout().ro, mp: mapPref(), hint: Object.assign({ bot: +store.get('bowfall-bestbot', '0') || 0, tut: tutDoneYet() ? 1 : 0 }, (() => { try { const t = JSON.parse(store.get('bowfall-tutest', 'null')); return t && (t.n >= 2 || (t.all || 0) >= 3) ? { est: t.est, en: Math.max(t.n, 1) } : {}; } catch (e) { return {}; } })()) }); }
+function socialHello() { SOC.elsewhere = false; socialSend({ t: 'hello', hb: 1, hid: document.hidden ? 1 : 0, s: mode === 'local' ? (TUT.on ? 'tutorial' : 'practice') : 'menu', away: AWAY.on ? 1 : 0, name: playerName(), gt: GUEST_TOKEN, el: myLoadout().el, ro: myLoadout().ro, mp: mapPref(), hint: Object.assign({ bot: +store.get('bowfall-bestbot', '0') || 0, tut: tutDoneYet() ? 1 : 0 }, (() => { try { const t = JSON.parse(store.get('bowfall-tutest', 'null')); return t && (t.n >= 2 || (t.all || 0) >= 3) ? { est: t.est, en: Math.max(t.n, 1), fl: t.fl || (t.n >= 2 ? 1 : 0) } : {}; } catch (e) { return {}; } })()) }); }
 // Best practice win against bots — a rough skill hint used to seed a new account's first rating.
 const BOT_LV = { easy: 1, normal: 2, hard: 3, extreme: 4, master: 5 };
 function noteBotWin() {
@@ -10316,8 +10320,8 @@ function drawPlayer(p, isMe, bare) {
     ctx.fillStyle = '#ffcf5a'; ctx.beginPath(); ctx.moveTo(-R - 14, 0); ctx.lineTo(-R - 21, -6); ctx.lineTo(-R - 11, 0); ctx.lineTo(-R - 21, 6); ctx.fill();
     ctx.restore();
   }
-  if (p.st && !p.fz && !p.pn) {
-    // rooted: thorny vines wrapped around the archer
+  if (p.rt && !p.fz && !p.pn) {
+    // rooted by a trap, briar, snare or thorns: vines wrapped around the archer (stuns, tar and the like show their own look)
     ctx.strokeStyle = '#6b4526'; ctx.lineWidth = 3.5;
     for (let k = 0; k < 3; k++) { const a0 = k * 2.1 + 0.4; ctx.beginPath(); ctx.arc(0, 0, R + 4 + (k % 2) * 3, a0, a0 + 1.7); ctx.stroke(); }
     ctx.strokeStyle = '#8fb44a'; ctx.lineWidth = 1.5;

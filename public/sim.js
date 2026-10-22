@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.81.1';
+const VERSION = '0.81.3';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1137,9 +1137,16 @@ const DIFF = {
 };
 // any skill from 0 (Easy) to 1 (Master) as a set of bot settings, blended between the named levels;
 // AI players in matchmaking each have their own skill somewhere along this scale
+const SKILL_MIN = -0.5;
 const SKILL_STOPS = [['easy', 0], ['normal', 0.3], ['hard', 0.55], ['extreme', 0.78], ['master', 1]];
 function skillParams(s) {
-  s = clamp(+s || 0, 0, 1);
+  s = clamp(+s || 0, SKILL_MIN, 1);
+  if (s < 0) { // below Easy (only the tutorial's adaptive bot goes here, for someone brand new): Easy, taken further the same way
+    const k = s / SKILL_STOPS[1][1], A = DIFF.easy, B = DIFF.normal, out = {};
+    for (const key of Object.keys(A)) out[key] = A[key] + (B[key] - A[key]) * k;
+    out.dodge = Math.max(0, out.dodge); out.lead = Math.max(0, out.lead); out.turn = Math.max(1, out.turn); out.speed = Math.max(0.6, out.speed); out.iq = 0;
+    return out;
+  }
   let i = 0; while (i < SKILL_STOPS.length - 2 && s > SKILL_STOPS[i + 1][1]) i++;
   const [a, sa] = SKILL_STOPS[i], [b, sb] = SKILL_STOPS[i + 1], k = (s - sa) / (sb - sa), A = DIFF[a], B = DIFF[b], out = {};
   for (const key of Object.keys(A)) out[key] = A[key] + (B[key] - A[key]) * k;
@@ -2170,6 +2177,7 @@ function stepBody(w, f, mx, my, dt) {
   if (f.riftSlow > 0) { f.riftSlow -= dt; sp *= f.sure ? 0.9 : 0.7; }
   if (f.caltT > 0) { f.caltT -= dt; sp *= f.sure ? 0.85 : 0.6; } // Caltrops
   if (f.stuck > 0) { f.stuck -= dt; sp = 0; }
+  if (f.vine > 0) f.vine -= dt;
   f.frozen = Math.max(0, f.frozen - dt);
   if (f.frozen > 0) { f.disarm = Math.max(f.disarm, f.frozen); if (f.drawing) { f.drawing = false; f.charge = 0; f.over = 0; } } // frozen solid: no drawing or shooting
   if (f.iceSlow > 0) { f.iceSlow -= dt; sp *= f.sure ? 0.85 : 0.65; } // Hoarfrost
@@ -2816,7 +2824,7 @@ function updateZones(w, dt) {
       if (z.arm <= 0) for (const q of w.players) {
         if (q.team === z.team || q.dead || q.falling > 0 || q.dashT > 0 || q.grap) continue;
         if (Math.hypot(q.x - z.x, q.y - z.y) < z.r + q.r * 0.6) {
-          root(q, 2.5, w.players.find(o => o.id === z.owner)); hurt(w, q, 12, 0, 0, 'trap', z.owner);
+          root(q, 2.5, w.players.find(o => o.id === z.owner), true); hurt(w, q, 12, 0, 0, 'trap', z.owner);
           ev(w, { e: 'trapHit', x: r1(z.x), y: r1(z.y) });
           z.t = 0; break;
         }
@@ -2963,7 +2971,7 @@ function separate(w) {
       // Bramble Coat: touching the Trapper roots you
       for (const [s, t] of [[a, b], [b, a]]) {
         if (true || s.team === t.team || t.stuck > 0 || (s.coat[t.id] || 0) > w.t) continue;
-        s.coat[t.id] = w.t + 3; root(t, 1.4, null); t.lastHitBy = s.id; t.lastHitT = w.t;
+        s.coat[t.id] = w.t + 3; root(t, 1.4, null, true); t.lastHitBy = s.id; t.lastHitT = w.t;
         ev(w, { e: 'snared', x: r1(t.x), y: r1(t.y) });
       }
       // dash shove
@@ -3040,11 +3048,13 @@ function shadeTick(w, f, dt) {
 const MEND_HEAL = 45, MEND_SPEED = 650;
 const mendHeal = q => { const was = q.hp; q.hp = Math.min(q.maxHp, q.hp + MEND_HEAL * (q.poisonT > 0 ? 0.5 : 1)); return Math.round(q.hp - was); };
 const RIP_DELAY = 1, SHROUD_R = 140, ECLIPSE_R = 150, MEND_RANGE = 350, BRIAR = { speed: 350, range: 760, r: 22, root: 1.8, dmg: 8 }; // r: the same size as a Bramble Trap
-function root(f, t, by) { if (by && has(by, 'deeproots')) t *= 2; f.stuck = Math.max(f.stuck, f.sure ? t * 0.4 : t); }
+// hold them in place. Plant roots (traps, briar, snares, thorns, the coat) also wrap vines round them for the client to draw;
+// other holds (stuns, frost, tar, harpoons) show their own look instead
+function root(f, t, by, plant) { if (by && has(by, 'deeproots')) t *= 2; const held = f.sure ? t * 0.4 : t; f.stuck = Math.max(f.stuck, held); if (plant) f.vine = Math.max(f.vine || 0, held); }
 // elemental and trapper effects when an arrow lands
 function onArrowEffects(w, a, f, primary) {
   const owner = a.own;
-  if (a.snare && primary) { root(f, 1.8, owner); ev(w, { e: 'snared', x: r1(f.x), y: r1(f.y) }); }
+  if (a.snare && primary) { root(f, 1.8, owner, true); ev(w, { e: 'snared', x: r1(f.x), y: r1(f.y) }); }
   if (a.hpn && primary && owner && !f.dead) { f.hook = { by: owner.id, t: HOOK_DELAY }; ev(w, { e: 'hooked', id: f.id, by: owner.id, x: r1(f.x), y: r1(f.y) }); }
   if (primary && owner && has(owner, 'rip') && !f.dead) { // Rip: every hit leaves a thorn
     if (f.thornBy !== owner.id) f.thornN = 0;
@@ -3461,7 +3471,7 @@ function updateArrows(w, dt) {
         if (f.team === a.team || f.dead || f.falling > 0 || a.hit.includes(f.id) || f.phaseT > 0) continue;
         if (Math.hypot(f.x - a.x, f.y - a.y) < f.r + (a.bri ? BRIAR.r : a.boom ? 23 : a.big ? 10 : 4)) {
           if (a.bri) { // a rolling bramble: everyone it rolls through is rooted, then it rolls on
-            a.hit.push(f.id); root(f, BRIAR.root, a.own); hurt(w, f, BRIAR.dmg, 0, 0, 'briar', a.owner);
+            a.hit.push(f.id); root(f, BRIAR.root, a.own, true); hurt(w, f, BRIAR.dmg, 0, 0, 'briar', a.owner);
             if (a.own && !a.counted) { a.counted = true; a.own.stats.hits++; }
             if (a.own && has(a.own, 'rip') && !f.dead) { if (f.thornBy !== a.owner) f.thornN = 0; f.thornBy = a.owner; f.thornN = Math.min(5, (f.thornN || 0) + 1); f.thornT = 10; }
             ev(w, { e: 'trapHit', x: r1(f.x), y: r1(f.y), id: f.id, by: a.owner, aid: a.id }); // (who it caught, and with which bramble)
@@ -5359,7 +5369,7 @@ function step(w, dt) {
         if (q.team === p.team || q.dead || q.falling > 0 || q.thornBy !== p.id || !(q.thornN > 0)) continue;
         const n = q.thornN; q.thornN = 0; q.thornT = 0;
         ev(w, { e: 'rip', id: q.id, by: p.id, x: r1(q.x), y: r1(q.y), bx: r1(p.x), by2: r1(p.y), n });
-        if (n >= 2) root(q, n >= 5 ? 2 : 1, p); // a full set of five holds them twice as long
+        if (n >= 2) root(q, n >= 5 ? 2 : 1, p, true); // a full set of five holds them twice as long
         hurt(w, q, 5 * n, 0, 0, 'rip', p.id);
       }
       continue;
@@ -5413,7 +5423,7 @@ function snapshot(w) {
         id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, nk: p.npc ? p.npc.k : undefined, nm: p.npc && p.npc.mode ? p.npc.mode : undefined, na: p.npc && p.npc.k === 'term' ? r2(p.npc.aim2) : undefined, hd: p.hid ? 1 : 0, tw: p.elev ? 1 : 0, rs: (w.cq || w.tm) && p.dead && !p.npc && p.respAt != null ? Math.max(0, Math.ceil(p.respAt - w.t)) : undefined, bi: p.npc ? p.npc.bio : undefined, nw: p.npc && (p.npc.wind || p.npc.charge) ? (p.npc.charge ? 'dash' : p.npc.wind) : undefined, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, ct: p.ct || undefined, cl: p.cl || undefined, ce: p.ce || undefined, sp: p.sp || undefined, fd: p.fd || undefined, pt: p.pt || undefined, fin: p.fin || undefined, fr: p.fr || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
         x: r1(p.x), y: r1(p.y), vx: Math.round(p.vx), vy: Math.round(p.vy), a: r3(p.aim),
         hp: Math.max(0, Math.ceil(p.hp)), mh: p.maxHp, ch: p.npc && p.npc.k === 'term' ? r2(Math.min(1, (p.npc.drawT || 0) / (p.npc.mode === 'hunter' ? 1.1 : p.npc.drawMax || 0.5))) : r2(p.charge), dr: p.npc && p.npc.k === 'term' ? (p.npc.drawT > 0 ? 1 : 0) : p.drawing ? 1 : 0,
-        f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, bu: p.burn > 0 ? 1 : 0, bl: p.bleedT > 0 ? 1 : 0, vd: p.voidT > w.t && p.voidN ? p.voidN : undefined, vb: p.voidT > w.t && p.voidN ? p.voidBy : undefined, sl: p.slow > 0 || p.iceSlow > 0 ? 1 : 0, sw: p.slow > 0 || p.iceSlow > 0 ? r2(Math.max(p.slow > 0 ? 1 - (p.sure ? 0.85 : p.slowK || 0.5) : 0, p.iceSlow > 0 ? (p.sure ? 0.15 : 0.35) : 0)) : undefined, iv: p.inv > 0 ? 1 : 0,
+        f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, rt: p.vine > 0 && p.stuck > 0 ? 1 : undefined, bu: p.burn > 0 ? 1 : 0, bl: p.bleedT > 0 ? 1 : 0, vd: p.voidT > w.t && p.voidN ? p.voidN : undefined, vb: p.voidT > w.t && p.voidN ? p.voidBy : undefined, sl: p.slow > 0 || p.iceSlow > 0 ? 1 : 0, sw: p.slow > 0 || p.iceSlow > 0 ? r2(Math.max(p.slow > 0 ? 1 - (p.sure ? 0.85 : p.slowK || 0.5) : 0, p.iceSlow > 0 ? (p.sure ? 0.15 : 0.35) : 0)) : undefined, iv: p.inv > 0 ? 1 : 0,
         da: p.dashT > 0 ? 1 : 0, hl: p.healing ? 1 : 0, dn: p.dashN, dk: p.dashMaxN, ra: p.rallied ? 1 : 0, shd: p.shade ? p.shade.n : undefined, sht: p.shade ? r2(p.shade.t / SHADE.t) : undefined, th: p.thornN > 0 ? p.thornN : undefined,
         ab: p.slots.slice(), ac: p.abCd.map(r1), fz: p.frozen > 0 ? 1 : 0, sx: p.dashLock > 0 ? 1 : 0, ov: p.over >= 1 ? 1 : 0,
         sn: p.snare ? 1 : 0, vl: p.volleyArmed ? 1 : 0, rl: p.railArmed ? 1 : 0, ha: p.harpoonArmed ? 1 : 0, hk: p.hook ? p.hook.by : 0,
@@ -5588,7 +5598,7 @@ function tierSvg(k, size = 22) {
 return {
   TIERS, tierOf, tierSvg,
   TM, TM_NAMES, TM_MINIONS, MASTERY, masteryOf, takeCard, applyStats,
-  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
+  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, SKILL_MIN, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg, emblemCol, emblemFull,
