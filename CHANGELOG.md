@@ -2,6 +2,11 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.82.1
+
+- **Lobby panels, not folds.** Arena, Rules and Room now open as a panel over the page (below their header line, or above it when there's more room there) and close with a click elsewhere or Escape, so opening one never moves anything else. Team boxes keep the height of a full team, so players and bots joining don't shift the layout either; people not yet on a team are named in the footer instead of a strip that comes and goes.
+- **Map effect** has its own select beside Match length and Bot skill: Random (the standard), None, or any one effect.
+
 ## 0.82.0
 
 - **A clearer lobby.** The teams run the full width across the top, so banners, titles and medals show whole, and open slots are one line ("3 open slots") instead of three boxes. Below that, your archetype on the left and the match settings on the right: Arena, Rules and Room are folding sections whose header line always says what's set (the arena's thumbnail and name; every rule that's off the standard, by name), so nothing is hidden when they're closed. Picking an arena folds the list away again. The lobby is never scaled down any more: on a short screen it scrolls instead, with the text at full size. The waiting-area strip only appears when someone's waiting; "Unassign" is in the footer.
