@@ -2,6 +2,15 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.82.0
+
+- **A clearer lobby.** The teams run the full width across the top, so banners, titles and medals show whole, and open slots are one line ("3 open slots") instead of three boxes. Below that, your archetype on the left and the match settings on the right: Arena, Rules and Room are folding sections whose header line always says what's set (the arena's thumbnail and name; every rule that's off the standard, by name), so nothing is hidden when they're closed. Picking an arena folds the list away again. The lobby is never scaled down any more: on a short screen it scrolls instead, with the text at full size. The waiting-area strip only appears when someone's waiting; "Unassign" is in the footer.
+- **Everyone sees the rules.** Guests see the same Arena and Rules sections as the host (read-only), with the changed rules named in the header line, so nobody's surprised by 150% knockback.
+- **Pure rules.** Upgrades has a third setting, Pure: no archetypes and no upgrades, so everyone is a plain archer with a plain bow for the match. Nothing to blame but aim. Archetypes come back in the lobby afterwards. Map effects still apply (they're the same for both sides).
+- **Arrow homing's Extreme setting is gone**; a saved Extreme plays as Heavy.
+- **Your first element from an invite.** Someone brand new who arrives in a friend's lobby by invite link is asked to choose their element right there (the same three-card moment the tutorial has), instead of playing as a Frost Ranger they never chose. "Decide later" leaves it to the tutorial.
+- **Main menu:** the side column (profile, clan, friends, best of the week) no longer overlaps the footer links when it's taller than the menu, and the Discord button has moved down beside the site links.
+
 ## 0.81.3
 
 - **Shorter tutorial.** Each step is now one short line in bigger text ("Move with W A S D", "Press Space to dash", "Knock the dummy into the pit"), with the explanations gone. Controller and touch players get their own short versions.

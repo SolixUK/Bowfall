@@ -781,8 +781,8 @@
   body.clipembed #clipView { bottom: 8px; padding: 6px 10px; } body.clipembed #cvClose { display: none; }
   body.clippreview #clipView, body.clippreview #replayBadge, body.clippreview #notices { display: none !important; }
   .homelinks { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 6px; }
-  .dclink { align-self: flex-end; display: inline-grid; place-items: center; width: 40px; height: 40px; background: #5865f2; color: #fff; border-radius: 50%; pointer-events: auto; box-shadow: 0 4px 14px rgba(0,0,0,.4); transition: transform .12s, background .12s; } .dclink[hidden] { display: none; }
-  .dclink:hover { background: #4752c4; transform: translateY(-2px); } .dclink svg { width: 22px; height: 22px; }
+  .dclink { display: inline-grid; place-items: center; width: 32px; height: 32px; background: #5865f2; color: #fff; border-radius: 50%; pointer-events: auto; box-shadow: 0 4px 14px rgba(0,0,0,.4); transition: transform .12s, background .12s; } .dclink[hidden] { display: none; }
+  .dclink:hover { background: #4752c4; transform: translateY(-2px); } .dclink svg { width: 18px; height: 18px; }
   .online { display: inline-flex; align-items: center; gap: 7px; font: 600 13px 'Titillium Web', 'Segoe UI', sans-serif; color: var(--muted); } .online i { width: 8px; height: 8px; border-radius: 50%; background: #7dff8a; box-shadow: 0 0 8px #7dff8a; } .online b { color: var(--text); }
   .dmmini { position: fixed; z-index: 16; right: 16px; bottom: 16px; display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; background: rgba(9,18,11,.95); border: 1px solid var(--line); border-top: 2px solid var(--gold); color: var(--text); font: 700 14px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .04em; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,.5); }
   .dmmini:hover { border-color: var(--gold); } .dmmini .dmn { margin: 0; }
@@ -804,7 +804,7 @@
   .wpcap .plate { display: flex; margin-top: 4px; max-width: 100%; box-sizing: border-box; }
   .lpbtn-ico { width: 16px; height: 12px; margin-right: 6px; vertical-align: -1px; }
   .hometop { flex-direction: column; align-items: flex-end; gap: 8px; }
-  @media (min-width: 960px) { .homewrap { position: relative; padding-top: 84px; } .hometop { position: absolute; top: 8px; right: 0; z-index: 1; } }
+  @media (min-width: 960px) { .homewrap { position: relative; padding-top: 84px; } .hometop { position: absolute; top: 8px; right: 0; z-index: 1; } .homefoot { margin-top: auto; } }
   .lplist { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
   .lpchip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 4px 3px 10px; border-radius: 999px; border: 1px solid var(--pc); background: rgba(0,0,0,.35); font-size: 13px; }
   .lpchip b { color: var(--pc); font-family: 'Rajdhani', 'Arial Narrow', sans-serif; }
@@ -1447,27 +1447,46 @@
     #home .hometop { grid-area: top; display: flex; flex-direction: column; align-items: stretch; gap: 8px; min-height: 0; }
     #home .toprow { flex-direction: column; align-items: stretch; gap: 6px; } #home .profchip { order: -1; } #home .clanchip, #home .profchip { width: 100%; box-sizing: border-box; }
     #home .hometop .frpanel { flex: 1; min-height: 0; max-height: none; overflow-y: auto; margin: 0; }
-    #home .dclink { position: absolute; right: 10px; bottom: 10px; } #home .lpbox { display: none; }
+    #home .lpbox { display: none; }
     .card.pick { max-width: 1100px; } .pick .pcard { min-height: 0; padding: 12px 14px; } .pick .cards { grid-template-columns: repeat(3, 1fr); }
   }
-  .card.lobby { max-width: 1240px; padding-bottom: 0; }
-  .lbgrid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  .card.lobby { max-width: 1240px; padding: 18px 24px 0; gap: 12px; }
+  .lobby .lbtop h2 { font-size: 27px; line-height: 1.05; } .lobby .lbtop .stat { gap: 1px; } .lobby .lbtop .status { font-size: 13px; }
+  .lobby .lbfoot { margin: 0 -24px; padding: 10px 24px 14px; }
+  .lobby .mutbox { margin: 0; }
+  .lobby .tcol.spec .thead { gap: 8px; }
+  .lbgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
   .lobby .slot { flex-wrap: wrap; row-gap: 2px; padding: 3px 8px; }
-  .lobby .slot .nm { flex: 1 1 130px; }
-  .lobby .tcol { padding: 12px; gap: 6px; }
-  .lobby .tcol.spec { padding: 10px 12px; }
-  .lobby .teams { gap: 10px; }
-  .lbcol { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .lobby .slot .nm { flex: 1 1 180px; }
+  .lobby .slot .nm small { font-size: 12px; }
+  .lobby .slot .plate b { font-size: 15px; }
+  .lobby .tcol { padding: 10px 12px; gap: 5px; }
+  .lobby .teams { gap: 12px; }
+  /* people waiting for a team: one row under the teams, only when there's someone (or a way to get there) */
+  .lobby .tcol.spec { padding: 6px 12px; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 6px 14px; }
+  .lobby .tcol.spec .thead { margin: 0; flex: 0 0 auto; } .lobby .tcol.spec .specnames { flex: 1 1 auto; } .lobby .tcol.spec .tfoot { margin: 0; padding: 0; border: 0; }
+  .lobby .tcol.spec .status { font-size: 13px; flex: 1 1 auto; }
+  .lbcol { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
   @media (max-width: 1000px) { .lbgrid { grid-template-columns: 1fr; } }
-  .lbset { display: flex; flex-direction: column; gap: 10px; padding: 14px; background: rgba(255,255,255,.03); border: 1px solid var(--line); }
+  .lbset { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; background: rgba(255,255,255,.03); border: 1px solid var(--line); }
   .lbset h3 { margin: 0; }
-  .lobby .maps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .lbmatch .field label { font-size: 13px; }
+  .lobby .maps { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; padding-top: 10px; }
   .lobby .mapcard { padding: 4px 4px 6px; gap: 3px; }
   .lobby .mapcard small { display: none; }
-  .lobby .mapcard b { font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lobby .mapcard b { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* folded sections: the summary line says what's set, so a closed section still tells everyone the rules */
+  .lbfold summary b { font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); flex: 0 0 auto; }
+  .lbsum { display: inline-flex; align-items: center; gap: 8px; min-width: 0; flex: 1 1 auto; color: var(--text); font-size: 14px; line-height: 1.3; }
+  .lbsum .msthumb { height: 26px; } .lbsum .rule { color: var(--gold); font-weight: 600; } .lbsum .std { color: var(--muted); }
+  .lbfold[open] > summary { margin-bottom: 2px; }
+  .lbfold:first-child { border-top: 0; padding-top: 0; }
+  .lbrules .field label { font-size: 13px; } .lbrules select { font-size: 14px; }
+  .purenote { padding: 8px 10px; border-left: 3px solid var(--gold); background: rgba(255,207,90,.06); color: var(--text); font-size: 13px; }
+  .arch.pure .archrow, .arch.pure #archBlurb, .arch.pure #banHint { display: none; }
   .lbrow2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .lbrules { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; padding-top: 8px; }
-  .lbrules select { width: 100%; }
+  .lbrules select { width: 100%; } .lbrules .field { min-width: 0; } .lbrules input[type=range] { width: 100%; min-width: 0; box-sizing: border-box; }
   .lbfold { border-top: 1px solid var(--line); padding-top: 8px; }
   .lbfold summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
   .lbfold summary::before { content: '▸'; color: var(--gold); } .lbfold[open] summary::before { content: '▾'; }
@@ -1475,10 +1494,10 @@
   .lbtop .stat { gap: 4px; }
   .lbfoot { position: sticky; bottom: -16px; z-index: 2; display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin: 0 -28px; padding: 14px 28px 20px; background: linear-gradient(to top, rgba(12,22,15,.98) 70%, rgba(12,22,15,0)); }
   .lbfoot .status { margin-right: auto; }
-  .lobby .arch { gap: 8px; padding: 12px; }
-  .lobby .archrow { grid-template-columns: 58px 1fr; }
-  .lobby .archrow .chip2 { padding: 4px 8px; font-size: 12.5px; }
-  .lobby .tcol.spec .status { font-size: 12.5px; }
+  .lobby .arch { gap: 9px; padding: 12px 14px; }
+  .lobby .archrow { grid-template-columns: 62px 1fr; }
+  .lobby .archrow .chip2 { padding: 5px 10px; font-size: 13.5px; }
+  .lobby #archBlurb { font-size: 13px; line-height: 1.4; } .lobby #banHint { font-size: 12.5px; }
   .teams { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
   .tcol { min-width: 0; }
   .tcol.spec { grid-column: 1 / -1; border-top-color: var(--muted); }
@@ -1575,7 +1594,7 @@
     /* sections that open as sheets: only their summary shows in place */
     [data-ms]:not(.msin) { display: none !important; } .mssum:not([hidden]) { display: grid; }
     /* lobby: the teams on the left; your archetype, the arena and the settings as three summaries on the right */
-    body .lbgrid { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 12px; } .lobby .lbset { padding: 0; background: none; border: 0; gap: 8px; } .lobby .lbcol { gap: 8px; }
+    body .lbgrid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; } .lobby .lbset { padding: 0; background: none; border: 0; gap: 8px; } .lobby .lbcol { gap: 8px; }
     .slot.empty + .slot.empty { display: none; } #trainScr .card > p.status { display: none; }
     /* long lists (challenges, highscores, how to play, a clan, the controls, the store) fill the screen at full size and
        scroll inside, under a header that stays put, rather than being shrunk to fit */
@@ -1645,7 +1664,7 @@
   <div class="netstats" id="netStats" hidden></div>
   <div class="coach" id="coach" hidden><span class="eyebrow" id="coachStep"></span><b id="coachText"></b><small id="coachHint"></small><div class="coachbar"><i id="coachBar"></i></div><div class="btnrow" id="coachBtns"></div><small class="coachesc"><kbd>Esc</kbd> for the menu</small></div>
   <div class="starter" id="starterScr" hidden><div class="stbg"></div><div class="stflash" id="stFlash"></div>
-    <div class="stin"><span class="eyebrow sttop">Tutorial · your element</span><h2 id="stTitle">Choose your element</h2><p id="stSub">Every arrow you shoot will carry it. You can unlock more as you play.</p>
+    <div class="stin"><span class="eyebrow sttop" id="stTop">Tutorial · your element</span><h2 id="stTitle">Choose your element</h2><p id="stSub">Every arrow you shoot will carry it. You can unlock more as you play.</p>
       <div class="stcards" id="stCards"></div><p class="stfoot" id="stFoot">Click one, or press 1, 2 or 3</p></div>
     <button class="ghost sm stleave" type="button" id="stLeave">Leave tutorial</button></div>
   <div class="gchat" id="gChat" hidden><div class="gchat-log" id="gChatLog"></div><input id="gChatIn" maxlength="140" placeholder="Say something… (Enter to send, Esc to cancel)" autocomplete="off" hidden><span class="gchat-hint" id="gChatHint">Enter to chat</span></div>
@@ -1687,7 +1706,6 @@
         <div class="lpbox"><div class="lplist" id="lpList"></div><button type="button" class="ghost sm" id="lpAdd" title="Another player with their own controller, on this screen"><svg class="lpbtn-ico" viewBox="0 0 24 16" aria-hidden="true"><path d="M6.5 1.5h11a5.5 5.5 0 0 1 5.4 6.6l-1 5a2.6 2.6 0 0 1-4.6 1.1L15 11.5H9l-2.3 2.7a2.6 2.6 0 0 1-4.6-1.1l-1-5A5.5 5.5 0 0 1 6.5 1.5z" fill="currentColor" opacity=".9"/><path d="M6.6 5v4M4.6 7h4" stroke="#11160f" stroke-width="1.6" stroke-linecap="round"/><circle cx="16.6" cy="5.6" r="1.1" fill="#11160f"/><circle cx="18.6" cy="8" r="1.1" fill="#11160f"/></svg>Add player on controller</button></div>
         <div class="frpanel" id="homeFriends" hidden></div>
         <button type="button" class="homelive" id="homeLive" hidden></button>
-        <a class="dclink" id="homeDiscord" href="#" target="_blank" rel="noopener" title="Join the Bowfall Discord" aria-label="Join the Bowfall Discord" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.3 4.4A19.6 19.6 0 0 0 15.5 3l-.6 1.2a18 18 0 0 0-5.8 0L8.5 3a19.6 19.6 0 0 0-4.8 1.4C.6 9 .0 13.5.3 18a19.8 19.8 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4c-.6.4-1.3.7-2 1L17.7 21a19.7 19.7 0 0 0 6-3c.4-5.2-.7-9.7-3.4-13.6zM8.5 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4zm7 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4z"/></svg></a>
         <div class="weekplays" id="weekPlays" hidden><div class="wph"><b id="wpHead">Best of the week</b><button type="button" class="linkbtn" id="wpGal">Gallery</button></div>
           <div class="wp2"><div class="wpone" id="wpP"><span class="wpk" id="wpKP">Play</span><div class="wpcard" id="wpCard"></div><div class="wpcap" id="wpCap"></div></div><div class="wpone" id="wpM"><span class="wpk mo" id="wpKM">Moment</span><div class="wpcard" id="wpCardM"></div><div class="wpcap" id="wpCapM"></div></div></div>
           <span class="wpnote" id="wpNote" hidden></span></div>
@@ -1705,6 +1723,7 @@
       <div class="homefoot">
         <div class="btnrow"><button class="ghost sm" id="helpBtn" type="button">How to play</button><button class="ghost sm" id="achBtn" type="button">Achievements</button><button class="ghost sm" id="balBtn" type="button">Balance data</button><a class="ghost sm" id="fnBtn" href="/api/funnel?html=1" target="_blank" rel="noopener" hidden>Funnel</a><a class="ghost sm" id="onBtn" href="/api/online?html=1" target="_blank" rel="noopener" hidden>Online now</a><button class="ghost sm" id="sndBtn" type="button" hidden>Sound desk</button><button class="ghost sm" id="farmBtn" type="button" hidden title="AI players fight each other for you to record: trailers, promos, highlight clips">Clip farm</button></div>
         <div class="sitelinks" id="siteLinks" hidden><a href="/">Website</a><a href="/#/leaderboard">Leaderboard</a><a href="/#/forum">Forum</a></div>
+        <a class="dclink" id="homeDiscord" href="#" target="_blank" rel="noopener" title="Join the Bowfall Discord" aria-label="Join the Bowfall Discord" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.3 4.4A19.6 19.6 0 0 0 15.5 3l-.6 1.2a18 18 0 0 0-5.8 0L8.5 3a19.6 19.6 0 0 0-4.8 1.4C.6 9 .0 13.5.3 18a19.8 19.8 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4c-.6.4-1.3.7-2 1L17.7 21a19.7 19.7 0 0 0 6-3c.4-5.2-.7-9.7-3.4-13.6zM8.5 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4zm7 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4z"/></svg></a>
         <span class="ver" id="verHome"></span>
       </div>
     </div>
@@ -1974,35 +1993,36 @@
         <div class="stat"><span class="eyebrow" id="lbEyebrow">Practice lobby</span><h2>Set up the match</h2><span class="status" id="lbShare" hidden></span></div>
         <div class="codebox" id="lbRoom" hidden><button class="ghost sm" type="button" data-invite>Copy invite link</button><div class="stat" style="align-items:flex-end"><span class="lbl">Room code</span><span class="num" id="lbCode"></span></div></div>
       </div>
+      <div class="teams" id="lbTeams"></div>
+      <div id="lbLocals" data-navsec></div>
       <div class="lbgrid">
         <div class="lbcol">
-          <div class="teams" id="lbTeams"></div>
-          <div id="lbLocals" data-navsec></div>
-          <div class="chatbox" id="lbChat" data-navsec hidden><div class="chatlog" id="lbChatLog"><div class="cline sys">Chat with everyone in the room here. In game, press Enter to chat.</div></div><input id="lbChatIn" maxlength="140" placeholder="Say something… (Enter to send)" autocomplete="off"></div>
-        </div>
-        <div class="lbcol">
           <div class="arch" data-navsec data-ms="arch" data-mst="Your archetype">
-            <div class="mutbox" id="lbMut" hidden></div>
             <div class="archhead"><div style="display:flex;align-items:center;gap:12px"><canvas id="archPrev" width="128" height="128" style="width:52px;height:52px;border-radius:10px;background:rgba(255,255,255,.05)"></canvas><div class="stat"><h3>Your archetype</h3><span class="archname" id="archName"></span></div></div></div>
+            <p class="status purenote" id="pureNote" hidden><b>Pure rules:</b> everyone plays a plain archer this match, with no element, role or upgrades. Your archetype comes back afterwards.</p>
             <div class="archrow"><span class="lbl">Element</span><div class="chips" id="elChips"></div></div>
             <div class="archrow"><span class="lbl">Role</span><div class="chips" id="roChips"></div></div>
             <p class="status banhint" id="banHint" hidden></p>
             <span class="status" id="archBlurb"></span>
           </div>
+        </div>
+        <div class="lbcol">
+          <div class="mutbox" id="lbMut" hidden></div>
           <div class="lbset" data-navsec>
-            <div class="msw" data-ms="lbmap" data-mst="Arena" data-msauto=".mapcard"><h3>Arena</h3>
+            <div class="msw" data-ms="lbmap" data-mst="Arena" data-msauto=".mapcard">
+            <details class="lbfold" id="lbMapFold"><summary><b>Arena</b><span class="lbsum" id="lbMapSum"></span></summary>
             <div class="maps" id="lbMaps"></div>
-            <span class="status" id="lbMapDesc"></span></div>
+            <span class="status" id="lbMapDesc"></span>
+            <div class="lbrow2" id="lbArenaRow"><div class="field"><label for="lbArenaCode">Player arena</label><input id="lbArenaCode" class="code" maxlength="9" placeholder="Code, e.g. A1F" autocomplete="off"></div><button class="ghost sm" type="button" id="lbArenaUse">Use</button></div></details></div>
             <div class="msw" data-ms="lbset" data-mst="Match settings">
-            <div class="lbrow2" id="lbArenaRow"><div class="field"><label for="lbArenaCode">Player arena</label><input id="lbArenaCode" class="code" maxlength="9" placeholder="Code, e.g. A1F" autocomplete="off"></div><button class="ghost sm" type="button" id="lbArenaUse">Use</button></div>
-            <div class="lbrow2">
+            <div class="lbrow2 lbmatch">
               <div class="field"><label for="lbPts">Match length</label>
                 <select id="lbPts"><option value="3">First to 3 points</option><option value="5">First to 5 points</option></select></div>
               <div class="field" id="lbDiffWrap"><label for="lbDiff">Bot skill (sets all bots)</label>
                 <select id="lbDiff"><option value="easy">Easy</option><option value="normal">Normal</option><option value="hard">Hard</option><option value="extreme">Extreme</option><option value="master">Master</option></select></div>
             </div>
-            <details class="lbfold" id="lbRulesFold"><summary><b>Custom rules</b> <span class="status" id="lbOptNote"></span></summary><div class="lbrules" id="lbOpts"></div></details>
-            <details class="lbfold" id="lbRoomFold" hidden><summary><b>Room settings</b> <span class="status">name, size, listing, password</span></summary>
+            <details class="lbfold" id="lbRulesFold"><summary><b>Rules</b><span class="lbsum" id="lbOptNote"></span></summary><div class="lbrules" id="lbOpts"></div><p class="status" id="lbOptFoot"></p></details>
+            <details class="lbfold" id="lbRoomFold" hidden><summary><b>Room</b><span class="lbsum" id="lbRoomSum">name, size, listing, password</span></summary>
               <div class="roomcfg" id="lbRoomCfg" hidden>
                 <div class="field"><label for="lbRmName">Game name</label><input id="lbRmName" maxlength="32" autocomplete="off"></div>
                 <div class="field"><label for="lbRmMax">Max players</label><select id="lbRmMax"><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="8">8</option><option value="10">10</option><option value="12">12</option><option value="16">16</option></select></div>
@@ -2012,10 +2032,12 @@
               </div>
             </details></div>
           </div>
+          <div class="chatbox" id="lbChat" data-navsec hidden><div class="chatlog" id="lbChatLog"><div class="cline sys">Chat with everyone in the room here. In game, press Enter to chat.</div></div><input id="lbChatIn" maxlength="140" placeholder="Say something… (Enter to send)" autocomplete="off"></div>
         </div>
       </div>
       <div class="lbfoot" data-navsec>
         <span class="status" id="lbStatus"></span>
+        <button class="ghost" id="lbSpec" type="button" data-spec="1" hidden title="Step off your team and wait on the side">Unassign</button>
         <button class="ghost" id="lbLeave" type="button">Leave</button>
         <button class="cta" id="lbStart" type="button">Start match</button>
       </div>
@@ -2287,7 +2309,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.81.3"></script>
+<script src="sim.js?v=0.82.0"></script>
 <script>
 (() => {
 'use strict';
@@ -2295,7 +2317,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.81.3';
+const PAGE_VERSION = '0.82.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -2305,7 +2327,7 @@ if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
 let AW = Sim.AW, AH = Sim.AH;
 const { WALL, GATES, PU, TREE, HONES, ELEMENTS, ROLES, TEAMS, TEAM_INFO, MAPS, MAP_KEYS, MAX_TEAM, cardInfo } = Sim;
 const CAT_COL = { Power: '#ff8a5b', Agility: '#5ad1ff', Utility: '#c7b3ff' };
-const archName = p => (ELEMENTS[p.el] ? ELEMENTS[p.el].name : '') + ' ' + (ROLES[p.ro] ? ROLES[p.ro].name : '');
+const archName = p => (!p.el && !p.ro ? 'Archer' : (ELEMENTS[p.el] ? ELEMENTS[p.el].name : '') + ' ' + (ROLES[p.ro] ? ROLES[p.ro].name : ''));
 const AMBER_COL = '#ffb84d';
 const TEAM_COL = { red: '#ff5a45', blue: '#3d8bff', npc: '#d9d2bd' };
 // colour-blind friendly colours: the red team becomes oranges and yellows, the blue team clear blues and cyans (the two
@@ -2483,6 +2505,8 @@ function linkAutoJoin() {
   const n = t => view.p.filter(p => p.tm === t && !p.b).length, all = t => view.p.filter(p => p.tm === t).length;
   const open = TEAMS.filter(t => all(t) < MAX_TEAM || view.p.some(p => p.tm === t && p.b));
   if (open.length) act({ t: 'team', team: open.sort((a, b) => n(a) - n(b))[0] });
+  // brand new, straight into a friend's game: choose a starter element here (the tutorial would have asked)
+  if (!starterKnown() && !tutDoneYet() && !STARTER.on) setTimeout(() => { if (mode === 'online' && !STARTER.on && !starterKnown()) starterOpen('lobby'); }, 700);
 }
 // a friendly random name for someone who hasn't picked one (they can change it any time in their profile)
 function funName() {
@@ -3440,6 +3464,7 @@ function msOpenFor(el) {
   if (MS.open) msClose();
   const ph = document.createComment('ms'); el.before(ph); el.msPh = ph;
   $('msBody').appendChild(el); el.classList.add('msin'); MS.open = el;
+  el.querySelectorAll('details').forEach(d => { d.open = true; }); // (folded sections open out in the sheet)
   $('msTitle').textContent = el.dataset.mst || ''; $('msSheet').hidden = false; $('msBody').scrollTop = 0;
 }
 function msClose() {
@@ -3981,12 +4006,13 @@ function tutElementStep() {
   if (had) { notice(`${ELEMENTS[had].name} arrows, as you chose before.`, true, ELEMENTS[had].color); return tutChooseEl(had); }
   starterOpen();
 }
-function starterOpen() {
-  const scr = $('starterScr'); if (!scr) return tutChooseEl(TUT_ELS[0][0]);
+function starterOpen(where) {
+  const scr = $('starterScr'); if (!scr) return where === 'lobby' ? null : tutChooseEl(TUT_ELS[0][0]);
   const meP = view && view.p.find(q => q.id === myId);
-  STARTER.on = true; STARTER.t0 = performance.now(); STARTER.el = null; STARTER.col = (meP && meP.c) || TEAM_INFO.red.shades[0];
+  STARTER.on = true; STARTER.lobby = where === 'lobby'; STARTER.t0 = performance.now(); STARTER.el = null; STARTER.col = (meP && meP.c) || TEAM_INFO.red.shades[0];
   scr.className = 'starter'; scr.hidden = false; $('stTitle').textContent = 'Choose your element'; $('stTitle').style.color = '';
-  $('stSub').textContent = 'Every arrow you shoot will carry it. You can unlock more as you play.';
+  $('stSub').textContent = STARTER.lobby ? 'Welcome to Bowfall. Every arrow you shoot will carry your element; you can unlock more as you play.' : 'Every arrow you shoot will carry it. You can unlock more as you play.';
+  $('stLeave').textContent = STARTER.lobby ? 'Decide later' : 'Leave tutorial'; $('stTop').textContent = STARTER.lobby ? 'Your first game · your element' : 'Tutorial · your element';
   $('stFoot').textContent = TOUCH.on ? 'Tap one to choose it' : usingPad() ? 'Choose with the D-pad and A' : 'Click one, or press 1, 2 or 3';
   $('stCards').innerHTML = TUT_ELS.map(([k, w], i) => `<button class="stcard" type="button" data-stel="${k}" style="--ec:${ELEMENTS[k].color}"><span class="stk">${i + 1}</span><canvas></canvas><span class="stx"><b>${ELEMENTS[k].name}</b><small>${esc(w[0].toUpperCase() + w.slice(1))}.</small></span></button>`).join('');
   STARTER.cards = [...$('stCards').querySelectorAll('.stcard')].map((b, i) => {
@@ -4012,7 +4038,7 @@ function starterChoose(el) {
   scr.classList.add('chosen'); c.b.classList.add('pick');
   const f = $('stFlash'); f.style.setProperty('--fc', ELEMENTS[el].color); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
   $('stTitle').textContent = ELEMENTS[el].name; $('stTitle').style.color = ELEMENTS[el].color;
-  $('stSub').textContent = `${ELEMENTS[el].name} ${(TUT_ELS.find(x => x[0] === el) || [0, ''])[1]}. Now win a game with it.`;
+  $('stSub').textContent = `${ELEMENTS[el].name} ${(TUT_ELS.find(x => x[0] === el) || [0, ''])[1]}. ${STARTER.lobby ? 'Your friends are waiting: have fun.' : 'Now win a game with it.'}`;
   play('starterPick'); try { elSfx[el](1.3); } catch (e) {}
   setTimeout(() => { scr.classList.add('out'); }, 2100);
   setTimeout(() => starterClose(true), 2900);
@@ -4021,9 +4047,14 @@ function starterClose(chose) {
   const scr = $('starterScr'), el = STARTER.el;
   STARTER.on = false; cancelAnimationFrame(STARTER.raf); STARTER.cards = [];
   if (scr) { scr.hidden = true; scr.className = 'starter'; $('stCards').innerHTML = ''; }
+  if (STARTER.lobby) { // chosen from a lobby: it's your element from now on, in this game too
+    STARTER.lobby = false;
+    if (chose && el) { store.set('bowfall-el', el); store.set('bowfall-tut-el', el); starterSave(el); if (mode === 'online') act({ t: 'loadout', el, ro: myLoadout().ro }); syncArch({ el, ro: myLoadout().ro }); notice(`${ELEMENTS[el].name} arrows. You can change element or role in the lobby any time.`, true, ELEMENTS[el].color); }
+    return;
+  }
   if (chose && el && TUT.on && tutStep() === 'element') tutChooseEl(el); else renderCoach();
 }
-$('stLeave').onclick = () => { starterClose(false); toMenu(); };
+$('stLeave').onclick = () => { const lobby = STARTER.lobby; starterClose(false); if (!lobby) toMenu(); };
 // one card's picture: the element's aura behind, your archer in the middle aiming at the pointer, now and then
 // drawing and loosing an arrow that trails its element (the chosen one fires straight away and keeps blazing)
 function starterFrame(now) {
@@ -5227,7 +5258,7 @@ async function progShow() {
   drawMastChips();
 }
 function syncArch(me) {
-  const el = me ? me.el : myLoadout().el, ro = me ? me.ro : myLoadout().ro;
+  const el = (me && me.el) || myLoadout().el, ro = (me && me.ro) || myLoadout().ro;
   document.querySelectorAll('[data-el]').forEach(b => b.classList.toggle('sel', b.dataset.el === el));
   document.querySelectorAll('[data-ro]').forEach(b => b.classList.toggle('sel', b.dataset.ro === ro));
   $('archName').textContent = ELEMENTS[el].name + ' ' + ROLES[ro].name;
@@ -6828,7 +6859,7 @@ function teamsHtml(v) {
       (p.id === myId ? '<span class="tag you">You</span>' : '') + (p.id === hostId && mode === 'online' ? '<span class="tag">Host</span>' : '') +
       (p.b && !ranked ? (p.dv && host ? botSkillHtml(p) : `<span class="tag">${p.dv ? esc(BOT_SKILL[p.dv] || 'Bot') : 'Bot'}</span>`) : '') + (p.b && ranked ? '<span class="aitag" title="AI player">AI</span>' : '') + (ranked ? '' : hcapHtml(p, host)) +
       (p.b && host ? `<button type="button" class="xbtn" data-rm="${p.id}" aria-label="Remove ${esc(p.n)}">×</button>` : '') + '</div>').join('');
-    const open = Array.from({ length: MAX_TEAM - list.length }, () => '<div class="slot empty">Open slot</div>').join('');
+    const nOpen = MAX_TEAM - list.length, open = nOpen > 0 ? `<div class="slot empty">${nOpen === 1 ? 'Open slot' : nOpen + ' open slots'}</div>` : '';
     const full = list.length >= MAX_TEAM;
     const canJoin = ranked ? false : me ? me.tm !== t && !full : mode === 'online' && ['lobby', 'over', 'post'].includes(v.m.ph) && (!full || list.some(p => p.b));
     const foot = (canJoin ? `<button type="button" class="ghost sm" data-join="${t}">Join ${teamName(t)}</button>` : '') +
@@ -6842,9 +6873,10 @@ function specHtml(v, me) {
   const spec = (roomInfo && roomInfo.spec) || [], lobby = v.m.ph === 'lobby' || v.m.ph === 'over';
   const names = spec.map(c => `<div class="slot" data-card="c${c.cid}"><i class="dot" style="background:var(--muted)"></i><span class="nm plate${plateClass(c)}"${plateStyle(c)}><span class="pl1">${idHtml(c)}<b>${esc(c.n)}</b>${ownHtml(c.ow)}${statusHtml(c)}${trophyHtml(c.na)}${medalsHtml(c.sc)}</span></span>${c.you ? '<span class="tag you">You</span>' : ''}${c.h ? '<span class="tag">Host</span>' : ''}</div>`).join('');
   const foot = me && lobby ? '<button type="button" class="ghost sm" data-spec="1">Move to unassigned</button>' : '';
+  if (!spec.length && lobby && !$('lobby').hidden) return ''; // (in the lobby the strip only appears when someone's waiting; "Move to unassigned" is in the footer)
   return `<div class="tcol spec" data-navsec><div class="thead"><b>${lobby ? 'Unassigned' : 'Spectating'}</b><span>${spec.length}</span></div>` +
     (names ? `<div class="specnames">${names}</div>` : `<span class="status">${lobby ? 'People who join the room wait here until they pick a team.' : 'Nobody is watching.'}</span>`) +
-    (foot ? `<div class="tfoot">${foot}</div>` : '') + '</div>';
+    (foot && !lobby ? `<div class="tfoot">${foot}</div>` : '') + '</div>';
 }
 function onTeamsClick(e) {
   const b = e.target.closest('button'); if (!b) return;
@@ -6945,6 +6977,8 @@ function toggleBan(k) {
 }
 $('gmDiff').onchange = () => act({ t: 'cfg', diff: $('gmDiff').value });
 $('lbStart').onclick = () => act({ t: 'start' });
+$('lbMaps').addEventListener('click', e => { const b = e.target.closest('.mapcard'); if (b && !b.disabled && !MS.open) setTimeout(() => { $('lbMapFold').open = false; }, 180); });
+$('lbSpec').onclick = () => act({ t: 'spec' });
 $('lbLeave').onclick = () => toMenu();
 $('endBtn').onclick = () => { if (mode === 'local' && (TUT.on || TR.on)) { closeMenu(); toMenu(); } else { act({ t: 'lobby' }); closeMenu(); } };
 $('resLobbyBtn').onclick = () => act({ t: 'lobby' });
@@ -6967,21 +7001,29 @@ function renderLobby(v) {
   const meL = v.p.find(p => p.id === myId);
   setC('arch', meL ? meL.el + meL.ro : '', () => syncArch(meL));
   setC('lbMut', v.m.mut || '', () => showMut($('lbMut'), v.m.mut));
-  setC('lbMap', v.m.map + host, () => {
+  setC('lbMap', v.m.map + host + (roomInfo && roomInfo.arena ? roomInfo.arena.code : ''), () => {
     $('lbMaps').querySelectorAll('.mapcard').forEach(el => { el.classList.toggle('sel', el.dataset.map === v.m.map); el.disabled = !host; });
+    const M = MAPS[v.m.map]; $('lbMapSum').innerHTML = M ? `<img class="msthumb" src="${thumbURL(v.m.map) || ''}" alt=""><b>${esc(M.name)}</b>${M.custom && roomInfo && roomInfo.arena ? ` <span class="std">code ${esc(roomInfo.arena.code)}</span>` : ''}${host ? '' : ' <span class="std">· the host picks</span>'}` : '';
     $('lbMapDesc').innerHTML = MAPS[v.m.map] ? `<b>${esc(MAPS[v.m.map].name)}:</b> ${esc(MAPS[v.m.map].desc)}${MAPS[v.m.map].custom && roomInfo && roomInfo.arena ? ` Code <b class="code">${esc(roomInfo.arena.code)}</b>.` : ''}` : '';
     $('lbArenaRow').hidden = !host || OFFLINE; $('lbArenaCode').disabled = $('lbArenaUse').disabled = !host;
   });
   setC('lbDiff', v.m.df + host, () => { $('lbDiff').value = v.m.df; $('lbDiff').disabled = !host; });
   setC('lbPts', v.m.ptw + ':' + host, () => { $('lbPts').value = String(v.m.ptw); $('lbPts').disabled = !host; });
   setC('lbOpts', JSON.stringify(v.m.opt || {}) + host, () => {
-    const o = v.m.opt || {}; let custom = 0;
+    const o = Object.assign({}, v.m.opt || {}); let custom = 0;
+    if (o.assist === 'extreme') o.assist = 'heavy'; // (a rule saved before 0.82 played as heavy now)
     for (const k in Sim.OPTIONS) {
       const el = $('opt-' + k), O = Sim.OPTIONS[k]; if (!el) continue;
       if (O.slider) { const n = Sim.optPct(k, o[k]); if (document.activeElement !== el) el.value = n; el.disabled = !host; $('optv-' + k).textContent = n + '%' + (n === O.def ? ' (standard)' : ''); const rs = el.parentElement.querySelector('[data-optreset]'); if (rs) { rs.hidden = n === O.def; rs.disabled = !host; } if (n !== O.def) custom++; }
       else { el.value = o[k] || optDef(O); el.disabled = !host; if (el.value !== optDef(O)) custom++; }
     }
-    $('lbOptNote').textContent = custom ? `${custom} custom ${custom === 1 ? 'rule' : 'rules'} on. Balance data records the rules with every game.` : 'Standard rules.';
+    // the summary names every rule that's off the standard, so everyone in the room can see them without opening the fold
+    const names = []; for (const k in Sim.OPTIONS) { const O = Sim.OPTIONS[k]; if (O.slider) { const n = Sim.optPct(k, o[k]); if (n !== O.def) names.push(`${O.label} ${n}%`); } else { const val = o[k] || optDef(O); if (val !== optDef(O)) names.push(k === 'upg' && val === 'pure' ? 'Pure: no archetypes, no upgrades' : `${O.label}: ${OPT_NAMES[val] || val}`); } }
+    $('lbOptNote').innerHTML = names.length ? names.map(n => `<span class="rule">${esc(n)}</span>`).join('<span class="std">·</span>') : '<span class="std">Standard rules</span>';
+    $('lbOptFoot').textContent = host ? 'Balance data records the rules with every game.' : 'Only the host can change the rules.';
+    // the Pure rule: no archetype to pick
+    const pure = (o.upg || optDef(Sim.OPTIONS.upg)) === 'pure';
+    $('pureNote').hidden = !pure; document.querySelector('#lobby .arch').classList.toggle('pure', pure);
   });
   // taken-out elements and roles are greyed out and struck through in everyone's picker
   setC('lbBan', JSON.stringify(v.m.ban || []) + host + usingPad() + !!(roomInfo && roomInfo.ranked), () => {
@@ -6991,10 +7033,10 @@ function renderLobby(v) {
     document.querySelectorAll('#elChips [data-el], #roChips [data-ro]').forEach(b => { const lk = mode === 'online' && !mayPick(b.dataset.el || b.dataset.ro); b.classList.toggle('locked', lk); b.disabled = lk; if (lk) b.title = 'Locked: unlock it in the Store (practice and training have everything)'; });
     drawMastChips(); // (puts the mastery tooltips back on the ones still allowed)
     $('banHint').hidden = !canBan();
-    $('banHint').textContent = usingPad() ? `Host: press ${padBtn('y')} on an element or role to take it out of this game (again to put it back).` : 'Host: Alt+click an element or role to take it out of this game (again to put it back).';
+    $('banHint').textContent = usingPad() ? `Host: press ${padBtn('y')} on an element or role to take it out of this game, again to put it back.` : 'Host: Alt+click an element or role to take it out of this game, again to put it back.';
   });
-  setC('lbStart', String(v.m.cs) + host + !!meL, () => {
-    $('lbStart').hidden = !host;
+  setC('lbStart', String(v.m.cs) + host + !!meL + online, () => {
+    $('lbStart').hidden = !host; $('lbSpec').hidden = !(meL && online && !(roomInfo && roomInfo.ranked));
     $('lbStart').disabled = !v.m.cs;
     $('lbStatus').textContent = !meL && online ? 'Pick a team to play.' : !host ? (roomInfo && roomInfo.ranked ? 'Waiting for everyone to arrive. The match starts on its own.' : 'Waiting for the host to start the match.') : v.m.cs ? '' : 'Both teams need at least one archer. Add bots, or wait for players to join.';
   });
@@ -7473,16 +7515,20 @@ function saveAvatar(a) {
 function alignHomeTop() {
   const wrap = document.querySelector('#home .homewrap'), top = document.querySelector('#home .hometop'), h1 = document.querySelector('#home .hometitle h1');
   if (!wrap || !top || !h1) return;
-  if (innerWidth < 960 || getComputedStyle(top).position !== 'absolute') { top.style.top = ''; return; }
+  if (innerWidth < 960 || getComputedStyle(top).position !== 'absolute') { top.style.top = ''; wrap.style.minHeight = ''; return; }
   const z = parseFloat(wrap.style.zoom) || 1; // (the menu may be scaled down to fit the window: measure in its own units)
   const fs = parseFloat(getComputedStyle(h1).fontSize) || 80, y = (h1.getBoundingClientRect().top - wrap.getBoundingClientRect().top) / z + fs * 0.12; // (the letters' tops, not the line box's)
   if (y > 0) top.style.top = Math.round(y) + 'px';
+  // the column floats beside the menu, so the menu's footer is pushed down past its bottom when it's the taller
+  const need = Math.round((y > 0 ? y : 8) + top.getBoundingClientRect().height / z + 12);
+  wrap.style.minHeight = need > 0 ? need + 'px' : '';
 }
 addEventListener('resize', () => requestAnimationFrame(alignHomeTop)); if (document.fonts) document.fonts.ready.then(alignHomeTop);
+if (window.ResizeObserver) { const t = document.querySelector('#home .hometop'); if (t) new ResizeObserver(() => requestAnimationFrame(alignHomeTop)).observe(t); } // (friends and the week's best arrive later and make the column taller)
 // Menus that are taller than the window (a laptop, or a screen at 125% or 150% scaling) are scaled down to fit, so the
 // main menu and the other screens show whole without scrolling. Never below FIT_MIN: past that a screen scrolls instead
 // (at a reduced size) so the text stays readable. Phones keep their own layout.
-const FIT_MIN = 0.72, FIT_NOSHRINK = ['resultsScreen'];
+const FIT_MIN = 0.72, FIT_NOSHRINK = ['resultsScreen', 'lobby'];
 function fitOverlay(ov) {
   if (!ov) return;
   if (ov.hidden) { ov._fit = null; return; } // (shown again: measured afresh)

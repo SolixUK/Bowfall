@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.81.3';
+const VERSION = '0.82.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -257,15 +257,16 @@ const OPTIONS = {
   dmg:    { label: 'Arrow damage', slider: true, def: 100, base: 1, min: 50, max: 200, step: 10 },
   dash:   { label: 'Dashes',       def: 'on', values: { on: 1, off: 0 } },
   // arrow homing: every shot bends toward the enemy it's heading for, this many radians a second
-  assist: { label: 'Arrow homing',   def: 'none', values: { none: 0, tiny: 0.12, small: 0.25, medium: 0.5, heavy: 1, extreme: 2.2 } },
+  assist: { label: 'Arrow homing',   def: 'none', values: { none: 0, tiny: 0.12, small: 0.25, medium: 0.5, heavy: 1 } }, // (an old 'extreme', 2.2, is read as heavy)
   // how moving feels (MOVE_FEEL below): snappy (the standard), an air-hockey glide, driftier, or fully direct
   move:   { label: 'Movement feel', def: 'snappy', values: { puck: 1, snappy: 2, drift: 3, direct: 4 } },
-  // upgrades off: no picks between rounds (and no chests in Strongholds), everyone plays their plain element and role
-  upg:    { label: 'Upgrades',     def: 'on', values: { on: 1, off: 2 } },
+  // upgrades off: no picks between rounds (and no chests in Strongholds), everyone plays their plain element and role;
+  // pure: no upgrades and no archetypes either, every archer a plain archer with a plain bow (nothing to blame but aim)
+  upg:    { label: 'Upgrades',     def: 'on', values: { on: 1, off: 2, pure: 3 } },
   // map effect: a random one each match (the standard), none, or a set one (MUTATORS)
   effect: { label: 'Map effect',   def: 'random', values: { random: 1, none: 2, vigil: 3, gale: 4, hide: 5, bounty: 6, force: 7, quick: 8, surge: 9 } },
 };
-const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', bullet: 'Bullet', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', random: 'Random', vigil: "Warden's Vigil", gale: 'Gale Winds', hide: "Juggernaut's Hide", bounty: 'Bounty Hunt', force: 'Heavy Blows', quick: 'Quickdraw', surge: 'Arcane Surge', puck: 'Glide (air hockey)', snappy: 'Snappy', drift: 'Drifty', direct: 'Direct (no glide)', none: 'None', tiny: 'Tiny', heavy: 'Heavy', extreme: 'Extreme' };
+const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', bullet: 'Bullet', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', random: 'Random', vigil: "Warden's Vigil", gale: 'Gale Winds', hide: "Juggernaut's Hide", bounty: 'Bounty Hunt', force: 'Heavy Blows', quick: 'Quickdraw', surge: 'Arcane Surge', puck: 'Glide (air hockey)', snappy: 'Snappy', drift: 'Drifty', direct: 'Direct (no glide)', none: 'None', tiny: 'Tiny', heavy: 'Heavy', pure: 'Pure: no archetypes, no upgrades' };
 const optDefaults = () => Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.slider ? o.def : o.def || Object.keys(o.values)[0]]));
 // a slider setting as a percentage (old named settings and anything out of range are mapped and clamped)
 function optPct(k, v) {
@@ -1120,7 +1121,7 @@ const BRIEF = {
 };
 for (const k in BRIEF) { const n = TREE[k] || HONES[k]; if (n) n.brief = BRIEF[k]; }
 const cardInfo = id => TREE[id] || HONES[id];
-const archetypeName = p => (ELEMENTS[p.element] ? ELEMENTS[p.element].name : '?') + ' ' + (ROLES[p.role] ? ROLES[p.role].name : '?');
+const archetypeName = p => (!p.element && !p.role ? 'Archer' : (ELEMENTS[p.element] ? ELEMENTS[p.element].name : '?') + ' ' + (ROLES[p.role] ? ROLES[p.role].name : '?'));
 const AMBER = { pickup: 2, kill: 2, hazardKill: 1, roundWin: 3, survive: 1 };
 // what picking up one amber does straight away
 const AMBER_BOOST = { hp: 8, dash: 0.5, ability: 1.5 };
@@ -1390,7 +1391,7 @@ function toLobby(w) {
   M.ph = 'lobby'; M.T = 0; M.rd = 1; M.gm = 1; M.wins = { red: 0, blue: 0 }; M.gw = { red: 0, blue: 0 }; M.picks = 0; M.opening = false; M.rw = null; M.mw = null;
   w.arrows = []; w.pickups = []; w.zones = []; w.cracks = []; useMap(w);
   w.players = w.players.filter(p => !p.npc); w.cq = null; w.tm = null; rollMut(w);
-  for (const p of w.players) { p.kills = 0; p.deaths = 0; p.amber = 0; p.earned = 0; p.up = []; p.hones = {}; p.offer = null; p.ready = false; p.streak = 0; p.emp = false; p.empPts = 0; placeForRound(w, p); }
+  for (const p of w.players) { restoreArch(p); p.kills = 0; p.deaths = 0; p.amber = 0; p.earned = 0; p.up = []; p.hones = {}; p.offer = null; p.ready = false; p.streak = 0; p.emp = false; p.empPts = 0; applyStats(p); placeForRound(w, p); }
   ev(w, { e: 'phase', ph: 'lobby' });
 }
 
@@ -1528,7 +1529,7 @@ function botPickIndex(p, w) {
 }
 function startPick(w) {
   const M = w.match;
-  if (OPT('upg') === 2 || (w.cfg.maxPicks != null && M.picks >= w.cfg.maxPicks)) { // upgrades off (or a practice that's had a full match's worth): straight on
+  if (OPT('upg') >= 2 || (w.cfg.maxPicks != null && M.picks >= w.cfg.maxPicks)) { // upgrades off (or a practice that's had a full match's worth): straight on
     for (const p of w.players) { p.offer = null; p.picked = true; }
     return finishPick(w);
   }
@@ -1581,7 +1582,7 @@ function setBans(w, list) {
 }
 function setLoadout(w, id, element, role) {
   const p = w.players.find(q => q.id === id);
-  if (!p || (w.match.ph !== 'lobby' && p.up.length)) return false;
+  if (!p || (w.match.ph !== 'lobby' && (p.up.length || p.kept))) return false;
   if (isLocked(element) || isLocked(role)) return false;
   if (isBanned(w, element) || isBanned(w, role)) return false;
   if (ELEMENTS[element]) p.element = element;
@@ -1591,9 +1592,14 @@ function setLoadout(w, id, element, role) {
   ev(w, { e: 'loadout', id: p.id, el: p.element, ro: p.role });
   return true;
 }
+// the Pure rule: for the match everyone is a plain archer (no element, no role, nothing to pick); their archetype is
+// kept to one side and comes back in the lobby
+const isPure = w => OPT('upg') === 3;
+function stripArch(w, p) { if (!isPure(w)) return; if (!p.kept) p.kept = { element: p.element, role: p.role }; p.element = null; p.role = null; p.up = []; }
+function restoreArch(p) { if (p.kept) { p.element = p.kept.element; p.role = p.kept.role; p.kept = null; } }
 // give a newcomer (or a bot added mid-match) as many picks as everyone else has had
 function catchUp(w, p) {
-  p.up = [p.element]; p.hones = {}; applyStats(p);
+  p.up = [p.element]; p.hones = {}; stripArch(w, p); applyStats(p);
   if (w.match.ph === 'lobby') { p.up = []; return; }
   const picks = w.match.picks;
   for (let i = 0; i < picks; i++) { p.offer = rollOffer(p, [], i === 0, i === 1); takeCard(w, p, p.offer[botPickIndex(p, w)]); }
@@ -1716,7 +1722,7 @@ function resetMatch(w) {
   M.rd = 1; M.gm = 1; M.wins = { red: 0, blue: 0 }; M.gw = { red: 0, blue: 0 }; M.picks = 0; M.mw = null;
   w.matchId = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   for (const p of w.players) if (p.bot && !p.aiUser) pickStyle(p); // a fresh mood each match (matchmaking's AI players keep their own personality)
-  for (const p of w.players) { p.kills = 0; p.deaths = 0; p.amber = 0; p.earned = 0; p.up = [p.element]; p.hones = {}; p.offer = null; p.picked = false; p.ready = false; p.streak = 0; p.emp = false; p.empPts = 0; p.stats = { shots: 0, hits: 0, dmg: 0, taken: 0, ring: 0, longest: 0 }; applyStats(p); }
+  for (const p of w.players) { restoreArch(p); p.kills = 0; p.deaths = 0; p.amber = 0; p.earned = 0; p.up = [p.element]; p.hones = {}; p.offer = null; p.picked = false; p.ready = false; p.streak = 0; p.emp = false; p.empPts = 0; p.stats = { shots: 0, hits: 0, dmg: 0, taken: 0, ring: 0, longest: 0 }; stripArch(w, p); applyStats(p); }
   ev(w, { e: 'matchStart' });
   if (MAP.mode === 'conquest') return cqStart(w); // Strongholds: straight to the countdown, NPCs at their posts
   w.cq = null; w.tm = null;
@@ -3320,7 +3326,7 @@ function updateArrows(w, dt) {
     // picks the enemy nearest its straight line of fire (ahead of it, at any distance, within its lane either side),
     // then bends only toward them for the rest of its flight; it never switches to someone else it passes.
     // A Seeker Arrow has a wider lane, turns much harder, and aims at where its target is heading.
-    const assist = a.rocket ? 1 : a.seek ? SEEK.power : OPTIONS.assist.values[(CFG.opt || {}).assist] || 0;
+    const assist = a.rocket ? 1 : a.seek ? SEEK.power : (CFG.opt && CFG.opt.assist === 'extreme' ? OPTIONS.assist.values.heavy : OPTIONS.assist.values[(CFG.opt || {}).assist]) || 0; // (saved 'extreme' rules from before 0.82 play as heavy)
     if (assist > 0 && !a.back && !a.rail && a.age < (a.rocket ? ROCKET.life : a.seek ? 2.2 : 1.5)) {
       const h = Math.atan2(a.vy, a.vx), ux = Math.cos(h), uy = Math.sin(h);
       if (a.assistT === undefined) {
@@ -4919,7 +4925,7 @@ function updateConquest(w, dt) {
       S.cp = Math.max(0, S.cp - dt / CQ.CAP_T * 0.5); if (S.cp === 0) S.ct = null;
     }
     // the chest: each of the owning team opens it once per capture for a pick of three upgrades
-    if (S.chest && S.own && OPT('upg') !== 2) for (const p of w.players) {
+    if (S.chest && S.own && OPT('upg') < 2) for (const p of w.players) {
       if (p.npc || p.dead || p.team !== S.own || S.chest.opened.includes(p.id) || p.offer) continue;
       if (Math.hypot(p.x - h.chest.x, p.y - h.chest.y) > CQ.CHEST_R + p.r) continue;
       S.chest.opened.push(p.id); p.offer = rollOffer(p, [], false, false); p.picked = false;
