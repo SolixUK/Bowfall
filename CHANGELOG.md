@@ -2,6 +2,11 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.84.1
+
+- **Replays from online games could freeze and lose an arrow.** The recording lines the server's updates up with the page's own clock, and re-lined them up whenever the two drifted half a second apart. But the page's clock only moves when a frame is drawn (at most 1/20 s a frame), so in a busy moment, or with the tab out of focus, it fell behind while updates kept arriving, and every re-line-up jumped the recording back half a second. In one Best of the Week play, six seconds of the game were piled into the same half second, so the last shot appeared to land before it was loosed and was never seen flying. Online recordings now run on one steady timeline that follows the server's ticks and only goes forward, and the play detector uses the same timeline.
+- **Clips already saved with that problem mend themselves** when played: every frame carries the game's own time, so the timeline is rebuilt from it, events move with their frames, and the knockouts' pieces (when each arrow was loosed and landed) are worked out again.
+
 ## 0.84.0
 
 - **Bots and AI players aim like people.** Before, every shot got the same random error as an angle, so a still target at range was missed as often as a moving one (a mid-skill bot hit a standing archer at 750px only 59% of the time), while their lead on a moving target was close to perfect. Now there are two parts. A steady-hand error on the target itself, small and growing a little with range, so standing still gets you hit; and the real misses come from reading movement, bigger the faster you cross their line of fire and the longer the arrow flies, and mostly behind you (under-leading) with the odd over-lead, as people miss. Mid-skill bots now hit a still archer at 750px 75% of the time; against someone strafing they hit 37% (was 42%).

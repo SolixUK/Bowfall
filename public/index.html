@@ -2388,7 +2388,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.84.0"></script>
+<script src="sim.js?v=0.84.1"></script>
 <script>
 (() => {
 'use strict';
@@ -2396,7 +2396,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.84.0';
+const PAGE_VERSION = '0.84.1';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -12579,20 +12579,29 @@ const _RPM = RP_MULTI;  // the winning killer's other knockouts this many second
 const RP = { buf: [], evs: [], lastKill: null, on: null, cam: null, enabled: true }; // always on: the game-winning knockout is always replayed
 // online, the replay keeps the server's own updates, timed by the server's tick (60 a second), not the screen frames:
 // those are spaced however the network delivered them, which slow motion turned into visible stutter
+// The recording runs on the server's own timeline: one steady clock that only ever goes forward. (It used to be re-lined
+// up with the page's clock whenever they drifted half a second apart; but the page's clock only moves when a frame is
+// drawn, at most 1/20 s at a time, so a busy moment or a tab out of focus let it fall behind while updates kept coming,
+// and every re-line-up jumped the recording back half a second, piling seconds of play on top of each other in a replay.)
 function replaySnap(k, s) {
   if (k == null || !s || !s.m || s.m.ph === 'lobby' || s.m.ph === 'pick' || (RP.on && RP.on.started)) return;
   const tt = k / 60;
-  if (RP.koff == null || Math.abs(tt + RP.koff - clock) > 0.5) RP.koff = clock - tt; // line the server's clock up with ours
-  RP.buf.push({ t: tt + RP.koff, v: s }); RP.evT = tt + RP.koff; // this update's events get the same (server) time as its frame
-  if (s.m.ph === 'play' && playOn()) dodgeTrack(s, tt + RP.koff, PLAY);
-  while (RP.buf.length && RP.buf[0].t < clock - RP_KEEP) RP.buf.shift();
-  while (RP.evs.length && RP.evs[0].t < clock - RP_KEEP) RP.evs.shift();
+  if (RP.src !== 'net') { RP.src = 'net'; RP.buf = []; RP.evs = []; RP.koff = RP.st = null; } // (switching timelines: what's kept is from the other one)
+  if (RP.koff == null) RP.koff = clock - tt;
+  if (RP.st != null && tt + RP.koff <= RP.st) RP.koff = RP.st + 1 / 60 - tt; // (a new room's ticks start again from 0: carry on from where we were)
+  const t = tt + RP.koff; RP.st = t; RP.stAt = performance.now();
+  RP.buf.push({ t, v: s }); RP.evT = t; // this update's events get the same (server) time as its frame
+  if (s.m.ph === 'play' && playOn()) dodgeTrack(s, t, PLAY);
+  while (RP.buf.length && RP.buf[0].t < t - RP_KEEP) RP.buf.shift();
+  while (RP.evs.length && RP.evs[0].t < t - RP_KEEP) RP.evs.shift();
 }
 // the replay buffer's clock: real time, except in the clip farm, where it's the game's own time (it can run fast)
-const rpNow = () => (FARM.on ? FARM.gt : clock);
+// online: the server timeline above, carried on in real time between its updates
+const rpNow = () => (FARM.on ? FARM.gt : mode === 'online' && RP.st != null ? RP.st + Math.min(2, (performance.now() - RP.stAt) / 1000) : clock);
 function replayRecord() {
   if (mode === 'online' || FARM.on) return; // recorded from the server's updates instead (replaySnap), or by the clip farm each step
   if (!view || view.m.ph === 'lobby' || view.m.ph === 'pick' || (RP.on && RP.on.started)) return;
+  if (RP.src !== 'local') { RP.src = 'local'; RP.buf = []; RP.evs = []; RP.koff = RP.st = null; }
   RP.buf.push({ t: clock, v: view });
   if (view.m.ph === 'play' && playOn()) dodgeTrack(view, clock, PLAY);
   while (RP.buf.length && RP.buf[0].t < clock - RP_KEEP) RP.buf.shift();
@@ -12999,7 +13008,31 @@ function clipPack(c) {
   for (const x of c.frames) { const v = JSON.parse(JSON.stringify(x.v)); f.push(prev ? { t: x.t, d: Sim.snapDelta(prev, v) } : { t: x.t, s: v }); prev = v; }
   return { v: 1, map: c.map, me: c.me, k: c.k, n: c.n, segs: c.segs, f, ev: c.evs.map(x => ({ t: x.t, e: x.e })) };
 }
-function clipUnpack(o) { const frames = []; let prev = null; for (const x of o.f) { const v = x.s || Sim.applyDelta(prev, x.d); frames.push({ t: x.t, v }); prev = v; } return { map: o.map, me: o.me, k: o.k, n: o.n, segs: o.segs, frames, evs: o.ev || [] }; }
+// clips recorded online before 0.84.1 could have their timing jump back half a second over and over (see replaySnap),
+// piling seconds of play on top of each other. Each frame also carries the game's own time, so the timeline can be rebuilt
+// from that: frames get their real times, every event moves with the frame it arrived with, and the knockouts' pieces
+// (when each arrow was loosed and landed) are worked out again on the mended timeline
+function clipRepair(c) {
+  const F = c.frames; if (!F || F.length < 2 || !F.every(f => f.v && f.v.t != null)) return c;
+  let broken = false; for (let i = 1; i < F.length; i++) if (F[i].t < F[i - 1].t - 1e-6) { broken = true; break; }
+  if (!broken) return c;
+  const old = F.map(f => f.t), t0 = F[0].t, g0 = F[0].v.t;
+  F.forEach(f => { f.t = t0 + (f.v.t - g0); });
+  let j = 0; // events were kept in the order they arrived, each stamped with its frame's time: walk both together
+  for (const x of c.evs) { let k = j; while (k < F.length && Math.abs(old[k] - x.t) > 1e-4) k++; if (k < F.length) j = k; x.t = F[j].t; }
+  const keep = { buf: RP.buf, evs: RP.evs };
+  try {
+    RP.buf = F; RP.evs = c.evs;
+    const kills = c.evs.filter(x => x.e.e === 'kill' && x.e.k === c.k);
+    c.segs = (c.segs || []).map((sg, si, all) => {
+      const subs = sg.subs.map((sub, i) => { const K = kills.filter(x => x.e.v === sub.v).pop(); if (!K) return null; const last = si === all.length - 1 && i === sg.subs.length - 1;
+        return replaySeg({ t: K.t, k: c.k, v: sub.v, how: K.e.how }, last); }).filter(Boolean);
+      return subs.length ? { t0: Math.min(...subs.map(x => x.t0)), t1: Math.max(...subs.map(x => x.t1)), subs: subs.map(x => x.subs[0]) } : sg;
+    });
+  } catch (e) { /* the frames' own times are mended either way */ } finally { RP.buf = keep.buf; RP.evs = keep.evs; }
+  return c;
+}
+function clipUnpack(o) { const frames = []; let prev = null; for (const x of o.f) { const v = x.s || Sim.applyDelta(prev, x.d); frames.push({ t: x.t, v }); prev = v; } return clipRepair({ map: o.map, me: o.me, k: o.k, n: o.n, segs: o.segs, frames, evs: o.ev || [] }); }
 // keep a kill cam on your account (and feature it on your profile, if asked): the saved ones are listed in Profile
 const clipPost = async body => { const r = await fetch('/api/clip', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); const d = await r.json(); if (!r.ok) throw new Error(d.error || 'Could not save it'); return d; };
 function clipTake(d) { if (d.clips) CLIP.mine = { clips: d.clips, max: d.max, sup: d.sup, free: d.free }; if (account && 'clip' in d) { account.ach = account.ach || {}; account.ach.clip = d.clip; account.clip = d.clip; } for (const o of CLIP.list) if (o.kept && o.kept !== 'saving') o.feat = !!(d.clip && d.clip.id === o.id); }
