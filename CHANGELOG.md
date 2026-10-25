@@ -2,6 +2,10 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.83.3
+
+- **Full draw is easier to see.** The moment your bow reaches full draw, a quick white ring pops out from your aim point with four small sparks, gone in a third of a second (the ring round your cursor stays white while you hold, as before). It works the same on a controller, at the tip of your aim arrow, for every local player on their own arrow, and on touch.
+
 ## 0.83.2
 
 - **Tutorial:** the dodge step happens on an empty field (no holes, lava, bogs, walls or boulders), so there's nothing to think about but the arrows; it's back to the Meadow for the next step, whose knockback needs the pit. The full-draw step now says what it's for: "Hold until the ring turns white for a full power shot" (and the nudge: "Hold longer: white means full power").

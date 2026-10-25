@@ -2386,7 +2386,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.83.2';
+const VERSION = '0.83.3';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -8032,7 +8032,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.83.2';
+const PAGE_VERSION = '0.83.3';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -11527,7 +11527,7 @@ function drawLocalMarks(v) {
     ctx.save(); ctx.fillStyle = col; ctx.font = "700 12px 'Rajdhani', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center';
     ctx.fillText('P' + l.n, p.x, p.y - R - 30);
     ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.globalAlpha = 0.8; ctx.beginPath(); ctx.arc(p.x, p.y, R + 7, 0, TAU); ctx.stroke(); ctx.globalAlpha = 1;
-    if (fighting) drawAimArrow(p, l.aim, ch, col);
+    if (fighting) { const tip = drawAimArrow(p, l.aim, ch, col), full = ch >= 1; if (full && !l.fullWas) l.fullAt = clock; l.fullWas = full; if (tip && l.fullAt) fullPing(tip.x, tip.y, 6, l.fullAt); }
     ctx.restore();
   }
 }
@@ -16911,8 +16911,24 @@ function drawAimArrow(me, ang, charge, col) {
   return { x: me.x + ax * (tip + 12), y: me.y + ay * (tip + 12) };
 }
 const rangeRing = { a: 0, t: 0 };
+// the moment a bow reaches full draw: a quick ring pops out from the aim point with four little sparks, and is gone in
+// a third of a second (the ring itself stays white while you hold). The same for the mouse's crosshair and a controller's arrow
+const FULLPING = { was: false, t: -9 };
+function fullPing(x, y, r0, at = FULLPING.t) {
+  const age = clock - at; if (age < 0 || age > 0.32) return;
+  const k = age / 0.32, e = 1 - (1 - k) * (1 - k), a = 1 - k;
+  ctx.save(); ctx.lineCap = 'round';
+  ctx.strokeStyle = `rgba(255,255,255,${(0.85 * a).toFixed(3)})`; ctx.lineWidth = 2.5 * a + 0.5;
+  ctx.beginPath(); ctx.arc(x, y, r0 + 18 * e, 0, TAU); ctx.stroke();
+  ctx.strokeStyle = `rgba(255,232,160,${(0.9 * a).toFixed(3)})`; ctx.lineWidth = 2;
+  for (let i = 0; i < 4; i++) { const an = Math.PI / 4 + i * Math.PI / 2, r1 = r0 + 4 + 13 * e, r2 = r1 + 7 * a + 2;
+    ctx.beginPath(); ctx.moveTo(x + Math.cos(an) * r1, y + Math.sin(an) * r1); ctx.lineTo(x + Math.cos(an) * r2, y + Math.sin(an) * r2); ctx.stroke(); }
+  ctx.restore();
+}
 function drawCrosshair(me, charge) {
-  const x = mouse.wx, y = mouse.wy;
+  const x = mouse.wx, y = mouse.wy, full = charge >= 1 && !!me && !me.d;
+  if (full && !FULLPING.was) FULLPING.t = clock; // (just reached full draw)
+  FULLPING.was = full;
   drawAllyAim(view, me, charge);
   if (me && !me.d && me.ab) { const i = me.ab.indexOf('rain'); if (i >= 0 && !((me.ac || [])[i] > 0)) { ctx.strokeStyle = 'rgba(255,160,130,0.35)'; ctx.lineWidth = 1.5; ctx.setLineDash([6, 8]); ctx.beginPath(); ctx.arc(x, y, 88, 0, TAU); ctx.stroke(); ctx.setLineDash([]); } }
   if (me && !me.d && me.ab) { const i = me.ab.indexOf('trap'); if (i >= 0 && !((me.ac || [])[i] > 0)) {
@@ -16940,7 +16956,7 @@ function drawCrosshair(me, charge) {
     if (me.xr != null && me.xr < 1) { ctx.strokeStyle = 'rgba(255,207,90,0.8)'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, 14, -Math.PI / 2, -Math.PI / 2 + me.xr * TAU); ctx.stroke(); }
     for (let i = 0; i < (me.xm || 1); i++) { ctx.fillStyle = i < (me.xn || 0) ? '#ffcf5a' : 'rgba(233,237,242,0.25)'; ctx.fillRect(x - ((me.xm || 1) - 1) * 4 + i * 8 - 2.5, y + 18, 5, 3); }
   }
-  if (pad.on && pad.aim != null && me && !me.d) { drawAimArrow(me, pad.aim, charge, '#ffcf5a'); return; }
+  if (pad.on && pad.aim != null && me && !me.d) { const tip = drawAimArrow(me, pad.aim, charge, '#ffcf5a'); if (tip) fullPing(tip.x, tip.y, 6); return; }
   ctx.strokeStyle = 'rgba(233,237,242,0.85)'; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.arc(x, y, 9, 0, TAU); ctx.stroke();
   ctx.beginPath();
@@ -16952,6 +16968,7 @@ function drawCrosshair(me, charge) {
     ctx.beginPath(); ctx.arc(x, y, 14, -Math.PI / 2, -Math.PI / 2 + TAU * charge); ctx.stroke();
     if (charge >= 1) { ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(x, y, 2.5, 0, TAU); ctx.fill(); }
   }
+  fullPing(x, y, 14);
 }
 
 // knockback streaks: a tapering ribbon in the player's colour behind anyone flung faster than they can run
