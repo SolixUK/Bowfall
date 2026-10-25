@@ -1204,7 +1204,16 @@
   .abitem b { font: 700 17px 'Rajdhani', 'Arial Narrow', sans-serif; }
   .abitem .btnrow { gap: 6px; } .abitem .btnrow button { padding: 6px 9px; font-size: 12.5px; }
   .abitem .liked { color: #ff6f91; border-color: #ff6f91; }
-  .card.wide.storecard { max-width: 1000px; }
+  .card.wide.storecard { max-width: 1100px; }
+  .shopels { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .shopel { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .shopel .stcard { width: 100%; opacity: 1; transform: none; transition: transform .25s, box-shadow .25s, border-color .25s; }
+  .shopel .stcard b { font-size: 28px; }
+  .shopel .stcard small { min-height: 4.1em; }
+  .shopelf { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+  .shopelf .stst { font-size: 13px; color: var(--muted); } .shopelf .own { color: #7dff8a; font-weight: 600; } .shopelf .free { color: var(--gold); font-weight: 600; }
+  @media (max-width: 900px) { .shopels { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 700px) { .shopel .stcard { width: 100%; } }
   .storecard h3 { margin-top: 6px; }
   .crestbal { display: inline-flex; align-items: center; gap: 6px; font: 700 22px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--gold); }
   .crestico { display: inline-block; width: 1em; height: 1em; vertical-align: -2px; }
@@ -1490,6 +1499,60 @@
   .lbfold summary::before { content: '▸'; color: var(--gold); } .lbfold[open] summary::before { content: '▾'; }
   .lbfold .roomcfg { padding-top: 8px; }
   .lbtop .stat { gap: 4px; }
+  /* ---- lobby (0.82.2): fixed-size rows and tiles, so joining, adding bots or opening anything never moves the page */
+  .lobby .slot { flex-wrap: nowrap; height: 44px; min-height: 0; box-sizing: border-box; padding: 0 8px; }
+  .lobby .slot .nm { flex: 1 1 auto; min-width: 0; overflow: hidden; }
+  .lobby .slot > :not(.nm) { flex: 0 0 auto; }
+  .lobby .tcol { min-height: 0; gap: 4px; } .lobby .tcol .slot.empty { flex: 0 0 auto; height: calc(var(--n, 1) * 44px + (var(--n, 1) - 1) * 4px); }
+  .lobby .tcol .thead { align-items: center; gap: 10px; min-height: 30px; } .lobby .tcol .thead > span:not(.thb) { margin-right: auto; } .lobby .thb { display: flex; gap: 6px; }
+  .lbpop .mapcard small { display: none; } .lbpop .mapcard b { font-size: 14px; } .lbpop .maps { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; } @media (max-width: 760px) { .lbpop .maps { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .lbpop #lbArenaRow { display: flex; align-items: flex-end; gap: 10px; } .lbpop #lbArenaRow .field { flex: 0 1 260px; } .lbpop #lbArenaRow button { flex: 0 0 auto; }
+  .lbtile { display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; padding: 10px 14px; text-align: left; background: rgba(255,255,255,.035); border: 1px solid var(--line); color: var(--text); font: 500 14px 'Titillium Web', 'Segoe UI', sans-serif; cursor: pointer; }
+  .lbtile:hover, .lbtile:focus-visible { border-color: var(--gold); outline: none; background: rgba(255,207,90,.06); }
+  .lbtile .lbt { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+  .lbtile .lbt > small { font: 700 12px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--gold); }
+  .lbtile .lbt > b { font: 700 20px/1.15 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--text); }
+  .lbtile .lbsub { color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 18px; }
+  .lbtile .lbgo { font-style: normal; color: var(--muted); font-size: 13px; font-weight: 600; flex: 0 0 auto; }
+  .lbtile:hover .lbgo, .lbtile:focus-visible .lbgo { color: var(--gold); }
+  .lbtile .lbsum { flex-wrap: wrap; row-gap: 2px; min-height: 20px; }
+  .lbarch canvas { width: 58px; height: 58px; border-radius: 10px; background: rgba(255,255,255,.05); flex: 0 0 auto; }
+  .lbarch .lbt > b { color: var(--gold); font-size: 23px; }
+  .lbarch.pure .lbsub { color: var(--gold); }
+  .lbmapb .lbthumb { height: 50px; aspect-ratio: 138 / 98; border-radius: 2px; flex: 0 0 auto; background: rgba(255,255,255,.05); }
+  .lobby .lbtile.mutbox { display: block; border: 1px solid var(--mc); background: color-mix(in srgb, var(--mc) 12%, transparent); border-radius: 10px; padding: 8px 12px; }
+  .lobby .lbtile.mutbox:hover, .lobby .lbtile.mutbox:focus-visible { background: color-mix(in srgb, var(--mc) 20%, transparent); }
+  .lobby .lbtile.mutbox .lbgo { display: block; margin-top: 3px; font-size: 12px; }
+  .lobby .lbtile.mutbox.calm b { color: var(--muted); }
+  .lobby .lbmatch { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lbrr { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 10px; } .lbrr > :only-child, .lbrr > :first-child:has(+ [hidden]) { grid-column: 1 / -1; }
+  .lbrr .lbtile { height: 100%; }
+  .lbspec { display: flex; flex-direction: column; gap: 6px; height: 92px; box-sizing: border-box; padding: 10px 12px; background: rgba(255,255,255,.03); border: 1px solid var(--line); }
+  .lbspec[hidden] { display: none; }
+  .lbsh { display: flex; align-items: center; gap: 8px; } .lbsh b { font: 700 16px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .02em; } .lbsh span { color: var(--muted); font: 600 12px 'Rajdhani', sans-serif; } .lbsh button { margin-left: auto; }
+  .lbsl { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; overflow-y: auto; min-height: 0; flex: 1; }
+  .lbsl .status { font-size: 13px; }
+  .lbsp { padding: 3px 10px; background: rgba(255,255,255,.06); font-size: 14px; } .lbsp small { color: var(--muted); } .lbsp.you { box-shadow: inset 0 0 0 1px var(--gold); }
+  .lobby .chatlog { height: 78px; max-height: none; min-height: 0; }
+  /* the pop-up */
+  .lbpop { position: fixed; inset: 0; z-index: 85; display: grid; place-items: center; padding: 20px; background: rgba(4,9,6,.62); }
+  .lbpop[hidden] { display: none; }
+  .lbpopin { width: min(940px, 100%); max-height: calc(100vh - 40px); max-height: calc(100dvh - 40px); display: flex; flex-direction: column; background: #0f1a12; border: 1px solid var(--gold); box-shadow: 0 20px 60px rgba(0,0,0,.7); }
+  .lbpophd { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--line); flex: 0 0 auto; }
+  .lbpophd b { font: 700 21px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); }
+  .lbpopbody { overflow-y: auto; padding: 16px 18px 18px; min-height: 0; }
+  .lbpane { display: flex; flex-direction: column; gap: 12px; } .lbpane[hidden] { display: none; }
+  .lbpop .archrow { grid-template-columns: 70px 1fr; } .lbpop .archrow .chip2 { padding: 6px 11px; font-size: 14px; }
+  .lbpop #archBlurb { font-size: 14px; line-height: 1.45; }
+  .lbpop .lbrules { padding-top: 0; gap: 12px 18px; } .lbpop .lbrules .field label { font-size: 14px; }
+  .lbpop .roomcfg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; align-items: end; } .lbpop .roomcfg > button { justify-self: start; }
+  .effs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .effc { display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 12px 14px; background: color-mix(in srgb, var(--mc) 7%, transparent); border: 1px solid color-mix(in srgb, var(--mc) 40%, transparent); border-radius: 8px; color: var(--text); font: 500 13.5px/1.4 'Titillium Web', 'Segoe UI', sans-serif; cursor: pointer; }
+  .effc b { color: var(--mc); font: 700 18px 'Rajdhani', 'Arial Narrow', sans-serif; } .effc b small { color: var(--muted); font: 500 12px 'Titillium Web', sans-serif; }
+  .effc:hover:not(:disabled), .effc:focus-visible { background: color-mix(in srgb, var(--mc) 15%, transparent); outline: none; }
+  .effc.sel { border-color: var(--mc); box-shadow: inset 0 0 0 1px var(--mc); background: color-mix(in srgb, var(--mc) 16%, transparent); }
+  .effc:disabled { cursor: default; } .effc:disabled:not(.sel) { opacity: .5; }
+  @media (max-width: 760px) { .effs { grid-template-columns: 1fr 1fr; } .lbpop { padding: 8px; } .lbpopin { max-height: calc(100dvh - 16px); } }
   .lbfoot { position: sticky; bottom: -16px; z-index: 2; display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin: 0 -28px; padding: 14px 28px 20px; background: linear-gradient(to top, rgba(12,22,15,.98) 70%, rgba(12,22,15,0)); }
   .lbfoot .status { margin-right: auto; } .lbfoot .lbnote { margin-right: auto; display: flex; flex-direction: column; gap: 2px; min-width: 0; } .lbfoot .lbnote .status { margin: 0; } .lbfoot .lbwait b { color: var(--gold); font-weight: 600; }
   .lobby .arch { gap: 9px; padding: 12px 14px; }
@@ -1871,7 +1934,9 @@
     <div class="card wide storecard">
       <div class="shopbar"><div class="stat"><span class="eyebrow">Support Bowfall</span><h2>Store</h2></div><div class="btnrow" data-navsec style="align-items:center"><span class="crestbal" id="stCrests"></span><button class="ghost" type="button" data-back>Back</button></div></div>
       <p class="status" id="stNote"></p>
-      <h3>Elements and roles</h3>
+      <h3>Elements</h3>
+      <div class="shopels" id="stEls" data-navsec></div>
+      <h3>Roles</h3>
       <div class="stgrid" id="stUnlocks" data-navsec></div>
       <div class="msw" data-ms="stmem" data-mst="Membership"><h3>Membership</h3>
       <div class="modes" id="stMember"></div></div>
@@ -1991,48 +2056,52 @@
       <div id="lbLocals" data-navsec></div>
       <div class="lbgrid">
         <div class="lbcol">
-          <div class="arch" data-navsec data-ms="arch" data-mst="Your archetype">
-            <div class="archhead"><div style="display:flex;align-items:center;gap:12px"><canvas id="archPrev" width="128" height="128" style="width:52px;height:52px;border-radius:10px;background:rgba(255,255,255,.05)"></canvas><div class="stat"><h3>Your archetype</h3><span class="archname" id="archName"></span></div></div></div>
+          <button type="button" class="lbtile lbarch" id="lbArchBtn" data-navsec><canvas id="archPrev" width="128" height="128"></canvas><span class="lbt"><small>Your archetype</small><b id="archName"></b><span class="lbsub" id="archSub"></span></span><em class="lbgo">Change</em></button>
+          <div class="lbspec" id="lbSpecBox" data-navsec><div class="lbsh"><b>Not on a team</b><span id="lbSpecN">0</span><button class="ghost sm" id="lbSpec" type="button" hidden title="Step off your team and wait here">Move here</button></div><div class="lbsl" id="lbSpecList"></div></div>
+          <div class="chatbox" id="lbChat" data-navsec hidden><div class="chatlog" id="lbChatLog"><div class="cline sys">Chat with everyone in the room here. In game, press Enter to chat.</div></div><input id="lbChatIn" maxlength="140" placeholder="Say something… (Enter to send)" autocomplete="off"></div>
+        </div>
+        <div class="lbcol">
+          <button type="button" class="lbtile mutbox" id="lbMut" data-navsec></button>
+          <button type="button" class="lbtile lbmapb" id="lbMapBtn" data-navsec><img class="lbthumb" id="lbMapImg" alt=""><span class="lbt"><small>Arena</small><b id="lbMapName"></b><span class="lbsub" id="lbMapSub"></span></span><em class="lbgo">Change</em></button>
+          <div class="lbrow2 lbmatch" data-navsec>
+              <div class="field"><label for="lbPts">Match length</label>
+                <select id="lbPts"><option value="3">First to 3 points</option><option value="5">First to 5 points</option></select></div>
+              <div class="field" id="lbDiffWrap"><label for="lbDiff">Bot skill (sets all bots)</label>
+                <select id="lbDiff"><option value="easy">Easy</option><option value="normal">Normal</option><option value="hard">Hard</option><option value="extreme">Extreme</option><option value="master">Master</option></select></div>
+          </div>
+          <div class="lbrr"><button type="button" class="lbtile" id="lbRulesBtn" data-navsec><span class="lbt"><small>Rules</small><span class="lbsum" id="lbOptNote"></span></span><em class="lbgo">Change</em></button>
+          <button type="button" class="lbtile" id="lbRoomBtn" data-navsec hidden><span class="lbt"><small>Room</small><span class="lbsum" id="lbRoomSum">Settings</span></span><em class="lbgo">Change</em></button></div>
+        </div>
+      </div>
+      <!-- the pop-up the buttons above open: one at a time, over the lobby, always whole on screen -->
+      <div class="lbpop" id="lbPop" hidden><div class="lbpopin" data-navsec>
+        <div class="lbpophd"><b id="lbPopTitle"></b><button class="cta sm" type="button" id="lbPopDone">Done</button></div>
+        <div class="lbpopbody">
+          <div class="lbpane" data-pane="arch" hidden>
             <p class="status purenote" id="pureNote" hidden><b>Pure rules:</b> everyone plays a plain archer this match, with no element, role or upgrades. Your archetype comes back afterwards.</p>
             <div class="archrow"><span class="lbl">Element</span><div class="chips" id="elChips"></div></div>
             <div class="archrow"><span class="lbl">Role</span><div class="chips" id="roChips"></div></div>
             <p class="status banhint" id="banHint" hidden></p>
             <span class="status" id="archBlurb"></span>
           </div>
-        </div>
-        <div class="lbcol">
-          <div class="mutbox" id="lbMut" hidden></div>
-          <div class="lbset" data-navsec>
-            <div class="msw" data-ms="lbmap" data-mst="Arena" data-msauto=".mapcard">
-            <details class="lbfold" id="lbMapFold"><summary><b>Arena</b><span class="lbsum" id="lbMapSum"></span></summary><div class="lbbody">
+          <div class="lbpane" data-pane="map" hidden>
             <div class="maps" id="lbMaps"></div>
             <span class="status" id="lbMapDesc"></span>
-            <div class="lbrow2" id="lbArenaRow"><div class="field"><label for="lbArenaCode">Player arena</label><input id="lbArenaCode" class="code" maxlength="9" placeholder="Code, e.g. A1F" autocomplete="off"></div><button class="ghost sm" type="button" id="lbArenaUse">Use</button></div></div></details></div>
-            <div class="msw" data-ms="lbset" data-mst="Match settings">
-            <div class="lbrow2 lbmatch">
-              <div class="field"><label for="lbPts">Match length</label>
-                <select id="lbPts"><option value="3">First to 3 points</option><option value="5">First to 5 points</option></select></div>
-              <div class="field"><label for="opt-effect">Map effect</label><select id="opt-effect" data-opt="effect"></select></div>
-              <div class="field" id="lbDiffWrap"><label for="lbDiff">Bot skill (sets all bots)</label>
-                <select id="lbDiff"><option value="easy">Easy</option><option value="normal">Normal</option><option value="hard">Hard</option><option value="extreme">Extreme</option><option value="master">Master</option></select></div>
-            </div>
-            <details class="lbfold" id="lbRulesFold"><summary><b>Rules</b><span class="lbsum" id="lbOptNote"></span></summary><div class="lbbody"><div class="lbrules" id="lbOpts"></div><p class="status" id="lbOptFoot"></p></div></details>
-            <details class="lbfold" id="lbRoomFold" hidden><summary><b>Room</b><span class="lbsum" id="lbRoomSum">name, size, listing, password</span></summary><div class="lbbody">
-              <div class="roomcfg" id="lbRoomCfg" hidden>
+            <div class="lbrow2" id="lbArenaRow"><div class="field"><label for="lbArenaCode">Player arena</label><input id="lbArenaCode" class="code" maxlength="9" placeholder="Code, e.g. A1F" autocomplete="off"></div><button class="ghost sm" type="button" id="lbArenaUse">Use</button></div>
+          </div>
+          <div class="lbpane" data-pane="eff" hidden><div class="effs" id="lbEffs"></div></div>
+          <div class="lbpane" data-pane="rules" hidden><div class="lbrules" id="lbOpts"></div><p class="status" id="lbOptFoot"></p></div>
+          <div class="lbpane" data-pane="room" hidden><div class="roomcfg" id="lbRoomCfg" hidden>
                 <div class="field"><label for="lbRmName">Game name</label><input id="lbRmName" maxlength="32" autocomplete="off"></div>
                 <div class="field"><label for="lbRmMax">Max players</label><select id="lbRmMax"><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="8">8</option><option value="10">10</option><option value="12">12</option><option value="16">16</option></select></div>
                 <div class="field"><label for="lbRmPub">Listed</label><select id="lbRmPub"><option value="1">Public</option><option value="0">Private</option></select></div>
                 <div class="field"><label for="lbRmPw">Password</label><input id="lbRmPw" maxlength="32" autocomplete="off" placeholder="Unchanged"></div>
                 <button class="ghost" id="lbRmSave" type="button">Save</button><button class="ghost" id="lbRmNoPw" type="button">Remove password</button>
-              </div>
-            </div></details></div>
-          </div>
-          <div class="chatbox" id="lbChat" data-navsec hidden><div class="chatlog" id="lbChatLog"><div class="cline sys">Chat with everyone in the room here. In game, press Enter to chat.</div></div><input id="lbChatIn" maxlength="140" placeholder="Say something… (Enter to send)" autocomplete="off"></div>
+              </div></div>
         </div>
-      </div>
+      </div></div>
       <div class="lbfoot" data-navsec>
-        <div class="lbnote"><span class="status" id="lbStatus"></span><span class="status lbwait" id="lbWaiting" hidden></span></div>
-        <button class="ghost" id="lbSpec" type="button" data-spec="1" hidden title="Step off your team and wait on the side">Unassign</button>
+        <span class="status" id="lbStatus"></span>
         <button class="ghost" id="lbLeave" type="button">Leave</button>
         <button class="cta" id="lbStart" type="button">Start match</button>
       </div>
@@ -2317,7 +2386,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.82.1';
+const VERSION = '0.83.2';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -3237,7 +3306,7 @@ const TREE = {
   frostbite: { tree: 'frost', name: 'Frostbite', desc: "A third frost hit within 6 seconds freezes the target solid for 2 seconds: they can't move, draw or shoot." },
   hoarfrost: { tree: 'frost', name: 'Hoarfrost', desc: 'Your hits leave a patch of frost on the ground where they land, for 3 seconds. Enemies in it move 35% slower.' },
   shatter:   { tree: 'frost', name: 'Shatter', desc: 'Hits on slowed or frozen enemies knock back 35% harder.' },
-  flame:     { tree: 'flame', base: true, name: 'Flame Arrows', desc: 'Hits set the target burning for 2 seconds.' },
+  flame:     { tree: 'flame', base: true, name: 'Flame Arrows', desc: 'Hits set the target burning for 2 seconds (4 damage a second).' },
   wildfire:  { tree: 'flame', name: 'Wildfire', desc: 'Fully drawn hits leave burning ground for 3 seconds.' },
   stoke:     { tree: 'flame', name: 'Stoke the Fire', desc: 'Each hit on a burning enemy keeps them burning a second longer (up to 5 seconds), and your fire burns 30% hotter.' },
   flashpoint:{ tree: 'flame', name: 'Flashpoint', desc: 'Hitting an enemy who is already burning bursts into flame: 4 damage to them and every enemy within 110px, setting the others alight.' },
@@ -3254,12 +3323,12 @@ const TREE = {
   kindling:  { tree: 'flame', name: 'Kindling', desc: 'Burning enemies take 50% more knockback from your arrows.' },
   overload:  { tree: 'storm', trade: true, name: 'Overload', desc: 'Lightning does double damage, but your dash takes 20% longer to recharge.' },
   potent:    { tree: 'poison', trade: true, name: 'Potent Toxin', desc: 'Poison hurts 50% more, but your arrows deal 15% less direct damage.' },
-  stone:     { tree: 'stone', base: true, name: 'Stone Arrows', desc: 'Hits stagger the target for 2 seconds: they lose 40% of their current draw and take 15% more knockback.' },
+  stone:     { tree: 'stone', base: true, name: 'Stone Arrows', desc: 'Hits stagger the target for 2 seconds: they lose half of their current draw and take 25% more knockback.' },
   boulder:   { tree: 'stone', name: 'Boulder Arrows', desc: 'Fully drawn arrows knock back 30% harder.' },
   aftershock:{ tree: 'stone', name: 'Aftershock', desc: 'Fully drawn hits send a shockwave that shoves every other enemy nearby away.' },
   petrify:   { tree: 'stone', name: 'Petrify', desc: "Staggered enemies can't dash." },
   obsidian:  { tree: 'stone', trade: true, name: 'Obsidian', desc: 'Your arrows knock back 30% harder, but fly 8% slower.' },
-  void:      { tree: 'void', base: true, name: 'Void Arrows', desc: 'Hits mark the target with void (up to 5 marks, fading 2.5 seconds after your last hit). From the second mark on, your arrows curve toward them, a little more with every mark. Only your own arrows, and only shots already heading their way.' },
+  void:      { tree: 'void', base: true, name: 'Void Arrows', desc: 'Hits mark the target with void (up to 5 marks, fading 2.5 seconds after your last hit). Each mark makes your arrows hit them 6% harder, and from the second mark on your arrows curve toward them, a little more with every mark. Only your own arrows, and only shots already heading their way.' },
   rift:      { tree: 'void', name: 'Rift', desc: 'A moment after a fully drawn hit (or any bullseye), a rift opens where the target lands. For 2 seconds it pulls them and every enemy nearby toward its centre and slows them by 30%.' },
   gravity:   { tree: 'void', name: 'Gravity Arrows', desc: 'Your arrows are dark with gravity: as they fly they pull enemies within 110px slightly toward them.' },
   horizon:   { tree: 'void', name: 'Event Horizon', desc: 'Rifts are 30% bigger, pull harder and last 3 seconds.', req: ['rift'] },
@@ -3278,15 +3347,15 @@ const TREE = {
   cloak:     { tree: 'assassin', trade: true, name: 'Cloak and Dagger', desc: 'Stealth lasts 9 seconds, but you have 10 less health.', req: ['stealth'] },
   quickfeet: { tree: 'assassin', name: 'Light Step', desc: '8% faster, and you take 15% less damage from behind.' },
   deathmark: { tree: 'assassin', cap: true, name: 'Death Mark', desc: 'Your first hit after stealth ends marks the target: they take 30% more damage from everyone for 5 seconds.' },
-  shadow:    { tree: 'shadow', base: true, name: 'Shadow Arrows', desc: 'Every hit adds a shade to the target (up to 5) and restarts a 3 second fuse. When the fuse runs out the shade bursts: barely at all with one, hard with several (2, 6, 12, 20 and 31 damage). Keep hitting them to stack it up.' },
+  shadow:    { tree: 'shadow', base: true, name: 'Shadow Arrows', desc: 'Every hit adds a shade to the target (up to 5) and restarts a 3.5 second fuse. When the fuse runs out the shade bursts: lightly with one, hard with several (4, 9, 15, 22 and 31 damage). Keep hitting them to stack it up.' },
   eclipse:   { tree: 'shadow', active: { cd: 14 }, name: 'Eclipse', desc: 'Drop darkness on the spot under your cursor (up to 400px) for 4 seconds. Enemies inside are shrouded: they can only see 140px around themselves, and bots lose track of anyone further away.' },
   gloom:     { tree: 'shadow', name: 'Creeping Dark', desc: 'Each shade on an enemy slows them 6%, and the burst slows them by 50% for 2 seconds.' },
   dread:     { tree: 'shadow', name: 'Night Terror', desc: 'Shade bursts throw the target away from you, harder the more shades were on them.' },
-  blood:     { tree: 'blood', base: true, name: 'Blood Arrows', desc: 'Damage you deal heals you for 25% of it (half as much while you are poisoned). The more health you have lost, the harder your arrows knock back: up to 25% harder near death.' },
+  blood:     { tree: 'blood', base: true, name: 'Blood Arrows', desc: 'Damage you deal heals you for 35% of it (half as much while you are poisoned). The more health you have lost, the harder your arrows knock back: up to 25% harder near death.' },
   hemorrhage:{ tree: 'blood', name: 'Hemorrhage', desc: 'Fully drawn hits make the target bleed for 8 damage over 4 seconds. The bleeding heals you too.' },
   frenzy:    { tree: 'blood', name: 'Blood Frenzy', desc: 'Below half health, your hits heal you twice as much. And the more health you have lost, the faster you draw: up to 60% faster near death.' },
   transfusion:{ tree: 'blood', name: 'Transfusion', desc: 'A third of your healing flies to your most hurt teammate within 300px, plus any you would waste at full health. Nobody hurt nearby: it all stays yours.' },
-  bloodpact: { tree: 'blood', trade: true, name: 'Blood Pact', desc: 'Your hits heal you for 45% of their damage instead of 25%, but you have 10 less health.' },
+  bloodpact: { tree: 'blood', trade: true, name: 'Blood Pact', desc: 'Your hits heal you for 55% of their damage instead of 35%, but you have 10 less health.' },
   deepshade: { tree: 'shadow', trade: true, name: 'Deep Shade', desc: 'Shade bursts deal 50% more damage, but your arrows knock back 15% less.' },
 
   sstrike:   { tree: 'ninja', active: { cd: 10 }, name: 'Shadow Strike', desc: 'Teleport behind the enemy nearest your cursor (up to 360px away). Your next 3 shuriken within 1.5 seconds deal 75% more damage.' },
@@ -3578,7 +3647,7 @@ function makePlayer(w, opts) {
     dead: false, kills: 0, deaths: 0, amber: 0, earned: 0, up: [], hones: {}, ready: false, offer: null, picked: false,
     streak: 0, emp: false, empPts: 0, trailT: 0, auraT: 0, lastArrow: null, lastHow: '', lastHurtT: -99, slowK: 0.5, fallCause: 'pit', coat: {},
     element: ELEMENTS[opts.element] ? opts.element : pick(Object.keys(ELEMENTS)), role: ROLES[opts.role] ? opts.role : pick(Object.keys(ROLES)),
-    poisonN: 0, poisonT: 0, poisonMax: 3, poisonMul: 1, burnDps: 5, quickT: 0,
+    poisonN: 0, poisonT: 0, poisonMax: 3, poisonMul: 1, burnDps: BURN_DPS, quickT: 0,
     abCd: [0, 0], wantAb: [false, false], reviveUsed: false, revT: 0, revOf: null, revP: 0,
     lastHitBy: null, lastHitT: -99, lastCause: '', killedBy: null, stats: { shots: 0, hits: 0, dmg: 0, taken: 0, ring: 0, longest: 0, as: 0 }, disarm: 0, poisonBy: null, contT: 0,
     pw: emptyPowers(), input: { mx: 0, my: 0, aim: 0, draw: false, tx: AW / 2, ty: AH / 2 }, wantDash: false,
@@ -3930,7 +3999,7 @@ function placeForRound(w, p) {
 function freshBody(p, x, y) {
   Object.assign(p, {
     x, y, vx: 0, vy: 0, hp: p.maxHp, dead: false, falling: 0, stuck: 0, burn: 0, slow: 0,
-    frozen: 0, frostN: 0, frostT: 0, dashLock: 0, snare: false, grap: null, hook: null, harpoonArmed: false, over: 0, poisonN: 0, poisonT: 0, bleedT: 0, bleedBy: null, burnDps: 5, quickT: 0, disarm: 0, poisonBy: null, contT: 0,
+    frozen: 0, frostN: 0, frostT: 0, dashLock: 0, snare: false, grap: null, hook: null, harpoonArmed: false, over: 0, poisonN: 0, poisonT: 0, bleedT: 0, bleedBy: null, burnDps: BURN_DPS, quickT: 0, disarm: 0, poisonBy: null, contT: 0,
     knock: 0, inv: 0, dashT: 0, dashCd: 0, dashN: p.dashMaxN, charge: 0, drawing: false, thr: 0, tdx: 0, tdy: 0,
     lastHitBy: null, lastHitT: -99, lastCause: '', killedBy: null, pw: emptyPowers(), wantDash: false, lastHurtT: -99, pinT: 0, pinned: 0, dashK: 1,
     pinSafe: 0, volleyArmed: false, railArmed: false, recoilArmed: false, seekArmed: false, rocketArmed: false, swapArmed: false, boomArmed: false, execArmed: false, briarArmed: false,
@@ -4102,7 +4171,7 @@ function hurt(w, f, dmg, kx, ky, src, by, quiet) {
   if (f.pinned > 0) kx = ky = 0; // pinned to the wall: nothing moves them
   if (kx || ky) {
     kx *= OPT('kb'); ky *= OPT('kb');
-    if (f.staggerT > 0) { kx *= 1.15; ky *= 1.15; } // Stone
+    if (f.staggerT > 0) { kx *= STAGGER_KB; ky *= STAGGER_KB; } // Stone
     if (f.fortT > 0) { kx *= 0.1; ky *= 0.1; } // Fortify
     if (f.rush) { kx *= 0.25; ky *= 0.25; } // Bull Rush
     // Bond: the Warden (and any teammate near them) is steadied
@@ -4122,7 +4191,7 @@ function hurt(w, f, dmg, kx, ky, src, by, quiet) {
 // Blood: damage you deal heals you (and with Transfusion or Bloodbath, your team)
 function bloodHeal(w, p, dealt) {
   const emp = p.emp && p.element === 'blood';
-  let heal = dealt * (has(p, 'bloodpact') ? 0.45 : 0.25) * (has(p, 'frenzy') && p.hp < p.maxHp * 0.5 ? 2 : 1) * (emp ? 2 : 1) * (p.poisonT > 0 ? 0.5 : 1);
+  let heal = dealt * (has(p, 'bloodpact') ? BLOOD_PACT_HEAL : BLOOD_HEAL) * (has(p, 'frenzy') && p.hp < p.maxHp * 0.5 ? 2 : 1) * (emp ? 2 : 1) * (p.poisonT > 0 ? 0.5 : 1);
   // Transfusion: a third of the healing goes to the most hurt teammate nearby (and all of what you'd waste at full health);
   // with nobody hurt in reach it's all yours, as before
   const mate = has(p, 'transfusion') ? w.players.filter(q => q !== p && q.team === p.team && !q.dead && q.hp < q.maxHp * 0.9 && Math.hypot(q.x - p.x, q.y - p.y) < 300).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0] : null;
@@ -4536,13 +4605,13 @@ function stepBody(w, f, mx, my, dt) {
   if (inLava) { const r = pushedBy(w, f); if (r) f.lavaBy = r; else if (!f.onLava) f.lavaBy = null; } // (who put them on the lava, if anyone)
   f.onLava = inLava; f.lavaT = inLava ? (f.lavaT || 0) + dt : Math.max(0, (f.lavaT || 0) - dt * 0.5); // (how long they've been cooking, for best moments)
   if (inLava) { hurt(w, f, 30 * dt, 0, 0, 'lava', null, true); f.burn = Math.max(f.burn, 1.5); }
-  else if (f.burn > 0) { f.burn -= dt; hurt(w, f, (f.burnDps || 5) * dt, 0, 0, 'burn', null, true); if (f.burn <= 0) f.burnDps = 5; }
+  else if (f.burn > 0) { f.burn -= dt; hurt(w, f, (f.burnDps || BURN_DPS) * dt, 0, 0, 'burn', null, true); if (f.burn <= 0) f.burnDps = BURN_DPS; }
   if (!f.dead && f.bleedT > 0) { f.bleedT -= dt; hurt(w, f, 2 * dt, 0, 0, 'bleed', f.bleedBy, true); } // Hemorrhage
   if (!f.dead && f.shade) shadeTick(w, f, dt);
   const vig = mutKeys(CFG.mut).reduce((a, k) => a + (MUTATORS[k].regen || 0), 0); // Warden's Vigil
   if (vig && !f.dead && !f.npc && w.match.ph === 'play' && f.hp < f.maxHp) f.hp = Math.min(f.maxHp, f.hp + vig * dt * (f.poisonT > 0 ? 0.5 : 1));
   if (f.thornT > 0) { f.thornT -= dt; if (f.thornT <= 0) f.thornN = 0; }
-  if (!f.dead && f.poisonT > 0) { f.poisonT -= dt; hurt(w, f, f.poisonN * 1.6 * f.poisonMul * dt, 0, 0, 'poison', null, true); if (f.poisonT <= 0) f.poisonN = 0; }
+  if (!f.dead && f.poisonT > 0) { f.poisonT -= dt; hurt(w, f, f.poisonN * POISON_DPS * f.poisonMul * dt, 0, 0, 'poison', null, true); if (f.poisonT <= 0) f.poisonN = 0; }
   if (f.dead) return;
   if (inPit && f.npc && f.npc.k === 'term' && w.tm) { tmJet(w, f); return; } // (the Terminator never falls: it jets back to the middle, for a chunk of its health)
   if (inPit) {
@@ -5339,7 +5408,8 @@ function shroud(f, t, r) { f.shroudT = Math.max(f.shroudT || 0, t); f.shroudR = 
 // Shadow Arrows: a shade bursts a moment after it's planted; a second hit before then deepens it
 // Shadow Arrows: every hit adds a stack (up to 5) and resets a 3 second fuse; when it runs out the shade bursts,
 // barely at one stack and hard at five
-const SHADE = { t: 3, max: 5 }, shadeDmg = n => Math.round(1 + 1.2 * n * n);
+const SHADE = { t: 3.5, max: 5 }, SHADE_DMG = [0, 4, 9, 15, 22, 31], shadeDmg = n => SHADE_DMG[Math.min(5, Math.max(1, n))]; // (0.83: a 3.5 s fuse, so a second hit lands in time more often)
+const BURN_DPS = 4, POISON_DPS = 1.2, BLOOD_HEAL = 0.35, BLOOD_PACT_HEAL = 0.55, STAGGER_KB = 1.25, STAGGER_DRAW = 0.5, VOID_DMG = 0.06; // the elements' base numbers (0.83 balance pass)
 function plantShade(w, f, owner) {
   const add = owner.emp && owner.element === 'shadow' ? 2 : 1;
   if (!f.shade) f.shade = { by: owner.id, t: SHADE.t, n: 0 };
@@ -5413,8 +5483,8 @@ function onArrowEffects(w, a, f, primary) {
         hurt(w, q, 4, 0, 0, 'el_flame', a.owner, q === f);
       }
     }
-    if (owner && has(owner, 'stoke')) { f.burn = Math.min(5, f.burn > 0 ? Math.max(f.burn, 2) + 1 : 2); f.burnDps = Math.max(f.burnDps || 4.5, 4.5 * 1.3); }
-    else { f.burn = Math.max(f.burn, 2); f.burnDps = Math.max(f.burnDps || 4.5, 4.5); }
+    if (owner && has(owner, 'stoke')) { f.burn = Math.min(5, f.burn > 0 ? Math.max(f.burn, 2) + 1 : 2); f.burnDps = Math.max(f.burnDps || BURN_DPS, BURN_DPS * 1.3); }
+    else { f.burn = Math.max(f.burn, 2); f.burnDps = Math.max(f.burnDps || BURN_DPS, BURN_DPS); }
     // Blaze: every hit sets the ground alight
     if (primary && owner && owner.emp && owner.element === 'flame') blazePatch(w, owner, f.x, f.y, 40, 2.5, f.id);
     if (primary && a.full && owner && has(owner, 'wildfire')) {
@@ -5424,7 +5494,7 @@ function onArrowEffects(w, a, f, primary) {
     // stagger: lose some draw, take more knockback for a moment
     const land = owner && owner.emp && owner.element === 'stone';
     f.staggerT = Math.max(f.staggerT || 0, land ? 4 : 2);
-    if (f.drawing) f.charge *= 0.6;
+    if (f.drawing) f.charge *= 1 - STAGGER_DRAW;
     if (owner && has(owner, 'petrify')) f.dashLock = Math.max(f.dashLock, f.staggerT);
     ev(w, { e: 'stagger', x: r1(f.x), y: r1(f.y) });
     if (primary && a.full && owner && has(owner, 'aftershock')) {
@@ -5567,7 +5637,8 @@ function arrowHit(w, a, f) {
     + (a.own && a.own.role === 'sniper' ? 0.25 * clamp(a.dist / SNIPE_FULL, 0, 1) : 0);
   const held = f.stuck > 0 || f.frozen > 0;
   const chill = a.el === 'frost' && (f.slow > 0 || f.frozen > 0) ? 1.3 : 1; // Frost Arrows
-  let dmg = a.dmg * (a.own && has(a.own, 'deeproots') && f.stuck > 0 ? 1.25 : 1) * (a.own && a.own.role === 'trapper' && held ? 1.25 : 1) * chill * (1 + range);
+  const marked = a.el === 'void' && f.voidBy === a.owner && f.voidT > w.t ? 1 + VOID_DMG * (f.voidN || 0) : 1; // Void Arrows: marks also sharpen your arrows
+  let dmg = a.dmg * (a.own && has(a.own, 'deeproots') && f.stuck > 0 ? 1.25 : 1) * (a.own && a.own.role === 'trapper' && held ? 1.25 : 1) * chill * marked * (1 + range);
   // Backstab (every Assassin): a hit landing on the target's back hurts more and throws them further
   const fromBehind = (a.vx / v) * Math.cos(f.aim) + (a.vy / v) * Math.sin(f.aim) > 0.5;
   const backstab = fromBehind && a.own && a.own.role === 'assassin';
@@ -6063,6 +6134,14 @@ function kbTravel(c, mass, mul) {
   return v / 1.5 * (1 - e) + v * e / 9;
 }
 // how deadly being shoved `dist` along (ux, uy) from (x, y) would be: 0 safe, up to ~1.2 certain death
+// how far p's shot at charge c would throw q, counting what p's element does to it: Stone's stagger (and the one this
+// shot would land, if it's the second of two), Blood's low-health kick
+function kbOn(p, q, c) {
+  let mul = p.kbMul || 1;
+  if (q.staggerT > 0) mul *= STAGGER_KB;
+  if (p.element === 'blood') mul *= 1 + 0.25 * (1 - p.hp / p.maxHp);
+  return kbTravel(c, q.mass, mul);
+}
 function pushRisk(x, y, ux, uy, dist, r) {
   let risk = 0;
   for (const s of [0.25, 0.5, 0.75, 1]) {
@@ -6283,6 +6362,8 @@ function safeWay(p) {
 }
 function botThink(w, p, dt) {
   const ai = p.ai, inp = p.input, D = botD(p), G = p.gene ? (p.geneSrc === p.gene ? p.geneAll : (p.geneSrc = p.gene, p.geneAll = Object.assign({}, GENE, p.gene))) : GENE, iq = D.iq || 0;
+  // how well this bot plays to its element (stacking shades, setting up a Stone throw): from Hard up, full before the smart brain arrives
+  const es = Math.max(iq, clamp((D.dodge - 0.12) / 0.28, 0, 1));
   if (p.dead || p.falling > 0) { inp.draw = false; inp.mx = inp.my = 0; return; }
   // stealthed enemies are invisible to bots unless they're right next to them
   const foes = w.players.filter(q => q.team !== p.team && !q.dead && q.falling <= 0 && !(q.stealthT > 0 && Math.hypot(q.x - p.x, q.y - p.y) > 110) && !(inSmoke(w, q, p.x, p.y) && Math.hypot(q.x - p.x, q.y - p.y) > 60)
@@ -6297,8 +6378,16 @@ function botThink(w, p, dt) {
       if (iq > 0) {
         const d = Math.hypot(q.x - p.x, q.y - p.y) || 1;
         if (has(p, 'rip') && q.thornBy === p.id && q.thornN >= 3) s += (q.thornN >= 5 ? 220 : 70) * iq; // (Rip: spread the thorns over everyone rather than piling them on one)
-        if (clearShot(p.x, p.y, q.x, q.y)) s -= pushRisk(q.x, q.y, (q.x - p.x) / d, (q.y - p.y) / d, kbTravel(0.95, q.mass, p.kbMul), q.r) * 300 * iq; else s += 150 * iq;
+        if (clearShot(p.x, p.y, q.x, q.y)) s -= pushRisk(q.x, q.y, (q.x - p.x) / d, (q.y - p.y) / d, kbOn(p, q, 0.95), q.r) * 300 * iq; else s += 150 * iq;
+
         if (d > botReach(p)) s += 400 * iq;
+      }
+      if (es > 0) { // the elements that build on a target: stay on the one you've started on while it lasts
+        if (p.element === 'shadow' && q.shade && q.shade.by === p.id) s -= (60 + 40 * q.shade.n) * es;
+        if (p.element === 'void' && q.voidBy === p.id && q.voidT > w.t) s -= (50 + 30 * (q.voidN || 0)) * es;
+        if (p.element === 'poison' && q.poisonN > 0 && q.poisonN < q.poisonMax && q.poisonBy === p.id) s -= 60 * es;
+        if (p.element === 'frost' && q.frostT > 0 && q.frostN >= 1 && (has(p, 'frostbite') || p.emp)) s -= 80 * es; // (one more hit freezes them)
+        if (p.element === 'stone' && q.staggerT > 0) s -= 70 * es;
       }
       if (s < bestS) { bestS = s; T = q; }
     }
@@ -6364,7 +6453,7 @@ function botThink(w, p, dt) {
     const near = Math.min(st.near * (1.3 - ag * 0.6), reach * 0.55), far = Math.min(st.far * (1.25 - ag * 0.5), reach * 0.88);
     const dx = T.x - p.x, dy = T.y - p.y, d = dT || 1, ux = dx / d, uy = dy / d;
     // (backing off from someone who outranges you only means being shot in the back: the outgunned stand their ground unless nearly dead)
-    const shaky = p.hp < p.maxHp * (outg > 0.5 ? 0.15 : 0.35) && ag < 0.65 && d < far * 1.2;
+    const shaky = p.hp < p.maxHp * (outg > 0.5 ? 0.15 : 0.35) * (p.element === 'blood' && es >= 0.5 ? 0.7 : 1) && ag < 0.65 && d < far * 1.2; // (Blood: hits heal, so backing off hurt is the wrong move)
     if (shaky || d < near) { gx = -ux; gy = -uy; }
     else if (d > far || !clearShot(p.x, p.y, T.x, T.y)) {
       // close in with a weave; the outranged weave less, or someone walking backward keeps them out of reach for good
@@ -6376,7 +6465,7 @@ function botThink(w, p, dt) {
       // edge hunters work round to the side from which a hit would throw them into something
       if (ai.tr && ai.tr.edge > 0 && (ai.edgeT = (ai.edgeT || 0) - dt) <= 0) {
         ai.edgeT = 0.5;
-        const kb = kbTravel(0.9, T.mass, p.kbMul), risk = s => { const x = p.x - uy * s * 90, y = p.y + ux * s * 90, ddx = T.x - x, ddy = T.y - y, dd = Math.hypot(ddx, ddy) || 1; return lethalDist(x, y) < p.r + 40 ? -1 : pushRisk(T.x, T.y, ddx / dd, ddy / dd, kb, T.r); };
+        const kb = kbOn(p, T, 0.9), risk = s => { const x = p.x - uy * s * 90, y = p.y + ux * s * 90, ddx = T.x - x, ddy = T.y - y, dd = Math.hypot(ddx, ddy) || 1; return lethalDist(x, y) < p.r + 40 ? -1 : pushRisk(T.x, T.y, ddx / dd, ddy / dd, kb, T.r); };
         const a = risk(1), b = risk(-1);
         if (Math.abs(a - b) > 0.15 && Math.random() < ai.tr.edge) { ai.strafe = a > b ? 1 : -1; ai.strafeT = Math.max(ai.strafeT, 0.8); }
       }
@@ -6566,9 +6655,22 @@ function botThink(w, p, dt) {
       ai.want = lethalDist(T.x, T.y) < 130 ? 1 : dT < 150 ? 0.35 : st && st.charge ? rand(Math.max(D.minCharge * 0.7, st.charge[0]), st.charge[1]) : rand(D.minCharge, 1);
       const lean = ai.tr ? ai.tr.charge * 0.3 : 0; // quick-shot or full-draw people
       if (iq >= 0.5) {
-        const d = dT || 1, risk = pushRisk(T.x, T.y, (T.x - p.x) / d, (T.y - p.y) / d, kbTravel(1, T.mass, p.kbMul), T.r);
+        const d = dT || 1, risk = pushRisk(T.x, T.y, (T.x - p.x) / d, (T.y - p.y) / d, kbOn(p, T, 1), T.r);
         ai.want = risk > G.riskFull || dT > G.far ? 1 : dT < 140 ? G.quick : Math.max(D.minCharge, G.mid + lean);
       } else if (lean) ai.want = clamp(ai.want + lean, 0.3, 1);
+      // Stone: a quick hit staggers them first, then the full draw throws them 20% further; staggered already: send it
+      if (p.element === 'stone' && es >= 0.8 && dT < 320) {
+        const d = dT || 1, ux = (T.x - p.x) / d, uy = (T.y - p.y) / d;
+        if (T.staggerT > 0.5) { if (pushRisk(T.x, T.y, ux, uy, kbOn(p, T, 1), T.r) > 0.3) ai.want = 1; }
+        else if (pushRisk(T.x, T.y, ux, uy, kbTravel(1, T.mass, (p.kbMul || 1) * STAGGER_KB), T.r) > 0.55 && pushRisk(T.x, T.y, ux, uy, kbTravel(1, T.mass, p.kbMul), T.r) < 0.4) ai.want = Math.min(ai.want, 0.5);
+      }
+      // Shadow: keep the fuse alive. With a shade ticking down, a quicker shot that lands in time beats a full draw that doesn't
+      if (p.element === 'shadow' && T.shade && T.shade.by === p.id && es >= 0.5) {
+        const per = p.role === 'crossbow' ? 0.2 : 1 / (p.drawMul || 1), flight = dT / Math.max(300, shotSpeed(p, ai.want)), need = ai.want * per + flight + 0.15; // (a full draw takes a second)
+        if (T.shade.t < need) ai.want = clamp((T.shade.t - flight - 0.15) / per, 0.3, 1);
+      }
+      // Void: with marks on them, a half draw already homes in; the full draw is for the finish
+      if (p.element === 'void' && T.voidBy === p.id && T.voidT > w.t && (T.voidN || 0) >= 2 && es >= 0.5 && ai.want < 1 && T.hp > 25) ai.want = Math.max(ai.want, 0.6);
     }
   } else if ((p.charge >= ai.want || (p.momT > 0.1 && p.charge >= 0.55 && has(p, 'momentum'))) && los && onTarget && T.inv <= 0 && !(has(p, 'ballista') && ai.want >= 1 && p.over < 1 && dT > 250) && !(p.stealthT > 0.6 && dT > 170 && !(ai.ambush && Math.hypot(ai.ambush.x - p.x, ai.ambush.y - p.y) < 70))) {
     inp.draw = false;
@@ -7930,7 +8032,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.82.1';
+const PAGE_VERSION = '0.83.2';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -9375,6 +9477,7 @@ for (const ev of ['pointerdown', 'keydown', 'wheel', 'touchstart']) addEventList
 { let last = ''; setInterval(() => { if (!pad || !pad.on) return; const sig = [Math.round((pad.mx || 0) * 5), Math.round((pad.my || 0) * 5), pad.draw ? 1 : 0, Math.round((pad.aim || 0) * 5)].join(); if (sig !== last) { if (last) awayInput(); last = sig; } }, 1000); }
 setInterval(awayCheck, 3000); setInterval(sendStatus, 45000); document.addEventListener('visibilitychange', sendStatus); // (the server times a hidden page itself: a phone stops running the page soon after it's put away) // and again now and then, in case the connection was replaced without us noticing addEventListener('focus', awayCheck); addEventListener('blur', awayCheck); document.addEventListener('visibilitychange', awayCheck);
 function setScreens() {
+  if ($('lbPop') && !$('lbPop').hidden && (mode === 'menu' || !view || view.m.ph !== 'lobby')) lbPop(null); // (the lobby's pop-up goes when the lobby does)
   const inGame = mode !== 'menu';
   if (typeof renderRejoin === 'function' && $('rejoinBar')) renderRejoin();
   if (typeof dmMini === 'function' && $('dmMini')) dmMini();
@@ -9400,7 +9503,7 @@ const TUT_LOADOUT = { el: 'frost', ro: 'ranger' }; // the all-rounder, and the e
 const TUT_STEPS = [
   { k: 'move', title: 'Move', text: 'Move with W A S D' },
   { k: 'shoot', title: 'Shoot', text: 'Hold left click to draw, let go to shoot' },
-  { k: 'full', title: 'Full draw', text: 'Hold until the ring turns white' },
+  { k: 'full', title: 'Full draw', text: 'Hold until the ring turns white for a full power shot' },
   { k: 'dash', title: 'Dash', text: 'Press Space to dash' },
   { k: 'dodge', title: 'Dodge', text: 'Dodge 5 shots with Space' },
   { k: 'ability', title: 'Ability', text: 'Press Q for {ab}, then shoot' },
@@ -9425,7 +9528,14 @@ function tutSpot() {
 }
 function startTutorial() {
   initAudio(); closeSubs();
-  world = Sim.createWorld({ map: 'meadow', diff: 'easy', opt: { effect: 'none' } });
+  tutWorld('meadow');
+  TUT = { plain: true, on: true, step: 0, dummy: TUT.dummy, start: { x: TUT.me.x, y: TUT.me.y }, full: false, abUsed: false, t: 0, doneT: null, shots: [], dodged: 0 };
+  setScreens(); renderCoach();
+}
+// the dummy's arena: the Meadow, except for the dodge step, which is on an empty field so there's nothing to think about
+// but the arrows (the knockback step after it needs the Meadow's pit). Only the arena changes; you and the dummy carry on
+function tutWorld(map) {
+  world = Sim.createWorld({ map, diff: 'easy', opt: { effect: 'none' } });
   const me = Sim.join(world, { name: playerName(), team: 'red', element: TUT_LOADOUT.el, role: TUT_LOADOUT.ro });
   const dummy = Sim.addBot(world, 'blue'); dummy.name = 'Dummy'; Sim.setLoadout(world, dummy.id, 'stone', 'sniper');
   Sim.startMatch(world);
@@ -9434,10 +9544,9 @@ function startTutorial() {
   { const m = world.players.find(q => q.id === me.id); m.up = m.up.filter(id => !Sim.TREE[id] || !Sim.TREE[id].active).concat('volley'); Sim.applyStats(m); m.abCd = [0, 0]; } // the ability step uses Volley: easy to see working
   dummy.bot = false; dummy.input = { mx: 0, my: 0, aim: Math.PI, draw: false, tx: 0, ty: 0 };
   world.events.length = 0; world.records.length = 0;
-  TUT = { plain: true, on: true, step: 0, dummy: dummy.id, start: { x: me.x, y: me.y }, full: false, abUsed: false, t: 0, doneT: null, shots: [], dodged: 0 };
+  TUT.dummy = dummy.id; TUT.me = { x: me.x, y: me.y };
   myId = me.id; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {};
   placeTutDummy(true);
-  setScreens(); renderCoach();
 }
 function placeTutDummy(force) {
   const d = world.players.find(q => q.id === TUT.dummy); if (!d) return;
@@ -9475,6 +9584,7 @@ function tutNext() {
   TUT.step++; TUT.full = false; TUT.abUsed = false; TUT.shots = []; TUT.dodged = 0; TUT.dg = null;
   play('tutStep');
   const k = tutStep();
+  if (k === 'dodge') tutWorld('range'); else if (k === 'ability' && MAPKEY !== 'meadow') tutWorld('meadow');
   if (k === 'knock' || k === 'dodge') placeTutDummy(true);
   if (k === 'pick') startTutFight();
   renderCoach();
@@ -9569,7 +9679,7 @@ function tutEvents(evs) {
     if (k === 'shoot' && e.e === 'hit' && e.by === myId) return tutLater(0.9);
     if (k === 'full' && e.e === 'fire' && e.id === myId) TUT.full = e.c >= 0.99;
     if (k === 'full' && e.e === 'hit' && e.by === myId && TUT.full) return tutLater(0.9);
-    if (k === 'full' && e.e === 'hit' && e.by === myId && !TUT.full) notice('Hold longer: wait for white', false);
+    if (k === 'full' && e.e === 'hit' && e.by === myId && !TUT.full) notice('Hold longer: white means full power', false);
     if (k === 'dash' && e.e === 'dash' && e.id === myId) { TUT.dashes = (TUT.dashes || 0) + 1; return tutLater(1.3); }
     if (k === 'dodge' && e.e === 'fire' && e.id === TUT.dummy) TUT.shots.push({ t: clock, hit: false });
     if (k === 'dodge' && e.e === 'hit' && e.id === myId) { const s = TUT.shots[TUT.shots.length - 1]; if (s && !s.hit) { s.hit = true; notice('Dash just as it shoots', false); } }
@@ -9673,28 +9783,35 @@ $('stLeave').onclick = () => { const lobby = STARTER.lobby; starterClose(false);
 function starterFrame(now) {
   if (!STARTER.on) return;
   const dt = Math.min(0.05, (now - STARTER.last) / 1000); STARTER.last = now;
-  const T = (now - STARTER.t0) / 1000, dpr = Math.min(2, devicePixelRatio || 1);
-  for (const c of STARTER.cards) {
-    const cv = c.cv, r = cv.getBoundingClientRect(); if (!r.width) continue;
+  const T = (now - STARTER.t0) / 1000, o = { chosen: STARTER.el, mx: STARTER.mx, my: STARTER.my, col: STARTER.col };
+  for (const c of STARTER.cards) elCardDraw(c, dt, T, o);
+  STARTER.raf = requestAnimationFrame(starterFrame);
+}
+// one element card's picture, for the tutorial's starters and the store: the element's aura behind, an archer in the
+// middle aiming at the pointer, now and then drawing and loosing an arrow that trails the element.
+// o: { chosen: the element just picked (it blazes, the others dim), mx, my: the pointer, col: the archer's colour }
+function elCardDraw(c, dt, T, o) {
+  const dpr = Math.min(2, devicePixelRatio || 1);
+    const cv = c.cv, r = cv.getBoundingClientRect(); if (!r.width || r.bottom < 0 || r.top > innerHeight) return; // (off screen: nothing to draw)
     const W = Math.round(r.width * dpr); if (cv.width !== W) { cv.width = W; cv.height = W; }
     const g = cv.getContext('2d'), S = r.width, cx = S / 2, cy = S * 0.52, col = ELEMENTS[c.k].color;
-    const hot = STARTER.el === c.k ? 1.7 : STARTER.el ? 0.4 : c.b.matches(':hover') || c.b.classList.contains('padsel') ? 1 : 0.55;
+    const hot = o.chosen === c.k ? 1.7 : o.chosen ? 0.4 : c.b.matches(':hover') || c.b.classList.contains('padsel') ? 1 : 0.55;
     c.heat = c.heat == null ? hot : c.heat + (hot - c.heat) * Math.min(1, dt * 5);
     const H = c.heat;
     // aim at the pointer (or sweep slowly when it's away)
-    const ax = STARTER.mx - (r.left + cx), ay = STARTER.my - (r.top + cy);
-    const want = Math.hypot(ax, ay) < 2000 && STARTER.mx > -1e3 ? Math.atan2(ay, ax) : -Math.PI / 2 + Math.sin(T * 0.6 + c.k.length) * 0.7;
+    const ax = o.mx - (r.left + cx), ay = o.my - (r.top + cy);
+    const want = Math.hypot(ax, ay) < 2000 && o.mx > -1e3 ? Math.atan2(ay, ax) : -Math.PI / 2 + Math.sin(T * 0.6 + c.k.length) * 0.7;
     let d = want - c.aim; while (d > Math.PI) d -= TAU; while (d < -Math.PI) d += TAU; c.aim += d * Math.min(1, dt * 6);
     // drawing and loosing: hovered or chosen cards shoot often, the others now and then
     c.next -= dt * (H > 0.9 ? 2.2 : 1);
     if (c.next <= 0 && c.ch === 0) c.ch = 0.001;
-    if (c.ch > 0) { c.ch = Math.min(1, c.ch + dt * (H > 0.9 ? 1.6 : 1.1)); if (c.ch >= 1) { c.hold += dt; if (c.hold > 0.18) { starterLoose(c, S, cx, cy); c.ch = 0; c.hold = 0; c.next = STARTER.el === c.k ? 0.45 : H > 0.9 ? 0.5 : 2.8 + Math.random() * 2; } } }
+    if (c.ch > 0) { c.ch = Math.min(1, c.ch + dt * (H > 0.9 ? 1.6 : 1.1)); if (c.ch >= 1) { c.hold += dt; if (c.hold > 0.18) { starterLoose(c, S, cx, cy, o); c.ch = 0; c.hold = 0; c.next = o.chosen === c.k ? 0.45 : H > 0.9 ? 0.5 : 2.8 + Math.random() * 2; } } }
     g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, S, S);
     starterAura(g, c, S, cx, cy, T, dt, H, col);
     // the archer
     const sc = S / 64 * 0.68, keep = ctx;
     g.save(); g.translate(cx, cy); g.scale(sc, sc); g.translate(-32, -32); ctx = g;
-    try { drawPlayer({ id: '_st' + c.k, x: 32, y: 32, a: c.aim, c: STARTER.col, el: c.k, ro: 'ranger', tm: 'red', hp: 1, mh: 1, rz: 16, n: '', ch: c.ch, dr: c.ch > 0 ? 1 : 0, up: [c.k], f: 0 }, false, true); } catch (e) {}
+    try { drawPlayer({ id: '_st' + c.k, x: 32, y: 32, a: c.aim, c: o.col, el: c.k, ro: 'ranger', tm: 'red', hp: 1, mh: 1, rz: 16, n: '', ch: c.ch, dr: c.ch > 0 ? 1 : 0, up: [c.k], f: 0 }, false, true); } catch (e) {}
     finally { ctx = keep; g.restore(); }
     // arrows in flight, over everything
     g.globalCompositeOperation = 'lighter';
@@ -9706,12 +9823,26 @@ function starterFrame(now) {
     }
     g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
     c.arrows = c.arrows.filter(a => a.t < 0.7);
-  }
-  STARTER.raf = requestAnimationFrame(starterFrame);
+  
 }
-function starterLoose(c, S, cx, cy) {
+// the store's element cards: drawn while the store is open
+const SHOPEL = { cards: [], raf: 0, last: 0, t0: 0, mx: -1e4, my: -1e4 };
+function shopElsStart() {
+  SHOPEL.cards = [...document.querySelectorAll('#stEls .stcard')].map((b, i) => ({ k: b.dataset.shopel, b, cv: b.querySelector('canvas'), parts: [], arrows: [], bolts: [], ch: 0, hold: 0, next: 1 + i * 0.9, aim: -Math.PI / 2, boom: 0 }));
+  if (SHOPEL.raf) return;
+  SHOPEL.t0 = SHOPEL.last = performance.now(); SHOPEL.raf = requestAnimationFrame(shopElsFrame);
+}
+function shopElsFrame(now) {
+  if ($('storeScr').hidden || !SHOPEL.cards.length) { SHOPEL.raf = 0; return; }
+  const dt = Math.min(0.05, (now - SHOPEL.last) / 1000); SHOPEL.last = now;
+  const o = { chosen: null, mx: SHOPEL.mx, my: SHOPEL.my, col: (myAvatar() || {}).c || TEAM_INFO.red.shades[0] };
+  for (const c of SHOPEL.cards) elCardDraw(c, dt, (now - SHOPEL.t0) / 1000, o);
+  SHOPEL.raf = requestAnimationFrame(shopElsFrame);
+}
+addEventListener('pointermove', e => { if (SHOPEL.raf) { SHOPEL.mx = e.clientX; SHOPEL.my = e.clientY; } }, { passive: true });
+function starterLoose(c, S, cx, cy, o) {
   const sp = S * 2.2; c.arrows.push({ x: cx + Math.cos(c.aim) * S * 0.2, y: cy + Math.sin(c.aim) * S * 0.2, vx: Math.cos(c.aim) * sp, vy: Math.sin(c.aim) * sp, t: 0 });
-  if (STARTER.el === c.k || c.b.matches(':hover')) try { sfx.twang(1, 0.35); } catch (e) {}
+  if ((o && o.chosen === c.k) || c.b.matches(':hover')) try { sfx.twang(1, 0.35); } catch (e) {}
 }
 const hexA = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${n >> 8 & 255},${n & 255},${Math.max(0, Math.min(1, a)).toFixed(3)})`; };
 // a single speck of an element: frost snow, flame embers, storm sparks
@@ -9719,6 +9850,11 @@ function starterMote(k, x, y, S, trail) {
   const R = Math.random;
   if (k === 'frost') return { k, x, y, vx: (R() - 0.5) * 14, vy: trail ? (R() - 0.5) * 10 : 28 + R() * 26, life: trail ? 0.5 : 4 + R() * 3, t: 0, s: (trail ? 1.4 : 1.6) + R() * 2.2, rot: R() * 6 };
   if (k === 'flame') return { k, x, y, vx: (R() - 0.5) * 22, vy: -(trail ? 20 : 26 + R() * 40), life: trail ? 0.45 : 1 + R() * 1.1, t: 0, s: (trail ? 2 : 1.6) + R() * 2.6 };
+  if (k === 'poison') return { k, x, y, vx: (R() - 0.5) * 10, vy: -(trail ? 8 : 14 + R() * 22), life: trail ? 0.5 : 1.6 + R() * 1.2, t: 0, s: (trail ? 1.4 : 2) + R() * 3 };
+  if (k === 'stone') return { k, x, y, vx: (R() - 0.5) * 16, vy: trail ? (R() - 0.5) * 10 : 12 + R() * 22, life: trail ? 0.4 : 0.9 + R() * 1, t: 0, s: 1 + R() * 2.2 };
+  if (k === 'void') return { k, x, y, vx: 0, vy: 0, life: trail ? 0.4 : 1.6 + R() * 0.8, t: 0, s: 1.2 + R() * 1.8 };
+  if (k === 'shadow') return { k, x, y, vx: (R() - 0.5) * 12, vy: trail ? (R() - 0.5) * 8 : -(12 + R() * 20), life: trail ? 0.55 : 1.4 + R() * 1, t: 0, s: (trail ? 3 : 4) + R() * 6 };
+  if (k === 'blood') return { k, x, y, vx: (R() - 0.5) * 34, vy: trail ? (R() - 0.5) * 20 : -(16 + R() * 34), life: trail ? 0.4 : 1 + R() * 0.8, t: 0, s: 1.4 + R() * 1.8 };
   return { k, x, y, vx: (R() - 0.5) * (trail ? 60 : 90), vy: (R() - 0.5) * (trail ? 60 : 90), life: trail ? 0.25 : 0.35 + R() * 0.4, t: 0, s: 1 + R() * 1.6 };
 }
 function starterAura(g, c, S, cx, cy, T, dt, H, col) {
@@ -9733,12 +9869,17 @@ function starterAura(g, c, S, cx, cy, T, dt, H, col) {
     if (c.boom > 0.85) for (let i = 0; i < 6; i++) { const m = starterMote(c.k, cx, cy, S, false); const a = Math.random() * TAU, v = S * (0.6 + Math.random()); m.vx = Math.cos(a) * v; m.vy = Math.sin(a) * v; m.life *= 0.6; c.parts.push(m); }
   }
   // spawn ambient motes, more when hot
-  const rate = (c.k === 'storm' ? 26 : c.k === 'flame' ? 34 : 18) * H;
+  const rate = ({ storm: 26, flame: 34, frost: 18, poison: 16, stone: 14, void: 30, shadow: 18, blood: 12 }[c.k] || 18) * H;
   c.acc = (c.acc || 0) + rate * dt;
   while (c.acc >= 1) { c.acc--;
     const R = Math.random;
     if (c.k === 'frost') c.parts.push(starterMote('frost', R() * S, c.parts.length < 30 ? R() * S : -6, S));
     else if (c.k === 'flame') { const a = R() * TAU, rr = S * (0.16 + R() * 0.2); c.parts.push(starterMote('flame', cx + Math.cos(a) * rr, cy + S * 0.1 + Math.abs(Math.sin(a)) * rr * 0.5, S)); }
+    else if (c.k === 'poison') c.parts.push(starterMote('poison', cx + (R() - 0.5) * S * 0.6, cy + S * 0.2 + R() * S * 0.1, S));
+    else if (c.k === 'stone') { const a = R() * TAU, rr = S * 0.36; c.parts.push(starterMote('stone', cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.9, S)); }
+    else if (c.k === 'void') { const m = starterMote('void', 0, 0, S); m.cx = cx; m.cy = cy; m.a = R() * TAU; m.r = S * (0.42 + R() * 0.08); c.parts.push(m); } // (drawn spiralling in)
+    else if (c.k === 'shadow') c.parts.push(starterMote('shadow', cx + (R() - 0.5) * S * 0.55, cy + S * 0.12 + R() * S * 0.08, S));
+    else if (c.k === 'blood') { const a = R() * TAU, rr = S * 0.2; c.parts.push(starterMote('blood', cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, S)); }
     else { const a = R() * TAU, rr = S * (0.2 + R() * 0.16); c.parts.push(starterMote('storm', cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, S)); }
   }
   // the element's own shape around the archer
@@ -9754,6 +9895,32 @@ function starterAura(g, c, S, cx, cy, T, dt, H, col) {
       const fg = g.createRadialGradient(x, y, 0, x, y - S * 0.03, S * 0.06 * fl * (0.6 + H * 0.5)); fg.addColorStop(0, hexA('#ffd27a', 0.5 * H)); fg.addColorStop(1, hexA(col, 0));
       g.fillStyle = fg; g.beginPath(); g.ellipse(x, y - S * 0.02, S * 0.035, S * 0.07 * fl, 0, 0, TAU); g.fill(); }
     g.globalCompositeOperation = 'source-over';
+  } else if (c.k === 'poison') { // a toxic pool under the archer, pulsing
+    const pl = 0.85 + 0.15 * Math.sin(T * 2.4), pg = g.createRadialGradient(0, S * 0.16, 0, 0, S * 0.16, S * 0.3 * pl);
+    pg.addColorStop(0, hexA(col, 0.35 * Math.min(1, H))); pg.addColorStop(1, hexA(col, 0));
+    g.fillStyle = pg; g.beginPath(); g.ellipse(0, S * 0.16, S * 0.3 * pl, S * 0.1 * pl, 0, 0, TAU); g.fill();
+  } else if (c.k === 'stone') { // five rocks orbiting slowly, bobbing
+    for (let i = 0; i < 5; i++) { const a = T * 0.5 + i * TAU / 5, x = Math.cos(a) * S * 0.36, y = Math.sin(a) * S * 0.3 + Math.sin(T * 2 + i) * S * 0.015, rs = S * (0.03 + 0.008 * (i % 3));
+      g.save(); g.translate(x, y); g.rotate(T * (0.6 + i * 0.15) + i);
+      g.fillStyle = i % 2 ? '#8a7354' : '#a08664'; g.strokeStyle = hexA(col, 0.5 + 0.4 * Math.min(1, H)); g.lineWidth = 1.2;
+      g.beginPath(); for (let v = 0; v < 6; v++) { const va = v * TAU / 6, vr = rs * (0.75 + ((v * 37 + i * 11) % 10) / 25); v ? g.lineTo(Math.cos(va) * vr, Math.sin(va) * vr) : g.moveTo(Math.cos(va) * vr, Math.sin(va) * vr); } g.closePath(); g.fill(); g.stroke(); g.restore(); }
+  } else if (c.k === 'void') { // three arms spiralling in
+    g.globalCompositeOperation = 'lighter'; g.lineWidth = 2;
+    for (let i = 0; i < 3; i++) { g.strokeStyle = hexA(col, (0.2 + 0.25 * Math.min(1, H)) * (1 - i * 0.15)); g.beginPath();
+      for (let k = 0; k <= 24; k++) { const f = k / 24, a = -T * 1.3 + i * TAU / 3 + f * 2.6, rr = S * (0.44 - f * 0.26); k ? g.lineTo(Math.cos(a) * rr, Math.sin(a) * rr) : g.moveTo(Math.cos(a) * rr, Math.sin(a) * rr); } g.stroke(); }
+    g.globalCompositeOperation = 'source-over';
+  } else if (c.k === 'shadow') { // a dark ring closing in, and three shades circling
+    const vg = g.createRadialGradient(0, 0, S * 0.22, 0, 0, S * 0.5); vg.addColorStop(0, 'rgba(10,8,22,0)'); vg.addColorStop(1, `rgba(10,8,22,${0.35 + 0.2 * Math.min(1, H)})`);
+    g.fillStyle = vg; g.fillRect(-S / 2, -S / 2, S, S);
+    for (let i = 0; i < 3; i++) { const a = T * 1.1 + i * TAU / 3, x = Math.cos(a) * S * 0.33, y = Math.sin(a) * S * 0.33, p = 0.7 + 0.3 * Math.sin(T * 4 + i * 2);
+      const sg = g.createRadialGradient(x, y, 0, x, y, S * 0.05 * p); sg.addColorStop(0, hexA('#d8dcff', 0.7 * Math.min(1, H + 0.2))); sg.addColorStop(0.5, hexA(col, 0.4)); sg.addColorStop(1, hexA(col, 0));
+      g.fillStyle = sg; g.beginPath(); g.arc(x, y, S * 0.05 * p, 0, TAU); g.fill(); }
+  } else if (c.k === 'blood') { // a heartbeat: two quick pulses of a ring, then a rest
+    const ph = (T % 1.1) / 1.1, beat = Math.max(0, 1 - Math.abs(ph - 0.1) * 12) + 0.7 * Math.max(0, 1 - Math.abs(ph - 0.3) * 12);
+    g.strokeStyle = hexA(col, 0.25 + 0.5 * beat * Math.min(1, H + 0.3)); g.lineWidth = 2 + 3 * beat;
+    g.beginPath(); g.arc(0, 0, S * 0.31 * (1 + 0.07 * beat), 0, TAU); g.stroke();
+    if (beat > 0.95 && !c.bb) { c.bb = 1; for (let i = 0; i < 5; i++) { const a = Math.random() * TAU, m = starterMote('blood', cx + Math.cos(a) * S * 0.31, cy + Math.sin(a) * S * 0.31, S); m.vx = Math.cos(a) * 40; m.vy = Math.sin(a) * 40 - 20; c.parts.push(m); } }
+    if (beat < 0.5) c.bb = 0;
   } else { // storm: a crackling ring, and bolts jumping across it
     g.strokeStyle = hexA(col, 0.18 + 0.2 * Math.min(1, H)); g.lineWidth = 1.2; g.setLineDash([3, 7]); g.lineDashOffset = -T * 30;
     g.beginPath(); g.arc(0, 0, S * 0.36, 0, TAU); g.stroke(); g.setLineDash([]);
@@ -9775,6 +9942,14 @@ function starterAura(g, c, S, cx, cy, T, dt, H, col) {
     if (m.k === 'frost') { m.vx += Math.sin(m.t * 2 + m.rot) * 6 * dt; g.strokeStyle = hexA('#eaf8ff', 0.75 * Math.min(1, k * 2)); g.lineWidth = 1;
       g.save(); g.translate(m.x, m.y); g.rotate(m.rot + m.t); g.beginPath(); for (let i = 0; i < 3; i++) { const a = i * Math.PI / 3; g.moveTo(-Math.cos(a) * m.s, -Math.sin(a) * m.s); g.lineTo(Math.cos(a) * m.s, Math.sin(a) * m.s); } g.stroke(); g.restore(); }
     else if (m.k === 'flame') { m.vx *= 0.98; g.fillStyle = k > 0.6 ? hexA('#ffe08a', 0.9 * k) : hexA(k > 0.3 ? col : '#c8361a', 0.85 * k); g.beginPath(); g.arc(m.x, m.y, m.s * (0.4 + k * 0.6), 0, TAU); g.fill(); }
+    else if (m.k === 'poison') { m.vx += Math.sin(m.t * 5 + m.s) * 8 * dt; g.strokeStyle = hexA(col, 0.8 * k); g.lineWidth = 1.1; g.beginPath(); g.arc(m.x, m.y, m.s, 0, TAU); g.stroke(); g.fillStyle = hexA('#e8ffd0', 0.5 * k); g.fillRect(m.x - m.s * 0.4, m.y - m.s * 0.5, 1.2, 1.2); }
+    else if (m.k === 'stone') { m.vy += 30 * dt; g.fillStyle = hexA(Math.random() < 0.5 ? '#c9a878' : '#8a7354', 0.8 * k); g.fillRect(m.x - m.s / 2, m.y - m.s / 2, m.s, m.s); }
+    else if (m.k === 'void') { if (m.cx != null) { m.a += dt * (1.4 + S * 0.08 / (m.r + 8)); m.r = Math.max(2, m.r - dt * S * 0.16); m.x = m.cx + Math.cos(m.a) * m.r; m.y = m.cy + Math.sin(m.a) * m.r * 0.92; }
+      g.fillStyle = hexA(col, 0.9 * k); g.beginPath(); g.arc(m.x, m.y, m.s, 0, TAU); g.fill(); g.fillStyle = hexA('#ffffff', 0.6 * k); g.fillRect(m.x - 0.6, m.y - 0.6, 1.2, 1.2); }
+    else if (m.k === 'shadow') { g.globalCompositeOperation = 'source-over'; m.s += dt * 3;
+      g.fillStyle = `rgba(14,12,30,${(0.45 * k).toFixed(3)})`; g.beginPath(); g.arc(m.x, m.y, m.s, 0, TAU); g.fill();
+      g.strokeStyle = hexA(col, 0.35 * k); g.lineWidth = 1; g.stroke(); g.globalCompositeOperation = 'lighter'; }
+    else if (m.k === 'blood') { m.vy += 150 * dt; g.fillStyle = hexA(k > 0.5 ? col : '#8a1020', 0.9 * k); g.beginPath(); g.arc(m.x, m.y, m.s, 0, TAU); g.fill(); g.fillStyle = hexA('#ffb0b8', 0.5 * k); g.fillRect(m.x - m.s * 0.4, m.y - m.s * 0.4, 1, 1); }
     else { g.fillStyle = hexA(Math.random() < 0.5 ? '#ffffff' : col, k); g.fillRect(m.x - m.s / 2, m.y - m.s / 2, m.s, m.s); }
   }
   g.globalCompositeOperation = 'source-over';
@@ -9944,7 +10119,13 @@ function renderStore() {
     return `<div class="stitem" style="--cc:${col}"><b>${esc(x.name)}</b><span class="status">${esc(kind)} · ${state}</span><span class="status">${esc(x.blurb || '')}</span>
       ${can ? `<div class="btnrow"><button type="button" class="cta" data-unlock="${k}"${W.crests < W.cost ? ' disabled' : ''}>${crestTxt(W.cost)}</button>${W.payments ? `<button type="button" class="ghost" data-buy="${k}">${fmtGBP(W.prices.unlock)}</button>` : ''}</div>` : ''}</div>`;
   };
-  $('stUnlocks').innerHTML = W.premium.el.map(k => item(k, ELEMENTS[k], 'Element', ELEMENTS[k].color)).join('') + W.premium.ro.map(k => item(k, ROLES[k], 'Role · ' + ROLES[k].cat, CAT_COL[ROLES[k].cat])).join('');
+  $('stUnlocks').innerHTML = W.premium.ro.map(k => item(k, ROLES[k], 'Role · ' + ROLES[k].cat, CAT_COL[ROLES[k].cat])).join('');
+  // the elements: each one alive on its card (the same pictures as choosing your first element)
+  const elFoot = k => { const owned = own(k), free = R.el === k, can = signed && !owned;
+    return `<span class="stst">${owned ? '<span class="own">Owned</span>' : free ? '<span class="free">Free this week</span>' : W.locks ? 'Locked in ranked' : 'Free to play for now'}</span>` +
+      (can ? `<div class="btnrow"><button type="button" class="cta sm" data-unlock="${k}"${W.crests < W.cost ? ' disabled' : ''}>${crestTxt(W.cost)}</button>${W.payments ? `<button type="button" class="ghost sm" data-buy="${k}">${fmtGBP(W.prices.unlock)}</button>` : ''}</div>` : ''); };
+  $('stEls').innerHTML = W.premium.el.map(k => `<div class="shopel" style="--ec:${ELEMENTS[k].color}"><button type="button" class="stcard in" data-shopel="${k}" style="--ec:${ELEMENTS[k].color}"><canvas></canvas><span class="stx"><b>${esc(ELEMENTS[k].name)}</b><small>${esc(ELEMENTS[k].blurb)}</small></span></button><div class="shopelf">${elFoot(k)}</div></div>`).join('');
+  shopElsStart();
   const S = W.sup || {}, P = W.prices, st = W.status || {}, PS = W.pass || {}, can = signed && W.payments;
   const tierName = st.sp ? SUP_NAME[st.sp] : null, T = W.tiers || [], nextT = T.find(t => t.p > (W.spent || 0));
   const gift = k => can && (k !== 'founder' || !W.foundersClosed) ? `<button type="button" class="ghost" data-gift="${k}">Gift to a friend</button>` : '';
@@ -9974,13 +10155,13 @@ function renderStore() {
   const E = { g: 8, gw: 8, m: 25, mw: 25, fw: 100, a: 40 };
   $('stEarn').innerHTML = `Ranked games, and custom games without bots, earn Crests: ${E.g} a game (${E.g + E.gw} for a win), ${E.m} a match (${E.m + E.mw} for a win), and ${E.fw} extra for your first match win each day. Every achievement tier is worth ${E.a}, and reaching B, A and S in each training drill for the first time is worth 50, 100 and 200 (sign in to keep them). An unlock costs ${W.cost.toLocaleString()}: about five hours of play. This week's free picks: <b>${esc(R.el ? ELEMENTS[R.el].name : '–')}</b> and <b>${esc(R.ro ? ROLES[R.ro].name : '–')}</b>.`;
   // wiring
-  $('stUnlocks').querySelectorAll('[data-unlock]').forEach(b => b.onclick = async () => {
+  document.querySelectorAll('#stUnlocks [data-unlock], #stEls [data-unlock]').forEach(b => b.onclick = async () => {
     b.disabled = true;
     const r = await fetch('/api/unlock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: b.dataset.unlock }) }).then(r => r.json()).catch(() => ({ error: 'Could not reach the server.' }));
     if (r.error) { notice(esc(r.error), false); b.disabled = false; return; }
     uiSfx.click(); setWallet(r); notice(`${esc((ELEMENTS[b.dataset.unlock] || ROLES[b.dataset.unlock]).name)} unlocked!`, true, '#7dff8a');
   });
-  $('stUnlocks').querySelectorAll('[data-buy]').forEach(b => b.onclick = () => checkoutGo({ kind: 'unlock', item: b.dataset.buy }));
+  document.querySelectorAll('#stUnlocks [data-buy], #stEls [data-buy]').forEach(b => b.onclick = () => checkoutGo({ kind: 'unlock', item: b.dataset.buy }));
   if ($('stJoin')) $('stJoin').onclick = () => checkoutGo({ kind: 'supporter' });
   if ($('stPass')) $('stPass').onclick = () => checkoutGo({ kind: 'pass' });
   $('stMember').querySelectorAll('[data-gift]').forEach(b => b.onclick = () => giftPick(b.dataset.gift));
@@ -12472,11 +12653,13 @@ function teamsHtml(v) {
       (p.id === myId ? '<span class="tag you">You</span>' : '') + (p.id === hostId && mode === 'online' ? '<span class="tag">Host</span>' : '') +
       (p.b && !ranked ? (p.dv && host ? botSkillHtml(p) : `<span class="tag">${p.dv ? esc(BOT_SKILL[p.dv] || 'Bot') : 'Bot'}</span>`) : '') + (p.b && ranked ? '<span class="aitag" title="AI player">AI</span>' : '') + (ranked ? '' : hcapHtml(p, host)) +
       (p.b && host ? `<button type="button" class="xbtn" data-rm="${p.id}" aria-label="Remove ${esc(p.n)}">×</button>` : '') + '</div>').join('');
-    const nOpen = MAX_TEAM - list.length, open = nOpen > 0 ? `<div class="slot empty">${nOpen === 1 ? 'Open slot' : nOpen + ' open slots'}</div>` : '';
+    const nOpen = MAX_TEAM - list.length, open = nOpen > 0 ? `<div class="slot empty" style="--n:${nOpen}">${nOpen === 1 ? 'Open slot' : nOpen + ' open slots'}</div>` : '';
     const full = list.length >= MAX_TEAM;
     const canJoin = ranked ? false : me ? me.tm !== t && !full : mode === 'online' && ['lobby', 'over', 'post'].includes(v.m.ph) && (!full || list.some(p => p.b));
     const foot = (canJoin ? `<button type="button" class="ghost sm" data-join="${t}">Join ${teamName(t)}</button>` : '') +
       (host && !full ? `<button type="button" class="ghost sm" data-addbot="${t}">+ Add bot</button>` : '');
+    // (in the lobby the buttons sit in the team's header line, so the box is always exactly four rows tall)
+    if (!$('lobby').hidden && v.m.ph === 'lobby') return `<div class="tcol" data-navsec style="--tc:${TEAM_COL[t]}"><div class="thead"><b>${teamName(t)}</b><span>${list.length} / ${MAX_TEAM}</span><span class="thb">${foot}</span></div>${slots}${open}</div>`;
     return `<div class="tcol" data-navsec style="--tc:${TEAM_COL[t]}"><div class="thead"><b>${teamName(t)}</b><span>${list.length} / ${MAX_TEAM}</span></div>${slots}${open}` +
       (foot ? `<div class="tfoot">${foot}</div>` : '') + '</div>';
   }).join('') + (mode === 'online' ? specHtml(v, me) : '');
@@ -12574,8 +12757,6 @@ $('lbPts').onchange = () => act({ t: 'cfg', ptw: +$('lbPts').value });
 const OPT_NAMES = Sim.OPT_NAMES;
 // numeric rules are sliders (a percentage of the standard, 100% in the middle of the track's marks); the rest are lists
 const optDef = o => (o.slider ? o.def : o.def || Object.keys(o.values)[0]);
-$('opt-effect').innerHTML = Object.keys(Sim.OPTIONS.effect.values).map(v => `<option value="${v}">${OPT_NAMES[v] || v}${v === Sim.OPTIONS.effect.def ? ' (standard)' : ''}</option>`).join('');
-$('opt-effect').addEventListener('change', () => act({ t: 'cfg', opt: { effect: $('opt-effect').value } }));
 $('lbOpts').innerHTML = Object.entries(Sim.OPTIONS).filter(([k]) => k !== 'effect').map(([k, o]) => o.slider
   ? `<div class="field optsl"><label for="opt-${k}">${esc(o.label)} <output id="optv-${k}">100%</output></label><input type="range" id="opt-${k}" data-opt="${k}" min="${o.min}" max="${o.max}" step="${o.step}" value="${o.def}" list="optm-${k}"><datalist id="optm-${k}"><option value="${o.def}"></option></datalist><button type="button" class="linkbtn optrs" data-optreset="${k}" title="Back to the standard">Standard</button></div>`
   : `<div class="field"><label for="opt-${k}">${esc(o.label)}</label><select id="opt-${k}" data-opt="${k}">` + Object.keys(o.values).map(v => `<option value="${v}">${OPT_NAMES[v] || v}${v === optDef(o) ? ' (standard)' : ''}</option>`).join('') + '</select></div>').join('');
@@ -12592,21 +12773,30 @@ function toggleBan(k) {
 }
 $('gmDiff').onchange = () => act({ t: 'cfg', diff: $('gmDiff').value });
 $('lbStart').onclick = () => act({ t: 'start' });
-$('lbMaps').addEventListener('click', e => { const b = e.target.closest('.mapcard'); if (b && !b.disabled && !MS.open) setTimeout(() => { $('lbMapFold').open = false; }, 180); });
-// the lobby's folding sections open over the page (one at a time); a click anywhere else, or Escape, closes them
-document.querySelectorAll('#lobby .lbfold').forEach(d => d.addEventListener('toggle', () => {
-  if (!d.open) return;
-  document.querySelectorAll('#lobby .lbfold[open]').forEach(o => { if (o !== d) o.open = false; });
-  const body = d.querySelector('.lbbody'); if (!body || MS.open) return; // (the panel reaches down to the bottom of the window at most)
-  body.classList.remove('up'); body.style.maxHeight = '';
-  requestAnimationFrame(() => { // below the header line if there's room, else above it
-    const r = body.getBoundingClientRect(), sr = d.querySelector('summary').getBoundingClientRect(), below = innerHeight - r.top - 14, above = sr.top - 20;
-    if (below < Math.min(320, r.height) && above > below) { body.classList.add('up'); body.style.maxHeight = Math.max(160, above) + 'px'; }
-    else body.style.maxHeight = Math.max(160, below) + 'px';
-  });
-}));
-document.addEventListener('pointerdown', e => { if (MS.open) return; for (const d of document.querySelectorAll('#lobby .lbfold[open]')) if (!d.contains(e.target)) d.open = false; });
-addEventListener('keydown', e => { if (e.key === 'Escape') { const d = document.querySelector('#lobby .lbfold[open]'); if (d) { d.open = false; e.stopPropagation(); } } }, true);
+// ---- the lobby's pop-up: your archetype, the arena, the map effect, the rules and the room each open in it, one at a
+// time, over the lobby (so opening one never moves anything), whole on screen; Done, Escape or a click outside closes it
+document.body.appendChild($('lbPop'));
+const LB_POP = { arch: 'Your archetype', map: 'Arena', eff: 'Map effect', rules: 'Rules', room: 'Room settings' };
+function lbPop(k) {
+  const pop = $('lbPop'); if (!k) { pop.hidden = true; pop.dataset.k = ''; return; }
+  pop.dataset.k = k; $('lbPopTitle').textContent = LB_POP[k] + (k !== 'arch' && !isHost() ? ' · set by the host' : '');
+  pop.querySelectorAll('.lbpane').forEach(p => { p.hidden = p.dataset.pane !== k; });
+  pop.hidden = false; pop.querySelector('.lbpopbody').scrollTop = 0; uiSfx.click();
+}
+$('lbArchBtn').onclick = () => lbPop('arch');
+$('lbMapBtn').onclick = () => lbPop('map');
+$('lbMut').onclick = () => lbPop('eff');
+$('lbRulesBtn').onclick = () => lbPop('rules');
+$('lbRoomBtn').onclick = () => lbPop('room');
+$('lbPopDone').onclick = () => lbPop(null);
+$('lbPop').addEventListener('pointerdown', e => { if (e.target === $('lbPop')) lbPop(null); });
+addEventListener('keydown', e => { if (e.key === 'Escape' && !$('lbPop').hidden) { e.stopPropagation(); e.preventDefault(); lbPop(null); } }, true);
+$('lbMaps').addEventListener('click', e => { const b = e.target.closest('.mapcard'); if (b && !b.disabled) setTimeout(() => lbPop(null), 160); }); // picking an arena closes it
+// map effects to choose from: Random (the standard), None, or any one
+$('lbEffs').innerHTML = [['random', 'Random', 'A random effect each match: sometimes none, sometimes two at once.', '#ffcf5a'], ['none', 'None', 'No map effect: the plain rules.', '#9aa5a0']]
+  .concat(Object.keys(Sim.MUTATORS).map(k => [k, Sim.MUTATORS[k].name, Sim.MUTATORS[k].desc, Sim.MUTATORS[k].color]))
+  .map(([k, n, d, c]) => `<button type="button" class="effc" data-eff="${k}" style="--mc:${c}"><b>${esc(n)}${k === 'random' ? ' <small>(standard)</small>' : ''}</b><span>${esc(d)}</span></button>`).join('');
+$('lbEffs').addEventListener('click', e => { const b = e.target.closest('[data-eff]'); if (!b || b.disabled) return; act({ t: 'cfg', opt: { effect: b.dataset.eff } }); setTimeout(() => lbPop(null), 160); });
 $('lbSpec').onclick = () => act({ t: 'spec' });
 $('lbLeave').onclick = () => toMenu();
 $('endBtn').onclick = () => { if (mode === 'local' && (TUT.on || TR.on)) { closeMenu(); toMenu(); } else { act({ t: 'lobby' }); closeMenu(); } };
@@ -12615,7 +12805,7 @@ $('resLobbyBtn').onclick = () => act({ t: 'lobby' });
 function renderLobby(v) {
   const host = isHost(), online = mode === 'online';
   setC('lbCfg', online && host ? JSON.stringify([roomInfo && roomInfo.name, roomInfo && roomInfo.pub, roomInfo && roomInfo.locked, roomInfo && roomInfo.max]) : '', x => {
-    $('lbRoomCfg').hidden = !x; $('lbRoomFold').hidden = !x;
+    $('lbRoomCfg').hidden = !x; $('lbRoomBtn').hidden = !x;
     if (x && roomInfo && document.activeElement !== $('lbRmName')) { $('lbRmName').value = roomInfo.name || ''; $('lbRmPub').value = roomInfo.pub ? '1' : '0'; $('lbRmMax').value = String(roomInfo.max || 8); $('lbRmNoPw').hidden = !roomInfo.locked; }
   });
   setC('lbHead', mode + (roomInfo && roomInfo.code) + (roomInfo && [roomInfo.name, roomInfo.pub, roomInfo.locked].join()), () => {
@@ -12629,10 +12819,20 @@ function renderLobby(v) {
   setC('lbLp', JSON.stringify(LP.list.map(l => [l.n, l.name, l.el, l.ro, l.pid, l.picker, (v.p.find(p => p.id === l.pid) || {}).tm])), () => { $('lbLocals').innerHTML = lpPanel('lobby'); });
   const meL = v.p.find(p => p.id === myId);
   setC('arch', meL ? meL.el + meL.ro : '', () => syncArch(meL));
-  setC('lbMut', v.m.mut || '', () => showMut($('lbMut'), v.m.mut));
+  // the map effect: what's rolled for this match; the host clicks it to choose
+  setC('lbMut', (v.m.mut || '') + ':' + ((v.m.opt || {}).effect || 'random') + ':' + host, () => {
+    const ks = Sim.mutKeys(v.m.mut), set = (v.m.opt || {}).effect || 'random', b = $('lbMut');
+    b.style.setProperty('--mc', ks.length ? Sim.MUTATORS[ks[0]].color : '#9aa5a0');
+    b.classList.toggle('calm', !ks.length);
+    const how = set === 'random' ? 'Random each match' : set === 'none' ? 'Set to none' : 'Set by the host';
+    b.innerHTML = (ks.length ? mutHtml(v.m.mut) : '<span class="mutl">Map effect this match</span><b>None</b> · the plain rules.') + `<em class="lbgo">${how}${host ? ' · Change' : ''}</em>`;
+    $('lbEffs').querySelectorAll('[data-eff]').forEach(x => { x.classList.toggle('sel', x.dataset.eff === set); x.disabled = !host; });
+  });
   setC('lbMap', v.m.map + host + (roomInfo && roomInfo.arena ? roomInfo.arena.code : ''), () => {
     $('lbMaps').querySelectorAll('.mapcard').forEach(el => { el.classList.toggle('sel', el.dataset.map === v.m.map); el.disabled = !host; });
-    const M = MAPS[v.m.map]; $('lbMapSum').innerHTML = M ? `<img class="msthumb" src="${thumbURL(v.m.map) || ''}" alt=""><b>${esc(M.name)}</b>${M.custom && roomInfo && roomInfo.arena ? ` <span class="std">code ${esc(roomInfo.arena.code)}</span>` : ''}${host ? '' : ' <span class="std">· the host picks</span>'}` : '';
+    const M = MAPS[v.m.map]; $('lbMapImg').src = (M && thumbURL(v.m.map)) || ''; $('lbMapName').textContent = M ? M.name : 'Arena';
+    $('lbMapSub').textContent = M ? (M.custom && roomInfo && roomInfo.arena ? 'Player arena · code ' + roomInfo.arena.code : M.desc) : '';
+    $('lbMapBtn').querySelector('.lbgo').textContent = host ? 'Change' : 'View';
     $('lbMapDesc').innerHTML = MAPS[v.m.map] ? `<b>${esc(MAPS[v.m.map].name)}:</b> ${esc(MAPS[v.m.map].desc)}${MAPS[v.m.map].custom && roomInfo && roomInfo.arena ? ` Code <b class="code">${esc(roomInfo.arena.code)}</b>.` : ''}` : '';
     $('lbArenaRow').hidden = !host || OFFLINE; $('lbArenaCode').disabled = $('lbArenaUse').disabled = !host;
   });
@@ -12650,9 +12850,10 @@ function renderLobby(v) {
     const names = []; for (const k in Sim.OPTIONS) { if (k === 'effect') continue; const O = Sim.OPTIONS[k]; if (O.slider) { const n = Sim.optPct(k, o[k]); if (n !== O.def) names.push(`${O.label} ${n}%`); } else { const val = o[k] || optDef(O); if (val !== optDef(O)) names.push(k === 'upg' && val === 'pure' ? 'Pure: no archetypes, no upgrades' : `${O.label}: ${OPT_NAMES[val] || val}`); } }
     $('lbOptNote').innerHTML = names.length ? names.map(n => `<span class="rule">${esc(n)}</span>`).join('<span class="std">·</span>') : '<span class="std">Standard rules</span>';
     $('lbOptFoot').textContent = host ? 'Balance data records the rules with every game.' : 'Only the host can change the rules.';
+    $('lbRulesBtn').querySelector('.lbgo').textContent = host ? 'Change' : 'View';
     // the Pure rule: no archetype to pick
     const pure = (o.upg || optDef(Sim.OPTIONS.upg)) === 'pure';
-    $('pureNote').hidden = !pure; document.querySelector('#lobby .arch').classList.toggle('pure', pure);
+    $('pureNote').hidden = !pure; $('lbArchBtn').classList.toggle('pure', pure); $('archSub').textContent = pure ? 'Pure rules: everyone is a plain archer this match' : '';
   });
   // taken-out elements and roles are greyed out and struck through in everyone's picker
   setC('lbBan', JSON.stringify(v.m.ban || []) + host + usingPad() + !!(roomInfo && roomInfo.ranked), () => {
@@ -12665,14 +12866,16 @@ function renderLobby(v) {
     $('banHint').textContent = usingPad() ? `Host: press ${padBtn('y')} on an element or role to take it out of this game, again to put it back.` : 'Host: Alt+click an element or role to take it out of this game, again to put it back.';
   });
   setC('lbStart', String(v.m.cs) + host + !!meL + online, () => {
-    $('lbStart').hidden = !host; $('lbSpec').hidden = !(meL && online && !(roomInfo && roomInfo.ranked));
+    $('lbStart').hidden = !host;
     $('lbStart').disabled = !v.m.cs;
     $('lbStatus').textContent = !meL && online ? 'Pick a team to play.' : !host ? (roomInfo && roomInfo.ranked ? 'Waiting for everyone to arrive. The match starts on its own.' : 'Waiting for the host to start the match.') : v.m.cs ? '' : 'Both teams need at least one archer. Add bots, or wait for players to join.';
   });
-  setC('lbSpecs', JSON.stringify((roomInfo && roomInfo.spec || []).map(c => c.n)) + online, () => {
+  setC('lbSpecs', JSON.stringify((roomInfo && roomInfo.spec || []).map(c => [c.cid, c.n, c.you])) + online + !!meL + !!(roomInfo && roomInfo.ranked), () => {
     const spec = (roomInfo && roomInfo.spec) || [];
-    $('lbWaiting').hidden = !(online && spec.length);
-    $('lbWaiting').innerHTML = spec.length ? `<b>Not on a team:</b> ${spec.map(c => esc(c.n)).join(', ')}` : '';
+    $('lbSpecBox').hidden = !online;
+    $('lbSpecN').textContent = spec.length;
+    $('lbSpec').hidden = !(meL && online && !(roomInfo && roomInfo.ranked));
+    $('lbSpecList').innerHTML = spec.length ? spec.map(c => `<span class="lbsp${c.you ? ' you' : ''}">${esc(c.n)}${c.you ? ' <small>(you)</small>' : ''}${c.h ? ' <small>(host)</small>' : ''}</span>`).join('') : '<span class="status">Anyone who joins waits here until they pick a team.</span>';
   });
 }
 function renderMenu(v) {
@@ -13162,7 +13365,7 @@ if (window.ResizeObserver) { const t = document.querySelector('#home .hometop');
 // Menus that are taller than the window (a laptop, or a screen at 125% or 150% scaling) are scaled down to fit, so the
 // main menu and the other screens show whole without scrolling. Never below FIT_MIN: past that a screen scrolls instead
 // (at a reduced size) so the text stays readable. Phones keep their own layout.
-const FIT_MIN = 0.72, FIT_NOSHRINK = ['resultsScreen', 'lobby'];
+const FIT_MIN = 0.72, FIT_NOSHRINK = ['resultsScreen', 'lobby', 'storeScr'];
 function fitOverlay(ov) {
   if (!ov) return;
   if (ov.hidden) { ov._fit = null; return; } // (shown again: measured afresh)
@@ -17660,6 +17863,7 @@ function updateHud() {
   });
   else if (hc.lpPick !== undefined) { $('lpPick').hidden = true; $('pkLocals').innerHTML = ''; hc.lpPick = undefined; }
   if (draft) { renderDraft(view); $('death').hidden = $('countdown').hidden = $('pickScreen').hidden = true; return; }
+  if (!lobby && !$('lbPop').hidden) lbPop(null);
   if (lobby) { renderLobby(view); $('death').hidden = $('countdown').hidden = $('pickScreen').hidden = true; return; }
   if (menuOpen) renderMenu(view);
   setC('hp', me.hp + '/' + me.mh + '/' + (me.rc || 0), () => { const pct = clamp(me.hp / me.mh * 100, 0, 100); $('hpFill').style.width = pct + '%'; $('hpFill').classList.toggle('low', pct < 30); $('hpText').textContent = me.hp;

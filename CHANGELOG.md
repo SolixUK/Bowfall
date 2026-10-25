@@ -2,6 +2,43 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.83.2
+
+- **Tutorial:** the dodge step happens on an empty field (no holes, lava, bogs, walls or boulders), so there's nothing to think about but the arrows; it's back to the Meadow for the next step, whose knockback needs the pit. The full-draw step now says what it's for: "Hold until the ring turns white for a full power shot" (and the nudge: "Hold longer: white means full power").
+
+## 0.83.1
+
+Element balance, fourth round (another 29,000 simulated games).
+
+- **Poison:** 1.2 damage per stack a second (was 1.35, originally 1.6). 1v1 win rate 57% → 52.5%.
+- **Shadow:** the bursts are 4, 9, 15, 22 and 31 damage by stack (were 2, 6, 12, 20, 31), with the fuse back to 3.5 seconds. 45% → 48%.
+- The spread across all eight elements in 1v1 is now 47–54%, from 45–57% before the pass started. Stone and Storm still climb with skill (Stone 43% with nothing but its base effect, 51% against strong bots; Storm 48% → 56%), which is by design.
+
+## 0.83.0
+
+Element balance pass, from about 29,000 simulated games per round (same role, bots and arena on both sides, map effects off, so only the element differed; 1v1 with and without upgrades, 2v2, and 1v1 at a higher bot skill), three rounds.
+
+- **Flame:** burn is 4 damage a second (it was meant to be 4.5 but had really been 5: every archer started with a burn rate of 5 and the on-hit kept whichever was larger). 1v1 win rate 55% → 53%, 2v2 61% → 53%.
+- **Poison:** 1.35 damage per stack a second, from 1.6. Still the strongest element at about 57%: more to come.
+- **Stone:** stagger now takes half the target's current draw (was 40%) and makes them take 25% more knockback (was 15%).
+- **Void:** each mark also makes your arrows hit the marked archer 6% harder, on top of the bend.
+- **Blood:** hits heal 35% of the damage (was 25%); Blood Pact 55% (was 45%). 47% → 49–51%.
+- **Shadow:** the fuse is 4 seconds (was 3). On its own this didn't move Shadow (45%); the low-stack bursts are the next thing to look at.
+- **Bots play to their element** (from Hard up): they stay on the enemy they've started building on (a shade, void marks, a poison stack short of the limit, a Frost target one hit from freezing, a staggered Stone target); Shadow bots time their shots to land before the fuse runs out; Stone bots count the stagger bonus in their knockback sums, and the sharper ones put a quick hit in first near a hazard and send the full draw while it's 25% harder; Void bots draw at least a half shot once the homing has kicked in; Blood bots don't back off hurt as early, since their hits heal them.
+
+## 0.82.3
+
+- **The store, at full size.** It was being scaled down to fit the window like the lobby was; now it scrolls instead, so the text stays readable.
+- **Element cards in the store.** Stone, Void, Shadow and Blood each get a big living card like choosing your first element: your own archer in the middle aiming at your pointer and loosing the odd arrow, wrapped in the element (orbiting rocks and falling grit for Stone, motes spiralling into a vortex for Void, dark smoke and circling shades for Shadow, a heartbeat ring that throws off droplets for Blood). Unlock buttons sit under each card. Roles stay as a list below.
+- The element-card drawing is shared now, and Poison has its own look too (a bubbling toxic pool), ready for anywhere else elements get shown.
+
+## 0.82.2
+
+- **Lobby, third pass.** Your archetype is one button (your archer, its name, Change); the element and role pickers open from it. Arena, Rules, Room and the map effect are buttons too, and each opens in one pop-up centred over the lobby: always whole on screen (it scrolls inside itself if it must), closed by Done, Escape or a click outside. Picking an arena or an effect closes it.
+- **Nothing moves.** Every team box is exactly four rows tall whatever's in it (open slots fill the rows they stand for, and Add bot / Join sit in the team's header line), and checked: the page doesn't shift a pixel from one archer to eight.
+- **Not on a team** is a fixed box under your archetype, with "Move here".
+- **Map effect:** click the map effect box itself to choose it (host): Random, None, or any one effect, each with what it does. The separate select is gone.
+
 ## 0.82.1
 
 - **Lobby panels, not folds.** Arena, Rules and Room now open as a panel over the page (below their header line, or above it when there's more room there) and close with a click elsewhere or Escape, so opening one never moves anything else. Team boxes keep the height of a full team, so players and bots joining don't shift the layout either; people not yet on a team are named in the footer instead of a strip that comes and goes.

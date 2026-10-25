@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.82.1';
+const VERSION = '0.83.2';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -929,7 +929,7 @@ const TREE = {
   frostbite: { tree: 'frost', name: 'Frostbite', desc: "A third frost hit within 6 seconds freezes the target solid for 2 seconds: they can't move, draw or shoot." },
   hoarfrost: { tree: 'frost', name: 'Hoarfrost', desc: 'Your hits leave a patch of frost on the ground where they land, for 3 seconds. Enemies in it move 35% slower.' },
   shatter:   { tree: 'frost', name: 'Shatter', desc: 'Hits on slowed or frozen enemies knock back 35% harder.' },
-  flame:     { tree: 'flame', base: true, name: 'Flame Arrows', desc: 'Hits set the target burning for 2 seconds.' },
+  flame:     { tree: 'flame', base: true, name: 'Flame Arrows', desc: 'Hits set the target burning for 2 seconds (4 damage a second).' },
   wildfire:  { tree: 'flame', name: 'Wildfire', desc: 'Fully drawn hits leave burning ground for 3 seconds.' },
   stoke:     { tree: 'flame', name: 'Stoke the Fire', desc: 'Each hit on a burning enemy keeps them burning a second longer (up to 5 seconds), and your fire burns 30% hotter.' },
   flashpoint:{ tree: 'flame', name: 'Flashpoint', desc: 'Hitting an enemy who is already burning bursts into flame: 4 damage to them and every enemy within 110px, setting the others alight.' },
@@ -946,12 +946,12 @@ const TREE = {
   kindling:  { tree: 'flame', name: 'Kindling', desc: 'Burning enemies take 50% more knockback from your arrows.' },
   overload:  { tree: 'storm', trade: true, name: 'Overload', desc: 'Lightning does double damage, but your dash takes 20% longer to recharge.' },
   potent:    { tree: 'poison', trade: true, name: 'Potent Toxin', desc: 'Poison hurts 50% more, but your arrows deal 15% less direct damage.' },
-  stone:     { tree: 'stone', base: true, name: 'Stone Arrows', desc: 'Hits stagger the target for 2 seconds: they lose 40% of their current draw and take 15% more knockback.' },
+  stone:     { tree: 'stone', base: true, name: 'Stone Arrows', desc: 'Hits stagger the target for 2 seconds: they lose half of their current draw and take 25% more knockback.' },
   boulder:   { tree: 'stone', name: 'Boulder Arrows', desc: 'Fully drawn arrows knock back 30% harder.' },
   aftershock:{ tree: 'stone', name: 'Aftershock', desc: 'Fully drawn hits send a shockwave that shoves every other enemy nearby away.' },
   petrify:   { tree: 'stone', name: 'Petrify', desc: "Staggered enemies can't dash." },
   obsidian:  { tree: 'stone', trade: true, name: 'Obsidian', desc: 'Your arrows knock back 30% harder, but fly 8% slower.' },
-  void:      { tree: 'void', base: true, name: 'Void Arrows', desc: 'Hits mark the target with void (up to 5 marks, fading 2.5 seconds after your last hit). From the second mark on, your arrows curve toward them, a little more with every mark. Only your own arrows, and only shots already heading their way.' },
+  void:      { tree: 'void', base: true, name: 'Void Arrows', desc: 'Hits mark the target with void (up to 5 marks, fading 2.5 seconds after your last hit). Each mark makes your arrows hit them 6% harder, and from the second mark on your arrows curve toward them, a little more with every mark. Only your own arrows, and only shots already heading their way.' },
   rift:      { tree: 'void', name: 'Rift', desc: 'A moment after a fully drawn hit (or any bullseye), a rift opens where the target lands. For 2 seconds it pulls them and every enemy nearby toward its centre and slows them by 30%.' },
   gravity:   { tree: 'void', name: 'Gravity Arrows', desc: 'Your arrows are dark with gravity: as they fly they pull enemies within 110px slightly toward them.' },
   horizon:   { tree: 'void', name: 'Event Horizon', desc: 'Rifts are 30% bigger, pull harder and last 3 seconds.', req: ['rift'] },
@@ -970,15 +970,15 @@ const TREE = {
   cloak:     { tree: 'assassin', trade: true, name: 'Cloak and Dagger', desc: 'Stealth lasts 9 seconds, but you have 10 less health.', req: ['stealth'] },
   quickfeet: { tree: 'assassin', name: 'Light Step', desc: '8% faster, and you take 15% less damage from behind.' },
   deathmark: { tree: 'assassin', cap: true, name: 'Death Mark', desc: 'Your first hit after stealth ends marks the target: they take 30% more damage from everyone for 5 seconds.' },
-  shadow:    { tree: 'shadow', base: true, name: 'Shadow Arrows', desc: 'Every hit adds a shade to the target (up to 5) and restarts a 3 second fuse. When the fuse runs out the shade bursts: barely at all with one, hard with several (2, 6, 12, 20 and 31 damage). Keep hitting them to stack it up.' },
+  shadow:    { tree: 'shadow', base: true, name: 'Shadow Arrows', desc: 'Every hit adds a shade to the target (up to 5) and restarts a 3.5 second fuse. When the fuse runs out the shade bursts: lightly with one, hard with several (4, 9, 15, 22 and 31 damage). Keep hitting them to stack it up.' },
   eclipse:   { tree: 'shadow', active: { cd: 14 }, name: 'Eclipse', desc: 'Drop darkness on the spot under your cursor (up to 400px) for 4 seconds. Enemies inside are shrouded: they can only see 140px around themselves, and bots lose track of anyone further away.' },
   gloom:     { tree: 'shadow', name: 'Creeping Dark', desc: 'Each shade on an enemy slows them 6%, and the burst slows them by 50% for 2 seconds.' },
   dread:     { tree: 'shadow', name: 'Night Terror', desc: 'Shade bursts throw the target away from you, harder the more shades were on them.' },
-  blood:     { tree: 'blood', base: true, name: 'Blood Arrows', desc: 'Damage you deal heals you for 25% of it (half as much while you are poisoned). The more health you have lost, the harder your arrows knock back: up to 25% harder near death.' },
+  blood:     { tree: 'blood', base: true, name: 'Blood Arrows', desc: 'Damage you deal heals you for 35% of it (half as much while you are poisoned). The more health you have lost, the harder your arrows knock back: up to 25% harder near death.' },
   hemorrhage:{ tree: 'blood', name: 'Hemorrhage', desc: 'Fully drawn hits make the target bleed for 8 damage over 4 seconds. The bleeding heals you too.' },
   frenzy:    { tree: 'blood', name: 'Blood Frenzy', desc: 'Below half health, your hits heal you twice as much. And the more health you have lost, the faster you draw: up to 60% faster near death.' },
   transfusion:{ tree: 'blood', name: 'Transfusion', desc: 'A third of your healing flies to your most hurt teammate within 300px, plus any you would waste at full health. Nobody hurt nearby: it all stays yours.' },
-  bloodpact: { tree: 'blood', trade: true, name: 'Blood Pact', desc: 'Your hits heal you for 45% of their damage instead of 25%, but you have 10 less health.' },
+  bloodpact: { tree: 'blood', trade: true, name: 'Blood Pact', desc: 'Your hits heal you for 55% of their damage instead of 35%, but you have 10 less health.' },
   deepshade: { tree: 'shadow', trade: true, name: 'Deep Shade', desc: 'Shade bursts deal 50% more damage, but your arrows knock back 15% less.' },
 
   sstrike:   { tree: 'ninja', active: { cd: 10 }, name: 'Shadow Strike', desc: 'Teleport behind the enemy nearest your cursor (up to 360px away). Your next 3 shuriken within 1.5 seconds deal 75% more damage.' },
@@ -1270,7 +1270,7 @@ function makePlayer(w, opts) {
     dead: false, kills: 0, deaths: 0, amber: 0, earned: 0, up: [], hones: {}, ready: false, offer: null, picked: false,
     streak: 0, emp: false, empPts: 0, trailT: 0, auraT: 0, lastArrow: null, lastHow: '', lastHurtT: -99, slowK: 0.5, fallCause: 'pit', coat: {},
     element: ELEMENTS[opts.element] ? opts.element : pick(Object.keys(ELEMENTS)), role: ROLES[opts.role] ? opts.role : pick(Object.keys(ROLES)),
-    poisonN: 0, poisonT: 0, poisonMax: 3, poisonMul: 1, burnDps: 5, quickT: 0,
+    poisonN: 0, poisonT: 0, poisonMax: 3, poisonMul: 1, burnDps: BURN_DPS, quickT: 0,
     abCd: [0, 0], wantAb: [false, false], reviveUsed: false, revT: 0, revOf: null, revP: 0,
     lastHitBy: null, lastHitT: -99, lastCause: '', killedBy: null, stats: { shots: 0, hits: 0, dmg: 0, taken: 0, ring: 0, longest: 0, as: 0 }, disarm: 0, poisonBy: null, contT: 0,
     pw: emptyPowers(), input: { mx: 0, my: 0, aim: 0, draw: false, tx: AW / 2, ty: AH / 2 }, wantDash: false,
@@ -1622,7 +1622,7 @@ function placeForRound(w, p) {
 function freshBody(p, x, y) {
   Object.assign(p, {
     x, y, vx: 0, vy: 0, hp: p.maxHp, dead: false, falling: 0, stuck: 0, burn: 0, slow: 0,
-    frozen: 0, frostN: 0, frostT: 0, dashLock: 0, snare: false, grap: null, hook: null, harpoonArmed: false, over: 0, poisonN: 0, poisonT: 0, bleedT: 0, bleedBy: null, burnDps: 5, quickT: 0, disarm: 0, poisonBy: null, contT: 0,
+    frozen: 0, frostN: 0, frostT: 0, dashLock: 0, snare: false, grap: null, hook: null, harpoonArmed: false, over: 0, poisonN: 0, poisonT: 0, bleedT: 0, bleedBy: null, burnDps: BURN_DPS, quickT: 0, disarm: 0, poisonBy: null, contT: 0,
     knock: 0, inv: 0, dashT: 0, dashCd: 0, dashN: p.dashMaxN, charge: 0, drawing: false, thr: 0, tdx: 0, tdy: 0,
     lastHitBy: null, lastHitT: -99, lastCause: '', killedBy: null, pw: emptyPowers(), wantDash: false, lastHurtT: -99, pinT: 0, pinned: 0, dashK: 1,
     pinSafe: 0, volleyArmed: false, railArmed: false, recoilArmed: false, seekArmed: false, rocketArmed: false, swapArmed: false, boomArmed: false, execArmed: false, briarArmed: false,
@@ -1794,7 +1794,7 @@ function hurt(w, f, dmg, kx, ky, src, by, quiet) {
   if (f.pinned > 0) kx = ky = 0; // pinned to the wall: nothing moves them
   if (kx || ky) {
     kx *= OPT('kb'); ky *= OPT('kb');
-    if (f.staggerT > 0) { kx *= 1.15; ky *= 1.15; } // Stone
+    if (f.staggerT > 0) { kx *= STAGGER_KB; ky *= STAGGER_KB; } // Stone
     if (f.fortT > 0) { kx *= 0.1; ky *= 0.1; } // Fortify
     if (f.rush) { kx *= 0.25; ky *= 0.25; } // Bull Rush
     // Bond: the Warden (and any teammate near them) is steadied
@@ -1814,7 +1814,7 @@ function hurt(w, f, dmg, kx, ky, src, by, quiet) {
 // Blood: damage you deal heals you (and with Transfusion or Bloodbath, your team)
 function bloodHeal(w, p, dealt) {
   const emp = p.emp && p.element === 'blood';
-  let heal = dealt * (has(p, 'bloodpact') ? 0.45 : 0.25) * (has(p, 'frenzy') && p.hp < p.maxHp * 0.5 ? 2 : 1) * (emp ? 2 : 1) * (p.poisonT > 0 ? 0.5 : 1);
+  let heal = dealt * (has(p, 'bloodpact') ? BLOOD_PACT_HEAL : BLOOD_HEAL) * (has(p, 'frenzy') && p.hp < p.maxHp * 0.5 ? 2 : 1) * (emp ? 2 : 1) * (p.poisonT > 0 ? 0.5 : 1);
   // Transfusion: a third of the healing goes to the most hurt teammate nearby (and all of what you'd waste at full health);
   // with nobody hurt in reach it's all yours, as before
   const mate = has(p, 'transfusion') ? w.players.filter(q => q !== p && q.team === p.team && !q.dead && q.hp < q.maxHp * 0.9 && Math.hypot(q.x - p.x, q.y - p.y) < 300).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0] : null;
@@ -2228,13 +2228,13 @@ function stepBody(w, f, mx, my, dt) {
   if (inLava) { const r = pushedBy(w, f); if (r) f.lavaBy = r; else if (!f.onLava) f.lavaBy = null; } // (who put them on the lava, if anyone)
   f.onLava = inLava; f.lavaT = inLava ? (f.lavaT || 0) + dt : Math.max(0, (f.lavaT || 0) - dt * 0.5); // (how long they've been cooking, for best moments)
   if (inLava) { hurt(w, f, 30 * dt, 0, 0, 'lava', null, true); f.burn = Math.max(f.burn, 1.5); }
-  else if (f.burn > 0) { f.burn -= dt; hurt(w, f, (f.burnDps || 5) * dt, 0, 0, 'burn', null, true); if (f.burn <= 0) f.burnDps = 5; }
+  else if (f.burn > 0) { f.burn -= dt; hurt(w, f, (f.burnDps || BURN_DPS) * dt, 0, 0, 'burn', null, true); if (f.burn <= 0) f.burnDps = BURN_DPS; }
   if (!f.dead && f.bleedT > 0) { f.bleedT -= dt; hurt(w, f, 2 * dt, 0, 0, 'bleed', f.bleedBy, true); } // Hemorrhage
   if (!f.dead && f.shade) shadeTick(w, f, dt);
   const vig = mutKeys(CFG.mut).reduce((a, k) => a + (MUTATORS[k].regen || 0), 0); // Warden's Vigil
   if (vig && !f.dead && !f.npc && w.match.ph === 'play' && f.hp < f.maxHp) f.hp = Math.min(f.maxHp, f.hp + vig * dt * (f.poisonT > 0 ? 0.5 : 1));
   if (f.thornT > 0) { f.thornT -= dt; if (f.thornT <= 0) f.thornN = 0; }
-  if (!f.dead && f.poisonT > 0) { f.poisonT -= dt; hurt(w, f, f.poisonN * 1.6 * f.poisonMul * dt, 0, 0, 'poison', null, true); if (f.poisonT <= 0) f.poisonN = 0; }
+  if (!f.dead && f.poisonT > 0) { f.poisonT -= dt; hurt(w, f, f.poisonN * POISON_DPS * f.poisonMul * dt, 0, 0, 'poison', null, true); if (f.poisonT <= 0) f.poisonN = 0; }
   if (f.dead) return;
   if (inPit && f.npc && f.npc.k === 'term' && w.tm) { tmJet(w, f); return; } // (the Terminator never falls: it jets back to the middle, for a chunk of its health)
   if (inPit) {
@@ -3031,7 +3031,8 @@ function shroud(f, t, r) { f.shroudT = Math.max(f.shroudT || 0, t); f.shroudR = 
 // Shadow Arrows: a shade bursts a moment after it's planted; a second hit before then deepens it
 // Shadow Arrows: every hit adds a stack (up to 5) and resets a 3 second fuse; when it runs out the shade bursts,
 // barely at one stack and hard at five
-const SHADE = { t: 3, max: 5 }, shadeDmg = n => Math.round(1 + 1.2 * n * n);
+const SHADE = { t: 3.5, max: 5 }, SHADE_DMG = [0, 4, 9, 15, 22, 31], shadeDmg = n => SHADE_DMG[Math.min(5, Math.max(1, n))]; // (0.83: a 3.5 s fuse, so a second hit lands in time more often)
+const BURN_DPS = 4, POISON_DPS = 1.2, BLOOD_HEAL = 0.35, BLOOD_PACT_HEAL = 0.55, STAGGER_KB = 1.25, STAGGER_DRAW = 0.5, VOID_DMG = 0.06; // the elements' base numbers (0.83 balance pass)
 function plantShade(w, f, owner) {
   const add = owner.emp && owner.element === 'shadow' ? 2 : 1;
   if (!f.shade) f.shade = { by: owner.id, t: SHADE.t, n: 0 };
@@ -3105,8 +3106,8 @@ function onArrowEffects(w, a, f, primary) {
         hurt(w, q, 4, 0, 0, 'el_flame', a.owner, q === f);
       }
     }
-    if (owner && has(owner, 'stoke')) { f.burn = Math.min(5, f.burn > 0 ? Math.max(f.burn, 2) + 1 : 2); f.burnDps = Math.max(f.burnDps || 4.5, 4.5 * 1.3); }
-    else { f.burn = Math.max(f.burn, 2); f.burnDps = Math.max(f.burnDps || 4.5, 4.5); }
+    if (owner && has(owner, 'stoke')) { f.burn = Math.min(5, f.burn > 0 ? Math.max(f.burn, 2) + 1 : 2); f.burnDps = Math.max(f.burnDps || BURN_DPS, BURN_DPS * 1.3); }
+    else { f.burn = Math.max(f.burn, 2); f.burnDps = Math.max(f.burnDps || BURN_DPS, BURN_DPS); }
     // Blaze: every hit sets the ground alight
     if (primary && owner && owner.emp && owner.element === 'flame') blazePatch(w, owner, f.x, f.y, 40, 2.5, f.id);
     if (primary && a.full && owner && has(owner, 'wildfire')) {
@@ -3116,7 +3117,7 @@ function onArrowEffects(w, a, f, primary) {
     // stagger: lose some draw, take more knockback for a moment
     const land = owner && owner.emp && owner.element === 'stone';
     f.staggerT = Math.max(f.staggerT || 0, land ? 4 : 2);
-    if (f.drawing) f.charge *= 0.6;
+    if (f.drawing) f.charge *= 1 - STAGGER_DRAW;
     if (owner && has(owner, 'petrify')) f.dashLock = Math.max(f.dashLock, f.staggerT);
     ev(w, { e: 'stagger', x: r1(f.x), y: r1(f.y) });
     if (primary && a.full && owner && has(owner, 'aftershock')) {
@@ -3259,7 +3260,8 @@ function arrowHit(w, a, f) {
     + (a.own && a.own.role === 'sniper' ? 0.25 * clamp(a.dist / SNIPE_FULL, 0, 1) : 0);
   const held = f.stuck > 0 || f.frozen > 0;
   const chill = a.el === 'frost' && (f.slow > 0 || f.frozen > 0) ? 1.3 : 1; // Frost Arrows
-  let dmg = a.dmg * (a.own && has(a.own, 'deeproots') && f.stuck > 0 ? 1.25 : 1) * (a.own && a.own.role === 'trapper' && held ? 1.25 : 1) * chill * (1 + range);
+  const marked = a.el === 'void' && f.voidBy === a.owner && f.voidT > w.t ? 1 + VOID_DMG * (f.voidN || 0) : 1; // Void Arrows: marks also sharpen your arrows
+  let dmg = a.dmg * (a.own && has(a.own, 'deeproots') && f.stuck > 0 ? 1.25 : 1) * (a.own && a.own.role === 'trapper' && held ? 1.25 : 1) * chill * marked * (1 + range);
   // Backstab (every Assassin): a hit landing on the target's back hurts more and throws them further
   const fromBehind = (a.vx / v) * Math.cos(f.aim) + (a.vy / v) * Math.sin(f.aim) > 0.5;
   const backstab = fromBehind && a.own && a.own.role === 'assassin';
@@ -3755,6 +3757,14 @@ function kbTravel(c, mass, mul) {
   return v / 1.5 * (1 - e) + v * e / 9;
 }
 // how deadly being shoved `dist` along (ux, uy) from (x, y) would be: 0 safe, up to ~1.2 certain death
+// how far p's shot at charge c would throw q, counting what p's element does to it: Stone's stagger (and the one this
+// shot would land, if it's the second of two), Blood's low-health kick
+function kbOn(p, q, c) {
+  let mul = p.kbMul || 1;
+  if (q.staggerT > 0) mul *= STAGGER_KB;
+  if (p.element === 'blood') mul *= 1 + 0.25 * (1 - p.hp / p.maxHp);
+  return kbTravel(c, q.mass, mul);
+}
 function pushRisk(x, y, ux, uy, dist, r) {
   let risk = 0;
   for (const s of [0.25, 0.5, 0.75, 1]) {
@@ -3975,6 +3985,8 @@ function safeWay(p) {
 }
 function botThink(w, p, dt) {
   const ai = p.ai, inp = p.input, D = botD(p), G = p.gene ? (p.geneSrc === p.gene ? p.geneAll : (p.geneSrc = p.gene, p.geneAll = Object.assign({}, GENE, p.gene))) : GENE, iq = D.iq || 0;
+  // how well this bot plays to its element (stacking shades, setting up a Stone throw): from Hard up, full before the smart brain arrives
+  const es = Math.max(iq, clamp((D.dodge - 0.12) / 0.28, 0, 1));
   if (p.dead || p.falling > 0) { inp.draw = false; inp.mx = inp.my = 0; return; }
   // stealthed enemies are invisible to bots unless they're right next to them
   const foes = w.players.filter(q => q.team !== p.team && !q.dead && q.falling <= 0 && !(q.stealthT > 0 && Math.hypot(q.x - p.x, q.y - p.y) > 110) && !(inSmoke(w, q, p.x, p.y) && Math.hypot(q.x - p.x, q.y - p.y) > 60)
@@ -3989,8 +4001,16 @@ function botThink(w, p, dt) {
       if (iq > 0) {
         const d = Math.hypot(q.x - p.x, q.y - p.y) || 1;
         if (has(p, 'rip') && q.thornBy === p.id && q.thornN >= 3) s += (q.thornN >= 5 ? 220 : 70) * iq; // (Rip: spread the thorns over everyone rather than piling them on one)
-        if (clearShot(p.x, p.y, q.x, q.y)) s -= pushRisk(q.x, q.y, (q.x - p.x) / d, (q.y - p.y) / d, kbTravel(0.95, q.mass, p.kbMul), q.r) * 300 * iq; else s += 150 * iq;
+        if (clearShot(p.x, p.y, q.x, q.y)) s -= pushRisk(q.x, q.y, (q.x - p.x) / d, (q.y - p.y) / d, kbOn(p, q, 0.95), q.r) * 300 * iq; else s += 150 * iq;
+
         if (d > botReach(p)) s += 400 * iq;
+      }
+      if (es > 0) { // the elements that build on a target: stay on the one you've started on while it lasts
+        if (p.element === 'shadow' && q.shade && q.shade.by === p.id) s -= (60 + 40 * q.shade.n) * es;
+        if (p.element === 'void' && q.voidBy === p.id && q.voidT > w.t) s -= (50 + 30 * (q.voidN || 0)) * es;
+        if (p.element === 'poison' && q.poisonN > 0 && q.poisonN < q.poisonMax && q.poisonBy === p.id) s -= 60 * es;
+        if (p.element === 'frost' && q.frostT > 0 && q.frostN >= 1 && (has(p, 'frostbite') || p.emp)) s -= 80 * es; // (one more hit freezes them)
+        if (p.element === 'stone' && q.staggerT > 0) s -= 70 * es;
       }
       if (s < bestS) { bestS = s; T = q; }
     }
@@ -4056,7 +4076,7 @@ function botThink(w, p, dt) {
     const near = Math.min(st.near * (1.3 - ag * 0.6), reach * 0.55), far = Math.min(st.far * (1.25 - ag * 0.5), reach * 0.88);
     const dx = T.x - p.x, dy = T.y - p.y, d = dT || 1, ux = dx / d, uy = dy / d;
     // (backing off from someone who outranges you only means being shot in the back: the outgunned stand their ground unless nearly dead)
-    const shaky = p.hp < p.maxHp * (outg > 0.5 ? 0.15 : 0.35) && ag < 0.65 && d < far * 1.2;
+    const shaky = p.hp < p.maxHp * (outg > 0.5 ? 0.15 : 0.35) * (p.element === 'blood' && es >= 0.5 ? 0.7 : 1) && ag < 0.65 && d < far * 1.2; // (Blood: hits heal, so backing off hurt is the wrong move)
     if (shaky || d < near) { gx = -ux; gy = -uy; }
     else if (d > far || !clearShot(p.x, p.y, T.x, T.y)) {
       // close in with a weave; the outranged weave less, or someone walking backward keeps them out of reach for good
@@ -4068,7 +4088,7 @@ function botThink(w, p, dt) {
       // edge hunters work round to the side from which a hit would throw them into something
       if (ai.tr && ai.tr.edge > 0 && (ai.edgeT = (ai.edgeT || 0) - dt) <= 0) {
         ai.edgeT = 0.5;
-        const kb = kbTravel(0.9, T.mass, p.kbMul), risk = s => { const x = p.x - uy * s * 90, y = p.y + ux * s * 90, ddx = T.x - x, ddy = T.y - y, dd = Math.hypot(ddx, ddy) || 1; return lethalDist(x, y) < p.r + 40 ? -1 : pushRisk(T.x, T.y, ddx / dd, ddy / dd, kb, T.r); };
+        const kb = kbOn(p, T, 0.9), risk = s => { const x = p.x - uy * s * 90, y = p.y + ux * s * 90, ddx = T.x - x, ddy = T.y - y, dd = Math.hypot(ddx, ddy) || 1; return lethalDist(x, y) < p.r + 40 ? -1 : pushRisk(T.x, T.y, ddx / dd, ddy / dd, kb, T.r); };
         const a = risk(1), b = risk(-1);
         if (Math.abs(a - b) > 0.15 && Math.random() < ai.tr.edge) { ai.strafe = a > b ? 1 : -1; ai.strafeT = Math.max(ai.strafeT, 0.8); }
       }
@@ -4258,9 +4278,22 @@ function botThink(w, p, dt) {
       ai.want = lethalDist(T.x, T.y) < 130 ? 1 : dT < 150 ? 0.35 : st && st.charge ? rand(Math.max(D.minCharge * 0.7, st.charge[0]), st.charge[1]) : rand(D.minCharge, 1);
       const lean = ai.tr ? ai.tr.charge * 0.3 : 0; // quick-shot or full-draw people
       if (iq >= 0.5) {
-        const d = dT || 1, risk = pushRisk(T.x, T.y, (T.x - p.x) / d, (T.y - p.y) / d, kbTravel(1, T.mass, p.kbMul), T.r);
+        const d = dT || 1, risk = pushRisk(T.x, T.y, (T.x - p.x) / d, (T.y - p.y) / d, kbOn(p, T, 1), T.r);
         ai.want = risk > G.riskFull || dT > G.far ? 1 : dT < 140 ? G.quick : Math.max(D.minCharge, G.mid + lean);
       } else if (lean) ai.want = clamp(ai.want + lean, 0.3, 1);
+      // Stone: a quick hit staggers them first, then the full draw throws them 20% further; staggered already: send it
+      if (p.element === 'stone' && es >= 0.8 && dT < 320) {
+        const d = dT || 1, ux = (T.x - p.x) / d, uy = (T.y - p.y) / d;
+        if (T.staggerT > 0.5) { if (pushRisk(T.x, T.y, ux, uy, kbOn(p, T, 1), T.r) > 0.3) ai.want = 1; }
+        else if (pushRisk(T.x, T.y, ux, uy, kbTravel(1, T.mass, (p.kbMul || 1) * STAGGER_KB), T.r) > 0.55 && pushRisk(T.x, T.y, ux, uy, kbTravel(1, T.mass, p.kbMul), T.r) < 0.4) ai.want = Math.min(ai.want, 0.5);
+      }
+      // Shadow: keep the fuse alive. With a shade ticking down, a quicker shot that lands in time beats a full draw that doesn't
+      if (p.element === 'shadow' && T.shade && T.shade.by === p.id && es >= 0.5) {
+        const per = p.role === 'crossbow' ? 0.2 : 1 / (p.drawMul || 1), flight = dT / Math.max(300, shotSpeed(p, ai.want)), need = ai.want * per + flight + 0.15; // (a full draw takes a second)
+        if (T.shade.t < need) ai.want = clamp((T.shade.t - flight - 0.15) / per, 0.3, 1);
+      }
+      // Void: with marks on them, a half draw already homes in; the full draw is for the finish
+      if (p.element === 'void' && T.voidBy === p.id && T.voidT > w.t && (T.voidN || 0) >= 2 && es >= 0.5 && ai.want < 1 && T.hp > 25) ai.want = Math.max(ai.want, 0.6);
     }
   } else if ((p.charge >= ai.want || (p.momT > 0.1 && p.charge >= 0.55 && has(p, 'momentum'))) && los && onTarget && T.inv <= 0 && !(has(p, 'ballista') && ai.want >= 1 && p.over < 1 && dT > 250) && !(p.stealthT > 0.6 && dT > 170 && !(ai.ambush && Math.hypot(ai.ambush.x - p.x, ai.ambush.y - p.y) < 70))) {
     inp.draw = false;
