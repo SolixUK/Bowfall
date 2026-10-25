@@ -2,6 +2,11 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.84.0
+
+- **Bots and AI players aim like people.** Before, every shot got the same random error as an angle, so a still target at range was missed as often as a moving one (a mid-skill bot hit a standing archer at 750px only 59% of the time), while their lead on a moving target was close to perfect. Now there are two parts. A steady-hand error on the target itself, small and growing a little with range, so standing still gets you hit; and the real misses come from reading movement, bigger the faster you cross their line of fire and the longer the arrow flies, and mostly behind you (under-leading) with the odd over-lead, as people miss. Mid-skill bots now hit a still archer at 750px 75% of the time; against someone strafing they hit 37% (was 42%).
+- Overall strength is unchanged: new-aim bots against old-aim bots of the same skill win 48–49% at every level (9,000 games), so AI players' ratings and the tutorial's skill scale still hold.
+
 ## 0.83.3
 
 - **Full draw is easier to see.** The moment your bow reaches full draw, a quick white ring pops out from your aim point with four small sparks, gone in a third of a second (the ring round your cursor stays white while you hold, as before). It works the same on a controller, at the tip of your aim arrow, for every local player on their own arrow, and on touch.

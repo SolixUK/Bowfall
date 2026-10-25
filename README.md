@@ -200,7 +200,7 @@ Bots take a role their team doesn't have yet, pick instantly and use their abili
 - **Marksman:** hangs back for full-draw long shots; takes Longbow, Deadeye, Ballista.
 - **Guardian:** sticks with the team; takes Rally, Shield Wall, snares and traps.
 
-The playstyle follows from the bot's role, with some surprises (an aggressive Ranger might brawl), and shifts as its picks line up: a bot that takes Battering Ram and Iron Stance turns into a brawler. Aggressive bots close in and bash more; cautious ones hang back and retreat when hurt. Bots aim like people: they take a moment to notice a new target (longer if it's behind them) and turn at a limited speed (easy 2.5, normal 3.5, hard 5.5, extreme 8 radians a second), and won't loose an arrow until they're lined up. The scoreboard shows each bot's playstyle.
+The playstyle follows from the bot's role, with some surprises (an aggressive Ranger might brawl), and shifts as its picks line up: a bot that takes Battering Ram and Iron Stance turns into a brawler. Aggressive bots close in and bash more; cautious ones hang back and retreat when hurt. Bots aim like people: they take a moment to notice a new target (longer if it's behind them) and turn at a limited speed (easy 2.5, normal 3.5, hard 5.5, extreme 8 radians a second), and won't loose an arrow until they're lined up. Their misses are a person's: a steady-hand error on the target that grows a little with range, and a bigger one from reading movement (how fast you cross their line of fire, how long the arrow flies), mostly behind you. Stand still and a good bot hits you; move and it has to read you (`AIM` in `public/sim.js`). The scoreboard shows each bot's playstyle.
 
 ## Balance data
 

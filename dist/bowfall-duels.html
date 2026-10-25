@@ -2386,7 +2386,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.83.3';
+const VERSION = '0.84.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -6136,6 +6136,8 @@ function kbTravel(c, mass, mul) {
 // how deadly being shoved `dist` along (ux, uy) from (x, y) would be: 0 safe, up to ~1.2 certain death
 // how far p's shot at charge c would throw q, counting what p's element does to it: Stone's stagger (and the one this
 // shot would land, if it's the second of two), Blood's low-health kick
+// the bots' aim error (see botThink): steady hand on the target, and misjudging movement
+const AIM = { still: 4.5, track: 10.5, trackMin: 0.08 }; // (tuned so the new aim is as strong overall as the old, bot against bot, at every skill)
 function kbOn(p, q, c) {
   let mul = p.kbMul || 1;
   if (q.staggerT > 0) mul *= STAGGER_KB;
@@ -6602,19 +6604,33 @@ function botThink(w, p, dt) {
   // --- aim & shoot
   ai.reload -= dt;
   ai.errT -= dt;
-  if (ai.errT <= 0) { ai.err = rand(-1, 1) * D.aimErr * (p.shroudT > 0 ? (p.shroudR < 150 ? 3.5 : 2.2) : 1); ai.errT = rand(0.3, 0.6); }
+  if (ai.errT <= 0) {
+    ai.err = rand(-1, 1) * D.aimErr * (p.shroudT > 0 ? (p.shroudR < 150 ? 3.5 : 2.2) : 1); // (the old model, kept for comparison runs)
+    ai.eS = (Math.random() + Math.random() + Math.random() - 1.5) / 1.5; ai.eM = rand(-0.45, 1.25); ai.errT = rand(0.3, 0.6);
+  }
   if (!T && GP) { botProbe(w, p, GP, D, iq, dt); botAbilities(w, p, null, Infinity, foes, dt); if (p.wantDash && ai.dashAim != null) inp.aim = ai.dashAim; ai.dashAim = null; return; }
   if (!T) { ai.lastT = null; inp.draw = false; botAbilities(w, p, null, Infinity, foes, dt); if (p.wantDash && ai.dashAim != null) inp.aim = ai.dashAim; ai.dashAim = null; return; }
   const spd = (380 + 920 * (p.role === 'crossbow' ? 1 : Math.max(p.charge, ai.want))) * OPT('aspeed'), wasDraw = inp.draw;
   // aim at where the target *appeared* to be (and to be heading) a reaction-time ago, like a person would
   const S = perceived(w, T, D.see || 0.24);
+  // how a person misses: a steady hand is good on a still target (a small error on the target itself, growing a little with
+  // range), and the real misses come from judging movement, more the faster they cross your line of fire and the longer
+  // the arrow's in the air, and mostly behind them (under-leading) with the odd over-lead
+  if (!p.oldAim) {
+    const dx = S[0] - p.x, dy = S[1] - p.y, dist = Math.hypot(dx, dy) || 1, nx = -dy / dist, ny = dx / dist;
+    const lat = S[2] * nx + S[3] * ny, fly = dist / Math.max(300, shotSpeed(p, Math.max(p.charge, ai.want || 0.8)) * 0.85) + (D.see || 0.24) * 0.5;
+    const blind = p.shroudT > 0 ? (p.shroudR < 150 ? 3.5 : 2.2) : 1;
+    const still = D.aimErr * AIM.still * (dist * 0.25 + 60) * blind * (ai.eS || 0);
+    const track = Math.max(AIM.trackMin, D.aimErr * AIM.track) * lat * fly * (ai.eM || 0);
+    ai.err = Math.atan2(still - track, dist);
+  }
   let wantAim;
   if (iq >= 0.5) {
     // exact: where the shot will meet them, allowing for its slowing down (using what we saw a moment ago)
     const P = { x: S[0], y: S[1], vx: S[2], vy: S[3], knock: T.knock };
     wantAim = interceptAim(p, P, shotSpeed(p, Math.max(p.charge, ai.want)), shotDrag(p)) + ai.err;
   } else {
-    const lt = Math.hypot(S[0] - p.x, S[1] - p.y) / spd * D.lead;
+    const lt = Math.hypot(S[0] - p.x, S[1] - p.y) / spd * (p.oldAim ? D.lead : 1); // (the new aim model does its under-leading in ai.err)
     const ax = S[0] + S[2] * (lt + (D.see || 0.24) * 0.5), ay = S[1] + S[3] * (lt + (D.see || 0.24) * 0.5);
     wantAim = Math.atan2(ay - p.y, ax - p.x) + ai.err;
   }
@@ -8014,7 +8030,7 @@ function tierSvg(k, size = 22) {
 return {
   TIERS, tierOf, tierSvg,
   TM, TM_NAMES, TM_MINIONS, MASTERY, masteryOf, takeCard, applyStats,
-  AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, SKILL_MIN, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
+  AIM, AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, SKILL_MIN, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg, emblemCol, emblemFull,
@@ -8032,7 +8048,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.83.3';
+const PAGE_VERSION = '0.84.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
