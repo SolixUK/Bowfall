@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bowfall: sign in on the screen</title>
+<meta name="theme-color" content="#0f1a12">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.ico?v=3" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Titillium+Web:wght@400;600;700&display=swap">
+<style>
+  :root { --bg: #0f1a12; --panel: #1a2c1f; --panel2: #213728; --line: #33503a; --text: #eef3e6; --muted: #9fb39c; --gold: #ffc94a; --gold2: #ffdd85; --bad: #ff6b6b; --ok: #7ddc7a;
+    --display: 'Rajdhani', 'Arial Narrow', sans-serif; --body: 'Titillium Web', 'Segoe UI', sans-serif; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 400 17px/1.5 var(--body); min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 28px 16px; }
+  .card { width: min(440px, 100%); background: var(--panel); border: 1px solid var(--line); padding: 24px 20px; clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px)); }
+  .brand { font: 700 15px var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+  h1 { font: 700 30px/1.05 var(--display); margin: 0 0 8px; text-transform: uppercase; }
+  p { margin: 0 0 14px; }
+  .muted { color: var(--muted); font-size: 15px; }
+  .code { font: 700 26px var(--display); letter-spacing: .2em; color: var(--gold2); }
+  .stack { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+  .btn, .prov a { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 10px 16px; border: 0; cursor: pointer; text-decoration: none;
+    font: 700 19px var(--display); letter-spacing: .03em; color: #1a1205; background: var(--gold); width: 100%; }
+  .btn.alt, .prov a { background: var(--panel2); color: var(--text); border: 1px solid var(--line); }
+  .prov a svg { width: 22px; height: 22px; }
+  input { width: 100%; min-height: 52px; background: #0b140d; color: var(--text); border: 1px solid var(--line); padding: 8px 12px; font: 700 26px var(--display); letter-spacing: .2em; text-transform: uppercase; text-align: center; }
+  .err { color: var(--bad); min-height: 1em; margin: 8px 0 0; font-size: 15px; }
+  .done { color: var(--ok); }
+  .or { color: var(--muted); font-size: 14px; text-align: center; margin: 6px 0; }
+  a { color: var(--gold2); }
+</style>
+</head>
+<body>
+<div class="card" id="app"><div class="brand">Bowfall</div><p class="muted">Loading…</p></div>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ICONS = {
+  google: '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>',
+  discord: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#5865F2" d="M20.3 4.4A19.8 19.8 0 0 0 15.4 3l-.6 1.3a18.4 18.4 0 0 0-5.5 0L8.7 3a19.7 19.7 0 0 0-4.9 1.4C.7 9 0 13.6.3 18.1a19.9 19.9 0 0 0 6 3l1.3-2.1c-.7-.3-1.4-.6-2-1l.5-.4a14.2 14.2 0 0 0 12 0l.5.4c-.6.4-1.3.7-2 1l1.3 2.1a19.8 19.8 0 0 0 6-3c.4-5.2-.7-9.7-3.3-13.7zM8.5 15.4c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4zm7 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4z"/></svg>',
+};
+async function api(path, body) {
+  const r = await fetch('/api' + path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), credentials: 'same-origin' } : { credentials: 'same-origin' });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || 'Something went wrong. Try again.');
+  return d;
+}
+const head = (t, sub) => `<div class="brand">Bowfall</div><h1>${t}</h1>${sub ? `<p class="muted">${sub}</p>` : ''}`;
+let code = (new URLSearchParams(location.search).get('c') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+
+function askCode(err) {
+  $('app').innerHTML = head('Sign in on the screen', 'Type the code shown on the game screen.') + `
+    <form class="stack" id="cf"><input id="ci" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABC123" value="${esc(code)}">
+    <button class="btn" type="submit">Continue</button></form><p class="err">${err ? esc(err) : ''}</p>`;
+  $('ci').focus();
+  $('cf').onsubmit = e => { e.preventDefault(); code = $('ci').value.toUpperCase().replace(/[^A-Z0-9]/g, ''); if (code.length === 6) { history.replaceState(null, '', '/link?c=' + code); start(); } };
+}
+async function start() {
+  if (code.length !== 6) return askCode();
+  let d;
+  try { d = await api('/devlink/check', { code }); } catch (e) { return askCode(e.message); }
+  const back = encodeURIComponent('/link?c=' + code);
+  if (d.user) {
+    $('app').innerHTML = head('Join the game', `Sign in on the screen showing code <span class="code">${esc(code)}</span>.`) + `
+      <div class="stack"><button class="btn" id="ok">Play as ${esc(d.user.name)}</button>
+      <a class="btn alt" href="/#/login?next=${back}">Use a different account</a></div>
+      <p class="err" id="er"></p><p class="muted" style="margin-top:10px">Only confirm if you're in front of that screen: it will play as you.</p>`;
+    $('ok').onclick = async () => {
+      $('ok').disabled = true;
+      try { const r = await api('/devlink/approve', { code }); $('app').innerHTML = head('<span class="done">You\'re in</span>', `Signed in on the screen as <b>${esc(r.name)}</b>. Grab your controller, you can put your phone away.`); }
+      catch (e) { $('er').textContent = e.message; $('ok').disabled = false; }
+    };
+    return;
+  }
+  let provs = [];
+  try { provs = (await api('/auth-providers')).providers || []; } catch (e) {}
+  $('app').innerHTML = head('Join the game', `Sign in to play as yourself on the screen showing code <span class="code">${esc(code)}</span>. You'll come back here to confirm.`) + `
+    <div class="stack prov">${provs.map(p => `<a href="/auth/${p.key}?next=${back}">${ICONS[p.key] || ''}Continue with ${esc(p.name)}</a>`).join('')}</div>
+    ${provs.length ? '<div class="or">or</div>' : ''}
+    <div class="stack"><a class="btn alt" href="/#/login?next=${back}">Sign in with a password</a>
+    <a class="btn alt" href="/#/register?next=${back}">Make a new account</a></div>`;
+}
+start();
+</script>
+</body>
+</html>

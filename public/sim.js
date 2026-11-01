@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.85.0';
+const VERSION = '0.87.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -243,6 +243,202 @@ MAPS.keep = buildMap({
     spikes: [{ side: 'left', a: 300, b: 500 }],
     power: [{ x: 600, y: 400 }], amberY: [WALL + 60, 200],
   });
+// ---- the arena lab: new arenas start here, out of every list, until the owner has tried them against bots and
+// switched them on for custom games or the ranked rotation (the Arena lab screen, admin only; see applyArenaPool)
+// Three new themes, three layouts each: the Dustbowl (a sun-baked desert), Blackwater Marsh (a swamp) and the Blossom Garden.
+MAPS.gulch = buildMap({
+    name: 'Dry Gulch', theme: 'dust', hidden: true, lab: true,
+    desc: 'A sun-baked gulch of cracked clay. A dry chasm at the top, quicksand down below, and sandstone boulders for cover. Simple and open.',
+    haz: [
+      { type: 'pit', shape: 'rect', x: 400, y: WALL, w: 110, h: 130 },
+      { type: 'tar', shape: 'circle', x: 300, y: 620, r: 58 },
+    ],
+    pillars: [{ x: 450, y: 420, r: 30 }, { x: 250, y: 175, r: 22 }],
+    spikes: [{ side: 'left', a: 300, b: 500 }],
+    power: [{ x: 600, y: 400 }], amberY: [WALL + 44, 330],
+  });
+MAPS.sandstorm = buildMap({
+    name: 'Sandstorm Flats', theme: 'dust', hidden: true, lab: true,
+    desc: 'Open flats with drops along the top and bottom edges. Every so often a sandstorm blows the whole arena toward one edge, up or down in turn, after a flashing warning. Get behind a boulder, or get blown into a drop.',
+    haz: [
+      { type: 'pit', shape: 'rect', x: 330, y: WALL, w: 240, h: 70 },
+      { type: 'pit', shape: 'rect', x: 330, y: AH - WALL - 70, w: 240, h: 70 },
+      { type: 'tar', shape: 'circle', x: 470, y: 400, r: 46 },
+    ],
+    pillars: [{ x: 250, y: 400, r: 30 }, { x: 520, y: 220, r: 22 }, { x: 520, y: 580, r: 22 }],
+    spikes: [],
+    wind: { period: 14, warn: 2.5, gust: 3, accel: 300 },
+    power: [{ x: 600, y: 400 }], amberY: [130, 330],
+  });
+MAPS.mesa = buildMap({
+    name: 'Sunstone Mesa', theme: 'dust', hidden: true, lab: true,
+    desc: 'An old mine on a mesa. Two tunnels link the corners: step in one and you, or your arrow, come out of its twin on the far side. The ground is hollow, and more of it gives way as the game goes on.',
+    haz: [
+      { type: 'pit', shape: 'rect', x: 520, y: WALL, w: 160, h: 80, centre: true },
+      { type: 'tar', shape: 'circle', x: 330, y: 400, r: 44 },
+    ],
+    cracks: [
+      { type: 'pit', shape: 'circle', x: 470, y: 300, r: 44, at: 35 },
+      { type: 'pit', shape: 'circle', x: 300, y: 630, r: 46, at: 65 },
+      { type: 'pit', shape: 'circle', x: 600, y: 400, r: 52, at: 95, centre: true },
+    ],
+    pillars: [{ x: 250, y: 200, r: 24 }, { x: 460, y: 560, r: 26 }],
+    spikes: [{ side: 'top', a: 200, b: 420 }],
+    portals: [{ x: 230, y: 640 }],
+    power: [{ x: 600, y: 230 }, { x: 600, y: 570 }], amberY: [150, 330],
+  });
+MAPS.pools = buildMap({
+    name: 'Reed Pools', theme: 'marsh', hidden: true, lab: true,
+    desc: 'A quiet stretch of marsh. Deep black pools among the reeds, sucking mud that slows you, and old stumps for cover. Simple.',
+    haz: [
+      { type: 'pit', water: true, shape: 'circle', x: 300, y: 190, r: 52 },
+      { type: 'pit', water: true, shape: 'rect', x: 470, y: 600, w: 150, h: 100 },
+      { type: 'tar', shape: 'circle', x: 450, y: 300, r: 48 },
+    ],
+    pillars: [{ x: 250, y: 600, r: 24 }, { x: 560, y: 400, r: 26 }],
+    spikes: [{ side: 'left', a: 300, b: 500 }],
+    power: [{ x: 600, y: 400 }], amberY: [WALL + 44, 330],
+  });
+MAPS.boardwalk = buildMap({
+    name: 'Boardwalk', theme: 'marsh', hidden: true, lab: true,
+    desc: 'A channel of black water splits the marsh, with one crossing in the middle. The water rises as the game goes on and the crossing narrows. Dash over the channel if you dare.',
+    haz: [
+      { type: 'pit', water: true, shape: 'rect', x: 560, y: WALL, w: 80, h: 230, centre: true },
+      { type: 'pit', water: true, shape: 'rect', x: 560, y: AH - WALL - 230, w: 80, h: 230, centre: true },
+      { type: 'pit', water: true, shape: 'rect', x: 280, y: 560, w: 120, h: 120 },
+      { type: 'tar', shape: 'circle', x: 300, y: 200, r: 50 },
+    ],
+    cracks: [
+      { type: 'pit', water: true, shape: 'rect', x: 560, y: 256, w: 80, h: 50, at: 45 },
+      { type: 'pit', water: true, shape: 'rect', x: 560, y: 306, w: 80, h: 40, at: 85 },
+    ],
+    pillars: [{ x: 440, y: 400, r: 26 }, { x: 250, y: 640, r: 20 }],
+    spikes: [{ side: 'left', a: 300, b: 500 }],
+    power: [{ x: 600, y: 400 }], amberY: [WALL + 44, 330],
+  });
+MAPS.wisp = buildMap({
+    name: 'Wisp Hollow', theme: 'wisp', hidden: true, lab: true,
+    desc: 'The marsh at night, lit by will-o\'-the-wisps. Fairy rings in the corners are gates to the far side. Black pools and bog holes are hard to see in the dark: follow the lights.',
+    haz: [
+      { type: 'pit', water: true, shape: 'circle', x: 330, y: 420, r: 58 },
+      { type: 'tar', shape: 'circle', x: 520, y: 160, r: 46 },
+      { type: 'pit', shape: 'rect', x: 500, y: 620, w: 110, h: 90 },
+    ],
+    pillars: [{ x: 250, y: 190, r: 24 }, { x: 600, y: 300, r: 22 }],
+    spikes: [],
+    portals: [{ x: 200, y: 650 }],
+    lights: [{ x: 330, y: 420, big: true, wisp: true }, { x: 130, y: 130, wisp: true }, { x: 470, y: 720, wisp: true }, { x: 600, y: 400, big: true, wisp: true, centre: true }],
+    power: [{ x: 600, y: 400 }], amberY: [WALL + 44, 330],
+  });
+MAPS.koi = buildMap({
+    name: 'Koi Garden', theme: 'garden', hidden: true, lab: true,
+    desc: 'A raked-gravel garden round a koi pond. Stepping stones for cover by the pond, bigger stones out by the walls, and blossom drifting over everything. Simple.',
+    haz: [
+      { type: 'pit', water: true, shape: 'circle', x: 600, y: 400, r: 72, centre: true },
+      { type: 'pit', water: true, shape: 'circle', x: 260, y: 640, r: 44 },
+    ],
+    pillars: [{ x: 480, y: 320, r: 18 }, { x: 480, y: 480, r: 18 }, { x: 260, y: 200, r: 26 }],
+    spikes: [],
+    power: [{ x: 600, y: 230 }, { x: 600, y: 570 }], amberY: [WALL + 44, 330],
+  });
+MAPS.teahouse = buildMap({
+    name: 'Tea House', theme: 'garden', hidden: true, lab: true,
+    moat: { x: 450, y: 290, w: 300, h: 220, t: 40, gap: 70 },
+    desc: 'A tea house island in a pond, with a healing spring at its heart. Four little bridges lead onto it. Hold the island to recover, or knock the holders into the pond from the banks.',
+    heal: { x: 600, y: 400, r: 52, rate: 10 },
+    haz: [
+      { type: 'pit', water: true, moat: true, shape: 'rect', x: 450, y: 290, w: 115, h: 40 },
+      { type: 'pit', water: true, moat: true, shape: 'rect', x: 450, y: 330, w: 40, h: 35 },
+      { type: 'pit', water: true, moat: true, shape: 'rect', x: 450, y: 435, w: 40, h: 35 },
+      { type: 'pit', water: true, moat: true, shape: 'rect', x: 450, y: 470, w: 115, h: 40 },
+      { type: 'tar', shape: 'circle', x: 280, y: 620, r: 44 },
+    ],
+    pillars: [{ x: 260, y: 220, r: 24 }, { x: 560, y: 120, r: 20 }],
+    spikes: [{ side: 'left', a: 300, b: 500 }],
+    power: [{ x: 600, y: 400 }], amberY: [WALL + 44, 220],
+  });
+MAPS.torii = buildMap({
+    name: 'Torii Path', theme: 'garden', hidden: true, lab: true,
+    desc: 'A stream cuts the garden in two, crossed in the middle. Torii gates in the corners lead to their twins on the far side, and every so often a gust of petals blows the whole arena up or down toward the stream\'s ends.',
+    haz: [
+      { type: 'pit', water: true, shape: 'rect', x: 560, y: WALL, w: 80, h: 160, centre: true },
+      { type: 'pit', water: true, shape: 'rect', x: 560, y: AH - WALL - 160, w: 80, h: 160, centre: true },
+      { type: 'tar', shape: 'circle', x: 330, y: 560, r: 42 },
+    ],
+    pillars: [{ x: 400, y: 400, r: 28 }, { x: 250, y: 200, r: 20 }],
+    spikes: [],
+    portals: [{ x: 230, y: 620 }],
+    wind: { period: 18, warn: 2.5, gust: 2.5, accel: 220 },
+    power: [{ x: 600, y: 400 }], amberY: [WALL + 44, 330],
+  });
+// new layouts for the themes that already exist
+MAPS.glade = buildMap({
+    name: 'Twin Glades', theme: 'meadow', hidden: true, lab: true,
+    desc: 'Two glades joined in the middle. Big boulders split each half into lanes, a sinkhole in each far corner and a bog by the join. No lava.',
+    haz: [
+      { type: 'pit', shape: 'rect', x: 120, y: 60, w: 110, h: 110 },
+      { type: 'pit', shape: 'circle', x: 240, y: 660, r: 48 },
+      { type: 'tar', shape: 'rect', x: 500, y: 300, w: 90, h: 200 },
+    ],
+    pillars: [{ x: 360, y: 260, r: 34 }, { x: 360, y: 540, r: 34 }, { x: 600, y: 140, r: 24 }],
+    spikes: [{ side: 'top', a: 420, b: 780 }],
+    power: [{ x: 600, y: 400 }], amberY: [WALL + 44, 330],
+  });
+MAPS.emberring = buildMap({
+    name: 'Ember Ring', theme: 'rift', hidden: true, lab: true,
+    desc: 'A ring of lava round the middle with four gaps onto the island, where the powerup is. Dash over the lava if you have to. Boulders out by the walls for the long game.',
+    haz: [
+      { type: 'lava', shape: 'rect', x: 440, y: 260, w: 110, h: 36 },
+      { type: 'lava', shape: 'rect', x: 440, y: 296, w: 36, h: 54 },
+      { type: 'lava', shape: 'rect', x: 440, y: 450, w: 36, h: 54 },
+      { type: 'lava', shape: 'rect', x: 440, y: 504, w: 110, h: 36 },
+      { type: 'pit', shape: 'rect', x: 180, y: 620, w: 110, h: 100 },
+      { type: 'tar', shape: 'circle', x: 250, y: 160, r: 46 },
+    ],
+    pillars: [{ x: 250, y: 400, r: 28 }, { x: 600, y: 130, r: 22 }],
+    spikes: [{ side: 'left', a: 300, b: 500 }],
+    power: [{ x: 600, y: 400 }], amberY: [WALL + 44, 240],
+  });
+MAPS.sandbar = buildMap({
+    name: 'Sandbar', theme: 'beach', hidden: true, lab: true,
+    desc: 'A long sandbar between two channels. The sea comes in from both long edges as the game goes on, until only the middle strip is left. Fight it out on what\'s left of the sand.',
+    haz: [
+      { type: 'pit', water: true, shape: 'circle', x: 330, y: 400, r: 46 },
+      { type: 'tar', shape: 'circle', x: 520, y: 220, r: 48 },
+    ],
+    pillars: [{ x: 230, y: 230, r: 24 }, { x: 230, y: 570, r: 24 }, { x: 600, y: 400, r: 30, centre: true }],
+    spikes: [],
+    cracks: [
+      { type: 'pit', water: true, shape: 'rect', x: WALL, y: WALL, w: AW - 2 * WALL, h: 70, at: 35, centre: true },
+      { type: 'pit', water: true, shape: 'rect', x: WALL, y: AH - WALL - 70, w: AW - 2 * WALL, h: 70, at: 35, centre: true },
+      { type: 'pit', water: true, shape: 'rect', x: WALL, y: 96, w: AW - 2 * WALL, h: 70, at: 70, centre: true },
+      { type: 'pit', water: true, shape: 'rect', x: WALL, y: AH - 96 - 70, w: AW - 2 * WALL, h: 70, at: 70, centre: true },
+      { type: 'pit', water: true, shape: 'rect', x: WALL, y: 166, w: AW - 2 * WALL, h: 60, at: 105, centre: true },
+      { type: 'pit', water: true, shape: 'rect', x: WALL, y: AH - 166 - 60, w: AW - 2 * WALL, h: 60, at: 105, centre: true },
+    ],
+    power: [{ x: 600, y: 260 }, { x: 600, y: 540 }], amberY: [240, 330],
+  });
+MAPS.bales = buildMap({
+    name: 'Bale Maze', theme: 'farm', hidden: true, lab: true,
+    desc: 'Hay bales everywhere, stacked in a loose maze. Short sight lines, lots of corners to peek round, and an old well in each half. For close fighters.',
+    haz: [{ type: 'pit', shape: 'circle', x: 300, y: 400, r: 38 }],
+    pillars: [{ x: 200, y: 200, r: 26, kind: 'hay' }, { x: 200, y: 600, r: 26, kind: 'hay' }, { x: 380, y: 280, r: 28, kind: 'hay' }, { x: 380, y: 520, r: 28, kind: 'hay' }, { x: 500, y: 150, r: 24, kind: 'hay' }, { x: 500, y: 650, r: 24, kind: 'hay' }, { x: 520, y: 400, r: 30, kind: 'hay' }],
+    spikes: [],
+    power: [{ x: 600, y: 400 }], amberY: [WALL + 44, 330],
+  });
+MAPS.crosscut = buildMap({
+    name: 'Crosscut', theme: 'mill', hidden: true, lab: true,
+    desc: 'Two saw blades on tracks across the top and bottom of the yard, running against each other, and the mill pond in the middle. The safe ground is a band through the centre, and it\'s not wide.',
+    haz: [
+      { type: 'pit', water: true, shape: 'circle', x: 600, y: 400, r: 66, centre: true },
+      { type: 'tar', shape: 'rect', x: 250, y: 560, w: 120, h: 90 },
+    ],
+    pillars: [{ x: 300, y: 250, r: 24 }, { x: 460, y: 540, r: 22 }],
+    spikes: [],
+    saws: [{ x0: 200, x1: 1000, y: 170, r: 26, per: 6, ph: 0 }],
+    power: [{ x: 600, y: 230 }, { x: 600, y: 570 }], amberY: [230, 330],
+  });
+for (const k of ['ruins', 'frost', 'grove']) MAPS[k].lab = true; // (the retired arenas can be switched back on from the lab too)
 const CRACK_WARN = 4;
 // custom game options; def is the standard rule
 const OPTIONS = {
@@ -353,7 +549,22 @@ MAPS.holes = buildMap({
     spawns: [{ x: 110, y: 400 }, { x: 110, y: 300 }, { x: 110, y: 500 }, { x: 70, y: 400 }],
     power: [{ x: AW - 50, y: AH - 50 }], amberY: [WALL + 44, 330],
   });
-const MAP_KEYS = Object.keys(MAPS).filter(k => !MAPS[k].hidden); // the rotation (ranked) and the lobby's arenas
+const MAP_KEYS = Object.keys(MAPS).filter(k => !MAPS[k].hidden); // the arenas on offer in custom games (and the default ranked rotation)
+// ---- the arena pool: which built-in arenas are in custom games and which are in the ranked rotation. The owner sets it from
+// the Arena lab (kept on the server as the 'arenas' setting); with nothing set, every arena that isn't in the lab is in both.
+// LAB_KEYS: every arena the lab can switch (built in, not a training ground, not a player arena, not a game mode's map).
+const LAB_LIST = Object.keys(MAPS).filter(k => !MAPS[k].custom && !MAPS[k].mode && (!MAPS[k].hidden || MAPS[k].lab)), LAB_KEYS = () => LAB_LIST.slice();
+const ARENA_POOL = { ranked: null, custom: null };
+const poolDefault = () => LAB_KEYS().filter(k => !MAPS[k].lab);
+function applyArenaPool(cfg) {
+  const ok = l => (Array.isArray(l) ? l.filter(k => MAPS[k] && LAB_KEYS().includes(k)) : null);
+  ARENA_POOL.ranked = cfg && ok(cfg.ranked); ARENA_POOL.custom = cfg && ok(cfg.custom);
+  const custom = ARENA_POOL.custom || poolDefault();
+  for (const k of LAB_KEYS()) MAPS[k].hidden = !custom.includes(k);
+  MAP_KEYS.length = 0; MAP_KEYS.push(...Object.keys(MAPS).filter(k => !MAPS[k].hidden));
+}
+const rankedPool = () => { const r = ARENA_POOL.ranked || poolDefault(); return r.length ? r : poolDefault(); };
+const arenaPool = () => ({ ranked: rankedPool(), custom: MAP_KEYS.slice() });
 
 // ---- player-made arenas (the Arena builder). A definition lists one half, like the built-in arenas, and is checked
 // and tidied by cleanArena before it can be played: sizes and counts are capped, the spawns must be clear, and the
@@ -1271,7 +1482,7 @@ function makePlayer(w, opts) {
     streak: 0, emp: false, empPts: 0, trailT: 0, auraT: 0, lastArrow: null, lastHow: '', lastHurtT: -99, slowK: 0.5, fallCause: 'pit', coat: {},
     element: ELEMENTS[opts.element] ? opts.element : pick(Object.keys(ELEMENTS)), role: ROLES[opts.role] ? opts.role : pick(Object.keys(ROLES)),
     poisonN: 0, poisonT: 0, poisonMax: 3, poisonMul: 1, burnDps: BURN_DPS, quickT: 0,
-    abCd: [0, 0], wantAb: [false, false], reviveUsed: false, revT: 0, revOf: null, revP: 0,
+    abCd: [0, 0], abHold: [0, 0], wantAb: [false, false], reviveUsed: false, revT: 0, revOf: null, revP: 0,
     lastHitBy: null, lastHitT: -99, lastCause: '', killedBy: null, stats: { shots: 0, hits: 0, dmg: 0, taken: 0, ring: 0, longest: 0, as: 0 }, disarm: 0, poisonBy: null, contT: 0,
     pw: emptyPowers(), input: { mx: 0, my: 0, aim: 0, draw: false, tx: AW / 2, ty: AH / 2 }, wantDash: false,
     ai: { target: null, retarget: 0, strafe: 1, strafeT: 0, reload: 0.5, want: 0.8, err: 0, errT: 0, dodgeCd: 0 },
@@ -1627,7 +1838,7 @@ function freshBody(p, x, y) {
     lastHitBy: null, lastHitT: -99, lastCause: '', killedBy: null, pw: emptyPowers(), wantDash: false, lastHurtT: -99, pinT: 0, pinned: 0, dashK: 1,
     pinSafe: 0, volleyArmed: false, railArmed: false, recoilArmed: false, seekArmed: false, rocketArmed: false, swapArmed: false, boomArmed: false, execArmed: false, briarArmed: false,
     windT: 0, parryT: 0, focusT: 0, riposteT: 0, riposteUsed: false, parryRefunded: false, sawCd: 0, bumpCd: 0, portCd: 0, fortT: 0, phaseT: 0, shroudT: 0, blinkGap: 0, caltT: 0, rush: null, nblink: null, trickArmed: false, throwCd: 0, wasDraw: false, bolts: null, reloadT: 0, repeatT: 0, fanArmed: false, autoT: 0, parryAuto: false, wantThrow: false, throwQ: 0, nockT: 0, strikeN: 0, strikeT: 0, markPos: null, staggerT: 0, markT: 0, stealthT: 0, ambushT: 0, markReady: 0, slowK: 0.5, fallCause: 'pit', coat: {},
-    abCd: [0, 0], wantAb: [false, false], reviveUsed: false, revT: 0, revOf: null, revP: 0,
+    abCd: [0, 0], abHold: [0, 0], wantAb: [false, false], reviveUsed: false, revT: 0, revOf: null, revP: 0,
     escapeUsed: false, hurtLog: [], hrT: 0, hrFrom: null, swT: 0, holdOff: false,
   });
   p.aim = Math.atan2(AH / 2 - y, AW / 2 - x);
@@ -2306,16 +2517,20 @@ function updatePlayer(w, p, dt) {
   }
   p.wantDash = false;
 
+  if (!p.abHold) p.abHold = [0, 0];
   for (let i = 0; i < MAX_SLOTS; i++) {
+    // an armed shot (Harpoon, Snare Arrow, Rail Shot...): the cooldown waits until the shot is actually fired
+    if (p.abHold[i]) { const f = ARM_FLAG[p.slots[i]]; if (f && p[f]) p.abCd[i] = 0; else { p.abCd[i] = p.abHold[i]; p.abHold[i] = 0; } }
     p.abCd[i] = Math.max(0, p.abCd[i] - dt);
     if (!p.wantAb[i]) continue;
     p.wantAb[i] = false;
     const id = p.slots[i];
-    if (!id || p.abCd[i] > 0 || (p.falling > 0 && !(id === 'recall' && p.markPos))) continue;
+    if (!id || p.abCd[i] > 0 || p.abHold[i] || (p.falling > 0 && !(id === 'recall' && p.markPos))) continue;
     if (id !== 'stealth' && id !== 'blink' && p.stealthT > 0) breakStealth(w, p);
     const ok = useAbility(w, p, id);
     p.abCd[i] = ok === 'rearm' ? 0.35 : ok ? TREE[id].active.cd * (p.abCdMul || 1) : 0.8;
     if (p.parryHalf) { p.abCd[i] *= 0.5; p.parryHalf = false; }
+    if (ok === true && ARM_FLAG[id] && p[ARM_FLAG[id]]) { p.abHold[i] = p.abCd[i]; p.abCd[i] = 0; }
   }
 
   p.disarm = Math.max(0, p.disarm - dt);
@@ -2481,6 +2696,8 @@ function nearestFoeTo(w, p, x, y, maxD) {
 const armedShot = p => !!(p.fanArmed || p.railArmed || p.recoilArmed || p.rocketArmed || p.volleyArmed || p.seekArmed || p.trickArmed || p.boomArmed || p.execArmed || p.briarArmed || p.harpoonArmed);
 // on the rope: a harpoon in flight or someone being reeled in; no drawing or shooting until it's done
 const roped = (w, p) => w.arrows.some(a => a.hpn && a.owner === p.id && !(a.stuck > 0)) || w.players.some(q => q.hook && q.hook.by === p.id);
+// abilities that arm the next shot, and the flag each one sets (their cooldown starts when that shot goes)
+const ARM_FLAG = { snare: 'snare', harpoon: 'harpoonArmed', fanbolt: 'fanArmed', recoil: 'recoilArmed', seeker: 'seekArmed', rocket: 'rocketArmed', trick: 'trickArmed', boomerang: 'boomArmed', briar: 'briarArmed', execute: 'execArmed', railshot: 'railArmed', volley: 'volleyArmed' };
 function useAbility(w, p, id) {
   const ax = Math.cos(p.aim), ay = Math.sin(p.aim);
   switch (id) {
@@ -4407,7 +4624,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
     || (p.knock > 0 && lethalDist(p.x + p.vx * 0.3, p.y + p.vy * 0.3) < 40)) && lethalDist(p.echo.x, p.echo.y) > 30) p.wantDash = true;
   for (let i = 0; i < MAX_SLOTS; i++) {
     const id = p.slots[i];
-    if (!id || p.abCd[i] > 0) continue;
+    if (!id || p.abCd[i] > 0 || (p.abHold && p.abHold[i])) continue;
     let use = false;
     switch (id) {
       case 'repeater': use = !!T && dT < 500 && p.bolts === 0; break;
@@ -5480,7 +5697,7 @@ function snapshot(w) {
         hp: Math.max(0, Math.ceil(p.hp)), mh: p.maxHp, ch: p.npc && p.npc.k === 'term' ? r2(Math.min(1, (p.npc.drawT || 0) / (p.npc.mode === 'hunter' ? 1.1 : p.npc.drawMax || 0.5))) : r2(p.charge), dr: p.npc && p.npc.k === 'term' ? (p.npc.drawT > 0 ? 1 : 0) : p.drawing ? 1 : 0,
         f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, rt: p.vine > 0 && p.stuck > 0 ? 1 : undefined, bu: p.burn > 0 ? 1 : 0, bl: p.bleedT > 0 ? 1 : 0, vd: p.voidT > w.t && p.voidN ? p.voidN : undefined, vb: p.voidT > w.t && p.voidN ? p.voidBy : undefined, sl: p.slow > 0 || p.iceSlow > 0 ? 1 : 0, sw: p.slow > 0 || p.iceSlow > 0 ? r2(Math.max(p.slow > 0 ? 1 - (p.sure ? 0.85 : p.slowK || 0.5) : 0, p.iceSlow > 0 ? (p.sure ? 0.15 : 0.35) : 0)) : undefined, iv: p.inv > 0 ? 1 : 0,
         da: p.dashT > 0 ? 1 : 0, hl: p.healing ? 1 : 0, dn: p.dashN, dk: p.dashMaxN, ra: p.rallied ? 1 : 0, shd: p.shade ? p.shade.n : undefined, sht: p.shade ? r2(p.shade.t / SHADE.t) : undefined, th: p.thornN > 0 ? p.thornN : undefined,
-        ab: p.slots.slice(), ac: p.abCd.map(r1), fz: p.frozen > 0 ? 1 : 0, sx: p.dashLock > 0 ? 1 : 0, ov: p.over >= 1 ? 1 : 0,
+        ab: p.slots.slice(), ac: p.abCd.map(r1), ah: p.abHold ? (p.abHold[0] ? 1 : 0) | (p.abHold[1] ? 2 : 0) : 0, fz: p.frozen > 0 ? 1 : 0, sx: p.dashLock > 0 ? 1 : 0, ov: p.over >= 1 ? 1 : 0,
         sn: p.snare ? 1 : 0, vl: p.volleyArmed ? 1 : 0, rl: p.railArmed ? 1 : 0, ha: p.harpoonArmed ? 1 : 0, hk: p.hook ? p.hook.by : 0,
         arm: p.recoilArmed ? 'recoil' : p.rocketArmed ? 'rocket' : p.seekArmed ? 'seeker' : p.trickArmed ? 'trick' : p.boomArmed ? 'boomerang' : p.execArmed ? 'execute' : p.briarArmed ? 'briar' : undefined,
         sr: p.shroudT > 0 ? p.shroudR : undefined, rsh: p.rush ? 1 : 0, sk: p.strikeN || 0, nb: p.nblink ? 1 : 0, ft: p.fortT > 0 ? 1 : 0, wd: p.windT > 0 ? 1 : 0, ph: p.phaseT > 0 ? 1 : 0, gr: p.grap ? [r1(p.grap.x), r1(p.grap.y)] : 0, rp: r2(p.revP || 0), rv: p.reviveUsed ? 1 : 0, fl: p.flash > 0 ? 1 : 0, dc: r2(p.dashCd), dm: p.dashCdMax, d: p.dead ? 1 : 0,
@@ -5655,7 +5872,7 @@ return {
   TM, TM_NAMES, TM_MINIONS, MASTERY, masteryOf, takeCard, applyStats,
   AIM, AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, SKILL_MIN, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
-  plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
+  plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, LAB_KEYS, applyArenaPool, arenaPool, rankedPool, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg, emblemCol, emblemFull,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, BANNER_FRAME, frameAllowed, featProgress, achSeed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades

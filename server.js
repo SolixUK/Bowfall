@@ -206,6 +206,7 @@ async function loadSettings() {
   const l = await store.getSetting('locks').catch(() => null), r = await store.getSetting('rotPin').catch(() => null), ev = await store.getSetting('stripeEvents').catch(() => null);
   SETTINGS.locks = !!(l && l.on); SETTINGS.rotPin = r || null; SETTINGS.events = Array.isArray(ev) ? ev : [];
   SETTINGS.foundersOff = !!(await store.getSetting('foundersOff').catch(() => null));
+  SETTINGS.arenas = (await store.getSetting('arenas').catch(() => null)) || null; Sim.applyArenaPool(SETTINGS.arenas);
 }
 const rot = () => E.rotation(Date.now(), SETTINGS.rotPin);
 const walletOf = u => Object.assign(E.wallet(u, SETTINGS.locks, rot()), { payments: PAY.configured(), foundersClosed: !foundersOpen() });
@@ -294,7 +295,7 @@ function arenaInfo(key) { const M = Sim.MAPS[key]; if (!M || !M.custom) return u
 // the ranked map pool: the built-in arenas plus any the owner has put in the ranked rotation
 let RANKED_ARENAS = [];
 async function loadRankedArenas() { const list = await store.arenasWhere('ranked').catch(() => []); RANKED_ARENAS = list.filter(useArenaRow).map(a => arenaKey(a.id)); }
-const rankedMaps = () => Sim.MAP_KEYS.concat(RANKED_ARENAS.filter(k => Sim.MAPS[k]));
+const rankedMaps = () => Sim.rankedPool().concat(RANKED_ARENAS.filter(k => Sim.MAPS[k]));
 // accounts and guests both earn Crests from games (a guest's wait on their guest record for when they make an account)
 const isEarner = (room, u) => !!u && !(u.career && u.career.ai) && [...room.clients].some(c => c.user === u || c.guest === u);
 const isAccount = (room, u) => !!u && !u.guest && !(u.career && u.career.ai) && [...room.clients].some(c => c.user === u);
@@ -534,6 +535,20 @@ const weekKey = (t = Date.now()) => { const d = new Date(t), day = (d.getUTCDay(
 const clipLimit = A.limiter(12, 60 * 1000), clanLimit = A.limiter(40, 60 * 1000), clanNewLimit = A.limiter(6, 10 * 60 * 1000);
 const cleanText = (s, max) => String(s || '').replace(/\r\n/g, '\n').replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '').trim().slice(0, max);
 
+// phone sign-in codes (see /devlink): kept in memory for 10 minutes; six letters and digits that can't be mixed up
+const QR = require('qrcode');
+const DEVLINK = new Map(), DL_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', linkLimit = A.limiter(10, 60 * 1000);
+function newDevLink() {
+  const now = Date.now();
+  for (const [c, L] of DEVLINK) if (L.exp < now) DEVLINK.delete(c);
+  if (DEVLINK.size > 5000) return null;
+  let code;
+  do { code = Array.from(crypto.randomBytes(6), b => DL_CHARS[b % DL_CHARS.length]).join(''); } while (DEVLINK.has(code));
+  const L = { code, k: crypto.randomBytes(16).toString('hex'), exp: now + 10 * 60 * 1000, tok: null, user: null, seen: false };
+  DEVLINK.set(code, L); return L;
+}
+const liveLink = c => { const L = DEVLINK.get(c); return L && L.exp > Date.now() ? L : null; };
+setInterval(() => { const now = Date.now(); for (const [c, L] of DEVLINK) if (L.exp < now) DEVLINK.delete(c); }, 60 * 1000).unref();
 async function api(req, res, url) {
   const route = url.pathname.slice(4); // after /api
   const method = req.method;
@@ -642,6 +657,21 @@ async function api(req, res, url) {
     if (email) MAIL.send(email, 'Your Bowfall account was deleted', `Your Bowfall account (${oldName}) has been deleted, as you asked. Thanks for playing.`).catch(() => {});
     return json(res, 200, { ok: true }, { 'Set-Cookie': A.sessionCookie(null, req) });
   }
+  // the arena pool: which built-in arenas are in custom games and in the ranked rotation (everyone reads it; the owner sets it
+  // from the Arena lab, which also lists the arenas still in the lab)
+  if (route === '/arenas' && method === 'GET') {
+    const pool = Sim.arenaPool();
+    return json(res, 200, me && me.admin ? Object.assign(pool, { lab: Sim.LAB_KEYS().map(k => ({ key: k, name: Sim.MAPS[k].name, lab: !!Sim.MAPS[k].lab, retired: !!Sim.MAPS[k].retired })) }) : pool);
+  }
+  if (route === '/arenas' && method === 'POST') {
+    if (!me || !me.admin) return json(res, 403, { error: 'Only the game owner can change the arenas.' });
+    const keys = Sim.LAB_KEYS(), clean = l => (Array.isArray(l) ? l.map(String).filter(k => keys.includes(k)) : []);
+    const cfg = { ranked: clean(body.ranked), custom: clean(body.custom) };
+    if (!cfg.ranked.length) return json(res, 400, { error: 'The ranked rotation needs at least one arena.' });
+    if (!cfg.custom.length) return json(res, 400, { error: 'Custom games need at least one arena.' });
+    SETTINGS.arenas = cfg; await store.setSetting('arenas', cfg); Sim.applyArenaPool(cfg);
+    return json(res, 200, Sim.arenaPool());
+  }
   if (route === '/legal' && method === 'GET') return json(res, 200, { discord: DISCORD_INVITE, contact: process.env.CONTACT_EMAIL || null, payments: PAY.configured(), mail: MAIL.configured(), providers: O.enabled() });
   if (route === '/device-login' && method === 'POST') {
     if (!authLimit(ip(req))) return json(res, 429, { error: 'Too many attempts. Wait a minute and try again.' });
@@ -652,6 +682,44 @@ async function api(req, res, url) {
     await store.createSession(A.hashToken(tok), u.id, Date.now() + A.SESSION_DAYS * 86400 * 1000);
     const t = track(u);
     return json(res, 200, { token: tok, user: publicUser(t) });
+  }
+  // ---- signing in on your phone: an extra player on a shared screen (a TV with controllers) gets a QR code; they scan it,
+  // confirm on their phone (signed in there, or signing in with Google, Discord or a password), and the screen picks the
+  // sign-in up. The screen holds a secret (k) the code doesn't show, so only it can collect the result.
+  if (route === '/devlink' && method === 'POST') {
+    if (!linkLimit(ip(req))) return json(res, 429, { error: 'Too many codes. Wait a minute and try again.' });
+    const L = newDevLink();
+    return L ? json(res, 200, { code: L.code, k: L.k, url: siteBase(req) + '/link?c=' + L.code, short: siteBase(req).replace(/^https?:\/\/(www\.)?/, '') + '/link', exp: L.exp }) : json(res, 503, { error: 'Busy. Try again in a moment.' });
+  }
+  if (route === '/devlink/qr.svg' && method === 'GET') {
+    const L = liveLink(String(url.searchParams.get('c') || '').toUpperCase());
+    if (!L) return json(res, 404, { error: 'That code has expired.' });
+    const svg = await QR.toString(siteBase(req) + '/link?c=' + L.code, { type: 'svg', margin: 1, errorCorrectionLevel: 'M', color: { dark: '#0f1a12', light: '#ffffff' } });
+    res.writeHead(200, { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'no-store' }); return res.end(svg);
+  }
+  if (route === '/devlink' && method === 'GET') {
+    const L = liveLink(String(url.searchParams.get('c') || '').toUpperCase());
+    if (!L || L.k !== String(url.searchParams.get('k') || '')) return json(res, 200, { state: 'gone' });
+    if (!L.tok) return json(res, 200, { state: L.seen ? 'seen' : 'wait' });
+    DEVLINK.delete(L.code);
+    return json(res, 200, { state: 'done', token: L.tok, user: L.user });
+  }
+  // the phone: look a code up (is it real, and who would it sign in?), then confirm
+  if (route === '/devlink/check' && method === 'POST') {
+    const L = liveLink(String(body.code || '').trim().toUpperCase());
+    if (!L || L.tok) return json(res, 404, { error: "That code isn't valid any more. Make a new one on the screen." });
+    L.seen = true;
+    return json(res, 200, { ok: true, code: L.code, user: me && !(me.career && me.career.ai) ? { name: me.name } : null });
+  }
+  if (route === '/devlink/approve' && method === 'POST') {
+    if (!me || (me.career && me.career.ai)) return json(res, 401, { error: 'Sign in first.' });
+    if (!authLimit(ip(req))) return json(res, 429, { error: 'Too many attempts. Wait a minute and try again.' });
+    const L = liveLink(String(body.code || '').trim().toUpperCase());
+    if (!L || L.tok) return json(res, 404, { error: "That code isn't valid any more. Make a new one on the screen." });
+    const tok = A.newToken();
+    await store.createSession(A.hashToken(tok), me.id, Date.now() + A.SESSION_DAYS * 86400 * 1000);
+    L.tok = tok; L.user = publicUser(me); L.exp = Math.min(L.exp, Date.now() + 2 * 60 * 1000); // (the screen collects it within seconds)
+    return json(res, 200, { ok: true, name: me.name });
   }
   if (route === '/login' && method === 'POST') {
     if (!authLimit(ip(req))) return json(res, 429, { error: 'Too many attempts. Wait a minute and try again.' });
@@ -1355,7 +1423,7 @@ const server = http.createServer(async (req, res) => {
   }
   // old room links (/?room=ABCD) go straight to the game
   if (url.pathname === '/' && url.searchParams.get('room')) { res.writeHead(302, { Location: '/play?room=' + encodeURIComponent(url.searchParams.get('room')) }); return res.end(); }
-  const page = url.pathname === '/' ? 'site.html' : url.pathname === '/play' ? 'index.html' : url.pathname;
+  const page = url.pathname === '/' ? 'site.html' : url.pathname === '/play' ? 'index.html' : url.pathname === '/link' ? 'link.html' : url.pathname;
   const file = path.normalize(path.join(PUBLIC, page));
   if (!file.startsWith(PUBLIC)) { res.writeHead(403); return res.end(); }
   sendStatic(req, res, file);

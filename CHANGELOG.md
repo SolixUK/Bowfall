@@ -2,6 +2,58 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.87.0
+
+The Arena lab, and fourteen new arenas waiting in it.
+
+- **The Arena lab** (owner only: an **Arena lab** button on the main screen next to Clip farm). Every built-in arena is listed with a preview, including the retired ones and the new ones. **Test vs bots** starts a local game on any of them (the usual lobby: add bots, pick rules, Start). Two ticks per arena: **Custom** puts it in the lobby's arena picker for everyone, **Ranked** puts it in the ranked rotation. Save sends the lists to the server (the `arenas` setting); players get them on their next visit. New arenas start with neither tick, so nothing goes live until it's been tried. Retired arenas (Portal Ruins, Frozen Lake, Mushroom Grove) can be switched back on from here too.
+- **Three new themes, three layouts each** (all in the lab):
+  - **The Dustbowl**, sun-baked cracked clay with sandstone boulders and quicksand: **Dry Gulch** (simple: a dry chasm, quicksand, boulders), **Sandstorm Flats** (drops along the top and bottom edges, and every 14 seconds a sandstorm blows the whole arena toward one of them, up and down in turn, after a flashing warning), **Sunstone Mesa** (mine tunnels link the corners, and the hollow ground gives way in more places as the game goes on).
+  - **Blackwater Marsh**, dark wet ground, black pools and reeds: **Reed Pools** (simple), **Boardwalk** (a channel of black water splits the marsh with one crossing, and the water rises twice during a game so the crossing narrows), **Wisp Hollow** (the marsh at night, lit by drifting will-o'-the-wisps, with fairy rings in the corners as gates to the far side).
+  - **The Blossom Garden**, raked gravel, stepping stones and cherry blossom: **Koi Garden** (simple: a koi pond in the middle, stepping stones for cover), **Tea House** (an island in a pond with a healing spring at its heart and four little bridges), **Torii Path** (a stream crossed in the middle, torii gates in the corners linking the sides, and petal gusts that blow the arena up or down).
+- **Five new layouts for existing themes** (also in the lab): **Twin Glades** (Meadow: two glades split by big boulders, no lava), **Ember Ring** (Ember Rift: a ring of lava round the island with the powerup, four gaps onto it), **Sandbar** (Tide Cove: the sea comes in from both long edges, three times, until only the middle strip is left), **Bale Maze** (Harvest Field: hay bales everywhere, short sight lines, for close fighters), **Crosscut** (Sawmill: saw blades across the top and bottom running against each other, the mill pond in the middle).
+- Behind it: `MAPS` entries marked `lab` are hidden until switched on; `Sim.applyArenaPool` rebuilds `MAP_KEYS` (what custom games offer) and the server's ranked pool from the saved setting, `GET /api/arenas` reads the lists and `POST /api/arenas` (owner) sets them. Pools and water now take their colours from the theme (`THEME.pool`), lights can be wisps, and `cracks` say "the ground is giving way" on the Dustbowl.
+
+## 0.86.4
+
+- **Rip is easier to read.** Casting it sends a pulse of green thorns bursting out from the trapper, so everyone can see who cast it. Then a faint spirit vine reaches out from the trapper to each enemy carrying their thorns (about 0.4 seconds to get there), wavering as it goes; ghostly fingers close round the target and the vine pulls taut, then the thorns tear out as before.
+
+## 0.86.3
+
+- **An armed ability just dims.** While its shot is loaded the slot greys out (same size, no "Armed" text), then shows its cooldown once the shot is fired.
+
+## 0.86.2
+
+- **Armed shots start their cooldown when they're fired, not when they're cast.** Harpoon, Snare Arrow, Rail Shot, Volley, Seeker, Rocket, Trick Shot, Boomerang, Fan Bolt, Recoil, Execute and Bramble Toss used to start counting down the moment you armed them, so you could arm one, hold it until the cooldown was nearly back, then fire it and arm another straight away. Now the cooldown begins when the shot actually goes. Bots follow the same rule.
+- **"Practice vs bots" is now "Local game (this screen)"**, to say what it is: a custom game run right on this computer, with everyone on this screen (players on controllers too), bots and all the custom rules, and no network lag.
+
+## 0.86.1
+
+- **The in-game menu shows each player only what's theirs.** A player on an extra controller who presses Start gets their own upgrades, How to play, Controls, Options and Resume; no Leave, End match, room code, Balance data or Achievements. The host still sees everything.
+- **Teams, bots, bot skill and handicaps are set up in the lobby only.** Mid-match the menu just shows the teams (someone watching an online game can still join one); the Bot skill setting and the handicap and per-bot controls are gone from it.
+- **Options from the in-game menu.** A new Options button opens the full Options (the aim line's opacity, colour strength and thickness are under Gameplay) and Back returns to the menu.
+- **Players on extra controllers pick upgrades with up and down too**, like the main player (left and right still work).
+- **No crosshair on a controller.** Playing with a controller, the mouse's crosshair no longer shows (it sat in a corner, or drifted as the stick aimed): only the arrow by your archer. It comes back as soon as the mouse moves.
+
+## 0.86.0
+
+- **Sign in on your phone.** When you add a player on a controller, the screen now shows a QR code. They scan it with their phone's camera (or go to bowfall.com/link and type the six-letter code), sign in there with Google, Discord or a password (or make an account), tap Play, and the TV picks them up within a couple of seconds, with no typing on the TV. Codes last 10 minutes (a fresh one appears by itself) and work once. The TV keeps a secret the code doesn't show, so only the screen that made the code can collect the sign-in, and the phone page says to confirm only in front of that screen.
+- **Slimmer ability strips.** With players on controllers, each player's abilities are one slim strip along the bottom: their P tag and empower pips, then two small slots (the cooldown shows in seconds; a ready slot just lights up). About half the height of before, and narrower.
+- On the website, switching between Sign in and Create account keeps where you were going next.
+
+## 0.85.2
+
+More couch play on controllers.
+
+- **Lists and sliders with a controller work like on a console:** move onto one, press A to start changing it (it lights up green), then any direction changes it, and A or B finishes. Before, left and right changed whatever list you were on, so you couldn't move past it (in Controls you couldn't get from Aim sensitivity across to Aim smoothing). Rule sliders in the lobby work the same way now.
+- **Every player's own controller settings.** Aim sensitivity, aim smoothing and stick dead zone are kept for each player (P2's start out as yours). Player 2 can press Start on their own controller to open the menu and work it with their own controller; Controls then shows their settings (a P1 / P2 / P3 switcher at the top of the controller box picks whose, for the mouse too). Their archer stands still while their menu is open.
+- **The menu works during a kill cam with a controller.** The menu could open but the controller couldn't move around it while a replay was playing.
+- **Abilities, one row.** With players on controllers, everyone's abilities sit in one row along the bottom edge (yours first, then each player's in their colour, the same size), instead of the others' floating above yours in the middle of the arena. Each panel shows that player's empower progress, which before only showed for player 1.
+
+## 0.85.1
+
+- **Much lighter on the database.** Every leaderboard, and the rank and training percentiles the server works out every 10 minutes, read the entire users table (every account's whole career, achievements and profile) from the database each time. Every 10 minutes, all day, that kept the database awake around the clock and moved gigabytes a month, which ran out the free Neon plan's monthly allowance and took the site down. The server now reads the accounts once when it starts and keeps them in memory (it's the only thing that writes them, and every save, rename, password change and deletion updates the copy). Tested on Postgres: 45 leaderboard requests in a row make no database queries at all, and an idle server makes none, so the database can sleep between games.
+
 ## 0.85.0
 
 Playing on a TV with friends on controllers, from a first proper go at it.

@@ -769,7 +769,7 @@ const pages = {
       <label>Password<input name="password" type="password" maxlength="100" autocomplete="${reg ? 'new-password' : 'current-password'}" required></label>
       ${reg ? '<p class="muted" style="margin:0;font-size:14px">Name: 3 to 16 letters, numbers, _ or -. Password at least 6 characters. Your email is private and only used to reset your password. Making an account means you agree to the <a href="#/terms">Terms</a>; see <a href="#/privacy">Privacy</a> for what is kept.</p>' : '<p style="margin:0;font-size:14px"><a href="#/forgot">Forgot your password?</a></p>'}
       <p class="err" id="aErr"></p><button class="btn" type="submit">${reg ? 'Create account' : 'Sign in'}</button></form>
-      <p class="muted" style="margin:14px 0 0">${reg ? 'Already have one? <a href="#/login">Sign in</a>' : 'New here? <a href="#/register">Create an account</a>'}</p></div>`;
+      <p class="muted" style="margin:14px 0 0">${reg ? `Already have one? <a href="#/login${next ? '?next=' + encodeURIComponent(next) : ''}">Sign in</a>` : `New here? <a href="#/register${next ? '?next=' + encodeURIComponent(next) : ''}">Create an account</a>`}</p></div>`;
     const f = $('authF'); f.name.focus();
     f.onsubmit = async e => {
       e.preventDefault();
