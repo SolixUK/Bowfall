@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.87.0';
+const VERSION = '0.87.2';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -259,7 +259,7 @@ MAPS.gulch = buildMap({
   });
 MAPS.sandstorm = buildMap({
     name: 'Sandstorm Flats', theme: 'dust', hidden: true, lab: true,
-    desc: 'Open flats with drops along the top and bottom edges. Every so often a sandstorm blows the whole arena toward one edge, up or down in turn, after a flashing warning. Get behind a boulder, or get blown into a drop.',
+    desc: 'Open flats with drops along the top and bottom edges and a few boulders for cover. Get pushed wide and you go over.',
     haz: [
       { type: 'pit', shape: 'rect', x: 330, y: WALL, w: 240, h: 70 },
       { type: 'pit', shape: 'rect', x: 330, y: AH - WALL - 70, w: 240, h: 70 },
@@ -267,7 +267,6 @@ MAPS.sandstorm = buildMap({
     ],
     pillars: [{ x: 250, y: 400, r: 30 }, { x: 520, y: 220, r: 22 }, { x: 520, y: 580, r: 22 }],
     spikes: [],
-    wind: { period: 14, warn: 2.5, gust: 3, accel: 300 },
     power: [{ x: 600, y: 400 }], amberY: [130, 330],
   });
 MAPS.mesa = buildMap({
@@ -317,8 +316,8 @@ MAPS.boardwalk = buildMap({
     power: [{ x: 600, y: 400 }], amberY: [WALL + 44, 330],
   });
 MAPS.wisp = buildMap({
-    name: 'Wisp Hollow', theme: 'wisp', hidden: true, lab: true,
-    desc: 'The marsh at night, lit by will-o\'-the-wisps. Fairy rings in the corners are gates to the far side. Black pools and bog holes are hard to see in the dark: follow the lights.',
+    name: 'Moonlit Hollow', theme: 'wisp', hidden: true, lab: true,
+    desc: 'The marsh at night. Fairy rings in the corners are gates to the far side, and black pools and bog holes are harder to spot in the dark.',
     haz: [
       { type: 'pit', water: true, shape: 'circle', x: 330, y: 420, r: 58 },
       { type: 'tar', shape: 'circle', x: 520, y: 160, r: 46 },
@@ -327,7 +326,6 @@ MAPS.wisp = buildMap({
     pillars: [{ x: 250, y: 190, r: 24 }, { x: 600, y: 300, r: 22 }],
     spikes: [],
     portals: [{ x: 200, y: 650 }],
-    lights: [{ x: 330, y: 420, big: true, wisp: true }, { x: 130, y: 130, wisp: true }, { x: 470, y: 720, wisp: true }, { x: 600, y: 400, big: true, wisp: true, centre: true }],
     power: [{ x: 600, y: 400 }], amberY: [WALL + 44, 330],
   });
 MAPS.koi = buildMap({
@@ -359,7 +357,7 @@ MAPS.teahouse = buildMap({
   });
 MAPS.torii = buildMap({
     name: 'Torii Path', theme: 'garden', hidden: true, lab: true,
-    desc: 'A stream cuts the garden in two, crossed in the middle. Torii gates in the corners lead to their twins on the far side, and every so often a gust of petals blows the whole arena up or down toward the stream\'s ends.',
+    desc: 'A stream cuts the garden in two, crossed in the middle. Torii gates in the corners lead to their twins on the far side.',
     haz: [
       { type: 'pit', water: true, shape: 'rect', x: 560, y: WALL, w: 80, h: 160, centre: true },
       { type: 'pit', water: true, shape: 'rect', x: 560, y: AH - WALL - 160, w: 80, h: 160, centre: true },
@@ -368,7 +366,6 @@ MAPS.torii = buildMap({
     pillars: [{ x: 400, y: 400, r: 28 }, { x: 250, y: 200, r: 20 }],
     spikes: [],
     portals: [{ x: 230, y: 620 }],
-    wind: { period: 18, warn: 2.5, gust: 2.5, accel: 220 },
     power: [{ x: 600, y: 400 }], amberY: [WALL + 44, 330],
   });
 // new layouts for the themes that already exist

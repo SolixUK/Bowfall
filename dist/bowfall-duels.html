@@ -2464,7 +2464,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.87.0';
+const VERSION = '0.87.2';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -2714,7 +2714,7 @@ MAPS.gulch = buildMap({
   });
 MAPS.sandstorm = buildMap({
     name: 'Sandstorm Flats', theme: 'dust', hidden: true, lab: true,
-    desc: 'Open flats with drops along the top and bottom edges. Every so often a sandstorm blows the whole arena toward one edge, up or down in turn, after a flashing warning. Get behind a boulder, or get blown into a drop.',
+    desc: 'Open flats with drops along the top and bottom edges and a few boulders for cover. Get pushed wide and you go over.',
     haz: [
       { type: 'pit', shape: 'rect', x: 330, y: WALL, w: 240, h: 70 },
       { type: 'pit', shape: 'rect', x: 330, y: AH - WALL - 70, w: 240, h: 70 },
@@ -2722,7 +2722,6 @@ MAPS.sandstorm = buildMap({
     ],
     pillars: [{ x: 250, y: 400, r: 30 }, { x: 520, y: 220, r: 22 }, { x: 520, y: 580, r: 22 }],
     spikes: [],
-    wind: { period: 14, warn: 2.5, gust: 3, accel: 300 },
     power: [{ x: 600, y: 400 }], amberY: [130, 330],
   });
 MAPS.mesa = buildMap({
@@ -2772,8 +2771,8 @@ MAPS.boardwalk = buildMap({
     power: [{ x: 600, y: 400 }], amberY: [WALL + 44, 330],
   });
 MAPS.wisp = buildMap({
-    name: 'Wisp Hollow', theme: 'wisp', hidden: true, lab: true,
-    desc: 'The marsh at night, lit by will-o\'-the-wisps. Fairy rings in the corners are gates to the far side. Black pools and bog holes are hard to see in the dark: follow the lights.',
+    name: 'Moonlit Hollow', theme: 'wisp', hidden: true, lab: true,
+    desc: 'The marsh at night. Fairy rings in the corners are gates to the far side, and black pools and bog holes are harder to spot in the dark.',
     haz: [
       { type: 'pit', water: true, shape: 'circle', x: 330, y: 420, r: 58 },
       { type: 'tar', shape: 'circle', x: 520, y: 160, r: 46 },
@@ -2782,7 +2781,6 @@ MAPS.wisp = buildMap({
     pillars: [{ x: 250, y: 190, r: 24 }, { x: 600, y: 300, r: 22 }],
     spikes: [],
     portals: [{ x: 200, y: 650 }],
-    lights: [{ x: 330, y: 420, big: true, wisp: true }, { x: 130, y: 130, wisp: true }, { x: 470, y: 720, wisp: true }, { x: 600, y: 400, big: true, wisp: true, centre: true }],
     power: [{ x: 600, y: 400 }], amberY: [WALL + 44, 330],
   });
 MAPS.koi = buildMap({
@@ -2814,7 +2812,7 @@ MAPS.teahouse = buildMap({
   });
 MAPS.torii = buildMap({
     name: 'Torii Path', theme: 'garden', hidden: true, lab: true,
-    desc: 'A stream cuts the garden in two, crossed in the middle. Torii gates in the corners lead to their twins on the far side, and every so often a gust of petals blows the whole arena up or down toward the stream\'s ends.',
+    desc: 'A stream cuts the garden in two, crossed in the middle. Torii gates in the corners lead to their twins on the far side.',
     haz: [
       { type: 'pit', water: true, shape: 'rect', x: 560, y: WALL, w: 80, h: 160, centre: true },
       { type: 'pit', water: true, shape: 'rect', x: 560, y: AH - WALL - 160, w: 80, h: 160, centre: true },
@@ -2823,7 +2821,6 @@ MAPS.torii = buildMap({
     pillars: [{ x: 400, y: 400, r: 28 }, { x: 250, y: 200, r: 20 }],
     spikes: [],
     portals: [{ x: 230, y: 620 }],
-    wind: { period: 18, warn: 2.5, gust: 2.5, accel: 220 },
     power: [{ x: 600, y: 400 }], amberY: [WALL + 44, 330],
   });
 // new layouts for the themes that already exist
@@ -8343,7 +8340,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.87.0';
+const PAGE_VERSION = '0.87.2';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -9115,32 +9112,68 @@ $('ctlBtn').onclick = openCtl; $('gmCtlBtn').onclick = openCtl; $('ctlClose').on
 const pad = { on: false, mx: 0, my: 0, draw: false, aim: null, mag: 0, prev: [], want: null, wantMag: 0, t: 0, nav: { dir: null, t: 0 } };
 // controller aim sensitivity 1-10: how many radians a second the aim can swing round (10 is instant). The mouse is never affected.
 // controller aim assist: one fixed strength for everyone on a controller, to make up for a stick's coarser aim against a mouse.
-// It's a pull, not a lock-on. Near an enemy the aim slows down and is drawn 70% of the way toward a point just ahead of them:
-// their middle, shifted halfway toward where a full draw would meet them if they keep moving. Once an enemy is under the
-// aim it also tracks them (track: how quickly, per second) so a held or released stick stays on a runner, and the
-// stick only steers the aim while it's pushed firmly, so letting go to fire doesn't drag the aim off.
-const PAD_ASSIST = { slow: 0.6, pull: 0.7, lead: 0.5, track: 7 };
+// It's a pull, not a lock-on. Near an enemy the aim is drawn 70% of the way toward a point just ahead of them (their middle,
+// shifted halfway toward where the arrow you're drawing would meet them if they keep moving) and turns slower, but only while
+// the stick is moving gently: a fast swing past them goes straight through. Once an enemy is under the aim it also tracks them
+// (track: how quickly, per second) so a held or released stick stays on a runner; the stick only steers while it's pushed firmly,
+// so letting go to fire doesn't drag the aim off. Nearer enemies are preferred (near), and the target is kept for a moment
+// (keep) so two enemies crossing don't make it flip between them. The crosshair's distance eases to the target too (reach),
+// so abilities that land at the cursor land on them.
+// (PAD_AIM_PURE: the maths is kept free of the page's state so the test harness can run it on scripted targets)
+const PAD_ASSIST = { slow: 0.6, pull: 0.7, lead: 0.5, track: 7, near: 0.3, keep: 0.3, swap: 0.3, flick: 5, reach: 6 };
 const wrapA = a => ((a + Math.PI) % TAU + TAU) % TAU - Math.PI;
-function padAssistTarget(aim, meP) {
-  const me = meP || (view && view.p.find(q => q.id === myId));
-  if (!me || me.d || !view.m || view.m.ph !== 'play') return null;
-  const opt = view.m.opt || {}, aspeed = Sim.optValue(opt, 'aspeed');
-  const shot = (me.ro === 'ninja' ? 1050 : 1300 * (me.ro === 'sniper' ? 1.25 : 1)) * aspeed * Sim.mutMul(view.m.mut, 'aspeed');
-  let best = null;
-  for (const q of view.p) {
-    if (q.tm === me.tm || q.d || q.f || q.sth) continue;
+// how fast the shot about to be fired will fly: the draw so far (a quick tap when the bow isn't drawn yet), the role, the rules
+function padShotSpeed(me, aspeedMul) {
+  if (me.ro === 'ninja') return 1050 * aspeedMul;
+  const c = me.dr ? Math.max(0.3, me.ch || 0) : 0.4;
+  return (380 + 920 * c) * (me.ro === 'sniper' ? 1.25 : 1) * aspeedMul;
+}
+// the enemy to help with, near the aim line: { s: the angle from the aim to the pull point, k: 1 in the middle of the zone,
+// 0 at its edge, d: how far they are, id }. st (per controller) remembers the last target so it isn't swapped lightly.
+function padAssistPick(aim, me, players, shot, st, now) {
+  let best = null, cur = null;
+  for (const q of players) {
+    if (q.id === me.id || q.tm === me.tm || q.d || q.f || q.sth) continue;
     const dx = q.x - me.x, dy = q.y - me.y, d = Math.hypot(dx, dy);
     if (d < 1) continue;
     const t = d / shot, lx = q.x + (q.vx || 0) * t - me.x, ly = q.y + (q.vy || 0) * t - me.y;
     const oc = wrapA(Math.atan2(dy, dx) - aim), ol = wrapA(Math.atan2(ly, lx) - aim), body = Math.atan2(q.rz || 16, d);
-    // the point it pulls toward: their middle, shifted a third of the way toward where they're heading
     const s = oc + wrapA(ol - oc) * PAD_ASSIST.lead;
     const margin = Math.min(0.45, Math.max(0.18, Math.atan2(110, d) + body)); // the assist reaches about 110px either side of them
-    if (Math.abs(s) > margin) continue;
-    const k = 1 - Math.abs(s) / margin;
-    if (!best || k > best.k) best = { s, k };
+    if (Math.abs(s) > margin * (st && q.id === st.tid ? 1.15 : 1)) continue; // (the current target gets a little extra room)
+    const k = Math.max(0, 1 - Math.abs(s) / margin), c = { s, k, d, id: q.id, score: k - PAD_ASSIST.near * Math.min(1, d / 1000) };
+    if (st && q.id === st.tid) cur = c;
+    if (!best || c.score > best.score) best = c;
   }
+  // keep the current target unless another is clearly the better one, or this one's had its moment
+  if (cur && best && best.id !== cur.id && (now - (st.tAt || 0) < PAD_ASSIST.keep * 1000 || best.score < cur.score + PAD_ASSIST.swap)) best = cur;
+  if (st) { if (best) { if (best.id !== st.tid) { st.tid = best.id; st.tAt = now; } } else st.tid = null; }
   return best;
+}
+function padAssistTarget(aim, meP, st) {
+  const me = meP || (view && view.p.find(q => q.id === myId));
+  if (!me || me.d || !view.m || view.m.ph !== 'play') return null;
+  const opt = view.m.opt || {};
+  return padAssistPick(aim, me, view.p, padShotSpeed(me, Sim.optValue(opt, 'aspeed') * Sim.mutMul(view.m.mut, 'aspeed')), st, performance.now());
+}
+// one frame of steering the aim by the stick, with the assist: st holds the controller's aim state (aim, mag, dist, wantPrev,
+// the remembered target) and is updated in place. want: the stick's angle, am: how far it's pushed, me/t: the archer and the
+// assist's pick for the stick's angle (null for none)
+function padAimStep(st, want, am, dt, rate, smoothN, t) {
+  const as = PAD_ASSIST, d0 = Math.max(dt, 1 / 240);
+  // how fast the stick itself is swinging: a flick past an enemy shouldn't be slowed or pulled
+  const wv = st.wantPrev == null ? 0 : Math.abs(wrapA(want - st.wantPrev)) / d0; st.wantPrev = want;
+  const flick = Math.min(1, Math.max(0, (wv - as.flick) / as.flick));
+  if (t) { want += t.s * as.pull * Math.min(1, t.k / 0.35) * (1 - flick); rate = Math.min(rate, 40) * (1 - as.slow * t.k * (1 - flick)); }
+  if (st.aim == null) { st.aim = want; st.mag = am; }
+  else { st.aim = padSteer(st.aim, want, am, dt, rate, smoothN); st.mag += (am - st.mag) * Math.min(1, dt * Math.min(rate, 30) * 0.6); }
+}
+// sticky tracking: with an enemy under the aim, the aim follows them whether or not the stick moves; the crosshair's
+// distance eases onto them too (and back to the stick's distance when there's no one)
+function padTrackStep(st, tr, dt, baseDist) {
+  if (tr) st.aim += tr.s * Math.min(1, PAD_ASSIST.track * dt) * Math.min(1, 0.4 + tr.k);
+  const goal = tr ? baseDist + (tr.d - baseDist) * Math.min(1, tr.k * 1.5) : baseDist;
+  st.dist = st.dist == null ? goal : st.dist + (goal - st.dist) * Math.min(1, PAD_ASSIST.reach * dt);
 }
 // aim smoothing for controllers: the aim eases toward the stick instead of snapping to it, which takes the shake out of a
 // thumb that's never quite still (more so on a light push, where the stick's angle is noisiest). Every controller on this
@@ -9216,23 +9249,11 @@ function pollPad() {
   pad.mx = nav ? 0 : mx; pad.my = nav ? 0 : my;
   if (nav) { pad.prev = gp.buttons.map(b => !!(b && (b.pressed || b.value > 0.4))); return; }
   const aiming = am > (pad.aiming ? 0.3 : 0.45); pad.aiming = aiming; // hysteresis: a firm push steers, easing off doesn't
-  if (aiming) {
-    let want = Math.atan2(ay, ax), rate = padTurn();
-    // controller aim assist: near an enemy the aim slows down (so it's easy to stay on them) and is drawn onto them
-    const as = PAD_ASSIST, t = padAssistTarget(want);
-    if (t) {
-      // a partial nudge toward the zone, fading out toward the edge of its reach so it never snaps
-      want += t.s * as.pull * Math.min(1, t.k / 0.35);
-      rate = Math.min(rate, 40) * (1 - as.slow * t.k);
-    }
-    if (pad.aim == null) { pad.aim = want; pad.mag = am; }
-    else { pad.aim = padSteer(pad.aim, want, am, pdt, rate); pad.mag += (am - pad.mag) * Math.min(1, pdt * Math.min(rate, 30) * 0.6); }
-  }
+  pad.as = pad.as || {};
+  if (aiming) { const want = Math.atan2(ay, ax); padAimStep(pad, want, am, pdt, padTurn(), 1, padAssistTarget(want, null, pad.as)); }
+  else pad.wantPrev = null;
   // sticky tracking: with an enemy under the aim, the aim follows them whether or not the stick moves
-  if (pad.aim != null && !menuOpen) {
-    const tr = padAssistTarget(pad.aim);
-    if (tr) pad.aim += tr.s * Math.min(1, PAD_ASSIST.track * pdt) * Math.min(1, 0.4 + tr.k);
-  }
+  if (pad.aim != null && !menuOpen) padTrackStep(pad, padAssistTarget(pad.aim, null, pad.as), pdt, (120 + 260 * pad.mag) * (+store.get('bowfall-pad-aim', '1') || 1));
   if (btn(7) && !pad.prev[7]) { drawLatch = true; predictShot(); }
   pad.draw = btn(7);
   if (!menuOpen && !typing()) {
@@ -9246,7 +9267,7 @@ function pollPad() {
   // aim with the right stick by moving the crosshair out from your archer
   const me = view && view.p.find(q => q.id === myId);
   if (me && pad.aim != null) {
-    const d = (120 + 260 * pad.mag) * (+store.get('bowfall-pad-aim', '1') || 1);
+    const d = pad.dist != null ? pad.dist : (120 + 260 * pad.mag) * (+store.get('bowfall-pad-aim', '1') || 1);
     mouse.sx = OX + (me.x + Math.cos(pad.aim) * d) * VS; mouse.sy = OY + (me.y + Math.sin(pad.aim) * d) * VS;
   }
 }
@@ -9457,7 +9478,7 @@ addEventListener('keydown', e => {
 });
 addEventListener('keyup', e => keys.delete(e.code));
 addEventListener('blur', () => { keys.clear(); mouse.down = false; });
-cv.addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; const r = cv.getBoundingClientRect(); mouse.sx = e.clientX - r.left; mouse.sy = e.clientY - r.top; pad.aim = null; mouse.at = performance.now(); }); // the mouse takes over aiming again
+cv.addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; const r = cv.getBoundingClientRect(); mouse.sx = e.clientX - r.left; mouse.sy = e.clientY - r.top; pad.aim = null; pad.dist = null; mouse.at = performance.now(); }); // the mouse takes over aiming again
 cv.addEventListener('pointerdown', e => { if (e.button !== 0 || e.pointerType === 'touch') return; const r = cv.getBoundingClientRect(); mouse.sx = e.clientX - r.left; mouse.sy = e.clientY - r.top; mouse.down = true; drawLatch = true; initAudio(); predictShot(); });
 addEventListener('pointerup', e => { if (e.button === 0 && e.pointerType !== 'touch') mouse.down = false; });
 // ================= touch controls (phones and tablets) =================
@@ -11857,13 +11878,10 @@ function pollLocals(dt) {
     const [mx, my] = stick(g.axes[0] || 0, g.axes[1] || 0), [ax, ay, am] = stick(g.axes[2] || 0, g.axes[3] || 0);
     const me = view && view.p.find(p => p.id === l.pid);
     const aiming = am > (l.aiming ? 0.3 : 0.45); l.aiming = aiming;
-    if (aiming) {
-      let want = Math.atan2(ay, ax), rate = padTurn(l.n);
-      const t = me ? padAssistTarget(want, me) : null; // the same controller aim assist as everyone else's
-      if (t) { want += t.s * PAD_ASSIST.pull * Math.min(1, t.k / 0.35); rate = Math.min(rate, 40) * (1 - PAD_ASSIST.slow * t.k); }
-      l.aim = padSteer(l.aim, want, am, dt, rate, l.n); // (their own sensitivity and smoothing)
-    }
-    if (me && l.aim != null) { const tr = padAssistTarget(l.aim, me); if (tr) l.aim += tr.s * Math.min(1, PAD_ASSIST.track * dt) * Math.min(1, 0.4 + tr.k); }
+    l.as = l.as || {};
+    if (aiming) { const want = Math.atan2(ay, ax); padAimStep(l, want, am, dt, padTurn(l.n), l.n, me ? padAssistTarget(want, me, l.as) : null); } // the same controller aim assist as everyone else's, their own sensitivity and smoothing
+    else l.wantPrev = null;
+    if (me && l.aim != null) padTrackStep(l, padAssistTarget(l.aim, me, l.as), dt, 220);
     const ranked = mode === 'online' && !!(roomInfo && roomInfo.ranked);
     // in menus the left stick works like the D-pad (one step per push), for controllers whose D-pad reports as an axis
     const sd = Math.hypot(mx, my) > 0.6 ? (Math.abs(mx) > Math.abs(my) ? (mx > 0 ? 15 : 14) : (my > 0 ? 13 : 12)) : 0;
@@ -11911,7 +11929,7 @@ function pollLocals(dt) {
     } else l.pickI = 0;
     const I = l.inp || {};
     const x = me ? me.x : 0, y = me ? me.y : 0;
-    l.inp = { dmv: 1, mx, my, aim: l.aim, draw: btn(7), dash: I.dash || (ph === 'play' && (press(0) || press(6))), q: I.q || (ph === 'play' && press(4)), e: I.e || (ph === 'play' && press(5)), dp: I.dp || press(7), tx: Math.round(x + Math.cos(l.aim) * 220), ty: Math.round(y + Math.sin(l.aim) * 220) };
+    l.inp = { dmv: 1, mx, my, aim: l.aim, draw: btn(7), dash: I.dash || (ph === 'play' && (press(0) || press(6))), q: I.q || (ph === 'play' && press(4)), e: I.e || (ph === 'play' && press(5)), dp: I.dp || press(7), tx: Math.round(x + Math.cos(l.aim) * (l.dist || 220)), ty: Math.round(y + Math.sin(l.aim) * (l.dist || 220)) };
     if (l.menu) l.inp = { dmv: 1, mx: 0, my: 0, aim: l.aim, draw: false, tx: l.inp.tx, ty: l.inp.ty };
     l.prev = g.buttons.map(b => !!(b && (b.pressed || b.value > 0.4)));
     if (mode === 'online' && l.sock && l.sock.readyState === 1) {
@@ -13185,6 +13203,7 @@ $('labBtn').onclick = openLab; $('labClose').onclick = () => { $('labScr').hidde
 $('labList').addEventListener('click', e => {
   const b = e.target.closest('[data-test]'); if (!b) return;
   $('labScr').hidden = true; closeSubs(); startPractice(b.dataset.test);
+  act({ t: 'bot', op: 'add', team: 'red' }); act({ t: 'bot', op: 'add', team: 'blue' }); act({ t: 'bot', op: 'add', team: 'blue' }); // (a 2v2 to try it in: you and a bot against two)
 });
 $('labSave').onclick = async () => {
   const cfg = labRead();
@@ -15061,22 +15080,22 @@ THEMES.dusk = Object.assign({}, THEMES.meadow, {
 // ---- the lab's three new themes (see the Arena lab) ----
 // the Dustbowl: cracked orange clay under a hard sun, sandstone boulders, dust on the wind
 THEMES.dust = {
-  forest: '#4a2a18', canopy: ['#6b3d22', '#7c4828', '#5a3219', '#8a5530'], canopyHi: 'rgba(255,220,160,0.10)',
-  ground: '#c98a4e', patchA: 'rgba(240,190,120,0.26)', patchB: 'rgba(130,70,30,0.26)', patchBase: 'rgba(201,138,78,0)', sun: 'rgba(255,240,200,0.10)',
-  blades: ['#a86a36', '#e0a66a', '#8c5428', '#f0c48a'], ground2: 'cracked', flowers: 0, fairy: false,
-  dirt: '#a3652f', dirtDark: '#5c3414', pitIn: '#120704', pitOut: '#4a2410', roots: 'rgba(90,50,20,0.7)',
-  bogBank: '#c69a62', bogEdge: '#a98048', bog: '#d9b27a', bogSheen: 'rgba(255,235,190,0.45)', lily: null, reeds: false, sandy: true,
+  forest: '#3a2a20', canopy: ['#54402f', '#5e4834', '#4a382a', '#66503a'], canopyHi: 'rgba(230,210,180,0.06)',
+  ground: '#8c7158', patchA: 'rgba(170,145,115,0.20)', patchB: 'rgba(90,68,48,0.22)', patchBase: 'rgba(140,113,88,0)', sun: 'rgba(240,225,200,0.05)',
+  blades: ['#7a6048', '#9e8468', '#6a5240', '#a89070'], ground2: 'cracked', flowers: 0, fairy: false,
+  dirt: '#7a5e44', dirtDark: '#4a3626', pitIn: '#0c0805', pitOut: '#3a2a1c', roots: 'rgba(70,50,32,0.7)',
+  bogBank: '#9a8266', bogEdge: '#806a52', bog: '#a69074', bogSheen: 'rgba(230,215,190,0.30)', lily: null, reeds: false, sandy: true,
   rock: '#7a4a2c', rockLight: '#9a6440', basalt: '#4a2a18', scorch: 'rgba(60,30,10,0.5)',
-  boulder: '#b2673a', boulderLight: '#d8905c', moss: null, sandstone: true,
-  border: 'rock', wall: '#6e3c20', wallMid: '#85492a', wallLight: '#b2673a',
+  boulder: '#8a6a52', boulderLight: '#a8866a', moss: null, sandstone: true,
+  border: 'rock', wall: '#4e3a2a', wallMid: '#5c4532', wallLight: '#7a5e46',
   stem: ['#5b3b27', '#6d4a31'], thorn: '#f3e6cf', leaf: '#6b7a3a', berry: '#e04a2b', burrow: null,
-  ambient: 'sand', leafCols: ['#f0c48a', '#e0a66a', '#fff0d0', '#d9985a'], sink: true,
+  ambient: 'sand', leafCols: ['#c8b496', '#b09c80', '#ddd0bb', '#a89070'], sink: true,
 };
 // Blackwater Marsh: dark wet ground, black pools, reeds and mist
 THEMES.marsh = {
   forest: '#0f1a12', canopy: ['#1a2e1f', '#213a26', '#182b1c', '#28452d'], canopyHi: 'rgba(160,200,140,0.08)',
   ground: '#4a5a34', patchA: 'rgba(110,130,70,0.28)', patchB: 'rgba(25,35,20,0.34)', patchBase: 'rgba(74,90,52,0)', sun: 'rgba(220,255,200,0.05)',
-  blades: ['#5f7a3a', '#7a9448', '#3f5628', '#8aa65a'], ground2: 'marsh', flowers: 0, fairy: false, reedy: true,
+  blades: ['rgba(88,108,62,0.55)', 'rgba(100,120,70,0.5)', 'rgba(64,80,44,0.55)', 'rgba(108,126,78,0.45)'], ground2: 'marsh', flowers: 0, fairy: false, reedy: true,
   dirt: '#3a3222', dirtDark: '#1f1a10', pitIn: '#050806', pitOut: '#141c14', roots: 'rgba(60,50,30,0.8)',
   bogBank: '#3e3a22', bogEdge: '#2a2816', bog: '#2e2f1a', bogSheen: 'rgba(120,120,60,0.45)', lily: ['#5f8a34', '#4a7028'], reeds: true,
   pool: { rim: '#3a3b22', in: '#05090a', out: '#1b3028', glint: 'rgba(180,220,190,0.35)' },
@@ -15094,12 +15113,12 @@ THEMES.wisp = Object.assign({}, THEMES.marsh, {
   boulder: '#3a3a30', boulderLight: '#4e4e42', moss: ['#2f4a24', '#3b5c2e'],
   wall: '#0a140d', wallMid: '#10201a', wallLight: '#1b3024',
   pool: { rim: '#1e2418', in: '#020504', out: '#0d1c18', glint: 'rgba(140,255,200,0.35)' },
-  ambient: 'fireflies', leafCols: ['#a8ffd0', '#c8ffb0', '#e0fff0', '#8affc0'], night: true, wispLight: true,
+  ambient: null, leafCols: ['#a8ffd0'], night: true,
 });
 // the Blossom Garden: raked pale gravel, stepping stones, cherry blossom on the breeze
 THEMES.garden = {
-  forest: '#2a3a2a', canopy: ['#e8a8c0', '#f2bcd0', '#d892ae', '#3d5a3a'], canopyHi: 'rgba(255,220,235,0.18)',
-  ground: '#cfc7b4', patchA: 'rgba(245,240,228,0.30)', patchB: 'rgba(150,140,120,0.22)', patchBase: 'rgba(207,199,180,0)', sun: 'rgba(255,245,235,0.10)',
+  forest: '#22302a', canopy: ['#b88a9c', '#c49aaa', '#a87c8e', '#344c36'], canopyHi: 'rgba(240,215,225,0.10)',
+  ground: '#9e978a', patchA: 'rgba(190,184,172,0.20)', patchB: 'rgba(110,104,94,0.22)', patchBase: 'rgba(158,151,138,0)', sun: 'rgba(240,235,225,0.04)',
   blades: ['#8aa05a', '#a6b870', '#6f8a46', '#b8c88a'], ground2: 'gravel', flowers: 0, fairy: false,
   dirt: '#8c8270', dirtDark: '#5a5247', pitIn: '#0d2a2e', pitOut: '#2f7a7a', roots: 'rgba(200,210,200,0.5)',
   bogBank: '#6e6a50', bogEdge: '#5a5640', bog: '#5f6a3a', bogSheen: 'rgba(150,170,90,0.4)', lily: ['#5f8a34', '#4a7028'], reeds: false,
@@ -15108,7 +15127,7 @@ THEMES.garden = {
   boulder: '#8a8a82', boulderLight: '#aeaea4', moss: ['#6f8a46', '#8aa05a'],
   border: 'hedge', wall: '#3d5a3a', wallMid: '#4a6c46', wallLight: '#6a8c60', blossomWall: true,
   stem: ['#5b3b27', '#6d4a31'], thorn: '#f6eee6', leaf: '#4a6c46', berry: '#e86a8a', burrow: null,
-  ambient: 'leaves', leafCols: ['#ffc2d6', '#ffd9e6', '#f59ab8', '#fff0f5'],
+  ambient: 'leaves', leafCols: ['#d8a8b8', '#e2bcc8', '#c890a4', '#e8d8de'],
 };
 THEMES.spring = Object.assign({}, THEMES.meadow, {
   ground: '#57903f', patchA: 'rgba(130,190,95,0.24)', flowers: 40, fairy: false,
@@ -15540,11 +15559,11 @@ function paintFloor(s) {
     }
   } else if (T.ground2 === 'cracked') {
     // sun-baked clay: a web of dry cracks, small stones, a few dead tufts and the odd bleached bone
-    for (let i = 0; i < 34; i++) blob(g, R() * AW, R() * AH, 40 + R() * 90, 'rgba(120,60,25,0.16)', 'rgba(120,60,25,0)');
-    for (let i = 0; i < 24; i++) blob(g, R() * AW, R() * AH, 40 + R() * 80, 'rgba(255,220,170,0.14)', 'rgba(255,220,170,0)');
+    for (let i = 0; i < 34; i++) blob(g, R() * AW, R() * AH, 40 + R() * 90, 'rgba(70,52,38,0.14)', 'rgba(70,52,38,0)');
+    for (let i = 0; i < 24; i++) blob(g, R() * AW, R() * AH, 40 + R() * 80, 'rgba(200,185,160,0.08)', 'rgba(200,185,160,0)');
     for (let i = 0; i < 70; i++) {
       let x = R() * AW, y = R() * AH; if (blocked(x, y, 20)) continue;
-      g.strokeStyle = 'rgba(70,30,10,0.42)'; g.lineWidth = 1.2 + R() * 0.8; g.beginPath(); g.moveTo(x, y);
+      g.strokeStyle = 'rgba(50,36,24,0.30)'; g.lineWidth = 1.1 + R() * 0.7; g.beginPath(); g.moveTo(x, y);
       let a = R() * TAU;
       for (let k = 0; k < 5; k++) { a += (R() - 0.5) * 1.4; x += Math.cos(a) * (14 + R() * 18); y += Math.sin(a) * (14 + R() * 18); g.lineTo(x, y); if (R() < 0.35) { const bx = x, by = y, b2 = a + (R() < 0.5 ? 1.2 : -1.2); g.moveTo(bx, by); g.lineTo(bx + Math.cos(b2) * 12, by + Math.sin(b2) * 12); g.moveTo(x, y); } }
       g.stroke();
@@ -15552,12 +15571,12 @@ function paintFloor(s) {
     for (let i = 0; i < 520; i++) { const x = R() * AW, y = R() * AH; if (blocked(x, y, 8)) continue; g.fillStyle = T.blades[Math.floor(R() * T.blades.length)]; g.beginPath(); g.ellipse(x, y, 1 + R() * 2.2, 0.8 + R() * 1.4, R() * TAU, 0, TAU); g.fill(); }
     for (let i = 0; i < 40; i++) {
       const x = R() * AW, y = R() * AH; if (blocked(x, y, 12)) continue;
-      g.strokeStyle = R() < 0.5 ? '#9c7a3c' : '#c4a35a'; g.lineWidth = 1.2;
+      g.strokeStyle = R() < 0.5 ? '#7a6a4c' : '#8e7c5a'; g.lineWidth = 1.2;
       g.beginPath(); for (let b = 0; b < 5; b++) { const a = -Math.PI / 2 + (b - 2) * 0.5 + (R() - 0.5) * 0.3; g.moveTo(x, y); g.lineTo(x + Math.cos(a) * (5 + R() * 5), y + Math.sin(a) * (5 + R() * 5)); } g.stroke();
     }
     for (let i = 0; i < 4; i++) { // a bleached rib or two
       const x = WALL + 80 + R() * (AW - 2 * WALL - 160), y = WALL + 80 + R() * (AH - 2 * WALL - 160), a = R() * TAU; if (blocked(x, y, 24)) continue;
-      g.strokeStyle = 'rgba(245,235,215,0.8)'; g.lineWidth = 3; g.lineCap = 'round';
+      g.strokeStyle = 'rgba(205,195,178,0.5)'; g.lineWidth = 3; g.lineCap = 'round';
       g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + Math.cos(a + 0.6) * 16, y + Math.sin(a + 0.6) * 16, x + Math.cos(a) * 26, y + Math.sin(a) * 26); g.stroke();
     }
   } else if (T.ground2 === 'marsh') {
@@ -15567,22 +15586,21 @@ function paintFloor(s) {
     for (let i = 0; i < 30; i++) {
       const x = R() * AW, y = R() * AH; if (blocked(x, y, 26)) continue;
       const rx = 14 + R() * 26, ry = rx * (0.4 + R() * 0.3);
-      g.fillStyle = 'rgba(10,18,14,0.45)'; g.beginPath(); g.ellipse(x, y, rx, ry, (R() - 0.5) * 0.6, 0, TAU); g.fill();
-      g.strokeStyle = 'rgba(170,200,170,0.22)'; g.lineWidth = 1; g.beginPath(); g.ellipse(x, y, rx * 0.6, ry * 0.6, 0, 0, TAU); g.stroke();
+      blob(g, x, y, rx, 'rgba(20,28,18,0.20)', 'rgba(20,28,18,0)'); // (a soft damp patch, no hard edge)
     }
-    for (let i = 0; i < 1100; i++) {
+    for (let i = 0; i < 800; i++) {
       const x = R() * AW, y = R() * AH; if (blocked(x, y, 10)) continue;
-      g.strokeStyle = T.blades[Math.floor(R() * T.blades.length)]; g.lineWidth = 1.3;
-      const n = 3 + Math.floor(R() * 3), len = 6 + R() * 7;
+      g.strokeStyle = T.blades[Math.floor(R() * T.blades.length)]; g.lineWidth = 1.1;
+      const n = 3 + Math.floor(R() * 2), len = 4 + R() * 5;
       g.beginPath(); for (let b = 0; b < n; b++) { const a = -Math.PI / 2 + (b - (n - 1) / 2) * 0.35 + (R() - 0.5) * 0.3; g.moveTo(x, y); g.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len); } g.stroke();
     }
     for (let t = 0; t < 4; t++) { // a trail of hoofprints
       let x = R() * AW, y = R() * AH, a = R() * TAU;
-      for (let k = 0; k < 10; k++) { x += Math.cos(a) * 18; y += Math.sin(a) * 18; a += (R() - 0.5) * 0.4; if (blocked(x, y, 10)) continue; const side = k % 2 ? 1 : -1; g.fillStyle = 'rgba(15,20,12,0.5)'; g.beginPath(); g.ellipse(x - Math.sin(a) * 4 * side, y + Math.cos(a) * 4 * side, 2.6, 3.6, a, 0, TAU); g.fill(); }
+      for (let k = 0; k < 10; k++) { x += Math.cos(a) * 18; y += Math.sin(a) * 18; a += (R() - 0.5) * 0.4; if (blocked(x, y, 10)) continue; const side = k % 2 ? 1 : -1; g.fillStyle = 'rgba(15,20,12,0.28)'; g.beginPath(); g.ellipse(x - Math.sin(a) * 4 * side, y + Math.cos(a) * 4 * side, 2.6, 3.6, a, 0, TAU); g.fill(); }
     }
   } else if (T.ground2 === 'gravel') {
     // raked gravel: long combed lines that curve round everything, a few flat stepping stones, moss at the edges, fallen petals
-    g.strokeStyle = 'rgba(110,100,85,0.22)'; g.lineWidth = 1.6;
+    g.strokeStyle = 'rgba(80,74,64,0.16)'; g.lineWidth = 1.6;
     for (let y = WALL + 8; y < AH - WALL; y += 9) {
       g.beginPath(); let pen = false;
       for (let x = WALL; x <= AW - WALL; x += 6) {
@@ -15595,14 +15613,14 @@ function paintFloor(s) {
       }
       g.stroke();
     }
-    for (let i = 0; i < 900; i++) { const x = R() * AW, y = R() * AH; if (blocked(x, y, 8)) continue; g.fillStyle = R() < 0.5 ? 'rgba(255,255,255,0.35)' : 'rgba(90,85,70,0.25)'; g.beginPath(); g.arc(x, y, 0.6 + R() * 1.2, 0, TAU); g.fill(); }
+    for (let i = 0; i < 900; i++) { const x = R() * AW, y = R() * AH; if (blocked(x, y, 8)) continue; g.fillStyle = R() < 0.5 ? 'rgba(220,215,205,0.18)' : 'rgba(70,66,58,0.18)'; g.beginPath(); g.arc(x, y, 0.6 + R() * 1.2, 0, TAU); g.fill(); }
     for (let i = 0; i < 10; i++) { // flat stepping stones set into the gravel
       const x = WALL + 60 + R() * (AW - 2 * WALL - 120), y = WALL + 60 + R() * (AH - 2 * WALL - 120); if (blocked(x, y, 30) || hazGap(x, y) < 50) continue;
-      g.fillStyle = 'rgba(110,112,108,0.9)'; g.beginPath(); g.ellipse(x, y, 14 + R() * 8, 10 + R() * 6, R() * Math.PI, 0, TAU); g.fill();
-      g.fillStyle = 'rgba(255,255,255,0.12)'; g.beginPath(); g.ellipse(x - 3, y - 3, 8, 5, 0, 0, TAU); g.fill();
+      g.fillStyle = 'rgba(105,104,98,0.55)'; g.beginPath(); g.ellipse(x, y, 14 + R() * 8, 10 + R() * 6, R() * Math.PI, 0, TAU); g.fill();
+      g.fillStyle = 'rgba(255,255,255,0.06)'; g.beginPath(); g.ellipse(x - 3, y - 3, 8, 5, 0, 0, TAU); g.fill();
     }
     for (let i = 0; i < 26; i++) blob(g, WALL + R() * 60 * (R() < 0.5 ? 1 : -1) + (R() < 0.5 ? 0 : AW - 2 * WALL), WALL + R() * (AH - 2 * WALL), 20 + R() * 40, 'rgba(110,140,70,0.22)', 'rgba(110,140,70,0)');
-    for (let i = 0; i < 160; i++) { const x = R() * AW, y = R() * AH; if (blocked(x, y, 6)) continue; g.fillStyle = T.leafCols[Math.floor(R() * T.leafCols.length)]; g.beginPath(); g.ellipse(x, y, 2.4, 1.6, R() * TAU, 0, TAU); g.fill(); }
+    g.globalAlpha = 0.55; for (let i = 0; i < 120; i++) { const x = R() * AW, y = R() * AH; if (blocked(x, y, 6)) continue; g.fillStyle = T.leafCols[Math.floor(R() * T.leafCols.length)]; g.beginPath(); g.ellipse(x, y, 2.4, 1.6, R() * TAU, 0, TAU); g.fill(); } g.globalAlpha = 1;
   } else if (!T.snowy) {
     // cracked basalt: pebbles and glowing fissures
     for (let i = 0; i < 700; i++) {

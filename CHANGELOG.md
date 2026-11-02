@@ -2,6 +2,23 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.87.2
+
+Controller aim assist, reworked (the strengths are unchanged: 70% pull, 60% slow, tracking at 7/s).
+
+- **The lead matches the shot you're drawing.** The pull point ahead of a moving enemy was worked out for a full-draw arrow (1300px/s); a quick tap flies at about 750, so quick shots were led too far. It now uses your draw so far (a tap if you haven't started drawing).
+- **Flicks go straight through.** The slow-down and pull near an enemy only apply while the stick is moving gently; a fast swing past someone to reach another enemy isn't slowed or caught.
+- **The target is kept.** With two enemies crossing in front of you, the assist picked whichever was nearest the aim line frame by frame and flipped between them (the tracking lurched with it). It now keeps its target for 0.3s and only swaps when another is clearly better (tested on two enemies crossing: one flip before, none now).
+- **Nearer enemies are preferred** when two are a similar distance from the aim line.
+- **The crosshair's distance follows the target.** With an enemy under your aim the crosshair eases out (or in) to their distance, so anything that lands at the cursor (Bramble Trap, Arrow Rain, Blink, Shadow Strike) lands on them; with no one under the aim it goes back to the stick's distance. Players on extra controllers get this too (their crosshair used to sit at a fixed 220px).
+- The maths is in its own functions (`padAssistPick`, `padAimStep`, `padTrackStep`), free of the page's state, so a scripted thumb can be run through it on scripted targets to measure changes.
+
+## 0.87.1
+
+- **Duller floors on the new arenas, so the archers stand out.** The Dustbowl is now a muted dusty brown (it was a bright orange) with fainter cracks, and the Blossom Garden's gravel, petals and blossom trees are toned down. On Blackwater Marsh the grass tufts are shorter and closer to the ground's colour, and the damp patches are soft shading instead of hard-edged ovals.
+- **No more wisps or wind.** The drifting glowing wisps and fireflies are gone from the night marsh (now **Moonlit Hollow**), and Sandstorm Flats and Torii Path no longer have gusts.
+- **Test vs bots in the Arena lab starts a 2v2**: you and a bot against two bots, ready to start.
+
 ## 0.87.0
 
 The Arena lab, and fourteen new arenas waiting in it.
