@@ -659,11 +659,11 @@ async function api(req, res, url) {
   }
   // the arena pool: which built-in arenas are in custom games and in the ranked rotation (everyone reads it; the owner sets it
   // from the Arena lab, which also lists the arenas still in the lab)
-  if (route === '/arenas' && method === 'GET') {
+  if (route === '/arena-pool' && method === 'GET') {
     const pool = Sim.arenaPool();
     return json(res, 200, me && me.admin ? Object.assign(pool, { lab: Sim.LAB_KEYS().map(k => ({ key: k, name: Sim.MAPS[k].name, lab: !!Sim.MAPS[k].lab, retired: !!Sim.MAPS[k].retired })) }) : pool);
   }
-  if (route === '/arenas' && method === 'POST') {
+  if (route === '/arena-pool' && method === 'POST') {
     if (!me || !me.admin) return json(res, 403, { error: 'Only the game owner can change the arenas.' });
     const keys = Sim.LAB_KEYS(), clean = l => (Array.isArray(l) ? l.map(String).filter(k => keys.includes(k)) : []);
     const cfg = { ranked: clean(body.ranked), custom: clean(body.custom) };

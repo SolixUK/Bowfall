@@ -2,6 +2,38 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.88.2
+
+- **Bots dash off lava.** They used to wade out (about a second on Meadow's lava basin, losing around 34 health). With a dash ready they now dash out the shortest way, as long as the landing is safe (not into a hole, other lava, thorns, a wall or a boulder). How quickly depends on skill, and an Easy bot sometimes just wades out. Tested 20 times each from the middle of the basin: Easy 0.94s and 27 health lost, Normal 0.84s and 23, Hard 0.24s and 8, Master 0.07s and 2. Ninjas blink out. This covers every bot, including the AI players in ranked.
+
+## 0.88.1
+
+- **The full-draw sound and the full-draw flash happen together.** Online, the flash came from your own draw (on your screen, straight away) but the sound waited for the server to say you were fully drawn, a round trip later (about 140ms on a typical connection, more on a slow one). The flash's timing is the right one to fire on: your release reaches the server just as late as your press did, so the server counts the same draw time you saw. The sound now plays from your own draw too (the server's message only plays it if your screen somehow didn't, as with Parry's instant draw).
+- **Your own draw fills at the right speed for everything that changes it.** The page used to guess your draw speed from a couple of upgrades; it missed Ranger's and Trickster's faster draw, Quickdraw, Frenzy, Quick Shot after a dash, Ambush, Focus and draw hones, so the flash could come early or late. The server now sends your current draw speed (`drt`, from one shared `drawRate`) and the page uses it: tested at 0.90s on a Ranger, exactly the server's time.
+- **Saw blades no longer glitch in kill cams.** When a game ended (usually the knockout the kill cam shows), the arena's clock went back to 0, so the saws jumped to their starting spots, and a kill cam blending between the last frames dragged them back across the arena. The clock now carries on through the pause after a game, and kill cams follow their own (slowed) clock exactly. Kill cams saved before this are repaired when they're opened.
+
+## 0.88.0
+
+Everything works with a controller, and an Arena builder fix-up.
+
+**Controllers**
+- **An on-screen keyboard.** A on any text box (names, room and arena codes, adding a friend, messages, clan names, mottos, the guest name for a new controller player) opens a keyboard at the bottom of the screen. It types as you go; X deletes, Y adds a space, LB / RB move the cursor, a Shift key and a symbols page, Done or Start finishes (and presses Enter for the box, so a code joins straight away), B puts it back as it was.
+- **The Arena builder with a controller.** The arena itself is now a section you can move to; A on it gives you a cursor. The left stick or D-pad moves it, A picks up whatever's under it and A again puts it down (or places the tool you've chosen), LB / RB shrink and grow it, X deletes it, Y switches tool, B puts the cursor away. The rest of the builder (tools, look, saving) was already reachable.
+- **Screens and popups that a controller couldn't reach:** the Clans screen, Messages, a player's profile card, party invites (Join party / No thanks; B says no), a shared kill cam, the Rejoin button for a ranked match you dropped out of, the Join Red / Join Blue bar while spectating, and the fold-out sections in How to play and the store. During a warm-up game while searching, the menu (Start) now has Back to Find game and Stop searching.
+- **Only the main player changes the screen's settings.** A player on an extra controller who opens the menu no longer sees Options (sound, graphics and the aim line are the whole screen's); they keep their own Controls, How to play and Resume. Everything else that runs the game (rules, arena, bots, starting, leaving, ending) was already the main player's alone: extra players only ever pick their own team, element, role and upgrades.
+- Checked by a script that walks every screen with the D-pad (moving between sections and between the controls in each) and lists anything it can't reach or anything clickable that isn't a control.
+
+**Arena builder**
+- **Save and Save as new work again.** The Arena lab's new address (`/api/arenas`) clashed with the builder's, so saving went to the wrong place and nothing happened (and My arenas showed nothing). The lab now uses `/api/arena-pool`.
+- **The floor and walls stay put while you build.** Moving or resizing anything used to repaint the whole floor, and the grass, flowers and wall stones all shuffled. The ground and walls are now painted once for the look you've chosen, and only the area round what you've placed is repainted.
+- **Turned round or mirrored.** A new **Other half** choice: *Turned round* (as before, and as every built-in arena: Blue's top right is Red's bottom left) or *Mirrored* (reflected left to right, so the top stays the top). Gates, thorns and spawns follow it.
+- **No more football.** The Football option and the football pitch look are gone from the builder (arenas saved with them open on Meadow, without the ball).
+
+## 0.87.3
+
+- **New defaults, from what played best:** controller aim sensitivity 3 (was 7), with Medium smoothing, Normal aim distance and Normal dead zone as before; the aim line at 130% opacity and 140% thickness (was 100% and 100%), with colour strength still 100%. Reset aim line goes back to these. Anyone who has already changed a setting keeps their own.
+- **Separate dash direction for controllers and the keyboard and mouse.** Controllers dash the way you're moving by default (each player on a controller has their own setting, under Controls › Controller); the keyboard and mouse dash where you're aiming by default (Controls › Both, now labelled for the keyboard and mouse). Whichever you used last decides which applies. Touch still dashes the way you move.
+
 ## 0.87.2
 
 Controller aim assist, reworked (the strengths are unchanged: 70% pull, 60% slow, tracking at 7/s).
@@ -29,7 +61,7 @@ The Arena lab, and fourteen new arenas waiting in it.
   - **Blackwater Marsh**, dark wet ground, black pools and reeds: **Reed Pools** (simple), **Boardwalk** (a channel of black water splits the marsh with one crossing, and the water rises twice during a game so the crossing narrows), **Wisp Hollow** (the marsh at night, lit by drifting will-o'-the-wisps, with fairy rings in the corners as gates to the far side).
   - **The Blossom Garden**, raked gravel, stepping stones and cherry blossom: **Koi Garden** (simple: a koi pond in the middle, stepping stones for cover), **Tea House** (an island in a pond with a healing spring at its heart and four little bridges), **Torii Path** (a stream crossed in the middle, torii gates in the corners linking the sides, and petal gusts that blow the arena up or down).
 - **Five new layouts for existing themes** (also in the lab): **Twin Glades** (Meadow: two glades split by big boulders, no lava), **Ember Ring** (Ember Rift: a ring of lava round the island with the powerup, four gaps onto it), **Sandbar** (Tide Cove: the sea comes in from both long edges, three times, until only the middle strip is left), **Bale Maze** (Harvest Field: hay bales everywhere, short sight lines, for close fighters), **Crosscut** (Sawmill: saw blades across the top and bottom running against each other, the mill pond in the middle).
-- Behind it: `MAPS` entries marked `lab` are hidden until switched on; `Sim.applyArenaPool` rebuilds `MAP_KEYS` (what custom games offer) and the server's ranked pool from the saved setting, `GET /api/arenas` reads the lists and `POST /api/arenas` (owner) sets them. Pools and water now take their colours from the theme (`THEME.pool`), lights can be wisps, and `cracks` say "the ground is giving way" on the Dustbowl.
+- Behind it: `MAPS` entries marked `lab` are hidden until switched on; `Sim.applyArenaPool` rebuilds `MAP_KEYS` (what custom games offer) and the server's ranked pool from the saved setting, `GET /api/arena-pool` reads the lists and `POST /api/arena-pool` (owner) sets them. Pools and water now take their colours from the theme (`THEME.pool`), lights can be wisps, and `cracks` say "the ground is giving way" on the Dustbowl.
 
 ## 0.86.4
 

@@ -1670,6 +1670,14 @@
   .mapcard b { font: 700 14px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .01em; padding-inline: 2px; }
   .mapcard small { color: var(--muted); font-size: 12px; line-height: 1.35; padding-inline: 2px; }
   .mapcard.sel { border-color: var(--gold); background: rgba(255,207,90,.07); }
+  .osk { position: fixed; inset: 0; z-index: 40; display: flex; align-items: flex-end; justify-content: center; padding: 16px; background: rgba(5,10,7,.55); }
+  .oskcard { width: min(880px, 100%); background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--gold); padding: 14px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.6); }
+  .oskhead { display: flex; flex-direction: column; gap: 4px; }
+  .oskval { min-height: 44px; padding: 8px 12px; background: #0b140d; border: 1px solid var(--line); font: 600 24px 'Titillium Web', 'Segoe UI', sans-serif; letter-spacing: .02em; white-space: pre; overflow: hidden; }
+  .oskval i { display: inline-block; width: 2px; height: 1.05em; vertical-align: -0.15em; background: var(--gold); animation: lpPulse 1s steps(2) infinite; margin: 0 1px; }
+  .oskkeys { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+  .oskkeys button { padding: 10px 0; font: 700 18px 'Rajdhani', 'Arial Narrow', sans-serif; background: var(--panel2, #213728); border: 1px solid var(--line); color: var(--text); border-radius: 2px; }
+  .oskkeys button.wide { grid-column: span 2; } .oskkeys button.wider { grid-column: span 4; } .oskkeys button.cta { background: var(--gold); color: #1a1205; }
   .labgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 10px; margin-top: 10px; }
   .labrow { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 10px; padding: 8px; border: 1px solid var(--line); border-radius: 2px; background: rgba(255,255,255,.03); }
   .labrow canvas { width: 112px; height: 80px; border-radius: 2px; display: block; }
@@ -2033,11 +2041,11 @@
         <button class="ghost" type="button" data-back>Back</button></div>
       <div id="abEdit" class="abgrid">
         <div class="abtools" id="abTools" data-navsec></div>
-        <div class="abwrap"><canvas id="abCv" width="1200" height="800"></canvas><small class="status" id="abHint">Place things on the left half: the right half copies it, turned round, so both teams get the same. Drag to move, scroll (or the Size slider) to resize, Delete to remove, Ctrl+Z to undo.</small></div>
+        <div class="abwrap" data-navsec><canvas id="abCv" width="1200" height="800"></canvas><small class="status" id="abHint">Place things on the left half: the right half copies it (turned round, or mirrored left to right: pick under Other half), so both teams get the same. Drag to move, scroll (or the Size slider) to resize, Delete to remove, Ctrl+Z to undo.</small></div>
         <div class="abside">
           <section data-navsec>
             <div class="field"><label for="abName">Name</label><input id="abName" maxlength="32" autocomplete="off" placeholder="My arena"></div>
-            <div class="row"><div class="field"><label for="abTheme">Look</label><select id="abTheme"></select></div><div class="field"><label for="abBall">Football</label><select id="abBall"><option value="0">No</option><option value="1">Yes</option></select></div></div>
+            <div class="row"><div class="field"><label for="abTheme">Look</label><select id="abTheme"></select></div><div class="field"><label for="abSym">Other half</label><select id="abSym"><option value="flip">Turned round</option><option value="mirror">Mirrored</option></select></div></div>
           </section>
           <section id="abSel" data-navsec></section>
           <div class="abcheck" id="abCheck"></div>
@@ -2191,6 +2199,8 @@
   </div>
 
   <!-- in-game menu -->
+  <!-- an on-screen keyboard for typing with a controller (names, codes, messages) -->
+  <div class="osk" id="osk" hidden role="dialog" aria-label="Keyboard"><div class="oskcard"><div class="oskhead"><span class="eyebrow" id="oskLabel">Type</span><div class="oskval" id="oskVal"></div></div><div class="oskkeys" id="oskKeys"></div><span class="status">A types · X deletes · Y space · LB / RB move the cursor · Start done · B cancel</span></div></div>
   <div class="overlay" id="gameMenu" hidden>
     <div class="card wide">
       <span class="eyebrow" id="gmEyebrow">Paused</span>
@@ -2206,6 +2216,7 @@
         <div class="field" id="gmDiffWrap" data-navsec><label for="gmDiff">Bot skill (sets all bots)</label>
           <select id="gmDiff"><option value="easy">Easy</option><option value="normal">Normal</option><option value="hard">Hard</option><option value="extreme">Extreme</option><option value="master">Master</option></select></div>
         <div class="btnrow" data-navsec>
+          <button class="ghost" id="gmWarmBack" type="button" hidden>Back to Find game</button><button class="ghost" id="gmWarmStop" type="button" hidden>Stop searching</button>
           <button class="ghost" id="endBtn" type="button">End match</button>
           <button class="ghost" id="leaveBtn" type="button">Leave</button>
           <button class="ghost" id="gmHelpBtn" type="button">How to play</button>
@@ -2368,10 +2379,11 @@
           <span><kbd>X</kbd> <kbd>Y</kbd> <kbd>B</kbd>upgrade 1, 2, 3</span><span><kbd>D-pad</kbd>menus (A select, B back)</span>
         </div>
         <div class="ctlopts">
-          <div class="field"><label for="padSens">Aim sensitivity</label><select id="padSens"><option value="1">1 (slowest)</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7" selected>7</option><option value="8">8</option><option value="9">9</option><option value="10">10 (instant)</option></select></div>
+          <div class="field"><label for="padSens">Aim sensitivity</label><select id="padSens"><option value="1">1 (slowest)</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10 (instant)</option></select></div>
           <div class="field"><label for="padSmooth">Aim smoothing</label><select id="padSmooth"><option value="0">Off (instant)</option><option value="1">Light</option><option value="2">Medium</option><option value="3">Heavy (a slight drag)</option></select></div>
           <div class="field"><label for="padAimR">Aim distance</label><select id="padAimR"><option value="0.8">Short</option><option value="1" selected>Normal</option><option value="1.3">Long</option></select></div>
           <div class="field"><label for="padDead">Stick dead zone</label><select id="padDead"><option value="0.12">Small</option><option value="0.2" selected>Normal</option><option value="0.3">Large</option></select></div>
+          <div class="field"><label for="padDash">Dash direction</label><select id="padDash"><option value="move">The way you're moving</option><option value="aim">Where you're aiming</option></select></div>
         </div>
         <p class="status"><b>Aim assist</b> is built in for controllers, one strength for everyone. Near an enemy your aim slows and is drawn most of the way toward a spot just ahead of them, and once they're under your aim it follows them. Only a firm push of the stick steers, so easing off to fire keeps your aim. It never locks on, and the mouse is never assisted.</p>
       </section>
@@ -2379,8 +2391,8 @@
     <section class="ctlsec ctlboth" data-navsec>
       <h3>Both</h3>
       <div class="ctlopts">
-        <div class="field"><label for="dashDir">Dash direction</label><select id="dashDir"><option value="move">The way you're moving</option><option value="aim">Where you're aiming</option></select></div>
-        <span class="status">Standing still, a dash always goes where you're aiming.</span>
+        <div class="field"><label for="dashDir">Dash direction (keyboard and mouse)</label><select id="dashDir"><option value="aim">Where you're aiming</option><option value="move">The way you're moving</option></select></div>
+        <span class="status">Controllers have their own dash direction, above. Standing still, a dash always goes where you're aiming.</span>
       </div>
     </section>
   </div>
@@ -2466,7 +2478,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.87.2"></script>
+<script src="sim.js?v=0.88.2"></script>
 <script>
 (() => {
 'use strict';
@@ -2474,7 +2486,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.87.2';
+const PAGE_VERSION = '0.88.2';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -2611,6 +2623,10 @@ let world = null, acc = 0;
 let ws = null, roomInfo = null, snaps = [], pingMs = 0, lastSent = null;
 let view = null, clock = 0, gclock = 0; // clock: real time; gclock: game time for animations (slows with slow motion and the kill cam)
 let localCharge = 0;
+// your own bow reaching full draw: the sound and a pop of sparks at the bow (online this comes from your own draw, not
+// the server's message, which arrives a round trip later)
+const FULLSND = { t: -9 };
+function fullDrawn(m) { FULLSND.t = clock; sfx.full(); if (m) burst(m.x + Math.cos(m.a) * ((m.rz || 16) + 22), m.y + Math.sin(m.a) * ((m.rz || 16) + 22), '#ffe9a8', 6, 100, 1.4); }
 let xbPredict = 0;
 function predictShot() {
   if (mode !== 'online' || menuOpen || !view || !view.m || view.m.ph !== 'play') return;
@@ -2835,7 +2851,7 @@ const syncMute = () => { $('muteBtn').textContent = muted ? 'Sound off' : 'Sound
 let emoteLatch = null;
 // the clip farm's state (the owner's tool, further down); here because the renderer and sizing check it
 const FARM = { act: {}, gt: 0, speed: 1, tags: 'all', emp: 'on', reel: [], pending: [], viewing: null, step: 0, on: false, follow: true, hud: true, maxq: true, loop: true, cam: null, rec: null, chunks: null, idleT: 0, cfg: null, names: null, overAt: 0 };
-const OPTS = { ui: store.get('bowfall-ui', 'auto'), emo: store.get('bowfall-emo', '0') === '1', vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') !== '0', guideBold: store.get('bowfall-guide', '1') === '2', gOp: +store.get('bowfall-g-op', '100') || 100, gSat: +store.get('bowfall-g-sat', '100'), gW: +store.get('bowfall-g-w', '100') || 100, net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), me: store.get('bowfall-me', 'strong'), detail: store.get('bowfall-detail', 'full'), pz: +store.get('bowfall-pz', '1.15') || 1, taim: store.get('bowfall-taim2', 'point'), cb: store.get('bowfall-cb', '') === '1' };
+const OPTS = { ui: store.get('bowfall-ui', 'auto'), emo: store.get('bowfall-emo', '0') === '1', vol: +store.get('bowfall-vol', '80'), res: store.get('bowfall-res', 'auto'), part: +store.get('bowfall-part', '1'), shake: store.get('bowfall-shake', '1') === '1', dmg: store.get('bowfall-dmgnum', 'all'), guide: store.get('bowfall-guide', '1') !== '0', guideBold: store.get('bowfall-guide', '1') === '2', gOp: +store.get('bowfall-g-op', '130') || 130, gSat: +store.get('bowfall-g-sat', '100'), gW: +store.get('bowfall-g-w', '140') || 140, net: store.get('bowfall-net', '0') === '1', shadow: store.get('bowfall-shadow', 'soft'), fx: store.get('bowfall-fx', 'auto'), glow: store.get('bowfall-glow', 'live'), me: store.get('bowfall-me', 'strong'), detail: store.get('bowfall-detail', 'full'), pz: +store.get('bowfall-pz', '1.15') || 1, taim: store.get('bowfall-taim2', 'point'), cb: store.get('bowfall-cb', '') === '1' };
 cbApply();
 // ================= the mixer =================
 // Every named sound plays through its own channel strip: input -> low shelf -> mid peak -> high shelf -> fader -> its
@@ -3216,7 +3232,7 @@ $('bindReset').onclick = () => { store.set('bowfall-keys', '{}'); loadBinds(); b
 let NAVBY = 1; // whose controller is working the menus right now (1: the main player, or the mouse)
 const padKey = (k, n) => (n > 1 ? `bowfall-pad-${k}-p${n}` : `bowfall-pad-${k}`);
 const padSet = (k, def, n = 1) => { const v = n > 1 ? store.get(padKey(k, n), '') : ''; return v !== '' && v != null ? v : store.get(padKey(k, 1), def); };
-const PAD_OPTS = [['padSens', 'sens', '7'], ['padSmooth', 'smooth', '2'], ['padAimR', 'aim', '1'], ['padDead', 'dead', '0.2']];
+const PAD_OPTS = [['padSens', 'sens', '3'], ['padSmooth', 'smooth', '2'], ['padAimR', 'aim', '1'], ['padDead', 'dead', '0.2'], ['padDash', 'dash', 'move']];
 const CTL = { n: 1 };
 function ctlFor(n) {
   CTL.n = LP.list.some(l => l.n === n) ? n : 1;
@@ -3229,9 +3245,12 @@ function ctlFor(n) {
 for (const [id, k] of PAD_OPTS) $(id).onchange = () => store.set(padKey(k, CTL.n), $(id).value);
 document.addEventListener('click', e => { const b = e.target.closest('[data-padfor]'); if (b) ctlFor(+b.dataset.padfor); });
 addEventListener('mousedown', () => { NAVBY = 1; }, true);
-// dash the way you're moving (the default) or where you're aiming
-const dashMove = () => store.get('bowfall-dashdir', 'move') !== 'aim';
-$('dashDir').value = dashMove() ? 'move' : 'aim';
+// dash the way you're moving or where you're aiming: one setting for the keyboard and mouse (where you aim, by default) and one
+// for each controller (the way you move, by default); touch dashes the way you move
+const kbDashMove = () => store.get('bowfall-dashdir', 'aim') !== 'aim';
+const padDashMove = (n = 1) => padSet('dash', 'move', n) !== 'aim';
+const dashMove = () => (TOUCH.on ? true : usingPad() ? padDashMove() : kbDashMove());
+$('dashDir').value = kbDashMove() ? 'move' : 'aim';
 $('dashDir').onchange = () => store.set('bowfall-dashdir', $('dashDir').value);
 setTimeout(() => ctlFor(1), 0); // (once the page has set everything up)
 function padStatus() {
@@ -3320,7 +3339,7 @@ function padSteer(cur, want, mag, dt, rate, n = 1) {
   if (rate !== Infinity) step = Math.max(-rate * dt, Math.min(rate * dt, step));
   return cur + step;
 }
-const padTurn = (n = 1) => { const v = +padSet('sens', '7', n) || 7; return v >= 10 ? Infinity : 3 * Math.pow(1.5, v - 1); };
+const padTurn = (n = 1) => { const v = +padSet('sens', '3', n) || 3; return v >= 10 ? Infinity : 3 * Math.pow(1.5, v - 1); };
 addEventListener('gamepadconnected', () => { padStatus(); notice('Controller connected', false); });
 addEventListener('gamepaddisconnected', () => { pad.on = false; $('padStatus').textContent = 'Controller disconnected.'; });
 // which you used last, the keyboard and mouse or a controller: key hints follow it
@@ -3406,15 +3425,17 @@ function pollPad() {
   }
 }
 // ---- controller in the menus: move a highlight between buttons with the D-pad or left stick, A to press, B to go back
-const NAV_LAYERS = ['starterScr', 'msSheet', 'lbPop', 'gate', 'lpScr', 'draftScr', 'ctlScreen', 'helpScreen', 'achScreen', 'balScreen', 'gameMenu', 'findScr', 'customScr', 'scoresScr', 'trainScr', 'storeScr', 'arenaScr', 'optScr', 'profScr', 'pickScreen', 'resultsScreen', 'lobby', 'home'];
-const NAV_SEL = 'button, select, input:not([type=hidden]), [data-map], .chip2, a[href]';
+// (popups that ask something of you, like a party invite or a player's card, come before the screen they're over; the
+// bars along the bottom of a game, last: spectating's Join buttons)
+const NAV_LAYERS = ['osk', 'starterScr', 'msSheet', 'pcWrap', 'inviteToast', 'dmBox', 'clipView', 'lbPop', 'gate', 'lpScr', 'draftScr', 'ctlScreen', 'helpScreen', 'achScreen', 'balScreen', 'gameMenu', 'findScr', 'customScr', 'clanScr', 'scoresScr', 'trainScr', 'storeScr', 'arenaScr', 'optScr', 'profScr', 'pickScreen', 'resultsScreen', 'lobby', 'home', 'specBar'];
+const NAV_SEL = 'button, select, input:not([type=hidden]), textarea, [data-map], .chip2, a[href], summary, #abCv';
 const shown = el => !!(el && !el.hidden && el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden');
 function navLayer() {
   if (TR.on && TR.done && !menuOpen && shown($('coach'))) return $('coach'); // a finished drill's buttons
   for (const id of NAV_LAYERS) { const el = $(id); if (el && shown(el)) return el; }
   return null;
 }
-function navItems(layer) { return [...(layer.matches && layer.matches(NAV_SEL) && layer.hasAttribute('data-navsec') ? [layer] : []), ...layer.querySelectorAll(NAV_SEL)].filter(el => !el.disabled && shown(el) && el.offsetParent !== null && !el.closest('[data-nonav]')); } // ([data-nonav]: another player's, worked by their own controller)
+function navItems(layer) { return [...(layer.matches && layer.matches(NAV_SEL) && layer.hasAttribute('data-navsec') ? [layer] : []), ...layer.querySelectorAll(NAV_SEL), ...(layer.id === 'home' ? [$('rejoinGo')] : [])].filter(el => !el.disabled && shown(el) && el.offsetParent !== null && !el.closest('[data-nonav]')); } // ([data-nonav]: another player's, worked by their own controller)
 // busy screens are split into sections ([data-navsec]): the controller moves between sections first, A steps into one,
 // B steps back out. Screens without sections work as before.
 const navSecs = layer => [...layer.querySelectorAll('[data-navsec]')].filter(el => shown(el) && navItems(el).length);
@@ -3473,6 +3494,12 @@ function navMove(items, dir) {
 }
 function navBack(layer) {
   if (layer.id === 'msSheet') { uiSfx.click(); msClose(); return; }
+  if (layer.id === 'osk') { uiSfx.click(); oskClose(false); return; }
+  if (layer.id === 'pcWrap') { uiSfx.click(); closePlayerCard(); return; }
+  if (layer.id === 'inviteToast') { uiSfx.click(); $('inviteNo').click(); return; }
+  if (layer.id === 'dmBox') { uiSfx.click(); dmClose(); return; }
+  if (layer.id === 'clipView') { uiSfx.click(); $('cvClose').click(); return; }
+  if (layer.id === 'specBar') return;
   if (['lobby', 'pickScreen', 'resultsScreen', 'home'].includes(layer.id)) return;
   const back = [...layer.querySelectorAll('[data-back], #ctlClose, .close')].find(shown);
   if (back) { uiSfx.click(); back.click(); return; }
@@ -3502,7 +3529,80 @@ function padRestore(layer) {
   if (padSec.sec) padSec.secIdx = allSecs(layer).indexOf(padSec.sec);
   if (padSel && padSel.isConnected) padSec.selSig = elSig(padSel, root);
 }
+// ---- the on-screen keyboard: A on a text box with a controller opens it. It types into the box as you go (so anything
+// that watches the box, like a search, updates live); Done (or Start) finishes and presses Enter for the box, B puts it back
+const OSK = { el: null, before: '', caps: false, sym: false, pos: 0 };
+const OSK_ROWS = { abc: ['1234567890', 'qwertyuiop', 'asdfghjkl-', 'zxcvbnm_.@'], sym: ['1234567890', '!?#&*()+=/', ':;\'",<>%$~', '[]{}|\\^`¦€'] };
+function oskOpen(input) {
+  if (!input || input.disabled) return;
+  if (input.readOnly && input.hasAttribute('readonly')) input.removeAttribute('readonly');
+  OSK.el = input; OSK.before = input.value; OSK.caps = false; OSK.sym = false; OSK.pos = input.value.length;
+  const lab = input.id && document.querySelector(`label[for="${input.id}"]`);
+  $('oskLabel').textContent = (lab && lab.textContent.trim()) || input.getAttribute('aria-label') || input.placeholder || 'Type';
+  oskKeys(); oskShow(); $('osk').hidden = false; setPadSel(null);
+}
+function oskKeys() {
+  const rows = OSK.sym ? OSK_ROWS.sym : OSK_ROWS.abc, up = c => (OSK.caps ? c.toUpperCase() : c);
+  $('oskKeys').innerHTML = rows.map(r => [...r].map(c => `<button type="button" data-k="${esc(c)}">${esc(up(c))}</button>`).join('')).join('') +
+    `<button type="button" class="wide" data-k="caps">${OSK.caps ? 'abc' : 'Shift'}</button><button type="button" class="wide" data-k="sym">${OSK.sym ? 'ABC' : '#+='}</button><button type="button" class="wider" data-k=" ">Space</button><button type="button" data-k="bs">⌫</button><button type="button" class="cta" data-k="done">Done</button>`;
+}
+function oskShow() {
+  const el = OSK.el; if (!el) return;
+  const v = el.type === 'password' ? '•'.repeat(el.value.length) : el.value;
+  $('oskVal').innerHTML = esc(v.slice(0, OSK.pos)) + '<i></i>' + esc(v.slice(OSK.pos)) || '<i></i>';
+}
+function oskType(ch) {
+  const el = OSK.el; if (!el) return;
+  const max = el.maxLength > 0 ? el.maxLength : 999;
+  if (ch === 'bs') { if (OSK.pos > 0) { el.value = el.value.slice(0, OSK.pos - 1) + el.value.slice(OSK.pos); OSK.pos--; } }
+  else { if (el.value.length >= max) return; if (OSK.caps) ch = ch.toUpperCase(); el.value = el.value.slice(0, OSK.pos) + ch + el.value.slice(OSK.pos); OSK.pos += ch.length; }
+  el.dispatchEvent(new Event('input', { bubbles: true })); oskShow();
+}
+function oskClose(ok) {
+  const el = OSK.el; $('osk').hidden = true; OSK.el = null; if (!el) return;
+  if (!ok) { el.value = OSK.before; el.dispatchEvent(new Event('input', { bubbles: true })); }
+  else { el.dispatchEvent(new Event('change', { bubbles: true })); el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true })); const f = el.form; if (f && f.requestSubmit && (el.id === 'dmIn' || f.querySelector('[type=submit]'))) { try { f.requestSubmit(); } catch (e) {} } }
+  setPadSel(el);
+}
+$('oskKeys').addEventListener('click', e => {
+  const b = e.target.closest('[data-k]'); if (!b) return; const k = b.dataset.k;
+  if (k === 'done') oskClose(true);
+  else if (k === 'caps') { OSK.caps = !OSK.caps; oskKeys(); setPadSel($('oskKeys').querySelector('[data-k="caps"]')); }
+  else if (k === 'sym') { OSK.sym = !OSK.sym; oskKeys(); setPadSel($('oskKeys').querySelector('[data-k="sym"]')); }
+  else oskType(k);
+});
+// the keyboard's own shortcuts on a controller: X deletes, Y a space, LB / RB move the cursor, Start finishes
+function oskPad(press) {
+  if ($('osk').hidden) return false;
+  if (press(2)) oskType('bs'); if (press(3)) oskType(' ');
+  if (press(4)) { OSK.pos = Math.max(0, OSK.pos - 1); oskShow(); } if (press(5)) { OSK.pos = Math.min(OSK.el ? OSK.el.value.length : 0, OSK.pos + 1); oskShow(); }
+  if (press(9)) { oskClose(true); return true; }
+  return false;
+}
+// ---- the arena builder with a controller: A on the arena gives you a cursor. Left stick (or D-pad) moves it; A picks up
+// whatever's under it (or places the tool you've chosen) and A again puts it down; LB / RB shrink and grow it, X deletes it,
+// Y switches to the next tool, B puts the cursor away
+function abCursorStart() { AB.cur = { x: AW / 4, y: AH / 2, held: false }; if (padSel) setPadSel(null); AB.draw(); $('abHint').dataset.was = $('abHint').dataset.was || $('abHint').textContent; $('abHint').textContent = 'Controller: stick moves the cursor · A pick up / put down (or place) · LB / RB size · X delete · Y next tool · B done'; }
+function abCursorEnd() { if (AB.cur && AB.cur.held) AB.up(); AB.cur = null; if ($('abHint').dataset.was) $('abHint').textContent = $('abHint').dataset.was; setPadSel($('abCv')); AB.draw(); }
+function abCursorPad(gp, btn, press, mx, my, dt) {
+  const C = AB.cur; let vx = mx, vy = my;
+  if (btn(12)) vy = -1; if (btn(13)) vy = 1; if (btn(14)) vx = -1; if (btn(15)) vx = 1;
+  const sp = 520 * (Math.hypot(vx, vy) > 0.9 ? 1 : 0.55);
+  if (vx || vy) { C.x = clamp(C.x + vx * sp * dt, WALL, AW - WALL); C.y = clamp(C.y + vy * sp * dt, WALL, AH - WALL); if (C.held) AB.move({ x: C.x, y: C.y }); AB.draw(); }
+  if (press(0)) {
+    if (C.held) { C.held = false; AB.up(); uiSfx.click(); }
+    else { AB.down({ x: C.x, y: C.y }); if (AB.drag) { C.held = true; } uiSfx.click(); }
+    AB.draw();
+  }
+  if (press(4)) AB.resize(-1); if (press(5)) AB.resize(1);
+  if (press(2) && AB.sel) { if (C.held) { C.held = false; AB.drag = null; } AB.remove(); }
+  if (press(3)) { const i = AB_TOOLS.findIndex(t => t.k === AB.tool), b = $('abTools').querySelector(`[data-abtool="${AB_TOOLS[(i + 1) % AB_TOOLS.length].k}"]`); if (b) b.click(); notice(esc(AB_TOOLS[(i + 1) % AB_TOOLS.length].name), false); }
+  if (press(1)) { abCursorEnd(); uiSfx.click(); }
+  return true;
+}
 function padNav(gp, btn, press, mx, my, dt, NS = pad.nav) { // (NS: this controller's held-direction timer)
+  if (AB.cur && !$('arenaScr').hidden && AB.tab === 'edit' && $('osk').hidden) return abCursorPad(gp, btn, press, mx, my, dt);
+  if (oskPad(press)) return true;
   const layer = navLayer();
   if (!layer || (RP.on && !menuOpen && $('ctlScreen').hidden && $('optScr').hidden)) { if (padSel) setPadSel(null); if (padSec.el) setPadSec(null); return false; } // (during a kill cam the menu still works)
   if (padSec.layer !== layer) { enterSec(null); padSec.layer = layer; padSec.secIdx = null; padSec.selSig = null; if (padSel) setPadSel(null); }
@@ -3522,7 +3622,9 @@ function padNav(gp, btn, press, mx, my, dt, NS = pad.nav) { // (NS: this control
     navMem['sec:' + layer.id] = padSec.el;
     if (press(0) && padSec.el) {
       const sec = padSec.el, its = navItems(sec);
-      if (its.length === 1) { uiSfx.click(); its[0].click(); padRestore(layer); } // (a section with one control: A presses it)
+      if (its.length === 1 && its[0].id === 'abCv') { enterSec(sec); setPadSel(its[0]); abCursorStart(); uiSfx.click(); }
+      else if (its.length === 1 && (its[0].tagName === 'TEXTAREA' || (its[0].tagName === 'INPUT' && !['checkbox', 'radio', 'range'].includes(its[0].type)))) { enterSec(sec); setPadSel(its[0]); oskOpen(its[0]); uiSfx.click(); }
+      else if (its.length === 1) { uiSfx.click(); its[0].click(); padRestore(layer); } // (a section with one control: A presses it)
       else { enterSec(sec); setPadSel(navFirst(its)); }
     }
     if (press(1)) navBack(layer);
@@ -3544,7 +3646,8 @@ function padNav(gp, btn, press, mx, my, dt, NS = pad.nav) { // (NS: this control
   if (press(0)) {
     if (!padSel) setPadSel(navFirst(items));
     else if (navAdjustable(padSel)) { navEdit(padSel, !padSel.dataset.padedit); uiSfx.click(); }
-    else if (padSel.tagName === 'INPUT') padSel.focus();
+    else if (padSel.id === 'abCv') { abCursorStart(); uiSfx.click(); }
+    else if ((padSel.tagName === 'INPUT' && !['checkbox', 'radio'].includes(padSel.type)) || padSel.tagName === 'TEXTAREA') { oskOpen(padSel); uiSfx.click(); }
     else { padSec.selSig = elSig(padSel, padSec.sec || layer); uiSfx.click(); padSel.click(); padRestore(layer); }
   }
   if (press(1) && padSel && padSel.dataset.padedit) { navEdit(padSel, false); uiSfx.click(); }
@@ -4511,7 +4614,7 @@ function renderCoach() {
   const raw = S.text.replace('Press Q for', keyI ? 'Press E for' : 'Press Q for');
   const list = a => a.slice(0, -1).join(', ') + ' or ' + a[a.length - 1];
   const fill = t => t.replace('{ab}', ab).replace('{dashdir}', !TOUCH.on && !dashMove() ? 'where you\'re aiming' : 'the way you\'re moving')
-    .replace('{dodgeopt}', TOUCH.on ? '' : ' Dash goes the way you move; you can make it go where you aim in Options › Controls.').replace('{arch}', ELEMENTS[TUT_LOADOUT.el].name + ' ' + ROLES[TUT_LOADOUT.ro].name)
+    .replace('{dodgeopt}', TOUCH.on ? '' : dashMove() ? ' Dash goes the way you move; you can make it go where you aim in Options › Controls.' : ' Dash goes where you aim; you can make it go the way you move in Options › Controls.').replace('{arch}', ELEMENTS[TUT_LOADOUT.el].name + ' ' + ROLES[TUT_LOADOUT.ro].name)
     .replace('{els}', 'Your element adds an effect to every arrow: ' + list(Object.keys(ELEMENTS).map(k => ELEMENTS[k].name + ' ' + (EL_VERB[k] || 'hits'))) + '.')
     .replace('{ros}', list(Object.values(ROLES).map(r => r.name)))
     .replace('{el}', TUT.el && ELEMENTS[TUT.el] ? ELEMENTS[TUT.el].name : 'your')
@@ -4555,6 +4658,7 @@ function warmTick() {
 }
 function warmEnd(back) { WARM.on = false; clearInterval(WARM.timer); $('warmBar').hidden = true; if (mode === 'local') { toMenu(); if (back) openSub('findScr'); } }
 $('warmBack').onclick = () => warmEnd(true);
+$('gmWarmBack').onclick = () => { closeMenu(); $('warmBack').click(); }; $('gmWarmStop').onclick = () => { closeMenu(); $('warmCancel').click(); };
 $('warmCancel').onclick = () => { socialSend({ t: 'queue', op: 'cancel' }); warmEnd(true); };
 function startPractice(mapKey) {
   initAudio();
@@ -4720,12 +4824,13 @@ const AB_TOOLS = [
   { k: 'gate', name: 'Gate', kind: 'portals', o: {}, sw: '#b48cff' },
   { k: 'spike', name: 'Thorns (edge)', kind: 'spikes', o: {}, sw: '#7a6a3a', sq: 1 },
 ];
-const AB_THEME_NAMES = { farm: 'Farm', meadow: 'Meadow', spring: 'Spring', rift: 'Volcanic', beach: 'Beach', mill: 'Sawmill', ruins: 'Ruins', grove: 'Mushroom grove', pitch: 'Football pitch' };
-const abBlank = () => ({ v: 1, name: '', theme: 'meadow', haz: [], pillars: [], bumpers: [], spikes: [], portals: [], ball: false });
+const AB_THEME_NAMES = { farm: 'Farm', meadow: 'Meadow', spring: 'Spring', rift: 'Volcanic', beach: 'Beach', mill: 'Sawmill', ruins: 'Ruins', grove: 'Mushroom grove' };
+const abBlank = () => ({ v: 1, name: '', theme: 'meadow', sym: 'flip', haz: [], pillars: [], bumpers: [], spikes: [], portals: [] });
 const AB = {
   def: abBlank(), id: null, code: null, pub: false, sel: null, tool: 'sel', hist: [], floor: null, drag: null, testing: false, tab: 'edit', check: null, repaintT: null,
   open() {
     if (!this.built) this.build();
+    this.cur = null;
     this.showTab(this.tab); this.syncForm(); this.changed(true);
   },
   build() {
@@ -4734,7 +4839,7 @@ const AB = {
     $('abTools').onclick = e => { const b = e.target.closest('[data-abtool]'); if (!b) return; this.tool = b.dataset.abtool; $('abTools').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); if (this.tool !== 'sel') { this.sel = null; this.syncSel(); } this.draw(); };
     $('abTheme').innerHTML = Sim.ARENA_THEMES.map(k => `<option value="${k}">${AB_THEME_NAMES[k] || k}</option>`).join('');
     $('abTheme').onchange = () => { this.push(); this.def.theme = $('abTheme').value; this.changed(); };
-    $('abBall').onchange = () => { this.push(); this.def.ball = $('abBall').value === '1'; this.changed(); };
+    $('abSym').onchange = () => { this.push(); this.def.sym = $('abSym').value === 'mirror' ? 'mirror' : 'flip'; this.changed(); };
     $('abName').oninput = () => { this.def.name = $('abName').value; };
     $('abPub').onchange = () => { this.pub = $('abPub').value === '1'; };
     $('abTabs').onclick = e => { const b = e.target.closest('[data-abtab]'); if (b) this.showTab(b.dataset.abtab); };
@@ -4757,12 +4862,14 @@ const AB = {
     });
   },
   showTab(t) {
-    this.tab = t;
+    this.tab = t; if (t !== 'edit') this.cur = null;
     $('abTabs').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.abtab === t));
     $('abEdit').hidden = t !== 'edit'; $('abMine').hidden = t !== 'mine'; $('abBrowse').hidden = t !== 'browse';
     if (t === 'mine') this.loadMine(); if (t === 'browse') this.loadBrowse(); if (t === 'edit') this.draw();
   },
-  syncForm() { $('abName').value = this.def.name || ''; $('abTheme').value = this.def.theme || 'meadow'; $('abBall').value = this.def.ball ? '1' : '0'; $('abPub').value = this.pub ? '1' : '0'; this.syncSel(); },
+  // where a point on the left half lands on the right: turned round the centre, or mirrored left to right
+  mir(x, y) { return this.def.sym === 'mirror' ? { x: AW - x, y } : { x: AW - x, y: AH - y }; },
+  syncForm() { $('abName').value = this.def.name || ''; if (!Sim.ARENA_THEMES.includes(this.def.theme)) this.def.theme = 'meadow'; $('abTheme').value = this.def.theme; $('abSym').value = this.def.sym === 'mirror' ? 'mirror' : 'flip'; $('abPub').value = this.pub ? '1' : '0'; this.syncSel(); },
   push() { this.hist.push(JSON.stringify(this.def)); if (this.hist.length > 60) this.hist.shift(); },
   undo() { const h = this.hist.pop(); if (!h) return; this.def = JSON.parse(h); this.sel = null; this.syncForm(); this.changed(); },
   item(sel) { return sel ? (this.def[sel.kind] || [])[sel.i] : null; },
@@ -4772,7 +4879,8 @@ const AB = {
     for (const kind of ['haz', 'pillars', 'bumpers', 'portals']) (this.def[kind] || []).forEach((o, i) => {
       const cx = o.shape === 'rect' ? o.x + o.w / 2 : o.x, cy = o.shape === 'rect' ? o.y + o.h / 2 : o.y;
       out.push({ kind, i, o, m: false, cx, cy });
-      if (!(Math.hypot(cx - AW / 2, cy - AH / 2) < 12)) out.push({ kind, i, o, m: true, cx: AW - cx, cy: AH - cy });
+      const mp = this.mir(cx, cy);
+      if (!(Math.hypot(cx - AW / 2, cy - AH / 2) < 12)) out.push({ kind, i, o, m: true, cx: mp.x, cy: mp.y });
     });
     (this.def.spikes || []).forEach((o, i) => { out.push({ kind: 'spikes', i, o, m: false }); out.push({ kind: 'spikes', i, o, m: true }); });
     return out;
@@ -4782,7 +4890,7 @@ const AB = {
     for (let j = list.length - 1; j >= 0; j--) {
       const S = list[j], o = S.o;
       if (S.kind === 'spikes') {
-        const q = S.m ? { x: AW - p.x, y: AH - p.y } : p;
+        const q = S.m ? this.mir(p.x, p.y) : p;
         if (o.side === 'top' && q.y < WALL + 26 && q.x >= o.a && q.x <= o.b) return S;
         if (o.side === 'left' && q.x < WALL + 26 && q.y >= o.a && q.y <= o.b) return S;
         continue;
@@ -4803,7 +4911,7 @@ const AB = {
     const T = AB_TOOLS.find(t => t.k === this.tool); if (!T) return;
     const L = Sim.ARENA_LIMITS[T.kind], arr = this.def[T.kind] || (this.def[T.kind] = []);
     if (arr.length >= L) { $('abStatus').textContent = `That's the most ${T.name.toLowerCase()} things a side can have (${L}).`; return; }
-    let q = p.x > AW / 2 + 8 ? { x: AW - p.x, y: AH - p.y } : { x: p.x, y: p.y };
+    let q = p.x > AW / 2 + 8 ? this.mir(p.x, p.y) : { x: p.x, y: p.y };
     if (Math.hypot(q.x - AW / 2, q.y - AH / 2) < 24) q = { x: AW / 2, y: AH / 2 }; // snap to the centre spot
     let o;
     if (T.kind === 'spikes') {
@@ -4821,7 +4929,7 @@ const AB = {
   move(p) {
     const D = this.drag; if (!D) { const S = this.tool === 'sel' ? this.hit(p) : null; $('abCv').style.cursor = S ? 'move' : this.tool === 'sel' ? 'default' : 'crosshair'; return; }
     let dx = p.x - D.last.x, dy = p.y - D.last.y; D.last = p;
-    if (D.S.m) { dx = -dx; dy = -dy; }
+    if (D.S.m) { dx = -dx; if (this.def.sym !== 'mirror') dy = -dy; }
     const o = D.S.o;
     if (D.S.kind === 'spikes') { const d = o.side === 'top' ? dx : dy; o.a = Math.round(o.a + d); o.b = Math.round(o.b + d); }
     else { o.x = Math.round(o.x + dx); o.y = Math.round(o.y + dy); if (o.centre) delete o.centre; }
@@ -4866,9 +4974,26 @@ const AB = {
     clearTimeout(this.repaintT);
     if (!dragging || now) this.repaintT = setTimeout(() => this.repaint(), now ? 0 : 140);
   },
+  // the floor: the ground and walls are painted once for the look you've picked (from an empty arena), so they don't
+  // reshuffle every time something moves; the full painting is then laid over it only round the things you've placed
   repaint() {
-    Sim.registerArena('edit', this.def, null, true);
-    const keep = MAPKEY; setArena('edit'); this.floor = paintFloor(0.6); setArena(keep); floorKey = null;
+    const S = 0.6, keep = MAPKEY, M = Sim.registerArena('edit', this.def, null, true);
+    if (this.baseFor !== this.def.theme) {
+      Sim.registerArena('editbase', { theme: this.def.theme, haz: [], pillars: [], bumpers: [], spikes: [], portals: [] }, null, true);
+      setArena('editbase'); this.base = paintFloor(S); this.baseFor = this.def.theme;
+    }
+    setArena('edit'); const full = paintFloor(S); setArena(keep); floorKey = null;
+    const c = document.createElement('canvas'); c.width = full.width; c.height = full.height;
+    const g = c.getContext('2d'); g.drawImage(this.base, 0, 0);
+    g.save(); g.setTransform(S, 0, 0, S, MARGIN * S, MARGIN * S); g.beginPath();
+    const circ = (x, y, r) => { g.moveTo(x + r, y); g.arc(x, y, r, 0, TAU); };
+    for (const h of M.haz) { if (h.shape === 'rect') g.rect(h.x - 24, h.y - 24, h.w + 48, h.h + 48); else circ(h.x, h.y, h.r + 24); }
+    for (const q of M.pillars) circ(q.x + 4, q.y + 4, q.r + 18);
+    for (const q of M.bumpers || []) circ(q.x, q.y, q.r + 16);
+    for (const q of M.portals || []) circ(q.x, q.y, 46);
+    // (thorn strips are left out: they're shown by their outlines, so the walls never change)
+    g.clip(); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(full, 0, 0); g.restore();
+    this.floor = c;
     this.draw();
   },
   draw() {
@@ -4880,7 +5005,7 @@ const AB = {
     g.setLineDash([10, 10]); g.strokeStyle = 'rgba(255,255,255,0.35)'; g.lineWidth = 2; g.beginPath(); g.moveTo(AW / 2, WALL); g.lineTo(AW / 2, AH - WALL); g.stroke(); g.setLineDash([]);
     g.strokeStyle = 'rgba(255,255,255,0.4)'; g.beginPath(); g.arc(AW / 2, AH / 2, 10, 0, TAU); g.stroke();
     // spawn points
-    for (const sp of Sim.RED_SPAWNS) for (const [x, y, c] of [[sp.x, sp.y, '#ff6b5a'], [AW - sp.x, AH - sp.y, '#4fa8ff']]) { g.strokeStyle = c; g.lineWidth = 3; g.beginPath(); g.arc(x, y, 16, 0, TAU); g.stroke(); g.globalAlpha = 0.25; g.beginPath(); g.arc(x, y, 40, 0, TAU); g.stroke(); g.globalAlpha = 1; }
+    for (const sp of Sim.RED_SPAWNS) for (const [x, y, c] of [[sp.x, sp.y, '#ff6b5a'], [this.mir(sp.x, sp.y).x, this.mir(sp.x, sp.y).y, '#4fa8ff']]) { g.strokeStyle = c; g.lineWidth = 3; g.beginPath(); g.arc(x, y, 16, 0, TAU); g.stroke(); g.globalAlpha = 0.25; g.beginPath(); g.arc(x, y, 40, 0, TAU); g.stroke(); g.globalAlpha = 1; }
     // outlines (so moves show at once) and the things the floor painting leaves out
     for (const S of this.shapes()) {
       const o = S.o, sel = this.sel && this.sel.kind === S.kind && this.sel.i === S.i;
@@ -4888,8 +5013,9 @@ const AB = {
       if (S.kind === 'spikes') {
         const top = o.side === 'top', m = S.m;
         g.fillStyle = 'rgba(122,106,58,0.55)';
-        if (top) { const a = m ? AW - o.b : o.a, b = m ? AW - o.a : o.b, y = m ? AH - WALL - 22 : WALL; g.fillRect(a, y, b - a, 22); g.strokeRect(a, y, b - a, 22); }
-        else { const a = m ? AH - o.b : o.a, b = m ? AH - o.a : o.b, x = m ? AW - WALL - 22 : WALL; g.fillRect(x, a, 22, b - a); g.strokeRect(x, a, 22, b - a); }
+        const mirr = this.def.sym === 'mirror';
+        if (top) { const a = m ? AW - o.b : o.a, b = m ? AW - o.a : o.b, y = m && !mirr ? AH - WALL - 22 : WALL; g.fillRect(a, y, b - a, 22); g.strokeRect(a, y, b - a, 22); }
+        else { const a = m && !mirr ? AH - o.b : o.a, b = m && !mirr ? AH - o.a : o.b, x = m ? AW - WALL - 22 : WALL; g.fillRect(x, a, 22, b - a); g.strokeRect(x, a, 22, b - a); }
       } else if (o.shape === 'rect') g.strokeRect(S.cx - o.w / 2, S.cy - o.h / 2, o.w, o.h);
       else {
         const r = S.kind === 'portals' ? 26 : o.r;
@@ -4899,7 +5025,11 @@ const AB = {
       }
       g.setLineDash([]);
     }
-    if (this.def.ball) { g.fillStyle = '#f7f7f2'; g.strokeStyle = '#222'; g.lineWidth = 2; g.beginPath(); g.arc(AW / 2, AH / 2, 30, 0, TAU); g.fill(); g.stroke(); }
+    if (this.cur) { // the controller's cursor
+      const c = this.cur; g.save(); g.strokeStyle = c.held ? '#7dff8a' : '#ffcf5a'; g.lineWidth = 3;
+      g.beginPath(); g.arc(c.x, c.y, 14, 0, TAU); g.moveTo(c.x - 24, c.y); g.lineTo(c.x - 8, c.y); g.moveTo(c.x + 8, c.y); g.lineTo(c.x + 24, c.y); g.moveTo(c.x, c.y - 24); g.lineTo(c.x, c.y - 8); g.moveTo(c.x, c.y + 8); g.lineTo(c.x, c.y + 24); g.stroke();
+      g.fillStyle = 'rgba(0,0,0,.6)'; g.fillRect(c.x + 18, c.y + 14, 120, 22); g.fillStyle = '#fff'; g.font = '700 14px Rajdhani, sans-serif'; g.fillText((AB_TOOLS.find(t => t.k === this.tool) || {}).name || '', c.x + 24, c.y + 30); g.restore();
+    }
   },
   // try it: a practice game on it against one bot (add more in the lobby)
   test() {
@@ -4929,7 +5059,7 @@ const AB = {
     $('abCopy').onclick = () => { try { navigator.clipboard.writeText(r.arena.code); notice('Code copied', false); } catch (e) {} };
     uiSfx.click();
   },
-  edit(a) { this.push(); this.def = Object.assign(abBlank(), JSON.parse(JSON.stringify(a.def)), { name: a.name }); this.id = a.mine || String(a.id).startsWith('L') ? a.id : null; this.code = a.code || null; this.pub = !!a.pub && !!a.mine; this.sel = null; this.syncForm(); this.showTab('edit'); this.changed(true); $('abStatus').textContent = this.id ? `Editing ${a.name}.` : `A copy of ${a.name}: save it as your own.`; },
+  edit(a) { this.push(); this.def = Object.assign(abBlank(), JSON.parse(JSON.stringify(a.def)), { name: a.name }); delete this.def.ball; this.id = a.mine || String(a.id).startsWith('L') ? a.id : null; this.code = a.code || null; this.pub = !!a.pub && !!a.mine; this.sel = null; this.syncForm(); this.showTab('edit'); this.changed(true); $('abStatus').textContent = this.id ? `Editing ${a.name}.` : `A copy of ${a.name}: save it as your own.`; },
   thumb(a, cv) {
     try { Sim.registerArena('pv', a.def, null, true); const keep = MAPKEY; setArena('pv'); const t = paintFloor(0.2); setArena(keep); floorKey = null; cv.width = t.width; cv.height = t.height; cv.getContext('2d').drawImage(t, 0, 0); } catch (e) {}
   },
@@ -6063,7 +6193,7 @@ function pollLocals(dt) {
     } else l.pickI = 0;
     const I = l.inp || {};
     const x = me ? me.x : 0, y = me ? me.y : 0;
-    l.inp = { dmv: 1, mx, my, aim: l.aim, draw: btn(7), dash: I.dash || (ph === 'play' && (press(0) || press(6))), q: I.q || (ph === 'play' && press(4)), e: I.e || (ph === 'play' && press(5)), dp: I.dp || press(7), tx: Math.round(x + Math.cos(l.aim) * (l.dist || 220)), ty: Math.round(y + Math.sin(l.aim) * (l.dist || 220)) };
+    l.inp = { dmv: padDashMove(l.n) ? 1 : 0, mx, my, aim: l.aim, draw: btn(7), dash: I.dash || (ph === 'play' && (press(0) || press(6))), q: I.q || (ph === 'play' && press(4)), e: I.e || (ph === 'play' && press(5)), dp: I.dp || press(7), tx: Math.round(x + Math.cos(l.aim) * (l.dist || 220)), ty: Math.round(y + Math.sin(l.aim) * (l.dist || 220)) };
     if (l.menu) l.inp = { dmv: 1, mx: 0, my: 0, aim: l.aim, draw: false, tx: l.inp.tx, ty: l.inp.ty };
     l.prev = g.buttons.map(b => !!(b && (b.pressed || b.value > 0.4)));
     if (mode === 'online' && l.sock && l.sock.readyState === 1) {
@@ -7319,7 +7449,7 @@ function applyPool(d) {
   paintThumbs(); thumbURL.c = {}; buildMapCards(); hc.lbMap = null;
   if (!MAP_KEYS.includes(store.get('bowfall-map', 'meadow'))) store.set('bowfall-map', 'meadow');
 }
-async function loadArenaPool() { if (OFFLINE) return; try { applyPool(await (await fetch('/api/arenas', { cache: 'no-store' })).json()); } catch (e) {} }
+async function loadArenaPool() { if (OFFLINE) return; try { applyPool(await (await fetch('/api/arena-pool', { cache: 'no-store' })).json()); } catch (e) {} }
 // a thumbnail for any arena, lab ones included (the lobby only paints the ones on offer)
 function thumbOf(k) { if (!thumbs[k]) { const keep = MAPKEY; setArena(k); thumbs[k] = paintFloor(0.2); setArena(keep); } return thumbs[k]; }
 function openLab() {
@@ -7343,7 +7473,7 @@ $('labSave').onclick = async () => {
   const cfg = labRead();
   if (OFFLINE) { applyPool(Object.assign(cfg, { lab: LAB.info })); openLab(); return; }
   $('labSave').disabled = true;
-  try { const r = await fetch('/api/arenas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cfg) }), d = await r.json(); if (!r.ok) throw new Error(d.error || 'Could not save.'); applyPool(d); $('labErr').textContent = ''; openLab(); notice('Arenas saved. Players see the new lists on their next visit.', false); }
+  try { const r = await fetch('/api/arena-pool', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cfg) }), d = await r.json(); if (!r.ok) throw new Error(d.error || 'Could not save.'); applyPool(d); $('labErr').textContent = ''; openLab(); notice('Arenas saved. Players see the new lists on their next visit.', false); }
   catch (err) { $('labErr').textContent = err.message; }
   $('labSave').disabled = false;
 };
@@ -7541,12 +7671,14 @@ function renderMenu(v) {
   const lpm = LP.list.find(l => l.menu), tut = mode === 'local' && TUT.on;
   // a ranked match has no room code (nobody can join by code); a drill or the tutorial has no teams to show. Teams, bots,
   // bot skill and handicaps are set up in the lobby, so mid-match the teams are just shown
-  setC('gmHead', mode + host + ranked + drill + (lpm ? lpm.n : 0), () => {
+  setC('gmHead', mode + host + ranked + drill + (lpm ? lpm.n : 0) + $('warmBar').hidden, () => {
     $('gmEyebrow').textContent = lpm ? `P${lpm.n} · ${lpm.name} · menu` : drill ? (TUT.on ? 'Tutorial · paused' : 'Drill · paused') : online ? 'Menu · the match keeps running' : 'Paused';
     $('gmRoom').hidden = !online || ranked || !!lpm;
     if (online && roomInfo) { $('gmCode').textContent = roomInfo.code; $('gmShare').textContent = 'Friends join with this code or the invite link.'; }
     $('endBtn').hidden = !host || ranked || !!lpm;
     $('leaveBtn').hidden = !!lpm;
+    $('gmOptBtn').hidden = !!lpm; // (Options change the whole screen's settings: the main player's to change)
+    $('gmWarmBack').hidden = $('gmWarmStop').hidden = !!lpm || $('warmBar').hidden;
     $('gmBalBtn').hidden = $('gmAchBtn').hidden = tut || !!lpm;
     $('gmDiffWrap').hidden = true;
     $('gmTeams').hidden = drill;
@@ -7829,7 +7961,8 @@ function guideSync() {
   try { g.save(); drawAimGuide({ x: -18, y: 32, rz: 16, prev: 320 }, 0, 0.8); g.restore(); } finally { ctx = keep.ctx; VS = keep.VS; }
 }
 for (const k in GUIDE_K) $(k).oninput = () => { OPTS[k] = +$(k).value; store.set(GUIDE_K[k], String(OPTS[k])); guideSync(); };
-$('gReset').onclick = () => { for (const k in GUIDE_K) { OPTS[k] = 100; store.set(GUIDE_K[k], '100'); } guideSync(); };
+const GUIDE_DEF = { gOp: 130, gSat: 100, gW: 140 };
+$('gReset').onclick = () => { for (const k in GUIDE_K) { OPTS[k] = GUIDE_DEF[k]; store.set(GUIDE_K[k], String(GUIDE_DEF[k])); } guideSync(); };
 $('rmName').value = store.get('bowfall-room-name', '');
 $('rmPub').value = store.get('bowfall-room-pub', '1');
 $('rmMax').value = store.get('bowfall-room-max', '8');
@@ -8351,7 +8484,7 @@ function eventFx(e) {
       case 'drop': burst(e.x, e.y, '#b9a88a', 5, 60, 1.4); break;
       case 'full': {
         const m = view && view.p.find(q => q.id === e.id), me = view && view.p.find(q => q.id === myId);
-        if (e.id === myId) { sfx.full(); if (m) burst(m.x + Math.cos(m.a) * ((m.rz || 16) + 22), m.y + Math.sin(m.a) * ((m.rz || 16) + 22), '#ffe9a8', 6, 100, 1.4); }
+        if (e.id === myId) { if (!(mode === 'online' && clock - FULLSND.t < 0.6)) fullDrawn(m); } // (online it's usually already played, from your own draw)
         else if (m) { // someone else at full draw: a small pop of sparks at the bow, and a faint tick if it's an enemy near you
           burst(m.x + Math.cos(m.a) * ((m.rz || 16) + 22), m.y + Math.sin(m.a) * ((m.rz || 16) + 22), '#ffffff', 5, 90, 1.3);
           if (me && m.tm !== me.tm && Math.hypot(m.x - me.x, m.y - me.y) < 520) play('enemyFull');
@@ -10395,8 +10528,11 @@ function drawMapMech(g, t, still) {
 // the machinery follows the game clock; smooth it between updates
 let mechT = 0, mechDrawT = 0, windWas = '';
 function updateMech(dt) {
-  const gt = view && view.m && view.m.ph === 'play' ? view.m.gt || 0 : 0;
-  if (!gt || paused || Math.abs(gt - mechT) > 0.3) mechT = gt;
+  const gt = view && view.m && (view.m.ph === 'play' || view.m.ph === 'post') ? view.m.gt || 0 : 0;
+  // a kill cam plays its recorded frames, already blended in time (and slowed down): follow them exactly, or the saws
+  // would run at full speed and keep jumping back to where the slowed-down recording says they are
+  if (RP.on && RP.on.started) mechT = gt;
+  else if (!gt || paused || Math.abs(gt - mechT) > 0.3) mechT = gt;
   else { mechT += dt; mechT += (gt - mechT) * Math.min(1, dt * 6); }
   // the gale: a rising whistle as a warning, then the gust itself
   const st = windState(MECH.wind, mechT), k = st.warn ? 'w' : st.gust ? 'g' : '';
@@ -13516,6 +13652,8 @@ function clipPack(c) {
 // from that: frames get their real times, every event moves with the frame it arrived with, and the knockouts' pieces
 // (when each arrow was loosed and landed) are worked out again on the mended timeline
 function clipRepair(c) {
+  // older clips: after the knockout the game clock read 0, so the saws flew back to their starting spots; carry it on instead
+  if (c.frames) { let lt = null, lg = null; for (const f of c.frames) { const m = f.v && f.v.m; if (!m) continue; if (m.ph === 'play' && m.gt) { lt = f.t; lg = m.gt; } else if (m.ph === 'post' && !m.gt && lg != null) m.gt = lg + (f.t - lt); } }
   const F = c.frames; if (!F || F.length < 2 || !F.every(f => f.v && f.v.t != null)) return c;
   let broken = false; for (let i = 1; i < F.length; i++) if (F[i].t < F[i - 1].t - 1e-6) { broken = true; break; }
   if (!broken) return c;
@@ -13786,8 +13924,13 @@ function frame(now) {
     else { view = interpView(now); smoothMe(view, dt); }
     PR.lap('view');
     const me = view && view.p.find(p => p.id === myId);
-    if (me && !me.d && !me.f && view.m.ph === 'play' && (mouse.down || held('draw') || (pad.on && pad.draw) || TOUCH.draw) && !menuOpen) localCharge = Math.min(1, localCharge + dt * (me.pw && me.pw.quick ? 2.2 : 1) * (me.ro === 'ninja' ? (me.up && me.up.includes('flurry') ? 1.3 : 1) / 0.42 : (me.up && me.up.includes('steady') ? 1.25 : 1)));
-    else localCharge = 0;
+    // your own draw fills here at once, at the rate the server says it fills (drt: role, upgrades, map effect, power-ups),
+    // so the bow, the crosshair's full-draw pop and the full-draw sound all go together, a round trip before the server's word
+    if (me && !me.d && !me.f && view.m.ph === 'play' && me.ro !== 'crossbow' && (mouse.down || held('draw') || (pad.on && pad.draw) || TOUCH.draw) && !menuOpen) {
+      const was = localCharge;
+      localCharge = Math.min(1, localCharge + dt * (me.drt || (me.ro === 'ninja' ? 1 / 0.42 : 1)));
+      if (was < 1 && localCharge >= 1 && clock - FULLSND.t > 0.6) fullDrawn(me);
+    } else localCharge = 0;
     sendT -= dt; pingT -= dt;
     if (ws && ws.readyState === 1) {
       if (sendT <= 0 && me) {

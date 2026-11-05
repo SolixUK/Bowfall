@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.87.2';
+const VERSION = '0.88.2';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -25,19 +25,24 @@ const r3 = v => Math.round(v * 1000) / 1000;
 const BASE_W = 1200, BASE_H = 800;
 let AW = BASE_W, AH = BASE_H;
 const WALL = 26;
+// SYM: how the other half is made. 'flip' (every built-in arena): turned round the centre point, so Blue's top-right is Red's
+// bottom-left; 'mirror' (an option in the Arena builder): reflected left to right, so the top stays the top
+let SYM = 'flip';
 function mirrorItem(o) {
+  if (SYM === 'mirror') return Object.assign({}, o, { x: AW - o.x - (o.w !== undefined ? o.w : 0) });
   if (o.w !== undefined) return Object.assign({}, o, { x: AW - o.x - o.w, y: AH - o.y - o.h });
   return Object.assign({}, o, { x: AW - o.x, y: AH - o.y });
 }
 const FLIP_SIDE = { top: 'bottom', bottom: 'top', left: 'right', right: 'left' };
 function mirrorSpike(s) {
+  if (SYM === 'mirror') return s.side === 'left' || s.side === 'right' ? { side: FLIP_SIDE[s.side], a: s.a, b: s.b } : { side: s.side, a: AW - s.b, b: AW - s.a };
   const span = s.side === 'top' || s.side === 'bottom' ? AW : AH;
   return { side: FLIP_SIDE[s.side], a: span - s.b, b: span - s.a };
 }
 function buildMap(def) {
   // an arena can be bigger than the usual 1200 by 800 (def.w, def.h): mirror it round its own middle
-  const keepW = AW, keepH = AH; AW = def.w || BASE_W; AH = def.h || BASE_H;
-  try { return buildMapNow(def); } finally { AW = keepW; AH = keepH; }
+  const keepW = AW, keepH = AH, keepS = SYM; AW = def.w || BASE_W; AH = def.h || BASE_H; SYM = def.sym === 'mirror' ? 'mirror' : 'flip';
+  try { return buildMapNow(def); } finally { AW = keepW; AH = keepH; SYM = keepS; }
 }
 function buildMapNow(def) {
   const both = (list, fn) => list.flatMap(o => (o.centre ? [o] : [o, fn(o)]));
@@ -46,11 +51,11 @@ function buildMapNow(def) {
     pillars: both(def.pillars, mirrorItem),
     spikes: def.spikes.flatMap(s => [s, mirrorSpike(s)]),
     cracks: both(def.cracks || [], mirrorItem),
-    saws: (def.saws || []).flatMap(o => [o, Object.assign({}, o, { x0: AW - o.x0, x1: AW - o.x1, y: AH - o.y })]),
+    saws: (def.saws || []).flatMap(o => [o, Object.assign({}, o, { x0: AW - o.x0, x1: AW - o.x1, y: SYM === 'mirror' ? o.y : AH - o.y })]),
     bumpers: both(def.bumpers || [], mirrorItem),
     lights: both(def.lights || [], mirrorItem), // lamps that only light the ground (drawn by the page)
     // each gate leads to its mirror image across the arena
-    portals: (def.portals || []).flatMap((o, i) => [{ x: o.x, y: o.y, tx: AW - o.x, ty: AH - o.y, k: i }, { x: AW - o.x, y: AH - o.y, tx: o.x, ty: o.y, k: i }]),
+    portals: (def.portals || []).flatMap((o, i) => { const m = mirrorItem(o); return [{ x: o.x, y: o.y, tx: m.x, ty: m.y, k: i }, { x: m.x, y: m.y, tx: o.x, ty: o.y, k: i }]; }),
     wind: def.wind || null,
   });
 }
@@ -567,7 +572,7 @@ const arenaPool = () => ({ ranked: rankedPool(), custom: MAP_KEYS.slice() });
 // and tidied by cleanArena before it can be played: sizes and counts are capped, the spawns must be clear, and the
 // two sides must be able to reach each other on foot. registerArena() adds it to MAPS under a key like 'a12'.
 const ARENA_LIMITS = { haz: 12, pillars: 8, bumpers: 4, spikes: 4, portals: 2 };
-const ARENA_THEMES = ['meadow', 'spring', 'rift', 'beach', 'mill', 'ruins', 'grove', 'pitch', 'farm'];
+const ARENA_THEMES = ['meadow', 'spring', 'rift', 'beach', 'mill', 'ruins', 'grove', 'farm'];
 const HALF = AW / 2;
 function cleanArena(def) {
   const errors = [], d = def && typeof def === 'object' ? def : {};
@@ -576,7 +581,7 @@ function cleanArena(def) {
   const inX = x => num(x, WALL, HALF, HALF / 2), inY = y => num(y, WALL, AH - WALL, AH / 2);
   const atCentre = o => Math.hypot(o.x - HALF, o.y - AH / 2) < 12;
   const out = { v: 1, name: String(d.name || 'My arena').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 32) || 'My arena', theme: ARENA_THEMES.includes(d.theme) ? d.theme : 'meadow',
-    haz: [], pillars: [], bumpers: [], spikes: [], portals: [], ball: !!d.ball };
+    haz: [], pillars: [], bumpers: [], spikes: [], portals: [], ball: false, sym: d.sym === 'mirror' ? 'mirror' : 'flip' };
   if (Array.isArray(d.haz) && d.haz.length > ARENA_LIMITS.haz) errors.push(`At most ${ARENA_LIMITS.haz} hazards on a side.`);
   for (const h of list(d.haz, ARENA_LIMITS.haz)) {
     if (!h || !['pit', 'lava', 'tar'].includes(h.type)) continue;
@@ -602,7 +607,7 @@ function cleanArena(def) {
   const st = [[Math.floor(RED_SPAWNS[0].x / G), Math.floor(RED_SPAWNS[0].y / G)]]; let reach = 0, openN = 0;
   for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) if (open(i, j)) openN++;
   while (st.length) { const [i, j] = st.pop(); if (i < 0 || j < 0 || i >= cols || j >= rows || seen[i * rows + j] || !open(i, j)) continue; seen[i * rows + j] = 1; reach++; st.push([i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]); }
-  const bs = mirrorItem(RED_SPAWNS[0]);
+  const ks = SYM; SYM = out.sym; const bs = mirrorItem(RED_SPAWNS[0]); SYM = ks;
   if (!seen[Math.floor(bs.x / G) * rows + Math.floor(bs.y / G)]) errors.push('Red and Blue must be able to walk to each other: open a path through the middle.');
   else if (reach < openN * 0.8) errors.push('Parts of the arena are cut off: every open area should be reachable on foot.');
   return { def: out, errors };
@@ -611,7 +616,7 @@ function registerArena(key, def, meta, force) { // force: register even with pro
   const c = cleanArena(def); if (c.errors.length && !force) return null;
   const d = c.def;
   MAPS[key] = buildMap({ name: d.name, theme: d.theme, desc: (meta && meta.author ? `A player arena by ${meta.author}.` : 'A player arena.'), hidden: true, custom: true, def: d,
-    haz: d.haz, pillars: d.pillars, spikes: d.spikes, bumpers: d.bumpers, portals: d.portals, ball: d.ball ? { x: HALF, y: AH / 2, r: 30 } : undefined,
+    haz: d.haz, pillars: d.pillars, spikes: d.spikes, bumpers: d.bumpers, portals: d.portals, sym: d.sym,
     power: [{ x: HALF, y: AH / 2 }].filter(p => !d.haz.some(h => h.centre)).concat(d.haz.some(h => h.centre) ? [{ x: HALF, y: 220 }, { x: HALF, y: 580 }] : []), amberY: [WALL + 44, 330] });
   return MAPS[key];
 }
@@ -657,7 +662,8 @@ function useMap(w) {
   MOVE = MOVE_PROFILES[OPT('move')] || MOVE_PROFILES[1];
   PILLARS = MAP.pillars; SPIKES = MAP.spikes; HEAL = MAP.heal || null; ICE = MAP.ice || null; BLOCKS = MAP.blocks || []; TREES = MAP.trees || [];
   SAWS = MAP.saws || []; BUMPERS = MAP.bumpers || []; PORTALS = MAP.portals || []; WIND = MAP.wind || null; BALL = MAP.ball || null;
-  SPAWNS = MAP.spawnsBoth || (MAP.spawnsBoth = MAP.spawns ? { red: MAP.spawns, blue: MAP.spawns.map(mirrorItem) } : { red: RED_SPAWNS, blue: RED_SPAWNS.map(mirrorItem) });
+  if (!MAP.spawnsBoth) { const ks = SYM; SYM = MAP.sym === 'mirror' ? 'mirror' : 'flip'; MAP.spawnsBoth = MAP.spawns ? { red: MAP.spawns, blue: MAP.spawns.map(mirrorItem) } : { red: RED_SPAWNS, blue: RED_SPAWNS.map(mirrorItem) }; SYM = ks; }
+  SPAWNS = MAP.spawnsBoth;
   SAWPOS = SAWS.map(o => sawAt(o, gameTime(w)));
   // thin ice that has given way joins the arena's hazards; ice about to go is something bots steer clear of
   const cr = w.cracks || [];
@@ -665,7 +671,9 @@ function useMap(w) {
   WARN = cr.some(c => c === 1) ? MAP.cracks.filter((c, i) => cr[i] === 1) : [];
 }
 // seconds into the current game (0 outside play); moving arena pieces follow it
-const gameTime = w => (w.match && w.match.ph === 'play' ? TIMES.game - w.match.T : 0);
+// the game clock the machinery runs on (saws): from the start of each game, and on through the pause after it ends, so a
+// saw doesn't jump back to its starting spot the moment someone is knocked out
+const gameTime = w => (!w.match ? 0 : w.match.ph === 'play' ? TIMES.game - w.match.T : w.match.ph === 'post' && w.match.postGt != null ? w.match.postGt + (w.t - w.match.postAt) : 0);
 function sawAt(o, t) { const k = 0.5 - 0.5 * Math.cos(TAU * t / o.per + o.ph); return { x: o.x0 + (o.x1 - o.x0) * k, y: o.y, r: o.r }; }
 // wind: a warning, then a gust; alternating up and down so both sides get pushed toward their own drops in turn
 function windAt(t) {
@@ -1907,6 +1915,7 @@ function gameRecord(w, winner, timedOut) {
 function endRound(w, winner, timedOut) {
   const M = w.match;
   if (w.matchId) w.records.push(gameRecord(w, winner, timedOut));
+  M.postGt = gameTime(w); M.postAt = w.t;
   M.ph = 'post'; M.rw = winner || 'draw';
   if (winner) {
     M.gw[winner]++;
@@ -2543,7 +2552,7 @@ function updatePlayer(w, p, dt) {
       if (inp.draw && p.throwCd <= 0 && p.falling <= 0 && p.disarm <= 0) { p.throwCd = AUTO_GAP; throwStar(w, p, p.aim, true); }
     } else if (inp.draw && p.falling <= 0 && p.disarm <= 0 && p.throwCd <= 0) {
       const prev = p.charge; p.drawing = true;
-      p.charge = Math.min(1, p.charge + dt / STAR_DRAW * mutMul(CFG.mut, 'draw') * (has(p, 'flurry') ? 1.3 : 1) * (1 + 0.08 * ((p.hones && p.hones.hone_draw) || 0)) * (p.pw.quick > 0 ? 1.8 : 1) * frenzyDraw(p) * (p.quickT > 0 ? 2 : 1));
+      p.charge = Math.min(1, p.charge + dt * drawRate(p));
       if (prev < 1 && p.charge >= 1) ev(w, { e: 'full', id: p.id });
     } else if (p.drawing) {
       if (p.charge >= STAR_MIN && p.falling <= 0) { throwStar(w, p, p.aim, false, p.charge); p.throwCd = STAR_GAP; }
@@ -2586,7 +2595,7 @@ function updatePlayer(w, p, dt) {
   } else if (inp.draw && !p.holdOff && p.falling <= 0 && p.disarm <= 0 && !(p.nockT > 0) && !roped(w, p)) {
     const prev = p.charge;
     p.drawing = true;
-    p.charge = p.riposteT > 0 && !p.riposteUsed ? 1 : Math.min(1, p.charge + dt * p.drawMul * frenzyDraw(p) * (p.pw.quick > 0 ? 2.2 : 1) * (p.quickT > 0 ? 3 : 1) * (p.ambushT > 0 ? 1.6 : 1) * (p.focusT > 0 ? 2 : 1));
+    p.charge = p.riposteT > 0 && !p.riposteUsed ? 1 : Math.min(1, p.charge + dt * drawRate(p));
     if (prev < 1 && p.charge >= 1) ev(w, { e: 'full', id: p.id });
     if (p.charge >= 1 && has(p, 'ballista')) { const was = p.over; p.over += dt; if (was < 1 && p.over >= 1) ev(w, { e: 'loaded', id: p.id }); }
   } else if (p.drawing) {
@@ -2657,6 +2666,12 @@ function ninjaBlink(w, p, back) { // back: Echo Step's spot to return to
 }
 const THROW_CD = 0.36;
 // one shuriken (or a spread with the Multishot powerup); weaker than an arrow, no charging
+// how fast an archer's draw (or a ninja's wind-up) fills right now, per second: everything that speeds it up. The page
+// is sent this (dm) so it can show your own draw filling without waiting for the server
+function drawRate(p) {
+  if (p.role === 'ninja') return 1 / STAR_DRAW * mutMul(CFG.mut, 'draw') * (has(p, 'flurry') ? 1.3 : 1) * (1 + 0.08 * ((p.hones && p.hones.hone_draw) || 0)) * (p.pw.quick > 0 ? 1.8 : 1) * frenzyDraw(p) * (p.quickT > 0 ? 2 : 1);
+  return p.drawMul * frenzyDraw(p) * (p.pw.quick > 0 ? 2.2 : 1) * (p.quickT > 0 ? 3 : 1) * (p.ambushT > 0 ? 1.6 : 1) * (p.focusT > 0 ? 2 : 1);
+}
 const STAR_DRAW = 0.42, STAR_GAP = 0.26, STAR_MIN = 0.4; // a shuriken's full wind-up, the pause after a throw, and the least wind-up that throws (tapping fast: about 2.3 a second, was nearly 5)
 function throwStar(w, p, ang, auto, c = 0.6) {
   p.shotAt = w.t;
@@ -4199,6 +4214,33 @@ function safeWay(p) {
     const d = Math.min(lethalDist(x, y), 400); if (!best || d > best.d) best = { d, x: Math.cos(a), y: Math.sin(a) }; }
   return best;
 }
+// standing in lava (30 health a second, and it slows you right down): with a dash ready, dash out the shortest way, as
+// long as it lands somewhere safe. Sharper bots react faster; an Easy one sometimes just wades out. Every bot does this,
+// the AI players in ranked included (they're bots too).
+const LAVA_DASH = 180; // about how far a dash carries
+function botLavaEscape(w, p, dt) {
+  const ai = p.ai; if (!ai) return;
+  if (!p.onLava || p.dead || p.falling > 0) { ai.lavaT = 0; ai.lavaGo = null; return; }
+  const D = botD(p);
+  ai.lavaT = (ai.lavaT || 0) + dt;
+  if (ai.lavaGo == null) ai.lavaGo = Math.random() < 0.55 + 0.45 * clamp((0.75 - D.react) / 0.68, 0, 1); // (Easy 55%, Master always)
+  if (!ai.lavaGo || ai.lavaT < D.react * 0.6 || p.dashN <= 0 || p.dashLock > 0 || p.stuck > 0 || p.grap || p.rush || (CFG.opt && CFG.opt.dash === 'off')) return;
+  const lavaAt = (x, y) => HAZ.some(h => h.type === 'lava' && inHaz(h, x, y, -4));
+  let best = null;
+  for (let i = 0; i < 16; i++) {
+    const a = i / 16 * TAU, ux = Math.cos(a), uy = Math.sin(a);
+    let out = null; for (let t = 8; t <= LAVA_DASH; t += 8) if (!lavaAt(p.x + ux * t, p.y + uy * t)) { out = t; break; }
+    if (out == null) continue;
+    const lx = p.x + ux * LAVA_DASH, ly = p.y + uy * LAVA_DASH;
+    if (lx < WALL + p.r || lx > AW - WALL - p.r || ly < WALL + p.r || ly > AH - WALL - p.r) continue;
+    let ok = out + p.r < LAVA_DASH; for (let t = out + p.r; t <= LAVA_DASH; t += 12) if (lethalDist(p.x + ux * t, p.y + uy * t) < p.r * 0.5 || PILLARS.some(c => Math.hypot(p.x + ux * t - c.x, p.y + uy * t - c.y) < c.r + p.r * 0.5)) { ok = false; break; }
+    if (!ok) continue;
+    const sc = out - Math.min(lethalDist(lx, ly), 200) * 0.15;
+    if (!best || sc < best.sc) best = { sc, a };
+  }
+  if (!best) return; // (nowhere safe to land: keep wading)
+  p.wantDash = true; p.input.aim = best.a; p.input.tx = p.x + Math.cos(best.a) * LAVA_DASH; p.input.ty = p.y + Math.sin(best.a) * LAVA_DASH; ai.lavaGo = false; // (one dash per visit; a Ninja's blink goes toward tx, ty)
+}
 function botThink(w, p, dt) {
   const ai = p.ai, inp = p.input, D = botD(p), G = p.gene ? (p.geneSrc === p.gene ? p.geneAll : (p.geneSrc = p.gene, p.geneAll = Object.assign({}, GENE, p.gene))) : GENE, iq = D.iq || 0;
   // how well this bot plays to its element (stacking shades, setting up a Stone throw): from Hard up, full before the smart brain arrives
@@ -5613,6 +5655,7 @@ function step(w, dt) {
     p.thinkAcc = (p.thinkAcc || 0) + dt;
     if (p.thinkPar == null) p.thinkPar = (w.nbot = (w.nbot || 0) + 1) % 2;
     if ((w.tk + p.thinkPar) % 2 === 0 || p.thinkAcc > dt * 2.5) { botThink(w, p, p.thinkAcc); p.thinkAcc = 0; }
+    botLavaEscape(w, p, dt);
   }
   if (w.cq) for (const p of w.players) if (p.npc) npcThink(w, p, dt);
   if (w.tm) for (const p of w.players) if (p.npc) { if (p.npc.k === 'term') tmThink(w, p, dt); else tmMinionThink(w, p, dt); }
@@ -5691,7 +5734,7 @@ function snapshot(w) {
       return {
         id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, nk: p.npc ? p.npc.k : undefined, nm: p.npc && p.npc.mode ? p.npc.mode : undefined, na: p.npc && p.npc.k === 'term' ? r2(p.npc.aim2) : undefined, hd: p.hid ? 1 : 0, tw: p.elev ? 1 : 0, rs: (w.cq || w.tm) && p.dead && !p.npc && p.respAt != null ? Math.max(0, Math.ceil(p.respAt - w.t)) : undefined, bi: p.npc ? p.npc.bio : undefined, nw: p.npc && (p.npc.wind || p.npc.charge) ? (p.npc.charge ? 'dash' : p.npc.wind) : undefined, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, ct: p.ct || undefined, cl: p.cl || undefined, ce: p.ce || undefined, sp: p.sp || undefined, fd: p.fd || undefined, pt: p.pt || undefined, fin: p.fin || undefined, fr: p.fr || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
         x: r1(p.x), y: r1(p.y), vx: Math.round(p.vx), vy: Math.round(p.vy), a: r3(p.aim),
-        hp: Math.max(0, Math.ceil(p.hp)), mh: p.maxHp, ch: p.npc && p.npc.k === 'term' ? r2(Math.min(1, (p.npc.drawT || 0) / (p.npc.mode === 'hunter' ? 1.1 : p.npc.drawMax || 0.5))) : r2(p.charge), dr: p.npc && p.npc.k === 'term' ? (p.npc.drawT > 0 ? 1 : 0) : p.drawing ? 1 : 0,
+        hp: Math.max(0, Math.ceil(p.hp)), mh: p.maxHp, ch: p.npc && p.npc.k === 'term' ? r2(Math.min(1, (p.npc.drawT || 0) / (p.npc.mode === 'hunter' ? 1.1 : p.npc.drawMax || 0.5))) : r2(p.charge), drt: p.npc ? undefined : r2(drawRate(p)), dr: p.npc && p.npc.k === 'term' ? (p.npc.drawT > 0 ? 1 : 0) : p.drawing ? 1 : 0,
         f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, rt: p.vine > 0 && p.stuck > 0 ? 1 : undefined, bu: p.burn > 0 ? 1 : 0, bl: p.bleedT > 0 ? 1 : 0, vd: p.voidT > w.t && p.voidN ? p.voidN : undefined, vb: p.voidT > w.t && p.voidN ? p.voidBy : undefined, sl: p.slow > 0 || p.iceSlow > 0 ? 1 : 0, sw: p.slow > 0 || p.iceSlow > 0 ? r2(Math.max(p.slow > 0 ? 1 - (p.sure ? 0.85 : p.slowK || 0.5) : 0, p.iceSlow > 0 ? (p.sure ? 0.15 : 0.35) : 0)) : undefined, iv: p.inv > 0 ? 1 : 0,
         da: p.dashT > 0 ? 1 : 0, hl: p.healing ? 1 : 0, dn: p.dashN, dk: p.dashMaxN, ra: p.rallied ? 1 : 0, shd: p.shade ? p.shade.n : undefined, sht: p.shade ? r2(p.shade.t / SHADE.t) : undefined, th: p.thornN > 0 ? p.thornN : undefined,
         ab: p.slots.slice(), ac: p.abCd.map(r1), ah: p.abHold ? (p.abHold[0] ? 1 : 0) | (p.abHold[1] ? 2 : 0) : 0, fz: p.frozen > 0 ? 1 : 0, sx: p.dashLock > 0 ? 1 : 0, ov: p.over >= 1 ? 1 : 0,
