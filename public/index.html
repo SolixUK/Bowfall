@@ -1611,6 +1611,25 @@
   .lbpane { display: flex; flex-direction: column; gap: 12px; } .lbpane[hidden] { display: none; }
   .lbpop .archrow { grid-template-columns: 70px 1fr; } .lbpop .archrow .chip2 { padding: 6px 11px; font-size: 14px; }
   .lbpop #archBlurb { font-size: 14px; line-height: 1.45; }
+  .tourgrid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; margin-top: 10px; }
+  @media (max-width: 820px) { .tourgrid { grid-template-columns: 1fr; } }
+  .tournext { border: 1px solid var(--line); background: rgba(255,255,255,.03); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .tournext h3 { margin: 0; }
+  .tourvs { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: stretch; }
+  .tourvs .vs { align-self: center; font: 700 22px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--muted); }
+  .tourp { border: 2px solid var(--line); padding: 12px; display: flex; flex-direction: column; gap: 6px; text-align: center; background: rgba(0,0,0,.2); }
+  .tourp b { font: 700 22px 'Rajdhani', 'Arial Narrow', sans-serif; } .tourp small { color: var(--muted); font-size: 12.5px; line-height: 1.35; }
+  .tourp .rdy { margin-top: 4px; font: 700 14px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+  .tourp.ready { border-color: var(--ok); } .tourp.ready .rdy { color: var(--ok); }
+  .tourside .tablewrap { overflow: visible; } #tourTable { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 13.5px; } #tourTable th, #tourTable td { padding: 5px 8px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } #tourTable th:first-child, #tourTable td:first-child { width: 30px; } #tourTable th:nth-child(n+3), #tourTable td:nth-child(n+3) { text-align: right; width: 54px; } #tourTable tr.me td { color: var(--gold); font-weight: 700; }
+  .tourlist { display: flex; flex-direction: column; gap: 4px; font-size: 13px; max-height: 260px; overflow: auto; }
+  .tourlist div { display: flex; justify-content: space-between; gap: 8px; padding: 4px 8px; background: rgba(255,255,255,.03); border-radius: 2px; }
+  .tourlist div.done { color: var(--muted); } .tourlist div.now { outline: 1px solid var(--gold); }
+  .tourchamp { text-align: center; padding: 18px; } .tourchamp b { font: 700 34px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--gold); display: block; }
+  .rodemo { display: flex; gap: 12px; align-items: center; margin: 8px 0 6px; }
+  .rodemo canvas { width: 260px; height: 150px; flex: none; border: 1px solid var(--line); border-radius: 2px; background: #2a4a26; }
+  .rodemo .status { font-size: 13px; line-height: 1.4; }
+  @media (max-width: 720px) { .rodemo { flex-direction: column; align-items: stretch; } .rodemo canvas { width: 100%; height: auto; aspect-ratio: 52 / 30; } }
   .lbpop .lbrules { padding-top: 0; gap: 12px 18px; } .lbpop .lbrules .field label { font-size: 14px; }
   .lbpop .roomcfg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; align-items: end; } .lbpop .roomcfg > button { justify-self: start; }
   .effs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
@@ -1960,7 +1979,7 @@
   <div class="overlay sub" id="customScr" hidden>
     <div class="card wide">
       <div class="shopbar"><div class="stat"><span class="eyebrow">Play</span><h2>Custom games</h2></div>
-        <div class="btnrow" data-navsec><button class="cta" type="button" data-ol="host" id="hostBtn">Host custom game</button><button class="ghost" type="button" id="pracBtn" title="A custom game run right here on this computer: everyone on this screen (players on controllers too) and bots, with all the custom rules. Nothing goes over the internet, so there's no lag even on a bad connection">Local game (this screen)</button><button class="ghost" type="button" id="cqBtn" hidden title="A big map of four castles held by NPCs: capture them to win. A preview you can try on your own (and with players on controllers)">Strongholds (preview)</button><button class="ghost" type="button" id="tmBtn" hidden title="You and three AI teammates against one machine with five modes. A preview, admin only for now">Terminator (preview)</button><button class="ghost" type="button" id="arenaBtn" title="Build your own arena, test it against bots, share it with a code, or play the community's">Arena builder</button><button class="ghost" type="button" data-back>Back</button></div></div>
+        <div class="btnrow" data-navsec><button class="cta" type="button" data-ol="host" id="hostBtn">Host custom game</button><button class="ghost" type="button" id="pracBtn" title="A custom game run right here on this computer: everyone on this screen (players on controllers too) and bots, with all the custom rules. Nothing goes over the internet, so there's no lag even on a bad connection">Local game (this screen)</button><button class="ghost" type="button" id="tourBtn" title="A round-robin for friends on one screen: 1v1 matches with the keyboard and a controller (or two controllers), passing them round; everyone plays everyone">Local tournament</button><button class="ghost" type="button" id="cqBtn" hidden title="A big map of four castles held by NPCs: capture them to win. A preview you can try on your own (and with players on controllers)">Strongholds (preview)</button><button class="ghost" type="button" id="tmBtn" hidden title="You and three AI teammates against one machine with five modes. A preview, admin only for now">Terminator (preview)</button><button class="ghost" type="button" id="arenaBtn" title="Build your own arena, test it against bots, share it with a code, or play the community's">Arena builder</button><button class="ghost" type="button" data-back>Back</button></div></div>
       <div id="onlineOn" class="olpane">
         <div id="olHost" class="olpane hostpanel" data-navsec hidden>
           <h3>Host custom game</h3>
@@ -1992,6 +2011,30 @@
 
   <!-- highscores -->
   <!-- clans -->
+  <!-- a local tournament: friends on one screen, 1v1s, pass the controllers round -->
+  <div class="overlay sub" id="tourScr" hidden>
+    <div class="card wide">
+      <div class="shopbar"><div class="stat"><span class="eyebrow">Same screen</span><h2>Local tournament</h2></div><div class="btnrow" data-navsec><button class="ghost" type="button" id="tourReset" hidden>New tournament</button><button class="ghost" type="button" data-back>Back</button></div></div>
+      <div id="tourSetup">
+        <p class="status">Everyone plays everyone, one on one, on this screen. Each match says who's up and which controls they use, so people can pass a controller round; both players ready up before it starts. Matches use your local game rules and the arena you pick.</p>
+        <div class="row" data-navsec><div class="field"><label for="tourName">Add a player</label><input id="tourName" maxlength="16" autocomplete="off" placeholder="Name"></div><button class="ghost" type="button" id="tourAdd">Add</button></div>
+        <div class="chips" id="tourList" data-navsec></div>
+        <div class="row" data-navsec>
+          <div class="field"><label for="tourPts">Match length</label><select id="tourPts"><option value="3">First to 3 points</option><option value="5">First to 5 points</option></select></div>
+          <div class="field"><label for="tourMap">Arena</label><select id="tourMap"></select></div>
+          <div class="field"><label for="tourBots">Rounds</label><select id="tourRounds"><option value="1">Everyone plays everyone once</option><option value="2">Twice (home and away)</option></select></div>
+        </div>
+        <div class="btnrow" data-navsec><button class="cta" type="button" id="tourStart">Start tournament</button></div>
+        <span class="status err" id="tourErr"></span>
+      </div>
+      <div id="tourLive" hidden>
+        <div class="tourgrid">
+          <div class="tournext" id="tourNext" data-navsec></div>
+          <div class="tourside"><h3>Standings</h3><div class="tablewrap"><table class="rank" id="tourTable"></table></div><h3>Matches</h3><div class="tourlist" id="tourMatches"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="overlay sub" id="clanScr" hidden>
     <div class="card wide clancard">
       <div class="shopbar"><div class="stat"><span class="eyebrow">Play together</span><h2>Clans</h2></div><button class="ghost" type="button" data-back>Back</button></div>
@@ -2172,6 +2215,7 @@
             <div class="archrow"><span class="lbl">Element</span><div class="chips" id="elChips"></div></div>
             <div class="archrow"><span class="lbl">Role</span><div class="chips" id="roChips"></div></div>
             <p class="status banhint" id="banHint" hidden></p>
+            <div class="rodemo" data-nonav><canvas id="roDemo" width="520" height="300"></canvas><span class="status" id="roDemoCap"></span></div>
             <span class="status" id="archBlurb"></span>
           </div>
           <div class="lbpane" data-pane="map" hidden>
@@ -2478,7 +2522,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.88.2"></script>
+<script src="sim.js?v=0.89.0"></script>
 <script>
 (() => {
 'use strict';
@@ -2486,7 +2530,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.88.2';
+const PAGE_VERSION = '0.89.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -2825,7 +2869,7 @@ const sfx = {
   },
   // an ability comes off cooldown: a bright rising "shing", easy to pick out
   ready: () => { os('sine', 1047, 1047, 0.12, 0.05); os('sine', 1568, 1568, 0.18, 0.05, 0.07); os('triangle', 2093, 2093, 0.22, 0.02, 0.07); nz(0.2, 0.05, 'highpass', 6000, 9000, 1, 0.05); },
-  hit: crit => { noise(0.08, crit ? 0.16 : 0.1, crit ? 1800 : 1100); tone(crit ? 140 : 200, 0.1, 'square', 0.035, -60); },
+  hit: (crit, v = 1) => { noise(0.08, (crit ? 0.16 : 0.1) * v, crit ? 1800 : 1100); tone(crit ? 140 : 200, 0.1, 'square', 0.035 * v, -60); },
   thunk: (v = 1) => noise(0.05, 0.06 * v, 600),
   hurt: () => tone(160, 0.25, 'sawtooth', 0.06, -90),
   fall: () => tone(500, 0.6, 'sine', 0.05, -420),
@@ -3100,6 +3144,11 @@ defSnd('drawTick', 'bow', 'Draw creaks', (n = 1) => nz(0.05, 0.05, 'bandpass', 1
 defSnd('heldCreak', 'bow', 'Held at full draw', () => { const f = rand(420, 560); nz(0.18, 0.13, 'bandpass', f * 2, f * 1.6, 7); os('triangle', rand(700, 820), rand(640, 700), 0.16, 0.02); });
 defSnd('autoRattle', 'bow', 'Full auto motor', () => { nz(0.03, 0.05, 'bandpass', 1400 + Math.random() * 300, 900, 4); os('sawtooth', 70, 65, 0.09, 0.018); }, { role: 'crossbow' });
 defSnd('bulls', 'hit', 'Your bullseye', () => tone(1560, 0.07, 'sine', 0.035));
+// your own hits get a clean, close "tick" on top of the arrow's thump, so you always know a shot landed; a knockout you
+// made gets a deeper hit under the chime, and a slam into a wall or thorns you caused gets a crunch you feel
+defSnd('hitMine', 'hit', 'Your hit lands', (cr = false) => { tone(cr ? 1900 : 1500, 0.035, 'square', cr ? 0.03 : 0.022, -300); nz(0.03, 0.05, 'highpass', 2600, 1800, 0.8); }, { vars: [['Hit', [false]], ['Bullseye', [true]]] });
+defSnd('koMine', 'hit', 'Your knockout', () => { punch(110, 35, 0.18, 0.22); nz(0.06, 0.1, 'bandpass', 700, 250, 1.5); });
+defSnd('slamMine', 'hit', 'Your wall slam', (sp = false) => { punch(90, 30, 0.14, 0.2); nz(0.08, 0.12, 'lowpass', 500, 160, 1); if (sp) nz(0.12, 0.08, 'bandpass', 2200, 900, 2, 0.02); }, { vars: [['Wall', [false]], ['Thorns', [true]]] });
 defSnd('bouncePing', 'bow', 'Arrow bounces', (tk = false) => tone(tk ? 1300 : 900, 0.05, 'square', 0.02), { vars: [['Bounce', [false]], ['Trick Shot bounce', [true]]] });
 defSnd('stuck', 'hit', 'Stuck', () => noise(0.15, 0.07, 300));
 defSnd('fwCrackle', 'ability', 'Firework crackle', () => { for (let n = 0; n < 6; n++) nz(0.03, 0.05, 'highpass', 4000, 6000, 1, 0.12 + n * 0.05 + Math.random() * 0.03); }, { ab: 'rocket' });
@@ -3273,7 +3322,14 @@ const pad = { on: false, mx: 0, my: 0, draw: false, aim: null, mag: 0, prev: [],
 // (keep) so two enemies crossing don't make it flip between them. The crosshair's distance eases to the target too (reach),
 // so abilities that land at the cursor land on them.
 // (PAD_AIM_PURE: the maths is kept free of the page's state so the test harness can run it on scripted targets)
-const PAD_ASSIST = { slow: 0.6, pull: 0.7, lead: 0.5, track: 7, near: 0.3, keep: 0.3, swap: 0.3, flick: 5, reach: 6 };
+const PAD_ASSIST = { slow: 0.6, pull: 0.7, lead: 0, track: 7, near: 0.3, keep: 0.3, swap: 0.3, flick: 5, reach: 6 };
+// (lead 0: the assist holds you on the enemy's body; leading a runner is yours to judge, like a mouse player's)
+// a clear line from the archer to a point, past the boulders (the arena's, or a list the test harness gives)
+function padClear(x1, y1, x2, y2, pillars) {
+  const dx = x2 - x1, dy = y2 - y1, L2 = dx * dx + dy * dy || 1;
+  for (const q of pillars || PILLARS) { if (q.tower) continue; const t = Math.max(0, Math.min(1, ((q.x - x1) * dx + (q.y - y1) * dy) / L2)); if (Math.hypot(x1 + dx * t - q.x, y1 + dy * t - q.y) < q.r + 5) return false; }
+  return true;
+}
 const wrapA = a => ((a + Math.PI) % TAU + TAU) % TAU - Math.PI;
 // how fast the shot about to be fired will fly: the draw so far (a quick tap when the bow isn't drawn yet), the role, the rules
 function padShotSpeed(me, aspeedMul) {
@@ -3283,13 +3339,21 @@ function padShotSpeed(me, aspeedMul) {
 }
 // the enemy to help with, near the aim line: { s: the angle from the aim to the pull point, k: 1 in the middle of the zone,
 // 0 at its edge, d: how far they are, id }. st (per controller) remembers the last target so it isn't swapped lightly.
-function padAssistPick(aim, me, players, shot, st, now) {
+function padAssistPick(aim, me, players, shot, st, now, pillars) {
   let best = null, cur = null;
   for (const q of players) {
     if (q.id === me.id || q.tm === me.tm || q.d || q.f || q.sth) continue;
-    const dx = q.x - me.x, dy = q.y - me.y, d = Math.hypot(dx, dy);
+    let dx = q.x - me.x, dy = q.y - me.y, d = Math.hypot(dx, dy);
     if (d < 1) continue;
-    const t = d / shot, lx = q.x + (q.vx || 0) * t - me.x, ly = q.y + (q.vy || 0) * t - me.y;
+    // only someone you can actually hit: a clear line to their middle, or to a shoulder poking out past a boulder (then
+    // that's the spot it helps you onto, not the rock in front of them)
+    if (!padClear(me.x, me.y, q.x, q.y, pillars)) {
+      const rz = (q.rz || 16) * 0.8, nx = -dy / d, ny = dx / d; let seen = null;
+      for (const sgn of [1, -1]) { const ex = q.x + nx * rz * sgn, ey = q.y + ny * rz * sgn; if (padClear(me.x, me.y, ex, ey, pillars)) { seen = [ex, ey]; break; } }
+      if (!seen) continue;
+      dx = seen[0] - me.x; dy = seen[1] - me.y; d = Math.hypot(dx, dy);
+    }
+    const t = d / shot, lx = dx + (q.vx || 0) * t, ly = dy + (q.vy || 0) * t;
     const oc = wrapA(Math.atan2(dy, dx) - aim), ol = wrapA(Math.atan2(ly, lx) - aim), body = Math.atan2(q.rz || 16, d);
     const s = oc + wrapA(ol - oc) * PAD_ASSIST.lead;
     const margin = Math.min(0.45, Math.max(0.18, Math.atan2(110, d) + body)); // the assist reaches about 110px either side of them
@@ -3427,7 +3491,7 @@ function pollPad() {
 // ---- controller in the menus: move a highlight between buttons with the D-pad or left stick, A to press, B to go back
 // (popups that ask something of you, like a party invite or a player's card, come before the screen they're over; the
 // bars along the bottom of a game, last: spectating's Join buttons)
-const NAV_LAYERS = ['osk', 'starterScr', 'msSheet', 'pcWrap', 'inviteToast', 'dmBox', 'clipView', 'lbPop', 'gate', 'lpScr', 'draftScr', 'ctlScreen', 'helpScreen', 'achScreen', 'balScreen', 'gameMenu', 'findScr', 'customScr', 'clanScr', 'scoresScr', 'trainScr', 'storeScr', 'arenaScr', 'optScr', 'profScr', 'pickScreen', 'resultsScreen', 'lobby', 'home', 'specBar'];
+const NAV_LAYERS = ['osk', 'starterScr', 'msSheet', 'pcWrap', 'inviteToast', 'dmBox', 'clipView', 'lbPop', 'gate', 'lpScr', 'draftScr', 'ctlScreen', 'helpScreen', 'achScreen', 'balScreen', 'gameMenu', 'findScr', 'customScr', 'tourScr', 'clanScr', 'scoresScr', 'trainScr', 'storeScr', 'arenaScr', 'optScr', 'profScr', 'pickScreen', 'resultsScreen', 'lobby', 'home', 'specBar'];
 const NAV_SEL = 'button, select, input:not([type=hidden]), textarea, [data-map], .chip2, a[href], summary, #abCv';
 const shown = el => !!(el && !el.hidden && el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden');
 function navLayer() {
@@ -5686,8 +5750,78 @@ function syncArch(me) {
   document.querySelectorAll('[data-ro]').forEach(b => b.classList.toggle('sel', b.dataset.ro === ro));
   $('archName').textContent = ELEMENTS[el].name + ' ' + ROLES[ro].name;
   try { drawPreview($('archPrev'), el, ro, (me && me.c) || TEAM_INFO.red.shades[0]); } catch (e) { /* preview is decoration only */ }
+  demoStart(el, ro);
   const tr = ROLES[ro].trait;
   $('archBlurb').innerHTML = esc(ELEMENTS[el].blurb + ' ' + ROLES[ro].blurb) + (tr ? `<span class="trait"><b>${esc(ROLES[ro].name)} trait · ${esc(tr.name)}:</b> ${esc(tr.desc)}</span>` : '');
+}
+// ---- the role preview: a little looping scene played by the real game (a tiny match on the target range) showing the
+// role's signature move, drawn with the game's own archers and arrows into the small canvas in the archetype pop-up
+const DEMO = { w: null, me: null, tg: null, t: 0, el: null, ro: null, raf: 0, last: 0, cap: '' };
+const DEMO_LOOP = 6;
+// what each role does in its six seconds (t: seconds into the loop). The target drifts up and down and shoots now and then.
+const DEMO_SCRIPT = {
+  sniper:     { cap: 'Harder, faster arrows from range: a full draw, then another.', far: 440, slots: [], act: (t, me, tg) => ({ draw: (t % 2.4) < 1.6, mx: 0, my: 0 }) },
+  juggernaut: { cap: 'Walk through their arrows, dash into them, then Bull Rush.', far: 300, slots: ['rush', null], act: (t, me, tg) => ({ draw: false, mx: t < 1.4 ? 0.8 : 0, my: 0, dash: t > 1.4 && t < 1.5, q: t > 3.6 && t < 3.7 }) },
+  ranger:     { cap: 'Quick on your feet: strafe, dash, and keep the arrows coming.', far: 330, slots: ['grapple', null], act: (t, me, tg) => ({ draw: (t % 1.6) < 1.0, mx: 0, my: Math.sin(t * 2.2) * 0.9, dash: t > 2.2 && t < 2.3 }) },
+  trickster:  { cap: 'Trick Shot: an arrow that bounces off walls and boulders to find them.', far: 330, slots: ['trick', null], act: (t, me, tg) => ({ draw: (t > 0.6 && t < 1.5) || (t > 3.4 && t < 4.3), q: (t > 0.3 && t < 0.4) || (t > 3.1 && t < 3.2), aimAt: t < 2.4 ? 'wall' : 'wall', mx: 0, my: 0 }) },
+  warden:     { cap: 'Wall of thorns to stop their arrows, and Mend to heal.', far: 330, slots: ['wall', 'mend'], act: (t, me, tg) => ({ draw: t > 2 && t < 2.8, q: t > 0.5 && t < 0.6, e: t > 3.6 && t < 3.7, mx: 0, my: 0 }) },
+  trapper:    { cap: 'A Bramble Trap in their path roots them; then punish the stuck.', far: 330, slots: ['trap', null], act: (t, me, tg) => ({ draw: (t > 2.6 && t < 3.6) || (t > 4 && t < 5), q: t > 0.3 && t < 0.4, trapAt: 'path', mx: 0, my: 0 }), tgMove: t => (t > 1.2 ? -0.9 : 0) },
+  assassin:   { cap: 'Stealth, close in unseen, Blink behind them and strike first.', far: 360, slots: ['stealth', 'blink'], act: (t, me, tg) => ({ draw: t > 3.2 && t < 4.0, q: t > 0.3 && t < 0.4, e: t > 2.4 && t < 2.5, mx: t > 0.6 && t < 2.4 ? 0.9 : 0, my: 0 }) },
+  ninja:      { cap: 'Shuriken instead of a bow: wind up and throw, blink in, strike, blink out.', far: 260, slots: ['sstrike', null], act: (t, me, tg) => ({ draw: (t % 0.9) < 0.45 && t > 0.3 && t < 3, q: t > 3.4 && t < 3.5, dash: t > 5 && t < 5.1, mx: 0, my: 0 }) },
+  crossbow:   { cap: 'No drawing: point and shoot, bolt after bolt, then crank a reload.', far: 280, slots: [], act: (t, me, tg) => ({ draw: (t % 0.5) < 0.1, mx: 0, my: 0 }) },
+};
+function demoStart(el, ro) {
+  if (!DEMO_SCRIPT[ro]) return;
+  if (DEMO.el === el && DEMO.ro === ro && DEMO.w) return;
+  DEMO.el = el; DEMO.ro = ro; demoReset();
+  $('roDemoCap').textContent = DEMO_SCRIPT[ro].cap;
+  if (!DEMO.raf) DEMO.raf = requestAnimationFrame(demoFrame);
+}
+function demoReset() {
+  const S = DEMO_SCRIPT[DEMO.ro], w = Sim.createWorld({ map: 'range', opt: { effect: 'none', upg: 'off' } });
+  const me = Sim.join(w, { name: '', team: 'red', element: DEMO.el, role: DEMO.ro }), tg = Sim.join(w, { name: '', team: 'blue', element: 'frost', role: 'ranger' });
+  w.cfg.pointsToWin = 99; Sim.startMatch(w);
+  for (let i = 0; i < 1500 && w.match.ph !== 'play'; i++) Sim.step(w, 1 / 60);
+  me.x = 330; me.y = 400; tg.x = 330 + S.far; tg.y = 400; me.vx = me.vy = tg.vx = tg.vy = 0;
+  me.slots = S.slots.slice(); me.abCd = [0, 0]; me.dashCd = 0;
+  w.events.length = 0;
+  DEMO.w = w; DEMO.me = me; DEMO.tg = tg; DEMO.t = 0; DEMO.last = performance.now();
+}
+function demoFrame(now) {
+  DEMO.raf = 0;
+  const pane = $('roDemo'), shownNow = pane && shown(pane) && !$('lbPop').hidden && $('lbPop').dataset.k === 'arch';
+  if (!DEMO.w) return;
+  if (!shownNow) { DEMO.raf = requestAnimationFrame(demoFrame); DEMO.last = now; return; } // (idle until the pop-up shows it)
+  const dt = Math.min(0.05, (now - DEMO.last) / 1000); DEMO.last = now;
+  const S = DEMO_SCRIPT[DEMO.ro], w = DEMO.w, me = DEMO.me, tg = DEMO.tg;
+  DEMO.t += dt; if (DEMO.t >= DEMO_LOOP || me.dead || tg.dead) { demoReset(); DEMO.raf = requestAnimationFrame(demoFrame); return; }
+  // the actor's script, and a target that drifts and shoots back
+  const a = S.act(DEMO.t, me, tg), ang = Math.atan2(tg.y - me.y, tg.x - me.x);
+  let aim = ang, tx = tg.x, ty = tg.y;
+  if (a.aimAt === 'wall') { aim = ang - 0.55; } // (a bank shot off the wall above them)
+  if (a.trapAt === 'path') { tx = tg.x; ty = tg.y - 110; }
+  Sim.setInput(w, me.id, { mx: a.mx || 0, my: a.my || 0, aim, draw: !!a.draw, dash: !!a.dash, q: !!a.q, e: !!a.e, tx, ty, dmv: 0 });
+  let tgMy = S.tgMove ? S.tgMove(DEMO.t) : Math.sin(DEMO.t * 1.3) * 0.5;
+  if (tg.y < 330) tgMy = Math.max(tgMy, 0.3); if (tg.y > 470) tgMy = Math.min(tgMy, -0.3); // (stays in the window)
+  Sim.setInput(w, tg.id, { mx: 0, my: tg.stuck > 0 ? 0 : tgMy, aim: Math.atan2(me.y - tg.y, me.x - tg.x), draw: (DEMO.t % 2.1) < 1.2 && DEMO.t > 0.8, tx: me.x, ty: me.y });
+  me.hp = Math.max(me.hp, me.maxHp * 0.6); tg.hp = Math.max(tg.hp, tg.maxHp * 0.5); // (nobody dies in the demo)
+  for (let k = 0; k < 2; k++) Sim.step(w, dt / 2); w.events.length = 0;
+  // knockbacks from the target's arrows would walk them both out of the window: ease them back to their spots
+  for (const [q, hx] of [[me, a.mx ? me.x : 330], [tg, 330 + S.far]]) { if (q.dashT > 0 || q.rush || q.nblink || q.stuck > 0) continue; q.x += (hx - q.x) * Math.min(1, dt * 3); q.vx *= Math.exp(-dt * 4); if (!(q === tg && tgMy)) { q.y += (400 - q.y) * Math.min(1, dt * 2); q.vy *= Math.exp(-dt * 4); } }
+  // draw: a window on the range round the two of them
+  const cvs = $('roDemo'), g = cvs.getContext('2d'), v = Sim.snapshot(w), keepCtx = ctx, keepView = view, keepMy = myId;
+  const cx = 330 + S.far / 2, cy = 400, sc = Math.min(cvs.width / (S.far + 300), cvs.height / 320); // (a fixed window, so nothing jumps about)
+  g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = THEMES.meadow.ground; g.fillRect(0, 0, cvs.width, cvs.height);
+  g.setTransform(sc, 0, 0, sc, cvs.width / 2 - cx * sc, cvs.height / 2 - cy * sc);
+  g.strokeStyle = 'rgba(0,0,0,0.25)'; g.lineWidth = 6; g.strokeRect(WALL, WALL, AW - 2 * WALL, AH - 2 * WALL); // (the range's wall, for the bank shot)
+  ctx = g; view = v; myId = me.id;
+  try {
+    drawZones(v, v.p.find(q => q.id === me.id));
+    for (const ar of v.a) if (ar.s) drawArrow(ar);
+    for (const q of v.p) drawPlayer(q, q.id === me.id, true);
+    for (const ar of v.a) if (!ar.s) drawArrow(ar);
+  } catch (e) { /* decoration only */ } finally { ctx = keepCtx; view = keepView; myId = keepMy; }
+  DEMO.raf = requestAnimationFrame(demoFrame);
 }
 function pickArch(e) {
   const b = e.target.closest('.chip2'); if (!b) return;
@@ -7991,7 +8125,7 @@ function olTab(k) {
   else refreshRooms();
 }
 // the main menu's screens
-const SUBS = ['findScr', 'customScr', 'scoresScr', 'trainScr', 'storeScr', 'arenaScr', 'optScr', 'profScr', 'clanScr'];
+const SUBS = ['findScr', 'customScr', 'scoresScr', 'trainScr', 'storeScr', 'arenaScr', 'optScr', 'profScr', 'clanScr', 'tourScr'];
 function openSub(id) {
   for (const k of SUBS) $(k).hidden = k !== id;
   if (id === 'customScr') { $('olHost').hidden = true; refreshRooms(); }
@@ -8003,6 +8137,7 @@ function openSub(id) {
   if (id === 'optScr') syncOptions();
   if (id === 'profScr') renderProfile();
   if (id === 'clanScr') { CLAN.tab = null; CLAN.viewing = null; clanLoad(); }
+  if (id === 'tourScr') tourOpen();
   const f = $(id).querySelector('[data-back]'); if (f) setTimeout(() => f.focus(), 0);
 }
 function closeSubs() { for (const k of SUBS) $(k).hidden = true; drawProfChip(); if (optFromGame) { optFromGame = false; if (menuOpen) { $('gameMenu').hidden = false; $('gmOptBtn').focus(); } } }
@@ -8022,6 +8157,91 @@ $('tmBtn').onclick = () => { if (OFFLINE || (account && account.admin)) startTer
 // the builder lives inside Custom games, so its Back button goes back there
 { const b = $('arenaScr').querySelector('[data-back]'); if (b) b.onclick = () => openSub('customScr'); }
 $('pracBtn').onclick = () => { closeSubs(); startPractice(); };
+// ================= local tournament =================
+// Friends on one screen, 1v1, everyone plays everyone (once or twice). Each match is a local game: the first player on the
+// keyboard and mouse or the main controller (P1), the second on the next controller (P2, an extra player on a controller
+// like any other). The next-match card says who's up and on what, both ready up (P1: A on the main controller, or Enter or
+// a click; P2: A on theirs), and the match starts. Wins, then points scored minus conceded, decide the standings.
+const TOUR = { on: false, players: [], matches: [], i: 0, ready: [false, false], pts: 3, map: 'meadow', playing: null, prev: [] };
+function tourOpen() {
+  $('tourSetup').hidden = TOUR.on; $('tourLive').hidden = !TOUR.on; $('tourReset').hidden = !TOUR.on; $('tourErr').textContent = '';
+  if (!$('tourMap').options.length) $('tourMap').innerHTML = MAP_KEYS.filter(k => !MAPS[k].big).map(k => `<option value="${k}">${esc(MAPS[k].name)}</option>`).join('');
+  $('tourMap').value = MAP_KEYS.includes(TOUR.map) ? TOUR.map : 'meadow'; $('tourPts').value = String(TOUR.pts);
+  tourDrawList(); if (TOUR.on) tourDraw();
+}
+function tourDrawList() { $('tourList').innerHTML = TOUR.players.map((n, i) => `<span class="chip2 sel" style="--cc:var(--gold)">${esc(n)} <button type="button" data-tourrm="${i}" aria-label="Remove ${esc(n)}">×</button></span>`).join('') || '<span class="status">No players yet: add 2 to 8 names.</span>'; }
+$('tourAdd').onclick = () => { const n = $('tourName').value.trim().slice(0, 16); if (!n) return; if (TOUR.players.length >= 8) { $('tourErr').textContent = 'Up to 8 players.'; return; } if (TOUR.players.some(x => x.toLowerCase() === n.toLowerCase())) { $('tourErr').textContent = 'That name is already in.'; return; } TOUR.players.push(n); $('tourName').value = ''; $('tourErr').textContent = ''; tourDrawList(); $('tourName').focus(); };
+$('tourName').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('tourAdd').click(); } });
+$('tourList').addEventListener('click', e => { const b = e.target.closest('[data-tourrm]'); if (b) { TOUR.players.splice(+b.dataset.tourrm, 1); tourDrawList(); } });
+// a round robin by the circle method: everyone plays everyone, each round pairing different people
+function tourSchedule(names, rounds) {
+  const n = names.length, list = n % 2 ? names.concat([null]) : names.slice(), m = list.length, out = [];
+  for (let r = 0; r < m - 1; r++) {
+    for (let i = 0; i < m / 2; i++) { const a = list[i], b = list[m - 1 - i]; if (a != null && b != null) out.push(r % 2 ? { a: b, b: a } : { a, b }); }
+    list.splice(1, 0, list.pop());
+  }
+  const once = out.map(x => ({ a: x.a, b: x.b, w: null, s: null }));
+  return rounds > 1 ? once.concat(once.map(x => ({ a: x.b, b: x.a, w: null, s: null }))) : once;
+}
+$('tourStart').onclick = () => {
+  if (TOUR.players.length < 2) { $('tourErr').textContent = 'Add at least 2 players.'; return; }
+  TOUR.pts = +$('tourPts').value || 3; TOUR.map = $('tourMap').value; TOUR.matches = tourSchedule(TOUR.players, +$('tourRounds').value || 1); TOUR.i = 0; TOUR.on = true; TOUR.ready = [false, false];
+  uiSfx.click(); tourOpen();
+};
+$('tourReset').onclick = () => { TOUR.on = false; TOUR.matches = []; TOUR.i = 0; tourOpen(); };
+const tourPad2 = () => { const pads = navigator.getGamepads ? [...navigator.getGamepads()].filter(g => g && g.connected) : []; return pads.find(g => g.index !== pad.idx) || null; }; // (the second controller: any that isn't the main player's)
+function tourStandings() {
+  const S = Object.fromEntries(TOUR.players.map(n => [n, { n, p: 0, w: 0, l: 0, pf: 0, pa: 0 }]));
+  for (const m of TOUR.matches) if (m.w) { const a = S[m.a], b = S[m.b]; a.p++; b.p++; if (m.w === m.a) { a.w++; b.l++; } else { b.w++; a.l++; } if (m.s) { a.pf += m.s[0]; a.pa += m.s[1]; b.pf += m.s[1]; b.pa += m.s[0]; } }
+  return Object.values(S).sort((x, y) => y.w - x.w || (y.pf - y.pa) - (x.pf - x.pa) || y.pf - x.pf || x.n.localeCompare(y.n));
+}
+function tourDraw() {
+  const M = TOUR.matches[TOUR.i], p2 = tourPad2(), mainPad = pad.on && pad.idx != null;
+  const st = tourStandings();
+  $('tourTable').innerHTML = '<thead><tr><th>#</th><th>Player</th><th>W</th><th>L</th><th>Pts +/−</th></tr></thead><tbody>' + st.map((r, i) => `<tr${i === 0 && !M ? ' class="me"' : ''}><td>${i + 1}</td><td>${esc(r.n)}</td><td>${r.w}</td><td>${r.l}</td><td>${r.pf - r.pa >= 0 ? '+' : ''}${r.pf - r.pa}</td></tr>`).join('') + '</tbody>';
+  $('tourMatches').innerHTML = TOUR.matches.map((m, i) => `<div class="${m.w ? 'done' : i === TOUR.i ? 'now' : ''}"><span>${esc(m.a)} vs ${esc(m.b)}</span><span>${m.w ? `${esc(m.w)} won${m.s ? ' ' + m.s[0] + '–' + m.s[1] : ''}` : i === TOUR.i ? 'next' : ''}</span></div>`).join('');
+  if (!M) { $('tourNext').innerHTML = `<div class="tourchamp"><span class="eyebrow">Champion</span><b>${esc(st[0].n)}</b><span class="status">${st[0].w} win${st[0].w === 1 ? '' : 's'} from ${st[0].p}. Thanks for playing: New tournament to go again.</span></div>`; return; }
+  const left = mainPad ? `Controller ${pad.idx + 1} (or the keyboard and mouse)` : 'Keyboard and mouse (or the main controller)';
+  const right = p2 ? `Controller ${p2.index + 1}` : 'A second controller: plug one in and press any button';
+  $('tourNext').innerHTML = `<h3>Match ${TOUR.i + 1} of ${TOUR.matches.length}</h3>
+    <div class="tourvs"><div class="tourp${TOUR.ready[0] ? ' ready' : ''}" id="tourP1"><small>P1</small><b>${esc(M.a)}</b><small>${left}</small><span class="rdy">${TOUR.ready[0] ? 'Ready' : 'Press A, Enter or click'}</span></div><span class="vs">vs</span>
+    <div class="tourp${TOUR.ready[1] ? ' ready' : ''}" id="tourP2"><small>P2</small><b>${esc(M.b)}</b><small>${right}</small><span class="rdy">${TOUR.ready[1] ? 'Ready' : p2 ? 'Press A on that controller' : 'No controller found'}</span></div></div>
+    <span class="status">${MAPS[TOUR.map] ? esc(MAPS[TOUR.map].name) : ''} · first to ${TOUR.pts} points · ${TOUR.i ? 'pass the controllers round, then ' : ''}both ready to start.</span>
+    <div class="btnrow"><button class="ghost sm" type="button" id="tourSkip">Skip this match</button></div>`;
+  $('tourP1').onclick = () => tourReady(0); $('tourSkip').onclick = () => { M.w = M.b; M.s = [0, TOUR.pts]; M.skipped = true; tourAdvance(); };
+}
+function tourReady(i) { if (!TOUR.on || TOUR.ready[i] || !TOUR.matches[TOUR.i]) return; TOUR.ready[i] = true; uiSfx.click(); tourDraw(); if (TOUR.ready[0] && TOUR.ready[1]) setTimeout(tourPlay, 350); }
+// the ready-up presses: A on the main controller (or Enter) for P1, A on the other for P2
+function tourPoll() {
+  if (!TOUR.on || $('tourScr').hidden || !TOUR.matches[TOUR.i]) return;
+  const pads = navigator.getGamepads ? [...navigator.getGamepads()] : [];
+  for (const g of pads) { if (!g || !g.connected) continue; const a = !!(g.buttons[0] && g.buttons[0].pressed), was = TOUR.prev[g.index]; TOUR.prev[g.index] = a;
+    if (a && !was) { if (g.index === pad.idx || (!pad.on && !tourPad2())) tourReady(0); else if (tourPad2() && g.index === tourPad2().index) tourReady(1); else if (!TOUR.ready[0] && !pad.on) tourReady(0); } }
+  // a second controller arriving (or going) changes the card
+  const have = !!tourPad2(); if (have !== TOUR.hadPad2) { TOUR.hadPad2 = have; tourDraw(); }
+}
+addEventListener('keydown', e => { if (e.key === 'Enter' && TOUR.on && !$('tourScr').hidden && !typing() && TOUR.matches[TOUR.i]) tourReady(0); });
+function tourPlay() {
+  const M = TOUR.matches[TOUR.i]; if (!M) return;
+  const p2 = tourPad2(); if (!p2) { TOUR.ready = [false, false]; tourDraw(); return; }
+  // P2 is an extra player on a controller, like any other; P1 is the main player, renamed for the match
+  TOUR.playing = { i: TOUR.i, lp: LP.list.slice() };
+  LP.list = [{ n: 2, pad: p2.index, name: M.b, token: null, acct: null, el: myLoadout().el, ro: myLoadout().ro, team: 'blue', prev: [], aim: 0, inp: {}, pid: null }];
+  closeSubs(); startPractice(TOUR.map);
+  const me = world.players.find(q => q.id === myId); if (me) me.name = M.a;
+  world.cfg.pointsToWin = TOUR.pts === 5 ? 5 : 3;
+  lpRenderMenu(); hc = {};
+  notice(`<b>${esc(M.a)}</b> vs <b>${esc(M.b)}</b>: starting…`, false);
+  setTimeout(() => { if (mode === 'local' && world && world.match.ph === 'lobby') act({ t: 'start' }); }, 1200);
+}
+// a tournament match has finished: note the winner and the score, and come back to the tournament screen
+function tourMatchOver(w) {
+  const T = TOUR.playing; if (!T || !TOUR.on) return; TOUR.playing = null;
+  const M = TOUR.matches[T.i]; if (M && !M.w) { M.w = w.match.mw === 'red' ? M.a : M.b; M.s = [w.match.wins.red, w.match.wins.blue]; }
+  setTimeout(() => { toMenu(); LP.list = T.lp; lpRenderMenu(); tourAdvance(); openSub('tourScr'); }, 4500);
+}
+function tourAdvance() { TOUR.i = Math.min(TOUR.matches.length, TOUR.i + 1); TOUR.ready = [false, false]; while (TOUR.matches[TOUR.i] && TOUR.matches[TOUR.i].w) TOUR.i++; tourDraw(); }
+$('tourBtn').onclick = () => openSub('tourScr');
 if (OFFLINE) $('pracBtn').hidden = true; // offline, Host custom game already is practice
 $('hostBtn').onclick = () => { if (OFFLINE) { closeSubs(); startPractice(); return; } $('olHost').hidden = !$('olHost').hidden; if (!$('olHost').hidden) $('rmName').focus(); };
 let roomsT = 0;
@@ -8494,7 +8714,8 @@ function eventFx(e) {
       case 'hit': {
         const col = EL_COL[e.el] || (e.cr ? '#ffffff' : '#ffcf5a');
         burst(e.x, e.y, col, e.cr ? 14 : 8, 160);
-        sfx.hit(e.cr);
+        sfx.hit(e.cr, e.id === myId || e.by === myId ? 1 : 0.55); // (others' hits, quieter)
+        if (e.by === myId && !e.au) play('hitMine', !!e.cr);
         if (e.el && elSfx[e.el]) elSfx[e.el](e.id === myId || e.by === myId ? 1 : 0.45);
         if (e.ls) floater(e.x, e.y - 50, 'Long shot!', '#ffcf5a', 15);
         if (e.cr) { floater(e.x, e.y - 34, 'Bullseye!', '#ffffff', 14); if (e.by === myId) play('bulls'); }
@@ -8539,6 +8760,7 @@ function eventFx(e) {
         break; }
       case 'spike': burst(e.x, e.y, '#c9d1dc', 10, 140); sfx.splat(); if (e.id === myId) shake(6); break;
       case 'thud': burst(e.x, e.y, '#8d97a5', 8, 120); if (fullDetail()) burst(e.x, e.y, 'rgba(200,185,150,0.7)', 8, 70, 4); sfx.thunk(); if (e.id === myId) shake(4); break; // and a puff of wall dust
+      case 'slam': if (e.by === myId) { play('slamMine', false); shake(3); } break; // (your knockback threw them into a wall or thorns)
       case 'thunk': sfx.thunk(0.4); break;
       case 'ping': play('bouncePing', !!e.tk); if (e.tk) { burst(e.x, e.y, '#ff78e6', 8, 120, 2); floater(e.x, e.y - 14, '+25%', '#ff78e6', 12); } break;
       case 'stuck': floater(e.x, e.y, 'Stuck!', '#b99be0', 14); play('stuck'); break;
@@ -8606,7 +8828,7 @@ function eventFx(e) {
       case 'roundEnd': if (e.rw === myTeam()) sfx.win(); else sfx.hurt(); break;
       case 'matchStart': $('gameSum').hidden = true; $('resultsScreen').hidden = true; resultsFor = null; hc = {}; progSnap(); for (const c of CLIP.list) if (c.url) URL.revokeObjectURL(c.url); CLIP.list = []; break;
       case 'map': break;
-      case 'matchEnd': if (e.mw === myTeam()) { sfx.win(); noteBotWin(); } else sfx.hurt(); break;
+      case 'matchEnd': if (e.mw === myTeam()) { sfx.win(); noteBotWin(); } else sfx.hurt(); if (mode === 'local' && TOUR.playing && world) tourMatchOver(world); break;
       case 'picked': if (e.id === myId) { lastPick = e.card; sfx.kill(); } break;
       case 'loaded': if (e.id === myId) { play('loaded'); const m = view && view.p.find(p => p.id === myId); if (m) floater(m.x, m.y - 40, 'Bolt loaded', '#ffcf5a', 14); } break;
       case 'throw':
@@ -8679,6 +8901,7 @@ function eventFx(e) {
         play('briar', e.n ? 1 : 0);
         break;
       }
+      case 'ripCancel': fx.vines = fx.vines.filter(v => v.cid !== e.by); fx.ripCasts = fx.ripCasts.filter(r => r.cid !== e.by); break; // (the trapper went down mid-cast)
       case 'ripCast': { // vines reach from the trapper to everyone carrying their thorns, and pull taut
         fx.vines.push({ tid: e.id, cid: e.by, t0: gclock, max: 1.05, n: e.n || 1, side: Math.random() < 0.5 ? -1 : 1 });
         if (!fx.ripCasts.some(r => r.cid === e.by && gclock - r.t0 < 0.1)) fx.ripCasts.push({ cid: e.by, t0: gclock }); // (once per cast, however many it reaches)
@@ -8813,7 +9036,7 @@ function onKill(e) {
   const K = e.kn ? { name: e.kn, html: nameTag(e.kn, e.kc) } : null, V = { name: e.vn, html: nameTag(e.vn, e.vc) };
   feedAdd(howSentence(how, K, V, e.m), mine);
   if (e.k === myId) {
-    sfx.kill();
+    sfx.kill(); play('koMine');
     // (amber points are no longer shown)
     notice(howSentence(how, { name: 'you', you: true }, { name: e.vn, html: nameTag(e.vn, e.vc) }, e.m));
   }
@@ -11152,6 +11375,11 @@ function drawPlayer(p, isMe, bare) {
     ctx.fillStyle = '#ffcf5a'; ctx.beginPath(); ctx.moveTo(-R - 14, 0); ctx.lineTo(-R - 21, -6); ctx.lineTo(-R - 11, 0); ctx.lineTo(-R - 21, 6); ctx.fill();
     ctx.restore();
   }
+  if (p.vs && !p.d) { // just free of brambles: a faint green shimmer, nothing can root them again for a moment
+    const k = 0.5 + 0.5 * Math.sin(clock * 9 + String(p.id).length);
+    ctx.strokeStyle = `rgba(170,235,120,${(0.22 + 0.18 * k).toFixed(3)})`; ctx.lineWidth = 2; ctx.setLineDash([3, 6]);
+    ctx.beginPath(); ctx.arc(0, 0, R + 7, clock * 1.5, clock * 1.5 + TAU); ctx.stroke(); ctx.setLineDash([]);
+  }
   if (p.rt && !p.fz && !p.pn) {
     // rooted by a trap, briar, snare or thorns: vines wrapped around the archer (stuns, tar and the like show their own look)
     ctx.strokeStyle = '#6b4526'; ctx.lineWidth = 3.5;
@@ -13247,7 +13475,7 @@ function replayRecord() {
   while (RP.evs.length && RP.evs[0].t < clock - RP_KEEP) RP.evs.shift();
 }
 // events the kill cam keeps; those in REPLAY_LIVE are played exactly as they looked live
-const REPLAY_LIVE = new Set(['hooked', 'reel', 'orbHeal', 'transfuse', 'stagger', 'shade', 'shadeUp', 'shadeBurst', 'ripCast', 'rip', 'boomTurn', 'catch', 'eclipse', 'mend', 'mended', 'flashpoint', 'smoke', 'totem', 'harpoon', 'blink', 'recoil', 'rush', 'wind', 'gust', 'deflect', 'deflectUp', 'blocked', 'snared', 'stagger', 'execute', 'backstab', 'volleyReset', 'echo', 'disarm', 'blossom', 'clone', 'grapple', 'leech', 'bleed', 'split', 'drop', 'thunk', 'shield', 'rainMark', 'rainHit', 'trapSet', 'wallUp', 'marked', 'fortify', 'shove', 'stuck', 'zone', 'thunder', 'caltrops', 'stealthOn', 'stealthOff', 'smark', 'shuriken', 'transfuse', 'revive', 'overload', 'sstrike', 'recall', 'nblink', 'flash', 'swap', 'quake', 'collapse', 'aftershock', 'trapHit', 'chain', 'burst', 'pinned', 'freeze', 'spike', 'thud']);
+const REPLAY_LIVE = new Set(['ripCancel', 'hooked', 'reel', 'orbHeal', 'transfuse', 'stagger', 'shade', 'shadeUp', 'shadeBurst', 'ripCast', 'rip', 'boomTurn', 'catch', 'eclipse', 'mend', 'mended', 'flashpoint', 'smoke', 'totem', 'harpoon', 'blink', 'recoil', 'rush', 'wind', 'gust', 'deflect', 'deflectUp', 'blocked', 'snared', 'stagger', 'execute', 'backstab', 'volleyReset', 'echo', 'disarm', 'blossom', 'clone', 'grapple', 'leech', 'bleed', 'split', 'drop', 'thunk', 'shield', 'rainMark', 'rainHit', 'trapSet', 'wallUp', 'marked', 'fortify', 'shove', 'stuck', 'zone', 'thunder', 'caltrops', 'stealthOn', 'stealthOff', 'smark', 'shuriken', 'transfuse', 'revive', 'overload', 'sstrike', 'recall', 'nblink', 'flash', 'swap', 'quake', 'collapse', 'aftershock', 'trapHit', 'chain', 'burst', 'pinned', 'freeze', 'spike', 'thud']);
 // kept with the replay for spotting plays (combo shots, bank shots, clutches), but nothing to show for them
 const REPLAY_META = new Set(['bowl', 'slam', 'gameEnd']);
 const REPLAY_FX = { throw: 1, sstrike: 1, recall: 1, nblink: 1, flash: 1, swap: 1, fire: 1, hit: 1, dmg: 1, fall: 1, boom: 1, freeze: 1, spike: 1, thud: 1, pinned: 1, chain: 1, burst: 1, trapHit: 1, quake: 1, collapse: 1, aftershock: 1, dash: 1, saw: 1, bump: 1, portal: 1, parry: 1, parried: 1, warp: 1, stun: 1, ambushHit: 1 };
@@ -13887,7 +14115,7 @@ function nextFrame() { if (rafQ) return; rafQ = true; requestAnimationFrame(t =>
 function frame(now) {
   if (STUDIO.exporting) { last = now; nextFrame(); return; } // (the clip studio is drawing the frames itself)
   const frameMs = now - last; PR.begin(now);
-  pollPad();
+  pollPad(); tourPoll();
   NET.frame(now - last);
   const dt = Math.min(0.05, (now - last) / 1000); frameDt = dt;
   last = now; clock += dt;

@@ -2,6 +2,25 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.89.0
+
+- **Local tournament** (Custom games › Local tournament). Friends on one screen, one on one, everyone plays everyone, once or twice. Add 2 to 8 names, pick the arena and match length, and the next-match card says who's up and on what: P1 on the keyboard and mouse or the main controller, P2 on the second controller, so people pass a controller round between matches. Both ready up (P1: A on the main controller, Enter or a click; P2: A on theirs) and the match starts by itself, with your local game rules. Wins, then points scored minus conceded, decide the standings, and the champion is named at the end. A match can be skipped (it counts as a loss for P1).
+- **Role previews.** The archetype pop-up in the lobby now shows a small looping scene of the chosen role's signature move, played by the game itself on the target range with the real archers and arrows: the Trapper's trap rooting someone, the Assassin vanishing and blinking in, the Warden's wall, the Juggernaut's charge, the Ninja's shuriken, and so on.
+- **Clearer hit feel.** Your own hits get a clean, close tick on top of the arrow's thump (a brighter one for a bullseye), so you always know a shot landed; other people's hits are quieter. A knockout you make gets a deep hit under the chime, and throwing someone into a wall or thorns gets a crunch you feel.
+- **Bots notice bramble traps the way a person would.** A trap gets spotted when it's roughly where the bot is looking (within a cone round its target, or right in front of the way it's moving), sooner the sharper the bot (Easy about once every 2.5 seconds in view, Master three times a second), and half as readily when they're focused on someone far off. One behind them, or off to the side, goes unseen and they walk straight into it. Spotted traps are steered round like a bog.
+
+## 0.88.4
+
+Controller aim assist: it holds you on the target, and no longer leads or sees through boulders.
+
+- **No more leading for you.** The assist pulled toward a spot ahead of a moving enemy (worked out from their speed and your arrow's flight time) and tracked that spot, so a runner was led perfectly without the player judging it, through every change of direction. It now pulls toward, and follows, the enemy's body: staying on them is the help, leading them is yours to judge, like a mouse player's. With the scripted thumb on a strafing target at 750px, a thumb that doesn't lead went from 79% hits to 23%, and one that leads properly gets 47% (the human-like mouse model gets about 30%), so leading is rewarded again. Still targets are unchanged (about 98% at 450px, 84% at 750px), and so is the feel of staying on someone.
+- **Line of sight only.** It helped with enemies behind boulders too, pulling your aim straight into the rock (the one line that never catches them poking out). It now only helps with someone you have a clear line to; someone half out from behind a boulder counts, and then it pulls you onto the shoulder that's showing, not the rock.
+
+## 0.88.3
+
+- **No more bramble lockdowns.** A Trapper could keep an enemy rooted for ever: Bramble Trap comes back every 3.9 seconds for a Trapper (faster with Arcane Surge), and a trap cast under someone already rooted was waiting the moment the root ended, from somewhere safe behind a boulder. Now, when brambles let go of you (a trap, Bramble Toss, Snare Arrow or Rip), they can't hold you again for 2 seconds: a faint green ring round your archer shows it. A trap you're standing on stays where it is but doesn't spring until you're clear of that, so you can walk off it; a Bramble Toss or Snare Arrow that hits you meanwhile still does its damage but doesn't root you. A single trap is as strong as before (2.5 seconds, 5 with Deep Roots). Bots don't throw traps at someone the brambles can't hold.
+- **Rip is cancelled if the trapper goes down while it's winding up.** It used to tear the thorns out a second later anyway, even from a dead trapper; now nothing happens (the thorns stay in, and fade as usual), and the spirit vines vanish.
+
 ## 0.88.2
 
 - **Bots dash off lava.** They used to wade out (about a second on Meadow's lava basin, losing around 34 health). With a dash ready they now dash out the shortest way, as long as the landing is safe (not into a hole, other lava, thorns, a wall or a boulder). How quickly depends on skill, and an Easy bot sometimes just wades out. Tested 20 times each from the middle of the basin: Easy 0.94s and 27 health lost, Normal 0.84s and 23, Hard 0.24s and 8, Master 0.07s and 2. Ninjas blink out. This covers every bot, including the AI players in ranked.

@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.88.2';
+const VERSION = '0.89.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1837,7 +1837,7 @@ function placeForRound(w, p) {
 // a clean start at (x, y): full health, no effects, nothing armed
 function freshBody(p, x, y) {
   Object.assign(p, {
-    x, y, vx: 0, vy: 0, hp: p.maxHp, dead: false, falling: 0, stuck: 0, burn: 0, slow: 0,
+    x, y, vx: 0, vy: 0, hp: p.maxHp, dead: false, falling: 0, stuck: 0, burn: 0, slow: 0, vine: 0, vineSafe: 0,
     frozen: 0, frostN: 0, frostT: 0, dashLock: 0, snare: false, grap: null, hook: null, harpoonArmed: false, over: 0, poisonN: 0, poisonT: 0, bleedT: 0, bleedBy: null, burnDps: BURN_DPS, quickT: 0, disarm: 0, poisonBy: null, contT: 0,
     knock: 0, inv: 0, dashT: 0, dashCd: 0, dashN: p.dashMaxN, charge: 0, drawing: false, thr: 0, tdx: 0, tdy: 0,
     lastHitBy: null, lastHitT: -99, lastCause: '', killedBy: null, pw: emptyPowers(), wantDash: false, lastHurtT: -99, pinT: 0, pinned: 0, dashK: 1,
@@ -2400,7 +2400,7 @@ function stepBody(w, f, mx, my, dt) {
   if (f.riftSlow > 0) { f.riftSlow -= dt; sp *= f.sure ? 0.9 : 0.7; }
   if (f.caltT > 0) { f.caltT -= dt; sp *= f.sure ? 0.85 : 0.6; } // Caltrops
   if (f.stuck > 0) { f.stuck -= dt; sp = 0; }
-  if (f.vine > 0) f.vine -= dt;
+  if (f.vine > 0) { f.vine -= dt; if (f.vine <= 0) f.vineSafe = VINE_SAFE; } else if (f.vineSafe > 0) f.vineSafe -= dt; // (free of the brambles: a moment they can't hold you)
   f.frozen = Math.max(0, f.frozen - dt);
   if (f.frozen > 0) { f.disarm = Math.max(f.disarm, f.frozen); if (f.drawing) { f.drawing = false; f.charge = 0; f.over = 0; } } // frozen solid: no drawing or shooting
   if (f.iceSlow > 0) { f.iceSlow -= dt; sp *= f.sure ? 0.85 : 0.65; } // Hoarfrost
@@ -3057,7 +3057,7 @@ function updateZones(w, dt) {
     } else if (z.ty === 'trap') {
       z.arm = Math.max(0, z.arm - dt);
       if (z.arm <= 0) for (const q of w.players) {
-        if (q.team === z.team || q.dead || q.falling > 0 || q.dashT > 0 || q.grap) continue;
+        if (q.team === z.team || q.dead || q.falling > 0 || q.dashT > 0 || q.grap || q.vine > 0 || q.vineSafe > 0) continue; // (held by brambles, or just free of them: the trap waits)
         if (Math.hypot(q.x - z.x, q.y - z.y) < z.r + q.r * 0.6) {
           root(q, 2.5, w.players.find(o => o.id === z.owner), true); hurt(w, q, 12, 0, 0, 'trap', z.owner);
           ev(w, { e: 'trapHit', x: r1(z.x), y: r1(z.y) });
@@ -3286,11 +3286,18 @@ const mendHeal = q => { const was = q.hp; q.hp = Math.min(q.maxHp, q.hp + MEND_H
 const RIP_DELAY = 1, SHROUD_R = 140, ECLIPSE_R = 150, MEND_RANGE = 350, BRIAR = { speed: 350, range: 760, r: 22, root: 1.8, dmg: 8 }; // r: the same size as a Bramble Trap
 // hold them in place. Plant roots (traps, briar, snares, thorns, the coat) also wrap vines round them for the client to draw;
 // other holds (stuns, frost, tar, harpoons) show their own look instead
-function root(f, t, by, plant) { if (by && has(by, 'deeproots')) t *= 2; const held = f.sure ? t * 0.4 : t; f.stuck = Math.max(f.stuck, held); if (plant) f.vine = Math.max(f.vine || 0, held); }
+// rooted. plant: brambles (traps, Bramble Toss, Snare Arrow, Rip), which can't hold you again for VINE_SAFE seconds after
+// they let go, so a Trapper can't keep you locked down by casting trap after trap under you
+const VINE_SAFE = 2;
+function root(f, t, by, plant) {
+  if (plant && (f.vineSafe || 0) > 0) return false;
+  if (by && has(by, 'deeproots')) t *= 2; const held = f.sure ? t * 0.4 : t; f.stuck = Math.max(f.stuck, held); if (plant) f.vine = Math.max(f.vine || 0, held);
+  return true;
+}
 // elemental and trapper effects when an arrow lands
 function onArrowEffects(w, a, f, primary) {
   const owner = a.own;
-  if (a.snare && primary) { root(f, 1.8, owner, true); ev(w, { e: 'snared', x: r1(f.x), y: r1(f.y) }); }
+  if (a.snare && primary && root(f, 1.8, owner, true)) ev(w, { e: 'snared', x: r1(f.x), y: r1(f.y) });
   if (a.hpn && primary && owner && !f.dead) { f.hook = { by: owner.id, t: HOOK_DELAY }; ev(w, { e: 'hooked', id: f.id, by: owner.id, x: r1(f.x), y: r1(f.y) }); }
   if (primary && owner && has(owner, 'rip') && !f.dead) { // Rip: every hit leaves a thorn
     if (f.thornBy !== owner.id) f.thornN = 0;
@@ -3921,6 +3928,8 @@ function clearShot(x1, y1, x2, y2) {
 }
 function botSteer(p, gx, gy) {
   let dx = gx, dy = gy;
+  // enemy bramble traps the bot has noticed (botSeeTraps): steered round like a bog
+  if (p.ai && p.ai.seenTraps) for (const z of p.ai.seenTraps) { if (z.t <= 0) continue; const ex = p.x - z.x, ey = p.y - z.y, d = Math.hypot(ex, ey) || 1, m = z.r + p.r + 30; if (d < m) { const k = (m - d) / m * 3; dx += ex / d * k; dy += ey / d * k; } }
   // with momentum, judge danger from where we'll be shortly, not where we are
   const lx = p.x + p.vx * 0.8, ly = p.y + p.vy * 0.8;
   for (const h of WARN.length ? HAZ.concat(WARN) : HAZ) {
@@ -4241,6 +4250,24 @@ function botLavaEscape(w, p, dt) {
   if (!best) return; // (nowhere safe to land: keep wading)
   p.wantDash = true; p.input.aim = best.a; p.input.tx = p.x + Math.cos(best.a) * LAVA_DASH; p.input.ty = p.y + Math.sin(best.a) * LAVA_DASH; ai.lavaGo = false; // (one dash per visit; a Ninja's blink goes toward tx, ty)
 }
+// noticing enemy traps, like a person would: a trap gets spotted when it's roughly where the bot is looking (within a
+// cone round its target, or right in front of the way it's moving), and sooner the sharper the bot. One behind them, or
+// off to the side while they're focused on someone far away, goes unseen, and they walk straight into it
+function botSeeTraps(w, p, T, D, dt) {
+  const ai = p.ai; ai.seenTraps = ai.seenTraps || new Set();
+  for (const z of ai.seenTraps) if (z.t <= 0 || !w.zones.includes(z)) ai.seenTraps.delete(z);
+  const rate = 0.3 + 2.5 * D.dodge; // Easy about 0.4 a second once it's in view, Hard 1.3, Master 2.8
+  for (const z of w.zones) {
+    if (z.ty !== 'trap' || z.team === p.team || ai.seenTraps.has(z)) continue;
+    const dx = z.x - p.x, dy = z.y - p.y, d = Math.hypot(dx, dy); if (d > 420) continue;
+    const look = T ? Math.atan2(T.y - p.y, T.x - p.x) : p.input.aim, off = angOff(Math.atan2(dy, dx), look);
+    const mv = Math.hypot(p.vx, p.vy) > 40 ? angOff(Math.atan2(dy, dx), Math.atan2(p.vy, p.vx)) : Math.PI;
+    const inView = off < 0.6 || (d < 110 && mv < 0.7); // (in the cone they're watching, or about to step on it)
+    if (!inView) continue;
+    const far = T ? Math.hypot(T.x - p.x, T.y - p.y) : 0, focus = far > 450 && d < far * 0.5 ? 0.5 : 1; // (eyes on someone far off: half as likely to see what's near)
+    if (Math.random() < rate * focus * dt) ai.seenTraps.add(z);
+  }
+}
 function botThink(w, p, dt) {
   const ai = p.ai, inp = p.input, D = botD(p), G = p.gene ? (p.geneSrc === p.gene ? p.geneAll : (p.geneSrc = p.gene, p.geneAll = Object.assign({}, GENE, p.gene))) : GENE, iq = D.iq || 0;
   // how well this bot plays to its element (stacking shades, setting up a Stone throw): from Hard up, full before the smart brain arrives
@@ -4471,6 +4498,7 @@ function botThink(w, p, dt) {
       ai.dodgeCd = 0.5; p.wantDash = true; ai.dashAim = Math.atan2(py, px);
     }
   }
+  botSeeTraps(w, p, T, D, dt);
   const [mx, my] = botSteer(p, gx, gy);
   inp.mx = mx; inp.my = my;
 
@@ -4752,7 +4780,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
       case 'volley': use = chg > 0.5 && !!T && dT < 480 && !p.volleyArmed; break;
       case 'trap':
         // throw it where the target is heading
-        if (T && dT < TRAP_RANGE + 60 && dT > 60 && Math.random() < dt * 0.8) {
+        if (T && dT < TRAP_RANGE + 60 && dT > 60 && !(T.vine > 0) && !(T.vineSafe > 0) && Math.random() < dt * 0.8) {
           const tx = T.x + T.vx * 0.6, ty = T.y + T.vy * 0.6;
           // not over a hole or water: a trap can't sit there (bogs and lava are fine)
           if (!HAZ.some(h => h.type === 'pit' && inHaz(h, tx, ty, TRAP_PIT_GAP))) { p.input.tx = tx; p.input.ty = ty; use = true; }
@@ -5677,7 +5705,8 @@ function step(w, dt) {
     }
     if (L.ty === 'rip') { // Rip: tear out every thorn this trapper has left in anyone
       const p = w.players.find(q => q.id === L.owner);
-      if (p) for (const q of w.players) {
+      if (!p || p.dead || p.falling > 0) { ev(w, { e: 'ripCancel', by: L.owner }); continue; } // (the caster went down while it was winding up: nothing tears)
+      for (const q of w.players) {
         if (q.team === p.team || q.dead || q.falling > 0 || q.thornBy !== p.id || !(q.thornN > 0)) continue;
         const n = q.thornN; q.thornN = 0; q.thornT = 0;
         ev(w, { e: 'rip', id: q.id, by: p.id, x: r1(q.x), y: r1(q.y), bx: r1(p.x), by2: r1(p.y), n });
@@ -5735,7 +5764,7 @@ function snapshot(w) {
         id: p.id, n: p.name, c: p.color, b: p.bot ? 1 : 0, tm: p.team, nk: p.npc ? p.npc.k : undefined, nm: p.npc && p.npc.mode ? p.npc.mode : undefined, na: p.npc && p.npc.k === 'term' ? r2(p.npc.aim2) : undefined, hd: p.hid ? 1 : 0, tw: p.elev ? 1 : 0, rs: (w.cq || w.tm) && p.dead && !p.npc && p.respAt != null ? Math.max(0, Math.ceil(p.respAt - w.t)) : undefined, bi: p.npc ? p.npc.bio : undefined, nw: p.npc && (p.npc.wind || p.npc.charge) ? (p.npc.charge ? 'dash' : p.npc.wind) : undefined, cc: p.cc || undefined, lv: p.lv || undefined, bd: p.bd || undefined, na: p.na || undefined, ow: p.ow || undefined, ct: p.ct || undefined, cl: p.cl || undefined, ce: p.ce || undefined, sp: p.sp || undefined, fd: p.fd || undefined, pt: p.pt || undefined, fin: p.fin || undefined, fr: p.fr || undefined, sc: p.sc && p.sc.length ? p.sc.map(x => x.slice()) : undefined,
         x: r1(p.x), y: r1(p.y), vx: Math.round(p.vx), vy: Math.round(p.vy), a: r3(p.aim),
         hp: Math.max(0, Math.ceil(p.hp)), mh: p.maxHp, ch: p.npc && p.npc.k === 'term' ? r2(Math.min(1, (p.npc.drawT || 0) / (p.npc.mode === 'hunter' ? 1.1 : p.npc.drawMax || 0.5))) : r2(p.charge), drt: p.npc ? undefined : r2(drawRate(p)), dr: p.npc && p.npc.k === 'term' ? (p.npc.drawT > 0 ? 1 : 0) : p.drawing ? 1 : 0,
-        f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, rt: p.vine > 0 && p.stuck > 0 ? 1 : undefined, bu: p.burn > 0 ? 1 : 0, bl: p.bleedT > 0 ? 1 : 0, vd: p.voidT > w.t && p.voidN ? p.voidN : undefined, vb: p.voidT > w.t && p.voidN ? p.voidBy : undefined, sl: p.slow > 0 || p.iceSlow > 0 ? 1 : 0, sw: p.slow > 0 || p.iceSlow > 0 ? r2(Math.max(p.slow > 0 ? 1 - (p.sure ? 0.85 : p.slowK || 0.5) : 0, p.iceSlow > 0 ? (p.sure ? 0.15 : 0.35) : 0)) : undefined, iv: p.inv > 0 ? 1 : 0,
+        f: r2(p.falling), st: p.stuck > 0 ? 1 : 0, rt: p.vine > 0 && p.stuck > 0 ? 1 : undefined, vs: p.vineSafe > 0 ? 1 : undefined, bu: p.burn > 0 ? 1 : 0, bl: p.bleedT > 0 ? 1 : 0, vd: p.voidT > w.t && p.voidN ? p.voidN : undefined, vb: p.voidT > w.t && p.voidN ? p.voidBy : undefined, sl: p.slow > 0 || p.iceSlow > 0 ? 1 : 0, sw: p.slow > 0 || p.iceSlow > 0 ? r2(Math.max(p.slow > 0 ? 1 - (p.sure ? 0.85 : p.slowK || 0.5) : 0, p.iceSlow > 0 ? (p.sure ? 0.15 : 0.35) : 0)) : undefined, iv: p.inv > 0 ? 1 : 0,
         da: p.dashT > 0 ? 1 : 0, hl: p.healing ? 1 : 0, dn: p.dashN, dk: p.dashMaxN, ra: p.rallied ? 1 : 0, shd: p.shade ? p.shade.n : undefined, sht: p.shade ? r2(p.shade.t / SHADE.t) : undefined, th: p.thornN > 0 ? p.thornN : undefined,
         ab: p.slots.slice(), ac: p.abCd.map(r1), ah: p.abHold ? (p.abHold[0] ? 1 : 0) | (p.abHold[1] ? 2 : 0) : 0, fz: p.frozen > 0 ? 1 : 0, sx: p.dashLock > 0 ? 1 : 0, ov: p.over >= 1 ? 1 : 0,
         sn: p.snare ? 1 : 0, vl: p.volleyArmed ? 1 : 0, rl: p.railArmed ? 1 : 0, ha: p.harpoonArmed ? 1 : 0, hk: p.hook ? p.hook.by : 0,
