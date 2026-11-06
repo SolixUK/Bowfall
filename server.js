@@ -672,6 +672,13 @@ async function api(req, res, url) {
     SETTINGS.arenas = cfg; await store.setSetting('arenas', cfg); Sim.applyArenaPool(cfg);
     return json(res, 200, Sim.arenaPool());
   }
+  // the owner's AI match (see social.ownerMatch): a real ranked match of AI players to watch; the owner then joins it as a watcher
+  if (route === '/owner/aimatch' && method === 'POST') {
+    if (!me || !me.admin) return json(res, 403, { error: 'Only the game owner can do that.' });
+    if (rooms.size >= MAX_ROOMS) return json(res, 503, { error: 'The server is full.' });
+    const r = social.ownerMatch(String(body.mode || '1v1'), +body.elo || ELO_START);
+    return json(res, r.error ? 400 : 200, r);
+  }
   if (route === '/legal' && method === 'GET') return json(res, 200, { discord: DISCORD_INVITE, contact: process.env.CONTACT_EMAIL || null, payments: PAY.configured(), mail: MAIL.configured(), providers: O.enabled() });
   if (route === '/device-login' && method === 'POST') {
     if (!authLimit(ip(req))) return json(res, 429, { error: 'Too many attempts. Wait a minute and try again.' });
@@ -1810,6 +1817,11 @@ async function handle(ws, m) {
       const f = social.featured(); room = f && rooms.get(f.code);
       if (!room || !room.ranked) return send(ws, { t: 'err', msg: 'That match has finished. Another will be along soon.' });
       ws.watch = true; if ([...room.clients].filter(c => c.watch).length >= WATCH_MAX_FEAT) return send(ws, { t: 'err', msg: 'Too many people are watching that match.' });
+    } else if (typeof m.watch === 'string' && /^[A-Z0-9]{3,6}$/i.test(m.watch)) {
+      // watching a ranked match by its code: an owner-run AI match (anyone), or any match for the owner
+      room = rooms.get(m.watch.toUpperCase());
+      if (!room || !room.ranked || !(room.ranked.owner || (ws.user && ws.user.admin))) return send(ws, { t: 'err', msg: 'No match with that code to watch.' });
+      ws.watch = true; if ([...room.clients].filter(c => c.watch).length >= WATCH_MAX_FEAT) return send(ws, { t: 'err', msg: 'Too many people are watching that match.' });
     } else if (m.watch != null) {
       // watching a friend's game: find the game they're in; matchmade games are watch-only, custom games are joined as usual
       const fid = +m.watch;
@@ -1997,6 +2009,17 @@ wss.on('connection', (ws, req) => {
 // ranked matches everyone dropped out of: kept 90 seconds for someone to rejoin (or until the match ends), then closed
 setInterval(() => {
   for (const room of [...rooms.values()]) {
+    // an owner-run AI match closes when it's over (after a look at the results) or if nobody's come to watch for 5 minutes
+    if (room.ranked && room.ranked.owner) {
+      const over = room.world.match.ph === 'over', empty = !room.clients.size;
+      if (over) room.overSince = room.overSince || Date.now();
+      if (empty) room.emptySince = room.emptySince || Date.now(); else room.emptySince = null;
+      if ((over && Date.now() - room.overSince > 30000) || (empty && Date.now() - room.emptySince > 300000)) {
+        for (const c of [...room.clients]) { send(c, { t: 'kicked', msg: 'That match has finished.' }); c.room = null; c.pid = null; }
+        room.clients.clear(); social.freeAI(room); if (room.z) { room.z.d.close(); room.z = null; } rooms.delete(room.code);
+      }
+      continue;
+    }
     if (!room.away || !room.away.size) continue;
     const players = [...room.clients].filter(c => !c.watch);
     if (players.length) { room.emptySince = null; continue; }

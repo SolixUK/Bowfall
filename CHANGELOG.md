@@ -2,6 +2,10 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.89.2
+
+- **AI match** (owner only: an **AI match** button on the main screen with the other owner tools). Pick 1v1, 2v2 or 3v3 and a rating, and the server makes a real ranked match of AI players the way matchmaking would: the nearest free AI players to that rating, balanced into two teams, an arena drawn as usual, a short draft, then the match. Their ratings, stats and records change as in any ranked match, and the AI players chat and learn from it as usual. You're put in as a watcher (5 seconds behind, like Live now), and if it's the top match going it shows on everyone's Live now card for anyone to watch. Only the owner can start one (`POST /api/owner/aimatch`); the room closes half a minute after the match ends, or after 5 minutes if nobody comes to watch.
+
 ## 0.89.1
 
 Two AI players (QuiverQueen and Vanya_Volkov, both strong, both on Storm Ranger) were seen trading shots and dodges for a whole game without a hit. Reproduced and fixed, in four parts:
