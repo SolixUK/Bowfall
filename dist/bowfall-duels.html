@@ -2520,7 +2520,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.89.0';
+const VERSION = '0.89.1';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -3861,7 +3861,7 @@ const DIFF = {
   normal:  { aimErr: 0.17, react: 0.5,  dodge: 0.12, minCharge: 0.5,  lead: 0.4, speed: 0.85, turn: 3.5, see: 0.32, iq: 0 },
   hard:    { aimErr: 0.08, react: 0.28, dodge: 0.4,  minCharge: 0.7,  lead: 0.8, speed: 1, turn: 5.5, see: 0.24, iq: 0 },
   extreme: { aimErr: 0.035, react: 0.12, dodge: 0.75, minCharge: 0.82, lead: 1, speed: 1, turn: 8, see: 0.17, iq: 0 },
-  master:  { aimErr: 0.012, react: 0.07, dodge: 1, minCharge: 0.85, lead: 1, speed: 1, turn: 12, see: 0.06, iq: 1 },
+  master:  { aimErr: 0.012, react: 0.07, dodge: 0.85, minCharge: 0.85, lead: 1, speed: 1, turn: 12, see: 0.06, iq: 1 },
 };
 // any skill from 0 (Easy) to 1 (Master) as a set of bot settings, blended between the named levels;
 // AI players in matchmaking each have their own skill somewhere along this scale
@@ -4058,6 +4058,7 @@ function addBot(w, team, extra) { // extra: past the usual four a side (training
   const taken = new Set(members(w, team).map(q => q.role));
   const roles = allowedRoles(w).filter(r => !taken.has(r));
   const b = makePlayer(w, { name: botName(w), bot: true, team, diff: w.cfg.diff, role: roles.length ? pick(roles) : pick(allowedRoles(w)), element: pick(allowedEls(w)) });
+  b.dashMove = true; // (dashes the way it moves; see botDashDir)
   pickStyle(b);
   catchUp(w, b);
   enterWorld(w, b);
@@ -5148,7 +5149,7 @@ function updatePlayer(w, p, dt) {
 // which way a dash (or blink) goes: where you're aiming, or, if you've chosen it, the way you're moving
 function dashAngle(p) {
   const i = p.input || {};
-  if (p.dashMove && !p.bot && (i.mx || i.my)) return Math.atan2(i.my, i.mx);
+  if (p.dashMove && (i.mx || i.my)) return Math.atan2(i.my, i.mx); // (bots dash the way they move too: their aim stays on the enemy)
   return p.aim;
 }
 const PARRY_REACH = 0.15; // seconds a Parry can reach back to undo a hit that just landed
@@ -6584,10 +6585,19 @@ const loaded = p => p.role !== 'crossbow' || p.bolts > 0 || p.autoT > 0;
 // A short reach changes the sums: standing where the enemy can shoot us and we can't shoot back is the worst
 // place of all, however far from the lava it is, so the range terms grow with how badly we're outranged,
 // and until we're in reach a boulder between us and them counts for us, not against us.
+// shots that keep missing from range mean the enemy is dodging them: press in, as a person would, until they land again.
+// A run of misses pulls the distance a bot likes to fight at in by up to 45% (from the 4th miss on); a hit lets it back out.
+function botPressIn(p) {
+  const ai = p.ai;
+  if (ai.shotsSeen == null) { ai.shotsSeen = p.stats.shots; ai.hitsSeen = p.stats.hits; ai.missRun = 0; }
+  if (p.stats.hits > ai.hitsSeen) ai.missRun = Math.max(0, ai.missRun - 3);
+  ai.missRun += Math.max(0, p.stats.shots - ai.shotsSeen); ai.shotsSeen = p.stats.shots; ai.hitsSeen = p.stats.hits;
+  return 1 - Math.min(0.45, Math.max(0, ai.missRun - 3) * 0.05);
+}
 function botPlan(w, p, T, foes, mates, D, G) {
   const ai = p.ai, st = STYLES[ai.style] || STYLES.skirmisher;
   const reach = botReach(p), outg = T ? outranged(p, T) : 0, ready = loaded(p);
-  const pref = Math.min(reach * 0.8, (st.near + st.far) / 2 * G.pref);
+  const pref = Math.min(reach * 0.8, (st.near + st.far) / 2 * G.pref) * botPressIn(p);
   const myKb = kbTravel(0.95, T ? T.mass : 1, p.kbMul) * G.kbScale;
   const cand = [[p.x, p.y]];
   // (a boulder in the way: look further afield too, or every spot in reach can be behind it)
@@ -6779,6 +6789,14 @@ function botSeeTraps(w, p, T, D, dt) {
     if (Math.random() < rate * focus * dt) ai.seenTraps.add(z);
   }
 }
+// a bot's dash goes the way it wants to move, like a player with "dash the way you're moving": the aim stays on the
+// enemy, so the archer doesn't snap round and an arrow let go on the same tick doesn't fly off sideways. A shot that was
+// being drawn is held through the dash tick and loosed the next.
+function botDashDir(p, wasDraw) {
+  const ai = p.ai, inp = p.input;
+  if (p.wantDash && ai.dashAim != null) { inp.mx = Math.cos(ai.dashAim); inp.my = Math.sin(ai.dashAim); if (wasDraw && !inp.draw) inp.draw = true; }
+  ai.dashAim = null;
+}
 function botThink(w, p, dt) {
   const ai = p.ai, inp = p.input, D = botD(p), G = p.gene ? (p.geneSrc === p.gene ? p.geneAll : (p.geneSrc = p.gene, p.geneAll = Object.assign({}, GENE, p.gene))) : GENE, iq = D.iq || 0;
   // how well this bot plays to its element (stacking shades, setting up a Stone throw): from Hard up, full before the smart brain arrives
@@ -6869,10 +6887,17 @@ function botThink(w, p, dt) {
     const st = STYLES[ai.style] || STYLES.skirmisher, ag = ai.aggr == null ? 0.6 : ai.aggr;
     // (the playstyles are a bow's distances: a shorter reach caps them, or a crossbowman would stand where his bolts drop short)
     const reach = botReach(p), outg = outranged(p, T);
-    const near = Math.min(st.near * (1.3 - ag * 0.6), reach * 0.55), far = Math.min(st.far * (1.25 - ag * 0.5), reach * 0.88);
+    const pressIn = botPressIn(p);
+    const near = Math.min(st.near * (1.3 - ag * 0.6), reach * 0.55), far = Math.min(st.far * (1.25 - ag * 0.5), reach * 0.88) * pressIn;
     const dx = T.x - p.x, dy = T.y - p.y, d = dT || 1, ux = dx / d, uy = dy / d;
     // (backing off from someone who outranges you only means being shot in the back: the outgunned stand their ground unless nearly dead)
-    const shaky = p.hp < p.maxHp * (outg > 0.5 ? 0.15 : 0.35) * (p.element === 'blood' && es >= 0.5 ? 0.7 : 1) && ag < 0.65 && d < far * 1.2; // (Blood: hits heal, so backing off hurt is the wrong move)
+    let shaky = p.hp < p.maxHp * (outg > 0.5 ? 0.15 : 0.35) * (p.element === 'blood' && es >= 0.5 ? 0.7 : 1) && ag < 0.65 && d < far * 1.2; // (Blood: hits heal, so backing off hurt is the wrong move)
+    // backing off hurt is for a moment, not for the rest of the game: after a few seconds of it (or with the enemy as hurt
+    // as you, or your back to a wall) the fight is on again, or two hurt archers would back into corners and trade misses
+    // until the clock ran out
+    if (shaky && (T.hp <= p.hp + 5 || Math.min(p.x - WALL, AW - WALL - p.x, p.y - WALL, AH - WALL - p.y) < 90)) shaky = false;
+    ai.shakyT = shaky ? (ai.shakyT || 0) + dt : Math.max(0, (ai.shakyT || 0) - dt * 0.5);
+    if (ai.shakyT > 4) shaky = false;
     if (shaky || d < near) { gx = -ux; gy = -uy; }
     else if (d > far || !clearShot(p.x, p.y, T.x, T.y)) {
       // close in with a weave; the outranged weave less, or someone walking backward keeps them out of reach for good
@@ -6925,12 +6950,19 @@ function botThink(w, p, dt) {
   }
   // cover ducking (a trait): after loosing, tuck in behind a nearby boulder while the bow is drawn again, then step
   // out on the side we're already leaning to and shoot. Each shot they decide afresh, as often as the trait says.
-  if (ai.tr && ai.tr.cover > 0 && T && dT < 950 && !(p.stealthT > 0) && (ai.duck || ai.peek)) {
+  // Two cover-lovers either side of one big boulder would sit there for ever, each peeking round a shoulder the other
+  // can't be seen from: a bot that hasn't had a line of sight for a few seconds gives cover up for a while and goes
+  // round, and a peek steps out far enough to actually see them
+  ai.noLosT = T && !clearShot(p.x, p.y, T.x, T.y) ? (ai.noLosT || 0) + dt : 0;
+  if (ai.noLosT > 3 && !(ai.coverOff > 0)) { ai.coverOff = 6; ai.duck = ai.peek = false; ai.strafe = -ai.strafe; ai.strafeT = Math.max(ai.strafeT || 0, 2); }
+  if (ai.coverOff > 0) ai.coverOff -= dt;
+  if (ai.tr && ai.tr.cover > 0 && T && dT < 950 && !(p.stealthT > 0) && (ai.duck || ai.peek) && !(ai.coverOff > 0) && !(ai.missRun > 6)) { // (shots from cover not landing: leave it and press in)
     const cv = PILLARS.reduce((b, q) => { if (q.tower) return b; const d = Math.hypot(q.x - p.x, q.y - p.y) - q.r; return d < 230 && (!b || d < b.d) ? { q, d } : b; }, null);
     if (cv) {
       const q = cv.q, tx = q.x - T.x, ty = q.y - T.y, tl = Math.hypot(tx, ty) || 1, ux = tx / tl, uy = ty / tl, off = q.r + p.r + 16;
       const hx = q.x + ux * off, hy = q.y + uy * off; // right behind it, seen from the target
-      const peek = ai.strafe, px = hx - uy * peek * (off + 10), py = hy + ux * peek * (off + 10); // round its shoulder
+      const peek = ai.strafe; let px = hx - uy * peek * (off + 10), py = hy + ux * peek * (off + 10); // round its shoulder
+      for (let k = 1.5; k <= 3 && !clearShot(px, py, T.x, T.y); k += 0.5) { px = hx - uy * peek * (off + 10) * k; py = hy + ux * peek * (off + 10) * k; } // (further out until they're in view)
       const ready = inp.draw && p.charge >= ai.want * 0.85;
       const [tx2, ty2] = ready || ai.peek ? [px, py] : [hx, hy];
       if (ready && !ai.peek) ai.peek = true; // (and stay out until the shot's gone)
@@ -7026,8 +7058,8 @@ function botThink(w, p, dt) {
     ai.err = rand(-1, 1) * D.aimErr * (p.shroudT > 0 ? (p.shroudR < 150 ? 3.5 : 2.2) : 1); // (the old model, kept for comparison runs)
     ai.eS = (Math.random() + Math.random() + Math.random() - 1.5) / 1.5; ai.eM = rand(-0.45, 1.25); ai.errT = rand(0.3, 0.6);
   }
-  if (!T && GP) { botProbe(w, p, GP, D, iq, dt); botAbilities(w, p, null, Infinity, foes, dt); if (p.wantDash && ai.dashAim != null) inp.aim = ai.dashAim; ai.dashAim = null; return; }
-  if (!T) { ai.lastT = null; inp.draw = false; botAbilities(w, p, null, Infinity, foes, dt); if (p.wantDash && ai.dashAim != null) inp.aim = ai.dashAim; ai.dashAim = null; return; }
+  if (!T && GP) { botProbe(w, p, GP, D, iq, dt); botAbilities(w, p, null, Infinity, foes, dt); botDashDir(p); return; }
+  if (!T) { ai.lastT = null; inp.draw = false; botAbilities(w, p, null, Infinity, foes, dt); botDashDir(p); return; }
   const spd = (380 + 920 * (p.role === 'crossbow' ? 1 : Math.max(p.charge, ai.want))) * OPT('aspeed'), wasDraw = inp.draw;
   // aim at where the target *appeared* to be (and to be heading) a reaction-time ago, like a person would
   const S = perceived(w, T, D.see || 0.24);
@@ -7112,7 +7144,7 @@ function botThink(w, p, dt) {
   }
   if (wasDraw && !inp.draw) { ai.peek = false; ai.duck = !!(ai.tr && Math.random() < ai.tr.cover); } // shot away: duck behind cover for the next one?
   botAbilities(w, p, T, dT, foes, dt);
-  if (p.wantDash && ai.dashAim != null) inp.aim = ai.dashAim; // a dodge dash points the way out
+  botDashDir(p, wasDraw); // a dodge dash goes the way out, through the move stick (the bow stays on the enemy)
   ai.dashAim = null;
 }
 
@@ -8468,7 +8500,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.89.0';
+const PAGE_VERSION = '0.89.1';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }

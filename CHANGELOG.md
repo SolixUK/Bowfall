@@ -2,6 +2,15 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.89.1
+
+Two AI players (QuiverQueen and Vanya_Volkov, both strong, both on Storm Ranger) were seen trading shots and dodges for a whole game without a hit. Reproduced and fixed, in four parts:
+
+- **No more standoffs.** Two strong bots with the "cover" playstyle each tucked behind the one big boulder on Sideline Sawmill from opposite sides, peeking round shoulders the other couldn't be seen from (a line of sight 1% of the time): nearly every game there timed out (34 of 37 in the simulation). On Moat Keep the pair stood 550px apart along a wall trading unhittable long shots. Now a bot that hasn't had a line of sight for 3 seconds gives cover up for a while and goes round, a peek steps out far enough to see the enemy, a run of misses from range pulls the distance a bot likes to fight at in by up to 45% until shots land again (cover included), and backing off hurt lasts a few seconds at most (and never with the enemy as hurt as you, or your back to a wall). Result in the simulation: 0 time-outs in 120 games across Sideline Sawmill, Moat Keep and Meadow (was 34, 11 and 0 of about 40), with hits per minute roughly doubled.
+- **No more arrows into the wall.** A bot's dodge dash was steered through its aim for one tick, so an arrow let go on that same tick flew off sideways (8% of a strong bot's shots), and the archer snapped round like a blink. Bots now dash the way they move, like a player with "dash the way you're moving": the bow stays on the enemy, and a shot being drawn is held through the dash and loosed after. 0 sideways shots in 450.
+- **Master bots dodge 85% of the arrows they see, not every one.** Two Master dodgers could keep a duel going for ever; now a few get through, as with the best people.
+- Bots on every arena and skill level benefit; mid-skill duels are unchanged apart from fewer wasted shots.
+
 ## 0.89.0
 
 - **Local tournament** (Custom games › Local tournament). Friends on one screen, one on one, everyone plays everyone, once or twice. Add 2 to 8 names, pick the arena and match length, and the next-match card says who's up and on what: P1 on the keyboard and mouse or the main controller, P2 on the second controller, so people pass a controller round between matches. Both ready up (P1: A on the main controller, Enter or a click; P2: A on theirs) and the match starts by itself, with your local game rules. Wins, then points scored minus conceded, decide the standings, and the champion is named at the end. A match can be skipped (it counts as a loss for P1).
