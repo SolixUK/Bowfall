@@ -2,6 +2,18 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.92.4
+
+- **Fixed: an Assassin bot that used Stealth never shot again.** Stealth lets the bow down and needs the draw button let go and pressed again; the bot kept holding it, waiting for a draw that never started. Bots now let go and redraw, like a person would. It was there since Stealth arrived, but the new Ambusher build (which goes for Stealth) made it common: an AI player on it (kiwi_kicks, say) could play a whole match without firing.
+
+## 0.92.3
+
+- **Bots dodge like people, not like radar.** The sharper bots used to see every arrow the instant it left the bow, know its exact path, and roll for a dash every frame in the last third of a second, so they dashed clear of nearly everything. Now a shot has to be in the air for at least 0.16 seconds before they can act on it (longer for weaker bots), each arrow is either spotted or missed as before, and whether an arrow gets a dash is a single snap judgement per arrow rather than a re-roll until it comes up. Quick shots from close in land, as they do on a person. Between two Master bots, hits rose from about 20% of shots to about 45%; Master still wins 79% of games against Extreme and Extreme 65% against Hard, so the ladder stands.
+
+## 0.92.2
+
+- AI league: a match that breaks no longer stops the league (it's skipped and reported); the finish line says how many matches had no result; rounds go up to 30.
+
 ## 0.92.1
 
 - AI league: sending more than a round's results failed (the server's request limit); it now takes up to 4 MB, and the screen says plainly when the server didn't answer with a result.

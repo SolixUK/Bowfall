@@ -2348,7 +2348,7 @@
     <div class="shopbar"><div class="stat"><span class="eyebrow">Owner tools</span><h2 id="lgTitle">AI league</h2></div><button class="ghost" id="lgClose" type="button">Close</button></div>
     <p class="status">Fast matches between the AI players, run here on your machine (nothing to watch, no server): each round pairs everyone with someone near their rating, like a Swiss tournament. When it's done, preview what their ratings would do and send it up. Only ratings move (1v1 or team, by mode), with the same rating code as a ranked match.</p>
     <div class="row" data-navsec>
-      <div class="field"><label for="lgRounds">Rounds</label><select id="lgRounds"><option>1</option><option>2</option><option selected>3</option><option>5</option><option>8</option><option>12</option></select></div>
+      <div class="field"><label for="lgRounds">Rounds</label><select id="lgRounds"><option>1</option><option>2</option><option selected>3</option><option>5</option><option>8</option><option>12</option><option>20</option><option>30</option></select></div>
       <div class="field"><label for="lgMode">Matches</label><select id="lgMode"><option value="1v1">1v1</option><option value="2v2">2v2</option><option value="mix">1v1 and 2v2</option></select></div>
       <div class="field"><label for="lgWeight">Weight</label><select id="lgWeight"><option value="1">Normal (K 24)</option><option value="2">Double</option><option value="4">Recalibrate (×4)</option></select></div>
       <button class="cta" id="lgGo" type="button">Run</button><button class="ghost" id="lgStop" type="button" hidden>Stop</button>
@@ -2552,7 +2552,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.92.1"></script>
+<script src="sim.js?v=0.92.4"></script>
 <script>
 (() => {
 'use strict';
@@ -2560,7 +2560,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.92.1';
+const PAGE_VERSION = '0.92.4';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -7687,20 +7687,21 @@ function lgPairs(mode) {
 }
 $('lgGo').onclick = async () => {
   if (!LG.ai || LG.on) return;
-  LG.on = true; LG.results = []; LG.rec = new Map(); $('lgGo').disabled = true; $('lgStop').hidden = false; $('lgPreview').disabled = $('lgApply').disabled = true; $('lgErr').textContent = '';
+  LG.on = true; LG.results = []; LG.rec = new Map(); LG.errs = 0; LG.skipped = 0; $('lgGo').disabled = true; $('lgStop').hidden = false; $('lgPreview').disabled = $('lgApply').disabled = true; $('lgErr').textContent = '';
   const rounds = +$('lgRounds').value, modeSel = $('lgMode').value, t0 = performance.now();
   let done = 0, total = 0;
   const plan = []; for (let r = 0; r < rounds; r++) plan.push(modeSel === 'mix' ? (r % 2 ? '2v2' : '1v1') : modeSel);
   for (const mode of plan) { if (!LG.on) break; const pairs = lgPairs(mode); total += pairs.length;
     for (const pr of pairs) {
       if (!LG.on) break;
-      const res = lgMatch(pr.red, pr.blue, mode); done++;
+      let res = null; try { res = lgMatch(pr.red, pr.blue, mode); } catch (e) { LG.errs = (LG.errs || 0) + 1; $('lgErr').textContent = `A match broke (${LG.errs} so far): ${e.message}`; console.error(e); } // (one broken match doesn't stop the league)
+      done++; if (!res) LG.skipped = (LG.skipped || 0) + 1;
       if (res) { LG.results.push({ mode, red: pr.red, blue: pr.blue, win: res.win, ro: res.ro }); for (const tm of ['red', 'blue']) for (const nm of pr[tm]) { const o = LG.rec.get(nm) || { w: 0, l: 0, g: 0 }; o.g++; if (res.win === tm) o.w++; else o.l++; LG.rec.set(nm, o); } }
       $('lgStatus').textContent = `${done} of about ${total * plan.length / (plan.indexOf(mode) + 1) | 0} matches, ${Math.round((performance.now() - t0) / 1000)}s`;
       lgTable(); await new Promise(r => setTimeout(r, 0)); // (let the page breathe between matches)
     } }
   LG.on = false; $('lgGo').disabled = false; $('lgStop').hidden = true; $('lgPreview').disabled = $('lgApply').disabled = !LG.results.length;
-  $('lgStatus').textContent = `${LG.results.length} matches in ${Math.round((performance.now() - t0) / 1000)}s. Preview the rating changes, then apply.`;
+  $('lgStatus').textContent = `${LG.results.length} matches in ${Math.round((performance.now() - t0) / 1000)}s${LG.skipped ? ` (${LG.skipped} with no result: timed out or broke)` : ''}. Preview the rating changes, then apply.`;
 };
 function lgTable(rated) {
   const rows = [...LG.rec].map(([n, o]) => Object.assign({ n }, o, (rated || {})[n] || {})).sort((a, b) => (b.elo || 0) - (a.elo || 0) || (b.w - b.l) - (a.w - a.l));

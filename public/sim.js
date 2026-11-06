@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.92.1';
+const VERSION = '0.92.4';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -4012,10 +4012,12 @@ function aroundPillar(p, gx, gy) {
 }
 // A person needs a moment to see a shot coming, and doesn't catch every one: the arrow has to have been in the air for
 // about their reaction time, and each arrow is either noticed or missed (sharper players miss fewer, nobody catches all)
-function botNotices(p, a) {
+// forDodge: reading a shot well enough to get out of its way takes longer than seeing it (never under 0.16s, even for the
+// best), so a quick shot from close in lands before anyone can move, as it does on a person
+function botNotices(p, a, forDodge) {
   const ai = p.ai; if (!ai) return true;
   const D = botD(p);
-  if (a.age < D.react * 0.5) return false;
+  if (a.age < (forDodge ? Math.max(0.16, D.react * 0.9) : D.react * 0.5)) return false;
   ai.seen = ai.seen || {};
   if (ai.seen[a.id] == null) { if (Object.keys(ai.seen).length > 40) ai.seen = {}; ai.seen[a.id] = Math.random() < 0.3 + 0.6 * D.dodge; }
   return ai.seen[a.id];
@@ -4281,7 +4283,7 @@ function botCloseIn(w, p, T, dT, reach, D, dt) {
 function incoming(w, p, horizon) {
   let hit = null;
   for (const a of w.arrows) {
-    if (a.team === p.team || a.stuck > 0 || !sees(p, a)) continue;
+    if (a.team === p.team || a.stuck > 0 || !sees(p, a) || !botNotices(p, a, true)) continue; // (only shots they've seen coming, after a moment to read them)
     const rx = p.x - a.x, ry = p.y - a.y, v2 = a.vx * a.vx + a.vy * a.vy || 1;
     const t = (rx * a.vx + ry * a.vy) / v2;
     if (t <= 0 || t > horizon) continue;
@@ -4603,7 +4605,9 @@ function botThink(w, p, dt) {
       // can we step clear in time? if not, dash (when it's safe to); closing in, the dash goes diagonally forward
       const need = p.r + 14 - hit.cd, canStep = p.baseSpeed * hit.t * 0.7;
       const dx2 = px + fx * 0.9 * og, dy2 = py + fy * 0.9 * og;
-      if (need > canStep && hit.t < 0.3 && ai.dodgeCd <= 0 && p.dashN > 0 && Math.random() < D.dodge && lethalDist(p.x + dx2 * 110, p.y + dy2 * 110) > 50) {
+      // (whether this one gets a dash is decided once per arrow, like a person's snap judgement, not re-rolled every frame until it comes up)
+      if (ai.dashA !== a.id) { ai.dashA = a.id; ai.dashYes = Math.random() < D.dodge * 0.85; }
+      if (need > canStep && hit.t < 0.3 && ai.dodgeCd <= 0 && p.dashN > 0 && ai.dashYes && lethalDist(p.x + dx2 * 110, p.y + dy2 * 110) > 50) {
         ai.dodgeCd = 0.5; p.wantDash = true; ai.dashAim = Math.atan2(dy2, dx2);
       }
     } else if (gap && !hit && T && p.dashN > 0 && ai.dodgeCd <= 0 && (ai.runCd = (ai.runCd || 0) - dt) <= 0 && dT > botReach(p) + 150
@@ -4615,7 +4619,7 @@ function botThink(w, p, dt) {
       }
     }
   } else for (const a of w.arrows) {
-    if (a.team === p.team || a.stuck > 0 || !sees(p, a)) continue;
+    if (a.team === p.team || a.stuck > 0 || !sees(p, a) || !botNotices(p, a, true)) continue;
     const rx = p.x - a.x, ry = p.y - a.y, v2 = a.vx * a.vx + a.vy * a.vy || 1;
     const t = (rx * a.vx + ry * a.vy) / v2;
     if (t <= 0 || t > 0.4) continue;
@@ -4667,6 +4671,7 @@ function botThink(w, p, dt) {
   { const k = 1 - Math.exp(-dt / 0.16); ai.eS = (ai.eS || 0) + ((ai.eS1 || 0) - (ai.eS || 0)) * k; ai.eM = ai.eM == null ? ai.eM1 || 0 : ai.eM + ((ai.eM1 || 0) - ai.eM) * k; }
   if (!T && GP) { botProbe(w, p, GP, D, iq, dt); botAbilities(w, p, null, Infinity, foes, dt); botDashDir(p); return; }
   if (!T) { ai.lastT = null; inp.draw = false; botAbilities(w, p, null, Infinity, foes, dt); botDashDir(p); return; }
+  if (p.holdOff && inp.draw) { inp.draw = false; ai.reload = Math.max(ai.reload, 0.15); } // the bow was let down (Stealth): let go of the button so it can be drawn again, like a person would
   const spd = (380 + 920 * (p.role === 'crossbow' ? 1 : Math.max(p.charge, ai.want))) * OPT('aspeed'), wasDraw = inp.draw;
   // aim at where the target *appeared* to be (and to be heading) a reaction-time ago, like a person would
   const S = perceived(w, T, D.see || 0.24);
