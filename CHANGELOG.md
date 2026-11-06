@@ -2,6 +2,19 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.90.1
+
+- AI players' skill stays as set on the list (0.90.0 briefly had it follow their rating); their rating finds its own level.
+
+## 0.90.0
+
+- **AI players pick for the arena.** Each AI player now knows how every archetype does on every ranked arena, under each map effect and against each other archetype (`lib/ai-meta.json`: 42,000 simulated Master games, built by `tools/arena-fit.js`, which the owner can rerun after balance changes). They weigh their own favourites by it (the better the player, the more it counts; a weak one just plays their favourite), the sharpest also reach for archetypes off their list when the arena calls for it, and at the end of the draft the sharp ones may swap for a counter-pick or a role their team is missing. So a crossbowman stays away from Ember Rift's lava river, and the knockback crowd shows up where there's something to knock people into.
+- **Plays.** Each AI player favours one or two plays, settled from their name and temper, and takes the one that fits the arena and the matchup: *hold the spring* (juggernauts and wardens on arenas with a healing spring: control it and outlast whoever comes), *close the gap* (crossbowmen against long-range archers: boulder to boulder, then a dash in, rather than trading shots they can't win), *hunt the drops* (work round to where a hit throws people into holes, water or lava), and *keep them off* (long-range archers on open arenas). Each was checked in simulation to help or at least not hurt; now and then they say which one they're going for as the match starts. In the owner's AI match the chat lists each player's archetype and play.
+- **Smoother bot aim.** A bot's aim now wanders smoothly rather than jumping to a new error every half second, so an archer no longer sits on the target and then swings off it the moment before the shot. Accuracy at every skill level is the same as before.
+- **Off their main archetype, AI players play it its own way:** a sniper's player who takes a trapper plays guardian, not marksman. Sharper bots also pick upgrades for the arena: pulls, shoves and harder throws (Harpoon, Gust, Battering Ram, Boulder Arrows and the like) are worth more where there's something to throw people into, and less where there isn't.
+- **AI match:** choose the arena (from the ranked rotation) and the map effect, or leave either to the usual draw.
+- Found in the simulations, for what it's worth: between equal bots the Sniper is the weakest archetype on every arena (about 41% of games against the field) and the Crossbowman and Ninja the strongest; Ember Rift is the one arena where crossbows lose badly.
+
 ## 0.89.2
 
 - **AI match** (owner only: an **AI match** button on the main screen with the other owner tools). Pick 1v1, 2v2 or 3v3 and a rating, and the server makes a real ranked match of AI players the way matchmaking would: the nearest free AI players to that rating, balanced into two teams, an arena drawn as usual, a short draft, then the match. Their ratings, stats and records change as in any ranked match, and the AI players chat and learn from it as usual. You're put in as a watcher (5 seconds behind, like Live now), and if it's the top match going it shows on everyone's Live now card for anyone to watch. Only the owner can start one (`POST /api/owner/aimatch`); the room closes half a minute after the match ends, or after 5 minutes if nobody comes to watch.

@@ -2336,6 +2336,8 @@
     <div class="row" data-navsec>
       <div class="field"><label for="aimMode">Match</label><select id="aimMode"><option value="1v1">1v1</option><option value="2v2">2v2</option><option value="3v3">3v3</option></select></div>
       <div class="field"><label for="aimElo">Rating <span id="aimEloN">1500</span></label><input type="range" id="aimElo" min="600" max="2600" step="50" value="1500"></div>
+      <div class="field"><label for="aimMap">Arena</label><select id="aimMap"><option value="random">Drawn as usual</option></select></div>
+      <div class="field"><label for="aimEff">Map effect</label><select id="aimEff"><option value="random">Rolled as usual</option><option value="none">None</option></select></div>
       <button class="cta" id="aimGo" type="button">Start and watch</button>
     </div>
     <span class="status err" id="aimErr"></span>
@@ -2535,7 +2537,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.89.2"></script>
+<script src="sim.js?v=0.90.1"></script>
 <script>
 (() => {
 'use strict';
@@ -2543,7 +2545,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.89.2';
+const PAGE_VERSION = '0.90.1';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -7613,16 +7615,23 @@ function openLab() {
 const labRead = () => { const out = { ranked: [], custom: [] }; $('labList').querySelectorAll('.labrow').forEach(el => { for (const c of el.querySelectorAll('input[data-pool]')) if (c.checked) out[c.dataset.pool].push(el.dataset.key); }); return out; };
 $('labBtn').onclick = openLab;
 // the owner's AI match: start one on the server and watch it
-$('aimBtn').onclick = () => { if (!(account && account.admin)) return; $('aimErr').textContent = ''; $('aimScr').hidden = false; };
+$('aimBtn').onclick = () => {
+  if (!(account && account.admin)) return; $('aimErr').textContent = ''; $('aimScr').hidden = false;
+  // the arenas in the ranked rotation, and the map effects, to choose from (or leave both to chance, as a real match would)
+  const keep = $('aimMap').value, keepE = $('aimEff').value;
+  $('aimMap').innerHTML = '<option value="random">Drawn as usual</option>' + Sim.rankedPool().map(k => `<option value="${k}">${esc(MAPS[k].name)}</option>`).join('');
+  if ($('aimEff').options.length <= 2) $('aimEff').innerHTML += Object.entries(Sim.MUTATORS).map(([k, m]) => `<option value="${k}">${esc(m.name)}</option>`).join('');
+  $('aimMap').value = [...$('aimMap').options].some(o => o.value === keep) ? keep : 'random'; $('aimEff').value = keepE || 'random';
+};
 $('aimClose').onclick = () => { $('aimScr').hidden = true; };
 $('aimElo').oninput = () => { $('aimEloN').textContent = $('aimElo').value; };
 $('aimGo').onclick = async () => {
   $('aimGo').disabled = true; $('aimErr').textContent = '';
   try {
-    const r = await fetch('/api/owner/aimatch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: $('aimMode').value, elo: +$('aimElo').value }) }), d = await r.json();
+    const r = await fetch('/api/owner/aimatch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: $('aimMode').value, elo: +$('aimElo').value, map: $('aimMap').value, effect: $('aimEff').value }) }), d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Could not start it.');
     $('aimScr').hidden = true; closeSubs(); if (DM.open) dmClose();
-    notice(`<b>${esc(d.red.map(p => p.name + ' ' + p.elo).join(', '))}</b> vs <b>${esc(d.blue.map(p => p.name + ' ' + p.elo).join(', '))}</b> on ${esc((MAPS[d.map] || {}).name || d.map)}`, false);
+    const who = p => `${p.name} ${p.elo}`; notice(`<b>${esc(d.red.map(who).join(', '))}</b> vs <b>${esc(d.blue.map(who).join(', '))}</b> on ${esc((MAPS[d.map] || {}).name || d.map)}${d.effect ? ' · ' + esc(Sim.mutKeys(d.effect).map(k => Sim.MUTATORS[k].name).join(' + ')) : ''}`, false);
     connect({ watch: d.code });
   } catch (e) { $('aimErr').textContent = e.message; }
   $('aimGo').disabled = false;

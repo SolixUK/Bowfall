@@ -676,7 +676,7 @@ async function api(req, res, url) {
   if (route === '/owner/aimatch' && method === 'POST') {
     if (!me || !me.admin) return json(res, 403, { error: 'Only the game owner can do that.' });
     if (rooms.size >= MAX_ROOMS) return json(res, 503, { error: 'The server is full.' });
-    const r = social.ownerMatch(String(body.mode || '1v1'), +body.elo || ELO_START);
+    const r = social.ownerMatch(String(body.mode || '1v1'), +body.elo || ELO_START, String(body.map || 'random'), String(body.effect || 'random'));
     return json(res, r.error ? 400 : 200, r);
   }
   if (route === '/legal' && method === 'GET') return json(res, 200, { discord: DISCORD_INVITE, contact: process.env.CONTACT_EMAIL || null, payments: PAY.configured(), mail: MAIL.configured(), providers: O.enabled() });

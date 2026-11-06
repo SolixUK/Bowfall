@@ -2321,6 +2321,8 @@
     <div class="row" data-navsec>
       <div class="field"><label for="aimMode">Match</label><select id="aimMode"><option value="1v1">1v1</option><option value="2v2">2v2</option><option value="3v3">3v3</option></select></div>
       <div class="field"><label for="aimElo">Rating <span id="aimEloN">1500</span></label><input type="range" id="aimElo" min="600" max="2600" step="50" value="1500"></div>
+      <div class="field"><label for="aimMap">Arena</label><select id="aimMap"><option value="random">Drawn as usual</option></select></div>
+      <div class="field"><label for="aimEff">Map effect</label><select id="aimEff"><option value="random">Rolled as usual</option><option value="none">None</option></select></div>
       <button class="cta" id="aimGo" type="button">Start and watch</button>
     </div>
     <span class="status err" id="aimErr"></span>
@@ -2533,7 +2535,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.89.2';
+const VERSION = '0.90.1';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -3194,6 +3196,34 @@ function useMap(w) {
   HAZ = cr.some(c => c === 2) ? MAP.haz.concat(MAP.cracks.filter((c, i) => cr[i] === 2)) : MAP.haz;
   WARN = cr.some(c => c === 1) ? MAP.cracks.filter((c, i) => cr[i] === 1) : [];
 }
+// ---- Arena sense: what kind of arena this is, read off its layout the first time it's asked for. Bots who know the arena
+// play it accordingly (PLAYS, below the bot brain), and matchmaking's AI players use it to pick an archetype that suits it.
+// open: how much of the arena is long clear sight lines (0..1); holes: how much of the floor is within a step of something
+// deadly; bog: how much is slow ground; big: its area against the standard arena; island: a middle ringed by hazards;
+// hold: a spot worth holding (the healing spring, or the middle of an island arena, where the power-up is), or nothing.
+function senseArena() {
+  if (MAP.sense) return MAP.sense;
+  const keepHaz = HAZ, keepWarn = WARN, keepSaw = SAWPOS; HAZ = MAP.haz; WARN = []; SAWPOS = SAWS.map(o => sawAt(o, 0)); // (the arena as built)
+  const solid = (x, y) => PILLARS.some(q => Math.hypot(x - q.x, y - q.y) < q.r + 14) || BLOCKS.some(b => x > b.x - 14 && x < b.x + b.w + 14 && y > b.y - 14 && y < b.y + b.h + 14);
+  const pts = [];
+  for (let x = WALL + 30; x < AW - WALL - 30; x += 40) for (let y = WALL + 30; y < AH - WALL - 30; y += 40) if (!solid(x, y) && lethalDist(x, y) > 14) pts.push([x, y]);
+  let near = 0, bog = 0; for (const [x, y] of pts) { if (lethalDist(x, y) < 110) near++; if (inBog(x, y, 0)) bog++; }
+  let pairs = 0, clear = 0;
+  for (let i = 0; i < pts.length; i += 3) for (let j = i + 7; j < pts.length; j += 11) {
+    const d = Math.hypot(pts[i][0] - pts[j][0], pts[i][1] - pts[j][1]); if (d < 450 || d > 950) continue;
+    pairs++; if (clearShot(pts[i][0], pts[i][1], pts[j][0], pts[j][1])) clear++;
+  }
+  // an island: something deadly in most directions out from the middle, with no wide open side (a canyon across the middle isn't one)
+  const cx = AW / 2, cy = AH / 2, hit = [], N = 48; let ring = 0;
+  for (let i = 0; i < N; i++) { const a = i / N * TAU; hit.push([100, 130, 160, 190, 220, 250].some(r => lethalDist(cx + Math.cos(a) * r, cy + Math.sin(a) * r) < 0)); if (hit[i]) ring++; }
+  let run = 0, gap = 0; for (let i = 0; i < 2 * N; i++) { if (hit[i % N]) run = 0; else gap = Math.max(gap, ++run); }
+  const hub = ring >= 16 && gap <= 9 && lethalDist(cx, cy) > 60, island = hub && ring >= 23; // (hub: a crossing worth holding, if not quite an island)
+  HAZ = keepHaz; WARN = keepWarn; SAWPOS = keepSaw;
+  return (MAP.sense = { open: pairs ? clear / pairs : 1, holes: pts.length ? near / pts.length : 0, bog: pts.length ? bog / pts.length : 0, big: (AW * AH) / (BASE_W * BASE_H), island, saws: SAWS.length > 0,
+    heal: HEAL ? { x: HEAL.x, y: HEAL.y, r: HEAL.r } : null, hold: HEAL ? { x: HEAL.x, y: HEAL.y, r: Math.max(HEAL.r, 120) } : hub ? { x: cx, y: cy, r: 140 } : null, ring });
+}
+// the same, for an arena by key (the server, choosing archetypes for AI players before a match)
+function arenaSense(key) { if (!MAPS[key]) return null; const w = createWorld({ map: key, opt: { effect: 'none' } }); useMap(w); return senseArena(); }
 // seconds into the current game (0 outside play); moving arena pieces follow it
 // the game clock the machinery runs on (saws): from the start of each game, and on through the pause after it ends, so a
 // saw doesn't jump back to its starting spot the moment someone is knocked out
@@ -4240,6 +4270,8 @@ function setBotMind(w, id, o) {
   if (o.aggr != null) p.ai.aggr = clamp(+o.aggr, 0.1, 1);
   p.ai.tr = o.tr ? Object.assign({}, TR0, o.tr) : null;
   if (o.gene) p.gene = Object.assign({}, o.gene);
+  p.ai.plays = Array.isArray(o.plays) ? o.plays.filter(k => PLAYS[k]) : null;
+  p.ai.base = { aggr: p.ai.aggr, tr: p.ai.tr ? Object.assign({}, p.ai.tr) : null, gene: p.gene ? Object.assign({}, p.gene) : null }; // (what a play leans from)
   return true;
 }
 function restyle(p) {
@@ -4258,12 +4290,16 @@ const CARD_VALUE = { aftershock: -0.006, ambush: 0.01, ballista: 0.009, bankshot
 // Smart bots (Master, and AI players near it) mostly go by what the learning showed actually wins.
 // cards that do nothing without teammates (yours or theirs): never offered in a 1v1, and bots on their own skip them
 const TEAM_ONLY = ['oath', 'revive', 'transfusion', 'contagion', 'aftershock', 'forked'];
+// cards that live off the arena's drops: a pull, a shove or a harder throw is worth more where there's something to throw people into
+const HAZ_CARDS = { harpoon: 1, gust: 0.9, ram: 0.7, boulder: 0.6, obsidian: 0.6, aftershock: 0.5, recoil: 0.3, kindling: 0.4, shatter: 0.4, dread: 0.4 };
 function botPickIndex(p, w) {
   if (p.gene && p.gene.randPick) return Math.floor(Math.random() * p.offer.length); // exploring, for learning what works
   const st = STYLES[p.ai && p.ai.style], iq = p.gene && p.gene.noLearn ? 0 : botD(p).iq || 0;
   const alone = w && !w.players.some(q => q !== p && q.team === p.team);
+  const S = w ? senseArena() : null; // (the sharper bots pick for the arena: the pulls and shoves are for arenas with something to throw people into)
   const score = id => HONES[id] ? 0.6 * iq + Math.random() * (1.5 - iq) : alone && TEAM_ONLY.includes(id) ? -1 :
-    (TREE[id].cap ? 5 - 3 * iq : 1) + (TREE[id].active ? 1 - 0.5 * iq : 0) + (st && st.cards.includes(id) ? 1.8 - 1.2 * iq : 0) + (CARD_VALUE[id] || 0) * 40 * iq + Math.random() * (1.5 - iq);
+    (TREE[id].cap ? 5 - 3 * iq : 1) + (TREE[id].active ? 1 - 0.5 * iq : 0) + (st && st.cards.includes(id) ? 1.8 - 1.2 * iq : 0) + (CARD_VALUE[id] || 0) * 40 * iq + Math.random() * (1.5 - iq)
+    + (S && HAZ_CARDS[id] ? (S.holes - 0.3) * 4 * HAZ_CARDS[id] * iq : 0);
   let best = 0;
   p.offer.forEach((id, i) => { if (score(id) > score(p.offer[best])) best = i; });
   return best;
@@ -4464,6 +4500,7 @@ function resetMatch(w) {
   M.rd = 1; M.gm = 1; M.wins = { red: 0, blue: 0 }; M.gw = { red: 0, blue: 0 }; M.picks = 0; M.mw = null;
   w.matchId = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   for (const p of w.players) if (p.bot && !p.aiUser) pickStyle(p); // a fresh mood each match (matchmaking's AI players keep their own personality)
+  for (const p of w.players) if (p.bot && p.ai) choosePlay(w, p); // the play that fits this arena and these opponents, for those who have one
   for (const p of w.players) { restoreArch(p); p.kills = 0; p.deaths = 0; p.amber = 0; p.earned = 0; p.up = [p.element]; p.hones = {}; p.offer = null; p.picked = false; p.ready = false; p.streak = 0; p.emp = false; p.empPts = 0; p.stats = { shots: 0, hits: 0, dmg: 0, taken: 0, ring: 0, longest: 0 }; stripArch(w, p); applyStats(p); }
   ev(w, { e: 'matchStart' });
   if (MAP.mode === 'conquest') return cqStart(w); // Strongholds: straight to the countdown, NPCs at their posts
@@ -6513,6 +6550,36 @@ const dashK = ai => ai.tr ? 0.4 + 1.2 * ai.tr.dash : 1;
 
 // ---- the smarter brain (used as far as a level's iq allows; Master uses all of it)
 // GENE holds the weights it balances; they were tuned by pitting variations against each other over thousands of games
+// ---- Plays: how an archer who knows the arena plays it. Matchmaking's AI players each favour a couple (the server gives
+// them with setBotMind), and when a match starts they take the one that fits the arena, their archetype and who they're
+// up against; with none fitting they play as usual. A play leans the bot's traits and weights, and two have moves of
+// their own in the brain: holding a spot (botPlan, and the simpler brain's goal) and closing a gap (botCloseIn).
+//   hold:  (the tough) control the healing spring and outlast whoever comes for it
+//   rush:  (crossbowmen) close the distance on long-range archers, boulder to boulder and then a dash, rather than trade shots you can't win
+//   edge:  hunt knockouts: work round to where a hit throws them into a hole, water or lava
+//   kite:  keep the arena between you: full draws from long range, behind cover, backing off from anyone who comes close
+// fits(S, p, foes): does it suit this arena and matchup; lean: what it does to aggression, traits and weights
+const PLAYS = {
+  hold: { name: 'Hold the spring', fits: (S, p) => !!S.heal && (p.hp >= 100 || p.role === 'warden'), lean: { aggr: [0.45, 0.8], tr: { cover: 0.2 }, gene: { safety: 0.9, heal: 1.4 } } },
+  rush: { name: 'Close the gap', fits: (S, p, foes) => p.role === 'crossbow' && foes.some(q => outranged(p, q) > 0.3), lean: { aggr: [0.8, 1], tr: { cover: 0.7 }, gene: { pref: 0.75, jink: 0.35 } } },
+  edge: { name: 'Hunt the drops', fits: S => S.holes > 0.3, lean: { tr: { edge: 0.6 }, gene: { push: 1.05 } } },
+  kite: { name: 'Keep them off', fits: (S, p, foes) => S.open > 0.65 && botReach(p) >= 850 && !foes.every(q => botReach(q) >= 850 && q.role === 'sniper'), lean: { aggr: [0.1, 0.45], tr: { cover: 0.6 }, gene: { pref: 1.12, los: 1.2 } } },
+};
+// the play's spot, when it has one, and how much this bot wants to be there right now (hurt and healing there: badly)
+function holdSpot(p) { const S = senseArena(); return p.ai && p.ai.play === 'hold' && S.hold ? S.hold : null; }
+function choosePlay(w, p) {
+  const ai = p.ai; if (!ai) return;
+  if (ai.base) { ai.aggr = ai.base.aggr; ai.tr = ai.base.tr ? Object.assign({}, ai.base.tr) : null; p.gene = ai.base.gene ? Object.assign({}, ai.base.gene) : null; } // (the lean of a previous match comes off first)
+  ai.play = null;
+  if (!ai.plays || !ai.plays.length) return;
+  const S = senseArena(), foes = w.players.filter(q => q.team !== p.team && !q.npc);
+  const play = ai.plays.find(k => PLAYS[k] && PLAYS[k].fits(S, p, foes)); if (!play) return;
+  ai.play = play;
+  const L = PLAYS[play].lean, ag = ai.aggr == null ? 0.6 : ai.aggr;
+  if (L.aggr) ai.aggr = clamp(ag, L.aggr[0], L.aggr[1]);
+  if (L.tr) { ai.tr = Object.assign({}, TR0, ai.tr || {}); for (const k in L.tr) ai.tr[k] = Math.max(ai.tr[k], L.tr[k]); }
+  if (L.gene) { p.gene = Object.assign({}, p.gene || {}); for (const k in L.gene) p.gene[k] = (p.gene[k] == null ? 1 : p.gene[k]) * L.gene[k]; }
+}
 const GENE = { pref: 1, safety: 1, push: 1, los: 1, pick: 1, jink: 0.5, kbScale: 1, dodgeT: 0.55, retreat: 0.3, cand: 130, heal: 1, fireTol: 0.9, far: 380, quick: 0.45, mid: 0.8, riskFull: 0.5, planDt: 0.12 };
 // how far a hit of charge c would shove an archer of this mass (knockback, then the slide after it)
 function kbTravel(c, mass, mul) {
@@ -6611,6 +6678,7 @@ function botPlan(w, p, T, foes, mates, D, G) {
   const ai = p.ai, st = STYLES[ai.style] || STYLES.skirmisher;
   const reach = botReach(p), outg = T ? outranged(p, T) : 0, ready = loaded(p);
   const pref = Math.min(reach * 0.8, (st.near + st.far) / 2 * G.pref) * botPressIn(p);
+  const hold = holdSpot(p), holdK = hold ? (p.hp < p.maxHp * 0.7 && senseArena().heal ? 1.6 : 1) * (T && Math.hypot(T.x - hold.x, T.y - hold.y) < hold.r + 60 ? 0.5 : 1) : 0; // (less while they're standing on it: that's a fight, not a stroll)
   const myKb = kbTravel(0.95, T ? T.mass : 1, p.kbMul) * G.kbScale;
   const cand = [[p.x, p.y]];
   // (a boulder in the way: look further afield too, or every spot in reach can be behind it)
@@ -6653,6 +6721,7 @@ function botPlan(w, p, T, foes, mates, D, G) {
       if (du < 260 && !inBog(u.x, u.y, 30)) sc += (u.chan ? 0.9 : u.type === 'amber' ? 0.5 : 0.8) * (1 - du / 260) * G.pick;
     }
     if (inBog(x, y, p.r)) sc -= 0.6; // slow, and no dashing out of trouble
+    if (hold) { const dh = Math.hypot(hold.x - x, hold.y - y); sc += dh < hold.r + 40 ? 0.9 * holdK * (1 - dh / (hold.r + 40)) : -Math.min(0.6, (dh - hold.r) / 600) * holdK; } // the play: hold the spot
     if (HEAL && p.hp < p.maxHp * 0.6) { const dh = Math.hypot(HEAL.x - x, HEAL.y - y); if (dh < HEAL.r) sc += 0.8 * G.heal * (1 - p.hp / p.maxHp); }
     // don't stand on a teammate
     for (const m of mates) { const dm = Math.hypot(m.x - x, m.y - y); if (dm < 110) sc -= (110 - dm) / 110 * 0.5; }
@@ -6676,7 +6745,7 @@ function botCloseIn(w, p, T, dT, reach, D, dt) {
   const outg = outranged(p, T);
   const dd = p.role === 'ninja' ? NINJA_BLINK * (has(p, 'longstep') ? 1.4 : 1) : 250;
   if (!outg || !(p.dashN > 0) || ai.closeCd > 0 || dT < reach * 0.9 || dT > reach * 0.9 + dd || !loaded(p)) return;
-  if (Math.random() > dt * (0.4 + D.dodge * 1.5 + (D.iq || 0) * 2) * outg * dashK(ai)) return;
+  if (Math.random() > dt * (0.4 + D.dodge * 1.5 + (D.iq || 0) * 2) * outg * dashK(ai) * (ai.play === 'rush' ? 2.2 : 1)) return;
   if (incoming(w, p, 0.4)) return;
   // the sharper bots time it: not into a bow that's drawn and waiting, but the moment after it looses, while it's being drawn again
   if ((D.iq || 0) > 0.3 && T.drawing && T.charge > 0.4) return;
@@ -6911,8 +6980,10 @@ function botThink(w, p, dt) {
     if (shaky && (T.hp <= p.hp + 5 || Math.min(p.x - WALL, AW - WALL - p.x, p.y - WALL, AH - WALL - p.y) < 90)) shaky = false;
     ai.shakyT = shaky ? (ai.shakyT || 0) + dt : Math.max(0, (ai.shakyT || 0) - dt * 0.5);
     if (ai.shakyT > 4) shaky = false;
+    const hold = holdSpot(p), hd = hold ? Math.hypot(hold.x - p.x, hold.y - p.y) : 0;
     if (shaky || d < near) { gx = -ux; gy = -uy; }
-    else if (d > far || !clearShot(p.x, p.y, T.x, T.y)) {
+    else if (hold && hd > hold.r * 0.7 && d > near * 1.3) { gx = (hold.x - p.x) / hd * 0.8 - uy * ai.strafe * 0.3; gy = (hold.y - p.y) / hd * 0.8 + ux * ai.strafe * 0.3; } // the play: get to the spot and stay on it
+    else if ((d > far && !(hold && hd <= hold.r)) || !clearShot(p.x, p.y, T.x, T.y)) { // (holding the spot: let them come)
       // close in with a weave; the outranged weave less, or someone walking backward keeps them out of reach for good
       const fwd = d > reach ? 0.8 + 0.2 * outg : 0.8, side = 0.5 - 0.25 * (d > reach ? outg : 0);
       gx = ux * fwd - uy * ai.strafe * side; gy = uy * fwd + ux * ai.strafe * side;
@@ -7069,8 +7140,11 @@ function botThink(w, p, dt) {
   ai.errT -= dt;
   if (ai.errT <= 0) {
     ai.err = rand(-1, 1) * D.aimErr * (p.shroudT > 0 ? (p.shroudR < 150 ? 3.5 : 2.2) : 1); // (the old model, kept for comparison runs)
-    ai.eS = (Math.random() + Math.random() + Math.random() - 1.5) / 1.5; ai.eM = rand(-0.45, 1.25); ai.errT = rand(0.3, 0.6);
+    // where the hand is drifting to next: the aim wanders there smoothly (below) rather than jumping, so an archer doesn't sit on
+    // the target and then swing off it the moment before the shot (the targets are a little bigger than the hand reaches, so the misses stay as they were)
+    ai.eS1 = (Math.random() + Math.random() + Math.random() - 1.5) / 1.5 * 1.15; ai.eM1 = rand(-0.45, 1.25) * 1.1; ai.errT = rand(0.3, 0.6);
   }
+  { const k = 1 - Math.exp(-dt / 0.16); ai.eS = (ai.eS || 0) + ((ai.eS1 || 0) - (ai.eS || 0)) * k; ai.eM = ai.eM == null ? ai.eM1 || 0 : ai.eM + ((ai.eM1 || 0) - ai.eM) * k; }
   if (!T && GP) { botProbe(w, p, GP, D, iq, dt); botAbilities(w, p, null, Infinity, foes, dt); botDashDir(p); return; }
   if (!T) { ai.lastT = null; inp.draw = false; botAbilities(w, p, null, Infinity, foes, dt); botDashDir(p); return; }
   const spd = (380 + 920 * (p.role === 'crossbow' ? 1 : Math.max(p.charge, ai.want))) * OPT('aspeed'), wasDraw = inp.draw;
@@ -8497,7 +8571,7 @@ return {
   TM, TM_NAMES, TM_MINIONS, MASTERY, masteryOf, takeCard, applyStats,
   AIM, AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, SKILL_MIN, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
-  plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, LAB_KEYS, applyArenaPool, arenaPool, rankedPool, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
+  plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, LAB_KEYS, applyArenaPool, arenaPool, rankedPool, arenaSense, PLAYS, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg, emblemCol, emblemFull,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, BANNER_FRAME, frameAllowed, featProgress, achSeed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
@@ -8513,7 +8587,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.89.2';
+const PAGE_VERSION = '0.90.1';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -13583,16 +13657,23 @@ function openLab() {
 const labRead = () => { const out = { ranked: [], custom: [] }; $('labList').querySelectorAll('.labrow').forEach(el => { for (const c of el.querySelectorAll('input[data-pool]')) if (c.checked) out[c.dataset.pool].push(el.dataset.key); }); return out; };
 $('labBtn').onclick = openLab;
 // the owner's AI match: start one on the server and watch it
-$('aimBtn').onclick = () => { if (!(account && account.admin)) return; $('aimErr').textContent = ''; $('aimScr').hidden = false; };
+$('aimBtn').onclick = () => {
+  if (!(account && account.admin)) return; $('aimErr').textContent = ''; $('aimScr').hidden = false;
+  // the arenas in the ranked rotation, and the map effects, to choose from (or leave both to chance, as a real match would)
+  const keep = $('aimMap').value, keepE = $('aimEff').value;
+  $('aimMap').innerHTML = '<option value="random">Drawn as usual</option>' + Sim.rankedPool().map(k => `<option value="${k}">${esc(MAPS[k].name)}</option>`).join('');
+  if ($('aimEff').options.length <= 2) $('aimEff').innerHTML += Object.entries(Sim.MUTATORS).map(([k, m]) => `<option value="${k}">${esc(m.name)}</option>`).join('');
+  $('aimMap').value = [...$('aimMap').options].some(o => o.value === keep) ? keep : 'random'; $('aimEff').value = keepE || 'random';
+};
 $('aimClose').onclick = () => { $('aimScr').hidden = true; };
 $('aimElo').oninput = () => { $('aimEloN').textContent = $('aimElo').value; };
 $('aimGo').onclick = async () => {
   $('aimGo').disabled = true; $('aimErr').textContent = '';
   try {
-    const r = await fetch('/api/owner/aimatch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: $('aimMode').value, elo: +$('aimElo').value }) }), d = await r.json();
+    const r = await fetch('/api/owner/aimatch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: $('aimMode').value, elo: +$('aimElo').value, map: $('aimMap').value, effect: $('aimEff').value }) }), d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Could not start it.');
     $('aimScr').hidden = true; closeSubs(); if (DM.open) dmClose();
-    notice(`<b>${esc(d.red.map(p => p.name + ' ' + p.elo).join(', '))}</b> vs <b>${esc(d.blue.map(p => p.name + ' ' + p.elo).join(', '))}</b> on ${esc((MAPS[d.map] || {}).name || d.map)}`, false);
+    const who = p => `${p.name} ${p.elo}`; notice(`<b>${esc(d.red.map(who).join(', '))}</b> vs <b>${esc(d.blue.map(who).join(', '))}</b> on ${esc((MAPS[d.map] || {}).name || d.map)}${d.effect ? ' · ' + esc(Sim.mutKeys(d.effect).map(k => Sim.MUTATORS[k].name).join(' + ')) : ''}`, false);
     connect({ watch: d.code });
   } catch (e) { $('aimErr').textContent = e.message; }
   $('aimGo').disabled = false;
