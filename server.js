@@ -555,7 +555,7 @@ async function api(req, res, url) {
   const method = req.method;
   let m;
   const me = await userFromReq(req);
-  const body = method === 'POST' ? await readBody(req, route === '/clip' || route === '/weekplay' || route === '/share' ? 700 * 1024 : undefined).catch(() => null) : null;
+  const body = method === 'POST' ? await readBody(req, route === '/clip' || route === '/weekplay' || route === '/share' ? 700 * 1024 : route === '/owner/ailelo' ? 4 * 1024 * 1024 : undefined).catch(() => null) : null;
   if (method === 'POST' && !body) return json(res, 400, { error: 'Bad request.' });
 
   // balance data for the in-game screen

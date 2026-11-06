@@ -2,6 +2,10 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.92.1
+
+- AI league: sending more than a round's results failed (the server's request limit); it now takes up to 4 MB, and the screen says plainly when the server didn't answer with a result.
+
 ## 0.92.0
 
 - **AI league** (owner only, next to AI match). Fast matches between the AI players run on your own machine with nothing to watch: each round pairs everyone with someone near their rating, like a Swiss tournament (1v1, 2v2 or both), about 75 matches in half a minute. When it's done, preview what their ratings would do, then send it up: the server rates the results with the same code as a ranked match (`POST /api/owner/ailelo`), with a weight of your choice (normal K, double, or ×4 to recalibrate). Only ratings move (1v1 or team, by mode): no careers, records or learning.
