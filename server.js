@@ -680,7 +680,36 @@ async function api(req, res, url) {
     const r = social.ownerMatch(String(body.mode || '1v1'), +body.elo || ELO_START, String(body.map || 'random'), String(body.effect || 'random'));
     return json(res, r.error ? 400 : 200, r);
   }
-  if (route === '/legal' && method === 'GET') return json(res, 200, { discord: DISCORD_INVITE, contact: process.env.CONTACT_EMAIL || null, payments: PAY.configured(), mail: MAIL.configured(), providers: O.enabled() });
+  // the owner's AI league: results of matches the owner ran between AI players on their own machine (the AI league screen),
+  // rated here with the same rating code as a ranked match, so the AI players' ratings settle against each other without
+  // anyone watching. dry: work it out and report, change nothing. weight: a multiplier on the rating change (1 to 4), for a
+  // recalibration. Only ratings move (1v1 or team, by mode): no careers, records or learning.
+  if (route === '/owner/ailelo' && method === 'POST') {
+    if (!me || !me.admin) return json(res, 403, { error: 'Only the game owner can do that.' });
+    const list = Array.isArray(body.results) ? body.results.slice(0, 5000) : [], weight = Math.max(1, Math.min(4, +body.weight || 1)), dry = !!body.dry;
+    const byName = new Map((social._ai() || []).map(u => [u.name.toLowerCase(), u])), before = new Map(), touched = new Set();
+    let n = 0;
+    for (const r of list) {
+      if (!r || !['red', 'blue'].includes(r.win) || !Array.isArray(r.red) || !Array.isArray(r.blue)) continue;
+      const key = keyFor(r.mode === '1v1' ? '1v1' : '2v2'), users = new Map(), ps = [];
+      let i = 0, ok = true;
+      for (const tm of ['red', 'blue']) for (const nm of r[tm]) { const u = byName.get(String(nm).toLowerCase()); if (!u) { ok = false; break; } const id = ++i; users.set(id, u); ps.push({ id, tm, w: tm === r.win ? 1 : 0, share: 1, ro: String(r.ro && r.ro[nm] || 'ranger') }); }
+      if (!ok || !ps.some(p => p.tm === 'red') || !ps.some(p => p.tm === 'blue')) continue;
+      for (const u of users.values()) if (!before.has(u)) before.set(u, { elo: ratingOf(u, 'elo'), eloT: ratingOf(u, 'eloT'), c: JSON.stringify({ elo: u.career.elo, eloT: u.career.eloT, eloPeak: u.career.eloPeak, eloTPeak: u.career.eloTPeak }) });
+      for (const [id, x] of rateGame({ win: r.win, key, p: ps }, users)) {
+        const u = [...users.values()].find(q => q.id === id); if (!u) continue;
+        const c = u.career, now = ratingOf(u, key), d = (x.elo - now) * weight;
+        c[key] = Math.round((now + d) * 10) / 10; const pk = key === 'elo' ? 'eloPeak' : 'eloTPeak'; c[pk] = Math.max(c[pk] || ELO_START, c[key]);
+        touched.add(u);
+      }
+      n++;
+    }
+    const out = [...touched].map(u => ({ name: u.name, elo: Math.round(ratingOf(u, 'elo')), eloT: Math.round(ratingOf(u, 'eloT')), d: Math.round(ratingOf(u, 'elo') - before.get(u).elo), dT: Math.round(ratingOf(u, 'eloT') - before.get(u).eloT) })).sort((a, b) => b.elo - a.elo);
+    if (dry) for (const [u, b] of before) Object.assign(u.career, JSON.parse(b.c)); // (put back as they were)
+    else for (const u of touched) markDirty(u);
+    return json(res, 200, { matches: n, players: out, applied: !dry });
+  }
+  if (route === '/legal' && method === 'GET')  if (route === '/legal' && method === 'GET') return json(res, 200, { discord: DISCORD_INVITE, contact: process.env.CONTACT_EMAIL || null, payments: PAY.configured(), mail: MAIL.configured(), providers: O.enabled() });
   if (route === '/device-login' && method === 'POST') {
     if (!authLimit(ip(req))) return json(res, 429, { error: 'Too many attempts. Wait a minute and try again.' });
     const u = await store.userByName(String(body.name || '').trim());

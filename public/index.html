@@ -354,7 +354,7 @@
   @keyframes livePulse { 50% { opacity: .35; } }
   .homelive .lvt { display: flex; flex-direction: column; min-width: 0; flex: 1; } .homelive .lvt b { font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .02em; } .homelive .lvt small { color: var(--muted); font-size: 12px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
   .homelive .cta.sm { flex: none; display: inline-flex; align-items: center; }
-  #farmScr, #labScr, #aimScr { z-index: 6; } #farmScr > .card, #labScr > .card { max-width: 1240px; }
+  #farmScr, #labScr, #aimScr, #lgScr { z-index: 6; } #lgScr > .card { max-width: 980px; } #lgTable { width: 100%; border-collapse: collapse; font-size: 13.5px; } #lgTable th, #lgTable td { padding: 4px 8px; text-align: left; border-bottom: 1px solid var(--line); } #lgTable td.n { text-align: right; } #lgWrap { max-height: 46vh; overflow: auto; margin-top: 10px; } #farmScr > .card, #labScr > .card { max-width: 1240px; }
   .farmgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } @media (max-width: 900px) { .farmgrid { grid-template-columns: 1fr; } }
   .farmgrid .field { display: grid; grid-template-columns: minmax(90px, 36%) minmax(0, 1fr); align-items: center; gap: 4px 10px; } .farmgrid .field > label:only-child { grid-column: 1 / -1; font-size: 13px; }
   .farmgrid select { padding: 4px 8px; font-size: 14px; }
@@ -1885,7 +1885,7 @@
         <button class="mm" id="mOpts" type="button"><span class="mmk">07</span><b>Options</b></button>
       </nav>
       <div class="homefoot">
-        <div class="btnrow"><button class="ghost sm" id="helpBtn" type="button">How to play</button><button class="ghost sm" id="achBtn" type="button">Achievements</button><button class="ghost sm" id="balBtn" type="button">Balance data</button><a class="ghost sm" id="fnBtn" href="/api/funnel?html=1" target="_blank" rel="noopener" hidden>Funnel</a><a class="ghost sm" id="onBtn" href="/api/online?html=1" target="_blank" rel="noopener" hidden>Online now</a><button class="ghost sm" id="sndBtn" type="button" hidden>Sound desk</button><button class="ghost sm" id="farmBtn" type="button" hidden title="AI players fight each other for you to record: trailers, promos, highlight clips">Clip farm</button><button class="ghost sm" id="labBtn" type="button" hidden title="Try new arenas against bots, and choose which arenas are in custom games and the ranked rotation">Arena lab</button><button class="ghost sm" id="aimBtn" type="button" hidden title="Start a real ranked match of AI players at a rating of your choice and watch it, to see how each level plays">AI match</button></div>
+        <div class="btnrow"><button class="ghost sm" id="helpBtn" type="button">How to play</button><button class="ghost sm" id="achBtn" type="button">Achievements</button><button class="ghost sm" id="balBtn" type="button">Balance data</button><a class="ghost sm" id="fnBtn" href="/api/funnel?html=1" target="_blank" rel="noopener" hidden>Funnel</a><a class="ghost sm" id="onBtn" href="/api/online?html=1" target="_blank" rel="noopener" hidden>Online now</a><button class="ghost sm" id="sndBtn" type="button" hidden>Sound desk</button><button class="ghost sm" id="farmBtn" type="button" hidden title="AI players fight each other for you to record: trailers, promos, highlight clips">Clip farm</button><button class="ghost sm" id="labBtn" type="button" hidden title="Try new arenas against bots, and choose which arenas are in custom games and the ranked rotation">Arena lab</button><button class="ghost sm" id="aimBtn" type="button" hidden title="Start a real ranked match of AI players at a rating of your choice and watch it, to see how each level plays">AI match</button><button class="ghost sm" id="lgBtn" type="button" hidden title="Run many fast matches between the AI players here on your machine, then send the results up to settle their ratings against each other">AI league</button></div>
         <div class="sitelinks" id="siteLinks" hidden><a href="/">Website</a><a href="/#/leaderboard">Leaderboard</a><a href="/#/forum">Forum</a></div>
         <a class="dclink" id="homeDiscord" href="#" target="_blank" rel="noopener" title="Join the Bowfall Discord" aria-label="Join the Bowfall Discord" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.3 4.4A19.6 19.6 0 0 0 15.5 3l-.6 1.2a18 18 0 0 0-5.8 0L8.5 3a19.6 19.6 0 0 0-4.8 1.4C.6 9 .0 13.5.3 18a19.8 19.8 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 11.8 0l.5.4c-.6.4-1.3.7-2 1L17.7 21a19.7 19.7 0 0 0 6-3c.4-5.2-.7-9.7-3.4-13.6zM8.5 15.3c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4zm7 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4z"/></svg></a>
         <span class="ver" id="verHome"></span>
@@ -2343,6 +2343,21 @@
     <span class="status err" id="aimErr"></span>
   </div>
 </div>
+<div class="overlay" id="lgScr" hidden role="dialog" aria-labelledby="lgTitle">
+  <div class="card">
+    <div class="shopbar"><div class="stat"><span class="eyebrow">Owner tools</span><h2 id="lgTitle">AI league</h2></div><button class="ghost" id="lgClose" type="button">Close</button></div>
+    <p class="status">Fast matches between the AI players, run here on your machine (nothing to watch, no server): each round pairs everyone with someone near their rating, like a Swiss tournament. When it's done, preview what their ratings would do and send it up. Only ratings move (1v1 or team, by mode), with the same rating code as a ranked match.</p>
+    <div class="row" data-navsec>
+      <div class="field"><label for="lgRounds">Rounds</label><select id="lgRounds"><option>1</option><option>2</option><option selected>3</option><option>5</option><option>8</option><option>12</option></select></div>
+      <div class="field"><label for="lgMode">Matches</label><select id="lgMode"><option value="1v1">1v1</option><option value="2v2">2v2</option><option value="mix">1v1 and 2v2</option></select></div>
+      <div class="field"><label for="lgWeight">Weight</label><select id="lgWeight"><option value="1">Normal (K 24)</option><option value="2">Double</option><option value="4">Recalibrate (×4)</option></select></div>
+      <button class="cta" id="lgGo" type="button">Run</button><button class="ghost" id="lgStop" type="button" hidden>Stop</button>
+      <button class="ghost" id="lgPreview" type="button" disabled>Preview rating changes</button><button class="ghost" id="lgApply" type="button" disabled>Apply to the server</button>
+    </div>
+    <span class="status" id="lgStatus"></span><span class="status err" id="lgErr"></span>
+    <div id="lgWrap"><table id="lgTable"></table></div>
+  </div>
+</div>
 <!-- the arena lab (owner only): try arenas against bots, and choose which are in custom games and the ranked rotation -->
 <div class="overlay" id="labScr" hidden role="dialog" aria-labelledby="labTitle">
   <div class="card wide">
@@ -2537,7 +2552,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.91.0"></script>
+<script src="sim.js?v=0.92.0"></script>
 <script>
 (() => {
 'use strict';
@@ -2545,7 +2560,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.91.0';
+const PAGE_VERSION = '0.92.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -3771,6 +3786,7 @@ addEventListener('keydown', e => {
   if (!$('farmScr').hidden) { if (e.code === 'Escape') $('farmScr').hidden = true; return; }
   if (!$('labScr').hidden) { if (e.code === 'Escape') $('labScr').hidden = true; return; }
   if (!$('aimScr').hidden) { if (e.code === 'Escape') $('aimScr').hidden = true; return; }
+  if (!$('lgScr').hidden) { if (e.code === 'Escape') $('lgScr').hidden = true; return; }
   if (!$('balScreen').hidden) { if (e.code === 'Escape') closeBalance(); return; }
   if (!$('achScreen').hidden) { if (e.code === 'Escape') closeAch(); return; }
   if (!$('ctlScreen').hidden) { if (!captureBind(e) && e.code === 'Escape') closeCtl(); return; }
@@ -7266,7 +7282,7 @@ function balCsv() {
 }
 // balance data is for the game's owner only (and the offline copy, which is yours anyway)
 // the owner's extras: balance data, and Strongholds (on hold, so only the owner and the offline copy can open it)
-function adminBits() { const on = OFFLINE || !!(account && account.admin); for (const id of ['balBtn', 'gmBalBtn', 'resBalBtn', 'cqBtn', 'tmBtn', 'sndBtn', 'farmBtn', 'labBtn']) if ($(id)) $(id).hidden = !on; for (const id of ['fnBtn', 'onBtn', 'aimBtn']) if ($(id)) $(id).hidden = OFFLINE || !(account && account.admin); }
+function adminBits() { const on = OFFLINE || !!(account && account.admin); for (const id of ['balBtn', 'gmBalBtn', 'resBalBtn', 'cqBtn', 'tmBtn', 'sndBtn', 'farmBtn', 'labBtn']) if ($(id)) $(id).hidden = !on; for (const id of ['fnBtn', 'onBtn', 'aimBtn', 'lgBtn']) if ($(id)) $(id).hidden = OFFLINE || !(account && account.admin); }
 $('balBtn').onclick = openBalance; $('gmBalBtn').onclick = openBalance; $('resBalBtn').onclick = openBalance;
 $('balClose').onclick = closeBalance;
 ['balWho', 'balMap', 'balSrc', 'balSize', 'balRules', 'balVer'].forEach(id => $(id).addEventListener('change', renderBalance));
@@ -7635,7 +7651,73 @@ $('aimGo').onclick = async () => {
     connect({ watch: d.code });
   } catch (e) { $('aimErr').textContent = e.message; }
   $('aimGo').disabled = false;
-}; $('labClose').onclick = () => { $('labScr').hidden = true; };
+};
+// ---- the AI league: headless matches between the AI players, here, fast; results go up to the server to be rated
+const LG = { on: false, results: [], rec: new Map(), ai: null };
+$('lgBtn').onclick = async () => {
+  if (!(account && account.admin)) return; $('lgErr').textContent = ''; $('lgScr').hidden = false;
+  if (!LG.ai) { try { const r = await fetch('/api/aiplayers', { cache: 'no-store' }); if (r.ok) LG.ai = (await r.json()).players; } catch (e) {} }
+  if (!LG.ai) $('lgErr').textContent = 'Could not load the AI players.'; else $('lgStatus').textContent = `${LG.ai.length} AI players.`;
+};
+$('lgClose').onclick = () => { $('lgScr').hidden = true; };
+$('lgStop').onclick = () => { LG.on = false; };
+// one headless match between two sides of AI players (by name); returns 'red' | 'blue' | null (timed out)
+function lgMatch(red, blue, mode) {
+  const pool = Sim.rankedPool(), map = pool[Math.floor(Math.random() * pool.length)];
+  const w = Sim.createWorld({ map, diff: 'normal' });
+  const ro = {};
+  for (const [tm, names] of [['red', red], ['blue', blue]]) for (const nm of names) {
+    const a = LG.ai.find(x => x.name === nm), bot = Sim.addBot(w, tm); if (!a || !bot) return null;
+    const L = a.loadouts || [], tot = L.reduce((t, l) => t + (l[2] || 1), 0); let x = Math.random() * tot, lo = L[0] || ['frost', 'ranger'];
+    for (const l of L) { if ((x -= (l[2] || 1)) <= 0) { lo = l; break; } }
+    bot.name = a.name; Sim.setLoadout(w, bot.id, lo[0], lo[1]); bot.dparams = Sim.skillParams(a.skill); ro[nm] = lo[1];
+    Sim.setBotMind(w, bot.id, { style: lo[1] === (L[0] || [])[1] ? a.style : undefined, aggr: a.aggr, tr: a.tr, gene: a.gene, plays: a.plays, builds: a.builds });
+  }
+  Sim.startMatch(w); w.events.length = 0;
+  for (let i = 0; i < 60 * 60 * 25 && w.match.ph !== 'over'; i++) { Sim.step(w, 1 / 60); w.events.length = 0; }
+  return w.match.mw ? { win: w.match.mw, ro } : null;
+}
+// a round's pairings: everyone sorted by rating (with a little shuffle), neighbours paired; 2v2 takes fours, strongest with weakest
+function lgPairs(mode) {
+  const key = mode === '1v1' ? 'elo' : 'eloT', list = LG.ai.map(a => ({ n: a.name, r: (LG.rec.get(a.name) || {})[key] || a[key] || a.elo || 800 })).sort((x, y) => (x.r + Math.random() * 120) - (y.r + Math.random() * 120));
+  const out = [];
+  if (mode === '1v1') for (let i = 0; i + 1 < list.length; i += 2) out.push({ mode, red: [list[i].n], blue: [list[i + 1].n] });
+  else for (let i = 0; i + 3 < list.length; i += 4) out.push({ mode, red: [list[i].n, list[i + 3].n], blue: [list[i + 1].n, list[i + 2].n] });
+  return out;
+}
+$('lgGo').onclick = async () => {
+  if (!LG.ai || LG.on) return;
+  LG.on = true; LG.results = []; LG.rec = new Map(); $('lgGo').disabled = true; $('lgStop').hidden = false; $('lgPreview').disabled = $('lgApply').disabled = true; $('lgErr').textContent = '';
+  const rounds = +$('lgRounds').value, modeSel = $('lgMode').value, t0 = performance.now();
+  let done = 0, total = 0;
+  const plan = []; for (let r = 0; r < rounds; r++) plan.push(modeSel === 'mix' ? (r % 2 ? '2v2' : '1v1') : modeSel);
+  for (const mode of plan) { if (!LG.on) break; const pairs = lgPairs(mode); total += pairs.length;
+    for (const pr of pairs) {
+      if (!LG.on) break;
+      const res = lgMatch(pr.red, pr.blue, mode); done++;
+      if (res) { LG.results.push({ mode, red: pr.red, blue: pr.blue, win: res.win, ro: res.ro }); for (const tm of ['red', 'blue']) for (const nm of pr[tm]) { const o = LG.rec.get(nm) || { w: 0, l: 0, g: 0 }; o.g++; if (res.win === tm) o.w++; else o.l++; LG.rec.set(nm, o); } }
+      $('lgStatus').textContent = `${done} of about ${total * plan.length / (plan.indexOf(mode) + 1) | 0} matches, ${Math.round((performance.now() - t0) / 1000)}s`;
+      lgTable(); await new Promise(r => setTimeout(r, 0)); // (let the page breathe between matches)
+    } }
+  LG.on = false; $('lgGo').disabled = false; $('lgStop').hidden = true; $('lgPreview').disabled = $('lgApply').disabled = !LG.results.length;
+  $('lgStatus').textContent = `${LG.results.length} matches in ${Math.round((performance.now() - t0) / 1000)}s. Preview the rating changes, then apply.`;
+};
+function lgTable(rated) {
+  const rows = [...LG.rec].map(([n, o]) => Object.assign({ n }, o, (rated || {})[n] || {})).sort((a, b) => (b.elo || 0) - (a.elo || 0) || (b.w - b.l) - (a.w - a.l));
+  $('lgTable').innerHTML = `<tr><th>Player</th><th>W</th><th>L</th>${rated ? '<th>1v1</th><th>Change</th><th>Team</th><th>Change</th>' : ''}</tr>` + rows.slice(0, 200).map(r => `<tr><td>${esc(r.n)}</td><td class="n">${r.w}</td><td class="n">${r.l}</td>${rated ? `<td class="n">${r.elo ?? ''}</td><td class="n">${r.d == null ? '' : (r.d >= 0 ? '+' : '') + r.d}</td><td class="n">${r.eloT ?? ''}</td><td class="n">${r.dT == null ? '' : (r.dT >= 0 ? '+' : '') + r.dT}</td>` : ''}</tr>`).join('');
+}
+async function lgSend(dry) {
+  $('lgErr').textContent = ''; $('lgPreview').disabled = $('lgApply').disabled = true;
+  try {
+    const r = await fetch('/api/owner/ailelo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ results: LG.results, weight: +$('lgWeight').value, dry }) }), d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Could not send it.');
+    const by = {}; for (const p of d.players) by[p.name] = p; lgTable(by);
+    $('lgStatus').textContent = dry ? `Preview: ${d.matches} matches rated, nothing changed yet.` : `Applied: ${d.matches} matches rated, ${d.players.length} ratings changed.`;
+    if (!dry) { LG.results = []; LG.ai = null; } else $('lgPreview').disabled = $('lgApply').disabled = false;
+  } catch (e) { $('lgErr').textContent = e.message; $('lgPreview').disabled = $('lgApply').disabled = !LG.results.length; }
+}
+$('lgPreview').onclick = () => lgSend(true); $('lgApply').onclick = () => lgSend(false);
+$('labClose').onclick = () => { $('labScr').hidden = true; };
 $('labList').addEventListener('click', e => {
   const b = e.target.closest('[data-test]'); if (!b) return;
   $('labScr').hidden = true; closeSubs(); startPractice(b.dataset.test);
