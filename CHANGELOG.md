@@ -2,6 +2,19 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.91.0
+
+- **Builds.** Each AI player favours one or two builds (settled from their name and their archetypes: Bash, Pinner, Long game, Closer, Rooter, Trick shots, Dash and loose, Ambusher, Medic, and one for their main element) and drafts toward the one that fits what they're playing, so their upgrades read like a plan. Every build was checked against bots picking by the learned card values alone and kept only where it held its own: Closer (+16% for a crossbowman against a ranger), Pinner (+10%), Rooter (+7%), Dash and loose (+7%), Ambusher (+5%), Bash (even to +6%); a tank build and two ninja sets lost and were dropped (the Ninja drafts as before).
+- **The cards shape the play.** Bots with Bull Rush save it for a shove into a hole or a wall, or a finishing blow, instead of charging whenever lined up; a Pin hunts spots from which a full draw slams the target into a wall or boulder, and draws fully for it; Point Blank crossbowmen get in close, Deadeye snipers stay out, Wildfire draws fully to leave fire, and each tank card (Riot Shield, Stance, Fortify and the like) makes them a little bolder about getting close.
+- **AI players learn here.** Every ranked match (yours included) records how their build, their play and their archetype on that arena went, kept with the account. Picks lean on it once there's a record; the keener players experiment now and then with a build off their list or an archetype on an arena they haven't tried it on; a found build that keeps winning joins their list ("found Pinner works"), an archetype that keeps winning on an arena becomes a favourite, and a build or play that keeps losing is dropped. No two settle on quite the same game. Their notes are in the owner's table at `/api/aiplayers?html=1` (new Builds, Plays and Learned columns), and the AI match chat names each player's build (and "trying it" when it's an experiment).
+- AI players sometimes announce the build as the match starts ("stay off the walls", "bring a helmet").
+
+## 0.90.2
+
+- **Sniper buff.** Marksman now gives nothing extra up close and rises to +30% damage at 700px and beyond (it was +25% only corner to corner, so about +9% at a typical 500px), and the pause between shots is shorter (0.38s, was 0.45s; a bow's is 0.3s). In simulation between equal Master bots the Sniper went from winning 34% of games against the field on Meadow, 44% on Highland Reach and 39% on Moat Keep to 40%, 52% and 46%. Sniper bots also stand about 20% further back than before.
+- **Chat reaches spectators 5 seconds late**, in step with the delayed match they're watching, so nobody appears to type mid-fight or the instant something happens.
+- AI players in a 1v1 no longer say things meant for a team ("nice one team", "gg everyone", "we can still do this").
+
 ## 0.90.1
 
 - AI players' skill stays as set on the list (0.90.0 briefly had it follow their rating); their rating finds its own level.

@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.90.1';
+const VERSION = '0.91.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1146,7 +1146,7 @@ function setTitle(w, id, key) {
 const isLocked = key => LOCK_PREMIUM && !!((ELEMENTS[key] || ROLES[key] || {}).premium);
 const ROLES = {
   sniper:     { name: 'Sniper',     cat: 'Power',   blurb: 'Harder, faster, longer shots.',
-    trait: { name: 'Marksman', desc: 'Arrows fly 25% faster and hit harder the further they fly, rising steadily to 25% more damage across the whole arena (corner to corner). A longer pause between shots. 10 less health.' } },
+    trait: { name: 'Marksman', desc: 'Arrows fly 25% faster and hit harder the further they fly: nothing extra up close, rising to 30% more damage at 700px and beyond. A slightly longer pause between shots. 10 less health.' } },
   juggernaut: { name: 'Juggernaut', cat: 'Power',   blurb: 'Tough to move, dangerous up close.',
     trait: { name: 'Heavyweight', desc: '15 more health, a bigger body, 20% less knockback taken, and heals 2 health a second after 4 seconds without being hit. Dashing into enemies shoves them 50% harder. Arrows deal 20% less damage. 7% slower.' } },
   ranger:     { name: 'Ranger',     cat: 'Agility', blurb: 'Speed, quick dashes and a grapple.',
@@ -1704,7 +1704,7 @@ function takeCard(w, p, id) {
   applyStats(p);
   if (p.maxHp > hpWas) p.hp = Math.min(p.maxHp, p.hp + (p.maxHp - hpWas));
   p.offer = null; p.picked = true;
-  if (p.bot) restyle(p);
+  if (p.bot) { restyle(p); if (TANK_CARDS.includes(id) && p.ai && p.ai.aggr != null) p.ai.aggr = Math.min(1, p.ai.aggr + 0.1); } // (harder to move: bolder about getting close)
   ev(w, { e: 'picked', id: p.id, card: id });
 }
 function choose(w, id, index) {
@@ -1745,6 +1745,7 @@ function setBotMind(w, id, o) {
   p.ai.tr = o.tr ? Object.assign({}, TR0, o.tr) : null;
   if (o.gene) p.gene = Object.assign({}, o.gene);
   p.ai.plays = Array.isArray(o.plays) ? o.plays.filter(k => PLAYS[k]) : null;
+  p.ai.builds = Array.isArray(o.builds) ? o.builds.filter(k => BUILDS[k]) : null;
   p.ai.base = { aggr: p.ai.aggr, tr: p.ai.tr ? Object.assign({}, p.ai.tr) : null, gene: p.gene ? Object.assign({}, p.gene) : null }; // (what a play leans from)
   return true;
 }
@@ -1770,10 +1771,12 @@ function botPickIndex(p, w) {
   if (p.gene && p.gene.randPick) return Math.floor(Math.random() * p.offer.length); // exploring, for learning what works
   const st = STYLES[p.ai && p.ai.style], iq = p.gene && p.gene.noLearn ? 0 : botD(p).iq || 0;
   const alone = w && !w.players.some(q => q !== p && q.team === p.team);
+  const B = p.ai && p.ai.build ? BUILDS[p.ai.build] : null, prog = B ? B.cards.filter(c => has(p, c)).length / B.cards.length : 0;
   const S = w ? senseArena() : null; // (the sharper bots pick for the arena: the pulls and shoves are for arenas with something to throw people into)
   const score = id => HONES[id] ? 0.6 * iq + Math.random() * (1.5 - iq) : alone && TEAM_ONLY.includes(id) ? -1 :
     (TREE[id].cap ? 5 - 3 * iq : 1) + (TREE[id].active ? 1 - 0.5 * iq : 0) + (st && st.cards.includes(id) ? 1.8 - 1.2 * iq : 0) + (CARD_VALUE[id] || 0) * 40 * iq + Math.random() * (1.5 - iq)
-    + (S && HAZ_CARDS[id] ? (S.holes - 0.3) * 4 * HAZ_CARDS[id] * iq : 0);
+    + (S && HAZ_CARDS[id] ? (S.holes - 0.3) * 4 * HAZ_CARDS[id] * iq : 0)
+    + (B && B.cards.includes(id) ? (2.2 + 1.5 * prog) * iq : 0); // (the build they're working toward: more so the further along it is)
   let best = 0;
   p.offer.forEach((id, i) => { if (score(id) > score(p.offer[best])) best = i; });
   return best;
@@ -1975,6 +1978,7 @@ function resetMatch(w) {
   w.matchId = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   for (const p of w.players) if (p.bot && !p.aiUser) pickStyle(p); // a fresh mood each match (matchmaking's AI players keep their own personality)
   for (const p of w.players) if (p.bot && p.ai) choosePlay(w, p); // the play that fits this arena and these opponents, for those who have one
+  for (const p of w.players) if (p.bot && p.ai) chooseBuild(p); // and the build they'll work toward
   for (const p of w.players) { restoreArch(p); p.kills = 0; p.deaths = 0; p.amber = 0; p.earned = 0; p.up = [p.element]; p.hones = {}; p.offer = null; p.picked = false; p.ready = false; p.streak = 0; p.emp = false; p.empPts = 0; p.stats = { shots: 0, hits: 0, dmg: 0, taken: 0, ring: 0, longest: 0 }; stripArch(w, p); applyStats(p); }
   ev(w, { e: 'matchStart' });
   if (MAP.mode === 'conquest') return cqStart(w); // Strongholds: straight to the countdown, NPCs at their posts
@@ -2365,7 +2369,7 @@ let MOVE = MOVE_PROFILES[1];
 
 // Blood Frenzy: the lower your health, the faster you draw (up to 60% near death)
 const SNIPER_SPEED = 1.25; // how much faster a Sniper's arrows fly
-const MIN_DRAW = 0.25, NOCK = 0.3, NOCK_SNIPER = 0.45; // bows: the least draw that fires, and the pause before the next draw can start
+const MIN_DRAW = 0.25, NOCK = 0.3, NOCK_SNIPER = 0.38; // bows: the least draw that fires, and the pause before the next draw can start
 const frenzyDraw = p => (has(p, 'frenzy') ? 1 + 0.6 * clamp(1 - p.hp / p.maxHp, 0, 1) : 1);
 function onIce(f) {
   const z = ICE && ICE.zone; if (!z) return !!ICE;
@@ -3527,9 +3531,9 @@ function arrowHit(w, a, f) {
   if (a.own && has(a.own, 'holdline') && Math.hypot(f.x - a.own.x, f.y - a.own.y) < 250) kf *= 1.5; // Hold the Line
   const bank = a.bnc && a.own && has(a.own, 'bankshot'); if (bank) kf *= 1.4; // Bank Shot
   // Deadeye: no bonus under 200px of flight, rising to +60% at 700px
-  // Marksman (every Sniper): up to +20% more from 250px to 650px
+  // Marksman (every Sniper): nothing under 150px of flight, rising to +30% at 700px
   const range = (a.own && has(a.own, 'deadeye') ? 0.6 * clamp((a.dist - 200) / 500, 0, 1) : 0)
-    + (a.own && a.own.role === 'sniper' ? 0.25 * clamp(a.dist / SNIPE_FULL, 0, 1) : 0);
+    + (a.own && a.own.role === 'sniper' ? 0.3 * clamp((a.dist - 150) / 550, 0, 1) : 0);
   const held = f.stuck > 0 || f.frozen > 0;
   const chill = a.el === 'frost' && (f.slow > 0 || f.frozen > 0) ? 1.3 : 1; // Frost Arrows
   const marked = a.el === 'void' && f.voidBy === a.owner && f.voidT > w.t ? 1 + VOID_DMG * (f.voidN || 0) : 1; // Void Arrows: marks also sharpen your arrows
@@ -4024,6 +4028,44 @@ const dashK = ai => ai.tr ? 0.4 + 1.2 * ai.tr.dash : 1;
 
 // ---- the smarter brain (used as far as a level's iq allows; Master uses all of it)
 // GENE holds the weights it balances; they were tuned by pitting variations against each other over thousands of games
+// ---- Builds: sets of upgrades that work together, the way a player with a plan drafts. Matchmaking's AI players each
+// favour one or two (setBotMind: builds) and work toward the one that fits what they're playing; the cards in hand then
+// shape how they play (see the card rules in the brain: a Bull Rush waits for the shove into a hole, a Pin hunts wall
+// shots, a tank gets bolder, Point Blank gets in close). roles/els: what it fits (neither: anything); cards: in order of want.
+// Each was checked against bots picking by the learned card values alone and kept only where it held its own (none for the
+// Ninja: every set tried lost to its usual picks).
+const BUILDS = {
+  bash:       { name: 'Bash',           roles: ['juggernaut'], cards: ['rush', 'ram', 'riot', 'pin'] },
+  pinner:     { name: 'Pinner',         roles: ['sniper', 'ranger', 'juggernaut'], cards: ['pin', 'heavy', 'boulder', 'kindling', 'wildfire'] },
+  longgame:   { name: 'Long game',      roles: ['sniper'], cards: ['longbow', 'deadeye', 'steady', 'ballista', 'railshot', 'glass'] },
+  closer:     { name: 'Closer',         roles: ['crossbow'], cards: ['pointblank', 'hairtrig', 'repeater', 'heavybolt', 'windlass'] },
+  ambusher:   { name: 'Ambusher',       roles: ['assassin'], cards: ['stealth', 'ambush', 'shadowdash', 'vanish'] },
+  rooter:     { name: 'Rooter',         roles: ['trapper'], cards: ['trap', 'harpoon', 'deeproots', 'briar'] },
+  medic:      { name: 'Medic',          roles: ['warden'], cards: ['mend', 'bond', 'oath', 'revive'] },
+  trickshot:  { name: 'Trick shots',    roles: ['trickster'], cards: ['ricochet', 'bankshot', 'trick', 'split', 'rain'] },
+  dashgun:    { name: 'Dash and loose', roles: ['ranger'], cards: ['quickshot', 'momentum', 'fleet', 'parry', 'grapple'] },
+  freezer:    { name: 'Deep freeze',    els: ['frost'], cards: ['frostbite', 'hoarfrost'] },
+  stormcaller:{ name: 'Stormcaller',    els: ['storm'], cards: ['static', 'overload', 'echo'] },
+  plague:     { name: 'Plague',         els: ['poison'], cards: ['toxic', 'contagion'] },
+  quarry:     { name: 'Quarry',         els: ['stone'], cards: ['petrify', 'boulder', 'obsidian'] },
+  gravity:    { name: 'Gravity well',   els: ['void'], cards: ['nullfield', 'horizon', 'rift'] },
+  leech:      { name: 'Leech',          els: ['blood'], cards: ['hemorrhage', 'frenzy'] },
+};
+const buildFits = (b, p) => !!b && (!b.roles || b.roles.includes(p.role)) && (!b.els || b.els.includes(p.element));
+function chooseBuild(p) { const ai = p.ai; ai.build = ai.builds ? ai.builds.find(k => buildFits(BUILDS[k], p)) || null : null; }
+// would a shove `dist` along (ux, uy) from (x, y) slam them into the wall or a boulder soon enough to count as a slam (a Pin)?
+// 0 for no, up to 1 for a wall right behind them
+function slamRisk(x, y, ux, uy, dist, r) {
+  for (const s of [0.15, 0.3, 0.45, 0.6]) {
+    const px = x + ux * dist * s, py = y + uy * dist * s;
+    if (px < WALL + r || px > AW - WALL - r || py < WALL + r || py > AH - WALL - r) return 1 - s;
+    if (PILLARS.some(q => !q.tower && Math.hypot(px - q.x, py - q.y) < q.r + r)) return 1 - s;
+    if (lethalDist(px, py) < r * 0.4) return 0; // (they'd go into the hole instead: better still, but not a pin)
+  }
+  return 0;
+}
+// the cards that make an archer harder to move: each makes the bot a little bolder about getting close
+const TANK_CARDS = ['riot', 'stance', 'fortify', 'colossus', 'vital', 'bond'];
 // ---- Plays: how an archer who knows the arena plays it. Matchmaking's AI players each favour a couple (the server gives
 // them with setBotMind), and when a match starts they take the one that fits the arena, their archetype and who they're
 // up against; with none fitting they play as usual. A play leans the bot's traits and weights, and two have moves of
@@ -4151,7 +4193,9 @@ function botPressIn(p) {
 function botPlan(w, p, T, foes, mates, D, G) {
   const ai = p.ai, st = STYLES[ai.style] || STYLES.skirmisher;
   const reach = botReach(p), outg = T ? outranged(p, T) : 0, ready = loaded(p);
-  const pref = Math.min(reach * 0.8, (st.near + st.far) / 2 * G.pref) * botPressIn(p);
+  const cardPref = (p.role === 'sniper' ? 1.2 : 1) * (has(p, 'deadeye') ? 1.15 : 1) * (has(p, 'pointblank') ? 0.7 : 1) * (has(p, 'holdline') || has(p, 'ram') ? 0.85 : 1); // (what the cards want: Deadeye far out, Point Blank and the brawling cards up close)
+  const pref = Math.min(reach * 0.8, (st.near + st.far) / 2 * G.pref * cardPref) * botPressIn(p);
+  const rushReady = has(p, 'rush') && p.slots.some((id, i) => id === 'rush' && !(p.abCd[i] > 0)), pinning = has(p, 'pin');
   const hold = holdSpot(p), holdK = hold ? (p.hp < p.maxHp * 0.7 && senseArena().heal ? 1.6 : 1) * (T && Math.hypot(T.x - hold.x, T.y - hold.y) < hold.r + 60 ? 0.5 : 1) : 0; // (less while they're standing on it: that's a fight, not a stroll)
   const myKb = kbTravel(0.95, T ? T.mass : 1, p.kbMul) * G.kbScale;
   const cand = [[p.x, p.y]];
@@ -4184,7 +4228,9 @@ function botPlan(w, p, T, foes, mates, D, G) {
       const dl = outg > 0 && d > reach ? Math.hypot(T.x + T.vx * 0.5 - x, T.y + T.vy * 0.5 - y) : d;
       sc -= Math.abs(dl - pref) / 300 * G.pref;
       if (dl > reach) sc -= (dl - reach) / 120 * (1 + 1.5 * outg);
-      if (los) { if (ready) sc += 0.4 * G.los; sc += pushRisk(T.x, T.y, dx / d, dy / d, myKb, T.r) * 1.6 * G.push * edge; }
+      if (los) { if (ready) sc += 0.4 * G.los; sc += pushRisk(T.x, T.y, dx / d, dy / d, myKb, T.r) * 1.6 * G.push * edge;
+        if (pinning) sc += slamRisk(T.x, T.y, dx / d, dy / d, myKb, T.r) * 0.7 * G.push; // Pin: a spot from which a full draw slams them into a wall
+        if (rushReady && d > 120 && d < 320) sc += pushRisk(T.x, T.y, dx / d, dy / d, 230, T.r) * 0.8; } // Bull Rush ready: line up the shove into something
       else if (d > reach && outg > 0) sc += 0.8 * outg; // cover on the way in
       else if (!ready) sc += 0.45; // reloading: a boulder to duck behind is worth more than a line of sight
       else sc -= 0.3 * G.los;
@@ -4684,6 +4730,8 @@ function botThink(w, p, dt) {
       if (iq >= 0.5) {
         const d = dT || 1, risk = pushRisk(T.x, T.y, (T.x - p.x) / d, (T.y - p.y) / d, kbOn(p, T, 1), T.r);
         ai.want = risk > G.riskFull || dT > G.far ? 1 : dT < 140 ? G.quick : Math.max(D.minCharge, G.mid + lean);
+        if (ai.want < 1 && has(p, 'pin') && slamRisk(T.x, T.y, (T.x - p.x) / d, (T.y - p.y) / d, kbOn(p, T, 1), T.r) > 0.4) ai.want = 1; // Pin needs the full draw, and the wall is right there
+        if (ai.want < 1 && has(p, 'wildfire') && dT > 220 && Math.random() < 0.5) ai.want = 1; // Wildfire: full draws leave the fire
       } else if (lean) ai.want = clamp(ai.want + lean, 0.3, 1);
       // Stone: a quick hit staggers them first, then the full draw throws them 20% further; staggered already: send it
       if (p.element === 'stone' && es >= 0.8 && dT < 320) {
@@ -4837,6 +4885,8 @@ function botAbilities(w, p, T, dT, foes, dt) {
         if (!T || dT < 110 || dT > 330 || angOff(Math.atan2(T.y - p.y, T.x - p.x), p.input.aim) > 0.2) break;
         const ax = Math.cos(p.input.aim), ay = Math.sin(p.input.aim);
         use = [80, 160, 240, 300].every(d => lethalDist(p.x + ax * d, p.y + ay * d) > 45);
+        // the sharper bots save it for a shove into a hole or a wall, or a finishing blow; the rest charge when they can
+        if (use && (botD(p).iq || 0) >= 0.5) { const shove = Math.max(pushRisk(T.x, T.y, ax, ay, 230, T.r), 0.6 * slamRisk(T.x, T.y, ax, ay, 230, T.r)); use = shove > 0.4 || T.hp <= 12 || Math.random() < dt * 0.25; }
         break;
       }
       case 'fortify': use = p.hp < p.maxHp * 0.5 && foes.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 380); break;
@@ -6045,7 +6095,7 @@ return {
   TM, TM_NAMES, TM_MINIONS, MASTERY, masteryOf, takeCard, applyStats,
   AIM, AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, SKILL_MIN, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
-  plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, LAB_KEYS, applyArenaPool, arenaPool, rankedPool, arenaSense, PLAYS, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
+  plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, LAB_KEYS, applyArenaPool, arenaPool, rankedPool, arenaSense, PLAYS, BUILDS, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg, emblemCol, emblemFull,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, BANNER_FRAME, frameAllowed, featProgress, achSeed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
