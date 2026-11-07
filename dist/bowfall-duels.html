@@ -2333,11 +2333,13 @@
     <div class="shopbar"><div class="stat"><span class="eyebrow">Owner tools</span><h2 id="lgTitle">AI league</h2></div><button class="ghost" id="lgClose" type="button">Close</button></div>
     <p class="status">Fast matches between the AI players, run here on your machine (nothing to watch, no server): each round pairs everyone with someone near their rating, like a Swiss tournament. When it's done, preview what their ratings would do and send it up. Only ratings move (1v1 or team, by mode), with the same rating code as a ranked match.</p>
     <div class="row" data-navsec>
-      <div class="field"><label for="lgRounds">Rounds</label><select id="lgRounds"><option>1</option><option>2</option><option selected>3</option><option>5</option><option>8</option><option>12</option><option>20</option><option>30</option></select></div>
+      <div class="field"><label for="lgRounds">Rounds</label><select id="lgRounds"><option>1</option><option>2</option><option selected>3</option><option>5</option><option>8</option><option>12</option><option>20</option><option>30</option><option>60</option><option>100</option></select></div>
+      <div class="field"><label for="lgCap">Stop after</label><select id="lgCap"><option value="5">5 min</option><option value="10" selected>10 min</option><option value="20">20 min</option><option value="30">30 min</option><option value="60">1 hour</option></select></div>
       <div class="field"><label for="lgMode">Matches</label><select id="lgMode"><option value="1v1">1v1</option><option value="2v2">2v2</option><option value="mix">1v1 and 2v2</option></select></div>
       <div class="field"><label for="lgWeight">Weight</label><select id="lgWeight"><option value="1">Normal (K 24)</option><option value="2">Double</option><option value="4">Recalibrate (×4)</option></select></div>
       <button class="cta" id="lgGo" type="button">Run</button><button class="ghost" id="lgStop" type="button" hidden>Stop</button>
       <button class="ghost" id="lgPreview" type="button" disabled>Preview rating changes</button><button class="ghost" id="lgApply" type="button" disabled>Apply to the server</button>
+      <div class="field"><label><input type="checkbox" id="lgAuto"> Apply when done (no preview)</label></div>
     </div>
     <span class="status" id="lgStatus"></span><span class="status err" id="lgErr"></span>
     <div id="lgWrap"><table id="lgTable"></table></div>
@@ -2550,7 +2552,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.92.4';
+const VERSION = '0.92.5';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -8657,7 +8659,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.92.4';
+const PAGE_VERSION = '0.92.5';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -13785,12 +13787,12 @@ function lgPairs(mode) {
 $('lgGo').onclick = async () => {
   if (!LG.ai || LG.on) return;
   LG.on = true; LG.results = []; LG.rec = new Map(); LG.errs = 0; LG.skipped = 0; $('lgGo').disabled = true; $('lgStop').hidden = false; $('lgPreview').disabled = $('lgApply').disabled = true; $('lgErr').textContent = '';
-  const rounds = +$('lgRounds').value, modeSel = $('lgMode').value, t0 = performance.now();
+  const rounds = +$('lgRounds').value, modeSel = $('lgMode').value, t0 = performance.now(), capMs = +$('lgCap').value * 60000; // (a time cap too, in case it's left running)
   let done = 0, total = 0;
   const plan = []; for (let r = 0; r < rounds; r++) plan.push(modeSel === 'mix' ? (r % 2 ? '2v2' : '1v1') : modeSel);
   for (const mode of plan) { if (!LG.on) break; const pairs = lgPairs(mode); total += pairs.length;
     for (const pr of pairs) {
-      if (!LG.on) break;
+      if (!LG.on || performance.now() - t0 > capMs) { LG.on = false; break; }
       let res = null; try { res = lgMatch(pr.red, pr.blue, mode); } catch (e) { LG.errs = (LG.errs || 0) + 1; $('lgErr').textContent = `A match broke (${LG.errs} so far): ${e.message}`; console.error(e); } // (one broken match doesn't stop the league)
       done++; if (!res) LG.skipped = (LG.skipped || 0) + 1;
       if (res) { LG.results.push({ mode, red: pr.red, blue: pr.blue, win: res.win, ro: res.ro }); for (const tm of ['red', 'blue']) for (const nm of pr[tm]) { const o = LG.rec.get(nm) || { w: 0, l: 0, g: 0 }; o.g++; if (res.win === tm) o.w++; else o.l++; LG.rec.set(nm, o); } }
@@ -13798,7 +13800,9 @@ $('lgGo').onclick = async () => {
       lgTable(); await new Promise(r => setTimeout(r, 0)); // (let the page breathe between matches)
     } }
   LG.on = false; $('lgGo').disabled = false; $('lgStop').hidden = true; $('lgPreview').disabled = $('lgApply').disabled = !LG.results.length;
-  $('lgStatus').textContent = `${LG.results.length} matches in ${Math.round((performance.now() - t0) / 1000)}s${LG.skipped ? ` (${LG.skipped} with no result: timed out or broke)` : ''}. Preview the rating changes, then apply.`;
+  const capped = performance.now() - t0 > capMs;
+  $('lgStatus').textContent = `${LG.results.length} matches in ${Math.round((performance.now() - t0) / 1000)}s${capped ? ' (stopped at the time cap)' : ''}${LG.skipped ? ` (${LG.skipped} with no result: timed out or broke)` : ''}. Preview the rating changes, then apply.`;
+  if ($('lgAuto').checked && LG.results.length) lgSend(false);
 };
 function lgTable(rated) {
   const rows = [...LG.rec].map(([n, o]) => Object.assign({ n }, o, (rated || {})[n] || {})).sort((a, b) => (b.elo || 0) - (a.elo || 0) || (b.w - b.l) - (a.w - a.l));

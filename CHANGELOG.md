@@ -2,6 +2,10 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.92.5
+
+- AI league: rounds go up to 100, with a time cap (5 minutes to an hour, 10 by default) so a league left running stops on its own, and an "Apply when done" option that sends the results up without the preview step.
+
 ## 0.92.4
 
 - **Fixed: an Assassin bot that used Stealth never shot again.** Stealth lets the bow down and needs the draw button let go and pressed again; the bot kept holding it, waiting for a draw that never started. Bots now let go and redraw, like a person would. It was there since Stealth arrived, but the new Ambusher build (which goes for Stealth) made it common: an AI player on it (kiwi_kicks, say) could play a whole match without firing.
