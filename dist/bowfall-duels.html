@@ -2552,7 +2552,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.93.2';
+const VERSION = '0.93.5';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -3697,16 +3697,16 @@ const ROLES = {
   trickster:  { name: 'Trickster',  cat: 'Agility', blurb: 'Bouncing, splitting and bending arrows.',
     trait: { name: 'Nimble Fingers', desc: 'Draw your bow 12% faster, but your arrows knock back 10% less.' } },
   warden:     { name: 'Warden',     cat: 'Utility', blurb: 'Protect and revive your team.',
-    trait: { name: 'Mender', desc: 'You and teammates near you heal 2 health a second after 4 seconds without being hit. 5 more health, and you are steadier on your feet: about 9% less knockback.' } },
+    trait: { name: 'Mender', desc: 'You and teammates near you heal 2 health a second after 4 seconds without being hit. 5 more health, and you are steadier on your feet: about 9% less knockback. Arrows deal 15% less damage.' } },
   trapper:    { name: 'Trapper',    cat: 'Utility', blurb: 'Roots, traps and punishing the stuck.',
     trait: { name: 'Hunter', desc: 'Abilities recharge 40% faster, and hits on rooted, stuck or frozen enemies deal 25% more damage and knock back 30% harder.' } },
 };
 ROLES.assassin = { name: 'Assassin', cat: 'Agility', blurb: 'Vanish, get close, and strike first.', premium: true,
-  trait: { name: 'Backstab', desc: 'Arrows that hit an enemy from behind deal 40% more damage and knock back 30% harder. 10 less health.' } };
+  trait: { name: 'Backstab', desc: 'Arrows that hit an enemy from behind deal 40% more damage and knock back 30% harder, and the shorter the shot the harder it hits: up to 40% more inside 150px, nothing extra from 450px out.' } };
 ROLES.ninja = { name: 'Ninja', cat: 'Agility', blurb: 'Blink in, strike fast, blink out.', premium: true,
-  trait: { name: 'Shadowstep', desc: "No bow: hold to wind up a shuriken and let go to throw it (a full wind-up takes under half a second). The longer you wind up, the faster, further and harder it flies. Shuriken are for close range: they slow down fast and hurt less the further they fly (about 300px at full wind-up); a fully wound shuriken, or any bullseye, counts as a fully drawn shot for your upgrades. Your dash is a near-instant blink toward your cursor instead: about 150px, straight over pits and lava, and it recharges in under a second. 10 less health, and you take 10% more knockback." } };
+  trait: { name: 'Shadowstep', desc: "12% faster, and a wind-up barely slows you. No bow: hold to wind up a shuriken and let go to throw it (a full wind-up takes under half a second). The longer you wind up, the faster, further and harder it flies. Shuriken are for close range: they slow down fast and hurt less the further they fly (about 300px at full wind-up); a fully wound shuriken, or any bullseye, counts as a fully drawn shot for your upgrades. Your dash is a near-instant blink toward your cursor instead: about 150px, straight over pits and lava, and it recharges in under a second. 10 less health, and you take 10% more knockback." } };
 ROLES.crossbow = { name: 'Crossbowman', cat: 'Power', blurb: 'Point and shoot: no drawing, shorter reach.', premium: true,
-  trait: { name: 'Crank and Loose', desc: 'A crossbow instead of a bow: click to fire a bolt at once, no drawing. Bolts hit as hard as 85% of a full draw, fly fast and straight, and count as fully drawn shots for your upgrades, but they drop out of the air after 480px. Reloading takes 1.15 seconds, and you can move freely while you reload. Braced behind the stock, you take 15% less damage from enemies and 15% less knockback.' } };
+  trait: { name: 'Crank and Loose', desc: '8% faster. A crossbow instead of a bow: click to fire a bolt at once, no drawing. Bolts hit as hard as 85% of a full draw, fly fast and straight, and count as fully drawn shots for your upgrades, but they drop out of the air after 560px. Reloading takes 1.15 seconds, and you can move freely while you reload. Braced behind the stock, you take 15% less damage from enemies and 15% less knockback.' } };
 const TREE_KEYS = Object.keys(ELEMENTS).concat(Object.keys(ROLES));
 const MAX_SLOTS = 2, CAP_PICKS = 2, OFFER_SIZE = 3;
 // tree: which element/role it belongs to ('element' = any element). base: granted free with the element.
@@ -4012,13 +4012,13 @@ function applyStats(p) {
   const R = p.role, is = (cond, v) => (cond ? v : 1), hc = 1 + (p.hcap || 0) / 100;
   // role traits (always on) and trade-off cards
   p.maxHp = 100 + (has(p, 'vital') ? 25 : 0) + 15 * h('hone_hp')
-    + (R === 'juggernaut' ? 15 : 0) + (R === 'warden' ? 5 : 0) - (R === 'sniper' || R === 'ranger' || R === 'assassin' ? 10 : 0)
+    + (R === 'juggernaut' ? 15 : 0) + (R === 'warden' ? 5 : 0) - (R === 'sniper' || R === 'ranger' ? 10 : 0)
     - (has(p, 'glass') ? 10 : 0) + (has(p, 'colossus') ? 30 : 0) - (has(p, 'cloak') ? 10 : 0) - (R === 'ninja' ? 10 : 0) - (has(p, 'bloodpact') ? 10 : 0);
   p.maxHp = Math.round(p.maxHp * OPT('hp') * hc);
   if (p.hp > p.maxHp) p.hp = p.maxHp;
   p.mass = (1 + (p.hcap || 0) / 200) * is(has(p, 'stance'), 1 / 0.5) * is(R === 'juggernaut', 1.25) * is(R === 'warden', 1.1) * is(has(p, 'colossus'), 1 / 0.65) / is(has(p, 'feather'), 1.3) / is(R === 'ninja', 1.1) / is(has(p, 'longstep'), 1.15) / is(R === 'crossbow', 0.85);
   p.r = 16 * is(R === 'juggernaut', 1.1) * is(has(p, 'colossus'), 1.35) * OPT('size');
-  p.baseSpeed = 235 * (has(p, 'fleet') ? 1.1 : 1) * (1 + 0.05 * h('hone_speed')) * is(R === 'juggernaut', 0.93) * is(R === 'ranger', 1.05)
+  p.baseSpeed = 235 * (has(p, 'fleet') ? 1.1 : 1) * (1 + 0.05 * h('hone_speed')) * is(R === 'juggernaut', 0.93) * is(R === 'ranger', 1.05) * is(R === 'ninja', 1.12) * is(R === 'crossbow', 1.08)
     * is(has(p, 'colossus'), 0.9) * is(has(p, 'feather'), 1.15) * is(has(p, 'quickfeet'), 1.08) * OPT('mspeed');
   p.rampMul = has(p, 'fleet') ? 0.4 : has(p, 'feather') ? 0.8 : 1;
   p.agile = has(p, 'fleet') ? 3 : 1; p.resp = has(p, 'fleet') ? 1.6 : 1; // Fleet Foot: sharper turns and stops
@@ -4029,7 +4029,7 @@ function applyStats(p) {
   p.dashN = Math.min(p.dashN == null ? p.dashMaxN : p.dashN, p.dashMaxN);
   p.drawMul = (has(p, 'steady') ? 1.25 : 1) * (1 + 0.08 * h('hone_draw')) * is(R === 'trickster', 1.12) * is(R === 'ranger', 1.12) * is(R === 'sniper', 1) * mutMul(CFG.mut, 'draw');
   p.kbMul = (1 + 0.08 * h('hone_kb')) * is(R === 'trickster', 0.9) * is(has(p, 'obsidian'), 1.3) * is(has(p, 'deepshade'), 0.85);
-  p.dmgMul = hc * is(has(p, 'glass'), 1.3) * is(has(p, 'potent'), 0.85) * is(R === 'juggernaut', 0.8) * is(has(p, 'unstable'), 0.92) * is(has(p, 'rip'), 0.92);
+  p.dmgMul = hc * is(has(p, 'glass'), 1.3) * is(has(p, 'potent'), 0.85) * is(R === 'juggernaut', 0.8) * is(R === 'warden', 0.85) * is(has(p, 'unstable'), 0.92) * is(has(p, 'rip'), 0.92);
   p.abCdMul = is(R === 'trapper', 0.6) * mutMul(CFG.mut, 'abcd');
   // Crossbowman: reload time, reach and how many bolts they hold
   p.xbowReload = XBOW_RELOAD * is(has(p, 'windlass'), 0.75) * is(has(p, 'longstock'), 1.15) * is(has(p, 'tribolt'), XB3.reload) / p.drawMul;
@@ -4979,7 +4979,7 @@ function stepBody(w, f, mx, my, dt) {
     else if ((H.pull -= dt) <= 0 || d < o.r + f.r + 30) { if (d < o.r + f.r + 30) { f.vx *= 0.3; f.vy *= 0.3; } f.hook = null; } // (the rope goes slack once they've arrived: they stop at your feet)
   }
   let sp = f.speed;
-  if (f.drawing) sp *= f.role === 'ranger' ? 0.7 : 0.55; // the Ranger keeps more of its speed while drawing
+  if (f.drawing) sp *= f.role === 'ranger' ? 0.7 : f.role === 'ninja' ? 0.75 : 0.55; // the Ranger keeps more of its speed while drawing; a Ninja's wind-up is light
   if (f.slow > 0) sp *= f.sure ? 0.85 : (f.slowK || 0.5); // frost
   if (f.onLava) sp *= f.sure ? 0.85 : 0.6; // wading through lava
   if (f.riftSlow > 0) { f.riftSlow -= dt; sp *= f.sure ? 0.9 : 0.7; }
@@ -6013,7 +6013,7 @@ const NB_WIND = 0.05, NB_MOVE = 0.09; // Ninja blink: wind-up, then travel time
 const ROCKET = { speed: 210, turn: 1.5, life: 5, blast: 0.85, dmg: 6 }; // px/s (an archer runs at about 235), radians a second it can turn, fuse, burst size (Blast Tips = 1) and burst damage
 const VOID_PULL = [0, 0, 0.12, 0.3, 0.55, 0.85], GRAV_R = 110, GRAV_PULL = 320; // void marks' homing strength by number of marks; Gravity Arrows' reach and pull
 const ASSIST_LANE = 220, ASSIST_RAMP = 600, SEEK = { power: 1.4, lane: 340, base: 0.6 }; // Seeker Arrow: between the Heavy and Extreme rules, with a wider lane, and it turns firmly from the start; // arrow homing: how far either side of your line of fire it looks for a target (at any range), and the distance over which its turning ramps up
-const XBOW_RANGE = 480, XBOW_RELOAD = 1.15, XBOW_GAP = 0.16, AUTO_TIME = 2, AUTO_GAP = 0.12;
+const XBOW_RANGE = 560, XBOW_RELOAD = 1.15, XBOW_GAP = 0.16, AUTO_TIME = 2, AUTO_GAP = 0.12;
 // Triple Bolt (an upgrade): each shot is a quick burst of three bolts, each this share of a single bolt's damage and knockback, and reloading takes `reload` times as long
 const XB3 = { n: 3, gap: 0.08, dmg: 0.45, kb: 0.5, spread: 0.035, reload: 1.5 };
 // how far a player's shots reach before dropping, for roles with a short range (null: the whole arena)
@@ -6023,7 +6023,7 @@ const rangeOf = (w, p) => p.role === 'crossbow' ? Math.round(p.xbowRange || XBOW
 const SNIPE_FULL = Math.hypot(AW - 2 * WALL, AH - 2 * WALL); // corner to corner
 // Harpoon: hooked for HOOK_DELAY seconds, then reeled toward the thrower at up to HOOK_PULL (it breaks past HOOK_MAX)
 const HOOK_DELAY = 0.5, HOOK_PULL = 1150, HOOK_MAX = 1000;
-const VOLLEY_GAP = 0.12, BLINK_RANGE = 300, HARPOON_RANGE = 420, NINJA_BLINK = 150, FLASH_RANGE = 240;
+const VOLLEY_GAP = 0.12, BLINK_RANGE = 300, HARPOON_RANGE = 420, NINJA_BLINK = 220, FLASH_RANGE = 240;
 // is this archer hidden inside smoke from someone standing at (x, y)?
 function inSmoke(w, q, x, y) {
   for (const z of w.zones) {
@@ -6078,7 +6078,8 @@ function arrowHit(w, a, f) {
   // Deadeye: no bonus under 200px of flight, rising to +60% at 700px
   // Marksman (every Sniper): nothing under 150px of flight, rising to +30% at 700px
   const range = (a.own && has(a.own, 'deadeye') ? 0.6 * clamp((a.dist - 200) / 500, 0, 1) : 0)
-    + (a.own && a.own.role === 'sniper' ? 0.3 * clamp((a.dist - 150) / 550, 0, 1) : 0);
+    + (a.own && a.own.role === 'sniper' ? 0.3 * clamp((a.dist - 150) / 550, 0, 1) : 0)
+    + (a.own && a.own.role === 'assassin' ? 0.4 * clamp((450 - a.dist) / 300, 0, 1) : 0); // Backstab's other half: the shorter the shot the harder it hits, +40% inside 150px, nothing from 450px out
   const held = f.stuck > 0 || f.frozen > 0;
   const chill = a.el === 'frost' && (f.slow > 0 || f.frozen > 0) ? 1.3 : 1; // Frost Arrows
   const marked = a.el === 'void' && f.voidBy === a.owner && f.voidT > w.t ? 1 + VOID_DMG * (f.voidN || 0) : 1; // Void Arrows: marks also sharpen your arrows
@@ -6697,7 +6698,7 @@ function interceptAim(p, T, v0, drag) {
   return Math.atan2(ty - p.y, tx - p.x);
 }
 function shotSpeed(p, c) {
-  if (p.role === 'ninja') return 1050 * OPT('aspeed');
+  if (p.role === 'ninja') return 1050 * OPT('aspeed') * (0.6 + 0.4 * clamp(c, 0, 1)); // (a shuriken flies as fast as it was wound up: see makeStar)
   return (380 + 920 * (p.role === 'crossbow' ? 1 : c)) * (has(p, 'longbow') ? 1.2 : 1) * (p.role === 'sniper' ? SNIPER_SPEED : 1) * (has(p, 'obsidian') ? 0.92 : 1) * (has(p, 'colossus') ? 0.85 : 1) * (p.railArmed ? 1.8 : 1) * OPT('aspeed');
 }
 // (an armed Railshot flies 80% faster and never slows: bots lead it accordingly)
@@ -6753,8 +6754,9 @@ function botPressIn(p) {
 function botPlan(w, p, T, foes, mates, D, G) {
   const ai = p.ai, st = STYLES[ai.style] || STYLES.skirmisher;
   const reach = botReach(p), outg = T ? outranged(p, T) : 0, ready = loaded(p);
-  const cardPref = (p.role === 'sniper' ? 1.2 : 1) * (has(p, 'deadeye') ? 1.15 : 1) * (has(p, 'pointblank') ? 0.7 : 1) * (has(p, 'holdline') || has(p, 'ram') ? 0.85 : 1); // (what the cards want: Deadeye far out, Point Blank and the brawling cards up close)
+  const cardPref = (p.role === 'sniper' ? 1.2 : 1) * (p.role === 'assassin' ? 0.8 : 1) * (has(p, 'deadeye') ? 1.15 : 1) * (has(p, 'pointblank') ? 0.7 : 1) * (has(p, 'holdline') || has(p, 'ram') ? 0.85 : 1); // (what the cards want: Deadeye far out, Point Blank and the brawling cards up close)
   const pref = Math.min(reach * 0.8, (st.near + st.far) / 2 * G.pref * cardPref) * botPressIn(p);
+  const short = p.role === 'ninja' || p.role === 'crossbow' || p.role === 'assassin'; // (the Assassin's arrows hit hardest up close too)
   const rushReady = has(p, 'rush') && p.slots.some((id, i) => id === 'rush' && !(p.abCd[i] > 0)), pinning = has(p, 'pin');
   const hold = holdSpot(p), holdK = hold ? (p.hp < p.maxHp * 0.7 && senseArena().heal ? 1.6 : 1) * (T && Math.hypot(T.x - hold.x, T.y - hold.y) < hold.r + 60 ? 0.5 : 1) : 0; // (less while they're standing on it: that's a fight, not a stroll)
   const myKb = kbTravel(0.95, T ? T.mass : 1, p.kbMul) * G.kbScale;
@@ -6779,7 +6781,7 @@ function botPlan(w, p, T, foes, mates, D, G) {
       // out of our reach but inside theirs: a free shot for them. Worse the more they outrange us, and the
       // knockback worry matters a little less there, because hanging back isn't an answer to it
       const og = outranged(p, q), free = d > reach && d < botReach(q) + 60 ? og : 0;
-      sc -= pushRisk(x, y, dx / d, dy / d, kbTravel(q.drawing ? Math.max(0.7, q.charge) : 0.9, p.mass, q.kbMul) * G.kbScale, p.r) * threat * 3 * G.safety * (1 - 0.35 * free);
+      sc -= pushRisk(x, y, dx / d, dy / d, kbTravel(q.drawing ? Math.max(0.7, q.charge) : 0.9, p.mass, q.kbMul) * G.kbScale, p.r) * threat * 3 * G.safety * (1 - 0.35 * free) * (short && d < reach ? 0.5 : 1);
       sc -= (0.4 + 0.8 * og) * threat * free;
       // closing on a drawn bow: the open ground is for the moment after it looses, not while it's aimed at you. A spot in their
       // sight while they're drawn is much worse, and much better once the shot is away (walk, then hide, then walk)
@@ -6789,7 +6791,8 @@ function botPlan(w, p, T, foes, mates, D, G) {
       const dx = T.x - x, dy = T.y - y, d = Math.hypot(dx, dy) || 1, los = botLos(w, p, x, y, T.x, T.y);
       // (chasing someone who's backing off: measure to where they're heading, so we cut the corner rather than trail them)
       const dl = outg > 0 && d > reach ? Math.hypot(T.x + T.vx * 0.5 - x, T.y + T.vy * 0.5 - y) : d;
-      sc -= Math.abs(dl - pref) / 300 * G.pref;
+      // (a short-reach archer's shots are weak from far out and distance doesn't shield it from a bow anyway: once in reach it commits to its range)
+      sc -= Math.abs(dl - pref) / 300 * G.pref * (short ? 2.5 : 1);
       if (dl > reach) sc -= (dl - reach) / 120 * (1 + 1.5 * outg);
       if (los) { if (ready) sc += 0.4 * G.los; sc += pushRisk(T.x, T.y, dx / d, dy / d, myKb, T.r) * 1.6 * G.push * edge;
         if (pinning) sc += slamRisk(T.x, T.y, dx / d, dy / d, myKb, T.r) * 0.7 * G.push; // Pin: a spot from which a full draw slams them into a wall
@@ -7339,7 +7342,10 @@ function botThink(w, p, dt) {
   inp.aim = ai.aimA;
   const onTarget = ai.reactT <= 0 && angOff(ai.aimA, wantAim) < (iq >= 0.5 ? Math.max(0.02, Math.atan2(T.r * G.fireTol, dT)) : 0.15);
   const los = botLos(w, p, p.x, p.y, T.x, T.y);
-  const sneaking = p.stealthT > 0.6 && dT > 170 && !(ai.ambush && Math.hypot(ai.ambush.x - p.x, ai.ambush.y - p.y) < 70);
+  // stealthed: hold the shot until it's the one worth breaking cover for: from the ambush spot, or from anywhere a full draw
+  // would throw them into something deadly, or when they're about to walk out of reach of the whole plan
+  const koShot = !!T && p.stealthT > 0 && pushRisk(T.x, T.y, (T.x - p.x) / (dT || 1), (T.y - p.y) / (dT || 1), kbOn(p, T, 1), T.r) > 0.5;
+  const sneaking = p.stealthT > 0.6 && dT > 170 && !koShot && !(ai.ambush && Math.hypot(ai.ambush.x - p.x, ai.ambush.y - p.y) < 70) && !(p.stealthT < 1.2 && dT < 400);
   if (p.role === 'ninja' && p.autoT > 0) {
     inp.draw = los && onTarget && dT < botReach(p) && T.inv <= 0; // Blade Guard's full auto: just hold
   } else if (p.role === 'ninja') {
@@ -7347,9 +7353,10 @@ function botThink(w, p, dt) {
     const reach = botReach(p);
     // (a wind-up slows you down, so it starts only once they're in reach, and one they've walked out of is thrown anyway rather
     // than carried after them: the legs matter more than the shuriken when there's ground to make up)
-    if (!inp.draw) { if (ai.reload <= 0 && dT < reach * 1.1) { inp.draw = true; ai.want = dT < 130 ? rand(0.42, 0.6) : dT > reach * 0.7 ? 1 : rand(0.7, 1); } }
+    // (and a shuriken hurts most up close: the wind-up waits until they're well inside reach, or coming to us, so the legs stay quick for the approach)
+    if (!inp.draw) { if (ai.reload <= 0 && (dT < reach * 0.6 || (dT < reach && (T.vx * (p.x - T.x) + T.vy * (p.y - T.y)) / dT > 100))) { inp.draw = true; ai.want = dT < 130 ? rand(0.42, 0.6) : dT > reach * 0.7 ? 1 : rand(0.7, 1); } }
     else if (p.charge >= ai.want && los && onTarget && dT < reach * (0.75 + 0.25 * p.charge) && T.inv <= 0 && !sneaking) { inp.draw = false; ai.reload = rand(0.05, 0.2) + D.react * 0.6; }
-    else if (dT > reach * 1.4 && p.charge >= 0.5 && (ai.windT = (ai.windT || 0) + dt) > 0.4) { inp.draw = false; ai.windT = 0; ai.reload = 0.1; }
+    else if (dT > reach * 0.75 && (ai.windT = (ai.windT || 0) + dt) > 0.3) { inp.draw = false; ai.windT = 0; ai.reload = 0.1; } // (they've got clear: let it go, however far it's wound, and get the legs back)
     if (!inp.draw) ai.windT = 0;
   } else if (p.role === 'crossbow') {
     // bolts: shoot when lined up and close enough for the bolt to arrive
@@ -7369,6 +7376,7 @@ function botThink(w, p, dt) {
         ai.want = risk > G.riskFull || dT > G.far ? 1 : dT < 140 ? G.quick : Math.max(D.minCharge, G.mid + lean);
         if (ai.want < 1 && has(p, 'pin') && slamRisk(T.x, T.y, (T.x - p.x) / d, (T.y - p.y) / d, kbOn(p, T, 1), T.r) > 0.4) ai.want = 1; // Pin needs the full draw, and the wall is right there
         if (ai.want < 1 && has(p, 'wildfire') && dT > 220 && Math.random() < 0.5) ai.want = 1; // Wildfire: full draws leave the fire
+        if (p.stealthT > 0 && (ai.ambush && ai.ambush.risk > 0.3 || koShot)) ai.want = 1; // stealthed for a knockout: the full draw is the whole point
       } else if (lean) ai.want = clamp(ai.want + lean, 0.3, 1);
       // Stone: a quick hit staggers them first, then the full draw throws them 20% further; staggered already: send it
       if (p.element === 'stone' && es >= 0.8 && dT < 320) {
@@ -7384,7 +7392,7 @@ function botThink(w, p, dt) {
       // Void: with marks on them, a half draw already homes in; the full draw is for the finish
       if (p.element === 'void' && T.voidBy === p.id && T.voidT > w.t && (T.voidN || 0) >= 2 && es >= 0.5 && ai.want < 1 && T.hp > 25) ai.want = Math.max(ai.want, 0.6);
     }
-  } else if ((p.charge >= ai.want || (p.momT > 0.1 && p.charge >= 0.55 && has(p, 'momentum'))) && los && onTarget && T.inv <= 0 && !(has(p, 'ballista') && ai.want >= 1 && p.over < 1 && dT > 250) && !(p.stealthT > 0.6 && dT > 170 && !(ai.ambush && Math.hypot(ai.ambush.x - p.x, ai.ambush.y - p.y) < 70))) {
+  } else if ((p.charge >= ai.want || (p.momT > 0.1 && p.charge >= 0.55 && has(p, 'momentum'))) && los && onTarget && T.inv <= 0 && !(has(p, 'ballista') && ai.want >= 1 && p.over < 1 && dT > 250) && !sneaking) {
     inp.draw = false;
     ai.reload = rand(0.05, 0.3) + D.react;
   }
@@ -7453,17 +7461,23 @@ function botShootBall(w, p, bt, D, dt) {
   return true;
 }
 // bots fire their abilities when the situation clearly calls for it
+// Where a stealthed Assassin wants to be: the spot from which a full draw throws the target into a hole, water, lava or
+// a wall (or, with nothing deadly near them, their back for the Backstab). Twelve spots round the target are weighed by
+// how deadly the shove from there would be and how far the walk is; the result moves with the target.
 function ambushPoint(p, T) {
   let best = null;
-  for (const h of HAZ) { if (h.type === 'tar') continue; const a = hazAway(h, T.x, T.y); if (a.dist < 260 && (!best || a.dist < best.d)) best = { nx: a.nx, ny: a.ny, d: a.dist }; }
-  for (const [d, nx, ny] of [[T.x - WALL, 1, 0], [AW - WALL - T.x, -1, 0], [T.y - WALL, 0, 1], [AH - WALL - T.y, 0, -1]])
-    if (d < 200 && (!best || d < best.d)) best = { nx, ny, d };
-  let x, y;
-  if (best) { x = T.x + best.nx * 150; y = T.y + best.ny * 150; } // stand opposite the danger: the shot pushes them into it
-  else { x = T.x - Math.cos(T.aim) * 150; y = T.y - Math.sin(T.aim) * 150; } // otherwise, their back
-  x = clamp(x, WALL + 40, AW - WALL - 40); y = clamp(y, WALL + 40, AH - WALL - 40);
-  if (lethalDist(x, y) < 50) { x = T.x - Math.cos(T.aim) * 150; y = T.y - Math.sin(T.aim) * 150; x = clamp(x, WALL + 40, AW - WALL - 40); y = clamp(y, WALL + 40, AH - WALL - 40); }
-  return { x, y };
+  const kb = kbOn(p, T, 1);
+  for (let i = 0; i < 12; i++) {
+    const a = i / 12 * TAU, x = clamp(T.x + Math.cos(a) * 150, WALL + 40, AW - WALL - 40), y = clamp(T.y + Math.sin(a) * 150, WALL + 40, AH - WALL - 40);
+    if (lethalDist(x, y) < 50 || !clearShot(x, y, T.x, T.y)) continue;
+    const ux = (T.x - x) / (Math.hypot(T.x - x, T.y - y) || 1), uy = (T.y - y) / (Math.hypot(T.x - x, T.y - y) || 1);
+    const risk = pushRisk(T.x, T.y, ux, uy, kb, T.r) + 0.4 * slamRisk(T.x, T.y, ux, uy, kb, T.r);
+    const behind = angOff(a, T.aim) < 0.6 ? 0.25 : 0; // (their back: the Backstab lands either way)
+    const sc = risk + behind - Math.hypot(x - p.x, y - p.y) / 900;
+    if (!best || sc > best.sc) best = { x, y, sc, risk };
+  }
+  if (!best) { const x = clamp(T.x - Math.cos(T.aim) * 150, WALL + 40, AW - WALL - 40), y = clamp(T.y - Math.sin(T.aim) * 150, WALL + 40, AH - WALL - 40); return { x, y, risk: 0 }; }
+  return best;
 }
 function perceived(w, T, lag) {
   const H = w.hist; if (!H || !H.length) return [T.x, T.y, T.vx, T.vy];
@@ -7577,7 +7591,15 @@ function botAbilities(w, p, T, dT, foes, dt) {
           if (!HAZ.some(h => h.type === 'pit' && inHaz(h, tx, ty, TRAP_PIT_GAP))) { p.input.tx = tx; p.input.ty = ty; use = true; }
         }
         break;
-      case 'stealth': use = !!T && ((dT > 260 && dT < 650 && p.hp > p.maxHp * 0.4) || (p.hp < p.maxHp * 0.35 && dT < 300)); break;
+      case 'stealth': {
+        if (!T) break;
+        // the sharper bots stealth for a reason: a knockout to set up (something deadly near the target that a shot from the far
+        // side would throw them into, close enough to reach before it wears off), or to get out of trouble; the rest just vanish
+        const sk = botD(p).iq || 0, setup = sk > 0.2 ? ambushPoint(p, T) : null;
+        use = sk > 0.2 ? ((setup.risk > 0.4 && dT > 200 && dT < 650 && Math.hypot(setup.x - p.x, setup.y - p.y) < 420 && p.hp > p.maxHp * 0.3) || (p.hp < p.maxHp * 0.35 && dT < 320))
+          : ((dT > 260 && dT < 650 && p.hp > p.maxHp * 0.4) || (p.hp < p.maxHp * 0.35 && dT < 300));
+        break;
+      }
       case 'hitrun': use = !!T && dT > 200 && dT < 520 && p.hp > p.maxHp * 0.35 && clearShot(p.x, p.y, T.x, T.y) && angOff(Math.atan2(T.y - p.y, T.x - p.x), p.input.aim) < 0.3 && lethalDist(p.x + Math.cos(p.input.aim) * Math.min(BLINK_RANGE, dT - 120), p.y + Math.sin(p.input.aim) * Math.min(BLINK_RANGE, dT - 120)) > 60; break;
       case 'secondwind': use = reclaimable(w, p) >= 25 || (reclaimable(w, p) >= 12 && p.hp < p.maxHp * 0.4); break;
       case 'deflect': {
@@ -8739,7 +8761,6 @@ return {
   _grant(w, id, cards) { const p = w.players.find(q => q.id === id); for (const c of cards) takeCard(w, p, c); applyStats(p); p.picked = false; return p; },
 };
 });
-
 </script>
 <script>
 (() => {
@@ -8748,7 +8769,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.93.2';
+const PAGE_VERSION = '0.93.5';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
