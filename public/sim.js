@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.93.5';
+const VERSION = '0.94.1';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1396,7 +1396,17 @@ function skillParams(s) {
   const [a, sa] = SKILL_STOPS[i], [b, sb] = SKILL_STOPS[i + 1], k = (s - sa) / (sb - sa), A = DIFF[a], B = DIFF[b], out = {};
   for (const key of Object.keys(A)) out[key] = A[key] + (B[key] - A[key]) * k;
   out.iq = clamp((s - 0.66) / 0.3, 0, 1); // the smart brain fades in from a little below Extreme to full at Master, with no jump
+  out.posK = s; // (positioning sense for the simpler brain's edge rule; AI players get their own, see facetParams)
   return out;
+}
+// A bot with facets: how well it aims, positions (and dodges), and reads the game (upgrade picks), each its own skill.
+// Matchmaking's AI players have these (their skill plus a spread settled from their name, see social.js), so one may have a
+// great eye and poor feet, or the other way round; the best are high on everything. aim: aimErr, reaction, turn, lead,
+// perception, draw habits; pos: positioning (the smart brain's weight, iq, and the edge sense); dodge: reading and dodging
+// shots and the juke; mind: upgrade and matchup sense.
+function facetParams(f) {
+  const A = skillParams(f.aim), P = skillParams(f.pos), D = skillParams(f.dodge != null ? f.dodge : f.pos), M = skillParams(f.mind != null ? f.mind : f.pos);
+  return Object.assign({}, A, { dodge: D.dodge, iq: P.iq, mind: M.iq, posK: clamp(+f.pos || 0, 0, 1) });
 }
 const botD = p => p.dparams || DIFF[p.diff] || DIFF.normal;
 const MAX_TEAM = 4;
@@ -1769,7 +1779,7 @@ const TEAM_ONLY = ['oath', 'revive', 'transfusion', 'contagion', 'aftershock', '
 const HAZ_CARDS = { harpoon: 1, gust: 0.9, ram: 0.7, boulder: 0.6, obsidian: 0.6, aftershock: 0.5, recoil: 0.3, kindling: 0.4, shatter: 0.4, dread: 0.4 };
 function botPickIndex(p, w) {
   if (p.gene && p.gene.randPick) return Math.floor(Math.random() * p.offer.length); // exploring, for learning what works
-  const st = STYLES[p.ai && p.ai.style], iq = p.gene && p.gene.noLearn ? 0 : botD(p).iq || 0;
+  const st = STYLES[p.ai && p.ai.style], D0 = botD(p), iq = p.gene && p.gene.noLearn ? 0 : (D0.mind != null ? D0.mind : D0.iq) || 0;
   const alone = w && !w.players.some(q => q !== p && q.team === p.team);
   const B = p.ai && p.ai.build ? BUILDS[p.ai.build] : null, prog = B ? B.cards.filter(c => has(p, c)).length / B.cards.length : 0;
   const CM = w && w.cardMeta ? w.cardMeta : null, foes = w ? w.players.filter(q => q.team !== p.team && !q.npc) : [];
@@ -4193,6 +4203,14 @@ function botReach(p) { return p.role === 'ninja' ? 1050 * OPT('aspeed') * 0.27 :
 const outranged = (p, q) => clamp((botReach(q) - botReach(p)) / 450, 0, 1);
 // can this archer shoot right now? (a crossbow mid-reload can't; everyone else always can)
 const loaded = p => p.role !== 'crossbow' || p.bolts > 0 || p.autoT > 0;
+// what a pickup is worth to this bot right now: a medkit is worth a lot when hurt and nothing at full health, amber is
+// pocket money (not health), a power-up is worth a few steps, the big capture power-up more
+function pickupWorth(u, p) {
+  if (u.chan) return 0.9;
+  if (u.type === 'amber') return 0.35;
+  if (u.type === 'heal') { const f = p.hp / p.maxHp; return f < 0.5 ? 1.3 : f < 0.8 ? 0.6 : 0.05; }
+  return 0.8;
+}
 // Planned positioning: score spots around the bot and head for the best one. A good spot is one where
 // no enemy's shot can knock us into anything deadly, our shot at the target would knock them into something,
 // we're at our preferred range with a clear line, and it's near a pickup worth having.
@@ -4261,7 +4279,7 @@ function botPlan(w, p, T, foes, mates, D, G) {
     // amber and powerups nearby
     for (const u of w.pickups) {
       const du = Math.hypot(u.x - x, u.y - y);
-      if (du < 260 && !inBog(u.x, u.y, 30)) sc += (u.chan ? 0.9 : u.type === 'amber' ? 0.5 : 0.8) * (1 - du / 260) * G.pick;
+      if (du < 260 && !inBog(u.x, u.y, 30)) sc += pickupWorth(u, p) * (1 - du / 260) * G.pick;
     }
     if (inBog(x, y, p.r)) sc -= 0.6; // slow, and no dashing out of trouble
     if (hold) { const dh = Math.hypot(hold.x - x, hold.y - y); sc += dh < hold.r + 40 ? 0.9 * holdK * (1 - dh / (hold.r + 40)) : -Math.min(0.6, (dh - hold.r) / 600) * holdK; } // the play: hold the spot
@@ -4284,13 +4302,14 @@ function botPlan(w, p, T, foes, mates, D, G) {
 // Returns the way to move, or null when there's no boulder worth using (then it's the open ground, weaving).
 function botCoverHop(p, T, d, dt) {
   const ai = p.ai; let P = ai.coverP;
+  if ((ai.coverOff2 = (ai.coverOff2 || 0) - dt) > 0 && !P) return null; // (just left one: cross the open for a bit before looking for the next)
   if (P && (Math.hypot(P.x - T.x, P.y - T.y) > d - 20 || Math.hypot(P.x - p.x, P.y - p.y) > 460 || (ai.coverT = (ai.coverT || 0) + dt) > 6)) P = ai.coverP = null; // (passed it, or it's stale)
   if (!P) {
     let best = null;
     for (const q of PILLARS) {
       if (q.tower) continue;
       const dm = Math.hypot(q.x - p.x, q.y - p.y), dq = Math.hypot(q.x - T.x, q.y - T.y);
-      if (dm > 420 || dq > d - 60 || dq < 150) continue;
+      if (dm > 420 || dq > d - 90 || dq < 150) continue; // (it has to be real progress toward them)
       const off = angOff(Math.atan2(q.y - p.y, q.x - p.x), Math.atan2(T.y - p.y, T.x - p.x)); if (off > 1.1) continue;
       const sc = dm + off * 200; if (!best || sc < best.sc) best = { q, sc };
     }
@@ -4299,9 +4318,11 @@ function botCoverHop(p, T, d, dt) {
   }
   const ux = (P.x - T.x) / (Math.hypot(P.x - T.x, P.y - T.y) || 1), uy = (P.y - T.y) / (Math.hypot(P.x - T.x, P.y - T.y) || 1);
   const sx = P.x + ux * (P.r + p.r + 14), sy = P.y + uy * (P.r + p.r + 14), ds = Math.hypot(sx - p.x, sy - p.y);
-  if (ds > 26) return [(sx - p.x) / ds, (sy - p.y) / ds]; // get behind it
-  if (T.drawing && T.charge > 0.25) return [(sx - p.x) / 30, (sy - p.y) / 30]; // their bow is drawn: stay put
-  ai.coverP = null; // they've just loosed: go, and the next boulder is picked on the way
+  if (ds > 26) { ai.coverWait = 0; return [(sx - p.x) / ds, (sy - p.y) / ds]; } // get behind it
+  // their bow is drawn: stay put, but not for long. A sniper is always drawing, and a crossbowman who waits behind a rock
+  // for a gap that never comes is out of the fight: after a second, go anyway (and no more rocks for a couple of seconds)
+  if (T.drawing && T.charge > 0.25 && (ai.coverWait = (ai.coverWait || 0) + dt) < 1) return [(sx - p.x) / 30, (sy - p.y) / 30];
+  ai.coverP = null; ai.coverWait = 0; ai.coverOff2 = 2; // they've just loosed (or we've waited long enough): go
   const tx = (T.x - p.x) / d, ty = (T.y - p.y) / d; return [tx, ty];
 }
 // Closing the gap: a short-reach archer (crossbow, shuriken) walking in under a bow's fire gets picked apart, so
@@ -4520,11 +4541,12 @@ function botThink(w, p, dt) {
   const dT = T ? Math.hypot(T.x - p.x, T.y - p.y) : Infinity;
   // amber is worth a detour; a teammate already heading there means leave it
   // (one lying in a bog is left alone: the steering won't walk into the bog, so a bot wanting it would only dither at the edge)
+  // (the one most worth the walk: a medkit when hurt first, amber last; one not worth anything isn't gone for)
   const pk = w.pickups.reduce((best, u) => {
-    const d = Math.hypot(u.x - p.x, u.y - p.y);
-    const range = u.type === 'amber' ? 380 : 320;
+    const d = Math.hypot(u.x - p.x, u.y - p.y), worth = pickupWorth(u, p);
+    const range = (u.type === 'amber' ? 380 : 320) * (0.6 + 0.5 * worth);
     const mateCloser = mates.some(m => Math.hypot(u.x - m.x, u.y - m.y) < d * 0.8);
-    return d < range && !mateCloser && !inBog(u.x, u.y, 30) && (!best || d < best.d) ? { u, d } : best;
+    return worth > 0.1 && d < range && !mateCloser && !inBog(u.x, u.y, 30) && (!best || worth / (d + 80) > best.v) ? { u, d, v: worth / (d + 80) } : best;
   }, null);
   ai.strafeT -= dt;
   if (ai.strafeT <= 0) { ai.strafe *= -1; ai.strafeT = rand(0.9, 2.4); }
@@ -4549,7 +4571,9 @@ function botThink(w, p, dt) {
   } else if (hurtBad) {
     if (healD > HEAL.r * 0.5) { gx = (HEAL.x - p.x) / healD; gy = (HEAL.y - p.y) / healD; }
     else { gx = -(p.y - HEAL.y) / (healD || 1) * ai.strafe * 0.4; gy = (p.x - HEAL.x) / (healD || 1) * ai.strafe * 0.4; }
-  } else if (pk && !pk.u.chan && (!T || pk.d < dT * (1.2 - outranged(p, T))) && iq < 0.5) { // (someone being outranged has no time for detours)
+  } else if (pk && !pk.u.chan && iq < 0.5 && (!T || (pk.d < Math.min(dT * (1.2 - outranged(p, T)), (dT > 600 ? 330 : 170) * (pk.u.type === 'heal' && p.hp < p.maxHp * 0.5 ? 1.6 : 1)) && !(T.drawing && T.charge > 0.4 && botLos(w, p, T.x, T.y, p.x, p.y))))) { // (a medkit when hurt is worth a longer walk)
+    // amber and power-ups: worth a few steps, not a walk into someone's line of fire. With an enemy about it's only the ones
+    // right there (a bit further when they're a long way off), and never with a bow drawn on us. (The outranged have no time for detours at all.)
     gx = (pk.u.x - p.x) / pk.d; gy = (pk.u.y - p.y) / pk.d;
   } else if (plan) {
     [gx, gy] = plan;
@@ -4569,7 +4593,9 @@ function botThink(w, p, dt) {
     // (the playstyles are a bow's distances: a shorter reach caps them, or a crossbowman would stand where his bolts drop short)
     const reach = botReach(p), outg = outranged(p, T);
     const pressIn = botPressIn(p);
-    const near = Math.min(st.near * (1.3 - ag * 0.6), reach * 0.55), far = Math.min(st.far * (1.25 - ag * 0.5), reach * 0.88) * pressIn;
+    // (a Sniper's arrows hit hardest from far out; a crossbowman's bolts and a ninja's stars hit hardest up close: their bands sit further out and closer in)
+    const bandK = p.role === 'sniper' ? 1.2 : p.role === 'crossbow' || p.role === 'ninja' ? 0.7 : 1;
+    const near = Math.min(st.near * (1.3 - ag * 0.6) * bandK, reach * 0.55), far = Math.min(st.far * (1.25 - ag * 0.5) * bandK, reach * 0.88) * pressIn;
     const dx = T.x - p.x, dy = T.y - p.y, d = dT || 1, ux = dx / d, uy = dy / d;
     // (backing off from someone who outranges you only means being shot in the back: the outgunned stand their ground unless nearly dead)
     let shaky = p.hp < p.maxHp * (outg > 0.5 ? 0.15 : 0.35) * (p.element === 'blood' && es >= 0.5 ? 0.7 : 1) && ag < 0.65 && d < far * 1.2; // (Blood: hits heal, so backing off hurt is the wrong move)
@@ -4604,6 +4630,12 @@ function botThink(w, p, dt) {
     if (st.mates && mates.length) {
       const m = mates.reduce((b, q) => { const dd = Math.hypot(q.x - p.x, q.y - p.y); return !b || dd < b.d ? { q, d: dd } : b; }, null);
       if (m.d > 200) { gx += (m.q.x - p.x) / m.d * 0.8; gy += (m.q.y - p.y) / m.d * 0.8; }
+    }
+    // edge sense (the simpler brain; the planning one weighs this in every spot it scores): standing where one hit would
+    // throw you into a hole is a bad place to trade shots from. The better the bot's positioning, the sooner it steps off
+    if (D.posK > 0.25) { // (backing off straight into the hole behind you is the classic way to go: this applies to the retreat too)
+      const ld = lethalDist(p.x, p.y), margin = 90 + 150 * D.posK;
+      if (ld < margin && pushRisk(p.x, p.y, -ux, -uy, kbOn(T, p, 0.9), p.r) > 0.3) { const sw = safeWay(p); if (sw) { const k = 0.5 + 0.5 * D.posK; gx = gx * (1 - k) + sw.x * k * 1.2; gy = gy * (1 - k) + sw.y * k * 1.2; } }
     }
     // dash-bash: brawlers (and bots with Battering Ram) dash straight into people
     ai.bashCd = (ai.bashCd || 0) - dt;
@@ -6211,7 +6243,7 @@ return {
   TM, TM_NAMES, TM_MINIONS, MASTERY, masteryOf, takeCard, applyStats,
   AIM, AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, SKILL_MIN, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
-  plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, LAB_KEYS, applyArenaPool, arenaPool, rankedPool, arenaSense, PLAYS, BUILDS, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
+  plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, LAB_KEYS, applyArenaPool, arenaPool, rankedPool, arenaSense, PLAYS, BUILDS, facetParams, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg, emblemCol, emblemFull,
   setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, BANNER_FRAME, frameAllowed, featProgress, achSeed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades

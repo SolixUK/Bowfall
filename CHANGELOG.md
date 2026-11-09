@@ -2,6 +2,22 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.94.1
+
+- Dodging is its own facet, apart from positioning (four facets now: aim, positioning, dodging, mind). Within a facet the parts still move together: aim covers error, reaction, turning, lead and perception as one number.
+
+## 0.94.0
+
+- **AI players have facets.** Skill now comes in three parts: aim (aim error, reaction, turning, lead, perception, draw habits), positioning (the planning brain's weight, dodging and the edge sense below) and mind (upgrade picks and matchup sense). Each is the player's skill plus a spread settled from their name, wider the weaker the player (about ±0.03 at 0.9, ±0.15 at 0.5), so one has a great eye and poor feet and another the reverse, while the best are high on everything. Shown in the owner's table (`/api/aiplayers?html=1`) and used by the AI league too.
+- **Pickup sense.** A medkit is worth a lot when hurt and nothing at full health, amber is pocket money, a power-up is worth a few steps; both brains weigh pickups by that, and the simpler brain walks further for a medkit when it's under half health and not at all for things it doesn't need.
+- **Edge sense for the simpler brain.** Standing (or backing off) where one hit would throw you into a hole is a bad place to trade shots from; bots with any positioning sense now step off it, sooner and more surely the better their positioning (the planning brain already weighed this in every spot it scored). At a 1500-level skill, deaths by hazard in a ranger mirror fell from half to about a third.
+
+## 0.93.6
+
+- **Crossbowmen stop hiding out of range.** The boulder-to-boulder approach waited behind cover while the enemy's bow was drawn, and against a sniper, who is always drawing, that meant waiting out of range for a gap that never came (as seen at a 1500 queue: the crossbowman peeking from behind rocks he couldn't shoot from, the sniper walking forward). The wait is now a second at most, then they go anyway, with no more rocks for a couple of seconds after, and a rock only counts as cover if it's real progress toward the target. Between Master-ish bots (skill 0.78) a crossbowman against a sniper on Meadow went from winning 3% of games to 36%.
+- The simpler brain no longer wanders into the line of fire for amber or a power-up: with an enemy about it only takes the ones right there (a little further when the enemy is a long way off), and never while a bow is drawn on it. (Amber is the currency, not health, so a sniper at full health walking to the middle for it was giving up its range for nothing.)
+- In the simpler brain, snipers keep a band 20% further out and crossbowmen and ninjas 30% closer in, matching where their shots hit hardest (the planning brain already did this).
+
 ## 0.93.5
 
 - **Warden arrows deal 15% less damage** (the Juggernaut's take 20% less). A support that heals shouldn't also hit like a ranger. Measured between Master bots the change is modest and within the noise of a few hundred games (roughly 55 to 65% against the pack, even with the Sniper), which fits what the earlier tests showed: the Warden's edge is sustain, not damage.

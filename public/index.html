@@ -2554,7 +2554,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.93.5"></script>
+<script src="sim.js?v=0.94.1"></script>
 <script>
 (() => {
 'use strict';
@@ -2562,7 +2562,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.93.5';
+const PAGE_VERSION = '0.94.1';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -7672,7 +7672,7 @@ function lgMatch(red, blue, mode) {
     const a = LG.ai.find(x => x.name === nm), bot = Sim.addBot(w, tm); if (!a || !bot) return null;
     const L = a.loadouts || [], tot = L.reduce((t, l) => t + (l[2] || 1), 0); let x = Math.random() * tot, lo = L[0] || ['frost', 'ranger'];
     for (const l of L) { if ((x -= (l[2] || 1)) <= 0) { lo = l; break; } }
-    bot.name = a.name; Sim.setLoadout(w, bot.id, lo[0], lo[1]); bot.dparams = Sim.skillParams(a.skill); ro[nm] = lo[1];
+    bot.name = a.name; Sim.setLoadout(w, bot.id, lo[0], lo[1]); bot.dparams = a.facets ? Sim.facetParams(a.facets) : Sim.skillParams(a.skill); ro[nm] = lo[1];
     Sim.setBotMind(w, bot.id, { style: lo[1] === (L[0] || [])[1] ? a.style : undefined, aggr: a.aggr, tr: a.tr, gene: a.gene, plays: a.plays, builds: a.builds });
   }
   Sim.startMatch(w); w.events.length = 0;
