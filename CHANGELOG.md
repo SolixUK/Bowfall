@@ -2,6 +2,11 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.94.2
+
+- **Teamwork, first part: targeting.** In team games bots now shoot what a teammate is already shooting when that enemy is under 60% health (two on one to finish; not from the start, or the other enemy is left free), and above all finish what a teammate has set up: an enemy held (rooted, frozen, staggered or pinned) with something deadly behind them is switched to at once and gets the full draw, since that's what the hold was for. How reliably depends on the player's mind facet. Measured in 2v2 bot mirrors the win-rate effect is within noise either way; the point is the play it produces (the frozen archer put into the water by the second shot), and it's the foundation for the flanking and front/back behaviours and the co-op duo mode (`docs/coop-duos.md`).
+- **Tunnel vision.** In the heat of it (a shot nearly drawn, a kill nearly there) a lesser player forgets their feet for a few seconds: the edge sense and the planning brain's safety weight drop away until it passes. Rarer the better the bot's positioning; the best hardly ever. Deaths by hazard in a ranger mirror now run about 25% of deaths at 0.9, 40% at 0.75 and 50% at 0.6.
+
 ## 0.94.1
 
 - Dodging is its own facet, apart from positioning (four facets now: aim, positioning, dodging, mind). Within a facet the parts still move together: aim covers error, reaction, turning, lead and perception as one number.

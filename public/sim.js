@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.94.1';
+const VERSION = '0.94.2';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -4239,7 +4239,7 @@ function botPlan(w, p, T, foes, mates, D, G) {
   // (a boulder in the way: look further afield too, or every spot in reach can be behind it)
   const radii = T && !botLos(w, p, p.x, p.y, T.x, T.y) ? [G.cand * 0.55, G.cand, G.cand * 2.3] : [G.cand * 0.55, G.cand];
   for (let i = 0; i < 12; i++) { const a = i / 12 * TAU + (ai.planRot || 0); for (const r of radii) cand.push([p.x + Math.cos(a) * r, p.y + Math.sin(a) * r]); }
-  const edge = 1 + (ai.tr ? ai.tr.edge * 1.2 : 0);
+  const edge = 1 + (ai.tr ? ai.tr.edge * 1.2 : 0), lapse = ai.lapseT > 0 ? 0.3 : 1; // (tunnel vision: the feet are forgotten for a moment)
   ai.planRot = ((ai.planRot || 0) + 0.37) % TAU;
   let best = null;
   for (const [x, y] of cand) {
@@ -4247,7 +4247,7 @@ function botPlan(w, p, T, foes, mates, D, G) {
     const ld = lethalDist(x, y);
     if (ld < p.r + 18) continue;
     if (PILLARS.some(q => Math.hypot(x - q.x, y - q.y) < q.r + p.r + 4)) continue;
-    let sc = -Math.max(0, 70 - ld) * 0.02; // a little breathing room from hazards
+    let sc = -Math.max(0, 70 - ld) * 0.02 * lapse; // a little breathing room from hazards
     // safety: every enemy who could shoot us here
     for (const q of foes) {
       const dx = x - q.x, dy = y - q.y, d = Math.hypot(dx, dy) || 1;
@@ -4256,7 +4256,7 @@ function botPlan(w, p, T, foes, mates, D, G) {
       // out of our reach but inside theirs: a free shot for them. Worse the more they outrange us, and the
       // knockback worry matters a little less there, because hanging back isn't an answer to it
       const og = outranged(p, q), free = d > reach && d < botReach(q) + 60 ? og : 0;
-      sc -= pushRisk(x, y, dx / d, dy / d, kbTravel(q.drawing ? Math.max(0.7, q.charge) : 0.9, p.mass, q.kbMul) * G.kbScale, p.r) * threat * 3 * G.safety * (1 - 0.35 * free) * (short && d < reach ? 0.5 : 1);
+      sc -= pushRisk(x, y, dx / d, dy / d, kbTravel(q.drawing ? Math.max(0.7, q.charge) : 0.9, p.mass, q.kbMul) * G.kbScale, p.r) * threat * 3 * G.safety * lapse * (1 - 0.35 * free) * (short && d < reach ? 0.5 : 1);
       sc -= (0.4 + 0.8 * og) * threat * free;
       // closing on a drawn bow: the open ground is for the moment after it looses, not while it's aimed at you. A spot in their
       // sight while they're drawn is much worse, and much better once the shot is away (walk, then hide, then walk)
@@ -4507,11 +4507,20 @@ function botThink(w, p, dt) {
     && !(p.shroudT > 0 && Math.hypot(q.x - p.x, q.y - p.y) > (p.shroudR || 170) + 20));
   const mates = w.players.filter(q => q.team === p.team && q !== p && !q.dead);
   ai.retarget -= dt;
+  const teamK = ai.noTeam ? 0 : D.mind != null ? D.mind : D.posK != null ? D.posK : (D.iq || 0); // how much of a team player this bot is
   let T = foes.find(q => q.id === ai.target);
   if (!T || ai.retarget <= 0) {
     let bestS = Infinity;
     for (const q of foes) {
       let s = Math.hypot(q.x - p.x, q.y - p.y) + q.hp * 1.5 - (lethalDist(q.x, q.y) < 120 ? 150 : 0) + (q.inv > 0 ? 400 : 0);
+      // teamwork (team sense: the mind facet, or the skill): shoot what your team is shooting (two on one ends it; split fire
+      // doesn't), and above all finish what a teammate has set up: someone held (rooted, frozen, staggered, pinned) with
+      // something deadly behind them is the shot the hold was for
+      if (mates.length && teamK > 0) {
+        if (mates.some(m => m.bot && m.ai && m.ai.target === q.id && !m.dead) && q.hp < q.maxHp * 0.6) s -= 120 * teamK; // (two on one to finish, not two on one from the start: the other enemy would be left free)
+        const held = q.stuck > 0 || q.frozen > 0 || q.staggerT > 0 || q.pinned > 0 || q.vine > 0;
+        if (held) { const d = Math.hypot(q.x - p.x, q.y - p.y) || 1; if (pushRisk(q.x, q.y, (q.x - p.x) / d, (q.y - p.y) / d, kbOn(p, q, 1), q.r) > 0.3) s -= 450 * teamK; }
+      }
       if (iq > 0) {
         const d = Math.hypot(q.x - p.x, q.y - p.y) || 1;
         if (has(p, 'rip') && q.thornBy === p.id && q.thornN >= 3) s += (q.thornN >= 5 ? 220 : 70) * iq; // (Rip: spread the thorns over everyone rather than piling them on one)
@@ -4530,6 +4539,11 @@ function botThink(w, p, dt) {
     }
     ai.target = T ? T.id : null;
     ai.retarget = rand(0.8, 1.6);
+  }
+  // (a hold with a drop behind it doesn't wait for the next look round: switch to it now)
+  if (mates.length && teamK > 0.3 && T && !(T.stuck > 0 || T.frozen > 0 || T.staggerT > 0 || T.pinned > 0 || T.vine > 0)) {
+    const setUp = foes.find(q => q !== T && (q.stuck > 0 || q.frozen > 0 || q.staggerT > 0 || q.pinned > 0 || q.vine > 0) && botLos(w, p, p.x, p.y, q.x, q.y) && pushRisk(q.x, q.y, (q.x - p.x) / (Math.hypot(q.x - p.x, q.y - p.y) || 1), (q.y - p.y) / (Math.hypot(q.x - p.x, q.y - p.y) || 1), kbOn(p, q, 1), q.r) > 0.3);
+    if (setUp && Math.random() < teamK) { T = setUp; ai.target = T.id; ai.retarget = 1.5; }
     if (w.tm) { const med = foes.find(q => q.npc && q.npc.k === 'medic'); if (med && iq >= 0.3) T = med; else if (iq >= 0.3 && foes.some(q => q.npc && q.npc.k === 'term')) T = foes.find(q => q.npc && q.npc.k === 'term'); ai.target = T ? T.id : null; } // (the Terminator: repair drones first, else the machine itself)
   }
   botAttention(p, foes, T, dt);
@@ -4633,7 +4647,7 @@ function botThink(w, p, dt) {
     }
     // edge sense (the simpler brain; the planning one weighs this in every spot it scores): standing where one hit would
     // throw you into a hole is a bad place to trade shots from. The better the bot's positioning, the sooner it steps off
-    if (D.posK > 0.25) { // (backing off straight into the hole behind you is the classic way to go: this applies to the retreat too)
+    if (D.posK > 0.25 && !(ai.lapseT > 0)) { // (backing off straight into the hole behind you is the classic way to go: this applies to the retreat too; not while tunnel-visioned)
       const ld = lethalDist(p.x, p.y), margin = 90 + 150 * D.posK;
       if (ld < margin && pushRisk(p.x, p.y, -ux, -uy, kbOn(T, p, 0.9), p.r) > 0.3) { const sw = safeWay(p); if (sw) { const k = 0.5 + 0.5 * D.posK; gx = gx * (1 - k) + sw.x * k * 1.2; gy = gy * (1 - k) + sw.y * k * 1.2; } }
     }
@@ -4694,6 +4708,12 @@ function botThink(w, p, dt) {
 
   // --- the Terminator fight: get out of a rush's way, behind a pillar for the pull, off a barrage mark, round the back of the Juggernaut
   if (w.tm && iq >= 0.3) { const o = botTerminator(w, p, T, dt); if (o) { gx = o[0]; gy = o[1]; } }
+  // --- tunnel vision: in the heat of it (a shot nearly drawn, a kill nearly there) a lesser player forgets their feet for a
+  // few seconds: the edge sense and the planning brain's safety weight drop away until it passes. Rarer the better the
+  // bot's positioning; the best hardly ever
+  { const posK = D.posK != null ? D.posK : (D.iq || 0); ai.lapseT = Math.max(0, (ai.lapseT || 0) - dt);
+    const tense = (inp.draw && p.charge > 0.5) || (T && T.hp < T.maxHp * 0.3);
+    if (!(ai.lapseT > 0) && tense && posK < 0.95 && Math.random() < dt * 0.6 * (1 - posK)) ai.lapseT = rand(1.5, 3); }
   // --- the juke: arrows here fly too fast to dodge on sight at most ranges (a quarter of a second or less in the air), so
   // like a person, the bot dodges the *draw*: a bow drawn well back and pointed its way gets a sidestep or a dash as the
   // shot is about to go (decided once per draw, a little late or a little early, not on the instant), the better the bot
@@ -4867,6 +4887,8 @@ function botThink(w, p, dt) {
         if (ai.want < 1 && has(p, 'wildfire') && dT > 220 && Math.random() < 0.5) ai.want = 1; // Wildfire: full draws leave the fire
         if (p.stealthT > 0 && (ai.ambush && ai.ambush.risk > 0.3 || koShot)) ai.want = 1; // stealthed for a knockout: the full draw is the whole point
       } else if (lean) ai.want = clamp(ai.want + lean, 0.3, 1);
+      // (both brains) a target held by a teammate's root, freeze, stagger or pin with a drop behind them: the full draw finishes it
+      if (teamK > 0.3 && (T.stuck > 0 || T.frozen > 0 || T.staggerT > 0 || T.pinned > 0 || T.vine > 0) && pushRisk(T.x, T.y, (T.x - p.x) / (dT || 1), (T.y - p.y) / (dT || 1), kbOn(p, T, 1), T.r) > 0.3) ai.want = 1;
       // Stone: a quick hit staggers them first, then the full draw throws them 20% further; staggered already: send it
       if (p.element === 'stone' && es >= 0.8 && dT < 320) {
         const d = dT || 1, ux = (T.x - p.x) / d, uy = (T.y - p.y) / d;
