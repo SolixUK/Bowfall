@@ -1543,7 +1543,22 @@
   .contnum.tick { animation: contTick .9s ease-out; } @keyframes contTick { from { transform: scale(1.5); opacity: .4; } to { transform: scale(1); opacity: 1; } }
   .contsub { color: var(--muted); font-size: 16px; margin-bottom: 8px; }
   #coopTest.sel { border-color: #ff7a7a; color: #ff7a7a; }
+  /* the arcade's results: the headline, your side, your numbers, and on to the next battle (everything on one screen) */
+  #resultsScreen.coopmode .resright, #resultsScreen.coopmode #resMoments, #resultsScreen.coopmode #resAwards, #resultsScreen.coopmode #rematchBtn, #resultsScreen.coopmode #resLobbyBtn, #resultsScreen.coopmode #resBalBtn { display: none; }
+  #resultsScreen.coopmode .results-card { max-width: 760px; }
+  .rescoop { display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; }
+  .rescoop .cnums { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; }
+  .rescoop .cnums div { padding: 8px 6px; border: 1px solid var(--line); background: rgba(255,255,255,.03); } .rescoop .cnums b { display: block; font: 700 26px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--gold); } .rescoop .cnums small { color: var(--muted); }
+  .rescoop .cpts { font: 700 22px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .06em; color: #7dff8a; }
+  /* victory over the machine */
+  .contscr.win { background: radial-gradient(ellipse at center, rgba(70,52,0,.85), rgba(0,0,0,.95)); }
+  .contscr.win .conttitle { color: #ffe9a8; text-shadow: 0 0 30px rgba(255,200,60,.8); font-size: 76px; }
+  .winstats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; min-width: min(640px, 90vw); margin: 6px 0 10px; }
+  .winstats div { padding: 8px 10px; border: 1px solid rgba(255,207,90,.35); background: rgba(255,207,90,.06); } .winstats b { display: block; font: 700 28px 'Rajdhani', 'Arial Narrow', sans-serif; color: #ffcf5a; } .winstats small { color: #e8dcc0; }
+  .winbest { color: #fff3c8; font-size: 15px; max-width: 640px; line-height: 1.5; }
+  .wincards { color: var(--gold); font: 700 54px/1 'Rajdhani', 'Arial Narrow', sans-serif; text-shadow: 0 0 30px rgba(255,200,60,.7); }
   .coopladder { display: flex; gap: 4px; } .coopladder i { flex: 1 1 0; height: 6px; background: rgba(255,255,255,.12); } .coopladder i.done { background: #7dff8a; } .coopladder i.now { background: var(--gold); }
+  .coopdiff .field { flex-direction: row; align-items: center; gap: 12px; flex: 1 1 auto; } .coopdiff input[type=range] { flex: 1 1 auto; max-width: 420px; } .coopdiff output { font: 700 20px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .05em; color: var(--gold); min-width: 130px; }
   #coopDiffs .chip2, #coopWhere .chip2 { cursor: pointer; } #coopDiffs .chip2.sel, #coopWhere .chip2.sel { border-color: var(--gold); color: var(--gold); }
   .lbmatch .field label { font-size: 13px; } .lobby .lbmatch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 10px; } .lobby .lbmatch .field { min-width: 0; } .lobby .lbmatch select { width: 100%; }
   .lbfold .lbbody.up { top: auto; bottom: calc(100% + 6px); box-shadow: 0 -14px 40px rgba(0,0,0,.6); }
@@ -2040,7 +2055,7 @@
     <div class="card wide">
       <div class="shopbar"><div class="stat"><span class="eyebrow">Together</span><h2>Co-op arcade</h2></div><div class="btnrow" data-navsec><button class="ghost" type="button" data-back>Back</button></div></div>
       <p class="status">Fourteen AI duos, one after another, each on an arena built for its own tactic: a colossus that body-blocks for a crossbow, two assassins who vanish together, two juggernauts who only want to bash. Beat a duo and the next is up; lose and you spend a continue (you have three). Before each battle you see what the duo brings, then choose your archetype and all three upgrades. On your own you get a handicap in your favour.</p>
-      <div class="archrow"><span class="lbl">Difficulty</span><div class="chips" id="coopDiffs" data-navsec></div></div>
+      <div class="archrow coopdiff"><span class="lbl">Difficulty</span><div class="field" data-navsec><input type="range" id="coopLevel" min="1" max="10" step="1" value="5"><output id="coopLevelOut"></output></div></div>
       <p class="status" id="coopDiffNote"></p>
       <div class="archrow"><span class="lbl">Where it runs</span><div class="chips" id="coopWhere" data-navsec></div></div>
       <p class="status" id="coopWhereNote"></p>
@@ -2061,6 +2076,17 @@
       <div class="contnum" id="contNum">9</div>
       <div class="contsub" id="contSub"></div>
       <div class="btnrow" data-navsec><button class="cta" type="button" id="contYes">Continue</button><button class="ghost" type="button" id="contNo">Give up</button></div>
+    </div>
+  </div>
+  <div class="contscr win" id="coopWin" hidden>
+    <div class="contin">
+      <canvas id="winCv" width="720" height="300"></canvas>
+      <div class="conttitle">Victory!</div>
+      <div class="contsub" id="winSub"></div>
+      <div class="wincards" id="winScore"></div>
+      <div class="winstats" id="winStats"></div>
+      <div class="winbest" id="winBest"></div>
+      <div class="btnrow" data-navsec><button class="cta" type="button" id="winAgain">New run</button><button class="ghost" type="button" id="winClose">Done</button></div>
     </div>
   </div>
   <!-- a local tournament: friends on one screen, 1v1s, pass the controllers round -->
@@ -2371,11 +2397,13 @@
       <div class="resprog" id="resProg" hidden></div>
       <span class="status" id="resNext"></span>
       </div>
+      <div class="rescoop" id="resCoop" hidden></div>
       <div class="btnrow resbtns">
         <button class="cta" id="rematchBtn" type="button">Rematch now</button>
         <button class="ghost" id="resLobbyBtn" type="button">Back to lobby</button>
         <button class="ghost" id="resBalBtn" type="button">Balance data</button>
         <button class="cta" id="resAgainBtn" type="button" hidden>Play again</button><button class="ghost" id="resFindBtn" type="button" hidden>Back to Find game</button>
+        <button class="cta" id="resCoopNext" type="button" hidden>Next battle</button>
         <button class="ghost" id="resLeaveBtn" type="button">Leave</button>
       </div>
     </div>
@@ -2609,7 +2637,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.98.0"></script>
+<script src="sim.js?v=0.99.0"></script>
 <script src="coop-data.js"></script>
 <script src="coop.js"></script>
 <script>
@@ -2619,7 +2647,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.98.0';
+const PAGE_VERSION = '0.99.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -8358,15 +8386,16 @@ $('pracBtn').onclick = () => { closeSubs(); startPractice(); };
 // ================= co-op arcade =================
 // One or two people against the ladder of AI duos (lib/duos.json on the server). The lobby shows the duo coming up, its
 // tell, its archetypes and upgrades; everyone picks an archetype as usual and all three upgrades here, then readies up.
-const COOP = { diff: store.get('bowfall-coop-diff', 'normal'), where: store.get('bowfall-coop-where', 'local'), test: store.get('bowfall-coop-test', '0') === '1', pending: null, picks: (() => { try { const a = JSON.parse(store.get('bowfall-coop-picks', '[]')); return Array.isArray(a) ? a.filter(id => TREE[id]).slice(0, 3) : []; } catch (e) { return []; } })(), key: null }; // (what you last played is remembered: difficulty, where, and your three upgrades)
+const COOP = { diff: (v => ({ easy: 2, normal: 5, hard: 7, legend: 10 })[v] || Math.max(1, Math.min(10, Math.round(+v) || 5)))(store.get('bowfall-coop-diff', '5')), where: store.get('bowfall-coop-where', 'local'), test: store.get('bowfall-coop-test', '0') === '1', pending: null, picks: (() => { try { const a = JSON.parse(store.get('bowfall-coop-picks', '[]')); return Array.isArray(a) ? a.filter(id => TREE[id]).slice(0, 3) : []; } catch (e) { return []; } })(), key: null }; // (what you last played is remembered: difficulty, where, and your three upgrades)
 const coopKeep = () => store.set('bowfall-coop-picks', JSON.stringify(COOP.picks));
 const coopOwner = () => OFFLINE || !!(account && account.admin);
 const COOP_WHERE = { local: ['On this device', 'Runs right here: no lag, nothing over the internet. Solo, or with friends on controllers on this screen.'], online: ['Online', 'Runs on the Bowfall server in a private room, so a friend on another computer can join with its code or your invite link.'] };
-const COOP_DIFFS = { easy: ['Easy', 'The duos play loosely and the score counts once. A good first run.'], normal: ['Normal', 'Fair fights. Score ×1.5.'], hard: ['Hard', 'Sharp duos. Score ×2.2.'], legend: ['Legend', 'The duos play about as well as the game can. Score ×3.'] };
+const coopLevelName = L => L <= 3 ? 'Easy' : L <= 6 ? 'Normal' : L <= 8 ? 'Hard' : 'Legend';
+const coopLevelNote = L => `${L <= 2 ? 'The duos play loosely. A good first run.' : L <= 4 ? 'Gentle duos, fair fights.' : L <= 6 ? 'Fair fights all the way up the ladder.' : L <= 8 ? 'Sharp duos; the machine at the top is no pushover.' : 'The duos play about as well as the game can.'} Score ×${(1 + 0.25 * (L - 1)).toFixed(2).replace(/0$/, '').replace(/\.0$/, '')}. On your own: +${Math.round((50 - 30 * (L - 1) / 9) / 10) * 10}% health and damage.`;
 function coopOpen() {
-  if (!COOP_DIFFS[COOP.diff]) COOP.diff = 'normal';
-  $('coopDiffs').innerHTML = Object.entries(COOP_DIFFS).map(([k, d]) => `<button type="button" class="chip2${k === COOP.diff ? ' sel' : ''}" data-cdiff="${k}">${d[0]}</button>`).join('');
-  $('coopDiffNote').textContent = COOP_DIFFS[COOP.diff][1];
+  $('coopLevel').value = String(COOP.diff); $('coopLevelOut').textContent = `${COOP.diff} · ${coopLevelName(COOP.diff)}`;
+  $('coopDiffNote').textContent = coopLevelNote(COOP.diff);
+  $('coopStart').textContent = COOP.test && coopOwner() ? 'Start a test run (unlimited continues)' : 'Start a run';
   if (OFFLINE || !COOP_WHERE[COOP.where]) COOP.where = 'local';
   $('coopWhere').innerHTML = Object.entries(COOP_WHERE).map(([k, d]) => `<button type="button" class="chip2${k === COOP.where ? ' sel' : ''}" data-cwhere="${k}"${k === 'online' && OFFLINE ? ' disabled title="Needs the Bowfall server"' : ''}>${d[0]}</button>`).join('');
   $('coopWhereNote').textContent = COOP_WHERE[COOP.where][1] + (COOP.where === 'local' && LP.list.length ? ` ${LP.list.length} on controller${LP.list.length === 1 ? '' : 's'} will join you.` : '');
@@ -8375,7 +8404,7 @@ function coopOpen() {
 }
 $('coopTest').onclick = () => { COOP.test = !COOP.test; store.set('bowfall-coop-test', COOP.test ? '1' : '0'); coopOpen(); };
 $('coopWhere').addEventListener('click', e => { const b = e.target.closest('[data-cwhere]'); if (!b || b.disabled) return; COOP.where = b.dataset.cwhere; store.set('bowfall-coop-where', COOP.where); coopOpen(); });
-$('coopDiffs').addEventListener('click', e => { const b = e.target.closest('[data-cdiff]'); if (!b) return; COOP.diff = b.dataset.cdiff; store.set('bowfall-coop-diff', COOP.diff); coopOpen(); });
+$('coopLevel').addEventListener('input', () => { COOP.diff = +$('coopLevel').value; store.set('bowfall-coop-diff', String(COOP.diff)); coopOpen(); });
 $('coopStart').onclick = () => {
   if (COOP.where === 'local' || OFFLINE) return startLocalCoop(COOP.diff);
   COOP.pending = COOP.diff;
@@ -8408,6 +8437,28 @@ function contDraw() {
   finally { ctx = keep; g.setTransform(1, 0, 0, 1, 0, 0); }
 }
 $('contYes').onclick = () => coopAct('next');
+// the machine beaten: VICTORY over a close-up of your archers, the score, and what you did best over the run
+const WIN = { on: false, shut: null };
+function coopWinTick() {
+  const C = coopInfo(), key = C && C.st === 'done' && C.result && C.result.won && C.result.last ? `${C.score}:${C.fights}` : null;
+  const show = !!key && WIN.shut !== key && mode !== 'menu';
+  if (show === WIN.on) return; WIN.on = show; $('coopWin').hidden = !show; if (!show) return;
+  WIN.key = key; play('streak');
+  const T = C.tot || {}, acc = T.sh ? Math.round(T.hi / T.sh * 100) : 0, mins = Math.round((T.secs || 0) / 60);
+  $('winSub').textContent = `The machine is down. All ${C.n - 1} duos and the Terminator beaten on ${C.diffName} ${C.diff}${C.test ? ' (test run)' : ''}.`;
+  $('winScore').textContent = `${C.score} points`;
+  $('winStats').innerHTML = [[T.k || 0, 'knockouts'], [T.ring || 0, 'thrown into the arena'], [acc + '%', 'accuracy'], [Math.round(T.dmg || 0), 'damage dealt'], [`${C.sweeps || 0} of ${C.n}`, 'won without dropping a game'], [C.test ? '∞' : `${C.used || 0}`, 'continues used']].map(([v, l]) => `<div><b>${v}</b><small>${l}</small></div>`).join('');
+  const best = []; if (!C.used && !C.test) best.push('Not a single continue: a clean run.'); if ((C.sweeps || 0) >= Math.ceil(C.n / 2)) best.push(`${C.sweeps} battles won without dropping a game.`); if (acc >= 45) best.push(`${acc}% of your shots landed.`); if ((T.ring || 0) >= 10) best.push(`${T.ring} archers sent into the holes, the water and the thorns.`); if (T.far > 500) best.push(`Your longest hit flew ${Math.round(T.far / 50)} metres.`); if (mins) best.push(`${mins} minute${mins === 1 ? '' : 's'} of fighting.`);
+  $('winBest').textContent = best.join(' ');
+  $('winAgain').hidden = !isHost();
+  const cv = $('winCv'), g = cv.getContext('2d'), keep = ctx, mine = view ? view.p.filter(p => p.tm === 'red' && !p.nk) : [];
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv.width, cv.height); ctx = g;
+  try { mine.slice(0, 3).forEach((p, i) => { const cx = cv.width / 2 + (i - (Math.min(3, mine.length) - 1) / 2) * 200; g.setTransform(3.2, 0, 0, 3.2, cx, 150); drawPlayer({ id: '_win' + i, x: 0, y: 0, a: -Math.PI / 2, c: p.c, el: p.el, ro: p.ro, tm: 'red', hp: 1, mh: 1, rz: 16, n: '', ch: 0, dr: 0, up: [], f: 0 }, false, true); }); }
+  catch (e) { /* decoration only */ } finally { ctx = keep; g.setTransform(1, 0, 0, 1, 0, 0); }
+  for (let k = 0; k < 6; k++) setTimeout(() => { if (WIN.on) burst(view ? view.p[0].x : 600, 200, ['#ffcf5a', '#ff8a3d', '#8ff3ff', '#7dff8a'][k % 4], 40, 420, 3); }, k * 350);
+}
+$('winClose').onclick = () => { WIN.shut = WIN.key; $('coopWin').hidden = true; WIN.on = false; };
+$('winAgain').onclick = () => { WIN.shut = WIN.key; $('coopWin').hidden = true; WIN.on = false; coopAct('start', { diff: coopInfo().diff, test: !!coopInfo().test }); };
 $('contNo').onclick = () => coopAct('giveup');
 function renderCoop(v, meL, host) {
   const C = coopInfo(), box = $('lbCoop');
@@ -8418,7 +8469,7 @@ function renderCoop(v, meL, host) {
     $('lbMut').hidden = !!C; $('lbRulesBtn').hidden = !!C; $('lbRoomBtn').hidden = !!C || !host; $('lbMapBtn').hidden = !!C;
     const mt = document.querySelector('.lobby .lbmatch'); if (mt) mt.hidden = !!C;
     if (!C) return;
-    const d = C.duo, D = COOP_DIFFS[C.diff] || ['', ''], hearts = C.test ? '∞ test' : '♥'.repeat(Math.max(0, C.lives)) + '♡'.repeat(Math.max(0, 3 - C.lives));
+    const d = C.duo, D = [`${C.diffName || coopLevelName(C.diff)} ${C.diff}`], hearts = C.test ? '∞ test' : '♥'.repeat(Math.max(0, C.lives)) + '♡'.repeat(Math.max(0, 3 - C.lives));
     const ladder = Array.from({ length: C.n }, (_, i) => `<i class="${i < C.beaten ? 'done' : i === C.idx ? 'now' : ''}"></i>`).join('');
     const members = d.boss ? Object.values(Sim.BOSS_MODES).map((M, i) => `<div class="coopmem" style="--mc:${['#ff8a3d', '#c7b3ff', '#8ff3ff'][i]}"><b>${esc(M.name)}</b><span>${['up close', 'at mid range', 'far off'][i]}: ${esc(ROLES[M.role].name)}</span><small>${M.ups.map(id => TREE[id] ? esc(TREE[id].name) : id).join(' · ')}</small></div>`).join('')
       : d.members.map(m => `<div class="coopmem" style="--mc:${ELEMENTS[m.el].color}"><b>${esc(m.name)}</b><span>${esc(ELEMENTS[m.el].name)} ${esc(ROLES[m.ro].name)}</span><small>${m.ups.map(id => TREE[id] ? esc(TREE[id].name) : id).join(' · ')}</small></div>`).join('');
@@ -8535,7 +8586,7 @@ $('lbCoop').addEventListener('click', e => {
   else if (op === 'again') coopAct('start', { diff: coopInfo().diff, test: !!coopInfo().test });
   else if (op === 'leave') $('lbLeave').click();
 });
-setInterval(() => { try { coopContTick(); } catch (e) { /* never in the way */ } }, 100);
+setInterval(() => { try { coopContTick(); coopWinTick(); } catch (e) { /* never in the way */ } }, 100);
 // ================= local tournament =================
 // Friends on one screen, 1v1, everyone plays everyone (once or twice). Each match is a local game: the first player on the
 // keyboard and mouse or the main controller (P1), the second on the next controller (P2, an extra player on a controller
@@ -9335,6 +9386,7 @@ function eventFx(e) {
       case 'abFail': if (e.id === myId) { play('abFail'); const m = view && view.p.find(p => p.id === myId); if (m) floater(m.x, m.y - 40, e.why, '#ff9f9f', 13); } break;
       case 'chain': fx.bolts.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, life: 0 }); sfx.zap(); break;
       case 'disarm': floater(e.x, e.y, 'Disarmed!', '#bfe8ff', 15); sfx.disarm(); break;
+      case 'final': callout({ kicker: 'Last ' + e.t + ' seconds', title: 'Sudden fury', sub: 'Every hit lands 40% harder and knocks 30% further.', color: '#ff5a46', tier: 2, plain: `<b>Last ${e.t} seconds</b> · every hit lands harder and knocks further` }); play('alarm'); break;
       case 'leech': { // Blood: red motes flowing back to whoever healed
         const q = view && view.p.find(z => z.id === e.id); if (!q) break;
         for (let i = 0; i < Math.min(8, 2 + e.v); i++) { const a = rand(0, TAU), r = rand(26, 46); fx.parts.push({ x: q.x + Math.cos(a) * r, y: q.y + Math.sin(a) * r, vx: -Math.cos(a) * r * 3, vy: -Math.sin(a) * r * 3, life: 0, max: 0.3, color: Math.random() < 0.5 ? '#9e0f24' : '#c41d36', r: rand(1.4, 2.4) }); }
@@ -10005,7 +10057,7 @@ THEMES.garden = {
 // the co-op arcade's dojo: honey-coloured boards, dark timber walls, paper lanterns and blossom drifting in
 THEMES.dojo = Object.assign({}, THEMES.mill, {
   forest: '#1b1410', canopy: ['#2d1f17', '#3a281d', '#24180f', '#463024'], canopyHi: 'rgba(255,190,150,0.07)',
-  ground: '#a9824f', patchA: 'rgba(235,200,140,0.22)', patchB: 'rgba(90,60,30,0.2)', patchBase: 'rgba(169,130,79,0)', sun: 'rgba(255,225,170,0.07)',
+  ground: '#7f6a52', patchA: 'rgba(170,150,120,0.16)', patchB: 'rgba(60,45,30,0.22)', patchBase: 'rgba(127,106,82,0)', sun: 'rgba(255,225,170,0.03)', dull: 0.28, stumps: true,
   blades: ['#e8cfa3', '#d6b583', '#f1dfbd'], wall: '#2c1d14', wallMid: '#3c2819', wallLight: '#5a3d26',
   boulder: '#7d7f80', boulderLight: '#a3a6a8', moss: ['#5e7a46', '#7a9258'], dojo: true,
   ambient: 'leaves', leafCols: ['#f7c6d6', '#f1b0c8', '#fde3ec', '#ffffff'],
@@ -10036,6 +10088,16 @@ function paintDojo(g) {
   g.save(); g.translate(AW - WALL - 96, AH / 2); g.rotate(Math.PI / 2); g.fillText('忍', 0, 0); g.restore();
   g.restore();
 }
+// The Stand's mere: the marsh gone dark and blue-green, mist and old water, nothing bright but the spring
+THEMES.mire = Object.assign({}, THEMES.marsh, {
+  forest: '#081214', canopy: ['#0f2226', '#132a2d', '#0c1b1e', '#183235'], canopyHi: 'rgba(140,210,210,0.06)',
+  ground: '#26393a', patchA: 'rgba(70,115,112,0.24)', patchB: 'rgba(6,14,16,0.4)', patchBase: 'rgba(38,57,58,0)', sun: 'rgba(160,230,230,0.035)',
+  blades: ['rgba(70,110,104,0.5)', 'rgba(84,124,118,0.45)', 'rgba(52,84,80,0.55)', 'rgba(96,132,124,0.4)'],
+  bogBank: '#22332f', bogEdge: '#182622', bog: '#1d2b26', bogSheen: 'rgba(90,140,130,0.4)', lily: ['#3f6d5a', '#33594a'],
+  pool: { rim: '#24342f', in: '#03080a', out: '#13302e', glint: 'rgba(160,230,220,0.35)' },
+  boulder: '#4a5452', boulderLight: '#626e6b', moss: ['#355a4a', '#44705c'],
+  wall: '#0e1c1e', wallMid: '#152a2c', wallLight: '#21403f', leaf: '#21403a', ambient: 'leaves', leafCols: ['#5e8f86', '#47736b', '#8fb7a8', '#3b5f58'],
+});
 THEMES.spring = Object.assign({}, THEMES.meadow, {
   ground: '#57903f', patchA: 'rgba(130,190,95,0.24)', flowers: 40, fairy: false,
   leafCols: ['#f3d6e2', '#8fb44a', '#f4ecd2', '#b8c45a'],
@@ -10610,6 +10672,8 @@ function paintFloor(s) {
     const gw = MO.gap, mx = x + w / 2, my = y + h / 2;
     for (const b of [{ x: mx, y: y + t / 2, len: t, w: gw, v: true }, { x: mx, y: y + h - t / 2, len: t, w: gw, v: true }, { x: x + t / 2, y: my, len: t, w: gw }, { x: x + w - t / 2, y: my, len: t, w: gw }]) paintBridge(g, b);
   }
+  // a duller floor, so the archers stand out against it
+  if (T.dull && !PAINT_TILE) { g.fillStyle = `rgba(48,40,32,${T.dull})`; g.fillRect(0, 0, AW, AH); }
   // dojo: the yin and yang inlaid in the boards, and the hall's name painted by the walls
   if (T.dojo && !PAINT_TILE) paintDojo(g);
   // hazards (kept inside the arena's walls: a hole in a corner is a quarter of a hole, not one spilling over the wall)
@@ -10735,6 +10799,19 @@ function paintFloor(s) {
       g.strokeStyle = 'rgba(255,240,190,0.45)'; g.lineWidth = 1;
       for (let i = 0; i < 14; i++) { const a = R() * TAU, rr = p.r * (0.3 + R() * 0.65); g.beginPath(); g.moveTo(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr); g.lineTo(p.x + Math.cos(a + 0.25) * rr, p.y + Math.sin(a + 0.25) * rr); g.stroke(); }
       g.strokeStyle = 'rgba(70,48,16,0.9)'; g.lineWidth = 2.5; g.beginPath(); g.arc(p.x, p.y, p.r, 0, TAU); g.stroke();
+      continue;
+    }
+    if (T.stumps && !p.kind) { // a dark timber post cut level: the rings of the tree showing, bark round the edge
+      g.fillStyle = 'rgba(0,0,0,0.38)'; g.beginPath(); g.ellipse(p.x + 6, p.y + 8, p.r + 3, p.r * 0.95, 0, 0, TAU); g.fill();
+      g.fillStyle = '#1f140d'; g.beginPath(); g.arc(p.x, p.y, p.r + 2, 0, TAU); g.fill(); // bark
+      const sg = g.createRadialGradient(p.x - p.r * 0.3, p.y - p.r * 0.3, 1, p.x, p.y, p.r); sg.addColorStop(0, '#5a3a24'); sg.addColorStop(1, '#3a2416');
+      g.fillStyle = sg; g.beginPath(); g.arc(p.x, p.y, p.r - 2, 0, TAU); g.fill();
+      g.strokeStyle = 'rgba(20,12,6,0.55)'; g.lineWidth = 1;
+      for (let k = 1; k <= 5; k++) { g.beginPath(); g.ellipse(p.x + (R() - 0.5) * 1.5, p.y + (R() - 0.5) * 1.5, (p.r - 3) * k / 5.4, (p.r - 3) * k / 5.6, R() * 0.4, 0, TAU); g.stroke(); }
+      g.strokeStyle = 'rgba(15,9,4,0.7)'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(p.x, p.y); g.lineTo(p.x + (p.r - 3) * 0.8, p.y + (p.r - 3) * 0.35); g.stroke(); // a check in the wood
+      g.fillStyle = '#2a1a10'; g.beginPath(); g.arc(p.x, p.y, 1.8, 0, TAU); g.fill();
+      g.strokeStyle = 'rgba(8,5,2,0.9)'; g.lineWidth = 3; g.beginPath(); g.arc(p.x, p.y, p.r + 2, 0, TAU); g.stroke();
+      g.strokeStyle = 'rgba(255,230,190,0.18)'; g.lineWidth = 1.2; g.beginPath(); g.arc(p.x, p.y, p.r + 4.5, 0, TAU); g.stroke();
       continue;
     }
     if (p.kind === 'brazier') { // an iron fire-bowl on a stone plinth (the fire is drawn live)
@@ -13742,15 +13819,32 @@ function updateHud() {
       resultsView = Object.assign({}, view, { p: view.p.filter(p => !p.nk) });
       renderAwards(resultsView); renderRanking();
       $('rematchBtn').hidden = $('resLobbyBtn').hidden = !isHost();
+      { const C = coopInfo(); $('resultsScreen').classList.toggle('coopmode', !!C); $('resCoop').hidden = !C; if (!C) $('resHead').querySelector('.eyebrow').textContent = 'Match over';
+        if (C) { const won2 = m.mw === 'red'; $('resTitle').textContent = won2 ? 'You win' : 'You lose'; $('resHead').querySelector('.eyebrow').textContent = C.duo.boss || (C.result && C.result.last) ? 'The final battle' : 'Battle over'; $('resTitle').classList.toggle('defeat', !won2); head.style.setProperty('--wc', won2 ? 'var(--gold)' : '#c9d1dc'); $('resSub').textContent = `${won2 ? 'You beat' : 'Beaten by'} ${C.duo.name}`; $('rematchBtn').hidden = $('resLobbyBtn').hidden = $('resBalBtn').hidden = true; hc.rcoop = null; } }
       if (!hunting()) { $('resultsScreen').hidden = false; setTimeout(() => savePrompt(), 1800); } $('resHint').textContent = TOUCH.on ? 'Tap a column to rank by it.' : 'Click a column to rank by it.'; progShow(); renderResClips(); renderResPlays();
       memReport('results'); for (const t of [2, 4, 7, 10, 15, 20]) setTimeout(() => memReport(`results+${t}s`), t * 1000); // (a trail, should the page crash here)
       { const rb = $('ratedBox'); clearTimeout(RATED.t); rb.classList.remove('show'); rb.hidden = true; renderResRated(); } // the results show the rating themselves: no pop-up over the headline
       $('gameMenu').hidden = true; menuOpen = false; paused = false;
     }
     setC('next', isHost() + ':' + !!(roomInfo && roomInfo.ranked), h => { renderResRated(); $('resFindBtn').hidden = !(mode === 'online' && roomInfo && roomInfo.ranked); $('resAgainBtn').hidden = $('resFindBtn').hidden; $('resLeaveBtn').hidden = !$('resFindBtn').hidden; if (roomInfo && roomInfo.ranked) { $('resNext').textContent = 'Ranked match over.'; $('rematchBtn').hidden = $('resLobbyBtn').hidden = true; return; } h = isHost(); $('resNext').textContent = h ? 'Start a rematch or head back to the lobby when everyone is ready.' : 'Waiting for the host to start a rematch or return to the lobby.'; $('rematchBtn').hidden = $('resLobbyBtn').hidden = !h; });
-  } else if (resultsFor) { resultsFor = null; $('resultsScreen').hidden = true; }
+    setC('rcoop', JSON.stringify(coopInfo() && [coopInfo().st, coopInfo().result, coopInfo().score]), () => renderResCoop(view));
+  } else if (resultsFor) { resultsFor = null; $('resultsScreen').hidden = true; $('resultsScreen').classList.remove('coopmode'); $('resCoopNext').hidden = true; }
 }
 
+// the arcade's results panel: what you did this battle, the points, and the way on
+function renderResCoop(v) {
+  const C = coopInfo(); if (!C || !v) { $('resCoopNext').hidden = true; return; }
+  const mine = v.p.filter(p => p.tm === 'red' && !p.nk), sum = (f) => mine.reduce((a, p) => a + (f(p) || 0), 0);
+  const ko = sum(p => p.k), sh = sum(p => p.ss && p.ss[0]), hi = sum(p => p.ss && p.ss[1]), dmg = Math.round(sum(p => p.ss && p.ss[2])), ring = sum(p => p.ss && p.ss[4]);
+  const r = C.result || {}, won = v.m.mw === 'red';
+  if (r.duo) $('resSub').textContent = `${won ? 'You beat' : 'Beaten by'} ${r.duo}`; // (by now the ladder has moved on to the next duo: name the one you just fought)
+  $('resCoop').innerHTML = `<div class="cnums"><div><b>${ko}</b><small>knockouts</small></div><div><b>${ring}</b><small>into the arena</small></div><div><b>${sh ? Math.round(hi / sh * 100) + '%' : '–'}</b><small>accuracy</small></div><div><b>${dmg}</b><small>damage</small></div></div>` +
+    (won && r.pts ? `<div class="cpts">+${r.pts} points · score ${C.score}</div>` : `<div class="status">${C.test ? 'Test mode: go again as often as you like.' : `${C.lives} continue${C.lives === 1 ? '' : 's'} left.`}</div>`);
+  const next = won && C.st === 'won' && isHost();
+  $('resCoopNext').hidden = !next; $('resCoopNext').textContent = 'Next battle';
+  $('resNext').textContent = won && C.st === 'won' ? (isHost() ? 'The next duo is up in a moment.' : 'The host moves on to the next duo.') : '';
+}
+$('resCoopNext').onclick = () => coopAct('next');
 // ================= match stats =================
 // ss = [shots, hits, damage dealt, damage taken, ring-outs, longest hit in px]; 50px is about a metre
 const accuracy = p => (p.ss && p.ss[0] ? p.ss[1] / p.ss[0] : -1);

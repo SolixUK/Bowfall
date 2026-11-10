@@ -985,10 +985,10 @@ async function api(req, res, url) {
   // a co-op arcade run played on the player's own device: the score goes on their account (online runs record themselves)
   if (route === '/coop/score' && method === 'POST') {
     if (!me) return json(res, 401, { error: 'Sign in to keep arcade scores.' });
-    const D = coop.DIFFS[String(body.diff)], n = coop.DUOS.length, sc = Math.round(+body.score), far = Math.round(+body.beaten);
+    const D = coop.DIFFS[Math.round(+body.diff)], n = coop.DUOS.length, sc = Math.round(+body.score), far = Math.round(+body.beaten);
     if (!D || !isFinite(sc) || sc < 0 || sc > Math.ceil((n + 2) * 100 * D.mult * 1.25) || !(far >= 0 && far <= n)) return json(res, 400, { error: 'Bad score.' });
     if (!trainLimit('c' + me.id)) return json(res, 429, { error: 'Slow down.' });
-    const k = (me.career || (me.career = {})).coop || (me.career.coop = {}), b = k[body.diff] || (k[body.diff] = { best: 0, far: 0, runs: 0, clears: 0 });
+    const k = (me.career || (me.career = {})).coop || (me.career.coop = {}), lv = String(Math.round(+body.diff)), b = k[lv] || (k[lv] = { best: 0, far: 0, runs: 0, clears: 0 });
     b.runs++; if (body.cleared && far === n) b.clears++; if (sc > b.best) b.best = sc; if (far > b.far) b.far = far; markDirty(me);
     return json(res, 200, { best: b.best, far: b.far });
   }

@@ -2,6 +2,16 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.0
+
+- **The last 10 seconds.** In the final 10 seconds of any game every hit does 40% more damage and knocks back 30% further, announced on screen, so a game that's run long ends with a fight rather than a timeout.
+- **The arcade's difficulty is a level from 1 to 10** (a slider on the setup screen: 1 to 3 Easy, 4 to 6 Normal, 7 and 8 Hard, 9 and 10 Legend). The duos' skill, the score multiplier (×1 at level 1 up to ×3.25 at 10) and your handicap when playing alone (+50% down to +20%) all move with it. With test mode on, the start button says so (unlimited continues, nothing recorded).
+- **After a battle:** You win / You lose, the duo you fought, your knockouts, ring-outs, accuracy and damage, the points, and Next battle, all on one screen (no rankings table, no rematch).
+- **Victory over the Terminator:** a celebration screen over a close-up of your archers, with the score and the run in numbers (knockouts, ring-outs, accuracy, damage, battles won without dropping a game, continues used) and what you did best. The Terminator no longer brings up an upgrade pick, and it's harder again: the top of the difficulty's band and a step past it, with a little more health (bots at each level's own skill now lose to it 7 to 9 times in 10).
+- **Bots.** Snipers save Volley for someone rooted, frozen or pinned (all three land). Ember puts his Shield Wall up for Sable as well as himself, sooner, and ahead of time when an enemy has a clear line on Sable. Bramble Traps go a short way ahead of where you're walking (a dash no longer throws the guess across the arena). Once you're rooted, Thistle and Flint hold the full draw and walk round to where the shot throws you into a hole while the root lasts, instead of shooting at once. Bots no longer flick their aim the wrong way as a game starts.
+- **Falls stay inside the arena.** Knocked into a hole that's cut off by the wall, you bounce off the wall inside it instead of flying out through it.
+- **Arenas.** The Dojo's floor is duller so the archers stand out, and its pillars are dark timber stumps with their rings showing. The Stand is a dark blue-green mere: the drops are water now, with bogs in the corners. The Shallows has a small bog either side.
+
 ## 0.98.0
 
 - **Revives, as a rule.** Custom games have a new rule, Revives: on, anyone can bring a knocked-out teammate back by standing over them for 3 seconds (once a game each). Bots weigh it like a person: near and quiet, go; a kill in hand, finish it first (it may be the game); enemies around the body, not yet; far away, drift that way while fighting; badly hurt and far, fight instead, unless there's a medkit on the way.
