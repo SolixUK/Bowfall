@@ -12,7 +12,7 @@ const FIT_PATH = path.join(__dirname, '../lib/duo-fit.json');
 const FIT = fs.existsSync(FIT_PATH) ? JSON.parse(fs.readFileSync(FIT_PATH, 'utf8')) : { v: 1, duos: {} };
 // which parameters each tactic mode tunes, and the range to try
 const TUNE = {
-  guard: { guardD: [70, 200], tacK: [0.6, 2.0], wallK: [0.6, 2.0] },
+  guard: { tacK: [0.6, 2.0], wallK: [0.6, 2.0] },
   behind: { behindD: [60, 220], side: [20, 90], tacK: [0.4, 1.8], wallK: [0.6, 2.0] },
   bully: { bullyD: [120, 260], bashEager: [1, 5] },
   unload: { unloadD: [120, 300] },
@@ -54,7 +54,7 @@ function play(duo, N, sk, sparSk, tacOn, tacs) {
   return { mw, gw, pct: Math.round(gw[0] / Math.max(1, gw[0] + gw[1]) * 100), kills, haz, picks, secs: Math.round(t / N) };
 }
 const fmt = (r, tag) => `${tag.padEnd(4)} ${String(r.pct + '%').padStart(4)}  matches ${r.mw[0]}-${r.mw[1]}  games ${r.gw[0]}-${r.gw[1]}  kills ${r.kills} (hazard ${r.haz})  power-ups ${r.picks}  ~${r.secs}s a match`;
-const pickDuos = a => (!a || a === 'all' ? ROSTER.duos : ROSTER.duos.filter(d => d.id === a));
+const pickDuos = a => (!a || a === 'all' ? ROSTER.duos.filter(d => !d.boss) : ROSTER.duos.filter(d => d.id === a && !d.boss));
 const [cmd, which, ...rest] = process.argv.slice(2);
 if (cmd === 'run') {
   const N = +rest[0] || 30, sk = +rest[1] || 0.85, sparSk = +rest[2] || sk + 0.05;

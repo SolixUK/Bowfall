@@ -17,7 +17,10 @@ const part = (a, b) => { const i = html.indexOf(a), j = html.indexOf(b); if (i <
 
 const head = part('<!--HEAD-->', '<!--/HEAD-->').replace(/<link rel="(manifest|apple-touch-icon)"[^>]*>\n?/g, '').replace(/<link rel="icon"[^>]*>\n?/g, '').replace('</title>', '</title>\n<link rel="icon" type="image/png" href="data:image/png;base64,' + fs.readFileSync(path.join(__dirname, 'public/icons/archer-32.png')).toString('base64') + '">'); // no installable app offline
 const body = part('<!--BODY-->', '<!--/BODY-->')
-  .replace(/<script src="sim.js(\?v=[0-9.]+)?"><\/script>/, () => '<script>window.BOWFALL_OFFLINE = true; window.__host = window.claude;' + mixJs + aiJs + '</script>\n<script>\n' + sim + '\n</script>');
+  .replace(/<script src="sim.js(\?v=[0-9.]+)?"><\/script>/, () => '<script>window.BOWFALL_OFFLINE = true; window.__host = window.claude;' + mixJs + aiJs + '</script>\n<script>\n' + sim + '\n</script>')
+  // the co-op arcade: its ladder and its duos, inline (offline, a run is always played on this device)
+  .replace(/<script src="coop-data.js(\?v=[0-9.]+)?"><\/script>/, () => '<script>window.BOWFALL_DUOS = ' + JSON.stringify({ roster: JSON.parse(fs.readFileSync(path.join(__dirname, 'lib/duos.json'), 'utf8')), fit: (() => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, 'lib/duo-fit.json'), 'utf8')); } catch (e) { return { duos: {} }; } })() }).replace(/</g, '\\u003c') + ';</script>')
+  .replace(/<script src="coop.js(\?v=[0-9.]+)?"><\/script>/, () => '<script>\n' + fs.readFileSync(path.join(__dirname, 'public/coop.js'), 'utf8') + '\n</script>');
 
 fs.mkdirSync(path.join(__dirname, 'dist'), { recursive: true });
 fs.writeFileSync(path.join(__dirname, 'dist/bowfall-duels.html'), head.trim() + '\n' + body.trim() + '\n');

@@ -6,195 +6,153 @@
     {},
     {}
    ],
-   "pct": 81,
+   "pct": 88,
    "sparSk": 0.99,
    "sk": 0.85,
-   "n": 40,
-   "at": "2026-11-10"
-  },
-  "undertow": {
-   "tacs": [
-    {
-     "finishD": 321
-    },
-    {}
-   ],
-   "pct": 66,
-   "sparSk": 0.96,
-   "sk": 0.85,
-   "n": 40,
-   "at": "2026-11-10"
-  },
-  "brambles": {
-   "tacs": [
-    {
-     "trapGap": 264
-    },
-    {
-     "finishD": 333
-    }
-   ],
-   "pct": 58,
-   "sparSk": 0.9,
-   "sk": 0.85,
-   "n": 40,
-   "at": "2026-11-10"
-  },
-  "blades": {
-   "tacs": [
-    {
-     "pickK": 1.85
-    },
-    {
-     "pickK": 1.85
-    }
-   ],
-   "pct": 63,
-   "sparSk": 0.9,
-   "sk": 0.85,
-   "n": 40,
-   "at": "2026-11-10"
-  },
-  "carnival": {
-   "tacs": [
-    {
-     "pickK": 2.9
-    },
-    {
-     "pickK": 2.9
-    }
-   ],
-   "pct": 63,
-   "sparSk": 0.9,
-   "sk": 0.85,
-   "n": 40,
-   "at": "2026-11-10"
-  },
-  "snares": {
-   "tacs": [
-    {
-     "waterK": 1,
-     "trapGap": 202
-    },
-    {
-     "waterK": 1,
-     "trapGap": 202
-    }
-   ],
-   "pct": 42,
-   "sparSk": 0.9,
-   "sk": 0.85,
-   "n": 40,
-   "at": "2026-11-10"
-  },
-  "wall": {
-   "tacs": [
-    {},
-    {}
-   ],
-   "pct": 66,
-   "sparSk": 0.9,
-   "sk": 0.85,
-   "n": 40,
+   "n": 30,
    "at": "2026-11-10"
   },
   "shadows": {
    "tacs": [
     {
-     "stealthGap": 1.57,
-     "ambushAng": 1.12
+     "stealthGap": 1.2
     },
     {
-     "stealthGap": 1.57,
-     "ambushAng": 1.12
-    }
-   ],
-   "pct": 82,
-   "sparSk": 0.99,
-   "sk": 0.85,
-   "n": 40,
-   "at": "2026-11-10"
-  },
-  "bloodlust": {
-   "tacs": [
-    {},
-    {}
-   ],
-   "pct": 83,
-   "sparSk": 0.99,
-   "sk": 0.85,
-   "n": 40,
-   "at": "2026-11-10"
-  },
-  "presence": {
-   "tacs": [
-    {
-     "wallK": 1
-    },
-    {}
-   ],
-   "pct": 69,
-   "sparSk": 0.9,
-   "sk": 0.85,
-   "n": 40,
-   "at": "2026-11-10"
-  },
-  "hearth": {
-   "tacs": [
-    {
-     "guardD": 200,
-     "tacK": 1.43
-    },
-    {
-     "tacK": 0.91
+     "stealthGap": 1.2
     }
    ],
    "pct": 84,
    "sparSk": 0.99,
    "sk": 0.85,
-   "n": 40,
+   "n": 30,
+   "at": "2026-11-10"
+  },
+  "undertow": {
+   "tacs": [
+    {},
+    {}
+   ],
+   "pct": 69,
+   "sparSk": 0.99,
+   "sk": 0.85,
+   "n": 30,
    "at": "2026-11-10"
   },
   "fever": {
    "tacs": [
-    {
-     "wallK": 1,
-     "guardD": 200
-    },
-    {
-     "wallK": 1,
-     "guardD": 200
-    }
+    {},
+    {}
    ],
-   "pct": 81,
+   "pct": 97,
    "sparSk": 0.99,
    "sk": 0.85,
-   "n": 40,
+   "n": 30,
+   "at": "2026-11-10"
+  },
+  "bloodlust": {
+   "tacs": [
+    {
+     "unloadD": 250
+    },
+    {
+     "unloadD": 250
+    }
+   ],
+   "pct": 78,
+   "sparSk": 0.93,
+   "sk": 0.85,
+   "n": 30,
+   "at": "2026-11-10"
+  },
+  "carnival": {
+   "tacs": [
+    {},
+    {}
+   ],
+   "pct": 53,
+   "sparSk": 0.9,
+   "sk": 0.85,
+   "n": 30,
+   "at": "2026-11-10"
+  },
+  "battering": {
+   "tacs": [
+    {
+     "bullyD": 196,
+     "bashEager": 3
+    },
+    {
+     "bullyD": 196,
+     "bashEager": 3
+    }
+   ],
+   "pct": 89,
+   "sparSk": 0.99,
+   "sk": 0.85,
+   "n": 30,
    "at": "2026-11-10"
   },
   "longshots": {
    "tacs": [
     {
-     "tacK": 0.83,
-     "farD": 642
+     "tacK": 1.35
     },
     {
-     "tacK": 0.83,
-     "farD": 642
+     "tacK": 1.35
     }
    ],
-   "pct": 71,
-   "sparSk": 0.9,
+   "pct": 77,
+   "sparSk": 0.93,
    "sk": 0.85,
-   "n": 40,
+   "n": 30,
    "at": "2026-11-10"
   },
-  "battering": {
+  "snares": {
    "tacs": [
     {},
     {}
    ],
-   "pct": 89,
+   "pct": 56,
+   "sparSk": 0.9,
+   "sk": 0.85,
+   "n": 30,
+   "at": "2026-11-10"
+  },
+  "brambles": {
+   "tacs": [
+    {
+     "waterK": 1,
+     "trapGap": 193
+    },
+    {}
+   ],
+   "pct": 75,
+   "sparSk": 0.9,
+   "sk": 0.85,
+   "n": 30,
+   "at": "2026-11-10"
+  },
+  "blades": {
+   "tacs": [
+    {
+     "pickK": 2.08
+    },
+    {
+     "pickK": 2.08
+    }
+   ],
+   "pct": 75,
+   "sparSk": 0.9,
+   "sk": 0.85,
+   "n": 30,
+   "at": "2026-11-10"
+  },
+  "hearth": {
+   "tacs": [
+    {},
+    {}
+   ],
+   "pct": 95,
    "sparSk": 0.99,
    "sk": 0.85,
    "n": 30,

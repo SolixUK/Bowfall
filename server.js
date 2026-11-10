@@ -982,6 +982,16 @@ async function api(req, res, url) {
     for (const k of Object.keys(Sim.TRAIN_MAX)) { const b = Sim.trainCurrent(k, mine[k]) ? mine[k] : null; out[k] = Object.assign({ n: TRAIN.dist[k].length }, b ? { s: b.s, g: b.g, top: trainTop(k, b.s, true) } : {}); }
     return json(res, 200, { drills: out });
   }
+  // a co-op arcade run played on the player's own device: the score goes on their account (online runs record themselves)
+  if (route === '/coop/score' && method === 'POST') {
+    if (!me) return json(res, 401, { error: 'Sign in to keep arcade scores.' });
+    const D = coop.DIFFS[String(body.diff)], n = coop.DUOS.length, sc = Math.round(+body.score), far = Math.round(+body.beaten);
+    if (!D || !isFinite(sc) || sc < 0 || sc > Math.ceil((n + 2) * 100 * D.mult * 1.25) || !(far >= 0 && far <= n)) return json(res, 400, { error: 'Bad score.' });
+    if (!trainLimit('c' + me.id)) return json(res, 429, { error: 'Slow down.' });
+    const k = (me.career || (me.career = {})).coop || (me.career.coop = {}), b = k[body.diff] || (k[body.diff] = { best: 0, far: 0, runs: 0, clears: 0 });
+    b.runs++; if (body.cleared && far === n) b.clears++; if (sc > b.best) b.best = sc; if (far > b.far) b.far = far; markDirty(me);
+    return json(res, 200, { best: b.best, far: b.far });
+  }
   if (route === '/train' && method === 'POST') {
     const k = String(body.kind || ''), sc = Math.round(+body.score);
     if (!Sim.TRAIN_MAX[k] || !isFinite(sc) || sc < 0 || sc > Sim.TRAIN_MAX[k]) return json(res, 400, { error: 'Bad score.' });
@@ -1460,6 +1470,8 @@ const server = http.createServer(async (req, res) => {
   }
   // old room links (/?room=ABCD) go straight to the game
   if (url.pathname === '/' && url.searchParams.get('room')) { res.writeHead(302, { Location: '/play?room=' + encodeURIComponent(url.searchParams.get('room')) }); return res.end(); }
+  // the co-op arcade's duos, for runs played in the page (the same roster and training the server uses)
+  if (url.pathname === '/coop-data.js') { res.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': 'no-cache' }); return res.end(COOP_DATA_JS); }
   const page = url.pathname === '/' ? 'site.html' : url.pathname === '/play' ? 'index.html' : url.pathname === '/link' ? 'link.html' : url.pathname;
   const file = path.normalize(path.join(PUBLIC, page));
   if (!file.startsWith(PUBLIC)) { res.writeHead(403); return res.end(); }
@@ -1515,6 +1527,7 @@ function serveFlag(cc, res) {
   job.then(send);
 }
 const coop = require('./lib/coop')({ Sim, send, sendRoom, sysChat, broadcast, markDirty, isOwner }); // the co-op arcade
+const COOP_DATA_JS = 'window.BOWFALL_DUOS = ' + JSON.stringify({ roster: require('./lib/coop').ROSTER, fit: require('./lib/coop').FIT }).replace(/</g, '\\u003c') + ';';
 const social = require('./lib/social')({ season: () => SEASON.info(), rejoinFor: ws => { const r = awayRoomOf(ws); return r ? { code: r.code, mode: r.ranked.mode } : null; }, lookOf, seedRating: (u, h) => { if (seedRating(u, h)) markDirty(u); }, rankedMaps: () => rankedMaps(), statusOf: u => E.statusOf(u), store, track, markDirty, send, Sim, levelOf, flagOf, ELO_START, ratingOf, keyFor, rooms, createRoom, sendRoom, sysChat, broadcast, live, loadGuest });
 
 function makeCode() {

@@ -1533,8 +1533,18 @@
   .coopslots { display: flex; gap: 6px; flex-wrap: wrap; min-height: 30px; } .coopslots .slotc { padding: 4px 10px; border: 1px dashed var(--line); color: var(--muted); font-size: 13px; } .coopslots .slotc.full { border-style: solid; border-color: var(--gold); color: var(--text); cursor: pointer; }
   .coopres { padding: 10px 12px; border: 1px solid var(--line); background: rgba(0,0,0,.25); } .coopres b { font: 700 20px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .06em; text-transform: uppercase; } .coopres.won b { color: #7dff8a; } .coopres.lost b { color: #ff7a7a; }
   .coopfoot { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; } .coopfoot .status { flex: 1 1 auto; }
+  /* Continue? after a lost battle: the fallen close up, a big countdown */
+  .contscr { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, rgba(40,0,0,.82), rgba(0,0,0,.96)); animation: contIn .6s ease-out; }
+  @keyframes contIn { from { opacity: 0; } to { opacity: 1; } }
+  .contin { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+  .contin canvas { width: min(720px, 90vw); height: auto; }
+  .conttitle { font: 700 64px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #fff; text-shadow: 0 0 24px rgba(255,60,60,.7); }
+  .contnum { font: 700 150px/1 'Rajdhani', 'Arial Narrow', sans-serif; color: #ff5a5a; text-shadow: 0 0 40px rgba(255,40,40,.8); min-height: 150px; }
+  .contnum.tick { animation: contTick .9s ease-out; } @keyframes contTick { from { transform: scale(1.5); opacity: .4; } to { transform: scale(1); opacity: 1; } }
+  .contsub { color: var(--muted); font-size: 16px; margin-bottom: 8px; }
+  #coopTest.sel { border-color: #ff7a7a; color: #ff7a7a; }
   .coopladder { display: flex; gap: 4px; } .coopladder i { flex: 1 1 0; height: 6px; background: rgba(255,255,255,.12); } .coopladder i.done { background: #7dff8a; } .coopladder i.now { background: var(--gold); }
-  #coopDiffs .chip2 { cursor: pointer; } #coopDiffs .chip2.sel { border-color: var(--gold); color: var(--gold); }
+  #coopDiffs .chip2, #coopWhere .chip2 { cursor: pointer; } #coopDiffs .chip2.sel, #coopWhere .chip2.sel { border-color: var(--gold); color: var(--gold); }
   .lbmatch .field label { font-size: 13px; } .lobby .lbmatch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 10px; } .lobby .lbmatch .field { min-width: 0; } .lobby .lbmatch select { width: 100%; }
   .lbfold .lbbody.up { top: auto; bottom: calc(100% + 6px); box-shadow: 0 -14px 40px rgba(0,0,0,.6); }
   .lobby .maps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
@@ -2032,13 +2042,25 @@
       <p class="status">Fourteen AI duos, one after another, each on an arena built for its own tactic: a colossus that body-blocks for a crossbow, two assassins who vanish together, two juggernauts who only want to bash. Beat a duo and the next is up; lose and you spend a continue (you have three). Before each battle you see what the duo brings, then choose your archetype and all three upgrades. On your own you get a handicap in your favour.</p>
       <div class="archrow"><span class="lbl">Difficulty</span><div class="chips" id="coopDiffs" data-navsec></div></div>
       <p class="status" id="coopDiffNote"></p>
+      <div class="archrow"><span class="lbl">Where it runs</span><div class="chips" id="coopWhere" data-navsec></div></div>
+      <p class="status" id="coopWhereNote"></p>
+      <div class="archrow" id="coopTestRow" hidden><span class="lbl">Owner</span><div class="chips" data-navsec><button type="button" class="chip2" id="coopTest">Test mode: unlimited retries</button></div></div>
       <div class="row" data-navsec>
         <button class="cta" type="button" id="coopStart">Start a run</button>
         <div class="field"><label for="coopCode">Join a friend's run</label><input class="code" id="coopCode" maxlength="4" autocomplete="off" placeholder="ABCD"></div>
         <button class="ghost" type="button" id="coopJoin">Join</button>
       </div>
-      <p class="status">A run is a private room: a friend joins with its code or your invite link, before the first battle or between battles. Score is kept per difficulty on your account.</p>
+      <p class="status">Score is kept per difficulty: on your account when you're signed in, and on this device.</p>
       <span class="status err" id="coopErr"></span>
+    </div>
+  </div>
+  <div class="contscr" id="coopCont" hidden>
+    <div class="contin">
+      <canvas id="contCv" width="720" height="300"></canvas>
+      <div class="conttitle">Continue?</div>
+      <div class="contnum" id="contNum">9</div>
+      <div class="contsub" id="contSub"></div>
+      <div class="btnrow" data-navsec><button class="cta" type="button" id="contYes">Continue</button><button class="ghost" type="button" id="contNo">Give up</button></div>
     </div>
   </div>
   <!-- a local tournament: friends on one screen, 1v1s, pass the controllers round -->
@@ -2587,7 +2609,9 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.95.2"></script>
+<script src="sim.js?v=0.98.0"></script>
+<script src="coop-data.js"></script>
+<script src="coop.js"></script>
 <script>
 (() => {
 'use strict';
@@ -2595,7 +2619,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.95.2';
+const PAGE_VERSION = '0.98.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -3398,7 +3422,7 @@ function padClear(x1, y1, x2, y2, pillars) {
 const wrapA = a => ((a + Math.PI) % TAU + TAU) % TAU - Math.PI;
 // how fast the shot about to be fired will fly: the draw so far (a quick tap when the bow isn't drawn yet), the role, the rules
 function padShotSpeed(me, aspeedMul) {
-  if (me.ro === 'ninja') return 1050 * aspeedMul;
+  if (me.ro === 'ninja') return Sim.STAR_SPEED * aspeedMul;
   const c = me.dr ? Math.max(0.3, me.ch || 0) : 0.4;
   return (380 + 920 * c) * (me.ro === 'sniper' ? 1.25 : 1) * aspeedMul;
 }
@@ -5726,6 +5750,8 @@ function drawTargets() {
 // one place for every lobby/menu/shop action: applied directly in practice, sent to the server online
 function act(m) {
   if (mode === 'local' && world) {
+    if (m.t === 'coop') { coopLocalAct(m); return; }
+    if (LCO.room && LCO.room.coop && ['start', 'restart', 'lobby', 'cfg', 'hcap'].includes(m.t)) return; // (the run sets these itself)
     switch (m.t) {
       case 'team': Sim.setTeam(world, myId, m.team); break;
       case 'bot': if (m.op === 'add') Sim.addBot(world, m.team); else if (m.op === 'diff') Sim.setBotSkill(world, m.id, m.diff); else Sim.removeBot(world, m.id); break;
@@ -5936,7 +5962,7 @@ function connect(joinMsg) {
       m.rcv = performance.now(); roomInfo = m;
       if (m.arena && m.arena.def) useRoomArena(m.arena);
       if (pendingArena && m.amHost) { act({ t: 'cfg', arena: pendingArena }); pendingArena = null; }
-      if (COOP.pending && m.amHost) { act({ t: 'coop', op: 'start', diff: COOP.pending }); COOP.pending = null; }
+      if (COOP.pending && m.amHost) { act({ t: 'coop', op: 'start', diff: COOP.pending, test: COOP.test && coopOwner() }); COOP.pending = null; }
       if (m.coop) { const k = m.coop.idx + ':' + m.coop.st + ':' + (m.coop.fights || 0); if (COOP.key !== k) { COOP.key = k; COOP.sent = null; } } // (your picks are remembered from battle to battle)
       $('roomTag').innerHTML = 'Room <b>' + esc(m.code) + '</b>' + (m.coop ? ` · Duo <b>${m.coop.idx + 1}/${m.coop.n}</b> · ${m.coop.lives} continue${m.coop.lives === 1 ? '' : 's'} · <b>${m.coop.score}</b>` : '');
       hc.lb = hc.gm = hc.lbHead = hc.gmHead = null;
@@ -7087,6 +7113,7 @@ $('gChatIn').addEventListener('blur', () => setTimeout(() => { if (document.acti
 $('specBar').addEventListener('click', e => { const b = e.target.closest('button[data-join]'); if (b && !b.disabled) act({ t: 'team', team: b.dataset.join }); });
 
 function toMenu() {
+  LCO.room = null; coopInfoAt = -1;
   const wasRanked = mode === 'online' && !!(roomInfo && roomInfo.ranked);
   TUT.on = false; TR.on = false;
   if (AB.testing) { AB.testing = false; setTimeout(() => openSub('arenaScr'), 0); }
@@ -7551,7 +7578,7 @@ function openMenu() {
   if (view && view.m.ph === 'lobby') return;
   menuOpen = true; mouse.down = false;
   if (mode === 'local') paused = true;
-  if (mode === 'online' && roomInfo && roomInfo.coop) act({ t: 'coop', op: 'pause' }); // (the arcade pauses for everyone: it's your run)
+  if (mode === 'online' && coopInfo()) act({ t: 'coop', op: 'pause' }); // (the arcade pauses for everyone: it's your run)
   hc.gm = hc.gmHead = hc.gmBuild = null;
   // the tutorial's pause menu keeps to what matters there; a ranked match says what leaving costs
   const tut = mode === 'local' && TUT.on;
@@ -7561,7 +7588,7 @@ function openMenu() {
   $('leaveBtn').title = rk ? 'Leaving a ranked match counts as a loss and means a short wait before your next search, unless you rejoin within 45 seconds of play.' : '';
   $('gameMenu').hidden = false; $('resumeBtn').focus();
 }
-function closeMenu() { if (menuOpen && mode === 'online' && roomInfo && roomInfo.coop) act({ t: 'coop', op: 'resume' }); menuOpen = false; paused = false; $('gameMenu').hidden = true; if (optFromGame) { optFromGame = false; $('optScr').hidden = true; } }
+function closeMenu() { if (menuOpen && mode === 'online' && coopInfo()) act({ t: 'coop', op: 'resume' }); menuOpen = false; paused = false; $('gameMenu').hidden = true; if (optFromGame) { optFromGame = false; $('optScr').hidden = true; } }
 // Options from the in-game menu (the aim line, sound, graphics): the menu steps aside while it's open and comes back after
 let optFromGame = false;
 $('gmOptBtn').onclick = () => { optFromGame = true; $('gameMenu').hidden = true; openSub('optScr'); };
@@ -7594,7 +7621,7 @@ function drawCrown(x, y, w) {
 // ro: the in-game menu's read-only view (teams, bots and handicaps are set up in the lobby; only someone watching can still join a team)
 function teamsHtml(v, ro) {
   const host = isHost() && !ro, me = v.p.find(p => p.id === myId), hostId = mode === 'local' ? myId : roomInfo && roomInfo.host;
-  const ranked = mode === 'online' && !!(roomInfo && roomInfo.ranked), myTeam = me && me.tm, coop = mode === 'online' && !!(roomInfo && roomInfo.coop);
+  const ranked = mode === 'online' && !!(roomInfo && roomInfo.ranked), myTeam = me && me.tm, coop = !!coopInfo();
   return TEAMS.map(t => {
     const list = v.p.filter(p => p.tm === t).sort((a, b) => a.b - b.b);
     // in a ranked lobby the other team's picks stay hidden until the match starts
@@ -7607,7 +7634,7 @@ function teamsHtml(v, ro) {
     const full = list.length >= MAX_TEAM;
     const canJoin = ranked || (coop && (t !== 'red' || (me && me.tm === 'red'))) ? false : me ? !ro && me.tm !== t && !full : mode === 'online' && ['lobby', 'over', 'post'].includes(v.m.ph) && (!full || list.some(p => p.b));
     const foot = (canJoin ? `<button type="button" class="ghost sm" data-join="${t}">Join ${teamName(t)}</button>` : '') +
-      (host && !full && (!coop || (t === 'red' && account && account.admin)) ? `<button type="button" class="ghost sm" data-addbot="${t}">+ Add bot</button>` : '');
+      (host && !full && (!coop || (t === 'red' && (OFFLINE || (account && account.admin)))) ? `<button type="button" class="ghost sm" data-addbot="${t}">+ Add bot</button>` : '');
     // (in the lobby the buttons sit in the team's header line, so the box is always exactly four rows tall)
     if (!$('lobby').hidden && v.m.ph === 'lobby') return `<div class="tcol" data-navsec style="--tc:${TEAM_COL[t]}"><div class="thead"><b>${teamName(t)}</b><span>${list.length} / ${MAX_TEAM}</span><span class="thb">${foot}</span></div>${slots}${open}</div>`;
     return `<div class="tcol" data-navsec style="--tc:${TEAM_COL[t]}"><div class="thead"><b>${teamName(t)}</b><span>${list.length} / ${MAX_TEAM}</span></div>${slots}${open}` +
@@ -7891,15 +7918,15 @@ function renderLobby(v) {
     $('lbRoomCfg').hidden = !x; $('lbRoomBtn').hidden = !x;
     if (x && roomInfo && document.activeElement !== $('lbRmName')) { $('lbRmName').value = roomInfo.name || ''; $('lbRmPub').value = roomInfo.pub ? '1' : '0'; $('lbRmMax').value = String(roomInfo.max || 8); $('lbRmNoPw').hidden = !roomInfo.locked; }
   });
-  setC('lbHead', mode + (roomInfo && roomInfo.code) + (roomInfo && [roomInfo.name, roomInfo.pub, roomInfo.locked, roomInfo.coop && roomInfo.coop.duo.name].join()), () => {
-    $('lbEyebrow').textContent = online ? (roomInfo && roomInfo.ranked ? 'Ranked ' + roomInfo.ranked : roomInfo && roomInfo.coop ? 'Co-op arcade' : 'Online lobby') : 'Practice lobby';
-    $('lbEyebrow').nextElementSibling.textContent = roomInfo && roomInfo.coop ? 'Next: ' + roomInfo.coop.duo.name : 'Set up the match';
+  setC('lbHead', mode + (roomInfo && roomInfo.code) + (roomInfo && [roomInfo.name, roomInfo.pub, roomInfo.locked, coopInfo() && coopInfo().duo.name].join()), () => {
+    $('lbEyebrow').textContent = coopInfo() ? (online ? 'Co-op arcade · online' : 'Co-op arcade · on this device') : online ? (roomInfo && roomInfo.ranked ? 'Ranked ' + roomInfo.ranked : 'Online lobby') : 'Practice lobby';
+    $('lbEyebrow').nextElementSibling.textContent = coopInfo() ? 'Next: ' + coopInfo().duo.name : 'Set up the match';
     $('lbRoom').hidden = !online; $('lbShare').hidden = !online;
     if (online && roomInfo) { $('lbCode').textContent = roomInfo.code; $('lbShare').textContent = `${roomInfo.name ? roomInfo.name + ' · ' : ''}${roomInfo.pub ? 'Public' : 'Private'}${roomInfo.locked ? ', password protected' : ''}. Friends can join with the code, or send them the invite link.`; }
   });
   syncTitle(v.p.find(p => p.id === myId));
   setC('lb', JSON.stringify(v.p.map(p => [p.id, p.n, p.ow, p.sp, p.fd, p.pt, p.fin, p.sc, p.tm, p.b, p.dv, p.c, p.el, p.ro, p.hc, p.ti, p.cc, p.lv, p.bd, p.na])) + host + myId + JSON.stringify(roomInfo && [roomInfo.host, roomInfo.spec]), () => { $('lbTeams').innerHTML = teamsHtml(v); });
-  setC('lbChat', online, x => { $('lbChat').hidden = !x; });
+  setC('lbChat', online || !!coopInfo(), x => { $('lbChat').hidden = !x; $('lbChatIn').hidden = !online; });
   setC('lbLp', JSON.stringify(LP.list.map(l => [l.n, l.name, l.el, l.ro, l.pid, l.pad, (v.p.find(p => p.id === l.pid) || {}).tm])), () => { lpTiles(v); });
   setC('lpDock', JSON.stringify(LP.list.filter(l => l.picker).map(l => [l.n, l.el, l.ro, l.picker.row])) + JSON.stringify(v.m.ban || []), () => lpDock(v));
   const meL = v.p.find(p => p.id === myId);
@@ -7951,8 +7978,8 @@ function renderLobby(v) {
     $('banHint').textContent = usingPad() ? `Host: press ${padBtn('y')} on an element or role to take it out of this game, again to put it back.` : 'Host: Alt+click an element or role to take it out of this game, again to put it back.';
   });
   renderCoop(v, meL, host);
-  setC('lbStart', String(v.m.cs) + host + !!meL + online + !!(roomInfo && roomInfo.coop), () => {
-    const C = roomInfo && roomInfo.coop;
+  setC('lbStart', String(v.m.cs) + host + !!meL + online + !!coopInfo(), () => {
+    const C = coopInfo();
     $('lbStart').hidden = !host || !!C;
     $('lbStart').disabled = !v.m.cs;
     $('lbStatus').textContent = C ? (meL ? '' : 'Join Red to play.') : !meL && online ? 'Pick a team to play.' : !host ? (roomInfo && roomInfo.ranked ? 'Waiting for everyone to arrive. The match starts on its own.' : 'Waiting for the host to start the match.') : v.m.cs ? '' : 'Both teams need at least one archer. Add bots, or wait for players to join.';
@@ -7972,20 +7999,20 @@ function renderMenu(v) {
   const lpm = LP.list.find(l => l.menu), tut = mode === 'local' && TUT.on;
   // a ranked match has no room code (nobody can join by code); a drill or the tutorial has no teams to show. Teams, bots,
   // bot skill and handicaps are set up in the lobby, so mid-match the teams are just shown
-  setC('gmHead', mode + host + ranked + drill + (lpm ? lpm.n : 0) + $('warmBar').hidden + !!(roomInfo && roomInfo.coop), () => {
-    $('gmEyebrow').textContent = lpm ? `P${lpm.n} · ${lpm.name} · menu` : drill ? (TUT.on ? 'Tutorial · paused' : 'Drill · paused') : online && roomInfo && roomInfo.coop ? 'Paused · the arcade waits for you' : online ? 'Menu · the match keeps running' : 'Paused';
+  setC('gmHead', mode + host + ranked + drill + (lpm ? lpm.n : 0) + $('warmBar').hidden + !!coopInfo(), () => {
+    $('gmEyebrow').textContent = lpm ? `P${lpm.n} · ${lpm.name} · menu` : drill ? (TUT.on ? 'Tutorial · paused' : 'Drill · paused') : online && coopInfo() ? 'Paused · the arcade waits for you' : online ? 'Menu · the match keeps running' : 'Paused';
     $('gmRoom').hidden = !online || ranked || !!lpm;
     if (online && roomInfo) { $('gmCode').textContent = roomInfo.code; $('gmShare').textContent = 'Friends join with this code or the invite link.'; }
-    const coopOn = online && !!(roomInfo && roomInfo.coop);
+    const coopOn = !!coopInfo();
     $('endBtn').hidden = !host || ranked || !!lpm || coopOn;
-    $('gmCoopEnd').hidden = !(coopOn && host && !lpm); $('gmCoopSkip').hidden = !(coopOn && account && account.admin && !lpm);
+    $('gmCoopEnd').hidden = !(coopOn && host && !lpm); $('gmCoopSkip').hidden = !(coopOn && (OFFLINE || (account && account.admin)) && !lpm);
     $('leaveBtn').hidden = !!lpm;
     $('gmOptBtn').hidden = !!lpm; // (Options change the whole screen's settings: the main player's to change)
     $('gmWarmBack').hidden = $('gmWarmStop').hidden = !!lpm || $('warmBar').hidden;
     $('gmBalBtn').hidden = $('gmAchBtn').hidden = tut || !!lpm;
     $('gmDiffWrap').hidden = true;
     $('gmTeams').hidden = drill;
-    $('gmNote').childNodes[0].textContent = lpm ? (online ? 'Your archer waits while this menu is open. ' : '') : drill ? 'Leave the drill from its panel, or carry on. ' : online && roomInfo && roomInfo.coop ? 'The battle is paused for everyone while this menu is open. ' : ranked || online ? 'The match keeps running while this menu is open. ' : '';
+    $('gmNote').childNodes[0].textContent = lpm ? (online ? 'Your archer waits while this menu is open. ' : '') : drill ? 'Leave the drill from its panel, or carry on. ' : online && coopInfo() ? 'The battle is paused for everyone while this menu is open. ' : ranked || online ? 'The match keeps running while this menu is open. ' : '';
   });
   if (!drill) setC('gm', JSON.stringify(v.p.map(p => [p.id, p.n, p.tm, p.b, p.dv, p.c, p.hc])) + host + myId + v.m.ph + ranked + JSON.stringify(roomInfo && roomInfo.spec), () => { $('gmTeams').innerHTML = teamsHtml(v, true); });
   const me = v.p.find(p => p.id === (lpm ? lpm.pid : myId)), hn = (me && me.hn) || {}, ups = (me && me.up) || [];
@@ -8314,7 +8341,7 @@ function closeSubs() { for (const k of SUBS) $(k).hidden = true; drawProfChip();
 const subOpen = () => SUBS.some(k => !$(k).hidden);
 document.querySelectorAll('[data-back]').forEach(b => b.onclick = closeSubs);
 $('mCustom').onclick = () => openSub('customScr');
-$('mCoop').onclick = () => { if (OFFLINE) { notice('The co-op arcade needs the Bowfall server. Open your Bowfall site to play it.', false); return; } openSub('coopScr'); };
+$('mCoop').onclick = () => openSub('coopScr');
 $('mFind').onclick = () => { if (OFFLINE) { notice('Find game needs the Bowfall server. Open your Bowfall site to play ranked.', false); return; } openSub('findScr'); };
 $('mScores').onclick = () => openSub('scoresScr');
 $('mOpts').onclick = () => openSub('optScr');
@@ -8331,36 +8358,72 @@ $('pracBtn').onclick = () => { closeSubs(); startPractice(); };
 // ================= co-op arcade =================
 // One or two people against the ladder of AI duos (lib/duos.json on the server). The lobby shows the duo coming up, its
 // tell, its archetypes and upgrades; everyone picks an archetype as usual and all three upgrades here, then readies up.
-const COOP = { diff: store.get('bowfall-coop-diff', 'normal'), pending: null, picks: [], key: null };
+const COOP = { diff: store.get('bowfall-coop-diff', 'normal'), where: store.get('bowfall-coop-where', 'local'), test: store.get('bowfall-coop-test', '0') === '1', pending: null, picks: (() => { try { const a = JSON.parse(store.get('bowfall-coop-picks', '[]')); return Array.isArray(a) ? a.filter(id => TREE[id]).slice(0, 3) : []; } catch (e) { return []; } })(), key: null }; // (what you last played is remembered: difficulty, where, and your three upgrades)
+const coopKeep = () => store.set('bowfall-coop-picks', JSON.stringify(COOP.picks));
+const coopOwner = () => OFFLINE || !!(account && account.admin);
+const COOP_WHERE = { local: ['On this device', 'Runs right here: no lag, nothing over the internet. Solo, or with friends on controllers on this screen.'], online: ['Online', 'Runs on the Bowfall server in a private room, so a friend on another computer can join with its code or your invite link.'] };
 const COOP_DIFFS = { easy: ['Easy', 'The duos play loosely and the score counts once. A good first run.'], normal: ['Normal', 'Fair fights. Score ×1.5.'], hard: ['Hard', 'Sharp duos. Score ×2.2.'], legend: ['Legend', 'The duos play about as well as the game can. Score ×3.'] };
 function coopOpen() {
   if (!COOP_DIFFS[COOP.diff]) COOP.diff = 'normal';
   $('coopDiffs').innerHTML = Object.entries(COOP_DIFFS).map(([k, d]) => `<button type="button" class="chip2${k === COOP.diff ? ' sel' : ''}" data-cdiff="${k}">${d[0]}</button>`).join('');
   $('coopDiffNote').textContent = COOP_DIFFS[COOP.diff][1];
+  if (OFFLINE || !COOP_WHERE[COOP.where]) COOP.where = 'local';
+  $('coopWhere').innerHTML = Object.entries(COOP_WHERE).map(([k, d]) => `<button type="button" class="chip2${k === COOP.where ? ' sel' : ''}" data-cwhere="${k}"${k === 'online' && OFFLINE ? ' disabled title="Needs the Bowfall server"' : ''}>${d[0]}</button>`).join('');
+  $('coopWhereNote').textContent = COOP_WHERE[COOP.where][1] + (COOP.where === 'local' && LP.list.length ? ` ${LP.list.length} on controller${LP.list.length === 1 ? '' : 's'} will join you.` : '');
+  $('coopTestRow').hidden = !coopOwner(); $('coopTest').classList.toggle('sel', COOP.test && coopOwner());
   $('coopErr').textContent = '';
 }
+$('coopTest').onclick = () => { COOP.test = !COOP.test; store.set('bowfall-coop-test', COOP.test ? '1' : '0'); coopOpen(); };
+$('coopWhere').addEventListener('click', e => { const b = e.target.closest('[data-cwhere]'); if (!b || b.disabled) return; COOP.where = b.dataset.cwhere; store.set('bowfall-coop-where', COOP.where); coopOpen(); });
 $('coopDiffs').addEventListener('click', e => { const b = e.target.closest('[data-cdiff]'); if (!b) return; COOP.diff = b.dataset.cdiff; store.set('bowfall-coop-diff', COOP.diff); coopOpen(); });
 $('coopStart').onclick = () => {
-  COOP.pending = COOP.diff; COOP.picks = [];
+  if (COOP.where === 'local' || OFFLINE) return startLocalCoop(COOP.diff);
+  COOP.pending = COOP.diff;
   connect({ create: true, map: 'meadow', diff: 'normal', room: { name: 'Co-op arcade', pub: false, max: 4, pw: '' } });
 };
 $('coopJoin').onclick = () => { const code = $('coopCode').value.trim().toUpperCase(); if (code.length !== 4) { $('coopErr').textContent = 'Room codes are 4 letters.'; return; } connect({ code }); };
 $('coopCode').addEventListener('keydown', e => { if (e.key === 'Enter') $('coopJoin').click(); });
 const coopAct = (op, more) => act(Object.assign({ t: 'coop', op }, more || {}));
+// Continue? After a lost battle: your archers close up, knocked out, and a countdown. Anyone playing can take the continue;
+// let it run out (or give up) and the run is over. In test mode there's no countdown.
+const CONT = { on: false, n: -1 };
+function coopContTick() {
+  const C = coopInfo(), show = !!C && C.st === 'lost' && mode !== 'menu';
+  if (show !== CONT.on) { CONT.on = show; $('coopCont').hidden = !show; CONT.n = -1; if (show) { contDraw(); play('alarm'); setTimeout(() => $('contYes').focus(), 50); } }
+  if (!show) return;
+  const left = C.test ? null : Math.max(0, (C.cont || 0) - (mode === 'online' && roomInfo ? (performance.now() - roomInfo.rcv) / 1000 : 0)), n = left == null ? -2 : Math.min(9, Math.ceil(left) - 1);
+  if (n !== CONT.n) { CONT.n = n; const el = $('contNum'); el.textContent = left == null ? '∞' : Math.max(0, n); el.classList.remove('tick'); void el.offsetWidth; el.classList.add('tick'); if (left != null && n >= 0) play('tick'); }
+  $('contSub').textContent = C.test ? `Test mode: ${C.result ? C.result.duo : 'they'} won that one. Try again as often as you like.` : `${C.result ? C.result.duo : 'They'} won that one. ${C.lives} continue${C.lives === 1 ? '' : 's'} left after this.`;
+  $('contNo').hidden = !isHost();
+}
+function contDraw() {
+  const cv = $('contCv'), g = cv.getContext('2d'), keep = ctx, v = view;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv.width, cv.height);
+  const mine = v ? v.p.filter(p => p.tm === 'red' && !p.nk) : [], k = 4.2;
+  ctx = g;
+  try { mine.slice(0, 3).forEach((p, i) => { const cx = cv.width / 2 + (i - (Math.min(3, mine.length) - 1) / 2) * 230, cy = 165;
+    g.setTransform(k, 0, 0, k, cx, cy); g.rotate(0.25 * (i % 2 ? -1 : 1));
+    drawPlayer({ id: '_cont' + i, x: 0, y: 0, a: Math.PI / 2, c: p.c, el: p.el, ro: p.ro, tm: 'red', hp: 0, mh: 1, rz: 16, n: '', ch: 0, dr: 0, up: [], f: 0, xx: 1 }, false, true); }); }
+  catch (e) { /* decoration only */ }
+  finally { ctx = keep; g.setTransform(1, 0, 0, 1, 0, 0); }
+}
+$('contYes').onclick = () => coopAct('next');
+$('contNo').onclick = () => coopAct('giveup');
 function renderCoop(v, meL, host) {
-  const C = roomInfo && roomInfo.coop, box = $('lbCoop');
-  const key = C ? JSON.stringify([C.st, C.idx, C.lives, C.score, C.ready, C.picks, C.result, meL && meL.el, meL && meL.ro, host, COOP.picks, myId, account && account.admin, C.solo]) : '';
+  const C = coopInfo(), box = $('lbCoop');
+  const key = C ? JSON.stringify([C.st, C.idx, C.lives, C.score, C.ready, C.picks, C.result, meL && meL.el, meL && meL.ro, host, COOP.picks, myId, account && account.admin, C.solo, C.test, C.duo.id]) : '';
   setC('coop', key, () => {
     box.hidden = !C;
     // the usual match settings step aside: the run sets the arena, the effects and the rules
     $('lbMut').hidden = !!C; $('lbRulesBtn').hidden = !!C; $('lbRoomBtn').hidden = !!C || !host; $('lbMapBtn').hidden = !!C;
     const mt = document.querySelector('.lobby .lbmatch'); if (mt) mt.hidden = !!C;
     if (!C) return;
-    const d = C.duo, D = COOP_DIFFS[C.diff] || ['', ''], hearts = '♥'.repeat(Math.max(0, C.lives)) + '♡'.repeat(Math.max(0, 3 - C.lives));
+    const d = C.duo, D = COOP_DIFFS[C.diff] || ['', ''], hearts = C.test ? '∞ test' : '♥'.repeat(Math.max(0, C.lives)) + '♡'.repeat(Math.max(0, 3 - C.lives));
     const ladder = Array.from({ length: C.n }, (_, i) => `<i class="${i < C.beaten ? 'done' : i === C.idx ? 'now' : ''}"></i>`).join('');
-    const members = d.members.map(m => `<div class="coopmem" style="--mc:${ELEMENTS[m.el].color}"><b>${esc(m.name)}</b><span>${esc(ELEMENTS[m.el].name)} ${esc(ROLES[m.ro].name)}</span><small>${m.ups.map(id => TREE[id] ? esc(TREE[id].name) : id).join(' · ')}</small></div>`).join('');
+    const members = d.boss ? Object.values(Sim.BOSS_MODES).map((M, i) => `<div class="coopmem" style="--mc:${['#ff8a3d', '#c7b3ff', '#8ff3ff'][i]}"><b>${esc(M.name)}</b><span>${['up close', 'at mid range', 'far off'][i]}: ${esc(ROLES[M.role].name)}</span><small>${M.ups.map(id => TREE[id] ? esc(TREE[id].name) : id).join(' · ')}</small></div>`).join('')
+      : d.members.map(m => `<div class="coopmem" style="--mc:${ELEMENTS[m.el].color}"><b>${esc(m.name)}</b><span>${esc(ELEMENTS[m.el].name)} ${esc(ROLES[m.ro].name)}</span><small>${m.ups.map(id => TREE[id] ? esc(TREE[id].name) : id).join(' · ')}</small></div>`).join('');
     const effs = d.effects.length ? d.effects.map(k => `<b style="color:${Sim.MUTATORS[k].color}">${esc(Sim.MUTATORS[k].name)}</b>`).join(' + ') : 'no map effect';
-    let body = `<div class="coophead"><b>${C.idx + 1} of ${C.n} · ${esc(D[0])}</b><span><span class="lives" title="Continues left">${hearts}</span> &nbsp; <span class="score">${C.score}</span> pts</span></div><div class="coopladder">${ladder}</div>`;
+    let body = `<div class="coophead"><b>${d.boss ? 'Final battle' : `${C.idx + 1} of ${C.n}`} · ${esc(D[0])}</b><span><span class="lives" title="Continues left">${hearts}</span> &nbsp; <span class="score">${C.score}</span> pts</span></div><div class="coopladder">${ladder}</div>`;
     if (C.st === 'done') {
       const cleared = C.result && C.result.last && C.result.won;
       body += `<div class="coopres ${cleared ? 'won' : 'lost'}"><b>${cleared ? 'Ladder cleared!' : 'Run over'}</b><div>${cleared ? `All ${C.n} duos beaten on ${esc(D[0])}.` : `${C.beaten} of ${C.n} duos beaten on ${esc(D[0])}.`} Final score <b style="font-size:16px">${C.score}</b>.${C.best && C.best[myCid()] != null ? ` Your best on ${esc(D[0])}: ${C.best[myCid()]}.` : ''}</div></div>`;
@@ -8379,33 +8442,100 @@ function renderCoop(v, meL, host) {
         const slots = [0, 1, 2].map(i => have[i] ? `<button type="button" class="slotc full" data-coopdrop="${have[i]}" title="${esc(TREE[have[i]].desc)}">${esc(TREE[have[i]].name)} ×</button>` : `<span class="slotc">Upgrade ${i + 1}</span>`).join('');
         body += `<div><span class="lbl">Your three upgrades${meL ? ` as a ${esc(ELEMENTS[meL.el].name)} ${esc(ROLES[meL.ro].name)}` : ''}</span><div class="coopslots">${slots}</div>` +
           (meL && have.length < 3 ? `<div class="coopups">${opts.map(id => `<button type="button" class="chip2" data-coopup="${id}" title="${esc(TREE[id].desc)}">${esc(TREE[id].name)}</button>`).join('') || '<span class="status">Nothing more to take.</span>'}</div>` : '') + '</div>';
-        const others = (roomInfo.spec || []).length;
         const mine = meL && C.ready.includes(myCid()), allPicked = have.length === 3;
         body += `<div class="coopfoot">${meL ? `<button type="button" class="${mine ? 'ghost' : 'cta'} sm" data-coop="ready" ${allPicked || mine ? '' : 'disabled'}>${mine ? 'Ready ✓ (unready)' : allPicked ? 'Ready' : 'Pick three upgrades'}</button>` : ''}` +
           `<span class="status">${mine ? 'Waiting for your partner…' : C.solo ? 'Solo: you get extra health and damage.' : 'Both of you ready up and the battle starts.'}</span>` +
           (host ? `<button type="button" class="ghost sm" data-coop="go" title="Start the battle now, with whatever's been picked">Start now</button><button type="button" class="ghost sm" data-coop="quit">End run</button>` : '') +
-          (account && account.admin ? `<button type="button" class="ghost sm" data-coop="back" title="Owner: back a duo">◂ Previous duo</button><button type="button" class="ghost sm" data-coop="skip" title="Owner: skip this duo">Skip duo ▸</button>` : '') + '</div>';
+          (OFFLINE || (account && account.admin) ? `<button type="button" class="ghost sm" data-coop="back" title="Owner: back a duo">◂ Previous duo</button><button type="button" class="ghost sm" data-coop="skip" title="Owner: skip this duo">Skip duo ▸</button>` : '') + '</div>';
       }
     }
     box.innerHTML = body;
   });
 }
-const myCid = () => (roomInfo ? roomInfo.cid : null);
+const myCid = () => (mode === 'online' ? (roomInfo ? roomInfo.cid : null) : 'me');
+// ---- a run on this device: the same ladder (public/coop.js, the duos from coop-data.js), run in the page. Solo, or with
+// players on controllers; nothing goes over the internet. Playing with a friend online runs it on the server instead.
+const LCO = { room: null, ladder: null };
+function localLadder() {
+  if (LCO.ladder || !window.CoopLadder || !window.BOWFALL_DUOS) return LCO.ladder;
+  LCO.ladder = CoopLadder({ Sim, roster: BOWFALL_DUOS.roster, fit: BOWFALL_DUOS.fit,
+    send: (c, m) => { if (m.t === 'note') notice(esc(m.msg), false); },
+    sendRoom: () => { coopInfoAt = -1; hc.coop = hc.lbStart = hc.lbHead = hc.lb = hc.gmHead = null; },
+    sysChat: (r, text) => addChat({ sys: 1, m: text }),
+    broadcast: (r, m) => { if (m.t === 'chat') addChat(m); },
+    markDirty: () => {}, isOwner: u => OFFLINE || !!(u && u.admin),
+    record: (room, C, cleared) => coopLocalRecord(C, cleared) });
+  return LCO.ladder;
+}
+// who's playing on this device: you, and anyone on a controller
+function localRoom() {
+  const R = LCO.room; if (!R) return null;
+  R.world = world;
+  R.clients = new Set([{ cid: 'me', pid: myId, name: playerName(), user: account, watch: false }].concat(LP.list.filter(l => l.pid).map(l => ({ cid: 'lp' + l.n, pid: l.pid, name: l.name, user: null, watch: false }))));
+  return R;
+}
+let coopInfoAt = -1, coopInfoV = null; // (worked out once a frame)
+function coopInfo() {
+  if (mode === 'online') return (roomInfo && roomInfo.coop) || null;
+  if (mode !== 'local' || !LCO.room || !LCO.room.coop || !LCO.ladder) return null;
+  if (coopInfoAt !== clock) { coopInfoAt = clock; coopInfoV = LCO.ladder.info(localRoom()); }
+  return coopInfoV;
+}
+function coopLocalAct(m) {
+  const L = localLadder(), R = localRoom(); if (!L || !R) return;
+  const me = [...R.clients].find(c => c.cid === 'me');
+  // players on controllers: their three upgrades are picked for them (what suits their archetype) and they're ready when you are
+  if ((m.op === 'ready' || m.op === 'go') && R.coop) for (const c of R.clients) if (c.cid !== 'me') {
+    const p = world.players.find(q => q.id === c.pid); if (!p) continue;
+    if (!(R.coop.picks.get(c.cid) || []).length) L.handle(R, c, { op: 'pick', ups: coopAutoPicks(p.element, p.role) });
+    if (m.op === 'ready') L.handle(R, c, { op: 'ready' });
+  }
+  coopInfoAt = -1; L.handle(R, me, m); coopInfoAt = -1;
+  if (m.op === 'quit') { toMenu(); openSub('coopScr'); } // (a run on this device ends back at the arcade, not in a practice lobby)
+}
+function coopAutoPicks(el, ro) {
+  const fav = Object.values(Sim.BUILDS).filter(b => (b.roles || []).includes(ro) || (b.els || []).includes(el)).flatMap(b => b.cards), out = [];
+  for (let i = 0; i < 3; i++) { const ok = Sim.forcedChoices(el, ro, out, false); if (!ok.length) break; out.push(ok.find(id => fav.includes(id) && !out.includes(id)) || ok[Math.floor(Math.random() * ok.length)]); }
+  return out;
+}
+// a run played here: the best on this device, and on your account when you're signed in
+function coopLocalRecord(C, cleared) {
+  const key = 'bowfall-coop-best-' + C.diff; let b = {}; try { b = JSON.parse(store.get(key, '{}')) || {}; } catch (e) { b = {}; }
+  b.best = Math.max(b.best || 0, C.score); b.far = Math.max(b.far || 0, C.beaten); b.runs = (b.runs || 0) + 1; if (cleared) b.clears = (b.clears || 0) + 1;
+  store.set(key, JSON.stringify(b)); C.best = { me: b.best };
+  if (account && !OFFLINE) fetch('/api/coop/score', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ diff: C.diff, score: C.score, beaten: C.beaten, cleared: !!cleared }) })
+    .then(r => r.json()).then(d => { if (d && d.best != null) { C.best.me = Math.max(C.best.me, d.best); hc.coop = null; } }).catch(() => {});
+}
+function startLocalCoop(diff) {
+  if (!localLadder()) { $('coopErr').textContent = 'The arcade could not load. Try reloading the page.'; return; }
+  initAudio(); closeSubs();
+  world = Sim.createWorld({ map: 'coop_field', diff: 'normal', opt: {} }); // (the standard rules: a run sets its own arena and effects)
+  const me = Sim.join(world, { name: playerName(), team: 'red', element: myLoadout().el, role: myLoadout().ro });
+  for (const l of LP.list) { l.pid = null; l.team = 'red'; lpJoinLocal(l); }
+  world.events.length = 0;
+  myId = me.id; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {}; clearChat();
+  LCO.room = { host: 'me', coop: null, ranked: null, world };
+  setScreens();
+  coopLocalAct({ op: 'start', diff, test: COOP.test && coopOwner() });
+  if (!LCO.room.coop) { toMenu(); openSub('coopScr'); }
+}
+
 $('lbCoop').addEventListener('click', e => {
   const up = e.target.closest('[data-coopup]'), drop = e.target.closest('[data-coopdrop]'), b = e.target.closest('[data-coop]');
-  if (up) { if (COOP.picks.length < 3 && !COOP.picks.includes(up.dataset.coopup)) { COOP.picks.push(up.dataset.coopup); coopAct('pick', { ups: COOP.picks }); hc.coop = null; } return; }
+  if (up) { if (COOP.picks.length < 3 && !COOP.picks.includes(up.dataset.coopup)) { COOP.picks.push(up.dataset.coopup); coopAct('pick', { ups: COOP.picks }); coopKeep(); hc.coop = null; } return; }
   if (drop) { const i = COOP.picks.indexOf(drop.dataset.coopdrop); if (i >= 0) { COOP.picks.splice(i); } // (dropping one drops the ones after it: they may have needed it)
     const meL = view && view.p.find(p => p.id === myId); if (meL) COOP.picks = COOP.picks.filter((id, j) => Sim.forcedChoices(meL.el, meL.ro, COOP.picks.slice(0, j), false).includes(id));
-    coopAct('pick', { ups: COOP.picks }); hc.coop = null; return; }
+    coopAct('pick', { ups: COOP.picks }); coopKeep(); hc.coop = null; return; }
   if (!b) return;
   const op = b.dataset.coop;
-  if (op === 'ready') coopAct(roomInfo.coop.ready.includes(myCid()) ? 'pick' : 'ready', { ups: COOP.picks });
+  if (op === 'ready') coopAct(coopInfo().ready.includes(myCid()) ? 'pick' : 'ready', { ups: COOP.picks });
   else if (op === 'go' || op === 'next' || op === 'quit') coopAct(op);
   else if (op === 'skip') coopAct('skip', { dir: 1 });
   else if (op === 'back') coopAct('skip', { dir: -1 });
-  else if (op === 'again') coopAct('start', { diff: roomInfo.coop.diff });
+  else if (op === 'again') coopAct('start', { diff: coopInfo().diff, test: !!coopInfo().test });
   else if (op === 'leave') $('lbLeave').click();
 });
+setInterval(() => { try { coopContTick(); } catch (e) { /* never in the way */ } }, 100);
 // ================= local tournament =================
 // Friends on one screen, 1v1, everyone plays everyone (once or twice). Each match is a local game: the first player on the
 // keyboard and mouse or the main controller (P1), the second on the next controller (P2, an extra player on a controller
@@ -8818,7 +8948,7 @@ function againTry() {
 $('rematchBtn').onclick = () => act({ t: 'restart' });
 
 // the map effects, announced at the start of each game: a pill each, sliding in with a chime
-const MUT_ICON = { vigil: '✚', gale: '≈', hide: '◆', bounty: '★', force: '➜', quick: '➶', surge: '✦' };
+const MUT_ICON = { vigil: '✚', gale: '≈', hide: '◆', bounty: '★', force: '➜', quick: '➶', surge: '✦', blood: '♥' };
 function announceMuts(mut) {
   const ks = Sim.mutKeys(mut), box = $('mutAnn'); if (!ks.length || hunting()) return;
   box.innerHTML = ks.map((k, i) => { const M = Sim.MUTATORS[k]; return `<span class="mp" style="--mc:${M.color};--d:${(i * 0.35).toFixed(2)}s"><i>${MUT_ICON[k] || '✦'}</i><span>${esc(M.name)}<small>${esc(M.desc)}</small></span></span>`; }).join('');
@@ -9262,6 +9392,10 @@ function eventFx(e) {
       case 'grapple': fx.ropes.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, id: e.id, life: 0 }); play('grapple'); break;
       case 'revive': burst(e.x, e.y, '#7dff8a', 30, 200, 3); floater(e.x, e.y - 34, 'Revived!', '#7dff8a', 18); feedAdd(`${esc(e.bn)} revived ${esc(e.n)}`, e.id === myId || e.by === myId); sfx.win(); break;
       case 'hcap': feedAdd(`${esc(e.n)} <span class="cause">handicap ${e.v ? hcapLabel(e.v) : 'off'}</span>`, e.id === myId); break;
+      case 'bossMode': { const col = { close: '255,138,61', mid: '199,179,255', long: '143,243,255' }[e.m] || '255,60,60';
+        for (let n = 0; n < 3; n++) fx.rings.push({ x: e.x, y: e.y, r: 8, life: -0.08 * n, col, max: 110 - n * 25 });
+        burst(e.x, e.y, `rgb(${col})`, 26, 280, 3); burst(e.x, e.y, '#ff5a46', 10, 160, 2); }
+        callout({ kicker: 'The machine changes', title: e.n + ' mode', sub: e.m === 'close' ? 'It grows and comes to bash you. Get away.' : e.m === 'long' ? 'It snipes from behind a wall. Get in close.' : 'It roots you and lines up the push. Keep moving.', color: e.m === 'close' ? '#ff8a3d' : e.m === 'long' ? '#8ff3ff' : '#c7b3ff', tier: 1, plain: `<b>${esc(e.n)} mode</b> · ${e.m === 'close' ? 'it grows and comes to bash you' : e.m === 'long' ? 'it snipes from behind a wall' : 'it roots you and lines up the push'}` }); play('termShift'); break;
       case 'join': if (mode === 'online') feedAdd(`${nameTag(e.n, TEAM_COL[e.tm])} joined ${teamName(e.tm)}`); break;
       case 'switch': if (mode === 'online') feedAdd(`${nameTag(e.n, TEAM_COL[e.tm])} moved to ${teamName(e.tm)}`); break;
       case 'leave': if (mode === 'online' || e.sp) feedAdd(e.sp ? `${esc(e.n)} is unassigned` : `${esc(e.n)} left`); break;
@@ -9868,6 +10002,40 @@ THEMES.garden = {
   stem: ['#5b3b27', '#6d4a31'], thorn: '#f6eee6', leaf: '#4a6c46', berry: '#e86a8a', burrow: null,
   ambient: 'leaves', leafCols: ['#d8a8b8', '#e2bcc8', '#c890a4', '#e8d8de'],
 };
+// the co-op arcade's dojo: honey-coloured boards, dark timber walls, paper lanterns and blossom drifting in
+THEMES.dojo = Object.assign({}, THEMES.mill, {
+  forest: '#1b1410', canopy: ['#2d1f17', '#3a281d', '#24180f', '#463024'], canopyHi: 'rgba(255,190,150,0.07)',
+  ground: '#a9824f', patchA: 'rgba(235,200,140,0.22)', patchB: 'rgba(90,60,30,0.2)', patchBase: 'rgba(169,130,79,0)', sun: 'rgba(255,225,170,0.07)',
+  blades: ['#e8cfa3', '#d6b583', '#f1dfbd'], wall: '#2c1d14', wallMid: '#3c2819', wallLight: '#5a3d26',
+  boulder: '#7d7f80', boulderLight: '#a3a6a8', moss: ['#5e7a46', '#7a9258'], dojo: true,
+  ambient: 'leaves', leafCols: ['#f7c6d6', '#f1b0c8', '#fde3ec', '#ffffff'],
+});
+function paintDojo(g) {
+  g.save();
+  // the mat's edge: a dark inlaid border a little in from the walls
+  g.strokeStyle = 'rgba(52,30,16,0.55)'; g.lineWidth = 7; g.strokeRect(WALL + 46, WALL + 46, AW - 2 * WALL - 92, AH - 2 * WALL - 92);
+  g.strokeStyle = 'rgba(52,30,16,0.35)'; g.lineWidth = 2; g.strokeRect(WALL + 58, WALL + 58, AW - 2 * WALL - 116, AH - 2 * WALL - 116);
+  // the yin and yang, inlaid in the middle of the floor
+  const r = 82; g.translate(AW / 2, AH / 2); g.rotate(Math.PI / 2); g.globalAlpha = 0.78;
+  const ink = '#2a1a10', paper = '#efe3c8';
+  g.fillStyle = ink; g.beginPath(); g.arc(0, 0, r + 6, 0, TAU); g.fill();
+  g.fillStyle = paper; g.beginPath(); g.arc(0, 0, r, -Math.PI / 2, Math.PI / 2); g.fill();
+  g.fillStyle = ink; g.beginPath(); g.arc(0, 0, r, Math.PI / 2, Math.PI * 1.5); g.fill();
+  g.fillStyle = paper; g.beginPath(); g.arc(0, -r / 2, r / 2, 0, TAU); g.fill();
+  g.fillStyle = ink; g.beginPath(); g.arc(0, r / 2, r / 2, 0, TAU); g.fill();
+  g.fillStyle = ink; g.beginPath(); g.arc(0, -r / 2, r / 6.5, 0, TAU); g.fill();
+  g.fillStyle = paper; g.beginPath(); g.arc(0, r / 2, r / 6.5, 0, TAU); g.fill();
+  g.restore(); g.save();
+  // the hall's name by each long wall, and "endurance" either side (brush-written, faded into the wood)
+  const font = sz => `bold ${sz}px "Noto Serif CJK JP", "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN", "MS Mincho", serif`;
+  g.fillStyle = 'rgba(70,34,16,0.55)'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = font(44); g.fillText('道場', AW / 2, WALL + 92);
+  g.save(); g.translate(AW / 2, AH - WALL - 92); g.rotate(Math.PI); g.fillText('道場', 0, 0); g.restore();
+  g.font = font(54); g.fillStyle = 'rgba(150,28,24,0.42)';
+  g.save(); g.translate(WALL + 96, AH / 2); g.rotate(-Math.PI / 2); g.fillText('忍', 0, 0); g.restore();
+  g.save(); g.translate(AW - WALL - 96, AH / 2); g.rotate(Math.PI / 2); g.fillText('忍', 0, 0); g.restore();
+  g.restore();
+}
 THEMES.spring = Object.assign({}, THEMES.meadow, {
   ground: '#57903f', patchA: 'rgba(130,190,95,0.24)', flowers: 40, fairy: false,
   leafCols: ['#f3d6e2', '#8fb44a', '#f4ecd2', '#b8c45a'],
@@ -9973,11 +10141,13 @@ function paintIceHole(g, h, R) {
 // night: a cold wash over the ground (moonlight from the top left), lantern posts, and a little mist in the pits
 function paintNight(g, R) {
   g.save();
+  g.save(); g.beginPath(); g.rect(WALL, WALL, AW - 2 * WALL, AH - 2 * WALL); g.clip(); // (the rims of the drops stay inside the walls)
   const gr = g.createLinearGradient(0, 0, AW, AH); gr.addColorStop(0, 'rgba(120,150,210,0.10)'); gr.addColorStop(1, 'rgba(10,15,35,0.28)');
   g.fillStyle = gr; g.fillRect(-MARGIN, -MARGIN, AW + MARGIN * 2, AH + MARGIN * 2);
   // a pale moonlit rim round every drop, so they read clearly in the dark
   for (const h of HAZ) if (h.type === 'pit' && !h.water) { g.save(); hazP(g, h, 1.5); g.strokeStyle = 'rgba(190,210,240,0.45)'; g.lineWidth = 2; g.stroke(); g.restore(); }
   for (const h of HAZ) if (h.type === 'pit' && !h.water) { g.save(); hazP(g, h, 0); g.clip(); const [cx, cy] = hazCentre(h); const m = g.createRadialGradient(cx, cy, 5, cx, cy, Math.max(h.w || h.r, h.h || h.r)); m.addColorStop(0, 'rgba(120,150,200,0.10)'); m.addColorStop(1, 'rgba(120,150,200,0)'); g.fillStyle = m; g.fillRect(cx - 400, cy - 400, 800, 800); g.restore(); }
+  g.restore();
   for (const l of (MAPS[MAPKEY] && MAPS[MAPKEY].lights) || []) {
     if (l.big && !l.wisp) { // a campfire on open ground: scorched earth and a couple of logs (the flame is drawn live)
       const sc = g.createRadialGradient(l.x, l.y, 2, l.x, l.y, 22); sc.addColorStop(0, 'rgba(20,10,5,0.75)'); sc.addColorStop(1, 'rgba(20,10,5,0)');
@@ -10440,7 +10610,10 @@ function paintFloor(s) {
     const gw = MO.gap, mx = x + w / 2, my = y + h / 2;
     for (const b of [{ x: mx, y: y + t / 2, len: t, w: gw, v: true }, { x: mx, y: y + h - t / 2, len: t, w: gw, v: true }, { x: x + t / 2, y: my, len: t, w: gw }, { x: x + w - t / 2, y: my, len: t, w: gw }]) paintBridge(g, b);
   }
-  // hazards
+  // dojo: the yin and yang inlaid in the boards, and the hall's name painted by the walls
+  if (T.dojo && !PAINT_TILE) paintDojo(g);
+  // hazards (kept inside the arena's walls: a hole in a corner is a quarter of a hole, not one spilling over the wall)
+  g.save(); g.beginPath(); g.rect(WALL, WALL, AW - 2 * WALL, AH - 2 * WALL); g.clip();
   for (const h of HAZ) {
     const [cx, cy] = hazCentre(h);
     if (h.moat) continue;
@@ -10547,6 +10720,7 @@ function paintFloor(s) {
       }
     }
   }
+  g.restore();
 
   paintMechBase(g, R);
   // boulders
@@ -11076,6 +11250,7 @@ function drawArena() {
   buildFloor();
   ctx.drawImage(floorCv, -MARGIN, -MARGIN, AW + MARGIN * 2, AH + MARGIN * 2);
   const c = clock;
+  ctx.save(); ctx.beginPath(); ctx.rect(WALL, WALL, AW - 2 * WALL, AH - 2 * WALL); ctx.clip(); // (the moving parts of hazards stay inside the walls too)
   for (const h of HAZ) if (h.type === 'tar' && !THEME.frosty && !THEME.beach) {
     ctx.save(); hazP(ctx, h, 0); ctx.clip();
     const [cx, cy] = hazCentre(h);
@@ -11091,6 +11266,7 @@ function drawArena() {
   }
   for (const h of HAZ) if (h.type === 'lava') drawLava(h, c);
   for (const h of HAZ) if (h.type === 'pit' && (THEME.water || h.water)) drawWaterGlints(h, c);
+  ctx.restore();
   if (THEME.water) drawCracks(c);
   if (THEME.hatch) drawHatches(c);
   if (HEAL) drawSpring(c);
@@ -11170,6 +11346,55 @@ function drawBoomHeld(R, p) {
   ctx.save(); ctx.translate(R + 8 - 26 * c, R * 0.8 * c); ctx.rotate(-0.5 - 1.2 * c);
   drawBoomBlade(1.1, '#d9a066');
   ctx.strokeStyle = p.c; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-4, -2); ctx.quadraticCurveTo(0, 0.4, 4, -2); ctx.stroke();
+  ctx.restore();
+}
+// ---- the arcade's machine: a steel shell with armour seams and a core light in the colour of its mode, a visor with one
+// scanning red eye, and a compound bow of steel with a red laser string
+const BOSS_COL = { c: '255,138,61', m: '199,179,255', l: '143,243,255' };
+function drawBossBody(p, R) {
+  const g = ctx.createRadialGradient(-R * 0.35, -R * 0.45, R * 0.1, 0, 0, R);
+  g.addColorStop(0, '#d5dbe2'); g.addColorStop(0.5, '#717b86'); g.addColorStop(1, '#262b33');
+  ctx.fillStyle = '#121519'; ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.fill();
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, -1, R - 2, 0, TAU); ctx.fill();
+  ctx.strokeStyle = 'rgba(18,22,28,0.75)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(0, 0, R * 0.6, 0, TAU); ctx.stroke();
+  for (let i = 0; i < 4; i++) { const a = i * TAU / 4 + 0.4 + p.a; ctx.beginPath(); ctx.moveTo(Math.cos(a) * R * 0.6, Math.sin(a) * R * 0.6); ctx.lineTo(Math.cos(a) * (R - 2), Math.sin(a) * (R - 2)); ctx.stroke(); }
+  ctx.fillStyle = 'rgba(235,240,246,0.85)'; for (let i = 0; i < 8; i++) { const a = i * TAU / 8 + p.a; ctx.beginPath(); ctx.arc(Math.cos(a) * (R - 4.5), Math.sin(a) * (R - 4.5), 0.9, 0, TAU); ctx.fill(); }
+  const col = BOSS_COL[p.bo] || '255,60,60', k = 0.6 + 0.3 * Math.sin(gclock * 6);
+  const cg = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.55); cg.addColorStop(0, `rgba(${col},${0.55 * k})`); cg.addColorStop(1, `rgba(${col},0)`);
+  ctx.fillStyle = cg; ctx.beginPath(); ctx.arc(0, 0, R * 0.55, 0, TAU); ctx.fill();
+  ctx.strokeStyle = `rgba(${col},${k})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, R - 0.5, 0, TAU); ctx.stroke();
+}
+function drawBossFace(p, R) { // (already turned to aim)
+  ctx.fillStyle = '#0b0d10'; ctx.beginPath(); ctx.ellipse(R * 0.46, 0, R * 0.2, R * 0.6, 0, 0, TAU); ctx.fill();
+  const scan = p.dr ? 0 : Math.sin(gclock * 2.6) * R * 0.32, ex = R * 0.48;
+  const gl = ctx.createRadialGradient(ex, scan, 0, ex, scan, R * 0.55); gl.addColorStop(0, 'rgba(255,45,30,0.9)'); gl.addColorStop(1, 'rgba(255,45,30,0)');
+  ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(ex, scan, R * 0.55, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#ff5a46'; ctx.beginPath(); ctx.arc(ex, scan, R * 0.14, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#fff0e8'; ctx.beginPath(); ctx.arc(ex + 0.6, scan - 0.6, R * 0.05, 0, TAU); ctx.fill();
+}
+function drawBossBow(charge, drawing, len, col) {
+  const bend = 1.1 - charge * 0.18, ex = 4 + Math.cos(bend) * len, ey = Math.sin(bend) * len, pull = ex - 2 - charge * 15;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(ex, -ey); ctx.lineTo(4 + len * 0.93, -len * 0.38); ctx.lineTo(4 + len, 0); ctx.lineTo(4 + len * 0.93, len * 0.38); ctx.lineTo(ex, ey);
+  ctx.strokeStyle = '#2e353e'; ctx.lineWidth = 5; ctx.stroke(); ctx.strokeStyle = '#a7b1bc'; ctx.lineWidth = 1.6; ctx.stroke();
+  for (const sy of [-ey, ey]) { ctx.fillStyle = '#1d2227'; ctx.beginPath(); ctx.arc(ex, sy, 3.4, 0, TAU); ctx.fill(); ctx.fillStyle = `rgba(${col},0.95)`; ctx.beginPath(); ctx.arc(ex, sy, 1.5, 0, TAU); ctx.fill(); }
+  ctx.strokeStyle = `rgba(255,70,55,${0.5 + 0.45 * charge})`; ctx.lineWidth = 1.3;
+  ctx.beginPath(); ctx.moveTo(ex, -ey); ctx.lineTo(pull, 0); ctx.lineTo(ex, ey); ctx.stroke();
+  if (drawing) {
+    ctx.strokeStyle = '#cfd7df'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(pull, 0); ctx.lineTo(pull + 30, 0); ctx.stroke();
+    ctx.fillStyle = charge >= 1 ? '#ff5a46' : '#b8c1cb'; ctx.beginPath(); ctx.moveTo(pull + 36, 0); ctx.lineTo(pull + 28, -3.5); ctx.lineTo(pull + 28, 3.5); ctx.fill();
+  }
+}
+// its Bramble Trap is a steel jaw clamp with a blinking red light
+function drawMachineTrap(x, y, r) {
+  ctx.save(); ctx.translate(x, y);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.arc(2, 3, r + 3, 0, TAU); ctx.fill();
+  ctx.strokeStyle = '#2b3138'; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.stroke();
+  ctx.strokeStyle = '#9aa4ae'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.stroke();
+  ctx.fillStyle = '#c3cbd3';
+  for (let i = 0; i < 12; i++) { const a = i / 12 * TAU; ctx.beginPath(); ctx.moveTo(Math.cos(a - 0.12) * (r - 2), Math.sin(a - 0.12) * (r - 2)); ctx.lineTo(Math.cos(a) * (r - 9), Math.sin(a) * (r - 9)); ctx.lineTo(Math.cos(a + 0.12) * (r - 2), Math.sin(a + 0.12) * (r - 2)); ctx.fill(); }
+  const k = 0.5 + 0.5 * Math.sin(gclock * 9);
+  ctx.fillStyle = `rgba(255,50,40,${0.35 + 0.6 * k})`; ctx.beginPath(); ctx.arc(0, 0, 3.2, 0, TAU); ctx.fill();
   ctx.restore();
 }
 function drawBow(charge, drawing, len, col) {
@@ -11377,6 +11602,7 @@ function drawEyes(p, R) {
   const per = 2.6 + (h % 23) / 10, ph = ((gclock + h * 0.37) % per), blink = ph < 0.13 ? 1 - Math.abs(ph - 0.065) / 0.065 : 0;
   const hurtK = EYE.hurt[id] != null ? Math.max(0, 1 - (gclock - EYE.hurt[id]) / (EYE.len[id] || 0.38)) : 0;
   const x = R * 0.45, ys = [-R * 0.28, R * 0.28];
+  if (p.xx) { ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1.6; ctx.lineCap = 'round'; for (const y of ys) { ctx.beginPath(); ctx.moveTo(x - 2.2, y - 2.2); ctx.lineTo(x + 2.2, y + 2.2); ctx.moveTo(x + 2.2, y - 2.2); ctx.lineTo(x - 2.2, y + 2.2); ctx.stroke(); } return; } // (knocked out: a cross for each eye)
   // (the face looks along +x: the two eyes sit side by side across it, at ys)
   if (hurtK > 0 || p.su || p.fz) { // screwed shut, XD style: each eye a chevron pointing at the other ( > < )
     ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1.8; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -11413,7 +11639,7 @@ function drawPlayer(p, isMe, bare) {
   if (!bare && !isMe && view && smokeHides(p, view.p.find(q => q.id === myId))) return;
   if (p.sth) {
     // stealth: you and your team see a ghost; enemies see nothing, or a faint shimmer up close
-    const meP = view && view.p.find(q => q.id === myId), friend = isMe || (meP && meP.tm === p.tm);
+    const meP = view && view.p.find(q => q.id === myId), friend = isMe || RP.on || (meP && meP.tm === p.tm); // (in a replay you see them, faded, as their own team does)
     const near = meP && Math.hypot(meP.x - p.x, meP.y - p.y) < 110;
     if (friend) alpha *= 0.4;
     else if (near) { alpha *= 0.12 + 0.06 * Math.sin(gclock * 12); hideTag = true; }
@@ -11495,17 +11721,23 @@ function drawPlayer(p, isMe, bare) {
     ctx.beginPath(); ctx.arc(0, 0, R + 17, -Math.PI / 2, -Math.PI / 2 + TAU * Math.min(1, p.au / 2)); ctx.stroke();
     if (Math.random() < 0.6) { const a = rand(0, TAU); fx.parts.push({ x: p.x + Math.cos(a) * (R + 8), y: p.y + Math.sin(a) * (R + 8), vx: Math.cos(a) * rand(40, 120), vy: Math.sin(a) * rand(40, 120), life: 0, max: 0.25, color: Math.random() < 0.5 ? '#ff8a3d' : '#ffe0a0', r: rand(1, 2) }); }
   }
+  if (p.bo) drawBossBody(p, R); // the machine: steel, not an archer's colours
+  else {
   ctx.save(); ctx.rotate(p.a); drawGear(p, R, false); ctx.restore(); // role gear behind the body
   ctx.fillStyle = dark(p.c); ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.fill();
   ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(0, -1.5, R - 3, 0, TAU); ctx.fill();
+  }
   if (p.sw > 0 && !p.f) { ctx.fillStyle = `rgba(196,236,255,${Math.min(0.62, 0.15 + p.sw * 0.75)})`; ctx.beginPath(); ctx.arc(0, -1, R - 0.5, 0, TAU); ctx.fill(); } // chilled: paler and bluer the slower they are
   if (EL_COL[p.el]) { ctx.strokeStyle = EL_COL[p.el]; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(0, 0, R - 0.9, 0, TAU); ctx.stroke(); } // element trim
   if (p.fl) { ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.fill(); }
   ctx.save(); ctx.rotate(p.a);
+  if (p.bo) drawBossFace(p, R);
+  else {
   drawGear(p, R, true); // role gear on top
   drawEmblem(p.el, -R * 0.22, 0, R * 0.4);
   ctx.fillStyle = p.ro === 'assassin' ? '#ff4d5e' : dark(p.c);
   drawEyes(p, R);
+  }
   { const hk = HEALFX[p.id] != null ? 1 - (gclock - HEALFX[p.id]) / 0.45 : 0; // a blood heal: a red pulse through the body
     if (hk > 0) { // a dark red pulse through the body and a deep red glow round it, swelling out
       ctx.save(); ctx.fillStyle = `rgba(140,6,24,${0.42 * hk})`; ctx.beginPath(); ctx.arc(0, 0, R - 1, 0, TAU); ctx.fill();
@@ -11520,6 +11752,7 @@ function drawPlayer(p, isMe, bare) {
   if (p.ro === 'ninja') drawHandStar(R, p);
   else if (p.ro === 'crossbow') drawCrossbow(R, p);
   else if (p.arm === 'boomerang') drawBoomHeld(R, p);
+  else if (p.bo) drawBossBow(p.ch, !!p.dr, Math.max(20, R + 4), BOSS_COL[p.bo] || '255,60,60');
   else drawBow(p.ch, !!p.dr, Math.max(20, R + 4), p.dz ? '#7b8594' : '#c89b5b');
   // full draw, readable from across the arena: a small bright spark at the arrowhead, so you can see when someone
   // is about to loose a full-power shot (and time a Parry or a dodge)
@@ -12066,7 +12299,8 @@ function drawZone(z, me) {
       if (Math.random() < 0.3) fx.parts.push({ x: z.x + rand(-z.r, z.r) * 0.6, y: z.y + rand(-z.r, z.r) * 0.6, vx: 0, vy: rand(-20, -6), life: 0, max: 0.8, color: '#b6ee7a', r: rand(1.5, 3) });
     } else if (z.ty === 'trap') {
       const mine = me && z.tm === me.tm;
-      ctx.save(); ctx.globalAlpha = mine ? 0.8 : 0.95; drawTrapArt(z.x, z.y, z.r, 0); ctx.restore();
+      const zo = view && view.p.find(q => q.id === z.o);
+      ctx.save(); ctx.globalAlpha = mine ? 0.8 : 0.95; if (zo && zo.bo) drawMachineTrap(z.x, z.y, z.r); else drawTrapArt(z.x, z.y, z.r, 0); ctx.restore();
       ctx.save(); ctx.globalAlpha = mine ? 0.8 : 0.95; ctx.strokeStyle = TEAM_COL[z.tm]; ctx.lineWidth = 1.5; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.arc(z.x, z.y, z.r + 7, 0, TAU); ctx.stroke(); ctx.setLineDash([]); ctx.restore();
     } else if (z.ty === 'clone') {
       // a shadowy copy of its owner, facing the nearest enemy
@@ -14390,7 +14624,7 @@ function frame(now) {
         if (FARM.on) farmStep(); // (each step's events at their own moment, and a frame for the replays every other step)
       }
       PR.lap('sim');
-      handleEvents(world.events.splice(0));
+      { const evs = world.events.splice(0); handleEvents(evs); if (LCO.room && LCO.room.coop) { const R = localRoom(); LCO.ladder.events(R, evs); LCO.ladder.tick(R); coopInfoAt = -1; } }
       if (world.records.length) { const recs = world.records.splice(0); if (!TUT.on && !TR.on && !DESK.sim) for (const r of recs) Balance.record(r); }
       tutTick(dt); trainTick(dt);
     }

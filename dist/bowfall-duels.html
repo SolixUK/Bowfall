@@ -1522,8 +1522,18 @@
   .coopslots { display: flex; gap: 6px; flex-wrap: wrap; min-height: 30px; } .coopslots .slotc { padding: 4px 10px; border: 1px dashed var(--line); color: var(--muted); font-size: 13px; } .coopslots .slotc.full { border-style: solid; border-color: var(--gold); color: var(--text); cursor: pointer; }
   .coopres { padding: 10px 12px; border: 1px solid var(--line); background: rgba(0,0,0,.25); } .coopres b { font: 700 20px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .06em; text-transform: uppercase; } .coopres.won b { color: #7dff8a; } .coopres.lost b { color: #ff7a7a; }
   .coopfoot { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; } .coopfoot .status { flex: 1 1 auto; }
+  /* Continue? after a lost battle: the fallen close up, a big countdown */
+  .contscr { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, rgba(40,0,0,.82), rgba(0,0,0,.96)); animation: contIn .6s ease-out; }
+  @keyframes contIn { from { opacity: 0; } to { opacity: 1; } }
+  .contin { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+  .contin canvas { width: min(720px, 90vw); height: auto; }
+  .conttitle { font: 700 64px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #fff; text-shadow: 0 0 24px rgba(255,60,60,.7); }
+  .contnum { font: 700 150px/1 'Rajdhani', 'Arial Narrow', sans-serif; color: #ff5a5a; text-shadow: 0 0 40px rgba(255,40,40,.8); min-height: 150px; }
+  .contnum.tick { animation: contTick .9s ease-out; } @keyframes contTick { from { transform: scale(1.5); opacity: .4; } to { transform: scale(1); opacity: 1; } }
+  .contsub { color: var(--muted); font-size: 16px; margin-bottom: 8px; }
+  #coopTest.sel { border-color: #ff7a7a; color: #ff7a7a; }
   .coopladder { display: flex; gap: 4px; } .coopladder i { flex: 1 1 0; height: 6px; background: rgba(255,255,255,.12); } .coopladder i.done { background: #7dff8a; } .coopladder i.now { background: var(--gold); }
-  #coopDiffs .chip2 { cursor: pointer; } #coopDiffs .chip2.sel { border-color: var(--gold); color: var(--gold); }
+  #coopDiffs .chip2, #coopWhere .chip2 { cursor: pointer; } #coopDiffs .chip2.sel, #coopWhere .chip2.sel { border-color: var(--gold); color: var(--gold); }
   .lbmatch .field label { font-size: 13px; } .lobby .lbmatch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 10px; } .lobby .lbmatch .field { min-width: 0; } .lobby .lbmatch select { width: 100%; }
   .lbfold .lbbody.up { top: auto; bottom: calc(100% + 6px); box-shadow: 0 -14px 40px rgba(0,0,0,.6); }
   .lobby .maps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
@@ -2017,13 +2027,25 @@
       <p class="status">Fourteen AI duos, one after another, each on an arena built for its own tactic: a colossus that body-blocks for a crossbow, two assassins who vanish together, two juggernauts who only want to bash. Beat a duo and the next is up; lose and you spend a continue (you have three). Before each battle you see what the duo brings, then choose your archetype and all three upgrades. On your own you get a handicap in your favour.</p>
       <div class="archrow"><span class="lbl">Difficulty</span><div class="chips" id="coopDiffs" data-navsec></div></div>
       <p class="status" id="coopDiffNote"></p>
+      <div class="archrow"><span class="lbl">Where it runs</span><div class="chips" id="coopWhere" data-navsec></div></div>
+      <p class="status" id="coopWhereNote"></p>
+      <div class="archrow" id="coopTestRow" hidden><span class="lbl">Owner</span><div class="chips" data-navsec><button type="button" class="chip2" id="coopTest">Test mode: unlimited retries</button></div></div>
       <div class="row" data-navsec>
         <button class="cta" type="button" id="coopStart">Start a run</button>
         <div class="field"><label for="coopCode">Join a friend's run</label><input class="code" id="coopCode" maxlength="4" autocomplete="off" placeholder="ABCD"></div>
         <button class="ghost" type="button" id="coopJoin">Join</button>
       </div>
-      <p class="status">A run is a private room: a friend joins with its code or your invite link, before the first battle or between battles. Score is kept per difficulty on your account.</p>
+      <p class="status">Score is kept per difficulty: on your account when you're signed in, and on this device.</p>
       <span class="status err" id="coopErr"></span>
+    </div>
+  </div>
+  <div class="contscr" id="coopCont" hidden>
+    <div class="contin">
+      <canvas id="contCv" width="720" height="300"></canvas>
+      <div class="conttitle">Continue?</div>
+      <div class="contnum" id="contNum">9</div>
+      <div class="contsub" id="contSub"></div>
+      <div class="btnrow" data-navsec><button class="cta" type="button" id="contYes">Continue</button><button class="ghost" type="button" id="contNo">Give up</button></div>
     </div>
   </div>
   <!-- a local tournament: friends on one screen, 1v1s, pass the controllers round -->
@@ -2585,7 +2607,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.95.2';
+const VERSION = '0.98.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -3038,9 +3060,11 @@ const OPTIONS = {
   // pure: no upgrades and no archetypes either, every archer a plain archer with a plain bow (nothing to blame but aim)
   upg:    { label: 'Upgrades',     def: 'on', values: { on: 1, off: 2, pure: 3 } },
   // map effect: a random one each match (the standard), none, or a set one (MUTATORS)
-  effect: { label: 'Map effect',   def: 'random', values: { random: 1, none: 2, vigil: 3, gale: 4, hide: 5, bounty: 6, force: 7, quick: 8, surge: 9 } },
+  effect: { label: 'Map effect',   def: 'random', values: { random: 1, none: 2, vigil: 3, gale: 4, hide: 5, bounty: 6, force: 7, quick: 8, surge: 9, blood: 10 } },
+  // revives: on, anyone can bring back a knocked-out teammate by standing over them for 3 seconds, once a game each
+  revive: { label: 'Revives',      def: 'off', values: { off: 1, on: 2 } },
 };
-const OPT_NAMES = { small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', bullet: 'Bullet', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', random: 'Random', vigil: "Warden's Vigil", gale: 'Gale Winds', hide: "Juggernaut's Hide", bounty: 'Bounty Hunt', force: 'Heavy Blows', quick: 'Quickdraw', surge: 'Arcane Surge', puck: 'Glide (air hockey)', snappy: 'Snappy', drift: 'Drifty', direct: 'Direct (no glide)', none: 'None', tiny: 'Tiny', heavy: 'Heavy', pure: 'Pure: no archetypes, no upgrades' };
+const OPT_NAMES = { blood: 'Bloodthirst', small: 'Small', medium: 'Medium', large: 'Large', normal: 'Normal', slow: 'Slow', fast: 'Fast', vfast: 'Very fast', blazing: 'Blazing', bullet: 'Bullet', low: 'Low', high: 'High', chaos: 'Chaos', on: 'On', off: 'Off', random: 'Random', vigil: "Warden's Vigil", gale: 'Gale Winds', hide: "Juggernaut's Hide", bounty: 'Bounty Hunt', force: 'Heavy Blows', quick: 'Quickdraw', surge: 'Arcane Surge', puck: 'Glide (air hockey)', snappy: 'Snappy', drift: 'Drifty', direct: 'Direct (no glide)', none: 'None', tiny: 'Tiny', heavy: 'Heavy', pure: 'Pure: no archetypes, no upgrades' };
 const optDefaults = () => Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.slider ? o.def : o.def || Object.keys(o.values)[0]]));
 // a slider setting as a percentage (old named settings and anything out of range are mapped and clamped)
 function optPct(k, v) {
@@ -3062,6 +3086,7 @@ const MUTATORS = {
   force:  { name: 'Heavy Blows',      color: '#ff8a3d', desc: 'Everything knocks back 35% harder.', mul: { kb: 1.35 } },
   quick:  { name: 'Quickdraw',        color: '#fff27a', desc: 'Every bow draws 30% faster and crossbows reload 30% faster.', mul: { draw: 1.3 } },
   surge:  { name: 'Arcane Surge',     color: '#c7b3ff', desc: 'Abilities recharge 40% faster.', mul: { abcd: 0.6 } },
+  blood:  { name: 'Bloodthirst',      color: '#e0455a', desc: 'Every hit heals whoever landed it, as Blood arrows do. Blood archers heal on top of that.', leech: true },
 };
 const MUT_KEYS = Object.keys(MUTATORS);
 // emotes: shown over the archer, with a sound, for everyone in the game (one every EMOTE_GAP seconds at most)
@@ -3134,33 +3159,46 @@ coopMap('coop_field', { name: 'The Field', theme: 'meadow', desc: 'Open ground, 
   haz: [{ type: 'pit', shape: 'circle', x: 250, y: 400, r: 42 }], pillars: [{ x: 430, y: 400, r: 30 }], power: [{ x: 600, y: 400 }] });
 coopMap('coop_ridge', { name: 'The Ridge', theme: 'dust', desc: 'A ridge of boulders across the middle with gaps to shoot through, and a drop on each flank.',
   haz: [{ type: 'pit', shape: 'rect', x: 400, y: WALL, w: 130, h: 80 }], pillars: [{ x: 600, y: 190, r: 30 }, { x: 600, y: 400, r: 34, centre: true }], power: [{ x: 600, y: 295 }, { x: 600, y: 505 }] });
-coopMap('coop_run', { name: 'The Run', theme: 'grove', desc: 'A ring of trunks round the middle. Round and round.',
-  haz: [{ type: 'pit', shape: 'circle', x: 230, y: 400, r: 36 }], pillars: [{ x: 380, y: 400, r: 26, kind: 'trunk' }, { x: 444, y: 244, r: 26, kind: 'trunk' }, { x: 444, y: 556, r: 26, kind: 'trunk' }, { x: 600, y: 180, r: 26, kind: 'trunk' }], power: [{ x: 600, y: 400 }] });
-coopMap('coop_sinks', { name: 'The Sinks', theme: 'spring', desc: 'Sinkholes all round the edge, boulders in the middle. Stay off the rim.',
-  haz: [{ type: 'pit', shape: 'rect', x: 300, y: WALL, w: 200, h: 64 }, { type: 'pit', shape: 'rect', x: WALL, y: 560, w: 64, h: 130 }, { type: 'pit', shape: 'circle', x: 600, y: 110, r: 44 }],
-  pillars: [{ x: 560, y: 360, r: 28 }], power: [{ x: 600, y: 250 }, { x: 600, y: 550 }] });
-coopMap('coop_yard', { name: 'The Yard', theme: 'farm', desc: 'Hay bales in lanes. Short sight lines; something is always round the next bale.',
-  haz: [], pillars: [{ x: 300, y: 250, r: 27, kind: 'hay' }, { x: 300, y: 400, r: 27, kind: 'hay' }, { x: 300, y: 550, r: 27, kind: 'hay' }, { x: 480, y: 320, r: 27, kind: 'hay' }, { x: 480, y: 480, r: 27, kind: 'hay' }], power: [{ x: 600, y: 400 }] });
-coopMap('coop_shallows', { name: 'The Shallows', theme: 'marsh', desc: 'Four pools between you and them. A root beside one is a long swim.',
-  haz: [{ type: 'pit', water: true, shape: 'circle', x: 600, y: 215, r: 58 }, { type: 'pit', water: true, shape: 'circle', x: 400, y: 400, r: 58 }], pillars: [], power: [{ x: 600, y: 400 }] }); // (a diamond: a pool is always between you and the far side)
+coopMap('coop_run', { name: 'The Run', theme: 'grove', desc: 'A ring of trunks round the middle. The embers lie round the outside of the ring and the power-ups out on the flanks: the middle is the wardens\' to hold.',
+  haz: [], pillars: [{ x: 380, y: 400, r: 26, kind: 'trunk' }, { x: 444, y: 244, r: 26, kind: 'trunk' }, { x: 444, y: 556, r: 26, kind: 'trunk' }, { x: 600, y: 180, r: 26, kind: 'trunk' }],
+  amberSpots: [{ x: 290, y: 400 }, { x: 380, y: 180 }, { x: 600, y: 95 }, { x: 380, y: 620 }], power: [{ x: 230, y: 400 }, { x: 970, y: 400 }], powerTimed: true });
+coopMap('coop_sinks', { name: 'The Sinks', theme: 'dust', desc: 'A clay yard with a healing spring between two boulders, a sinkhole filling every corner with another beside it, and thorns along the walls. Stay off the rim.',
+  heal: { x: 600, y: 400, r: 52, rate: 10 },
+  haz: [{ type: 'pit', shape: 'circle', x: WALL, y: WALL, r: 150 }, { type: 'pit', shape: 'circle', x: WALL, y: 800 - WALL, r: 150 }, { type: 'pit', shape: 'circle', x: 325, y: 106, r: 52 }, { type: 'pit', shape: 'circle', x: 325, y: 694, r: 52 }, { type: 'pit', shape: 'circle', x: 600, y: 110, r: 44 }],
+  pillars: [{ x: 470, y: 400, r: 30 }], spikes: [{ side: 'left', a: 300, b: 500 }, { side: 'top', a: 420, b: 540 }], power: [{ x: 600, y: 250 }, { x: 600, y: 550 }] });
+coopMap('coop_yard', { name: 'The Yard', theme: 'ruins', desc: 'A paved yard with standing stones, set well apart. Room for something big to get between you and what you want to shoot.',
+  haz: [], pillars: [{ x: 330, y: 240, r: 28 }, { x: 330, y: 560, r: 28 }, { x: 480, y: 400, r: 30 }, { x: 600, y: 190, r: 26 }],
+  amberSpots: [{ x: 405, y: 400 }, { x: 470, y: 250 }, { x: 470, y: 550 }, { x: 600, y: 300 }, { x: 250, y: 400 }], power: [{ x: 600, y: 400 }] });
+coopMap('coop_shallows', { name: 'The Shallows', theme: 'marsh', desc: 'Four pools in a diamond, brambles in every corner. A root beside a pool is a long swim.',
+  haz: [{ type: 'pit', water: true, shape: 'circle', x: 600, y: 215, r: 58 }, { type: 'pit', water: true, shape: 'circle', x: 345, y: 400, r: 72 }], pillars: [], spikes: [{ side: 'top', a: WALL, b: 190 }, { side: 'left', a: WALL, b: 170 }, { side: 'top', a: 1010, b: 1174 }, { side: 'right', a: WALL, b: 170 }],
+  amberSpots: [{ x: 600, y: 95 }, { x: 768, y: 168 }, { x: 895, y: 266 }, { x: 960, y: 400 }, { x: 880, y: 531 }, { x: 766, y: 630 }], power: [{ x: 600, y: 400 }] });
 coopMap('coop_gallery', { name: 'The Gallery', theme: 'ruins', desc: 'A long hall with a line of pillars down the middle. Shots come off the walls.',
   haz: [], pillars: [{ x: 600, y: 250, r: 26 }, { x: 450, y: 400, r: 26 }], power: [{ x: 600, y: 150 }, { x: 600, y: 650 }] });
-coopMap('coop_hollow', { name: 'The Hollow', theme: 'wisp', desc: 'A healing spring in the middle, dark pools in the corners. Watch the shadows.',
-  heal: { x: 600, y: 400, r: 55, rate: 10 }, haz: [{ type: 'pit', water: true, shape: 'circle', x: 130, y: 130, r: 66 }, { type: 'pit', water: true, shape: 'circle', x: 130, y: 670, r: 66 }], pillars: [{ x: 520, y: 400, r: 24 }], spikes: [{ side: 'top', a: 440, b: 760 }, { side: 'left', a: 290, b: 510 }], power: [{ x: 600, y: 180 }, { x: 600, y: 620 }] }); // (pools in the corners, thorns mid-wall: nowhere safe to hug)
-coopMap('coop_drain', { name: 'The Drain', theme: 'rift', desc: 'One great pit in the middle. Everything pulls towards it.',
-  haz: [{ type: 'pit', shape: 'circle', x: 600, y: 400, r: 92, centre: true }], pillars: [{ x: 430, y: 300, r: 26 }, { x: 430, y: 500, r: 26 }], power: [{ x: 600, y: 200 }, { x: 600, y: 600 }] });
+coopMap('coop_hollow', { name: 'The Hollow', theme: 'wisp', desc: 'A healing spring in the middle, a dark pool filling every corner with a smaller one in front of it, thorns mid-wall. Nowhere safe to hug.',
+  heal: { x: 600, y: 400, r: 55, rate: 10 }, haz: [{ type: 'pit', water: true, shape: 'circle', x: WALL, y: WALL, r: 185 }, { type: 'pit', water: true, shape: 'circle', x: WALL, y: 800 - WALL, r: 185 }, { type: 'pit', water: true, shape: 'circle', x: 335, y: 118, r: 48 }, { type: 'pit', water: true, shape: 'circle', x: 335, y: 682, r: 48 }],
+  pillars: [{ x: 450, y: 400, r: 26 }], spikes: [{ side: 'top', a: 440, b: 760 }, { side: 'left', a: 290, b: 510 }], power: [{ x: 600, y: 180 }, { x: 600, y: 620 }] });
+coopMap('coop_drain', { name: 'The Drain', theme: 'rift', desc: 'One great pit in the middle and lava pools round it. Everything pulls towards something.',
+  haz: [{ type: 'pit', shape: 'circle', x: 600, y: 400, r: 92, centre: true }, { type: 'lava', shape: 'circle', x: 310, y: 190, r: 50 }, { type: 'lava', shape: 'circle', x: 310, y: 610, r: 50 }, { type: 'lava', shape: 'circle', x: 600, y: 130, r: 40 }],
+  pillars: [{ x: 430, y: 300, r: 26 }, { x: 430, y: 500, r: 26 }], power: [{ x: 600, y: 240 }, { x: 600, y: 560 }], amberY: [245, 290] });
 coopMap('coop_stand', { name: 'The Stand', theme: 'meadow', desc: 'Two boulders by the middle and a drop at the top and bottom. Somewhere to make a stand.',
   heal: { x: 600, y: 400, r: 52, rate: 10 }, haz: [{ type: 'pit', shape: 'rect', x: 560, y: WALL, w: 80, h: 90 }], pillars: [{ x: 500, y: 300, r: 30 }], power: [{ x: 600, y: 230 }, { x: 600, y: 570 }] }); // (the spring in the middle is the juggernaut's to hold)
-coopMap('coop_maze', { name: 'The Maze', theme: 'farm', desc: 'Bales stacked into a maze, with more than one power-up to run for.',
-  haz: [], pillars: [{ x: 200, y: 200, r: 26, kind: 'hay' }, { x: 200, y: 600, r: 26, kind: 'hay' }, { x: 360, y: 300, r: 28, kind: 'hay' }, { x: 360, y: 500, r: 28, kind: 'hay' }, { x: 500, y: 180, r: 24, kind: 'hay' }, { x: 500, y: 620, r: 24, kind: 'hay' }, { x: 520, y: 400, r: 30, kind: 'hay' }],
+coopMap('coop_maze', { name: 'The Dojo', theme: 'dojo', desc: 'A ninja dojo: polished boards, paper lanterns, the yin and yang on the floor, and standing stones to duck behind. More than one power-up to run for.',
+  haz: [], pillars: [{ x: 200, y: 200, r: 26 }, { x: 200, y: 600, r: 26 }, { x: 360, y: 300, r: 28 }, { x: 360, y: 500, r: 28 }, { x: 500, y: 180, r: 24 }, { x: 500, y: 620, r: 24 }],
+  lights: [{ x: 70, y: 70 }, { x: 70, y: 730 }, { x: 600, y: 60, centre: true }, { x: 600, y: 740, centre: true }],
   power: [{ x: 600, y: 400 }, { x: 300, y: 400 }, { x: 900, y: 400 }] });
-coopMap('coop_quarry', { name: 'The Quarry', theme: 'dust', desc: 'A stone floor and standing rock. Nothing to fall into: it comes down to who hits harder.',
-  haz: [], pillars: [{ x: 250, y: 400, r: 26 }, { x: 380, y: 230, r: 28 }, { x: 380, y: 570, r: 28 }, { x: 500, y: 400, r: 30 }, { x: 600, y: 250, r: 26 }], power: [{ x: 600, y: 400 }] });
+coopMap('coop_quarry', { name: 'The Quarry', theme: 'dust', desc: 'A stone floor and standing rock, the embers scattered among it. Nothing to fall into: it comes down to who hits harder.',
+  haz: [], pillars: [{ x: 250, y: 400, r: 26 }, { x: 380, y: 230, r: 28 }, { x: 380, y: 570, r: 28 }, { x: 500, y: 400, r: 30 }, { x: 600, y: 250, r: 26 }],
+  amberSpots: [{ x: 315, y: 315 }, { x: 315, y: 485 }, { x: 440, y: 315 }, { x: 440, y: 485 }, { x: 600, y: 330 }, { x: 180, y: 400 }], power: [{ x: 600, y: 400 }] });
 coopMap('coop_pens', { name: 'The Pens', theme: 'farm', desc: 'Pens of boulders with a hole behind each, thorns along the walls, and a healing spring in the middle for whoever holds it.',
   heal: { x: 600, y: 400, r: 55, rate: 12 }, haz: [{ type: 'pit', shape: 'rect', x: 300, y: WALL, w: 110, h: 70 }], spikes: [{ side: 'top', a: 470, b: 780 }, { side: 'left', a: 150, b: 330 }, { side: 'left', a: 470, b: 650 }], pillars: [{ x: 400, y: 260, r: 28 }, { x: 400, y: 540, r: 28 }, { x: 330, y: 400, r: 28 }], power: [{ x: 600, y: 240 }, { x: 600, y: 560 }] });
-coopMap('coop_narrows', { name: 'The Narrows', theme: 'dusk', desc: 'A canyon splits the arena, with one tight crossing in the middle and drops either side of it. Cover sits out in the corners; the middle is open ground for long shots.',
-  haz: [{ type: 'pit', centre: true, shape: 'rect', x: 560, y: WALL - 20, w: 80, h: 300 }, { type: 'pit', centre: true, shape: 'rect', x: 560, y: 500, w: 80, h: 300 }, { type: 'pit', shape: 'circle', x: 470, y: 400, r: 44 }, { type: 'pit', shape: 'rect', x: 330, y: WALL - 20, w: 150, h: 70 }],
-  pillars: [{ x: 150, y: 150, r: 26 }, { x: 150, y: 650, r: 26 }, { x: 400, y: 120, r: 22 }, { x: 400, y: 680, r: 22 }], power: [{ x: 600, y: 245 }, { x: 600, y: 555 }] });
+coopMap('coop_narrows', { name: 'The Narrows', theme: 'dusk', w: 1500, h: 960, desc: 'Highland Reach with a tighter crossing: a canyon down the middle, cover out by the walls, and the open ground between for long shots.',
+  haz: [{ type: 'pit', centre: true, shape: 'rect', x: 700, y: WALL - 20, w: 100, h: 330 }, { type: 'pit', centre: true, shape: 'rect', x: 700, y: 624, w: 100, h: 360 }, { type: 'pit', shape: 'rect', x: 330, y: WALL - 20, w: 230, h: 96 }, { type: 'pit', shape: 'rect', x: 330, y: 960 - WALL - 76, w: 230, h: 96 }, { type: 'pit', water: true, shape: 'circle', x: 580, y: 480, r: 56 }],
+  pillars: [{ x: 240, y: 112, r: 26 }, { x: 240, y: 848, r: 26 }, { x: 632, y: 128, r: 22 }, { x: 632, y: 832, r: 22 }, { x: 132, y: 186, r: 20 }, { x: 132, y: 774, r: 20 }],
+  lights: [{ x: 676, y: 352, big: true }, { x: 676, y: 608, big: true }, { x: 60, y: 200 }, { x: 60, y: 760 }, { x: 420, y: 150 }, { x: 420, y: 810 }],
+  spawns: [{ x: 110, y: 420 }, { x: 110, y: 540 }, { x: 180, y: 480 }, { x: 100, y: 320 }], power: [{ x: 750, y: 480 }], amberY: [350, 420] });
+coopMap('coop_core', { name: 'The Core', theme: 'factory', desc: 'The machine\'s own floor: four pylons, a furnace at each end, open steel between.',
+  haz: [{ type: 'lava', shape: 'rect', x: 520, y: WALL, w: 160, h: 56 }, { type: 'pit', shape: 'circle', x: WALL, y: WALL, r: 96 }, { type: 'pit', shape: 'circle', x: WALL, y: 800 - WALL, r: 96 }],
+  pillars: [{ x: 400, y: 260, r: 28 }, { x: 400, y: 540, r: 28 }], amberSpots: [{ x: 300, y: 400 }, { x: 500, y: 200 }, { x: 500, y: 600 }, { x: 600, y: 300 }], power: [{ x: 600, y: 400 }] });
 const COOP_MAPS = Object.keys(MAPS).filter(k => MAPS[k].coop);
 const MAP_KEYS = Object.keys(MAPS).filter(k => !MAPS[k].hidden); // the arenas on offer in custom games (and the default ranked rotation)
 // ---- the arena pool: which built-in arenas are in custom games and which are in the ranked rotation. The owner sets it from
@@ -3772,7 +3810,7 @@ const ROLES = {
 ROLES.assassin = { name: 'Assassin', cat: 'Agility', blurb: 'Vanish, get close, and strike first.', premium: true,
   trait: { name: 'Backstab', desc: 'Arrows that hit an enemy from behind deal 40% more damage and knock back 30% harder, and the shorter the shot the harder it hits: up to 40% more inside 150px, nothing extra from 450px out.' } };
 ROLES.ninja = { name: 'Ninja', cat: 'Agility', blurb: 'Blink in, strike fast, blink out.', premium: true,
-  trait: { name: 'Shadowstep', desc: "12% faster, and a wind-up barely slows you. No bow: hold to wind up a shuriken and let go to throw it (a full wind-up takes under half a second). The longer you wind up, the faster, further and harder it flies. Shuriken are for close range: they slow down fast and hurt less the further they fly (about 300px at full wind-up); a fully wound shuriken, or any bullseye, counts as a fully drawn shot for your upgrades. Your dash is a near-instant blink toward your cursor instead: about 150px, straight over pits and lava, and it recharges in under a second. 10 less health, and you take 10% more knockback." } };
+  trait: { name: 'Shadowstep', desc: "12% faster, and a wind-up barely slows you. No bow: hold to wind up a shuriken and let go to throw it (a full wind-up takes under half a second). The longer you wind up, the faster, further and harder it flies. Shuriken are for close range: they slow down fast and hurt less the further they fly (about 300px at full wind-up); a fully wound shuriken, or any bullseye, counts as a fully drawn shot for your upgrades. Your dash is a near-instant blink toward your cursor instead: about 150px, straight over pits and lava, and it recharges in under a second. 10 less health." } };
 ROLES.crossbow = { name: 'Crossbowman', cat: 'Power', blurb: 'Point and shoot: no drawing, shorter reach.', premium: true,
   trait: { name: 'Crank and Loose', desc: '8% faster. A crossbow instead of a bow: click to fire a bolt at once, no drawing. Bolts hit as hard as 85% of a full draw, fly fast and straight, and count as fully drawn shots for your upgrades, but they drop out of the air after 560px. Reloading takes 1.15 seconds, and you can move freely while you reload. Braced behind the stock, you take 15% less damage from enemies and 15% less knockback.' } };
 const TREE_KEYS = Object.keys(ELEMENTS).concat(Object.keys(ROLES));
@@ -3821,7 +3859,7 @@ const TREE = {
   afterimage:{ tree: 'assassin', name: 'Afterimage', desc: 'Going into stealth leaves a shadow of you that keeps walking the way you were going for 1.5 seconds.', req: ['stealth'] },
   vanish:    { tree: 'assassin', name: 'Vanishing Act', desc: 'A knockout takes 6 seconds off your Stealth cooldown.', req: ['stealth'] },
   ambush:    { tree: 'assassin', name: 'Ambush', desc: 'For 2.5 seconds after stealth ends, your bow draws 60% faster.', req: ['stealth'] },
-  shadowdash:{ tree: 'assassin', name: 'Shadow Dash', desc: "Dashing doesn't end stealth, and your dash recharges twice as fast while stealthed.", req: ['stealth'] },
+  shadowdash:{ tree: 'assassin', name: 'Shadow Dash', desc: "Your dash recharges twice as fast while stealthed.", req: ['stealth'] },
   cloak:     { tree: 'assassin', trade: true, name: 'Cloak and Dagger', desc: 'Stealth lasts 9 seconds, but you have 10 less health.', req: ['stealth'] },
   quickfeet: { tree: 'assassin', name: 'Light Step', desc: '8% faster, and you take 15% less damage from behind.' },
   deathmark: { tree: 'assassin', cap: true, name: 'Death Mark', desc: 'Your first hit after stealth ends marks the target: they take 30% more damage from everyone for 5 seconds.' },
@@ -3889,7 +3927,7 @@ const TREE = {
   feather:   { tree: 'ranger', trade: true, name: 'Featherweight', desc: '15% faster with a quicker build-up, but you take 30% more knockback.' },
   grapple:   { tree: 'ranger', cap: true, active: { cd: 6 }, name: 'Grapple', desc: 'Fire a line at the wall or boulder you are aiming at and get pulled to it. Crosses pits and lava.' },
 
-  ricochet:  { tree: 'trickster', name: 'Ricochet', desc: 'Arrows bounce once off walls and boulders.' },
+  ricochet:  { tree: 'trickster', name: 'Ricochet', desc: 'Arrows bounce once off walls and boulders (losing a little speed and power, as any bounce does).' },
   split:     { tree: 'trickster', name: 'Split Arrow', desc: 'Fully drawn arrows split into three after flying a short way. Each piece deals 40% of the damage and 45% of the knockback.' },
   bankshot:  { tree: 'trickster', name: 'Bank Shot', desc: 'Your arrows bounce once more off walls and boulders, and arrows that have bounced deal 40% more damage and knock back 40% harder.' },
   scatter:   { tree: 'trickster', trade: true, name: 'Scattershot', desc: 'Fully drawn shots fire three arrows in a fan, but each arrow deals 40% of the damage and 45% of the knockback.' },
@@ -3943,7 +3981,7 @@ const BRIEF = {
   horizon: 'Bigger, stronger, longer rifts.', collapse: 'Rifts burst outward when they end.', nullfield: "Enemies in your rifts can't dash.", unstable: 'Rifts 50% bigger. Arrows −8% damage.',
   blink: 'Teleport 300px and draw 3× faster briefly.', stealth: 'Vanish for 6s and move faster; first arrow out stuns.', ambush: 'Draw 60% faster right after stealth.',
   hitrun: 'Blink in, rapid-fire 2.5s, blink back.', secondwind: 'Regain the last 2s of damage, and speed.', escape: 'Below 25% health: drop a smoke cloud.', afterimage: 'Stealth leaves a walking shadow.', vanish: 'Knockouts cut Stealth cooldown by 6s.',
-  shadowdash: "Dashing doesn't break stealth.", cloak: 'Stealth lasts 9s. −10 health.', quickfeet: '8% faster, less damage from behind.',
+  shadowdash: "Dash recharges 2× faster in stealth.", cloak: 'Stealth lasts 9s. −10 health.', quickfeet: '8% faster, less damage from behind.',
   deathmark: 'First hit after stealth: +30% damage taken.', shadow: 'Hits stack shades that burst for damage.', eclipse: 'Drop darkness: enemies inside see little.',
   gloom: 'Shades slow them; bursts slow more.', dread: 'Shade bursts throw them away from you.', blood: 'Damage heals you. Hit harder when hurt.',
   hemorrhage: 'Full-draw hits make them bleed (heals you).', frenzy: 'Low health: heal more and draw faster.', transfusion: 'A third of your healing flies to a hurt teammate.',
@@ -4092,10 +4130,10 @@ function applyStats(p) {
   p.maxHp = 100 + (has(p, 'vital') ? 25 : 0) + 15 * h('hone_hp')
     + (R === 'juggernaut' ? 15 : 0) + (R === 'warden' ? 5 : 0) - (R === 'sniper' || R === 'ranger' ? 10 : 0)
     - (has(p, 'glass') ? 10 : 0) + (has(p, 'colossus') ? 30 : 0) - (has(p, 'cloak') ? 10 : 0) - (R === 'ninja' ? 10 : 0) - (has(p, 'bloodpact') ? 10 : 0);
-  p.maxHp = Math.round(p.maxHp * OPT('hp') * hc);
+  p.maxHp = Math.round(p.maxHp * OPT('hp') * hc * (p.boss ? p.boss.hp : 1));
   if (p.hp > p.maxHp) p.hp = p.maxHp;
-  p.mass = (1 + (p.hcap || 0) / 200) * is(has(p, 'stance'), 1 / 0.5) * is(R === 'juggernaut', 1.25) * is(R === 'warden', 1.1) * is(has(p, 'colossus'), 1 / 0.65) / is(has(p, 'feather'), 1.3) / is(R === 'ninja', 1.1) / is(has(p, 'longstep'), 1.15) / is(R === 'crossbow', 0.85);
-  p.r = 16 * is(R === 'juggernaut', 1.1) * is(has(p, 'colossus'), 1.35) * OPT('size');
+  p.mass = (1 + (p.hcap || 0) / 200) * is(has(p, 'stance'), 1 / 0.5) * is(R === 'juggernaut', 1.25) * is(R === 'warden', 1.1) * is(has(p, 'colossus'), 1 / 0.65) / is(has(p, 'feather'), 1.3) / is(has(p, 'longstep'), 1.15) / is(R === 'crossbow', 0.85);
+  p.r = 16 * is(R === 'juggernaut', 1.1) * is(has(p, 'colossus'), 1.35) * is(!!p.boss, 1.18) * OPT('size'); // (the arcade's machine stands a size bigger)
   p.baseSpeed = 235 * (has(p, 'fleet') ? 1.1 : 1) * (1 + 0.05 * h('hone_speed')) * is(R === 'juggernaut', 0.93) * is(R === 'ranger', 1.05) * is(R === 'ninja', 1.12) * is(R === 'crossbow', 1.08)
     * is(has(p, 'colossus'), 0.9) * is(has(p, 'feather'), 1.15) * is(has(p, 'quickfeet'), 1.08) * OPT('mspeed');
   p.rampMul = has(p, 'fleet') ? 0.4 : has(p, 'feather') ? 0.8 : 1;
@@ -4474,7 +4512,7 @@ function setLoadout(w, id, element, role) {
   if (isBanned(w, element) || isBanned(w, role)) return false;
   if (ELEMENTS[element]) p.element = element;
   if (ROLES[role]) p.role = role;
-  p.up = w.match.ph === 'lobby' ? [] : [p.element];
+  p.up = w.match.ph === 'lobby' ? [] : (p.element ? [p.element] : []);
   applyStats(p);
   ev(w, { e: 'loadout', id: p.id, el: p.element, ro: p.role });
   return true;
@@ -4486,7 +4524,7 @@ function stripArch(w, p) { if (!isPure(w)) return; if (!p.kept) p.kept = { eleme
 function restoreArch(p) { if (p.kept) { p.element = p.kept.element; p.role = p.kept.role; p.kept = null; } }
 // give a newcomer (or a bot added mid-match) as many picks as everyone else has had
 function catchUp(w, p) {
-  p.up = [p.element]; p.hones = {}; stripArch(w, p); applyStats(p);
+  p.up = (p.element ? [p.element] : []); p.hones = {}; stripArch(w, p); applyStats(p);
   if (w.match.ph === 'lobby') { p.up = []; return; }
   const picks = w.match.picks;
   for (let i = 0; i < picks; i++) { p.offer = rollOffer(p, [], i === 0, i === 1); takeCard(w, p, p.offer[botPickIndex(p, w)]); }
@@ -4612,7 +4650,7 @@ function resetMatch(w) {
   for (const p of w.players) if (p.bot && !p.aiUser && !(p.ai && p.ai.tac)) pickStyle(p); // a fresh mood each match (matchmaking's AI players, and the co-op duos, keep their own personality)
   for (const p of w.players) if (p.bot && p.ai) { if (p.ai.tac) p.ai.play = null; else choosePlay(w, p); } // the play that fits this arena and these opponents, for those who have one (a duo has its tactic instead)
   for (const p of w.players) if (p.bot && p.ai) chooseBuild(p); // and the build they'll work toward
-  for (const p of w.players) { restoreArch(p); p.kills = 0; p.deaths = 0; p.amber = 0; p.earned = 0; p.up = [p.element]; p.hones = {}; p.offer = null; p.picked = false; p.ready = false; p.streak = 0; p.emp = false; p.empPts = 0; p.stats = { shots: 0, hits: 0, dmg: 0, taken: 0, ring: 0, longest: 0 }; stripArch(w, p); applyStats(p); }
+  for (const p of w.players) { restoreArch(p); p.kills = 0; p.deaths = 0; p.amber = 0; p.earned = 0; p.up = (p.element ? [p.element] : []); p.hones = {}; p.offer = null; p.picked = false; p.ready = false; p.streak = 0; p.emp = false; p.empPts = 0; p.stats = { shots: 0, hits: 0, dmg: 0, taken: 0, ring: 0, longest: 0 }; stripArch(w, p); applyStats(p); }
   ev(w, { e: 'matchStart' });
   if (MAP.mode === 'conquest') return cqStart(w); // Strongholds: straight to the countdown, NPCs at their posts
   w.cq = null; w.tm = null;
@@ -4672,6 +4710,11 @@ function hurt(w, f, dmg, kx, ky, src, by, quiet) {
   const credit = creditId && w.players.find(q => q.id === creditId && q.team !== f.team);
   if (credit) credit.stats.dmg += applied;
   if (credit && !hazard && src !== 'wall' && applied > 0 && !credit.dead && has(credit, 'blood')) bloodHeal(w, credit, applied);
+  // Bloodthirst (a map effect): every hit heals whoever landed it, at the Blood element's rate (a Blood archer gets both)
+  if (credit && !hazard && src !== 'wall' && applied > 0 && !credit.dead && mutHas(w.cfg.mut, 'leech')) {
+    const used = Math.min(credit.maxHp - credit.hp, applied * BLOOD_HEAL * (credit.poisonT > 0 ? 0.5 : 1));
+    if (used > 0) { credit.hp += used; credit.leechAcc = (credit.leechAcc || 0) + used; if (credit.leechAcc >= 1) { ev(w, { e: 'leech', id: credit.id, v: Math.round(credit.leechAcc) }); credit.leechAcc = 0; } }
+  }
   f.stats.taken += applied;
   f.hp -= dmg;
   if (applied > 0 && has(f, 'secondwind')) { const L = f.hurtLog || (f.hurtLog = []); L.push({ t: w.t, v: applied }); while (L.length && w.t - L[0].t > 2) L.shift(); }
@@ -5191,7 +5234,7 @@ function updatePlayer(w, p, dt) {
     p.dashDir = [dx, dy]; p.shoved = [];
     if (has(p, 'quickshot')) p.quickT = 0.9;
     p.momT = 0.6;
-    if (p.stealthT > 0 && !has(p, 'shadowdash')) breakStealth(w, p);
+    // (dashing doesn't end stealth: an assassin can dodge while hidden)
     ev(w, { e: 'dash', id: p.id, x: r1(p.x), y: r1(p.y), dx: r2(dx), dy: r2(dy) });
   }
   p.wantDash = false;
@@ -5289,7 +5332,7 @@ function updatePlayer(w, p, dt) {
     p.hp = Math.min(p.maxHp, p.hp + HEAL.rate * dt * (p.poisonT > 0 ? 0.5 : 1)); p.healing = true;
   }
   // Revive: stand over a knocked-out teammate
-  if (((has(p, 'revive') && !p.reviveUsed) || ((w.cq || w.tm) && !p.npc)) && w.match.ph === 'play') {
+  if (((has(p, 'revive') || (w.cfg.opt || {}).revive === 'on') && !p.reviveUsed || ((w.cq || w.tm) && !p.npc)) && w.match.ph === 'play') {
     // progress builds while you're close and drains (rather than resetting) if you drift off
     const t = w.players.find(q => q.team === p.team && !q.npc && q.dead && q.lastCause !== 'join' && q.lastCause !== 'switch' && Math.hypot(q.x - p.x, q.y - p.y) < 56);
     if (t && p.revOf !== t.id) { p.revOf = t.id; p.revT = 0; }
@@ -5361,12 +5404,12 @@ function throwStar(w, p, ang, auto, c = 0.6) {
   ev(w, { e: 'throw', id: p.id, d: dbl ? 1 : 0, a0, n: spread.length, au: auto ? 1 : 0 }); // (a0, n: the stars' ids, for accuracy)
 }
 function makeStar(w, p, x, y, a, o) {
-  const sp = 1050 * OPT('aspeed') * (o.sp || 1);
+  const sp = STAR_SPEED * OPT('aspeed') * (o.sp || 1);
   w.arrows.push({ id: w.nid++, owner: p.id, team: p.team, color: p.color, own: p, fullDraw: !!o.fullDraw, grav: has(p, 'gravity'),
     x: x + Math.cos(a) * (p.r + 6), y: y + Math.sin(a) * (p.r + 6), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, v0: sp, ang: a, dist: 0, age: 0,
     dmg: o.dmg, kb: o.kb, full: false, crit: false, heavy: false, el: o.el || null, bolt: false, snare: false, rail: false, big: false,
     drag: 2.4, burst: false, burstOK: false, pierce: 0, hit: [], split: false,
-    bounces: p.pw.ricochet > 0 ? 2 : 0, explosive: p.pw.explosive > 0 && !o.weak, life: o.life || 0.5, stuck: 0, shur: true, star: true, dbl: o.dbl, auto: !!o.auto });
+    bounces: p.pw.ricochet > 0 ? 2 : 0, explosive: p.pw.explosive > 0 && !o.weak, life: (o.life || 0.5) * STAR_LIFE_K, stuck: 0, shur: true, star: true, dbl: o.dbl, auto: !!o.auto });
 }
 function nearestFoeTo(w, p, x, y, maxD) {
   let best = null, bd = maxD;
@@ -5462,10 +5505,10 @@ function useAbility(w, p, id) {
     case 'repeater': p.repeatT = 3; if (p.bolts != null && p.bolts < p.xbowMax) { p.bolts++; p.reloadT = 0; } ev(w, { e: 'armed', id: p.id, k: 'repeater' }); return true;
     case 'fanbolt': p.fanArmed = true; ev(w, { e: 'armed', id: p.id, k: 'fanbolt' }); return true;
     case 'recoil': p.recoilArmed = true; ev(w, { e: 'armed', id: p.id, k: 'recoil' }); return true;
-    case 'seeker': p.seekArmed = true; ev(w, { e: 'armed', id: p.id, k: 'seeker' }); return true;
-    case 'rocket': p.rocketArmed = true; ev(w, { e: 'armed', id: p.id, k: 'rocket' }); return true;
-    case 'trick': p.trickArmed = true; ev(w, { e: 'armed', id: p.id, k: 'trick' }); return true;
-    case 'boomerang': p.boomArmed = true; ev(w, { e: 'armed', id: p.id, k: 'boomerang' }); return true;
+    case 'seeker': if (armedShot(p)) return false; p.seekArmed = true; ev(w, { e: 'armed', id: p.id, k: 'seeker' }); return true;
+    case 'rocket': if (armedShot(p)) return false; p.rocketArmed = true; ev(w, { e: 'armed', id: p.id, k: 'rocket' }); return true;
+    case 'trick': if (armedShot(p)) return false; p.trickArmed = true; ev(w, { e: 'armed', id: p.id, k: 'trick' }); return true;
+    case 'boomerang': if (armedShot(p)) return false; p.boomArmed = true; ev(w, { e: 'armed', id: p.id, k: 'boomerang' }); return true;
     case 'eclipse': {
       let tx = p.input.tx, ty = p.input.ty;
       const dx = tx - p.x, dy = ty - p.y, d = Math.hypot(dx, dy);
@@ -5956,7 +5999,7 @@ function shadeTick(w, f, dt) {
 // Mend: 45 health (half on anyone poisoned), carried to a teammate at MEND_SPEED px/s
 const MEND_HEAL = 45, MEND_SPEED = 650;
 const mendHeal = q => { const was = q.hp; q.hp = Math.min(q.maxHp, q.hp + MEND_HEAL * (q.poisonT > 0 ? 0.5 : 1)); return Math.round(q.hp - was); };
-const RIP_DELAY = 1, SHROUD_R = 140, ECLIPSE_R = 150, MEND_RANGE = 350, BRIAR = { speed: 350, range: 760, r: 22, root: 1.8, dmg: 8 }; // r: the same size as a Bramble Trap
+const RIP_DELAY = 1, SHROUD_R = 140, ECLIPSE_R = 150, MEND_RANGE = 350, BRIAR = { speed: 420, range: 860, r: 22, root: 1.8, dmg: 8 }; // r: the same size as a Bramble Trap
 // hold them in place. Plant roots (traps, briar, snares, thorns, the coat) also wrap vines round them for the client to draw;
 // other holds (stuns, frost, tar, harpoons) show their own look instead
 // rooted. plant: brambles (traps, Bramble Toss, Snare Arrow, Rip), which can't hold you again for VINE_SAFE seconds after
@@ -6105,12 +6148,13 @@ const XBOW_RANGE = 560, XBOW_RELOAD = 1.15, XBOW_GAP = 0.16, AUTO_TIME = 2, AUTO
 // Triple Bolt (an upgrade): each shot is a quick burst of three bolts, each this share of a single bolt's damage and knockback, and reloading takes `reload` times as long
 const XB3 = { n: 3, gap: 0.08, dmg: 0.45, kb: 0.5, spread: 0.035, reload: 1.5 };
 // how far a player's shots reach before dropping, for roles with a short range (null: the whole arena)
-// (shuriken: 1050px/s slowed by drag 2.4 over their 0.45s life, about 0.275s worth of full speed)
+// (shuriken: STAR_SPEED slowed by drag 2.4 over their life, about STAR_FLY seconds' worth of full speed)
 const rangeOf = (w, p) => p.role === 'crossbow' ? Math.round(p.xbowRange || XBOW_RANGE)
-  : p.role === 'ninja' ? Math.round(1050 * optValue((w.cfg || {}).opt, 'aspeed') * mutMul((w.cfg || {}).mut, 'aspeed') * 0.275) : null;
+  : p.role === 'ninja' ? Math.round(STAR_SPEED * optValue((w.cfg || {}).opt, 'aspeed') * mutMul((w.cfg || {}).mut, 'aspeed') * STAR_FLY) : null;
 const SNIPE_FULL = Math.hypot(AW - 2 * WALL, AH - 2 * WALL); // corner to corner
 // Harpoon: hooked for HOOK_DELAY seconds, then reeled toward the thrower at up to HOOK_PULL (it breaks past HOOK_MAX)
 const HOOK_DELAY = 0.5, HOOK_PULL = 1150, HOOK_MAX = 1000;
+const STAR_SPEED = 1300, STAR_FLY = 0.222, STAR_LIFE_K = 0.704; // a shuriken's top speed (an arrow's), its reach in seconds of full speed (drag 2.4 over its life), and how much shorter it lives than at the old 1050
 const VOLLEY_GAP = 0.12, BLINK_RANGE = 300, HARPOON_RANGE = 420, NINJA_BLINK = 220, FLASH_RANGE = 240;
 // is this archer hidden inside smoke from someone standing at (x, y)?
 function inSmoke(w, q, x, y) {
@@ -6326,19 +6370,19 @@ function updateArrows(w, dt) {
       a.x += a.vx * sdt; a.y += a.vy * sdt; a.dist += sp * sdt;
       if (!a.back && (a.x < WALL || a.x > AW - WALL)) {
         a.x = clamp(a.x, WALL, AW - WALL);
-        if (a.bounces > 0) { a.bounces--; a.bnc = 1; a.vx *= -1; ev(w, { e: 'ping', x: r1(a.x), y: r1(a.y), tk: a.trick ? 1 : 0 }); if (a.trick) { a.dmg *= 1.25; a.kb *= 1.1; } }
+        if (a.bounces > 0) { a.bounces--; a.bnc = 1; a.vx *= -1; bounced(a); ev(w, { e: 'ping', x: r1(a.x), y: r1(a.y), tk: a.trick ? 1 : 0 }); }
         else { stickArrow(w, a, 4); continue outer; }
       }
       if (!a.back && (a.y < WALL || a.y > AH - WALL)) {
         a.y = clamp(a.y, WALL, AH - WALL);
-        if (a.bounces > 0) { a.bounces--; a.bnc = 1; a.vy *= -1; ev(w, { e: 'ping', x: r1(a.x), y: r1(a.y), tk: a.trick ? 1 : 0 }); if (a.trick) { a.dmg *= 1.25; a.kb *= 1.1; } }
+        if (a.bounces > 0) { a.bounces--; a.bnc = 1; a.vy *= -1; bounced(a); ev(w, { e: 'ping', x: r1(a.x), y: r1(a.y), tk: a.trick ? 1 : 0 }); }
         else { stickArrow(w, a, 4); continue outer; }
       }
       const blk = BLOCKS.length && !a.back ? BLOCKS.find(b => a.x > b.x && a.x < b.x + b.w && a.y > b.y && a.y < b.y + b.h) : null;
       if (blk) { // a castle wall: bounce off it (ricochet) or stick in it
         const px = a.x - a.vx * sdt, py = a.y - a.vy * sdt, side = px <= blk.x || px >= blk.x + blk.w;
         a.x = px; a.y = py;
-        if (a.bounces > 0) { a.bounces--; a.bnc = 1; if (side) a.vx *= -1; else a.vy *= -1; ev(w, { e: 'ping', x: r1(a.x), y: r1(a.y), tk: a.trick ? 1 : 0 }); }
+        if (a.bounces > 0) { a.bounces--; a.bnc = 1; if (side) a.vx *= -1; else a.vy *= -1; bounced(a); ev(w, { e: 'ping', x: r1(a.x), y: r1(a.y), tk: a.trick ? 1 : 0 }); }
         else { stickArrow(w, a, 3); continue outer; }
       }
       for (const p of PILLARS) {
@@ -6350,7 +6394,7 @@ function updateArrows(w, dt) {
             a.bounces--; a.bnc = 1; const vn = a.vx * nx + a.vy * ny;
             a.vx -= 2 * vn * nx; a.vy -= 2 * vn * ny;
             a.x = p.x + nx * (p.r + 1); a.y = p.y + ny * (p.r + 1);
-            ev(w, { e: 'ping', x: r1(a.x), y: r1(a.y), tk: a.trick ? 1 : 0 }); if (a.trick) { a.dmg *= 1.25; a.kb *= 1.1; }
+            bounced(a); ev(w, { e: 'ping', x: r1(a.x), y: r1(a.y), tk: a.trick ? 1 : 0 });
           } else { a.x = p.x + nx * p.r; a.y = p.y + ny * p.r; stickArrow(w, a, 3); continue outer; }
         }
       }
@@ -6463,6 +6507,16 @@ function amberSpotFree(x, y) {
   return true;
 }
 function spawnAmberPair(w) {
+  // an arena can name its own ember spots (one half; each comes with its point-reflected twin), else they fall down the middle line
+  if (MAP.amberSpots) {
+    for (let t = 0; t < 12; t++) {
+      const s = MAP.amberSpots[Math.floor(Math.random() * MAP.amberSpots.length)], spots = [s, { x: AW - s.x, y: AH - s.y }];
+      if (!spots.every(q => amberSpotFree(q.x, q.y)) || spots.some(q => w.pickups.some(u => Math.hypot(u.x - q.x, u.y - q.y) < 60))) continue;
+      for (const q of spots) { w.pickups.push({ id: w.nid++, x: q.x, y: q.y, type: 'amber', life: 22, age: 0 }); ev(w, { e: 'puSpawn', x: r1(q.x), y: r1(q.y), ty: 'amber' }); }
+      return;
+    }
+    return;
+  }
   const [y0, y1] = MAP.amberY;
   for (let t = 0; t < 30; t++) {
     const y = rand(y0, y1);
@@ -6489,7 +6543,7 @@ function spawnCenterPower(w, bounty) {
     }
     if (!spot) return;
   }
-  const type = Math.random() < 0.2 ? 'heal' : pick(PU_TIMED);
+  const type = !MAP.powerTimed && Math.random() < 0.2 ? 'heal' : pick(PU_TIMED); // (an arena can keep its spots for the real power-ups, no medkits)
   w.pickups.push({ id: w.nid++, x: spot.x, y: spot.y, type, life: 16, age: 0 });
   ev(w, { e: 'puSpawn', x: spot.x, y: spot.y, ty: type });
 }
@@ -6590,6 +6644,15 @@ function segHitsBlock(x1, y1, x2, y2, pad) {
   }
   return false;
 }
+// a lane wide enough for something of radius r (a rolling bramble, a harpoon): no boulder within r of the line
+// an arrow bouncing off a wall or a boulder: it loses a fifth of its speed and some of its punch (Trick Shot gains it back, and more)
+function bounced(a) { a.vx *= 0.8; a.vy *= 0.8; a.dmg *= 0.85; a.kb *= 0.85; if (a.trick) { a.dmg *= 1.25 / 0.85; a.kb *= 1.1 / 0.85; } }
+function clearLane(x1, y1, x2, y2, r) {
+  if (BLOCKS.length && segHitsBlock(x1, y1, x2, y2, r)) return false;
+  const dx = x2 - x1, dy = y2 - y1, L2 = dx * dx + dy * dy || 1;
+  for (const p of PILLARS) { if (p.tower) continue; const t = clamp(((p.x - x1) * dx + (p.y - y1) * dy) / L2, 0, 1); if (Math.hypot(x1 + dx * t - p.x, y1 + dy * t - p.y) < p.r + r + 8) return false; }
+  return true;
+}
 function clearShot(x1, y1, x2, y2) {
   if (BLOCKS.length && segHitsBlock(x1, y1, x2, y2, 4)) return false;
   const dx = x2 - x1, dy = y2 - y1, L2 = dx * dx + dy * dy || 1;
@@ -6664,6 +6727,7 @@ function aroundPillar(p, gx, gy) {
 function botNotices(p, a, forDodge) {
   const ai = p.ai; if (!ai) return true;
   const D = botD(p);
+  if (p.boss && a.age > 0.07 && Math.random() < p.boss.sense) return true; // (a machine: it reads a shot almost as it leaves the bow)
   if (a.age < (forDodge ? Math.max(0.16, D.react * 0.9) : D.react * 0.5)) return false;
   const seen = ai.seenArrows || (ai.seenArrows = {});
   if (seen[a.id] == null) { if (Object.keys(seen).length > 40) { for (const k in seen) delete seen[k]; } seen[a.id] = Math.random() < 0.3 + 0.6 * D.dodge; }
@@ -6786,7 +6850,7 @@ function interceptAim(p, T, v0, drag) {
   return Math.atan2(ty - p.y, tx - p.x);
 }
 function shotSpeed(p, c) {
-  if (p.role === 'ninja') return 1050 * OPT('aspeed') * (0.6 + 0.4 * clamp(c, 0, 1)); // (a shuriken flies as fast as it was wound up: see makeStar)
+  if (p.role === 'ninja') return STAR_SPEED * OPT('aspeed') * (0.6 + 0.4 * clamp(c, 0, 1)); // (a shuriken flies as fast as it was wound up: see makeStar)
   return (380 + 920 * (p.role === 'crossbow' ? 1 : c)) * (has(p, 'longbow') ? 1.2 : 1) * (p.role === 'sniper' ? SNIPER_SPEED : 1) * (has(p, 'obsidian') ? 0.92 : 1) * (has(p, 'colossus') ? 0.85 : 1) * (p.railArmed ? 1.8 : 1) * OPT('aspeed');
 }
 // (an armed Railshot flies 80% faster and never slows: bots lead it accordingly)
@@ -6819,7 +6883,7 @@ function shotAt(a, p) {
   return Math.hypot(a.x + a.vx * t - p.x, a.y + a.vy * t - p.y) < p.r + 8;
 }
 const inBog = (x, y, pad) => HAZ.some(h => h.type === 'tar' && inHaz(h, x, y, pad));
-function botReach(p) { return p.role === 'ninja' ? 1050 * OPT('aspeed') * 0.27 : p.role === 'crossbow' ? (p.xbowRange || XBOW_RANGE) - 30 : 900; }
+function botReach(p) { return p.role === 'ninja' ? STAR_SPEED * OPT('aspeed') * (STAR_FLY - 0.004) : p.role === 'crossbow' ? (p.xbowRange || XBOW_RANGE) - 30 : 900; }
 // how badly q outranges p: 0 for a bow against a bow, 1 for a crossbow (480) against a bow (900)
 const outranged = (p, q) => clamp((botReach(q) - botReach(p)) / 450, 0, 1);
 // can this archer shoot right now? (a crossbow mid-reload can't; everyone else always can)
@@ -6852,7 +6916,7 @@ function botPlan(w, p, T, foes, mates, D, G) {
   const reach = botReach(p), outg = T ? outranged(p, T) : 0, ready = loaded(p);
   const cardPref = (p.role === 'sniper' ? 1.2 : 1) * (p.role === 'assassin' ? 0.8 : 1) * (has(p, 'deadeye') ? 1.15 : 1) * (has(p, 'pointblank') ? 0.7 : 1) * (has(p, 'holdline') || has(p, 'ram') ? 0.85 : 1); // (what the cards want: Deadeye far out, Point Blank and the brawling cards up close)
   let pref = Math.min(reach * 0.8, (st.near + st.far) / 2 * G.pref * cardPref) * botPressIn(p);
-  if (ai.tac && ai.tac.mode === 'guard' && tacP(p, 'guardD') < 160) pref = Math.min(pref, tacP(p, 'guardD') + 30); // (a body-shield's range is where it stands)
+  if (ai.tac && ai.tac.mode === 'guard' && ai.tac.body) pref = Math.min(pref, tacP(p, 'guardD') + 30); // (a body-shield's range is where it stands)
   const short = p.role === 'ninja' || p.role === 'crossbow' || p.role === 'assassin'; // (the Assassin's arrows hit hardest up close too)
   const rushReady = has(p, 'rush') && p.slots.some((id, i) => id === 'rush' && !(p.abCd[i] > 0)), pinning = has(p, 'pin');
   const hold = holdSpot(p), holdK = hold ? (p.hp < p.maxHp * 0.7 && senseArena().heal ? 1.6 : 1) * (T && Math.hypot(T.x - hold.x, T.y - hold.y) < hold.r + 60 ? 0.5 : 1) : 0; // (less while they're standing on it: that's a fight, not a stroll)
@@ -6873,7 +6937,7 @@ function botPlan(w, p, T, foes, mates, D, G) {
     // safety: every enemy who could shoot us here
     for (const q of foes) {
       const dx = x - q.x, dy = y - q.y, d = Math.hypot(dx, dy) || 1;
-      if (d > 1100 || !clearShot(q.x, q.y, x, y) || wallBetween(w, q.team, q.x, q.y, x, y)) continue; // (our Wall between: they can't shoot us here)
+      if (d > 1100 || q.disarm > 0.3 || q.frozen > 0 || !clearShot(q.x, q.y, x, y) || wallBetween(w, q.team, q.x, q.y, x, y)) continue; // (our Wall between, or they're frozen or disarmed: they can't shoot us here)
       const threat = (q.drawing ? 0.5 + q.charge : 0.6) * (d < 500 ? 1 : 500 / d);
       // out of our reach but inside theirs: a free shot for them. Worse the more they outrange us, and the
       // knockback worry matters a little less there, because hanging back isn't an answer to it
@@ -6909,6 +6973,7 @@ function botPlan(w, p, T, foes, mates, D, G) {
     // don't stand on a teammate
     for (const m of mates) { const dm = Math.hypot(m.x - x, m.y - y); if (dm < 110) sc -= (110 - dm) / 110 * 0.5; }
     if (ai.tac && T && w.teamPlan) sc += tacSpotScore(w, p, T, x, y, mates); // the duo's formation
+    if (ai.revLean) sc -= Math.hypot(x - ai.revLean.x, y - ai.revLean.y) / 1100; // (a teammate to revive over there: drift that way while fighting)
     sc -= Math.hypot(x - p.x, y - p.y) / 2000; // a slight preference for staying put
     if (!best || sc > best.sc) best = { x, y, sc };
   }
@@ -6925,6 +6990,7 @@ function botPlan(w, p, T, foes, mates, D, G) {
 // Returns the way to move, or null when there's no boulder worth using (then it's the open ground, weaving).
 function botCoverHop(p, T, d, dt) {
   const ai = p.ai; let P = ai.coverP;
+  if (T.disarm > 0.3 || T.frozen > 0) { ai.coverP = null; return null; } // (frozen, stunned, disarmed: they can't shoot, so walk straight in)
   if ((ai.coverOff2 = (ai.coverOff2 || 0) - dt) > 0 && !P) return null; // (just left one: cross the open for a bit before looking for the next)
   if (P && (Math.hypot(P.x - T.x, P.y - T.y) > d - 20 || Math.hypot(P.x - p.x, P.y - p.y) > 460 || (ai.coverT = (ai.coverT || 0) + dt) > 6)) P = ai.coverP = null; // (passed it, or it's stale)
   if (!P) {
@@ -7137,9 +7203,59 @@ function botDashDir(p, wasDraw) {
 //   finisher   be at the spot from which a full draw puts a held (or about-to-be-held) enemy into a hazard
 //   rift       (Undertow) the void archer draws fully for rifts; the partner targets whoever the rift holds
 // Any mode also shares the team target (the one nearest a hazard, then the hurt one, then the held one).
-const TAC_DEF = { guardD: 150, behindD: 95, side: 45, bullyD: 240, bashEager: 3, unloadD: 190, flankAng: 1.2, flankWhen: 'cover', cross: 1.0, farD: 620, pickK: 2.2, pickRange: 520, stealthGap: 1.0, ambushAng: 1.1, trapGap: 220, finishD: 320, holdBias: 0.6, tacK: 1.0, wallK: 1.2, waterK: 0.9 };
+const TAC_DEF = { guardD: 150, behindD: 95, side: 45, bullyD: 240, bashEager: 3, unloadD: 190, flankAng: 1.2, flankWhen: 'cover', cross: 1.0, farD: 620, pickK: 2.2, pickRange: 520, stealthGap: 1.0, ambushAng: 1.1, trapGap: 220, finishD: 320, holdBias: 0.6, tacK: 1.0, wallK: 1.2, waterK: 0.9, shieldD: 0, anchor: 0 };
 const tacOf = p => (p.ai && p.ai.tac) || null, tacP = (p, k) => { const t = tacOf(p); return t && t[k] != null ? t[k] : TAC_DEF[k]; };
 const heldBy = q => q.stuck > 0 || q.frozen > 0 || q.staggerT > 0 || q.pinned > 0 || q.vine > 0 || q.riftSlow > 0;
+// ---- the arcade's last battle: one machine against the two of you. Close to a normal archer, with three builds it changes
+// between by how far away you are (the middle point of whoever's alive): up close a juggernaut that grows and bashes, at
+// mid range a quick archer with brambles to set up knockouts, far off a sniper behind a wall that blows you back. It can't
+// change again for BOSS_SWITCH seconds, and it keeps its share of health when it does.
+const BOSS_SWITCH = 3, BOSS_NEAR = 270, BOSS_FAR = 560;
+const BOSS_MODES = {
+  close: { name: 'Juggernaut', role: 'juggernaut', ups: ['colossus', 'ram', 'rush', 'riot'], tac: { mode: 'bully', bullyD: 180, bashEager: 4 }, aggr: 1 },
+  mid:   { name: 'Hunter',     role: 'ranger',     ups: ['trap', 'briar', 'dash', 'quickshot', 'deeproots'], tac: { mode: 'trapper', waterK: 0.6 }, aggr: 0.7 },
+  long:  { name: 'Marksman',   role: 'sniper',     ups: ['wall', 'gust', 'longbow', 'steady', 'heavy'], tac: { mode: 'focus' }, aggr: 0.35 },
+};
+function bossSet(w, p, mode) {
+  const M = BOSS_MODES[mode]; if (!M) return;
+  const frac = p.maxHp ? p.hp / p.maxHp : 1;
+  p.role = M.role; p.up = (p.element ? [p.element] : []).concat(p.boss.el || [], M.ups);
+  applyStats(p); p.hp = Math.max(1, Math.round(p.maxHp * frac));
+  p.abCd = p.slots.map(() => 1.2); p.abHold = [0, 0]; p.drawing = false; p.charge = 0; p.over = 0; // (a moment before the new build's abilities are up)
+  for (const k of Object.values(ARM_FLAG)) if (k !== 'snare') p[k] = false;
+  if (p.ai) { p.ai.tac = Object.assign({}, M.tac); p.ai.style = p.ai.baseStyle = ROLE_STYLE[M.role] || 'skirmisher'; p.ai.aggr = M.aggr; p.ai.plan = null; p.ai.coverP = null; p.ai.mend = false; }
+  p.boss.mode = mode; p.boss.at = w.t;
+  ev(w, { e: 'bossMode', id: p.id, m: mode, n: M.name, x: r1(p.x), y: r1(p.y) });
+}
+function bossTick(w, p, dt) {
+  const foes = w.players.filter(q => q.team !== p.team && !q.dead && !q.npc && q.falling <= 0); if (!foes.length) return;
+  if (!p.boss.mode) return bossSet(w, p, 'mid');
+  if (w.t - p.boss.at < BOSS_SWITCH || p.rush || p.knock > 0 || p.falling > 0) return;
+  const cx = foes.reduce((a, q) => a + q.x, 0) / foes.length, cy = foes.reduce((a, q) => a + q.y, 0) / foes.length, d = Math.hypot(cx - p.x, cy - p.y), m = p.boss.mode;
+  // (a little slack either side of each line, so it isn't flickering on the boundary)
+  const want = d < BOSS_NEAR + (m === 'close' ? 40 : 0) ? 'close' : d > BOSS_FAR - (m === 'long' ? 50 : 0) ? 'long' : 'mid';
+  if (want !== m) bossSet(w, p, want);
+}
+// Reviving a knocked-out teammate (the Revive card, or the Revives rule): is it worth it now? Weighed like a person would:
+// near and quiet, go; a kill in hand, finish it first; enemies on the body, not yet; far away, drift that way while fighting;
+// hurt and far, fight instead (a medkit on the way helps). go: walk over and stand on them; lean: edge that way.
+function reviveChoice(w, p, T, dT, foes) {
+  if (p.reviveUsed || !(has(p, 'revive') || (w.cfg.opt || {}).revive === 'on') || w.cq || w.tm) return null;
+  let best = null;
+  for (const t of w.players) {
+    if (t.team !== p.team || !t.dead || t.npc || t.lastCause === 'join' || t.lastCause === 'switch') continue;
+    const d = Math.hypot(t.x - p.x, t.y - p.y);
+    let danger = 0; for (const q of foes) { const dq = Math.hypot(q.x - t.x, q.y - t.y); if (dq < 420) danger += (dq < 230 ? 1 : 0.4) * (q.drawing ? 1.3 : 1) * (clearShot(q.x, q.y, t.x, t.y) ? 1 : 0.4); }
+    let sc = 1.4 - d / 650 - danger * 0.7 + (t.revP || 0) * 0.8; // (one already part-revived is nearly there)
+    const hp = p.hp / p.maxHp; if (hp < 0.35 && d > 300) sc -= 0.6; if (hp < 0.2) sc -= 0.3;
+    if (w.pickups.some(u => u.type === 'heal' && Math.hypot(u.x - (p.x + t.x) / 2, u.y - (p.y + t.y) / 2) < d / 2 + 60)) sc += 0.2; // (a medkit on the way)
+    if (T && T.hp < 22 && dT < botReach(p) && clearShot(p.x, p.y, T.x, T.y)) sc -= 1; // (the kill first: it may be the game)
+    if (lethalDist(t.x, t.y) < 50) sc -= 0.3; // (they went down by a drop: standing there is risky)
+    if (!best || sc > best.sc) best = { t, sc, d };
+  }
+  if (!best) return null;
+  return { t: best.t, go: best.sc > 0.55 || (best.d < 90 && best.sc > 0.1), lean: best.sc > -0.4 };
+}
 function teamPlan(w) {
   w.teamPlan = w.teamPlan || {};
   for (const team of TEAMS) {
@@ -7195,9 +7311,38 @@ function waterBetween(x1, y1, x2, y2) {
   return false;
 }
 // where a guard wants to stand: between the enemy and the partner, guardD from the enemy (or just ahead of the partner when they're nearer than that)
-function guardSpot(p, T, partner) {
-  const px = partner.x - T.x, py = partner.y - T.y, dP = Math.hypot(px, py) || 1, gd = Math.max(60, Math.min(tacP(p, 'guardD'), dP - 70));
+function guardSpot(p, T, partner, foes) {
+  const px = partner.x - T.x, py = partner.y - T.y, dP = Math.hypot(px, py) || 1;
+  const sd = tacP(p, 'shieldD');
+  if (sd) { // in front of the partner, sd towards the enemy: the closer to them, the wider the shadow they stand in. Two enemies at
+    // much the same angle: face the middle of them, so one body covers both
+    let ux = -px / dP, uy = -py / dP;
+    const other = (foes || []).find(q => q !== T && !q.dead && q.falling <= 0);
+    if (other) { const ox = other.x - partner.x, oy = other.y - partner.y, od = Math.hypot(ox, oy) || 1; if (ux * ox / od + uy * oy / od > 0.5) { ux += ox / od; uy += oy / od; const l = Math.hypot(ux, uy) || 1; ux /= l; uy /= l; } }
+    const d = Math.min(sd, dP - 40);
+    return { x: partner.x + ux * d, y: partner.y + uy * d, dP };
+  }
+  const gd = Math.max(60, Math.min(tacP(p, 'guardD'), dP - 70));
   return { x: T.x + px / dP * gd, y: T.y + py / dP * gd, dP };
+}
+// does a body stand in the way of a shot from a to b (it would take the arrow)?
+function bodyBlocks(g, ax, ay, bx, by) {
+  if (!g || g.dead || g.falling > 0) return false;
+  const dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy || 1, t = ((g.x - ax) * dx + (g.y - ay) * dy) / L2;
+  if (t < 0.05 || t > 0.95) return false;
+  return Math.hypot(ax + dx * t - g.x, ay + dy * t - g.y) < g.r + 6;
+}
+// a dash that way: nothing deadly at the end of it and no boulder in the way
+function dashClear(p, ang, dist) {
+  const ex = p.x + Math.cos(ang) * dist, ey = p.y + Math.sin(ang) * dist;
+  return lethalDist(ex, ey) > 50 && clearLane(p.x, p.y, ex, ey, p.r);
+}
+// the nearest thing that heals: a medkit, an ember, the spring (null when there's nothing about)
+function healSpot(w, p) {
+  let best = null;
+  for (const u of w.pickups) { if (u.chan || (u.type !== 'heal' && u.type !== 'amber')) continue; const d = Math.hypot(u.x - p.x, u.y - p.y) * (u.type === 'heal' ? 0.6 : 1); if (!best || d < best.d) best = { x: u.x, y: u.y, d }; }
+  if (HEAL) { const d = Math.hypot(HEAL.x - p.x, HEAL.y - p.y) * 0.8; if (!best || d < best.d) best = { x: HEAL.x, y: HEAL.y, d, spring: true }; }
+  return best;
 }
 function tacSpotScore(w, p, T, x, y, mates) {
   const ai = p.ai, tac = ai.tac, tp = (w.teamPlan || {})[p.team]; if (!tac || !tp) return 0;
@@ -7211,7 +7356,7 @@ function tacSpotScore(w, p, T, x, y, mates) {
       let sc = K * Math.max(0, 1 - perp / 120) * (along > 0 ? 1 : 0.3);
       if (dST > dP - 40) sc -= K * 0.7; // (never behind the one we're guarding)
       if (dST < tacP(p, 'guardD') * 0.6) sc -= K * 0.4; // (not on top of them either: the shove-off is their move)
-      const g = guardSpot(p, T, partner), dg = Math.hypot(g.x - x, g.y - y); sc += K * 1.2 * Math.max(0, 1 - dg / 220); // (the spot itself: right there, not somewhere along the line)
+      const g = guardSpot(p, T, partner, w.players.filter(q => q.team !== p.team && !q.dead)), dg = Math.hypot(g.x - x, g.y - y); sc += K * 1.2 * Math.max(0, 1 - dg / 220); // (the spot itself: right there, not somewhere along the line)
       if (ourWallBetween(w, p.team, x, y, T.x, T.y)) sc += K * (tacP(p, 'wallK') || 0); // (a Wall of ours up: it's for standing behind)
       return sc;
     }
@@ -7219,9 +7364,11 @@ function tacSpotScore(w, p, T, x, y, mates) {
       const g = tp.guard; if (!g || g.dead) return 0;
       const gx = g.x - T.x, gy = g.y - T.y, dG = Math.hypot(gx, gy) || 1;
       if (dG > botReach(p) * 1.1) return 0; // (the guard isn't on them yet: get there as usual)
+      if (tacP(p, 'anchor')) return (bodyBlocks(g, T.x, T.y, x, y) ? K * 1.6 : 0) + (ourWallBetween(w, p.team, x, y, T.x, T.y) ? K * (tacP(p, 'wallK') || 0) : 0); // (the partner picks its own ground and the guard comes to it: only the shadow counts, or the two back each other into the wall)
       const bx = x - g.x, by = y - g.y, dB = Math.hypot(bx, by) || 1, cosA = (bx * gx + by * gy) / (dB * dG), bd = tacP(p, 'behindD');
       let sc = cosA > 0.6 && dB > bd * 0.6 && dB < bd + 120 ? K * (0.6 + 0.4 * cosA) : 0; // (behind the guard, over their shoulder)
       if (dST < dG - 20) sc -= K * 0.7; // (never in front of the guard)
+      if (bodyBlocks(g, T.x, T.y, x, y)) sc += K * 1.5; // (right in the guard's shadow: their arrows hit the guard, ours fly past it)
       if (ourWallBetween(w, p.team, x, y, T.x, T.y)) sc += K * (tacP(p, 'wallK') || 0); // (the guard's Wall: stay behind it)
       return sc;
     }
@@ -7237,6 +7384,11 @@ function tacSpotScore(w, p, T, x, y, mates) {
       if (!clearShot(x, y, T.x, T.y)) return 0;
       const a = Math.abs(angOff(Math.atan2(partner.y - T.y, partner.x - T.x), Math.atan2(dyT, dxT))), want = tacP(p, 'cross');
       return K * Math.min(1, a / want) * (dST < tacP(p, 'farD') + 150 ? 1 : 0.5);
+    }
+    case 'syncstealth': {
+      // between them and the middle: every hit from here pushes them outwards, towards the pools and the thorns
+      const cx = AW / 2 - T.x, cy = AH / 2 - T.y, dc = Math.hypot(cx, cy) || 1;
+      return K * 0.7 * Math.max(0, (dxT * cx + dyT * cy) / (dST * dc)) * (dc > 60 ? 1 : 0.3);
     }
     case 'trapper': {
       // water between us and them: a root by it, a harpoon over it, are the knockouts; veer round to put a pool in the way
@@ -7264,10 +7416,28 @@ function tacticGoal(w, p, T, foes, mates, dt) {
     case 'bully': case 'unload': {
       const near = tac.mode === 'bully' ? tacP(p, 'bullyD') : tacP(p, 'unloadD');
       // a bully doesn't hop boulder to boulder: it comes straight at you, and dashes to close the ground (keeping a dash back for the bash)
-      if (tac.mode === 'bully' && dT > 330 && (p.dashN >= 2 || (p.dashN > 0 && dT > 480)) && ai.dodgeCd <= 0 && lethalDist(p.x + ux * 170, p.y + uy * 170) > 50 && Math.random() < dt * 3) { p.wantDash = true; ai.dashAim = Math.atan2(uy, ux); ai.dodgeCd = 0.7; }
+      if (tac.mode === 'bully' && dT > 330 && (p.dashN >= 2 || (p.dashN > 0 && dT > 480)) && ai.dodgeCd <= 0 && dashClear(p, Math.atan2(uy, ux), 170) && Math.random() < dt * 3) { p.wantDash = true; ai.dashAim = Math.atan2(uy, ux); ai.dodgeCd = 0.7; }
       if (dT > near * 1.3) { const c = tac.mode === 'bully' ? null : botCoverHop(p, T, dT, dt); if (c) return c; return [ux * 0.9 - uy * ai.strafe * 0.35, uy * 0.9 + ux * ai.strafe * 0.35]; }
+      if (tac.mode === 'bully') {
+        // a bash or a dash at them whenever one's there (a dash is for getting on top of people, not for getting away)
+        if (dT > 60 && dT < 420 && p.dashN > 0 && (ai.bashCd || 0) <= 0 && ai.dodgeCd <= 0 && Math.random() < dt * (dT < 230 ? tacP(p, 'bashEager') : 2)) { const lead = 0.2, a = Math.atan2(T.y + T.vy * lead - p.y, T.x + T.vx * lead - p.x); if (dashClear(p, a, Math.min(dT + 40, 200))) { p.wantDash = true; ai.dashAim = a; ai.bashCd = rand(0.8, 1.6); ai.dodgeCd = 0.4; } }
+        // them by a wall or in a corner: hold the open side (between them and the middle, the two of us either side of that line), so there's no way out
+        const wallD = Math.min(T.x - WALL, AW - WALL - T.x, T.y - WALL, AH - WALL - T.y);
+        if (wallD < 190) { const a0 = Math.atan2(AH / 2 - T.y, AW / 2 - T.x), side = partner && !partner.dead ? (p.id < partner.id ? 1 : -1) : 0, a = a0 + side * 0.5, hold = Math.min(near, 120);
+          const sx = T.x + Math.cos(a) * hold, sy = T.y + Math.sin(a) * hold; if (lethalDist(sx, sy) > 40) return toward(sx, sy, 1.1); }
+      }
       if (dT > near) return [ux, uy];
       return [-uy * ai.strafe * 0.6 + ux * 0.2, ux * ai.strafe * 0.6 + uy * 0.2]; // (in their face: circle, don't back off)
+    }
+    case 'trapper': {
+      if (!roped(w, p) || harpoonThrough(T, p)) return null;
+      let best = null;
+      for (let i = 0; i < 16; i++) for (const r of [70, 140, 210, 280]) { const a = i / 16 * TAU, x = p.x + Math.cos(a) * r, y = p.y + Math.sin(a) * r;
+        if (x < WALL + 30 || x > AW - WALL - 30 || y < WALL + 30 || y > AH - WALL - 30 || lethalDist(x, y) < 40 || !harpoonThrough(T, { x, y })) continue;
+        if (!best || r < best.r) best = { x, y, r }; }
+      if (!best) return null;
+      if (best.r > 100 && p.dashN > 0 && ai.dodgeCd <= 0) { const a = Math.atan2(best.y - p.y, best.x - p.x); if (dashClear(p, a, Math.min(best.r, 170))) { p.wantDash = true; ai.dashAim = a; ai.dodgeCd = 0.5; } }
+      return toward(best.x, best.y, 1.2);
     }
     case 'flank': case 'crossfire': return null;
     case 'finisher': case 'rift': {
@@ -7372,10 +7542,14 @@ function botThink(w, p, dt) {
   ai.strafeT -= dt;
   if (ai.strafeT <= 0) { ai.strafe *= -1; ai.strafeT = rand(0.9, 2.4); }
   const tank = ai.tac && ai.tac.mode === 'guard'; // (a guard is the team's health: it heals up sooner)
-  const hurtBad = HEAL && p.hp < p.maxHp * (tank ? 0.65 : 0.5) && (!T || dT > (tank ? 120 : 170));
+  const lurk = ai.tac && ai.tac.mode === 'syncstealth'; // (an assassin heals on the spring when hurt, unless the knockout is nearly there)
+  const hurtBad = HEAL && p.hp < p.maxHp * (tank ? 0.65 : lurk ? 0.55 : 0.5) && (!T || dT > (tank ? 120 : lurk ? 0 : 170)) && !(lurk && T && (T.hp < 30 || (heldBy(T) && lethalDist(T.x, T.y) < 120)));
+  // a body-shield that's badly hurt pulls back to whatever heals (a medkit, an ember, the spring) and comes back to the job once it's mended
+  if (tank && ai.tac.body) { if (p.hp < p.maxHp * 0.35) ai.mend = true; else if (p.hp > p.maxHp * 0.65) ai.mend = false; } else ai.mend = false;
+  const mendAt = ai.mend ? healSpot(w, p) : null;
   const healD = HEAL ? Math.hypot(HEAL.x - p.x, HEAL.y - p.y) : 0;
-  const fallen = has(p, 'revive') && !p.reviveUsed ? mates.length >= 0 && w.players.find(q => q.team === p.team && q.dead && q.lastCause !== 'join' && q.lastCause !== 'switch') : null;
-  const safeToRevive = fallen && !foes.some(q => Math.hypot(q.x - fallen.x, q.y - fallen.y) < 230);
+  const rv = reviveChoice(w, p, T, dT, foes), fallen = rv && rv.t, safeToRevive = !!(rv && rv.go);
+  ai.revLean = rv && !rv.go && rv.lean ? { x: rv.t.x, y: rv.t.y } : null;
   // big capture powerups: most bots go and stand in them, and fight over them
   const chan = w.pickups.find(u => u.chan);
   const chanD = chan ? Math.hypot(chan.x - p.x, chan.y - p.y) : Infinity;
@@ -7390,6 +7564,13 @@ function botThink(w, p, dt) {
     const d = Math.hypot(fallen.x - p.x, fallen.y - p.y) || 1;
     gx = (fallen.x - p.x) / 70 - p.vx / 140; gy = (fallen.y - p.y) / 70 - p.vy / 140;
     if (d < 30 && Math.hypot(gx, gy) < 0.35) { gx = 0; gy = 0; }
+  } else if (mendAt) {
+    const d = Math.hypot(mendAt.x - p.x, mendAt.y - p.y) || 1;
+    if (mendAt.spring && d < HEAL.r * 0.5) { gx = -p.vx / 200; gy = -p.vy / 200; } else { gx = (mendAt.x - p.x) / d; gy = (mendAt.y - p.y) / d; }
+    inp.draw = false; ai.reload = Math.max(ai.reload || 0, 0.2); // (legs, not the bow)
+    if (d > 220 && p.dashN > 0 && ai.dodgeCd <= 0 && dashClear(p, Math.atan2(mendAt.y - p.y, mendAt.x - p.x), 170) && Math.random() < dt * 3) { p.wantDash = true; ai.dashAim = Math.atan2(mendAt.y - p.y, mendAt.x - p.x); ai.dodgeCd = 0.8; }
+  } else if (ai.mend && T) { // (nothing to heal on: keep away until it mends by itself or something drops)
+    const ax = -(T.x - p.x) / (dT || 1), ay = -(T.y - p.y) / (dT || 1); if (dT > 520) { gx = -ay * ai.strafe * 0.5; gy = ax * ai.strafe * 0.5; } else { gx = ax; gy = ay; }
   } else if (hurtBad) {
     if (healD > HEAL.r * 0.5) { gx = (HEAL.x - p.x) / healD; gy = (HEAL.y - p.y) / healD; }
     else { gx = -(p.y - HEAL.y) / (healD || 1) * ai.strafe * 0.4; gy = (p.x - HEAL.x) / (healD || 1) * ai.strafe * 0.4; }
@@ -7407,7 +7588,7 @@ function botThink(w, p, dt) {
     const tacBash = ai.tac ? (ai.tac.mode === 'bully' ? tacP(p, 'bashEager') : ai.tac.noShove ? 0 : 1) : 1; // (a bully bashes at every chance; a body-blocking guard never)
     if (tacBash > 0 && dT < 220 && dT > 40 && p.dashN > 0 && ai.bashCd <= 0 && clearShot(p.x, p.y, T.x, T.y) && (st.bash * ag * dashK(ai) > 0.1 || tacBash > 1)) {
       const ang = Math.atan2(T.y - p.y, T.x - p.x);
-      if ((pushRisk(T.x, T.y, Math.cos(ang), Math.sin(ang), 200, T.r) > 0.6 || (tacBash > 1 && Math.random() < dt * tacBash)) && lethalDist(p.x + Math.cos(ang) * (dT + 40), p.y + Math.sin(ang) * (dT + 40)) > 60) { p.wantDash = true; ai.dashAim = ang; ai.bashCd = rand(1.5, 3); }
+      if ((pushRisk(T.x, T.y, Math.cos(ang), Math.sin(ang), 200, T.r) > 0.6 || (tacBash > 1 && Math.random() < dt * tacBash)) && lethalDist(p.x + Math.cos(ang) * (dT + 40), p.y + Math.sin(ang) * (dT + 40)) > 60 && clearLane(p.x, p.y, T.x, T.y, p.r * 0.6)) { p.wantDash = true; ai.dashAim = ang; ai.bashCd = rand(1.5, 3); }
     }
     if (!p.wantDash) botCloseIn(w, p, T, dT, botReach(p), D, dt);
   } else if (T) {
@@ -7499,7 +7680,7 @@ function botThink(w, p, dt) {
   ai.noLosT = T && !clearShot(p.x, p.y, T.x, T.y) ? (ai.noLosT || 0) + dt : 0;
   if (ai.noLosT > 3 && !(ai.coverOff > 0)) { ai.coverOff = 6; ai.duck = ai.peek = false; ai.strafe = -ai.strafe; ai.strafeT = Math.max(ai.strafeT || 0, 2); }
   if (ai.coverOff > 0) ai.coverOff -= dt;
-  if (ai.tr && ai.tr.cover > 0 && T && dT < 950 && !(p.stealthT > 0) && (ai.duck || ai.peek) && !(ai.coverOff > 0) && !(ai.missRun > 6)) { // (shots from cover not landing: leave it and press in)
+  if (ai.tr && ai.tr.cover > 0 && T && dT < 950 && !(p.stealthT > 0) && !(ai.tac && ai.tac.body) && !(T.disarm > 0.3 || T.frozen > 0) && (ai.duck || ai.peek) && !(ai.coverOff > 0) && !(ai.missRun > 6)) { // (shots from cover not landing: leave it and press in)
     const cv = PILLARS.reduce((b, q) => { if (q.tower) return b; const d = Math.hypot(q.x - p.x, q.y - p.y) - q.r; return d < 230 && (!b || d < b.d) ? { q, d } : b; }, null);
     if (cv) {
       const q = cv.q, tx = q.x - T.x, ty = q.y - T.y, tl = Math.hypot(tx, ty) || 1, ux = tx / tl, uy = ty / tl, off = q.r + p.r + 16;
@@ -7522,18 +7703,26 @@ function botThink(w, p, dt) {
   if (w.tm && iq >= 0.3) { const o = botTerminator(w, p, T, dt); if (o) { gx = o[0]; gy = o[1]; } }
   // --- a guard (co-op): the spot between the enemy and the partner is the job. Far from it: let the bow go and run (a drawn
   // bow is slow), dash to it when it's a long way, and dash-bash anyone who gets on the partner. A tank keeps itself healthy too
-  if (ai.tac && ai.tac.mode === 'guard' && tacP(p, 'guardD') < 160 && T && !hurtBad) { // (a close guard, a body-shield; a warden guarding from behind its wall keeps shooting)
+  if (ai.tac && ai.tac.mode === 'guard' && ai.tac.body && T && !hurtBad && !ai.mend) { // (a body-shield; a warden guarding from behind its wall keeps shooting)
     const partner = mates.find(m => !m.dead) || null;
     if (partner) {
-      const g = guardSpot(p, T, partner), dg = Math.hypot(g.x - p.x, g.y - p.y), onP = Math.hypot(T.x - partner.x, T.y - partner.y);
-      if (dg > 110 && !(T.drawing && T.charge > 0.5 && dT < 300)) { inp.draw = false; ai.reload = Math.max(ai.reload || 0, 0.2); } // (legs first)
-      if (dg > 260 && p.dashN > 0 && ai.dodgeCd <= 0 && lethalDist(p.x + (g.x - p.x) / dg * 160, p.y + (g.y - p.y) / dg * 160) > 50 && Math.random() < dt * 3) { p.wantDash = true; ai.dashAim = Math.atan2(g.y - p.y, g.x - p.x); ai.dodgeCd = 0.8; }
+      const th = foes.filter(q => q.falling <= 0).sort((a2, b2) => Math.hypot(a2.x - partner.x, a2.y - partner.y) - Math.hypot(b2.x - partner.x, b2.y - partner.y))[0] || T; // (the one nearest the partner is the one to stand in front of)
+      const g = guardSpot(p, th, partner, foes), dg = Math.hypot(g.x - p.x, g.y - p.y), onP = Math.hypot(th.x - partner.x, th.y - partner.y);
+      const covering = bodyBlocks(p, th.x, th.y, partner.x, partner.y);
+      // the job is the line between them and the partner: walk (or dash) straight to it, and once in it stay in it
+      if (covering && dg < 70) { gx = (g.x - p.x) / 70 - p.vx / 400; gy = (g.y - p.y) / 70 - p.vy / 400; }
+      else { const k = Math.min(1, dg / 40); gx = (g.x - p.x) / (dg || 1) * k - p.vx / 500; gy = (g.y - p.y) / (dg || 1) * k - p.vy / 500; }
+      if (PILLARS.length) [gx, gy] = aroundPillar(p, gx, gy);
+      // the bow only while the partner's covered and we're in place: a drawn bow is slow, and getting there matters more
+      if (!covering && dg > 50) { inp.draw = false; ai.reload = Math.max(ai.reload || 0, 0.2); }
+      if (dg > 150 && !covering && p.dashN > 0 && ai.dodgeCd <= 0 && dashClear(p, Math.atan2(g.y - p.y, g.x - p.x), Math.min(dg, 170)) && Math.random() < dt * 6) { p.wantDash = true; ai.dashAim = Math.atan2(g.y - p.y, g.x - p.x); ai.dodgeCd = 0.6; }
       // on the partner: knock them off (a shove away from the partner, never into our own side)
-      if (onP < 160 && dT < 200 && p.dashN > 0 && (ai.bashCd || 0) <= 0 && !ai.tac.noShove) { const ang = Math.atan2(T.y - partner.y, T.x - partner.x); if (angOff(ang, Math.atan2(T.y - p.y, T.x - p.x)) < 1.2 && lethalDist(p.x + Math.cos(ang) * (dT + 40), p.y + Math.sin(ang) * (dT + 40)) > 50) { p.wantDash = true; ai.dashAim = Math.atan2(T.y - p.y, T.x - p.x); ai.bashCd = rand(1.2, 2); } }
+      if (onP < 160 && dT < 200 && p.dashN > 0 && (ai.bashCd || 0) <= 0 && !ai.tac.noShove) { const ang = Math.atan2(T.y - partner.y, T.x - partner.x); if (angOff(ang, Math.atan2(T.y - p.y, T.x - p.x)) < 1.2 && dashClear(p, Math.atan2(T.y - p.y, T.x - p.x), Math.min(dT, 170))) { p.wantDash = true; ai.dashAim = Math.atan2(T.y - p.y, T.x - p.x); ai.bashCd = rand(1.2, 2); } }
+      ai.bodyMove = true;
     }
-  }
+  } else ai.bodyMove = false;
   // --- the duo's tactic (co-op): where it wants us, over the usual brain (not while healing badly hurt or reviving)
-  if (ai.tac && !hurtBad && !safeToRevive) { const tg = tacticGoal(w, p, T, foes, mates, dt); if (tg) { gx = tg[0]; gy = tg[1]; } }
+  if (ai.tac && !hurtBad && !ai.mend && !safeToRevive && !ai.bodyMove) { const tg = tacticGoal(w, p, T, foes, mates, dt); if (tg) { gx = tg[0]; gy = tg[1]; if (PILLARS.length) [gx, gy] = aroundPillar(p, gx, gy); } } // (and round any boulder on the way there)
   // --- tunnel vision: in the heat of it (a shot nearly drawn, a kill nearly there) a lesser player forgets their feet for a
   // few seconds: the edge sense and the planning brain's safety weight drop away until it passes. Rarer the better the
   // bot's positioning; the best hardly ever
@@ -7670,8 +7859,9 @@ function botThink(w, p, dt) {
     ai.reactT = D.react + rand(0.15, 0.35) + (behind ? rand(0.2, 0.4) : 0);
   }
   ai.reactT = Math.max(0, (ai.reactT || 0) - dt);
+  if (ai.snapT > 0) { ai.snapT -= dt; ai.reactT = 0; } // (just blinked for the angle: turn at once)
   if (ai.reactT <= 0) {
-    const diff = ((wantAim - ai.aimA + Math.PI) % TAU + TAU) % TAU - Math.PI, step = (D.turn || 5.5) * dt;
+    const diff = ((wantAim - ai.aimA + Math.PI) % TAU + TAU) % TAU - Math.PI, step = (D.turn || 5.5) * (ai.snapT > 0 ? 4 : 1) * dt;
     ai.aimA += clamp(diff, -step, step);
   }
   inp.aim = ai.aimA;
@@ -7732,12 +7922,30 @@ function botThink(w, p, dt) {
       // Void: with marks on them, a half draw already homes in; the full draw is for the finish
       if (p.element === 'void' && T.voidBy === p.id && T.voidT > w.t && (T.voidN || 0) >= 2 && es >= 0.5 && ai.want < 1 && T.hp > 25) ai.want = Math.max(ai.want, 0.6);
     }
+  } else if (p.briarArmed && p.charge >= ai.want && !clearLane(p.x, p.y, T.x, T.y, BRIAR.r) && (ai.briarHold = (ai.briarHold || 0) + dt) < 1.5) {
+    // (a bramble armed and a boulder in its lane: hold it and step round, rather than roll it into the rock)
   } else if ((p.charge >= ai.want || (p.momT > 0.1 && p.charge >= 0.55 && has(p, 'momentum'))) && los && onTarget && T.inv <= 0 && !(has(p, 'ballista') && ai.want >= 1 && p.over < 1 && dT > 250) && !sneaking) {
-    inp.draw = false;
+    inp.draw = false; ai.briarHold = 0;
     ai.reload = rand(0.05, 0.3) + D.react;
   }
+  if (ai.jinkT > 0 && (ai.jinkT -= dt) <= 0 && p.stealthT > 0 && p.dashN > 0 && T) { // vanished: off somewhere they won't guess
+    const a0 = Math.atan2(T.y - p.y, T.x - p.x); for (let k = 0; k < 6; k++) { const a = a0 + (Math.random() < 0.5 ? 1 : -1) * rand(0.9, 2.3); if (dashClear(p, a, 170)) { p.wantDash = true; ai.dashAim = a; ai.strafe = -ai.strafe; break; } } }
   if (wasDraw && !inp.draw) { ai.peek = false; ai.duck = !!(ai.tr && Math.random() < ai.tr.cover); } // shot away: duck behind cover for the next one?
   botAbilities(w, p, T, dT, foes, dt);
+  if (ai.tac && p.wantDash && ai.dashAim == null && (ai.tac.mode === 'bully' || (ai.tac.mode === 'guard' && ai.tac.body))) p.wantDash = false;
+  if (ai.tac && ai.tac.mode === 'behind' && T) {
+    const g = mates.find(m => m.bot && m.ai && m.ai.tac && m.ai.tac.mode === 'guard' && !m.dead);
+    if (g) {
+      const shielded = q => bodyBlocks(g, q.x, q.y, p.x, p.y), threats = foes.filter(q => q.drawing || Math.hypot(q.x - p.x, q.y - p.y) < 500);
+      // covered from whoever is shooting: no dodge (it would only step out of cover). The arrow hits the guard.
+      if (p.wantDash && ai.dashAim == null && threats.length && threats.every(shielded)) p.wantDash = false;
+      // lost it (they've walked or dashed round the guard): a dash back into the guard's shadow, the other way
+      if (!p.wantDash && !shielded(T) && Math.hypot(g.x - p.x, g.y - p.y) < 240 && p.dashN > 0 && ai.dodgeCd <= 0 && Math.random() < dt * 5) {
+        const ux = g.x - T.x, uy = g.y - T.y, ul = Math.hypot(ux, uy) || 1, sx = g.x + ux / ul * (g.r + p.r + 26), sy = g.y + uy / ul * (g.r + p.r + 26), sd = Math.hypot(sx - p.x, sy - p.y);
+        if (sd > 60 && sd < 230) { const a = Math.atan2(sy - p.y, sx - p.x); if (dashClear(p, a, Math.min(sd, 170))) { p.wantDash = true; ai.dashAim = a; ai.dodgeCd = 0.5; } }
+      }
+    }
+  } // (a tank's dashes are for the job, not for dodging)
   botDashDir(p, wasDraw); // a dodge dash goes the way out, through the move stick (the bow stays on the enemy)
   ai.dashAim = null;
 }
@@ -7860,6 +8068,14 @@ function botAbilities(w, p, T, dT, foes, dt) {
         const danger = p.knock > 0 && lethalDist(p.x + p.vx * 0.3, p.y + p.vy * 0.3) < 40;
         const st = STYLES[p.ai.style];
         if (danger) { const a = Math.atan2(AH / 2 - p.y, AW / 2 - p.x); p.input.tx = p.x + Math.cos(a) * 200; p.input.ty = p.y + Math.sin(a) * 200; use = true; }
+        else if (T && p.ai.tac && p.ai.tac.mode === 'syncstealth' && dT < 520 && Math.random() < dt * 4) {
+          // the duo: blink to where a shot throws them into the water or the thorns, when it doesn't from here
+          const d0 = dT || 1, now = pushRisk(T.x, T.y, (T.x - p.x) / d0, (T.y - p.y) / d0, kbOn(p, T, 1), T.r); let best = null;
+          if (now < 0.35) for (let i = 0; i < 12; i++) { const a = i / 12 * TAU, x = T.x + Math.cos(a) * 150, y = T.y + Math.sin(a) * 150;
+            if (Math.hypot(x - p.x, y - p.y) > BLINK_RANGE - 10 || lethalDist(x, y) < 50 || x < WALL + 30 || x > AW - WALL - 30 || y < WALL + 30 || y > AH - WALL - 30 || !clearShot(x, y, T.x, T.y) || PILLARS.some(q => Math.hypot(q.x - x, q.y - y) < q.r + p.r + 6)) continue;
+            const r = pushRisk(T.x, T.y, -Math.cos(a), -Math.sin(a), kbOn(p, T, 1), T.r); if (r > 0.5 && (!best || r > best.r)) best = { x, y, r }; }
+          if (best) { p.input.tx = best.x; p.input.ty = best.y; use = true; p.ai.snapT = 0.5; p.ai.want = 1; }
+        }
         else if (T && st && (st.name === 'Stalker' || st.name === 'Brawler') && dT > 280 && dT < 480 && Math.random() < dt) { p.input.tx = T.x; p.input.ty = T.y; use = true; }
         break;
       }
@@ -7868,6 +8084,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
         // the play: someone with a hole, water or lava between them and us gets reeled straight through it. A good
         // bot waits for that; otherwise it pulls now and then just to bring them close (more often the worse it is)
         const through = harpoonThrough(T, p), sk = botD(p).iq || 0.5;
+        if (p.ai.tac && p.ai.tac.mode === 'trapper') { const held = T.stuck > 0.4 || T.vine > 0.4 || T.frozen > 0.4; use = (held || through) && Math.random() < dt * (held ? 8 : 3); break; } // (the duo: the harpoon is for someone rooted, or with water in the way; the feet do the rest)
         use = through ? Math.random() < dt * (2 + 6 * sk) : Math.random() < dt * 0.6 * (1.2 - sk);
         break;
       }
@@ -7897,7 +8114,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
         if (T && dT < 420 && (near.length >= 2 || p.hp < p.maxHp * 0.5 || Math.random() < dt * 0.6)) { p.input.tx = T.x + T.vx * 0.3; p.input.ty = T.y + T.vy * 0.3; use = true; }
         break;
       }
-      case 'briar': use = chg > 0.25 && !!T && dT > 70 && dT < BRIAR.range - 60 && !p.briarArmed && clearShot(p.x, p.y, T.x, T.y); break; // then the next shot rolls it at them
+      case 'briar': use = chg > 0.25 && !!T && dT > 70 && dT < BRIAR.range - 60 && !p.briarArmed && clearLane(p.x, p.y, T.x + T.vx * 0.4, T.y + T.vy * 0.4, BRIAR.r); break; // (it's wide and slow: the whole lane to where they're heading must be clear) // then the next shot rolls it at them
       case 'rip': { // tear the thorns out when it's worth it: a kill (or two), a pile of them spread over several enemies, or someone held near a hazard
         const mine = foes.filter(q => q.thornBy === p.id && q.thornN > 0), iq2 = botD(p).iq || 0.5;
         const tot = mine.reduce((a, q) => a + q.thornN, 0), kills = mine.filter(q => q.hp <= q.thornN * 5 + 1).length, held = mine.filter(q => q.thornN >= 3 && lethalDist(q.x, q.y) < 100 && chg >= 0.5 && clearShot(p.x, p.y, q.x, q.y)).length; // (rooted beside a hazard, with a shot ready to push them in)
@@ -7937,7 +8154,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
         break;
       case 'stealth': {
         if (!T) break;
-        if (p.ai.tac && p.ai.tac.mode === 'syncstealth') { const tp = (w.teamPlan || {})[p.team]; use = !!(tp && tp.stealthGo > w.t - tacP(p, 'stealthGap')); break; } // together, on the team's call
+        if (p.ai.tac && p.ai.tac.mode === 'syncstealth') { const tp = (w.teamPlan || {})[p.team]; use = !!(tp && tp.stealthGo > w.t - tacP(p, 'stealthGap')); if (use) p.ai.jinkT = 0.12; break; } // together, on the team's call (and then a dash off somewhere else)
         // the sharper bots stealth for a reason: a knockout to set up (something deadly near the target that a shot from the far
         // side would throw them into, close enough to reach before it wears off), or to get out of trouble; the rest just vanish
         const sk = botD(p).iq || 0, setup = sk > 0.2 ? ambushPoint(p, T) : null;
@@ -8831,6 +9048,7 @@ function step(w, dt) {
   }
   // duos share a plan (co-op tactics), worked out before anyone thinks
   if (w.players.some(p => p.bot && p.ai && p.ai.tac)) teamPlan(w);
+  for (const p of w.players) if (p.boss && p.bot && !p.dead && w.match.ph === 'play') bossTick(w, p, dt);
   // what bots perceive lags reality: remember where everyone was over the last half second
   if (w.players.some(p => p.bot)) {
     (w.hist = w.hist || []).push({ t: w.t, p: w.players.map(q => [q.id, q.x, q.y, q.vx, q.vy]) });
@@ -8930,7 +9148,7 @@ function snapshot(w) {
         ab: p.slots.slice(), ac: p.abCd.map(r1), ah: p.abHold ? (p.abHold[0] ? 1 : 0) | (p.abHold[1] ? 2 : 0) : 0, fz: p.frozen > 0 ? 1 : 0, sx: p.dashLock > 0 ? 1 : 0, ov: p.over >= 1 ? 1 : 0,
         sn: p.snare ? 1 : 0, vl: p.volleyArmed ? 1 : 0, rl: p.railArmed ? 1 : 0, ha: p.harpoonArmed ? 1 : 0, hk: p.hook ? p.hook.by : 0,
         arm: p.recoilArmed ? 'recoil' : p.rocketArmed ? 'rocket' : p.seekArmed ? 'seeker' : p.trickArmed ? 'trick' : p.boomArmed ? 'boomerang' : p.execArmed ? 'execute' : p.briarArmed ? 'briar' : undefined,
-        sr: p.shroudT > 0 ? p.shroudR : undefined, rsh: p.rush ? 1 : 0, sk: p.strikeN || 0, nb: p.nblink ? 1 : 0, ft: p.fortT > 0 ? 1 : 0, wd: p.windT > 0 ? 1 : 0, ph: p.phaseT > 0 ? 1 : 0, gr: p.grap ? [r1(p.grap.x), r1(p.grap.y)] : 0, rp: r2(p.revP || 0), rv: p.reviveUsed ? 1 : 0, fl: p.flash > 0 ? 1 : 0, dc: r2(p.dashCd), dm: p.dashCdMax, d: p.dead ? 1 : 0,
+        sr: p.shroudT > 0 ? p.shroudR : undefined, bo: p.boss ? (p.boss.mode || 'mid')[0] : undefined, rsh: p.rush ? 1 : 0, sk: p.strikeN || 0, nb: p.nblink ? 1 : 0, ft: p.fortT > 0 ? 1 : 0, wd: p.windT > 0 ? 1 : 0, ph: p.phaseT > 0 ? 1 : 0, gr: p.grap ? [r1(p.grap.x), r1(p.grap.y)] : 0, rp: r2(p.revP || 0), rv: p.reviveUsed ? 1 : 0, fl: p.flash > 0 ? 1 : 0, dc: r2(p.dashCd), dm: p.dashCdMax, d: p.dead ? 1 : 0,
         k: p.kills, de: p.deaths, am: p.amber, er: p.earned, up: p.up.slice(), hn: p.hones ? Object.assign({}, p.hones) : p.hones, el: p.element, ro: p.role,
         of: p.offer ? JSON.parse(JSON.stringify(p.offer)) : p.offer, pk: p.picked ? 1 : 0, po: p.poisonN, dz: p.disarm > 0 ? 1 : 0, hc: p.hcap || 0, dfl: p.deflectT > 0 ? 1 : 0, pr: p.parryT > 0 ? (p.parryAuto ? 2 : 1) : 0, su: p.stunT > 0 ? 1 : 0, rg: rangeOf(w, p) || undefined, sm: p.role === 'ninja' || p.role === 'crossbow' ? undefined : r2(shotSpeed(p, 1) / 1300), dg: p.role === 'ninja' || p.role === 'crossbow' ? undefined : (p.railArmed ? 0 : has(p, 'longbow') ? 0.2 : 0.45), xr: p.role === 'crossbow' ? (p.bolts >= p.xbowMax ? 1 : r2(p.reloadT)) : undefined, xn: p.role === 'crossbow' ? p.bolts : undefined, xm: p.role === 'crossbow' ? p.xbowMax : undefined, xf: p.fanArmed ? 1 : 0, rpt: p.repeatT > 0 ? 1 : 0, au: p.autoT > 0 ? r2(p.autoT) : 0, fo: p.focusT > 0 ? 1 : 0, ts: p.trapSet ? [r1(p.trapSet.x), r1(p.trapSet.y), r2(1 - p.trapSet.t / TRAP_SET)] : undefined, ti: p.title || undefined, pn: p.pinned > 0 && p.stuck > 0 ? 1 : 0, rc: has(p, 'secondwind') ? Math.round(reclaimable(w, p)) || undefined : undefined, hr: p.hrT > 0 ? r2(p.hrT) : undefined, hrx: p.hrT > 0 && p.hrFrom ? r1(p.hrFrom.x) : undefined, hry: p.hrT > 0 && p.hrFrom ? r1(p.hrFrom.y) : undefined, swd: p.swT > 0 ? 1 : 0, pa: p.pinned > 0 ? r2(p.pinAng || 0) : undefined, sg: p.staggerT > 0 ? 1 : 0, mk: p.markT > 0 ? 1 : 0, sth: p.stealthT > 0 ? 1 : 0, amb: p.ambushT > 0 ? 1 : 0, bs: p.bot && p.ai.style ? p.ai.style : undefined, dv: p.bot && !p.dparams ? p.diff : undefined, em: p.emp ? 1 : 0, sk: p.streak, lh: p.lastHow, ep: Math.min(p.empPts, EMPOWER_AT), rz: r1(p.r),
         ss: [p.stats.shots, p.stats.hits, Math.round(p.stats.dmg), Math.round(p.stats.taken), p.stats.ring, Math.round(p.stats.longest)],
@@ -9100,15 +9318,261 @@ function tierSvg(k, size = 22) {
 return {
   TIERS, tierOf, tierSvg,
   TM, TM_NAMES, TM_MINIONS, MASTERY, masteryOf, takeCard, applyStats,
-  AIM, AW, AH, WALL, GATES, MAPS, COOP_MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, SKILL_MIN, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
+  AIM, AW, AH, WALL, GATES, MAPS, COOP_MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, STAR_SPEED, OPTIONS, optPct, optValue, skillParams, SKILL_MIN, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, LAB_KEYS, applyArenaPool, arenaPool, rankedPool, arenaSense, PLAYS, BUILDS, facetParams, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg, emblemCol, emblemFull,
-  setInput, choose, canTake, forcedChoices, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, BANNER_FRAME, frameAllowed, featProgress, achSeed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
+  setInput, choose, canTake, forcedChoices, BOSS_MODES, bossSet, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, BANNER_FRAME, frameAllowed, featProgress, achSeed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
   _grant(w, id, cards) { const p = w.players.find(q => q.id === id); for (const c of cards) takeCard(w, p, c); applyStats(p); p.picked = false; return p; },
 };
 });
+</script>
+<script>window.BOWFALL_DUOS = {"roster":{"v":1,"difficulties":{"easy":{"name":"Easy","facets":[0.4,0.6],"mult":1},"normal":{"name":"Normal","facets":[0.55,0.75],"mult":1.5},"hard":{"name":"Hard","facets":[0.7,0.9],"mult":2.2},"legend":{"name":"Legend","facets":[0.85,0.97],"mult":3}},"continues":3,"duos":[{"id":"pair","name":"The Pair","map":"coop_field","effects":[],"tell":"Two rangers, nothing fancy. They pick a target and both go for it.","members":[{"name":"Wren","el":"frost","role":"ranger","ups":["quickshot","momentum","fleet"],"tac":{"mode":"focus"},"look":{"hair":2,"skin":1},"voice":"keen"},{"name":"Tally","el":"storm","role":"ranger","ups":["static","dash","quickshot"],"tac":{"mode":"focus"},"look":{"hair":5,"skin":3},"voice":"dry"}]},{"id":"hearth","name":"Hearth","map":"rift","effects":["hide"],"tell":"A warden stands by the sniper, walls up the both of them and keeps them healed. The sniper does the rest from behind the wall.","members":[{"name":"Ember","el":"flame","role":"warden","ups":["wall","mend","bond"],"tac":{"mode":"guard","shieldD":60,"wallK":1.6},"look":{"hair":1,"skin":2},"voice":"warm"},{"name":"Sable","el":"frost","role":"sniper","ups":["holdline","heavy","steady"],"tac":{"mode":"focus"},"look":{"hair":6,"skin":1},"voice":"quiet"}]},{"id":"fever","name":"Fever","map":"coop_run","effects":["gale","hide"],"tell":"Two wardens who hold the middle behind their walls. Poison and fire do the rest.","members":[{"name":"Mire","el":"poison","role":"warden","ups":["wall","mend","virulent"],"tac":{"mode":"guard","guardD":220,"wallK":1.4},"look":{"hair":3,"skin":4},"voice":"sly"},{"name":"Cinder","el":"flame","role":"warden","ups":["wall","totem","stoke"],"tac":{"mode":"guard","guardD":220,"wallK":1.4},"look":{"hair":1,"skin":3},"voice":"warm"}]},{"id":"brambles","name":"Brambles","map":"coop_sinks","effects":["vigil","hide"],"tell":"The trapper roots you next to the rim; the ranger is already lining up the push.","members":[{"name":"Thistle","el":"frost","role":"trapper","ups":["trap","briar","deeproots"],"tac":{"mode":"trapper"},"look":{"hair":4,"skin":2},"voice":"dry"},{"name":"Flint","el":"stone","role":"ranger","ups":["fleet","dash","quickshot"],"tac":{"mode":"finisher"},"look":{"hair":2,"skin":5},"voice":"keen"}]},{"id":"wall","name":"The Wall","map":"coop_yard","effects":["vigil","bounty"],"tell":"A frost colossus stands in your face and slows you down. The crossbow behind it does the talking.","members":[{"name":"Boulder","el":"frost","role":"juggernaut","ups":["colossus","riot","stance"],"tac":{"mode":"guard","body":1,"noShove":1,"guardD":90,"tacK":1.6},"look":{"hair":0,"skin":5},"voice":"gruff"},{"name":"Nix","el":"shadow","role":"crossbow","ups":["pointblank","hairtrig","repeater"],"tac":{"mode":"behind","behindD":70},"look":{"hair":7,"skin":1},"voice":"sly"}],"boost":0.06},{"id":"snares","name":"Two Snares","map":"coop_shallows","effects":["surge","hide"],"tell":"Traps everywhere and a harpoon each. Get rooted and you're dragged across the water.","members":[{"name":"Briar","el":"frost","role":"trapper","ups":["trap","harpoon","deeproots"],"tac":{"mode":"trapper"},"look":{"hair":4,"skin":3},"voice":"quiet"},{"name":"Sedge","el":"storm","role":"trapper","ups":["briar","harpoon","deeproots"],"tac":{"mode":"trapper"},"look":{"hair":3,"skin":2},"voice":"dry"}]},{"id":"carnival","name":"Carnival","map":"coop_gallery","effects":["quick","bounty"],"tell":"Boomerangs and fireworks off every wall, and they are always first to the power-ups.","members":[{"name":"Pip","el":"storm","role":"trickster","ups":["rocket","boomerang","static"],"tac":{"mode":"hunt"},"look":{"hair":5,"skin":1},"voice":"bright"},{"name":"Jinx","el":"flame","role":"trickster","ups":["rocket","boomerang","wildfire"],"tac":{"mode":"hunt"},"look":{"hair":1,"skin":4},"voice":"bright"}]},{"id":"shadows","name":"Shadows","map":"coop_hollow","effects":["vigil"],"tell":"Two assassins vanish together and come at you from two sides. The holes are where they want you.","members":[{"name":"Vesper","el":"stone","role":"assassin","ups":["stealth","blink","ambush"],"tac":{"mode":"syncstealth"},"look":{"hair":6,"skin":4},"voice":"quiet"},{"name":"Dusk","el":"stone","role":"assassin","ups":["stealth","blink","ambush"],"tac":{"mode":"syncstealth"},"look":{"hair":6,"skin":2},"voice":"quiet"}]},{"id":"undertow","name":"Undertow","map":"coop_drain","effects":["quick"],"tell":"The rift drags you towards the drain; the fire catches you on the way.","members":[{"name":"Null","el":"void","role":"ranger","ups":["rift","horizon","nullfield"],"tac":{"mode":"rift"},"look":{"hair":7,"skin":3},"voice":"cold"},{"name":"Spark","el":"flame","role":"trickster","ups":["wildfire","flashpoint","stoke"],"tac":{"mode":"finisher"},"look":{"hair":1,"skin":1},"voice":"bright"}]},{"id":"presence","name":"Presence","map":"coop_stand","effects":["vigil","hide"],"tell":"The juggernaut stands in front of the ranger and will not be moved. Get round it, and the ranger is already back in its shadow.","members":[{"name":"Bastion","el":"blood","role":"juggernaut","ups":["colossus","ram","riot"],"tac":{"mode":"guard","body":1,"guardD":230,"tacK":1.4},"look":{"hair":0,"skin":3},"voice":"gruff"},{"name":"Swift","el":"storm","role":"ranger","ups":["fleet","dash","grapple"],"tac":{"mode":"behind","behindD":70,"tacK":1.4},"look":{"hair":2,"skin":1},"voice":"keen"}],"boost":0.06},{"id":"blades","name":"Two Blades","map":"coop_maze","effects":["surge","bounty"],"tell":"Fire and ice: two ninjas who take every power-up in the dojo, then both come for one of you.","members":[{"name":"Kage","el":"flame","role":"ninja","ups":["sharpstar","swiftstep","flurry"],"tac":{"mode":"hunt"},"look":{"hair":6,"skin":2},"voice":"cold"},{"name":"Yuki","el":"frost","role":"ninja","ups":["sharpstar","swiftstep","bladeguard"],"tac":{"mode":"hunt"},"look":{"hair":4,"skin":1},"voice":"quiet"}]},{"id":"bloodlust","name":"Bloodlust","map":"coop_quarry","effects":["gale","quick"],"tell":"Two crossbows that close in and empty everything they have. Every hit heals them.","members":[{"name":"Red","el":"blood","role":"crossbow","ups":["transfusion","frenzy","hairtrig"],"tac":{"mode":"unload"},"look":{"hair":1,"skin":2},"voice":"gruff"},{"name":"Rust","el":"blood","role":"crossbow","ups":["transfusion","frenzy","hairtrig"],"tac":{"mode":"unload"},"look":{"hair":3,"skin":5},"voice":"gruff"}]},{"id":"battering","name":"Battering","map":"coop_pens","effects":["vigil","hide"],"tell":"Two juggernauts who barely bother to shoot. They rush and bash you into the pens, and heal on the spring between charges.","members":[{"name":"Ox","el":"blood","role":"juggernaut","ups":["rush","riot","colossus"],"tac":{"mode":"bully"},"look":{"hair":0,"skin":4},"voice":"gruff"},{"name":"Hail","el":"frost","role":"juggernaut","ups":["rush","riot","colossus"],"tac":{"mode":"bully"},"look":{"hair":4,"skin":1},"voice":"cold"}]},{"id":"longshots","name":"Long Shots","map":"coop_narrows","effects":["quick","force"],"tell":"Two snipers on the far bank, one each side. Cross the bridge and you are in both their sights.","members":[{"name":"Frost","el":"frost","role":"sniper","ups":["frostbite","volley","permafrost"],"tac":{"mode":"crossfire"},"look":{"hair":4,"skin":2},"voice":"cold"},{"name":"Ash","el":"flame","role":"sniper","ups":["pin","heavy","wildfire"],"tac":{"mode":"crossfire"},"look":{"hair":1,"skin":5},"voice":"dry"}]},{"id":"machine","name":"The Terminator","boss":true,"map":"coop_core","effects":[],"tell":"One machine, three builds. Get close and it grows and bashes; keep your distance and it snipes from behind a wall; in between it roots you and lines up the push. It changes every few seconds, so make it change badly.","members":[{"name":"Terminator","el":null,"role":"ranger","ups":[],"extra":[],"tac":{"mode":"focus"},"voice":"cold","boss":{"hp":[1,1.35]}}]}]},"fit":{"v":1,"duos":{"pair":{"tacs":[{},{}],"pct":88,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"shadows":{"tacs":[{"stealthGap":1.2},{"stealthGap":1.2}],"pct":84,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"undertow":{"tacs":[{},{}],"pct":69,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"fever":{"tacs":[{},{}],"pct":97,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"bloodlust":{"tacs":[{"unloadD":250},{"unloadD":250}],"pct":78,"sparSk":0.93,"sk":0.85,"n":30,"at":"2026-11-10"},"carnival":{"tacs":[{},{}],"pct":53,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"battering":{"tacs":[{"bullyD":196,"bashEager":3},{"bullyD":196,"bashEager":3}],"pct":89,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"longshots":{"tacs":[{"tacK":1.35},{"tacK":1.35}],"pct":77,"sparSk":0.93,"sk":0.85,"n":30,"at":"2026-11-10"},"snares":{"tacs":[{},{}],"pct":56,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"brambles":{"tacs":[{"waterK":1,"trapGap":193},{}],"pct":75,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"blades":{"tacs":[{"pickK":2.08},{"pickK":2.08}],"pct":75,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"hearth":{"tacs":[{},{}],"pct":95,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"}}}};</script>
+<script>
+// The co-op arcade: a team of people (one or two) against a ladder of fourteen AI duos, each with its own arena, map effects
+// and a tactic that is the whole point of the fight. A run has three continues. Everyone picks their archetype and all three
+// upgrades before each battle; battles are best of three games.
+// Shared by the server (a run online, with a friend: lib/coop.js) and the page (a run on this device: solo, or with players on
+// controllers). A "room" is { world, clients: Set of { cid, pid, name, user, watch }, host: cid, coop }; ctx says how to tell
+// people things and where to keep the score. ctx.roster is lib/duos.json, ctx.fit lib/duo-fit.json.
+(function (root) {
+function coopFactory(ctx) {
+  const { Sim, send, sendRoom, sysChat, broadcast, markDirty, isOwner } = ctx;
+  const ROSTER = ctx.roster, FIT = ctx.fit && ctx.fit.duos ? ctx.fit : { duos: {} };
+  const DIFFS = ROSTER.difficulties, DUOS = ROSTER.duos, CONTINUES = ROSTER.continues || 3;
+  const SOLO_HCAP = { easy: 50, normal: 40, hard: 30, legend: 20 }; // one person against two: more health and damage
+  const BASE_SCORE = 100, CARD_WAIT = 12, CONT_WAIT = 12; // (CONT_WAIT: seconds the Continue? countdown gives you after a loss)
+  const BOSS = DUOS.find(d => d.boss) || null, LADDER = DUOS.filter(d => !d.boss); // points a duo is worth before the difficulty multiplier; seconds the result card shows before moving on
+  const humansOf = room => [...room.clients].filter(c => c.pid && !c.watch);
+  // a run's order: the duos shuffled (a different ladder every time), the machine always last
+  const shuffled = () => { const a = LADDER.map(d => d.id); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } if (BOSS) a.push(BOSS.id); return a; };
+  let cur = null; // (the run being worked on: set at the top of every entry point)
+  const N = () => (cur && cur.order ? cur.order.length : DUOS.length);
+  const duoAt = i => { const k = Math.max(0, Math.min(N() - 1, i)); return cur && cur.order ? DUOS.find(d => d.id === cur.order[k]) || DUOS[k] : DUOS[k]; };
+  // the tactic a member plays: the roster's, with whatever training settled on top
+  const tacOf = (duo, i) => { const fit = FIT.duos[duo.id]; return Object.assign({}, duo.members[i].tac, fit && fit.tacs ? fit.tacs[i] : null); };
+  // what the page shows about a run (in every room message while one is on)
+  function info(room) {
+    const C = room.coop; if (!C) return undefined;
+    const d = duoAt(C.idx);
+    return { st: C.st, diff: C.diff, idx: C.idx, n: N(), lives: C.lives, score: C.score, solo: C.solo ? 1 : 0, beaten: C.beaten, fights: C.fights, paused: C.paused || undefined, test: C.test ? 1 : undefined,
+      cont: C.st === 'lost' && !C.test ? Math.max(0, CONT_WAIT - (Date.now() - C.cardAt) / 1000) : undefined,
+      duo: { id: d.id, name: d.name, boss: d.boss ? 1 : undefined, tell: d.tell, map: d.map, mapName: Sim.MAPS[d.map] ? Sim.MAPS[d.map].name : d.map, effects: d.effects, members: d.members.map(m => ({ name: m.name, el: m.el, ro: m.role, ups: m.ups })) },
+      ready: [...C.ready], picks: Object.fromEntries([...C.picks].map(([cid, v]) => [cid, v])), result: C.result || undefined, best: C.best || undefined };
+  }
+  // the brief: the duo's arena and effects set up, everyone back in the lobby to choose (the bots are seated when the battle starts)
+  function brief(room) {
+    const C = room.coop, w = room.world, d = duoAt(C.idx);
+    if (w.match.ph !== 'lobby') Sim.toLobby(w);
+    for (const p of w.players.filter(q => q.bot && q.coopDuo)) Sim.removeBot(w, p.id);
+    for (const c of humansOf(room)) Sim.setTeam(w, c.pid, 'red');
+    Sim.setMap(w, d.map);
+    w.cfg.opt.effect = d.effects.length ? d.effects.join('+') : 'none'; w.cfg.mut = d.effects.length ? d.effects.join('+') : null;
+    w.cfg.pointsToWin = 1; w.cfg.gamesToWin = 2;
+    seat(room);
+    C.st = 'brief'; C.ready = new Set(); C.result = null;
+    sysChat(room, `${C.idx + 1} of ${N()}: ${d.name} on ${Sim.MAPS[d.map].name}${d.effects.length ? ' (' + d.effects.map(k => Sim.MUTATORS[k].name).join(', ') + ')' : ''}. ${d.tell}`);
+    sendRoom(room);
+  }
+  // the duo, seated on Blue with its upgrades, tactic and difficulty
+  function seat(room) {
+    const C = room.coop, w = room.world, d = duoAt(C.idx), D = DIFFS[C.diff];
+    for (const p of w.players.filter(q => q.bot && q.coopDuo)) Sim.removeBot(w, p.id);
+    d.members.forEach((m, i) => {
+      const b = Sim.addBot(w, 'blue'); if (!b) return;
+      b.name = m.name; b.coopDuo = true; Sim.setLoadout(w, b.id, m.el, m.role); b.forceUp = m.ups.slice();
+      // their skill: the difficulty's band, rising with the place on the ladder (whoever you meet first is the gentlest, whoever
+      // you meet last the sharpest), the second member a touch sharper; team sense always full (the tactic depends on it)
+      const k = N() > 1 ? C.idx / (N() - 1) : 1, f = Math.min(1, D.facets[0] + (D.facets[1] - D.facets[0]) * k + 0.02 * i + (d.boost || 0)); // (boost: a duo whose tactic costs it firepower plays a touch sharper)
+      if (m.boss) { // the machine: the top of the band and past it, inhuman at dodging, more health against two of you
+        // (a hard fight, not an impossible one: the middle of the difficulty's band and a little more, sharper feet than eye)
+        const solo = humansOf(room).length <= 1, mid = Math.min(1, (D.facets[0] + D.facets[1]) / 2 + 0.04);
+        b.element = null; // (no element: it's a machine)
+        b.dparams = Sim.facetParams({ aim: mid, pos: mid, dodge: Math.min(1, mid + 0.12), mind: 1 });
+        b.boss = { hp: m.boss.hp[solo ? 0 : 1], sense: Math.min(1, 0.1 + 0.5 * mid * mid), el: m.extra || [], mode: null, at: 0 };
+        b.forceUp = null;
+        Sim.setBotMind(w, b.id, { aggr: 0.7, tr: { cover: 0.3, edge: 0.8, dash: 1, charge: 0.3 }, tactic: m.tac });
+        Sim.applyStats(b); b.hp = b.maxHp;
+        return;
+      }
+      b.dparams = Sim.facetParams({ aim: f, pos: f + 0.03, dodge: f - 0.03, mind: 1 });
+      Sim.setBotMind(w, b.id, { aggr: 0.7, tr: { cover: 0.4, edge: 0.5, dash: 0.7, charge: 0.2 }, tactic: tacOf(d, i) });
+    });
+  }
+  // the battle: everyone's chosen upgrades applied at the first pick, the solo handicap set, and off
+  function fight(room) {
+    const C = room.coop, w = room.world;
+    if (w.match.ph !== 'lobby') return;
+    const hum = humansOf(room); if (!hum.length) return;
+    C.solo = hum.length === 1;
+    seat(room); // (fresh for the battle: the machine's health depends on how many of you there are)
+    for (const c of hum) {
+      const p = w.players.find(q => q.id === c.pid); if (!p) continue;
+      Sim.setTeam(w, p.id, 'red');
+      const picks = C.picks.get(c.cid) || [];
+      p.forceUp = picks.filter(id => Sim.TREE[id]).slice(0, 3);
+      Sim.setHandicap(w, p.id, C.solo ? SOLO_HCAP[C.diff] : 0);
+    }
+    if (!Sim.startMatch(w)) { sysChat(room, 'Could not start the battle.'); return; }
+    C.st = 'play'; C.fights++;
+    const d = duoAt(C.idx), say = d.members[Math.floor(Math.random() * d.members.length)];
+    chat(room, say, LINES.start[say.voice] || LINES.start.dry);
+    sendRoom(room);
+  }
+  // after the battle: the result, the score, a continue spent or the next duo
+  function settle(room) {
+    const C = room.coop, w = room.world, d = duoAt(C.idx), D = DIFFS[C.diff];
+    const won = w.match.mw === 'red';
+    if (won) {
+      const pts = Math.round(BASE_SCORE * D.mult * (d.boss ? 3 : 1) * (w.match.gw.blue === 0 ? 1.25 : 1)); // (a clean sweep is worth a quarter more; the machine three duos)
+      C.score += pts; C.beaten = Math.max(C.beaten, C.idx + 1);
+      C.result = { won: 1, pts, duo: d.name, last: C.idx + 1 >= N() };
+      const say = d.members[Math.floor(Math.random() * d.members.length)]; chat(room, say, LINES.lost[say.voice] || LINES.lost.dry);
+      sysChat(room, `${d.name} beaten: +${pts}. Score ${C.score}.`);
+      if (C.idx + 1 >= N()) { C.st = 'done'; sysChat(room, `The ladder is clear on ${D.name}! Final score ${C.score}.`); record(room, true); }
+      else { C.st = 'won'; C.idx++; }
+    } else {
+      if (!C.test) C.lives--;
+      const say = d.members[Math.floor(Math.random() * d.members.length)]; chat(room, say, LINES.won[say.voice] || LINES.won.dry);
+      C.result = { won: 0, duo: d.name, lives: C.lives };
+      if (C.lives < 0) { C.st = 'done'; sysChat(room, `No continues left. The run ends at ${d.name}, ${C.beaten} of ${N()} beaten, score ${C.score}.`); record(room, false); }
+      else { C.st = 'lost'; sysChat(room, C.test ? `${d.name} win this one. Test mode: try again as often as you like.` : `${d.name} win${d.boss ? 's' : ''} this one. Continue? ${C.lives} left.`); }
+    }
+    C.cardAt = Date.now();
+    sendRoom(room);
+  }
+  // the run in people's records: best score on each difficulty, and the furthest duo reached
+  function record(room, cleared) {
+    const C = room.coop;
+    if (C.test) return; // (test runs don't count)
+    if (ctx.record) return ctx.record(room, C, cleared); // (the page keeps its own, and tells the server when signed in)
+    for (const c of humansOf(room)) {
+      const u = c.user || c.guest; if (!u) continue;
+      const k = (u.career || (u.career = {})).coop || (u.career.coop = {});
+      const b = k[C.diff] || (k[C.diff] = { best: 0, far: 0, runs: 0, clears: 0 });
+      b.runs++; if (cleared) b.clears++; if (C.score > b.best) b.best = C.score; if (C.beaten > b.far) b.far = C.beaten;
+      if (!C.best) C.best = {}; C.best[c.cid] = b.best;
+      markDirty(u);
+    }
+  }
+  function endRun(room) {
+    const C = room.coop; if (!C) return;
+    const w = room.world;
+    if (w.match.ph !== 'lobby') Sim.toLobby(w);
+    for (const p of w.players.filter(q => q.bot && q.coopDuo)) Sim.removeBot(w, p.id);
+    for (const c of humansOf(room)) { const p = w.players.find(q => q.id === c.pid); if (p) { p.forceUp = null; Sim.setHandicap(w, p.id, 0); } }
+    w.cfg.pointsToWin = 3; w.cfg.gamesToWin = 2; w.cfg.opt.effect = 'random'; w.cfg.mut = null;
+    if (Sim.MAPS[w.cfg.map] && Sim.MAPS[w.cfg.map].coop) Sim.setMap(w, 'meadow');
+    room.coop = null;
+    sendRoom(room);
+  }
+  // one of the duo speaks (shown like any AI player's line)
+  function chat(room, m, lines) {
+    if (!lines || !lines.length) return;
+    const p = room.world.players.find(q => q.bot && q.name === m.name);
+    broadcast(room, { t: 'chat', n: m.name, tm: 'blue', c: p ? p.color : null, m: lines[Math.floor(Math.random() * lines.length)], ai: 1 });
+  }
+  // what they say, by the kind of character they are
+  const LINES = {
+    start: {
+      keen: ['Ready? Good.', 'Eyes up.', 'Here we go.'], dry: ['Let\'s get this over with.', 'Try to make it interesting.', 'Same again, then.'],
+      warm: ['Good luck out there!', 'Play nicely.', 'Oh, hello.'], quiet: ['...', 'Hm.'], sly: ['Come closer.', 'This will be fun. For me.', 'Watch your step.'],
+      gruff: ['Right.', 'Come on then.', 'Hold still.'], bright: ['Showtime!', 'Ta-da!', 'Watch this!'], cold: ['Begin.', 'You should not have come.', 'It is already over.'],
+    },
+    won: {
+      keen: ['Too slow.', 'Called it.'], dry: ['Well. That happened.', 'Again?'], warm: ['Unlucky! Go again?', 'So close!'], quiet: ['...', 'Quiet now.'],
+      sly: ['Told you.', 'Right where I wanted you.'], gruff: ['Stay down.', 'Next.'], bright: ['Ha! Encore!', 'And for my next trick...'], cold: ['As expected.', 'Predictable.'],
+    },
+    lost: {
+      keen: ['Well shot.', 'Fair.'], dry: ['Fine. Fine.', 'Beginner\'s luck.'], warm: ['Oh, well done!', 'You earned that.'], quiet: ['...!'],
+      sly: ['Hmph. Lucky.', 'I let you.'], gruff: ['Grr.', 'Not bad.'], bright: ['Boo! Hiss!', 'The crowd turns on me!'], cold: ['Impossible.', 'This changes nothing.'],
+    },
+    kill: {
+      keen: ['Got one!', 'Down!'], dry: ['Oops.', 'Mind the gap.'], warm: ['Sorry!', 'Oh dear.'], quiet: [], sly: ['Splash.', 'There.'], gruff: ['Ha.', 'Move.'], bright: ['Wheee!', 'Ten points!'], cold: ['Gone.', 'One.'],
+    },
+  };
+  // the duo reacts to the fight now and then (not every time: a line a knockout at most, with a gap between)
+  function events(room, evs) {
+    const C = room.coop; if (!C || C.st !== 'play') return;
+    const d = duoAt(C.idx), w = room.world;
+    for (const e of evs) {
+      if (e.e !== 'kill' || !e.k) continue;
+      const k = w.players.find(q => q.id === e.k); if (!k || !k.bot) continue;
+      const m = d.members.find(x => x.name === k.name); if (!m) continue;
+      if ((C.saidAt || 0) > Date.now() - 9000 || Math.random() < 0.5) continue;
+      C.saidAt = Date.now();
+      setTimeout(() => chat(room, m, LINES.kill[m.voice] || LINES.kill.dry), 1200);
+    }
+  }
+  // every so often: a finished battle settles; a result card moves on by itself after a while
+  function tick(room) {
+    const C = room.coop; if (!C) return;
+    const w = room.world;
+    if (C.st === 'play' && w.match.ph === 'over') settle(room);
+    else if (C.st === 'done' && w.match.ph !== 'lobby' && Date.now() - (C.doneAt != null ? C.doneAt : C.cardAt) > 6000) { Sim.toLobby(w); sendRoom(room); } // (the run's over: back to the lobby for the final card)
+    else if (C.st === 'won' && Date.now() - C.cardAt > CARD_WAIT * 1000) brief(room);
+    else if (C.st === 'lost' && !C.test && Date.now() - C.cardAt > CONT_WAIT * 1000) { // nobody took the continue: that's the run
+      const d = duoAt(C.idx); C.st = 'done'; C.doneAt = 0; C.result = { won: 0, duo: d.name, lives: C.lives, gaveUp: 1 };
+      sysChat(room, `The run ends at ${d.name}: ${C.beaten} of ${N()} beaten, score ${C.score}.`); record(room, false); sendRoom(room);
+    }
+    else if (C.st === 'play' && !humansOf(room).length) endRun(room);
+  }
+  // messages from the page: { t: 'coop', op }
+  function handle(room, ws, m) {
+    const w = room.world, C = room.coop, isHost = room.host === ws.cid;
+    const tell = msg => send(ws, { t: 'note', msg });
+    switch (String(m.op)) {
+      case 'start': {
+        if (!isHost) return tell('Only the host can start a run.');
+        if (room.ranked) return tell('Not in a ranked match.');
+        if (w.match.ph !== 'lobby') return tell('Wait for this game to end.');
+        const diff = DIFFS[m.diff] ? String(m.diff) : 'normal';
+        const hum = humansOf(room);
+        if (!hum.length || hum.length > 2) return tell('The arcade is for one or two archers.');
+        for (const c of [...room.clients]) if (c.pid && c.watch) { Sim.leave(w, c.pid, true); c.pid = null; send(c, { t: 'you', id: null }); }
+        const test = !!m.test && isOwner(ws.user); // (the owner's test runs: no end to the retries, nothing recorded)
+        cur = room.coop = { diff, idx: 0, lives: CONTINUES, score: 0, beaten: 0, fights: 0, st: 'brief', ready: new Set(), picks: new Map(), solo: hum.length === 1, startedAt: Date.now(), order: shuffled(), test };
+        sysChat(room, `Co-op arcade, ${DIFFS[diff].name}: ${N() - (BOSS ? 1 : 0)} duos in a new order, then the machine. ${test ? 'Test mode: unlimited retries.' : CONTINUES + ' continues.'} Choose your archetype and three upgrades before each battle.`);
+        brief(room);
+        return;
+      }
+      case 'pick': { // this person's three upgrades for the coming battle (checked again when they're applied)
+        if (!C || !ws.pid) return;
+        const ups = (Array.isArray(m.ups) ? m.ups : []).map(String).filter(id => Sim.TREE[id]).slice(0, 3);
+        C.picks.set(ws.cid, ups); C.ready.delete(ws.cid);
+        sendRoom(room);
+        return;
+      }
+      case 'ready': {
+        if (!C || !ws.pid || C.st !== 'brief') return;
+        C.ready.add(ws.cid);
+        if (humansOf(room).every(c => C.ready.has(c.cid))) fight(room); else sendRoom(room);
+        return;
+      }
+      case 'go': if (C && isHost && C.st === 'brief') fight(room); return; // the host starts without waiting
+      case 'pause': if (C && ws.pid && C.st === 'play' && !C.paused) { C.paused = ws.name; sysChat(room, `${ws.name} paused the battle.`); sendRoom(room); } return;
+      case 'resume': if (C && C.paused && (C.paused === ws.name || isHost)) { C.paused = null; sysChat(room, 'On with it.'); sendRoom(room); } return;
+      case 'next': if (C && ((C.st === 'won' && isHost) || (C.st === 'lost' && ws.pid))) brief(room); return; // (anyone playing can take the continue)
+      case 'giveup': if (C && C.st === 'lost' && isHost) { C.cardAt = 0; C.test = false; tick(room); } return;
+      case 'skip': { // the owner, for testing: forward or back a duo
+        if (!C || !isOwner(ws.user)) return;
+        if (w.match.ph !== 'lobby' && C.st === 'play') { Sim.toLobby(w); }
+        C.idx = m.to != null ? Math.max(0, Math.min(N() - 1, m.to | 0)) : Math.max(0, Math.min(N() - 1, C.idx + (m.dir < 0 ? -1 : 1)));
+        brief(room);
+        return;
+      }
+      case 'quit': if (C && isHost) { sysChat(room, `The run ends: ${C.beaten} of ${N()} beaten, score ${C.score}.`); if (C.fights) record(room, false); endRun(room); } return;
+      default: return;
+    }
+  }
+  // someone leaving mid-run: a run with nobody left in it ends; in a two-person run the other carries on alone (with the solo handicap next battle)
+  function left(room) { const C = room.coop; if (!C) return; if (!humansOf(room).length) endRun(room); else if (C.paused && !humansOf(room).some(c => c.name === C.paused)) { C.paused = null; sendRoom(room); } }
+  return { handle: (room, ws, m) => { cur = room.coop; return handle(room, ws, m); }, tick: room => { cur = room.coop; return tick(room); }, info: room => { cur = room.coop; return info(room); }, events: (room, evs) => { cur = room.coop; return events(room, evs); }, left: room => { cur = room.coop; return left(room); }, endRun: room => { cur = room.coop; return endRun(room); }, DUOS, DIFFS, CONTINUES };
+}
+if (typeof module !== 'undefined' && module.exports) module.exports = coopFactory; else root.CoopLadder = coopFactory;
+})(typeof window !== 'undefined' ? window : this);
+
 </script>
 <script>
 (() => {
@@ -9117,7 +9581,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.95.2';
+const PAGE_VERSION = '0.98.0';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -9920,7 +10384,7 @@ function padClear(x1, y1, x2, y2, pillars) {
 const wrapA = a => ((a + Math.PI) % TAU + TAU) % TAU - Math.PI;
 // how fast the shot about to be fired will fly: the draw so far (a quick tap when the bow isn't drawn yet), the role, the rules
 function padShotSpeed(me, aspeedMul) {
-  if (me.ro === 'ninja') return 1050 * aspeedMul;
+  if (me.ro === 'ninja') return Sim.STAR_SPEED * aspeedMul;
   const c = me.dr ? Math.max(0.3, me.ch || 0) : 0.4;
   return (380 + 920 * c) * (me.ro === 'sniper' ? 1.25 : 1) * aspeedMul;
 }
@@ -12248,6 +12712,8 @@ function drawTargets() {
 // one place for every lobby/menu/shop action: applied directly in practice, sent to the server online
 function act(m) {
   if (mode === 'local' && world) {
+    if (m.t === 'coop') { coopLocalAct(m); return; }
+    if (LCO.room && LCO.room.coop && ['start', 'restart', 'lobby', 'cfg', 'hcap'].includes(m.t)) return; // (the run sets these itself)
     switch (m.t) {
       case 'team': Sim.setTeam(world, myId, m.team); break;
       case 'bot': if (m.op === 'add') Sim.addBot(world, m.team); else if (m.op === 'diff') Sim.setBotSkill(world, m.id, m.diff); else Sim.removeBot(world, m.id); break;
@@ -12458,7 +12924,7 @@ function connect(joinMsg) {
       m.rcv = performance.now(); roomInfo = m;
       if (m.arena && m.arena.def) useRoomArena(m.arena);
       if (pendingArena && m.amHost) { act({ t: 'cfg', arena: pendingArena }); pendingArena = null; }
-      if (COOP.pending && m.amHost) { act({ t: 'coop', op: 'start', diff: COOP.pending }); COOP.pending = null; }
+      if (COOP.pending && m.amHost) { act({ t: 'coop', op: 'start', diff: COOP.pending, test: COOP.test && coopOwner() }); COOP.pending = null; }
       if (m.coop) { const k = m.coop.idx + ':' + m.coop.st + ':' + (m.coop.fights || 0); if (COOP.key !== k) { COOP.key = k; COOP.sent = null; } } // (your picks are remembered from battle to battle)
       $('roomTag').innerHTML = 'Room <b>' + esc(m.code) + '</b>' + (m.coop ? ` · Duo <b>${m.coop.idx + 1}/${m.coop.n}</b> · ${m.coop.lives} continue${m.coop.lives === 1 ? '' : 's'} · <b>${m.coop.score}</b>` : '');
       hc.lb = hc.gm = hc.lbHead = hc.gmHead = null;
@@ -13609,6 +14075,7 @@ $('gChatIn').addEventListener('blur', () => setTimeout(() => { if (document.acti
 $('specBar').addEventListener('click', e => { const b = e.target.closest('button[data-join]'); if (b && !b.disabled) act({ t: 'team', team: b.dataset.join }); });
 
 function toMenu() {
+  LCO.room = null; coopInfoAt = -1;
   const wasRanked = mode === 'online' && !!(roomInfo && roomInfo.ranked);
   TUT.on = false; TR.on = false;
   if (AB.testing) { AB.testing = false; setTimeout(() => openSub('arenaScr'), 0); }
@@ -14073,7 +14540,7 @@ function openMenu() {
   if (view && view.m.ph === 'lobby') return;
   menuOpen = true; mouse.down = false;
   if (mode === 'local') paused = true;
-  if (mode === 'online' && roomInfo && roomInfo.coop) act({ t: 'coop', op: 'pause' }); // (the arcade pauses for everyone: it's your run)
+  if (mode === 'online' && coopInfo()) act({ t: 'coop', op: 'pause' }); // (the arcade pauses for everyone: it's your run)
   hc.gm = hc.gmHead = hc.gmBuild = null;
   // the tutorial's pause menu keeps to what matters there; a ranked match says what leaving costs
   const tut = mode === 'local' && TUT.on;
@@ -14083,7 +14550,7 @@ function openMenu() {
   $('leaveBtn').title = rk ? 'Leaving a ranked match counts as a loss and means a short wait before your next search, unless you rejoin within 45 seconds of play.' : '';
   $('gameMenu').hidden = false; $('resumeBtn').focus();
 }
-function closeMenu() { if (menuOpen && mode === 'online' && roomInfo && roomInfo.coop) act({ t: 'coop', op: 'resume' }); menuOpen = false; paused = false; $('gameMenu').hidden = true; if (optFromGame) { optFromGame = false; $('optScr').hidden = true; } }
+function closeMenu() { if (menuOpen && mode === 'online' && coopInfo()) act({ t: 'coop', op: 'resume' }); menuOpen = false; paused = false; $('gameMenu').hidden = true; if (optFromGame) { optFromGame = false; $('optScr').hidden = true; } }
 // Options from the in-game menu (the aim line, sound, graphics): the menu steps aside while it's open and comes back after
 let optFromGame = false;
 $('gmOptBtn').onclick = () => { optFromGame = true; $('gameMenu').hidden = true; openSub('optScr'); };
@@ -14116,7 +14583,7 @@ function drawCrown(x, y, w) {
 // ro: the in-game menu's read-only view (teams, bots and handicaps are set up in the lobby; only someone watching can still join a team)
 function teamsHtml(v, ro) {
   const host = isHost() && !ro, me = v.p.find(p => p.id === myId), hostId = mode === 'local' ? myId : roomInfo && roomInfo.host;
-  const ranked = mode === 'online' && !!(roomInfo && roomInfo.ranked), myTeam = me && me.tm, coop = mode === 'online' && !!(roomInfo && roomInfo.coop);
+  const ranked = mode === 'online' && !!(roomInfo && roomInfo.ranked), myTeam = me && me.tm, coop = !!coopInfo();
   return TEAMS.map(t => {
     const list = v.p.filter(p => p.tm === t).sort((a, b) => a.b - b.b);
     // in a ranked lobby the other team's picks stay hidden until the match starts
@@ -14129,7 +14596,7 @@ function teamsHtml(v, ro) {
     const full = list.length >= MAX_TEAM;
     const canJoin = ranked || (coop && (t !== 'red' || (me && me.tm === 'red'))) ? false : me ? !ro && me.tm !== t && !full : mode === 'online' && ['lobby', 'over', 'post'].includes(v.m.ph) && (!full || list.some(p => p.b));
     const foot = (canJoin ? `<button type="button" class="ghost sm" data-join="${t}">Join ${teamName(t)}</button>` : '') +
-      (host && !full && (!coop || (t === 'red' && account && account.admin)) ? `<button type="button" class="ghost sm" data-addbot="${t}">+ Add bot</button>` : '');
+      (host && !full && (!coop || (t === 'red' && (OFFLINE || (account && account.admin)))) ? `<button type="button" class="ghost sm" data-addbot="${t}">+ Add bot</button>` : '');
     // (in the lobby the buttons sit in the team's header line, so the box is always exactly four rows tall)
     if (!$('lobby').hidden && v.m.ph === 'lobby') return `<div class="tcol" data-navsec style="--tc:${TEAM_COL[t]}"><div class="thead"><b>${teamName(t)}</b><span>${list.length} / ${MAX_TEAM}</span><span class="thb">${foot}</span></div>${slots}${open}</div>`;
     return `<div class="tcol" data-navsec style="--tc:${TEAM_COL[t]}"><div class="thead"><b>${teamName(t)}</b><span>${list.length} / ${MAX_TEAM}</span></div>${slots}${open}` +
@@ -14413,15 +14880,15 @@ function renderLobby(v) {
     $('lbRoomCfg').hidden = !x; $('lbRoomBtn').hidden = !x;
     if (x && roomInfo && document.activeElement !== $('lbRmName')) { $('lbRmName').value = roomInfo.name || ''; $('lbRmPub').value = roomInfo.pub ? '1' : '0'; $('lbRmMax').value = String(roomInfo.max || 8); $('lbRmNoPw').hidden = !roomInfo.locked; }
   });
-  setC('lbHead', mode + (roomInfo && roomInfo.code) + (roomInfo && [roomInfo.name, roomInfo.pub, roomInfo.locked, roomInfo.coop && roomInfo.coop.duo.name].join()), () => {
-    $('lbEyebrow').textContent = online ? (roomInfo && roomInfo.ranked ? 'Ranked ' + roomInfo.ranked : roomInfo && roomInfo.coop ? 'Co-op arcade' : 'Online lobby') : 'Practice lobby';
-    $('lbEyebrow').nextElementSibling.textContent = roomInfo && roomInfo.coop ? 'Next: ' + roomInfo.coop.duo.name : 'Set up the match';
+  setC('lbHead', mode + (roomInfo && roomInfo.code) + (roomInfo && [roomInfo.name, roomInfo.pub, roomInfo.locked, coopInfo() && coopInfo().duo.name].join()), () => {
+    $('lbEyebrow').textContent = coopInfo() ? (online ? 'Co-op arcade · online' : 'Co-op arcade · on this device') : online ? (roomInfo && roomInfo.ranked ? 'Ranked ' + roomInfo.ranked : 'Online lobby') : 'Practice lobby';
+    $('lbEyebrow').nextElementSibling.textContent = coopInfo() ? 'Next: ' + coopInfo().duo.name : 'Set up the match';
     $('lbRoom').hidden = !online; $('lbShare').hidden = !online;
     if (online && roomInfo) { $('lbCode').textContent = roomInfo.code; $('lbShare').textContent = `${roomInfo.name ? roomInfo.name + ' · ' : ''}${roomInfo.pub ? 'Public' : 'Private'}${roomInfo.locked ? ', password protected' : ''}. Friends can join with the code, or send them the invite link.`; }
   });
   syncTitle(v.p.find(p => p.id === myId));
   setC('lb', JSON.stringify(v.p.map(p => [p.id, p.n, p.ow, p.sp, p.fd, p.pt, p.fin, p.sc, p.tm, p.b, p.dv, p.c, p.el, p.ro, p.hc, p.ti, p.cc, p.lv, p.bd, p.na])) + host + myId + JSON.stringify(roomInfo && [roomInfo.host, roomInfo.spec]), () => { $('lbTeams').innerHTML = teamsHtml(v); });
-  setC('lbChat', online, x => { $('lbChat').hidden = !x; });
+  setC('lbChat', online || !!coopInfo(), x => { $('lbChat').hidden = !x; $('lbChatIn').hidden = !online; });
   setC('lbLp', JSON.stringify(LP.list.map(l => [l.n, l.name, l.el, l.ro, l.pid, l.pad, (v.p.find(p => p.id === l.pid) || {}).tm])), () => { lpTiles(v); });
   setC('lpDock', JSON.stringify(LP.list.filter(l => l.picker).map(l => [l.n, l.el, l.ro, l.picker.row])) + JSON.stringify(v.m.ban || []), () => lpDock(v));
   const meL = v.p.find(p => p.id === myId);
@@ -14473,8 +14940,8 @@ function renderLobby(v) {
     $('banHint').textContent = usingPad() ? `Host: press ${padBtn('y')} on an element or role to take it out of this game, again to put it back.` : 'Host: Alt+click an element or role to take it out of this game, again to put it back.';
   });
   renderCoop(v, meL, host);
-  setC('lbStart', String(v.m.cs) + host + !!meL + online + !!(roomInfo && roomInfo.coop), () => {
-    const C = roomInfo && roomInfo.coop;
+  setC('lbStart', String(v.m.cs) + host + !!meL + online + !!coopInfo(), () => {
+    const C = coopInfo();
     $('lbStart').hidden = !host || !!C;
     $('lbStart').disabled = !v.m.cs;
     $('lbStatus').textContent = C ? (meL ? '' : 'Join Red to play.') : !meL && online ? 'Pick a team to play.' : !host ? (roomInfo && roomInfo.ranked ? 'Waiting for everyone to arrive. The match starts on its own.' : 'Waiting for the host to start the match.') : v.m.cs ? '' : 'Both teams need at least one archer. Add bots, or wait for players to join.';
@@ -14494,20 +14961,20 @@ function renderMenu(v) {
   const lpm = LP.list.find(l => l.menu), tut = mode === 'local' && TUT.on;
   // a ranked match has no room code (nobody can join by code); a drill or the tutorial has no teams to show. Teams, bots,
   // bot skill and handicaps are set up in the lobby, so mid-match the teams are just shown
-  setC('gmHead', mode + host + ranked + drill + (lpm ? lpm.n : 0) + $('warmBar').hidden + !!(roomInfo && roomInfo.coop), () => {
-    $('gmEyebrow').textContent = lpm ? `P${lpm.n} · ${lpm.name} · menu` : drill ? (TUT.on ? 'Tutorial · paused' : 'Drill · paused') : online && roomInfo && roomInfo.coop ? 'Paused · the arcade waits for you' : online ? 'Menu · the match keeps running' : 'Paused';
+  setC('gmHead', mode + host + ranked + drill + (lpm ? lpm.n : 0) + $('warmBar').hidden + !!coopInfo(), () => {
+    $('gmEyebrow').textContent = lpm ? `P${lpm.n} · ${lpm.name} · menu` : drill ? (TUT.on ? 'Tutorial · paused' : 'Drill · paused') : online && coopInfo() ? 'Paused · the arcade waits for you' : online ? 'Menu · the match keeps running' : 'Paused';
     $('gmRoom').hidden = !online || ranked || !!lpm;
     if (online && roomInfo) { $('gmCode').textContent = roomInfo.code; $('gmShare').textContent = 'Friends join with this code or the invite link.'; }
-    const coopOn = online && !!(roomInfo && roomInfo.coop);
+    const coopOn = !!coopInfo();
     $('endBtn').hidden = !host || ranked || !!lpm || coopOn;
-    $('gmCoopEnd').hidden = !(coopOn && host && !lpm); $('gmCoopSkip').hidden = !(coopOn && account && account.admin && !lpm);
+    $('gmCoopEnd').hidden = !(coopOn && host && !lpm); $('gmCoopSkip').hidden = !(coopOn && (OFFLINE || (account && account.admin)) && !lpm);
     $('leaveBtn').hidden = !!lpm;
     $('gmOptBtn').hidden = !!lpm; // (Options change the whole screen's settings: the main player's to change)
     $('gmWarmBack').hidden = $('gmWarmStop').hidden = !!lpm || $('warmBar').hidden;
     $('gmBalBtn').hidden = $('gmAchBtn').hidden = tut || !!lpm;
     $('gmDiffWrap').hidden = true;
     $('gmTeams').hidden = drill;
-    $('gmNote').childNodes[0].textContent = lpm ? (online ? 'Your archer waits while this menu is open. ' : '') : drill ? 'Leave the drill from its panel, or carry on. ' : online && roomInfo && roomInfo.coop ? 'The battle is paused for everyone while this menu is open. ' : ranked || online ? 'The match keeps running while this menu is open. ' : '';
+    $('gmNote').childNodes[0].textContent = lpm ? (online ? 'Your archer waits while this menu is open. ' : '') : drill ? 'Leave the drill from its panel, or carry on. ' : online && coopInfo() ? 'The battle is paused for everyone while this menu is open. ' : ranked || online ? 'The match keeps running while this menu is open. ' : '';
   });
   if (!drill) setC('gm', JSON.stringify(v.p.map(p => [p.id, p.n, p.tm, p.b, p.dv, p.c, p.hc])) + host + myId + v.m.ph + ranked + JSON.stringify(roomInfo && roomInfo.spec), () => { $('gmTeams').innerHTML = teamsHtml(v, true); });
   const me = v.p.find(p => p.id === (lpm ? lpm.pid : myId)), hn = (me && me.hn) || {}, ups = (me && me.up) || [];
@@ -14836,7 +15303,7 @@ function closeSubs() { for (const k of SUBS) $(k).hidden = true; drawProfChip();
 const subOpen = () => SUBS.some(k => !$(k).hidden);
 document.querySelectorAll('[data-back]').forEach(b => b.onclick = closeSubs);
 $('mCustom').onclick = () => openSub('customScr');
-$('mCoop').onclick = () => { if (OFFLINE) { notice('The co-op arcade needs the Bowfall server. Open your Bowfall site to play it.', false); return; } openSub('coopScr'); };
+$('mCoop').onclick = () => openSub('coopScr');
 $('mFind').onclick = () => { if (OFFLINE) { notice('Find game needs the Bowfall server. Open your Bowfall site to play ranked.', false); return; } openSub('findScr'); };
 $('mScores').onclick = () => openSub('scoresScr');
 $('mOpts').onclick = () => openSub('optScr');
@@ -14853,36 +15320,72 @@ $('pracBtn').onclick = () => { closeSubs(); startPractice(); };
 // ================= co-op arcade =================
 // One or two people against the ladder of AI duos (lib/duos.json on the server). The lobby shows the duo coming up, its
 // tell, its archetypes and upgrades; everyone picks an archetype as usual and all three upgrades here, then readies up.
-const COOP = { diff: store.get('bowfall-coop-diff', 'normal'), pending: null, picks: [], key: null };
+const COOP = { diff: store.get('bowfall-coop-diff', 'normal'), where: store.get('bowfall-coop-where', 'local'), test: store.get('bowfall-coop-test', '0') === '1', pending: null, picks: (() => { try { const a = JSON.parse(store.get('bowfall-coop-picks', '[]')); return Array.isArray(a) ? a.filter(id => TREE[id]).slice(0, 3) : []; } catch (e) { return []; } })(), key: null }; // (what you last played is remembered: difficulty, where, and your three upgrades)
+const coopKeep = () => store.set('bowfall-coop-picks', JSON.stringify(COOP.picks));
+const coopOwner = () => OFFLINE || !!(account && account.admin);
+const COOP_WHERE = { local: ['On this device', 'Runs right here: no lag, nothing over the internet. Solo, or with friends on controllers on this screen.'], online: ['Online', 'Runs on the Bowfall server in a private room, so a friend on another computer can join with its code or your invite link.'] };
 const COOP_DIFFS = { easy: ['Easy', 'The duos play loosely and the score counts once. A good first run.'], normal: ['Normal', 'Fair fights. Score ×1.5.'], hard: ['Hard', 'Sharp duos. Score ×2.2.'], legend: ['Legend', 'The duos play about as well as the game can. Score ×3.'] };
 function coopOpen() {
   if (!COOP_DIFFS[COOP.diff]) COOP.diff = 'normal';
   $('coopDiffs').innerHTML = Object.entries(COOP_DIFFS).map(([k, d]) => `<button type="button" class="chip2${k === COOP.diff ? ' sel' : ''}" data-cdiff="${k}">${d[0]}</button>`).join('');
   $('coopDiffNote').textContent = COOP_DIFFS[COOP.diff][1];
+  if (OFFLINE || !COOP_WHERE[COOP.where]) COOP.where = 'local';
+  $('coopWhere').innerHTML = Object.entries(COOP_WHERE).map(([k, d]) => `<button type="button" class="chip2${k === COOP.where ? ' sel' : ''}" data-cwhere="${k}"${k === 'online' && OFFLINE ? ' disabled title="Needs the Bowfall server"' : ''}>${d[0]}</button>`).join('');
+  $('coopWhereNote').textContent = COOP_WHERE[COOP.where][1] + (COOP.where === 'local' && LP.list.length ? ` ${LP.list.length} on controller${LP.list.length === 1 ? '' : 's'} will join you.` : '');
+  $('coopTestRow').hidden = !coopOwner(); $('coopTest').classList.toggle('sel', COOP.test && coopOwner());
   $('coopErr').textContent = '';
 }
+$('coopTest').onclick = () => { COOP.test = !COOP.test; store.set('bowfall-coop-test', COOP.test ? '1' : '0'); coopOpen(); };
+$('coopWhere').addEventListener('click', e => { const b = e.target.closest('[data-cwhere]'); if (!b || b.disabled) return; COOP.where = b.dataset.cwhere; store.set('bowfall-coop-where', COOP.where); coopOpen(); });
 $('coopDiffs').addEventListener('click', e => { const b = e.target.closest('[data-cdiff]'); if (!b) return; COOP.diff = b.dataset.cdiff; store.set('bowfall-coop-diff', COOP.diff); coopOpen(); });
 $('coopStart').onclick = () => {
-  COOP.pending = COOP.diff; COOP.picks = [];
+  if (COOP.where === 'local' || OFFLINE) return startLocalCoop(COOP.diff);
+  COOP.pending = COOP.diff;
   connect({ create: true, map: 'meadow', diff: 'normal', room: { name: 'Co-op arcade', pub: false, max: 4, pw: '' } });
 };
 $('coopJoin').onclick = () => { const code = $('coopCode').value.trim().toUpperCase(); if (code.length !== 4) { $('coopErr').textContent = 'Room codes are 4 letters.'; return; } connect({ code }); };
 $('coopCode').addEventListener('keydown', e => { if (e.key === 'Enter') $('coopJoin').click(); });
 const coopAct = (op, more) => act(Object.assign({ t: 'coop', op }, more || {}));
+// Continue? After a lost battle: your archers close up, knocked out, and a countdown. Anyone playing can take the continue;
+// let it run out (or give up) and the run is over. In test mode there's no countdown.
+const CONT = { on: false, n: -1 };
+function coopContTick() {
+  const C = coopInfo(), show = !!C && C.st === 'lost' && mode !== 'menu';
+  if (show !== CONT.on) { CONT.on = show; $('coopCont').hidden = !show; CONT.n = -1; if (show) { contDraw(); play('alarm'); setTimeout(() => $('contYes').focus(), 50); } }
+  if (!show) return;
+  const left = C.test ? null : Math.max(0, (C.cont || 0) - (mode === 'online' && roomInfo ? (performance.now() - roomInfo.rcv) / 1000 : 0)), n = left == null ? -2 : Math.min(9, Math.ceil(left) - 1);
+  if (n !== CONT.n) { CONT.n = n; const el = $('contNum'); el.textContent = left == null ? '∞' : Math.max(0, n); el.classList.remove('tick'); void el.offsetWidth; el.classList.add('tick'); if (left != null && n >= 0) play('tick'); }
+  $('contSub').textContent = C.test ? `Test mode: ${C.result ? C.result.duo : 'they'} won that one. Try again as often as you like.` : `${C.result ? C.result.duo : 'They'} won that one. ${C.lives} continue${C.lives === 1 ? '' : 's'} left after this.`;
+  $('contNo').hidden = !isHost();
+}
+function contDraw() {
+  const cv = $('contCv'), g = cv.getContext('2d'), keep = ctx, v = view;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv.width, cv.height);
+  const mine = v ? v.p.filter(p => p.tm === 'red' && !p.nk) : [], k = 4.2;
+  ctx = g;
+  try { mine.slice(0, 3).forEach((p, i) => { const cx = cv.width / 2 + (i - (Math.min(3, mine.length) - 1) / 2) * 230, cy = 165;
+    g.setTransform(k, 0, 0, k, cx, cy); g.rotate(0.25 * (i % 2 ? -1 : 1));
+    drawPlayer({ id: '_cont' + i, x: 0, y: 0, a: Math.PI / 2, c: p.c, el: p.el, ro: p.ro, tm: 'red', hp: 0, mh: 1, rz: 16, n: '', ch: 0, dr: 0, up: [], f: 0, xx: 1 }, false, true); }); }
+  catch (e) { /* decoration only */ }
+  finally { ctx = keep; g.setTransform(1, 0, 0, 1, 0, 0); }
+}
+$('contYes').onclick = () => coopAct('next');
+$('contNo').onclick = () => coopAct('giveup');
 function renderCoop(v, meL, host) {
-  const C = roomInfo && roomInfo.coop, box = $('lbCoop');
-  const key = C ? JSON.stringify([C.st, C.idx, C.lives, C.score, C.ready, C.picks, C.result, meL && meL.el, meL && meL.ro, host, COOP.picks, myId, account && account.admin, C.solo]) : '';
+  const C = coopInfo(), box = $('lbCoop');
+  const key = C ? JSON.stringify([C.st, C.idx, C.lives, C.score, C.ready, C.picks, C.result, meL && meL.el, meL && meL.ro, host, COOP.picks, myId, account && account.admin, C.solo, C.test, C.duo.id]) : '';
   setC('coop', key, () => {
     box.hidden = !C;
     // the usual match settings step aside: the run sets the arena, the effects and the rules
     $('lbMut').hidden = !!C; $('lbRulesBtn').hidden = !!C; $('lbRoomBtn').hidden = !!C || !host; $('lbMapBtn').hidden = !!C;
     const mt = document.querySelector('.lobby .lbmatch'); if (mt) mt.hidden = !!C;
     if (!C) return;
-    const d = C.duo, D = COOP_DIFFS[C.diff] || ['', ''], hearts = '♥'.repeat(Math.max(0, C.lives)) + '♡'.repeat(Math.max(0, 3 - C.lives));
+    const d = C.duo, D = COOP_DIFFS[C.diff] || ['', ''], hearts = C.test ? '∞ test' : '♥'.repeat(Math.max(0, C.lives)) + '♡'.repeat(Math.max(0, 3 - C.lives));
     const ladder = Array.from({ length: C.n }, (_, i) => `<i class="${i < C.beaten ? 'done' : i === C.idx ? 'now' : ''}"></i>`).join('');
-    const members = d.members.map(m => `<div class="coopmem" style="--mc:${ELEMENTS[m.el].color}"><b>${esc(m.name)}</b><span>${esc(ELEMENTS[m.el].name)} ${esc(ROLES[m.ro].name)}</span><small>${m.ups.map(id => TREE[id] ? esc(TREE[id].name) : id).join(' · ')}</small></div>`).join('');
+    const members = d.boss ? Object.values(Sim.BOSS_MODES).map((M, i) => `<div class="coopmem" style="--mc:${['#ff8a3d', '#c7b3ff', '#8ff3ff'][i]}"><b>${esc(M.name)}</b><span>${['up close', 'at mid range', 'far off'][i]}: ${esc(ROLES[M.role].name)}</span><small>${M.ups.map(id => TREE[id] ? esc(TREE[id].name) : id).join(' · ')}</small></div>`).join('')
+      : d.members.map(m => `<div class="coopmem" style="--mc:${ELEMENTS[m.el].color}"><b>${esc(m.name)}</b><span>${esc(ELEMENTS[m.el].name)} ${esc(ROLES[m.ro].name)}</span><small>${m.ups.map(id => TREE[id] ? esc(TREE[id].name) : id).join(' · ')}</small></div>`).join('');
     const effs = d.effects.length ? d.effects.map(k => `<b style="color:${Sim.MUTATORS[k].color}">${esc(Sim.MUTATORS[k].name)}</b>`).join(' + ') : 'no map effect';
-    let body = `<div class="coophead"><b>${C.idx + 1} of ${C.n} · ${esc(D[0])}</b><span><span class="lives" title="Continues left">${hearts}</span> &nbsp; <span class="score">${C.score}</span> pts</span></div><div class="coopladder">${ladder}</div>`;
+    let body = `<div class="coophead"><b>${d.boss ? 'Final battle' : `${C.idx + 1} of ${C.n}`} · ${esc(D[0])}</b><span><span class="lives" title="Continues left">${hearts}</span> &nbsp; <span class="score">${C.score}</span> pts</span></div><div class="coopladder">${ladder}</div>`;
     if (C.st === 'done') {
       const cleared = C.result && C.result.last && C.result.won;
       body += `<div class="coopres ${cleared ? 'won' : 'lost'}"><b>${cleared ? 'Ladder cleared!' : 'Run over'}</b><div>${cleared ? `All ${C.n} duos beaten on ${esc(D[0])}.` : `${C.beaten} of ${C.n} duos beaten on ${esc(D[0])}.`} Final score <b style="font-size:16px">${C.score}</b>.${C.best && C.best[myCid()] != null ? ` Your best on ${esc(D[0])}: ${C.best[myCid()]}.` : ''}</div></div>`;
@@ -14901,33 +15404,100 @@ function renderCoop(v, meL, host) {
         const slots = [0, 1, 2].map(i => have[i] ? `<button type="button" class="slotc full" data-coopdrop="${have[i]}" title="${esc(TREE[have[i]].desc)}">${esc(TREE[have[i]].name)} ×</button>` : `<span class="slotc">Upgrade ${i + 1}</span>`).join('');
         body += `<div><span class="lbl">Your three upgrades${meL ? ` as a ${esc(ELEMENTS[meL.el].name)} ${esc(ROLES[meL.ro].name)}` : ''}</span><div class="coopslots">${slots}</div>` +
           (meL && have.length < 3 ? `<div class="coopups">${opts.map(id => `<button type="button" class="chip2" data-coopup="${id}" title="${esc(TREE[id].desc)}">${esc(TREE[id].name)}</button>`).join('') || '<span class="status">Nothing more to take.</span>'}</div>` : '') + '</div>';
-        const others = (roomInfo.spec || []).length;
         const mine = meL && C.ready.includes(myCid()), allPicked = have.length === 3;
         body += `<div class="coopfoot">${meL ? `<button type="button" class="${mine ? 'ghost' : 'cta'} sm" data-coop="ready" ${allPicked || mine ? '' : 'disabled'}>${mine ? 'Ready ✓ (unready)' : allPicked ? 'Ready' : 'Pick three upgrades'}</button>` : ''}` +
           `<span class="status">${mine ? 'Waiting for your partner…' : C.solo ? 'Solo: you get extra health and damage.' : 'Both of you ready up and the battle starts.'}</span>` +
           (host ? `<button type="button" class="ghost sm" data-coop="go" title="Start the battle now, with whatever's been picked">Start now</button><button type="button" class="ghost sm" data-coop="quit">End run</button>` : '') +
-          (account && account.admin ? `<button type="button" class="ghost sm" data-coop="back" title="Owner: back a duo">◂ Previous duo</button><button type="button" class="ghost sm" data-coop="skip" title="Owner: skip this duo">Skip duo ▸</button>` : '') + '</div>';
+          (OFFLINE || (account && account.admin) ? `<button type="button" class="ghost sm" data-coop="back" title="Owner: back a duo">◂ Previous duo</button><button type="button" class="ghost sm" data-coop="skip" title="Owner: skip this duo">Skip duo ▸</button>` : '') + '</div>';
       }
     }
     box.innerHTML = body;
   });
 }
-const myCid = () => (roomInfo ? roomInfo.cid : null);
+const myCid = () => (mode === 'online' ? (roomInfo ? roomInfo.cid : null) : 'me');
+// ---- a run on this device: the same ladder (public/coop.js, the duos from coop-data.js), run in the page. Solo, or with
+// players on controllers; nothing goes over the internet. Playing with a friend online runs it on the server instead.
+const LCO = { room: null, ladder: null };
+function localLadder() {
+  if (LCO.ladder || !window.CoopLadder || !window.BOWFALL_DUOS) return LCO.ladder;
+  LCO.ladder = CoopLadder({ Sim, roster: BOWFALL_DUOS.roster, fit: BOWFALL_DUOS.fit,
+    send: (c, m) => { if (m.t === 'note') notice(esc(m.msg), false); },
+    sendRoom: () => { coopInfoAt = -1; hc.coop = hc.lbStart = hc.lbHead = hc.lb = hc.gmHead = null; },
+    sysChat: (r, text) => addChat({ sys: 1, m: text }),
+    broadcast: (r, m) => { if (m.t === 'chat') addChat(m); },
+    markDirty: () => {}, isOwner: u => OFFLINE || !!(u && u.admin),
+    record: (room, C, cleared) => coopLocalRecord(C, cleared) });
+  return LCO.ladder;
+}
+// who's playing on this device: you, and anyone on a controller
+function localRoom() {
+  const R = LCO.room; if (!R) return null;
+  R.world = world;
+  R.clients = new Set([{ cid: 'me', pid: myId, name: playerName(), user: account, watch: false }].concat(LP.list.filter(l => l.pid).map(l => ({ cid: 'lp' + l.n, pid: l.pid, name: l.name, user: null, watch: false }))));
+  return R;
+}
+let coopInfoAt = -1, coopInfoV = null; // (worked out once a frame)
+function coopInfo() {
+  if (mode === 'online') return (roomInfo && roomInfo.coop) || null;
+  if (mode !== 'local' || !LCO.room || !LCO.room.coop || !LCO.ladder) return null;
+  if (coopInfoAt !== clock) { coopInfoAt = clock; coopInfoV = LCO.ladder.info(localRoom()); }
+  return coopInfoV;
+}
+function coopLocalAct(m) {
+  const L = localLadder(), R = localRoom(); if (!L || !R) return;
+  const me = [...R.clients].find(c => c.cid === 'me');
+  // players on controllers: their three upgrades are picked for them (what suits their archetype) and they're ready when you are
+  if ((m.op === 'ready' || m.op === 'go') && R.coop) for (const c of R.clients) if (c.cid !== 'me') {
+    const p = world.players.find(q => q.id === c.pid); if (!p) continue;
+    if (!(R.coop.picks.get(c.cid) || []).length) L.handle(R, c, { op: 'pick', ups: coopAutoPicks(p.element, p.role) });
+    if (m.op === 'ready') L.handle(R, c, { op: 'ready' });
+  }
+  coopInfoAt = -1; L.handle(R, me, m); coopInfoAt = -1;
+  if (m.op === 'quit') { toMenu(); openSub('coopScr'); } // (a run on this device ends back at the arcade, not in a practice lobby)
+}
+function coopAutoPicks(el, ro) {
+  const fav = Object.values(Sim.BUILDS).filter(b => (b.roles || []).includes(ro) || (b.els || []).includes(el)).flatMap(b => b.cards), out = [];
+  for (let i = 0; i < 3; i++) { const ok = Sim.forcedChoices(el, ro, out, false); if (!ok.length) break; out.push(ok.find(id => fav.includes(id) && !out.includes(id)) || ok[Math.floor(Math.random() * ok.length)]); }
+  return out;
+}
+// a run played here: the best on this device, and on your account when you're signed in
+function coopLocalRecord(C, cleared) {
+  const key = 'bowfall-coop-best-' + C.diff; let b = {}; try { b = JSON.parse(store.get(key, '{}')) || {}; } catch (e) { b = {}; }
+  b.best = Math.max(b.best || 0, C.score); b.far = Math.max(b.far || 0, C.beaten); b.runs = (b.runs || 0) + 1; if (cleared) b.clears = (b.clears || 0) + 1;
+  store.set(key, JSON.stringify(b)); C.best = { me: b.best };
+  if (account && !OFFLINE) fetch('/api/coop/score', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ diff: C.diff, score: C.score, beaten: C.beaten, cleared: !!cleared }) })
+    .then(r => r.json()).then(d => { if (d && d.best != null) { C.best.me = Math.max(C.best.me, d.best); hc.coop = null; } }).catch(() => {});
+}
+function startLocalCoop(diff) {
+  if (!localLadder()) { $('coopErr').textContent = 'The arcade could not load. Try reloading the page.'; return; }
+  initAudio(); closeSubs();
+  world = Sim.createWorld({ map: 'coop_field', diff: 'normal', opt: {} }); // (the standard rules: a run sets its own arena and effects)
+  const me = Sim.join(world, { name: playerName(), team: 'red', element: myLoadout().el, role: myLoadout().ro });
+  for (const l of LP.list) { l.pid = null; l.team = 'red'; lpJoinLocal(l); }
+  world.events.length = 0;
+  myId = me.id; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {}; clearChat();
+  LCO.room = { host: 'me', coop: null, ranked: null, world };
+  setScreens();
+  coopLocalAct({ op: 'start', diff, test: COOP.test && coopOwner() });
+  if (!LCO.room.coop) { toMenu(); openSub('coopScr'); }
+}
+
 $('lbCoop').addEventListener('click', e => {
   const up = e.target.closest('[data-coopup]'), drop = e.target.closest('[data-coopdrop]'), b = e.target.closest('[data-coop]');
-  if (up) { if (COOP.picks.length < 3 && !COOP.picks.includes(up.dataset.coopup)) { COOP.picks.push(up.dataset.coopup); coopAct('pick', { ups: COOP.picks }); hc.coop = null; } return; }
+  if (up) { if (COOP.picks.length < 3 && !COOP.picks.includes(up.dataset.coopup)) { COOP.picks.push(up.dataset.coopup); coopAct('pick', { ups: COOP.picks }); coopKeep(); hc.coop = null; } return; }
   if (drop) { const i = COOP.picks.indexOf(drop.dataset.coopdrop); if (i >= 0) { COOP.picks.splice(i); } // (dropping one drops the ones after it: they may have needed it)
     const meL = view && view.p.find(p => p.id === myId); if (meL) COOP.picks = COOP.picks.filter((id, j) => Sim.forcedChoices(meL.el, meL.ro, COOP.picks.slice(0, j), false).includes(id));
-    coopAct('pick', { ups: COOP.picks }); hc.coop = null; return; }
+    coopAct('pick', { ups: COOP.picks }); coopKeep(); hc.coop = null; return; }
   if (!b) return;
   const op = b.dataset.coop;
-  if (op === 'ready') coopAct(roomInfo.coop.ready.includes(myCid()) ? 'pick' : 'ready', { ups: COOP.picks });
+  if (op === 'ready') coopAct(coopInfo().ready.includes(myCid()) ? 'pick' : 'ready', { ups: COOP.picks });
   else if (op === 'go' || op === 'next' || op === 'quit') coopAct(op);
   else if (op === 'skip') coopAct('skip', { dir: 1 });
   else if (op === 'back') coopAct('skip', { dir: -1 });
-  else if (op === 'again') coopAct('start', { diff: roomInfo.coop.diff });
+  else if (op === 'again') coopAct('start', { diff: coopInfo().diff, test: !!coopInfo().test });
   else if (op === 'leave') $('lbLeave').click();
 });
+setInterval(() => { try { coopContTick(); } catch (e) { /* never in the way */ } }, 100);
 // ================= local tournament =================
 // Friends on one screen, 1v1, everyone plays everyone (once or twice). Each match is a local game: the first player on the
 // keyboard and mouse or the main controller (P1), the second on the next controller (P2, an extra player on a controller
@@ -15340,7 +15910,7 @@ function againTry() {
 $('rematchBtn').onclick = () => act({ t: 'restart' });
 
 // the map effects, announced at the start of each game: a pill each, sliding in with a chime
-const MUT_ICON = { vigil: '✚', gale: '≈', hide: '◆', bounty: '★', force: '➜', quick: '➶', surge: '✦' };
+const MUT_ICON = { vigil: '✚', gale: '≈', hide: '◆', bounty: '★', force: '➜', quick: '➶', surge: '✦', blood: '♥' };
 function announceMuts(mut) {
   const ks = Sim.mutKeys(mut), box = $('mutAnn'); if (!ks.length || hunting()) return;
   box.innerHTML = ks.map((k, i) => { const M = Sim.MUTATORS[k]; return `<span class="mp" style="--mc:${M.color};--d:${(i * 0.35).toFixed(2)}s"><i>${MUT_ICON[k] || '✦'}</i><span>${esc(M.name)}<small>${esc(M.desc)}</small></span></span>`; }).join('');
@@ -15784,6 +16354,10 @@ function eventFx(e) {
       case 'grapple': fx.ropes.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, id: e.id, life: 0 }); play('grapple'); break;
       case 'revive': burst(e.x, e.y, '#7dff8a', 30, 200, 3); floater(e.x, e.y - 34, 'Revived!', '#7dff8a', 18); feedAdd(`${esc(e.bn)} revived ${esc(e.n)}`, e.id === myId || e.by === myId); sfx.win(); break;
       case 'hcap': feedAdd(`${esc(e.n)} <span class="cause">handicap ${e.v ? hcapLabel(e.v) : 'off'}</span>`, e.id === myId); break;
+      case 'bossMode': { const col = { close: '255,138,61', mid: '199,179,255', long: '143,243,255' }[e.m] || '255,60,60';
+        for (let n = 0; n < 3; n++) fx.rings.push({ x: e.x, y: e.y, r: 8, life: -0.08 * n, col, max: 110 - n * 25 });
+        burst(e.x, e.y, `rgb(${col})`, 26, 280, 3); burst(e.x, e.y, '#ff5a46', 10, 160, 2); }
+        callout({ kicker: 'The machine changes', title: e.n + ' mode', sub: e.m === 'close' ? 'It grows and comes to bash you. Get away.' : e.m === 'long' ? 'It snipes from behind a wall. Get in close.' : 'It roots you and lines up the push. Keep moving.', color: e.m === 'close' ? '#ff8a3d' : e.m === 'long' ? '#8ff3ff' : '#c7b3ff', tier: 1, plain: `<b>${esc(e.n)} mode</b> · ${e.m === 'close' ? 'it grows and comes to bash you' : e.m === 'long' ? 'it snipes from behind a wall' : 'it roots you and lines up the push'}` }); play('termShift'); break;
       case 'join': if (mode === 'online') feedAdd(`${nameTag(e.n, TEAM_COL[e.tm])} joined ${teamName(e.tm)}`); break;
       case 'switch': if (mode === 'online') feedAdd(`${nameTag(e.n, TEAM_COL[e.tm])} moved to ${teamName(e.tm)}`); break;
       case 'leave': if (mode === 'online' || e.sp) feedAdd(e.sp ? `${esc(e.n)} is unassigned` : `${esc(e.n)} left`); break;
@@ -16390,6 +16964,40 @@ THEMES.garden = {
   stem: ['#5b3b27', '#6d4a31'], thorn: '#f6eee6', leaf: '#4a6c46', berry: '#e86a8a', burrow: null,
   ambient: 'leaves', leafCols: ['#d8a8b8', '#e2bcc8', '#c890a4', '#e8d8de'],
 };
+// the co-op arcade's dojo: honey-coloured boards, dark timber walls, paper lanterns and blossom drifting in
+THEMES.dojo = Object.assign({}, THEMES.mill, {
+  forest: '#1b1410', canopy: ['#2d1f17', '#3a281d', '#24180f', '#463024'], canopyHi: 'rgba(255,190,150,0.07)',
+  ground: '#a9824f', patchA: 'rgba(235,200,140,0.22)', patchB: 'rgba(90,60,30,0.2)', patchBase: 'rgba(169,130,79,0)', sun: 'rgba(255,225,170,0.07)',
+  blades: ['#e8cfa3', '#d6b583', '#f1dfbd'], wall: '#2c1d14', wallMid: '#3c2819', wallLight: '#5a3d26',
+  boulder: '#7d7f80', boulderLight: '#a3a6a8', moss: ['#5e7a46', '#7a9258'], dojo: true,
+  ambient: 'leaves', leafCols: ['#f7c6d6', '#f1b0c8', '#fde3ec', '#ffffff'],
+});
+function paintDojo(g) {
+  g.save();
+  // the mat's edge: a dark inlaid border a little in from the walls
+  g.strokeStyle = 'rgba(52,30,16,0.55)'; g.lineWidth = 7; g.strokeRect(WALL + 46, WALL + 46, AW - 2 * WALL - 92, AH - 2 * WALL - 92);
+  g.strokeStyle = 'rgba(52,30,16,0.35)'; g.lineWidth = 2; g.strokeRect(WALL + 58, WALL + 58, AW - 2 * WALL - 116, AH - 2 * WALL - 116);
+  // the yin and yang, inlaid in the middle of the floor
+  const r = 82; g.translate(AW / 2, AH / 2); g.rotate(Math.PI / 2); g.globalAlpha = 0.78;
+  const ink = '#2a1a10', paper = '#efe3c8';
+  g.fillStyle = ink; g.beginPath(); g.arc(0, 0, r + 6, 0, TAU); g.fill();
+  g.fillStyle = paper; g.beginPath(); g.arc(0, 0, r, -Math.PI / 2, Math.PI / 2); g.fill();
+  g.fillStyle = ink; g.beginPath(); g.arc(0, 0, r, Math.PI / 2, Math.PI * 1.5); g.fill();
+  g.fillStyle = paper; g.beginPath(); g.arc(0, -r / 2, r / 2, 0, TAU); g.fill();
+  g.fillStyle = ink; g.beginPath(); g.arc(0, r / 2, r / 2, 0, TAU); g.fill();
+  g.fillStyle = ink; g.beginPath(); g.arc(0, -r / 2, r / 6.5, 0, TAU); g.fill();
+  g.fillStyle = paper; g.beginPath(); g.arc(0, r / 2, r / 6.5, 0, TAU); g.fill();
+  g.restore(); g.save();
+  // the hall's name by each long wall, and "endurance" either side (brush-written, faded into the wood)
+  const font = sz => `bold ${sz}px "Noto Serif CJK JP", "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN", "MS Mincho", serif`;
+  g.fillStyle = 'rgba(70,34,16,0.55)'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = font(44); g.fillText('道場', AW / 2, WALL + 92);
+  g.save(); g.translate(AW / 2, AH - WALL - 92); g.rotate(Math.PI); g.fillText('道場', 0, 0); g.restore();
+  g.font = font(54); g.fillStyle = 'rgba(150,28,24,0.42)';
+  g.save(); g.translate(WALL + 96, AH / 2); g.rotate(-Math.PI / 2); g.fillText('忍', 0, 0); g.restore();
+  g.save(); g.translate(AW - WALL - 96, AH / 2); g.rotate(Math.PI / 2); g.fillText('忍', 0, 0); g.restore();
+  g.restore();
+}
 THEMES.spring = Object.assign({}, THEMES.meadow, {
   ground: '#57903f', patchA: 'rgba(130,190,95,0.24)', flowers: 40, fairy: false,
   leafCols: ['#f3d6e2', '#8fb44a', '#f4ecd2', '#b8c45a'],
@@ -16495,11 +17103,13 @@ function paintIceHole(g, h, R) {
 // night: a cold wash over the ground (moonlight from the top left), lantern posts, and a little mist in the pits
 function paintNight(g, R) {
   g.save();
+  g.save(); g.beginPath(); g.rect(WALL, WALL, AW - 2 * WALL, AH - 2 * WALL); g.clip(); // (the rims of the drops stay inside the walls)
   const gr = g.createLinearGradient(0, 0, AW, AH); gr.addColorStop(0, 'rgba(120,150,210,0.10)'); gr.addColorStop(1, 'rgba(10,15,35,0.28)');
   g.fillStyle = gr; g.fillRect(-MARGIN, -MARGIN, AW + MARGIN * 2, AH + MARGIN * 2);
   // a pale moonlit rim round every drop, so they read clearly in the dark
   for (const h of HAZ) if (h.type === 'pit' && !h.water) { g.save(); hazP(g, h, 1.5); g.strokeStyle = 'rgba(190,210,240,0.45)'; g.lineWidth = 2; g.stroke(); g.restore(); }
   for (const h of HAZ) if (h.type === 'pit' && !h.water) { g.save(); hazP(g, h, 0); g.clip(); const [cx, cy] = hazCentre(h); const m = g.createRadialGradient(cx, cy, 5, cx, cy, Math.max(h.w || h.r, h.h || h.r)); m.addColorStop(0, 'rgba(120,150,200,0.10)'); m.addColorStop(1, 'rgba(120,150,200,0)'); g.fillStyle = m; g.fillRect(cx - 400, cy - 400, 800, 800); g.restore(); }
+  g.restore();
   for (const l of (MAPS[MAPKEY] && MAPS[MAPKEY].lights) || []) {
     if (l.big && !l.wisp) { // a campfire on open ground: scorched earth and a couple of logs (the flame is drawn live)
       const sc = g.createRadialGradient(l.x, l.y, 2, l.x, l.y, 22); sc.addColorStop(0, 'rgba(20,10,5,0.75)'); sc.addColorStop(1, 'rgba(20,10,5,0)');
@@ -16962,7 +17572,10 @@ function paintFloor(s) {
     const gw = MO.gap, mx = x + w / 2, my = y + h / 2;
     for (const b of [{ x: mx, y: y + t / 2, len: t, w: gw, v: true }, { x: mx, y: y + h - t / 2, len: t, w: gw, v: true }, { x: x + t / 2, y: my, len: t, w: gw }, { x: x + w - t / 2, y: my, len: t, w: gw }]) paintBridge(g, b);
   }
-  // hazards
+  // dojo: the yin and yang inlaid in the boards, and the hall's name painted by the walls
+  if (T.dojo && !PAINT_TILE) paintDojo(g);
+  // hazards (kept inside the arena's walls: a hole in a corner is a quarter of a hole, not one spilling over the wall)
+  g.save(); g.beginPath(); g.rect(WALL, WALL, AW - 2 * WALL, AH - 2 * WALL); g.clip();
   for (const h of HAZ) {
     const [cx, cy] = hazCentre(h);
     if (h.moat) continue;
@@ -17069,6 +17682,7 @@ function paintFloor(s) {
       }
     }
   }
+  g.restore();
 
   paintMechBase(g, R);
   // boulders
@@ -17598,6 +18212,7 @@ function drawArena() {
   buildFloor();
   ctx.drawImage(floorCv, -MARGIN, -MARGIN, AW + MARGIN * 2, AH + MARGIN * 2);
   const c = clock;
+  ctx.save(); ctx.beginPath(); ctx.rect(WALL, WALL, AW - 2 * WALL, AH - 2 * WALL); ctx.clip(); // (the moving parts of hazards stay inside the walls too)
   for (const h of HAZ) if (h.type === 'tar' && !THEME.frosty && !THEME.beach) {
     ctx.save(); hazP(ctx, h, 0); ctx.clip();
     const [cx, cy] = hazCentre(h);
@@ -17613,6 +18228,7 @@ function drawArena() {
   }
   for (const h of HAZ) if (h.type === 'lava') drawLava(h, c);
   for (const h of HAZ) if (h.type === 'pit' && (THEME.water || h.water)) drawWaterGlints(h, c);
+  ctx.restore();
   if (THEME.water) drawCracks(c);
   if (THEME.hatch) drawHatches(c);
   if (HEAL) drawSpring(c);
@@ -17692,6 +18308,55 @@ function drawBoomHeld(R, p) {
   ctx.save(); ctx.translate(R + 8 - 26 * c, R * 0.8 * c); ctx.rotate(-0.5 - 1.2 * c);
   drawBoomBlade(1.1, '#d9a066');
   ctx.strokeStyle = p.c; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-4, -2); ctx.quadraticCurveTo(0, 0.4, 4, -2); ctx.stroke();
+  ctx.restore();
+}
+// ---- the arcade's machine: a steel shell with armour seams and a core light in the colour of its mode, a visor with one
+// scanning red eye, and a compound bow of steel with a red laser string
+const BOSS_COL = { c: '255,138,61', m: '199,179,255', l: '143,243,255' };
+function drawBossBody(p, R) {
+  const g = ctx.createRadialGradient(-R * 0.35, -R * 0.45, R * 0.1, 0, 0, R);
+  g.addColorStop(0, '#d5dbe2'); g.addColorStop(0.5, '#717b86'); g.addColorStop(1, '#262b33');
+  ctx.fillStyle = '#121519'; ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.fill();
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, -1, R - 2, 0, TAU); ctx.fill();
+  ctx.strokeStyle = 'rgba(18,22,28,0.75)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(0, 0, R * 0.6, 0, TAU); ctx.stroke();
+  for (let i = 0; i < 4; i++) { const a = i * TAU / 4 + 0.4 + p.a; ctx.beginPath(); ctx.moveTo(Math.cos(a) * R * 0.6, Math.sin(a) * R * 0.6); ctx.lineTo(Math.cos(a) * (R - 2), Math.sin(a) * (R - 2)); ctx.stroke(); }
+  ctx.fillStyle = 'rgba(235,240,246,0.85)'; for (let i = 0; i < 8; i++) { const a = i * TAU / 8 + p.a; ctx.beginPath(); ctx.arc(Math.cos(a) * (R - 4.5), Math.sin(a) * (R - 4.5), 0.9, 0, TAU); ctx.fill(); }
+  const col = BOSS_COL[p.bo] || '255,60,60', k = 0.6 + 0.3 * Math.sin(gclock * 6);
+  const cg = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.55); cg.addColorStop(0, `rgba(${col},${0.55 * k})`); cg.addColorStop(1, `rgba(${col},0)`);
+  ctx.fillStyle = cg; ctx.beginPath(); ctx.arc(0, 0, R * 0.55, 0, TAU); ctx.fill();
+  ctx.strokeStyle = `rgba(${col},${k})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, R - 0.5, 0, TAU); ctx.stroke();
+}
+function drawBossFace(p, R) { // (already turned to aim)
+  ctx.fillStyle = '#0b0d10'; ctx.beginPath(); ctx.ellipse(R * 0.46, 0, R * 0.2, R * 0.6, 0, 0, TAU); ctx.fill();
+  const scan = p.dr ? 0 : Math.sin(gclock * 2.6) * R * 0.32, ex = R * 0.48;
+  const gl = ctx.createRadialGradient(ex, scan, 0, ex, scan, R * 0.55); gl.addColorStop(0, 'rgba(255,45,30,0.9)'); gl.addColorStop(1, 'rgba(255,45,30,0)');
+  ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(ex, scan, R * 0.55, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#ff5a46'; ctx.beginPath(); ctx.arc(ex, scan, R * 0.14, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#fff0e8'; ctx.beginPath(); ctx.arc(ex + 0.6, scan - 0.6, R * 0.05, 0, TAU); ctx.fill();
+}
+function drawBossBow(charge, drawing, len, col) {
+  const bend = 1.1 - charge * 0.18, ex = 4 + Math.cos(bend) * len, ey = Math.sin(bend) * len, pull = ex - 2 - charge * 15;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(ex, -ey); ctx.lineTo(4 + len * 0.93, -len * 0.38); ctx.lineTo(4 + len, 0); ctx.lineTo(4 + len * 0.93, len * 0.38); ctx.lineTo(ex, ey);
+  ctx.strokeStyle = '#2e353e'; ctx.lineWidth = 5; ctx.stroke(); ctx.strokeStyle = '#a7b1bc'; ctx.lineWidth = 1.6; ctx.stroke();
+  for (const sy of [-ey, ey]) { ctx.fillStyle = '#1d2227'; ctx.beginPath(); ctx.arc(ex, sy, 3.4, 0, TAU); ctx.fill(); ctx.fillStyle = `rgba(${col},0.95)`; ctx.beginPath(); ctx.arc(ex, sy, 1.5, 0, TAU); ctx.fill(); }
+  ctx.strokeStyle = `rgba(255,70,55,${0.5 + 0.45 * charge})`; ctx.lineWidth = 1.3;
+  ctx.beginPath(); ctx.moveTo(ex, -ey); ctx.lineTo(pull, 0); ctx.lineTo(ex, ey); ctx.stroke();
+  if (drawing) {
+    ctx.strokeStyle = '#cfd7df'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(pull, 0); ctx.lineTo(pull + 30, 0); ctx.stroke();
+    ctx.fillStyle = charge >= 1 ? '#ff5a46' : '#b8c1cb'; ctx.beginPath(); ctx.moveTo(pull + 36, 0); ctx.lineTo(pull + 28, -3.5); ctx.lineTo(pull + 28, 3.5); ctx.fill();
+  }
+}
+// its Bramble Trap is a steel jaw clamp with a blinking red light
+function drawMachineTrap(x, y, r) {
+  ctx.save(); ctx.translate(x, y);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.arc(2, 3, r + 3, 0, TAU); ctx.fill();
+  ctx.strokeStyle = '#2b3138'; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.stroke();
+  ctx.strokeStyle = '#9aa4ae'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.stroke();
+  ctx.fillStyle = '#c3cbd3';
+  for (let i = 0; i < 12; i++) { const a = i / 12 * TAU; ctx.beginPath(); ctx.moveTo(Math.cos(a - 0.12) * (r - 2), Math.sin(a - 0.12) * (r - 2)); ctx.lineTo(Math.cos(a) * (r - 9), Math.sin(a) * (r - 9)); ctx.lineTo(Math.cos(a + 0.12) * (r - 2), Math.sin(a + 0.12) * (r - 2)); ctx.fill(); }
+  const k = 0.5 + 0.5 * Math.sin(gclock * 9);
+  ctx.fillStyle = `rgba(255,50,40,${0.35 + 0.6 * k})`; ctx.beginPath(); ctx.arc(0, 0, 3.2, 0, TAU); ctx.fill();
   ctx.restore();
 }
 function drawBow(charge, drawing, len, col) {
@@ -17899,6 +18564,7 @@ function drawEyes(p, R) {
   const per = 2.6 + (h % 23) / 10, ph = ((gclock + h * 0.37) % per), blink = ph < 0.13 ? 1 - Math.abs(ph - 0.065) / 0.065 : 0;
   const hurtK = EYE.hurt[id] != null ? Math.max(0, 1 - (gclock - EYE.hurt[id]) / (EYE.len[id] || 0.38)) : 0;
   const x = R * 0.45, ys = [-R * 0.28, R * 0.28];
+  if (p.xx) { ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1.6; ctx.lineCap = 'round'; for (const y of ys) { ctx.beginPath(); ctx.moveTo(x - 2.2, y - 2.2); ctx.lineTo(x + 2.2, y + 2.2); ctx.moveTo(x + 2.2, y - 2.2); ctx.lineTo(x - 2.2, y + 2.2); ctx.stroke(); } return; } // (knocked out: a cross for each eye)
   // (the face looks along +x: the two eyes sit side by side across it, at ys)
   if (hurtK > 0 || p.su || p.fz) { // screwed shut, XD style: each eye a chevron pointing at the other ( > < )
     ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1.8; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -17935,7 +18601,7 @@ function drawPlayer(p, isMe, bare) {
   if (!bare && !isMe && view && smokeHides(p, view.p.find(q => q.id === myId))) return;
   if (p.sth) {
     // stealth: you and your team see a ghost; enemies see nothing, or a faint shimmer up close
-    const meP = view && view.p.find(q => q.id === myId), friend = isMe || (meP && meP.tm === p.tm);
+    const meP = view && view.p.find(q => q.id === myId), friend = isMe || RP.on || (meP && meP.tm === p.tm); // (in a replay you see them, faded, as their own team does)
     const near = meP && Math.hypot(meP.x - p.x, meP.y - p.y) < 110;
     if (friend) alpha *= 0.4;
     else if (near) { alpha *= 0.12 + 0.06 * Math.sin(gclock * 12); hideTag = true; }
@@ -18017,17 +18683,23 @@ function drawPlayer(p, isMe, bare) {
     ctx.beginPath(); ctx.arc(0, 0, R + 17, -Math.PI / 2, -Math.PI / 2 + TAU * Math.min(1, p.au / 2)); ctx.stroke();
     if (Math.random() < 0.6) { const a = rand(0, TAU); fx.parts.push({ x: p.x + Math.cos(a) * (R + 8), y: p.y + Math.sin(a) * (R + 8), vx: Math.cos(a) * rand(40, 120), vy: Math.sin(a) * rand(40, 120), life: 0, max: 0.25, color: Math.random() < 0.5 ? '#ff8a3d' : '#ffe0a0', r: rand(1, 2) }); }
   }
+  if (p.bo) drawBossBody(p, R); // the machine: steel, not an archer's colours
+  else {
   ctx.save(); ctx.rotate(p.a); drawGear(p, R, false); ctx.restore(); // role gear behind the body
   ctx.fillStyle = dark(p.c); ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.fill();
   ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(0, -1.5, R - 3, 0, TAU); ctx.fill();
+  }
   if (p.sw > 0 && !p.f) { ctx.fillStyle = `rgba(196,236,255,${Math.min(0.62, 0.15 + p.sw * 0.75)})`; ctx.beginPath(); ctx.arc(0, -1, R - 0.5, 0, TAU); ctx.fill(); } // chilled: paler and bluer the slower they are
   if (EL_COL[p.el]) { ctx.strokeStyle = EL_COL[p.el]; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(0, 0, R - 0.9, 0, TAU); ctx.stroke(); } // element trim
   if (p.fl) { ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.fill(); }
   ctx.save(); ctx.rotate(p.a);
+  if (p.bo) drawBossFace(p, R);
+  else {
   drawGear(p, R, true); // role gear on top
   drawEmblem(p.el, -R * 0.22, 0, R * 0.4);
   ctx.fillStyle = p.ro === 'assassin' ? '#ff4d5e' : dark(p.c);
   drawEyes(p, R);
+  }
   { const hk = HEALFX[p.id] != null ? 1 - (gclock - HEALFX[p.id]) / 0.45 : 0; // a blood heal: a red pulse through the body
     if (hk > 0) { // a dark red pulse through the body and a deep red glow round it, swelling out
       ctx.save(); ctx.fillStyle = `rgba(140,6,24,${0.42 * hk})`; ctx.beginPath(); ctx.arc(0, 0, R - 1, 0, TAU); ctx.fill();
@@ -18042,6 +18714,7 @@ function drawPlayer(p, isMe, bare) {
   if (p.ro === 'ninja') drawHandStar(R, p);
   else if (p.ro === 'crossbow') drawCrossbow(R, p);
   else if (p.arm === 'boomerang') drawBoomHeld(R, p);
+  else if (p.bo) drawBossBow(p.ch, !!p.dr, Math.max(20, R + 4), BOSS_COL[p.bo] || '255,60,60');
   else drawBow(p.ch, !!p.dr, Math.max(20, R + 4), p.dz ? '#7b8594' : '#c89b5b');
   // full draw, readable from across the arena: a small bright spark at the arrowhead, so you can see when someone
   // is about to loose a full-power shot (and time a Parry or a dodge)
@@ -18588,7 +19261,8 @@ function drawZone(z, me) {
       if (Math.random() < 0.3) fx.parts.push({ x: z.x + rand(-z.r, z.r) * 0.6, y: z.y + rand(-z.r, z.r) * 0.6, vx: 0, vy: rand(-20, -6), life: 0, max: 0.8, color: '#b6ee7a', r: rand(1.5, 3) });
     } else if (z.ty === 'trap') {
       const mine = me && z.tm === me.tm;
-      ctx.save(); ctx.globalAlpha = mine ? 0.8 : 0.95; drawTrapArt(z.x, z.y, z.r, 0); ctx.restore();
+      const zo = view && view.p.find(q => q.id === z.o);
+      ctx.save(); ctx.globalAlpha = mine ? 0.8 : 0.95; if (zo && zo.bo) drawMachineTrap(z.x, z.y, z.r); else drawTrapArt(z.x, z.y, z.r, 0); ctx.restore();
       ctx.save(); ctx.globalAlpha = mine ? 0.8 : 0.95; ctx.strokeStyle = TEAM_COL[z.tm]; ctx.lineWidth = 1.5; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.arc(z.x, z.y, z.r + 7, 0, TAU); ctx.stroke(); ctx.setLineDash([]); ctx.restore();
     } else if (z.ty === 'clone') {
       // a shadowy copy of its owner, facing the nearest enemy
@@ -20912,7 +21586,7 @@ function frame(now) {
         if (FARM.on) farmStep(); // (each step's events at their own moment, and a frame for the replays every other step)
       }
       PR.lap('sim');
-      handleEvents(world.events.splice(0));
+      { const evs = world.events.splice(0); handleEvents(evs); if (LCO.room && LCO.room.coop) { const R = localRoom(); LCO.ladder.events(R, evs); LCO.ladder.tick(R); coopInfoAt = -1; } }
       if (world.records.length) { const recs = world.records.splice(0); if (!TUT.on && !TR.on && !DESK.sim) for (const r of recs) Balance.record(r); }
       tutTick(dt); trainTick(dt);
     }

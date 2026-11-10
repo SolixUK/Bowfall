@@ -84,11 +84,11 @@
   {
    "id": "hearth",
    "name": "Hearth",
-   "map": "coop_ridge",
+   "map": "rift",
    "effects": [
     "hide"
    ],
-   "tell": "A warden walls up on the ridge and sets you alight; the sniper behind the wall finishes it.",
+   "tell": "A warden stands by the sniper, walls up the both of them and keeps them healed. The sniper does the rest from behind the wall.",
    "members": [
     {
      "name": "Ember",
@@ -96,12 +96,12 @@
      "role": "warden",
      "ups": [
       "wall",
-      "bond",
-      "stoke"
+      "mend",
+      "bond"
      ],
      "tac": {
       "mode": "guard",
-      "guardD": 260,
+      "shieldD": 60,
       "wallK": 1.6
      },
      "look": {
@@ -120,9 +120,7 @@
       "steady"
      ],
      "tac": {
-      "mode": "behind",
-      "behindD": 150,
-      "wallK": 1.6
+      "mode": "focus"
      },
      "look": {
       "hair": 6,
@@ -140,7 +138,7 @@
     "gale",
     "hide"
    ],
-   "tell": "Two wardens who hardly need to hit you twice. Poison and fire do the rest while they heal up behind their walls.",
+   "tell": "Two wardens who hold the middle behind their walls. Poison and fire do the rest.",
    "members": [
     {
      "name": "Mire",
@@ -189,7 +187,7 @@
    "name": "Brambles",
    "map": "coop_sinks",
    "effects": [
-    "force",
+    "vigil",
     "hide"
    ],
    "tell": "The trapper roots you next to the rim; the ranger is already lining up the push.",
@@ -240,11 +238,11 @@
     "vigil",
     "bounty"
    ],
-   "tell": "A colossus stands in front and takes the hits. The crossbow behind it does the talking.",
+   "tell": "A frost colossus stands in your face and slows you down. The crossbow behind it does the talking.",
    "members": [
     {
      "name": "Boulder",
-     "el": "stone",
+     "el": "frost",
      "role": "juggernaut",
      "ups": [
       "colossus",
@@ -253,6 +251,7 @@
      ],
      "tac": {
       "mode": "guard",
+      "body": 1,
       "noShove": 1,
       "guardD": 90,
       "tacK": 1.6
@@ -265,7 +264,7 @@
     },
     {
      "name": "Nix",
-     "el": "void",
+     "el": "shadow",
      "role": "crossbow",
      "ups": [
       "pointblank",
@@ -273,7 +272,8 @@
       "repeater"
      ],
      "tac": {
-      "mode": "behind"
+      "mode": "behind",
+      "behindD": 70
      },
      "look": {
       "hair": 7,
@@ -281,7 +281,8 @@
      },
      "voice": "sly"
     }
-   ]
+   ],
+   "boost": 0.06
   },
   {
    "id": "snares",
@@ -291,7 +292,7 @@
     "surge",
     "hide"
    ],
-   "tell": "Traps everywhere, and a harpoon to drag you across the water into them.",
+   "tell": "Traps everywhere and a harpoon each. Get rooted and you're dragged across the water.",
    "members": [
     {
      "name": "Briar",
@@ -316,8 +317,8 @@
      "el": "storm",
      "role": "trapper",
      "ups": [
-      "trap",
       "briar",
+      "harpoon",
       "deeproots"
      ],
      "tac": {
@@ -346,9 +347,9 @@
      "el": "storm",
      "role": "trickster",
      "ups": [
+      "rocket",
       "boomerang",
-      "ricochet",
-      "bankshot"
+      "static"
      ],
      "tac": {
       "mode": "hunt"
@@ -365,8 +366,8 @@
      "role": "trickster",
      "ups": [
       "rocket",
-      "trick",
-      "bankshot"
+      "boomerang",
+      "wildfire"
      ],
      "tac": {
       "mode": "hunt"
@@ -479,9 +480,9 @@
    "map": "coop_stand",
    "effects": [
     "vigil",
-    "bounty"
+    "hide"
    ],
-   "tell": "The juggernaut stands between you and the ranger and will not be moved. The ranger does the damage.",
+   "tell": "The juggernaut stands in front of the ranger and will not be moved. Get round it, and the ranger is already back in its shadow.",
    "members": [
     {
      "name": "Bastion",
@@ -494,8 +495,9 @@
      ],
      "tac": {
       "mode": "guard",
-      "guardD": 110,
-      "tacK": 1.5
+      "body": 1,
+      "guardD": 230,
+      "tacK": 1.4
      },
      "look": {
       "hair": 0,
@@ -514,7 +516,8 @@
      ],
      "tac": {
       "mode": "behind",
-      "behindD": 140
+      "behindD": 70,
+      "tacK": 1.4
      },
      "look": {
       "hair": 2,
@@ -522,7 +525,8 @@
      },
      "voice": "keen"
     }
-   ]
+   ],
+   "boost": 0.06
   },
   {
    "id": "blades",
@@ -532,11 +536,11 @@
     "surge",
     "bounty"
    ],
-   "tell": "Two ninjas who take every power-up in the maze and then both come for one of you.",
+   "tell": "Fire and ice: two ninjas who take every power-up in the dojo, then both come for one of you.",
    "members": [
     {
      "name": "Kage",
-     "el": "shadow",
+     "el": "flame",
      "role": "ninja",
      "ups": [
       "sharpstar",
@@ -713,6 +717,33 @@
       "skin": 5
      },
      "voice": "dry"
+    }
+   ]
+  },
+  {
+   "id": "machine",
+   "name": "The Terminator",
+   "boss": true,
+   "map": "coop_core",
+   "effects": [],
+   "tell": "One machine, three builds. Get close and it grows and bashes; keep your distance and it snipes from behind a wall; in between it roots you and lines up the push. It changes every few seconds, so make it change badly.",
+   "members": [
+    {
+     "name": "Terminator",
+     "el": null,
+     "role": "ranger",
+     "ups": [],
+     "extra": [],
+     "tac": {
+      "mode": "focus"
+     },
+     "voice": "cold",
+     "boss": {
+      "hp": [
+       1.0,
+       1.35
+      ]
+     }
     }
    ]
   }
