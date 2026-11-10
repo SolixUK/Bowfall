@@ -294,6 +294,8 @@ In testing Master won 82% of games against Extreme, and each lower level wins ro
 
 **The last 10 seconds** of any game (not Strongholds or the Terminator mode): every hit does 40% more damage and knocks back 30% further (`FINAL` in `public/sim.js`).
 
+**Root tuning:** `node tools/root-fit.js [skill] [matches] [key=value ...]` measures how often bots land Bramble Traps and Bramble Tosses against a moving, dodging archer; the knobs are `ROOTK` in `public/sim.js` (trap lead, toss lead, toss range, when to lay a trap).
+
 **Revives** (a custom game rule, off by default): on, anyone can bring a knocked-out teammate back by standing over them for 3 seconds, once a game each (`reviveChoice` in `public/sim.js` is how bots decide whether it's worth it right now).
 
 ## Co-op arcade

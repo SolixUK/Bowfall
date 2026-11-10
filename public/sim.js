@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.0';
+const VERSION = '0.99.2';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1252,7 +1252,7 @@ const TREE = {
   gravity:   { tree: 'void', name: 'Gravity Arrows', desc: 'Your arrows are dark with gravity: as they fly they pull enemies within 110px slightly toward them.' },
   horizon:   { tree: 'void', name: 'Event Horizon', desc: 'Rifts are 30% bigger, pull harder and last 3 seconds.', req: ['rift'] },
   collapse:  { tree: 'void', name: 'Collapse', desc: 'When a rift ends it bursts, throwing enemies inside it outward.', req: ['rift'] },
-  nullfield: { tree: 'void', name: 'Null Field', desc: "Enemies inside your rifts can't dash.", req: ['rift'] },
+  nullfield: { tree: 'void', name: 'Null Field', desc: "Enemies inside your rifts dash less than half as far.", req: ['rift'] },
   unstable:  { tree: 'void', trade: true, name: 'Unstable Rift', desc: 'Rifts are 50% bigger, but your arrows deal 8% less damage.', req: ['rift'] },
   blink:     { tree: 'assassin', active: { cd: 8 }, name: 'Blink', desc: "Vanish and reappear up to 300px toward your cursor, straight over pits and lava, and draw three times as fast for 1.5 seconds. Doesn't break stealth." },
   stealth:   { tree: 'assassin', active: { cd: 14 }, name: 'Stealth', desc: 'Vanish for 6 seconds and move 30% faster (using it lets your bow down, so it never cancels on a half-drawn shot). Enemies only see a faint shimmer when close. Shooting, abilities, dashing or being hit by an arrow ends it (burns and poison don\'t). Your first arrow out of stealth deals 50% more damage and stuns for 1 second.' },
@@ -1381,7 +1381,7 @@ const BRIEF = {
   kindling: 'Burning enemies fly 50% further.', overload: 'Double lightning damage. Dash 20% slower.', potent: 'Poison +50%. Arrows −15% damage.',
   stone: 'Hits stagger: less draw, more knockback.', boulder: 'Full-draw arrows knock back 30% harder.', aftershock: 'Full-draw hits shove nearby enemies away.',
   petrify: "Staggered enemies can't dash.", obsidian: 'Knockback +30%. Arrows 8% slower.', void: 'Hits mark them; your arrows curve toward marks.', rift: 'Full-draw hits open a rift that pulls enemies in.', gravity: 'Your arrows pull nearby enemies toward them.',
-  horizon: 'Bigger, stronger, longer rifts.', collapse: 'Rifts burst outward when they end.', nullfield: "Enemies in your rifts can't dash.", unstable: 'Rifts 50% bigger. Arrows −8% damage.',
+  horizon: 'Bigger, stronger, longer rifts.', collapse: 'Rifts burst outward when they end.', nullfield: 'Enemies in your rifts dash half as far.', unstable: 'Rifts 50% bigger. Arrows −8% damage.',
   blink: 'Teleport 300px and draw 3× faster briefly.', stealth: 'Vanish for 6s and move faster; first arrow out stuns.', ambush: 'Draw 60% faster right after stealth.',
   hitrun: 'Blink in, rapid-fire 2.5s, blink back.', secondwind: 'Regain the last 2s of damage, and speed.', escape: 'Below 25% health: drop a smoke cloud.', afterimage: 'Stealth leaves a walking shadow.', vanish: 'Knockouts cut Stealth cooldown by 6s.',
   shadowdash: "Dash recharges 2× faster in stealth.", cloak: 'Stealth lasts 9s. −10 health.', quickfeet: '8% faster, less damage from behind.',
@@ -1458,7 +1458,7 @@ function skillParams(s) {
 // shots and the juke; mind: upgrade and matchup sense.
 function facetParams(f) {
   const A = skillParams(f.aim), P = skillParams(f.pos), D = skillParams(f.dodge != null ? f.dodge : f.pos), M = skillParams(f.mind != null ? f.mind : f.pos);
-  return Object.assign({}, A, { dodge: D.dodge, iq: P.iq, mind: M.iq, posK: clamp(+f.pos || 0, 0, 1) });
+  return Object.assign({}, A, { dodge: D.dodge, iq: P.iq, mind: M.iq, posK: clamp(+f.pos || 0, 0, 1), aimK: clamp(+f.aim || 0, 0, 1) });
 }
 const botD = p => p.dparams || DIFF[p.diff] || DIFF.normal;
 const MAX_TEAM = 4;
@@ -1945,7 +1945,7 @@ function placeForRound(w, p) {
   applyStats(p);
   freshBody(p, s.x, s.y);
   p.shade = null; p.thornN = 0; p.thornT = 0; p.thornBy = null; // shades and thorns don't carry over
-  if (p.ai) { p.ai.aimA = null; p.ai.lastT = null; p.ai.reactT = 0; p.ai.plan = null; } // (a bot's aim starts from where it now faces, no flick from last game's)
+  if (p.ai) { p.ai.aimA = null; p.ai.lastT = null; p.ai.reactT = 0; p.ai.plan = null; p.ai.reload = rand(0, 0.7); } // (and everyone's first draw comes in their own time) // (a bot's aim starts from where it now faces, no flick from last game's)
 }
 // a clean start at (x, y): full health, no effects, nothing armed
 function freshBody(p, x, y) {
@@ -2332,6 +2332,7 @@ function fire(w, p, ang, c, burst, vol, x3) { // burst: 1-2 a Volley's shots, 4 
   const el = p.sparring ? null : Object.keys(ELEMENTS).find(e => has(p, e)) || null; // (sparring: no element either)
   let spread = p.pw.multi > 0 && !bri ? [-0.14, 0, 0.14] : [0];
   if (full && has(p, 'scatter')) { spread = p.pw.multi > 0 ? [-0.26, -0.13, 0, 0.13, 0.26] : [-0.13, 0, 0.13]; dmg *= 0.4; kb *= 0.45; }
+  else if (spread.length === 3) kb *= 0.5; // (the Triple shot power-up: three arrows that each knock half as hard, or all three landing throws you across the arena)
   if (xb && !burst && p.fanArmed) { p.fanArmed = false; spread = [-0.3, -0.15, 0, 0.15, 0.3]; dmg *= 0.45; kb *= 0.5; }
   const snare = p.snare; p.snare = false;
   // Harpoon: one big barbed arrow on a rope, slower than an arrow; whoever it hits is reeled in (see onArrowEffects)
@@ -2591,7 +2592,8 @@ function updatePlayer(w, p, dt) {
   p.inv = Math.max(0, p.inv - dt);
   p.slow = Math.max(0, p.slow - dt);
   p.frostT = Math.max(0, p.frostT - dt);
-  p.dashLock = Math.max(0, p.dashLock - dt);
+  p.dashLock = Math.max(0, p.dashLock - dt); if (p.dashWeak > 0) p.dashWeak -= dt;
+  { const a = 1 - Math.exp(-dt / 0.35); p.svx = (p.svx || 0) + (p.vx - (p.svx || 0)) * a; p.svy = (p.svy || 0) + (p.vy - (p.svy || 0)) * a; }
   p.quickT = Math.max(0, p.quickT - dt);
   p.deflectT = Math.max(0, (p.deflectT || 0) - dt);
   p.stunT = Math.max(0, (p.stunT || 0) - dt);
@@ -2637,7 +2639,7 @@ function updatePlayer(w, p, dt) {
     // frost: the dash is slower but goes as far (speed, fade and duration all stretch together)
     const k = p.slow > 0 ? (p.sure ? 0.9 : 0.7) : 1;
     p.dashK = k;
-    p.vx = dx * MOVE.dashSpeed * k; p.vy = dy * MOVE.dashSpeed * k; p.dashT = MOVE.dashTime / k; p.knock = 0;
+    p.vx = dx * MOVE.dashSpeed * k; p.vy = dy * MOVE.dashSpeed * k; p.dashT = MOVE.dashTime / k * (p.dashWeak > 0 ? 0.45 : 1); p.knock = 0;
     if (p.dashN === p.dashMaxN) p.dashCd = p.dashCdMax;
     p.dashN--;
     p.dashDir = [dx, dy]; p.shoved = [];
@@ -2835,7 +2837,9 @@ const armedShot = p => !!(p.fanArmed || p.railArmed || p.recoilArmed || p.rocket
 const roped = (w, p) => w.arrows.some(a => a.hpn && a.owner === p.id && !(a.stuck > 0)) || w.players.some(q => q.hook && q.hook.by === p.id);
 // abilities that arm the next shot, and the flag each one sets (their cooldown starts when that shot goes)
 const ARM_FLAG = { snare: 'snare', harpoon: 'harpoonArmed', fanbolt: 'fanArmed', recoil: 'recoilArmed', seeker: 'seekArmed', rocket: 'rocketArmed', trick: 'trickArmed', boomerang: 'boomArmed', briar: 'briarArmed', execute: 'execArmed', railshot: 'railArmed', volley: 'volleyArmed' };
+const ROOTED_NO = ['blink', 'hitrun', 'grapple', 'rush', 'sstrike', 'recall']; // (moves that would carry you out of a root: not while rooted)
 function useAbility(w, p, id) {
+  if ((p.stuck > 0 || p.vine > 0) && ROOTED_NO.includes(id)) return false; // rooted, frozen or pinned: no dash, and no blink, grapple or charge out of it either
   const ax = Math.cos(p.aim), ay = Math.sin(p.aim);
   switch (id) {
     case 'snare':
@@ -3242,7 +3246,7 @@ function updateZones(w, dt) {
         if (d > z.r) continue;
         const k = z.pull * (0.55 + 0.45 * (1 - d / z.r)) * dt / q.mass;
         q.vx += dx / d * k; q.vy += dy / d * k;
-        if (z.nul) q.dashLock = Math.max(q.dashLock, 0.2);
+        if (z.nul) q.dashWeak = 0.2; // (Null Field: a dash in here goes less than half as far)
         q.riftSlow = 0.15; // caught in the void: 30% slower
         q.lastHitBy = z.owner; q.lastHitT = w.t;
       }
@@ -3270,6 +3274,10 @@ function updateZones(w, dt) {
 }
 
 const TRAP_RANGE = 450, TRAP_SET = 0.5, TRAP_PIT_GAP = 26;
+// how bots lay brambles (tools/root-fit.js tunes these): a Bramble Trap goes trapLead seconds ahead of where they're walking
+// (their speed counted up to trapVmax, so a dash doesn't fling the guess), a toss is thrown inside briarMax. A weaker bot's
+// guess wanders by up to errK × (1 − aim) of the distance it leads by.
+const ROOTK = { trapLead: 0.45, trapVmax: 400, briarMax: 860, errK: 1.2, smooth: 0, gate: 1, trapMax: 450, bGate: 0, behind: 0, leadK: 0.3, trapSlow: 0, briarNear: 420 }; // (tuned over about 5,000 matches with tools/root-fit.js: see the 0.99.1 changelog)
 // the nearest spot to (x, y) that isn't over a hole or water (lava and bogs are solid ground: things can sit on them)
 function outOfPits(haz, x, y, gap) {
   for (let k = 0; k < 4; k++) {
@@ -4259,11 +4267,12 @@ function interceptAim(p, T, v0, drag) {
   return Math.atan2(ty - p.y, tx - p.x);
 }
 function shotSpeed(p, c) {
+  if (p.briarArmed) return BRIAR.speed * (0.75 + 0.25 * clamp(c, 0, 1)) * OPT('aspeed') / Math.max(0.05, ROOTK.leadK); // (how far ahead a bot leads its bramble toss: tuned, see ROOTK) // (a bramble toss rolls slowly: lead it for that, not for an arrow)
   if (p.role === 'ninja') return STAR_SPEED * OPT('aspeed') * (0.6 + 0.4 * clamp(c, 0, 1)); // (a shuriken flies as fast as it was wound up: see makeStar)
   return (380 + 920 * (p.role === 'crossbow' ? 1 : c)) * (has(p, 'longbow') ? 1.2 : 1) * (p.role === 'sniper' ? SNIPER_SPEED : 1) * (has(p, 'obsidian') ? 0.92 : 1) * (has(p, 'colossus') ? 0.85 : 1) * (p.railArmed ? 1.8 : 1) * OPT('aspeed');
 }
 // (an armed Railshot flies 80% faster and never slows: bots lead it accordingly)
-const shotDrag = p => p.railArmed ? 0.001 : p.role === 'ninja' ? 2.4 : p.role === 'crossbow' ? 0.12 : has(p, 'longbow') ? 0.2 : 0.45;
+const shotDrag = p => p.railArmed || p.briarArmed ? 0.001 : p.role === 'ninja' ? 2.4 : p.role === 'crossbow' ? 0.12 : has(p, 'longbow') ? 0.2 : 0.45;
 // the furthest a bot's shots are worth taking
 // is this shot about to hit p? (within about a quarter of a second, passing close enough)
 // Attention: a bot watches the enemy it's fighting, glances at the others now and then, and notices anyone close by.
@@ -4792,7 +4801,7 @@ function tacSpotScore(w, p, T, x, y, mates) {
       if (!partner || partner.dead) return 0;
       if (!clearShot(x, y, T.x, T.y)) return 0;
       const a = Math.abs(angOff(Math.atan2(partner.y - T.y, partner.x - T.x), Math.atan2(dyT, dxT))), want = tacP(p, 'cross');
-      return K * Math.min(1, a / want) * (dST < tacP(p, 'farD') + 150 ? 1 : 0.5);
+      return K * Math.min(1, a / want) * (dST < tacP(p, 'farD') + 150 ? 1 : 0.5) - (p.role === 'sniper' && dST < 560 ? K * 1.5 * (1 - dST / 560) : 0); // (a sniper keeps its distance: it hits harder far off)
     }
     case 'syncstealth': {
       // between them and the middle: every hit from here pushes them outwards, towards the pools and the thorns
@@ -4815,7 +4824,7 @@ function tacticGoal(w, p, T, foes, mates, dt) {
   const pid = tp.pick[p.id], pu = pid != null ? w.pickups.find(u => u.id === pid) : null;
   const hunter = tac.mode === 'hunt' || (tac.mode === 'guard' && p.hp < p.maxHp * 0.7 && (pu && (pu.type === 'heal' || pu.type === 'amber'))); // (a hurt tank goes for anything that heals)
   if (pu) { const d = Math.hypot(pu.x - p.x, pu.y - p.y), worth = pickupWorth(pu, p) * (hunter ? tacP(p, 'pickK') : 1);
-    if (worth > 0.5 && d < (hunter ? tacP(p, 'pickRange') : 200) && !(T && T.drawing && T.charge > 0.5 && d > 120)) {
+    if (worth > 0.5 && d < (hunter ? tacP(p, 'pickRange') : 200) && !(T && T.drawing && T.charge > 0.5 && d > 120) && !(p.role === 'sniper' && T && Math.hypot(pu.x - T.x, pu.y - T.y) < Math.hypot(p.x - T.x, p.y - T.y) - 40)) { // (a sniper doesn't give up its range for one)
       if (tac.mode === 'hunt' && d > 230 && p.dashN > 0 && ai.dodgeCd <= 0 && lethalDist(p.x + (pu.x - p.x) / d * 150, p.y + (pu.y - p.y) / d * 150) > 40 && Math.random() < dt * 2) { p.wantDash = true; ai.dashAim = Math.atan2(pu.y - p.y, pu.x - p.x); ai.dodgeCd = 0.6; }
       return toward(pu.x, pu.y); } }
   if (!T) return null;
@@ -4871,7 +4880,7 @@ function tacticGoal(w, p, T, foes, mates, dt) {
 // within reach), clear of the partner's traps; null for the usual placement
 function tacticTrapSpot(w, p, T) {
   // (where they're heading, as the usual throw, nudged to the side nearest a drop: a root there is a knockout for the partner)
-  const vs = Math.hypot(T.vx, T.vy), vk = vs > 260 ? 260 / vs : 1, px = T.x + T.vx * vk * 0.4, py = T.y + T.vy * vk * 0.4; let best = null; // (a dash's speed isn't where they're going)
+  const vs = Math.hypot(T.vx, T.vy), vk = vs > ROOTK.trapVmax ? ROOTK.trapVmax / vs : 1, px = T.x + T.vx * vk * ROOTK.trapLead, py = T.y + T.vy * vk * ROOTK.trapLead; let best = null; // (a dash's speed isn't where they're going)
   for (let i = 0; i < 9; i++) {
     const a = i / 8 * TAU, r = i === 8 ? 0 : 45, x = px + Math.cos(a) * r, y = py + Math.sin(a) * r;
     if (Math.hypot(x - p.x, y - p.y) > TRAP_RANGE || HAZ.some(h => h.type === 'pit' && inHaz(h, x, y, TRAP_PIT_GAP))) continue;
@@ -5341,7 +5350,9 @@ function botThink(w, p, dt) {
     // (a bramble armed and a boulder in its lane: hold it and step round, rather than roll it into the rock)
   } else if ((p.charge >= ai.want || (p.momT > 0.1 && p.charge >= 0.55 && has(p, 'momentum'))) && los && onTarget && T.inv <= 0 && !(has(p, 'ballista') && ai.want >= 1 && p.over < 1 && dT > 250) && !sneaking) {
     inp.draw = false; ai.briarHold = 0; ai.koWait = 0;
-    ai.reload = rand(0.05, 0.3) + D.react;
+    ai.reload = rand(0.05, 0.3) + D.react * rand(0.8, 1.3);
+    if (mates.some(m => m.bot && m.ai && w.t - (m.ai.shotAt || -9) < 0.35)) ai.reload += rand(0.2, 0.55); // (a teammate just loosed: not in lockstep)
+    ai.shotAt = w.t;
   }
   if (ai.jinkT > 0 && (ai.jinkT -= dt) <= 0 && p.stealthT > 0 && p.dashN > 0 && T) { // vanished: off somewhere they won't guess
     const a0 = Math.atan2(T.y - p.y, T.x - p.x); for (let k = 0; k < 6; k++) { const a = a0 + (Math.random() < 0.5 ? 1 : -1) * rand(0.9, 2.3); if (dashClear(p, a, 170)) { p.wantDash = true; ai.dashAim = a; ai.strafe = -ai.strafe; break; } } }
@@ -5451,6 +5462,14 @@ function perceived(w, T, lag) {
   return r ? [r[1], r[2], r[3], r[4]] : [T.x, T.y, T.vx, T.vy];
 }
 function angOff(a, b) { return Math.abs(((a - b + Math.PI) % TAU + TAU) % TAU - Math.PI); }
+// "I'm hurt, I should heal": a person takes a moment to notice, longer the less sharp they are (the mind facet). The condition
+// has to hold for that long before the bot acts on it; it resets when it stops holding.
+function noticed(p, key, cond, dt) {
+  const ai = p.ai, t = ai.notice || (ai.notice = {});
+  if (!cond) { t[key] = null; return false; }
+  if (t[key] == null) { const D = botD(p), m = D.mind != null ? D.mind : D.iq || 0.5; t[key] = 0.2 + (1 - clamp(m, 0, 1)) * 1.4 + rand(0, 0.45); }
+  t[key] -= dt; return t[key] <= 0;
+}
 function botAbilities(w, p, T, dT, foes, dt) {
   const chg = p.role === 'crossbow' ? (p.bolts > 0 ? 1 : 0) : p.charge;
   // Echo Step: blink back out once the strike is done, or to get away from a hazard it's being thrown toward
@@ -5515,7 +5534,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
         else if (use && (botD(p).iq || 0) >= 0.5) { const shove = Math.max(pushRisk(T.x, T.y, ax, ay, 230, T.r), 0.6 * slamRisk(T.x, T.y, ax, ay, 230, T.r)); use = shove > 0.4 || T.hp <= 12 || Math.random() < dt * 0.25; }
         break;
       }
-      case 'fortify': use = p.hp < p.maxHp * 0.5 && foes.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 380); break;
+      case 'fortify': use = noticed(p, 'fortify', p.hp < p.maxHp * 0.5 && foes.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 380), dt); break;
       case 'hairtrig':
       case 'bladeguard':
       case 'parry': use = (foes.some(q => botAware(p, q) && q.drawing && q.charge > 0.55 && Math.hypot(q.x - p.x, q.y - p.y) < 650 && angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.18)
@@ -5529,7 +5548,10 @@ function botAbilities(w, p, T, dT, foes, dt) {
         if (T && dT < 420 && (near.length >= 2 || p.hp < p.maxHp * 0.5 || Math.random() < dt * 0.6)) { p.input.tx = T.x + T.vx * 0.3; p.input.ty = T.y + T.vy * 0.3; use = true; }
         break;
       }
-      case 'briar': use = chg > 0.25 && !!T && dT > 70 && dT < BRIAR.range - 60 && !p.briarArmed && clearLane(p.x, p.y, T.x + T.vx * 0.4, T.y + T.vy * 0.4, BRIAR.r); break; // (it's wide and slow: the whole lane to where they're heading must be clear) // then the next shot rolls it at them
+      case 'briar': { const hold = T && !(T.vine > 0) && !(T.vineSafe > 0) ? Math.max(T.frozen || 0, T.stunT || 0, T.pinned || 0, T.stuck || 0) : 0;
+        if (hold > 0.15 && !p.briarArmed && dT < 600 && clearLane(p.x, p.y, T.x, T.y, BRIAR.r)) { use = hold < dT / (BRIAR.speed * OPT('aspeed')) + 0.45; break; } } // (the chain: thrown so it rolls in as the hold ends)
+      // falls through
+      case 'briar2': use = chg > 0.25 && !!T && dT > 70 && dT < Math.min(ROOTK.briarMax, BRIAR.range - 60) && !p.briarArmed && (!ROOTK.bGate || T.drawing || heldBy(T) || T.dashN === 0 || dT < 260) && (!ROOTK.briarNear || dT < ROOTK.briarNear || T.drawing || Math.hypot(T.vx, T.vy) < 90) && clearLane(p.x, p.y, T.x + T.vx * 0.4, T.y + T.vy * 0.4, BRIAR.r); break; // (it's wide and slow: the whole lane to where they're heading must be clear) // then the next shot rolls it at them
       case 'rip': { // tear the thorns out when it's worth it: a kill (or two), a pile of them spread over several enemies, or someone held near a hazard
         const mine = foes.filter(q => q.thornBy === p.id && q.thornN > 0), iq2 = botD(p).iq || 0.5;
         const tot = mine.reduce((a, q) => a + q.thornN, 0), kills = mine.filter(q => q.hp <= q.thornN * 5 + 1).length, held = mine.filter(q => q.thornN >= 3 && lethalDist(q.x, q.y) < 100 && chg >= 0.5 && clearShot(p.x, p.y, q.x, q.y)).length; // (rooted beside a hazard, with a shot ready to push them in)
@@ -5543,7 +5565,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
       }
       case 'mend': {
         const hurtMate = w.players.some(q => q !== p && q.team === p.team && !q.dead && !q.npc && q.hp < q.maxHp * 0.55 && Math.hypot(q.x - p.x, q.y - p.y) < MEND_RANGE);
-        use = hurtMate || p.hp < p.maxHp * 0.6;
+        use = noticed(p, 'mend', hurtMate || p.hp < p.maxHp * 0.6, dt);
         break;
       }
       case 'execute': use = !!T && T.hp < T.maxHp * 0.45 && chg > 0.3; break;
@@ -5555,14 +5577,25 @@ function botAbilities(w, p, T, dT, foes, dt) {
         else use = p.hp < p.maxHp * 0.4 || p.falling > 0 || (p.knock > 0 && lethalDist(p.x + p.vx * 0.3, p.y + p.vy * 0.3) < 40);
         break;
       case 'railshot': use = chg > 0.6 && !!T && dT > 250 && !p.railArmed; break;
-      case 'totem': use = p.hp < p.maxHp * 0.6 && !foes.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 200); break;
-      case 'smoke': use = !!T && ((p.hp < p.maxHp * 0.45 && dT < 350) || (dT < 260 && foes.filter(q => Math.hypot(q.x - p.x, q.y - p.y) < 400).length >= 2)); break;
+      case 'totem': use = noticed(p, 'totem', p.hp < p.maxHp * 0.6 && !foes.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 200), dt); break; // (a moment to notice, by skill)
+      case 'smoke': use = noticed(p, 'smoke', !!T && ((p.hp < p.maxHp * 0.45 && dT < 350) || (dT < 260 && foes.filter(q => Math.hypot(q.x - p.x, q.y - p.y) < 400).length >= 2)), dt); break;
       case 'volley': use = !!T && !p.volleyArmed && ((chg > 0.5 && dT < 480) || (chg > 0.3 && dT < 1000 && (T.stuck > 0.5 || T.frozen > 0.5 || T.vine > 0.5 || T.stunT > 0.4 || T.pinned > 0.5) && clearShot(p.x, p.y, T.x, T.y))); break; // (held still: the best time there is for all three)
       case 'trap':
         // throw it where the target is heading
-        if (T && dT < TRAP_RANGE + 60 && dT > 60 && !(T.vine > 0) && !(T.vineSafe > 0) && Math.random() < dt * 0.8) {
+        const tvx = T ? T.vx + ((T.svx || 0) - T.vx) * ROOTK.smooth : 0, tvy = T ? T.vy + ((T.svy || 0) - T.vy) * ROOTK.smooth : 0;
+        const steady = T && (T.drawing || heldBy(T) || (Math.hypot(T.svx || 0, T.svy || 0) > 70 && angOff(Math.atan2(T.vy, T.vx), Math.atan2(T.svy || 0, T.svx || 0)) < 0.45));
+        const hold = T && !(T.vine > 0) && !(T.vineSafe > 0) ? Math.max(T.frozen || 0, T.stunT || 0, T.pinned || 0, T.stuck || 0) : 0; // (held by something that isn't brambles)
+        if (hold > 0.15 && dT < TRAP_RANGE && dT > 40 && !HAZ.some(h => h.type === 'pit' && inHaz(h, T.x, T.y, TRAP_PIT_GAP))) {
+          // the chain: a trap woven right under them, timed so it's set as the hold lets go (it takes about 0.8 s to weave and arm)
+          if (hold < 1.0) { p.input.tx = T.x; p.input.ty = T.y; use = true; }
+          break;
+        }
+        if (T && dT < Math.min(TRAP_RANGE + 60, ROOTK.trapMax) && dT > 60 && !(T.vine > 0) && !(T.vineSafe > 0) && (!ROOTK.gate || steady) && (!ROOTK.trapSlow || heldBy(T) || Math.hypot(T.vx, T.vy) < ROOTK.trapSlow) && Math.random() < dt * (ROOTK.trapSlow ? 2.5 : 0.8)) { // (trapSlow: only under someone standing or slowed, drawing a bow say: a trap takes most of a second to set, and a walker is long gone)
           const ts = p.ai.tac && p.ai.tac.mode === 'trapper' ? tacticTrapSpot(w, p, T) : null; // (the trapper tactic: where a root leaves them beside a drop)
-          const vs = Math.hypot(T.vx, T.vy), vk = vs > 260 ? 260 / vs : 1, tx = ts ? ts.x : T.x + T.vx * vk * 0.45, ty = ts ? ts.y : T.y + T.vy * vk * 0.45;
+          const vs = Math.hypot(tvx, tvy), vk = vs > ROOTK.trapVmax ? ROOTK.trapVmax / vs : 1;
+          const miss = ROOTK.errK * (1 - (botD(p).aimK != null ? botD(p).aimK : 0.7)) * vs * vk * ROOTK.trapLead, ma = rand(0, TAU); // (a weaker bot's guess wanders)
+          const bx = (T.x - p.x) / (dT || 1) * ROOTK.behind, by = (T.y - p.y) / (dT || 1) * ROOTK.behind; // (a little behind them, as seen from us: where they back off to, and out of the corner of their eye)
+          const tx = (ts ? ts.x : T.x + tvx * vk * ROOTK.trapLead + bx) + Math.cos(ma) * miss, ty = (ts ? ts.y : T.y + tvy * vk * ROOTK.trapLead + by) + Math.sin(ma) * miss;
           // not over a hole or water: a trap can't sit there (bogs and lava are fine)
           if (!HAZ.some(h => h.type === 'pit' && inHaz(h, tx, ty, TRAP_PIT_GAP))) { p.input.tx = tx; p.input.ty = ty; use = true; }
         }
@@ -6739,7 +6772,7 @@ return {
   TIERS, tierOf, tierSvg,
   TM, TM_NAMES, TM_MINIONS, MASTERY, masteryOf, takeCard, applyStats,
   AIM, AW, AH, WALL, GATES, MAPS, COOP_MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, STAR_SPEED, OPTIONS, optPct, optValue, skillParams, SKILL_MIN, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
-  TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, FINAL, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
+  TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, FINAL, ROOTK, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, LAB_KEYS, applyArenaPool, arenaPool, rankedPool, arenaSense, PLAYS, BUILDS, facetParams, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg, emblemCol, emblemFull,
   setInput, choose, canTake, forcedChoices, BOSS_MODES, bossSet, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, BANNER_FRAME, frameAllowed, featProgress, achSeed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,

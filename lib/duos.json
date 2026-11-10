@@ -629,10 +629,9 @@
    "name": "Battering",
    "map": "coop_pens",
    "effects": [
-    "vigil",
     "hide"
    ],
-   "tell": "Two juggernauts who barely bother to shoot. They rush and bash you into the pens, and heal on the spring between charges.",
+   "tell": "Two juggernauts who barely bother to shoot. They rush and bash you into the thorns and the holes, and heal on the spring between charges.",
    "members": [
     {
      "name": "Ox",

@@ -2,6 +2,21 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.2
+
+- Battering no longer has Warden's Vigil (Juggernaut's Hide only): the juggernauts were healing back everything between charges.
+- Trappers chain their roots onto other holds: someone frozen, stunned or pinned gets a Bramble Trap woven right under them, or a toss thrown, timed to land as the hold lets go. (Brambles can't chain onto brambles: by the game's rule you can't be re-rooted by them for 2 seconds after one lets go.)
+- Bots throw a Bramble Toss from inside 420 unless the target is drawing or standing (closer tosses land more: about 55% now for a sharp bot).
+
+## 0.99.1
+
+- **No escaping a root.** Rooted, frozen or pinned, you couldn't dash already; now Blink, Hit and Run, Grapple, Bull Rush, Shadow Strike and Shadow Mark can't carry you out of it either.
+- **Bots land their roots.** Tuned with a new tool (`tools/root-fit.js`: a Frost Trapper against a moving, dodging Frost Ranger, about 5,000 matches across the settings). The big find: bots were leading their Bramble Toss as if it flew like an arrow (it's about a third as fast), and the best lead turned out to be about a third of the full one, since people change direction while it rolls. A sharp bot's toss now roots about half the time (it was about 42%), and it throws from further out (up to 860, was 700), so it gets far more of them off: a top trapper now roots someone about 1.6 times a minute, up from about 1. Traps go a little ahead of where you're walking and are laid while you're moving steadily, drawing or held (about 30% of traps catch someone; the rest are usually spotted). Weaker bots are worse at it by their aim: about 25% of tosses land at the low end.
+- **Null Field** weakens a dash inside the rift (it goes less than half as far) instead of taking it away, so there's a chance to get out of the pull.
+- **Triple shot** arrows knock back half as hard each.
+- **Bots that act by feel.** A Warden's Mending Totem, Mend, Fortify and Smoke Bomb wait a moment after the bot gets hurt: about a quarter of a second for the sharpest, up to a second and a half for the slowest (the mind facet), instead of going up the instant the health dips.
+- **Not in lockstep.** Two bots on a side no longer draw and loose at the same moment: each has a little of its own timing, the first draw of a game comes in its own time, and a bot waits a beat if a teammate has just loosed. Snipers never walk in towards you for a power-up or a crossfire angle (in a test, neither sniper came within 400 of an enemy).
+
 ## 0.99.0
 
 - **The last 10 seconds.** In the final 10 seconds of any game every hit does 40% more damage and knocks back 30% further, announced on screen, so a game that's run long ends with a fight rather than a timeout.
