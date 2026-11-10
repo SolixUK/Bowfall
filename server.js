@@ -1920,6 +1920,8 @@ async function handle(ws, m) {
   if (!room) return;
   const w = room.world, isHost = room.host === ws.cid;
   if (ws.watch && !['ping', 'nz', 'perfRep'].includes(m.t)) return; // watching a matchmade game: no playing, picking or chatting
+  // a co-op run sets the arena, the effects and the rules itself (the owner may still add a bot to Red, to test with)
+  if (room.coop && ['roomcfg', 'bot', 'cfg', 'hcap', 'start', 'lobby', 'restart'].includes(m.t) && !(m.t === 'bot' && ws.user && ws.user.admin && (m.op === 'remove' ? (w.players.find(q => q.id === String(m.id)) || {}).team === 'red' : String(m.team) === 'red'))) return;
   switch (m.t) {
     case 'in': if (ws.pid) { Sim.setInput(w, ws.pid, m); if (room.ranked) afkInput(room, ws, m); } break;
     case 'ping': send(ws, { t: 'pong', c: m.c }); break;
@@ -1988,7 +1990,6 @@ async function handle(ws, m) {
       break;
     }
     // host-only controls (a co-op run sets the arena, the effects and the rules itself)
-    case 'roomcfg': case 'bot': case 'cfg': case 'hcap': case 'start': case 'lobby': case 'restart': if (room.coop) break; // falls through to the cases below when there's no run
     case 'roomcfg': if (isHost) { const before = roomState(room); applyRoomCfg(room, m, ws.name); announceRoom(room, before, roomState(room)); sendRoom(room); } break;
     case 'bot':
       if (!isHost) break;
@@ -2253,7 +2254,7 @@ function gameLoop() {
     acc -= TICK;
     for (const room of rooms.values()) {
       const t0 = process.hrtime.bigint();
-      Sim.step(room.world, TICK);
+      if (!(room.coop && room.coop.paused)) Sim.step(room.world, TICK); // (the arcade pauses while someone has the menu open)
       const ms = Number(process.hrtime.bigint() - t0) / 1e6, rp = room.perf || (room.perf = { ms: 0, n: 0, max: 0 });
       rp.ms += ms; rp.n++; if (ms > rp.max) rp.max = ms;
       PERF.w.step += ms; PERF.w.steps++; if (ms > PERF.w.stepMax) PERF.w.stepMax = ms;

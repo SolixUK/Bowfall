@@ -12,15 +12,15 @@ const FIT_PATH = path.join(__dirname, '../lib/duo-fit.json');
 const FIT = fs.existsSync(FIT_PATH) ? JSON.parse(fs.readFileSync(FIT_PATH, 'utf8')) : { v: 1, duos: {} };
 // which parameters each tactic mode tunes, and the range to try
 const TUNE = {
-  guard: { guardD: [100, 320], behindD: [60, 220], tacK: [0.4, 1.8] },
-  behind: { behindD: [60, 220], side: [20, 90], tacK: [0.4, 1.8] },
+  guard: { guardD: [70, 200], tacK: [0.6, 2.0], wallK: [0.6, 2.0] },
+  behind: { behindD: [60, 220], side: [20, 90], tacK: [0.4, 1.8], wallK: [0.6, 2.0] },
   bully: { bullyD: [160, 340], bashEager: [1, 5] },
   unload: { unloadD: [120, 300] },
   crossfire: { cross: [0.6, 1.6], farD: [480, 760], tacK: [0.3, 1.5] },
   flank: { flankAng: [0.8, 1.6], tacK: [0.4, 1.8] },
   hunt: { pickK: [1.2, 3.5], pickRange: [300, 700] },
   syncstealth: { stealthGap: [0.5, 2.0], ambushAng: [0.8, 1.6] },
-  trapper: { trapGap: [120, 320] },
+  trapper: { trapGap: [120, 320], waterK: [0.3, 1.8] },
   finisher: { finishD: [220, 420] },
   rift: { finishD: [220, 420] },
   focus: {},

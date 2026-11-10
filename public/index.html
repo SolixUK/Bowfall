@@ -2587,7 +2587,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.95.0"></script>
+<script src="sim.js?v=0.95.1"></script>
 <script>
 (() => {
 'use strict';
@@ -2595,7 +2595,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.95.0';
+const PAGE_VERSION = '0.95.1';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -5937,7 +5937,7 @@ function connect(joinMsg) {
       if (m.arena && m.arena.def) useRoomArena(m.arena);
       if (pendingArena && m.amHost) { act({ t: 'cfg', arena: pendingArena }); pendingArena = null; }
       if (COOP.pending && m.amHost) { act({ t: 'coop', op: 'start', diff: COOP.pending }); COOP.pending = null; }
-      if (m.coop) { const k = m.coop.idx + ':' + m.coop.st; if (COOP.key !== k) { COOP.key = k; if (m.coop.st === 'brief') COOP.picks = []; } }
+      if (m.coop) { const k = m.coop.idx + ':' + m.coop.st + ':' + (m.coop.fights || 0); if (COOP.key !== k) { COOP.key = k; COOP.sent = null; } } // (your picks are remembered from battle to battle)
       $('roomTag').innerHTML = 'Room <b>' + esc(m.code) + '</b>' + (m.coop ? ` · Duo <b>${m.coop.idx + 1}/${m.coop.n}</b> · ${m.coop.lives} continue${m.coop.lives === 1 ? '' : 's'} · <b>${m.coop.score}</b>` : '');
       hc.lb = hc.gm = hc.lbHead = hc.gmHead = null;
     } else if (m.t === 'snap') {
@@ -7551,6 +7551,7 @@ function openMenu() {
   if (view && view.m.ph === 'lobby') return;
   menuOpen = true; mouse.down = false;
   if (mode === 'local') paused = true;
+  if (mode === 'online' && roomInfo && roomInfo.coop) act({ t: 'coop', op: 'pause' }); // (the arcade pauses for everyone: it's your run)
   hc.gm = hc.gmHead = hc.gmBuild = null;
   // the tutorial's pause menu keeps to what matters there; a ranked match says what leaving costs
   const tut = mode === 'local' && TUT.on;
@@ -7560,7 +7561,7 @@ function openMenu() {
   $('leaveBtn').title = rk ? 'Leaving a ranked match counts as a loss and means a short wait before your next search, unless you rejoin within 45 seconds of play.' : '';
   $('gameMenu').hidden = false; $('resumeBtn').focus();
 }
-function closeMenu() { menuOpen = false; paused = false; $('gameMenu').hidden = true; if (optFromGame) { optFromGame = false; $('optScr').hidden = true; } }
+function closeMenu() { if (menuOpen && mode === 'online' && roomInfo && roomInfo.coop) act({ t: 'coop', op: 'resume' }); menuOpen = false; paused = false; $('gameMenu').hidden = true; if (optFromGame) { optFromGame = false; $('optScr').hidden = true; } }
 // Options from the in-game menu (the aim line, sound, graphics): the menu steps aside while it's open and comes back after
 let optFromGame = false;
 $('gmOptBtn').onclick = () => { optFromGame = true; $('gameMenu').hidden = true; openSub('optScr'); };
@@ -7601,12 +7602,12 @@ function teamsHtml(v, ro) {
     const slots = list.map(p => `<div class="slot" data-card="p${p.id}"><i class="dot" style="background:${p.c}"></i><span class="nm plate${plateClass(p)}"${plateStyle(p)}><span class="pl1">${idHtml(p)}<b>${esc(p.n)}</b>${ownHtml(p.ow)}${statusHtml(p)}${trophyHtml(p.na)}${medalsHtml(p.sc)}${p.ti ? ` <em class="ttl">${esc(titleName(p.ti))}</em>` : ''}</span><small>${hideArch ? '<span class="hid">Archetype hidden</span>' : esc(archName(p))}</small></span>` +
       (p.id === myId ? '<span class="tag you">You</span>' : '') + (p.id === hostId && mode === 'online' ? '<span class="tag">Host</span>' : '') +
       (p.b && !ranked && !coop ? (p.dv && host ? botSkillHtml(p) : `<span class="tag">${p.dv ? esc(BOT_SKILL[p.dv] || 'Bot') : 'Bot'}</span>`) : '') + (p.b && (ranked || coop) ? '<span class="aitag" title="AI player">AI</span>' : '') + (ranked ? '' : coop ? hcapHtml(p, false) : hcapHtml(p, host)) +
-      (p.b && host && !coop ? `<button type="button" class="xbtn" data-rm="${p.id}" aria-label="Remove ${esc(p.n)}">×</button>` : '') + '</div>').join('');
+      (p.b && host && (!coop || p.tm === 'red') ? `<button type="button" class="xbtn" data-rm="${p.id}" aria-label="Remove ${esc(p.n)}">×</button>` : '') + '</div>').join('');
     const nOpen = MAX_TEAM - list.length, open = nOpen > 0 ? `<div class="slot empty" style="--n:${nOpen}">${nOpen === 1 ? 'Open slot' : nOpen + ' open slots'}</div>` : '';
     const full = list.length >= MAX_TEAM;
     const canJoin = ranked || (coop && (t !== 'red' || (me && me.tm === 'red'))) ? false : me ? !ro && me.tm !== t && !full : mode === 'online' && ['lobby', 'over', 'post'].includes(v.m.ph) && (!full || list.some(p => p.b));
     const foot = (canJoin ? `<button type="button" class="ghost sm" data-join="${t}">Join ${teamName(t)}</button>` : '') +
-      (host && !full && !coop ? `<button type="button" class="ghost sm" data-addbot="${t}">+ Add bot</button>` : '');
+      (host && !full && (!coop || (t === 'red' && account && account.admin)) ? `<button type="button" class="ghost sm" data-addbot="${t}">+ Add bot</button>` : '');
     // (in the lobby the buttons sit in the team's header line, so the box is always exactly four rows tall)
     if (!$('lobby').hidden && v.m.ph === 'lobby') return `<div class="tcol" data-navsec style="--tc:${TEAM_COL[t]}"><div class="thead"><b>${teamName(t)}</b><span>${list.length} / ${MAX_TEAM}</span><span class="thb">${foot}</span></div>${slots}${open}</div>`;
     return `<div class="tcol" data-navsec style="--tc:${TEAM_COL[t]}"><div class="thead"><b>${teamName(t)}</b><span>${list.length} / ${MAX_TEAM}</span></div>${slots}${open}` +
@@ -7972,7 +7973,7 @@ function renderMenu(v) {
   // a ranked match has no room code (nobody can join by code); a drill or the tutorial has no teams to show. Teams, bots,
   // bot skill and handicaps are set up in the lobby, so mid-match the teams are just shown
   setC('gmHead', mode + host + ranked + drill + (lpm ? lpm.n : 0) + $('warmBar').hidden + !!(roomInfo && roomInfo.coop), () => {
-    $('gmEyebrow').textContent = lpm ? `P${lpm.n} · ${lpm.name} · menu` : drill ? (TUT.on ? 'Tutorial · paused' : 'Drill · paused') : online ? 'Menu · the match keeps running' : 'Paused';
+    $('gmEyebrow').textContent = lpm ? `P${lpm.n} · ${lpm.name} · menu` : drill ? (TUT.on ? 'Tutorial · paused' : 'Drill · paused') : online && roomInfo && roomInfo.coop ? 'Paused · the arcade waits for you' : online ? 'Menu · the match keeps running' : 'Paused';
     $('gmRoom').hidden = !online || ranked || !!lpm;
     if (online && roomInfo) { $('gmCode').textContent = roomInfo.code; $('gmShare').textContent = 'Friends join with this code or the invite link.'; }
     const coopOn = online && !!(roomInfo && roomInfo.coop);
@@ -7984,7 +7985,7 @@ function renderMenu(v) {
     $('gmBalBtn').hidden = $('gmAchBtn').hidden = tut || !!lpm;
     $('gmDiffWrap').hidden = true;
     $('gmTeams').hidden = drill;
-    $('gmNote').childNodes[0].textContent = lpm ? (online ? 'Your archer waits while this menu is open. ' : '') : drill ? 'Leave the drill from its panel, or carry on. ' : ranked || online ? 'The match keeps running while this menu is open. ' : '';
+    $('gmNote').childNodes[0].textContent = lpm ? (online ? 'Your archer waits while this menu is open. ' : '') : drill ? 'Leave the drill from its panel, or carry on. ' : online && roomInfo && roomInfo.coop ? 'The battle is paused for everyone while this menu is open. ' : ranked || online ? 'The match keeps running while this menu is open. ' : '';
   });
   if (!drill) setC('gm', JSON.stringify(v.p.map(p => [p.id, p.n, p.tm, p.b, p.dv, p.c, p.hc])) + host + myId + v.m.ph + ranked + JSON.stringify(roomInfo && roomInfo.spec), () => { $('gmTeams').innerHTML = teamsHtml(v, true); });
   const me = v.p.find(p => p.id === (lpm ? lpm.pid : myId)), hn = (me && me.hn) || {}, ups = (me && me.up) || [];
@@ -8370,7 +8371,9 @@ function renderCoop(v, meL, host) {
         const r = C.result || {};
         body += `<div class="coopres ${r.won ? 'won' : 'lost'}"><b>${r.won ? `${esc(r.duo)} beaten · +${r.pts}` : `${esc(r.duo)} win this one`}</b><div>${r.won ? 'Next duo coming up.' : `${r.lives} continue${r.lives === 1 ? '' : 's'} left. Same duo again.`} ${host ? '' : 'The host can move on, or it moves on by itself in a moment.'}</div></div>`;
         if (host) body += `<div class="coopfoot"><button type="button" class="cta sm" data-coop="next">${r.won ? 'Next duo' : 'Try again'}</button><button type="button" class="ghost sm" data-coop="quit">End run</button></div>`;
-      } else { // the brief: pick three upgrades, ready up
+      } else { // the brief: pick three upgrades, ready up (the last battle's picks come back when they still fit the archetype)
+        if (meL) { const keep = []; for (const id of COOP.picks) if (Sim.forcedChoices(meL.el, meL.ro, keep, !!C.solo).includes(id) && keep.length < 3) keep.push(id); COOP.picks = keep;
+          const sent = JSON.stringify([C.idx, meL.el, meL.ro, keep]); if (COOP.sent !== sent && (keep.length || (C.picks[myCid()] || []).length)) { COOP.sent = sent; coopAct('pick', { ups: keep }); } }
         const have = COOP.picks.filter(id => TREE[id]);
         const opts = meL ? Sim.forcedChoices(meL.el, meL.ro, have, !!C.solo) : [];
         const slots = [0, 1, 2].map(i => have[i] ? `<button type="button" class="slotc full" data-coopdrop="${have[i]}" title="${esc(TREE[have[i]].desc)}">${esc(TREE[have[i]].name)} ×</button>` : `<span class="slotc">Upgrade ${i + 1}</span>`).join('');
@@ -8381,7 +8384,7 @@ function renderCoop(v, meL, host) {
         body += `<div class="coopfoot">${meL ? `<button type="button" class="${mine ? 'ghost' : 'cta'} sm" data-coop="ready" ${allPicked || mine ? '' : 'disabled'}>${mine ? 'Ready ✓ (unready)' : allPicked ? 'Ready' : 'Pick three upgrades'}</button>` : ''}` +
           `<span class="status">${mine ? 'Waiting for your partner…' : C.solo ? 'Solo: you get extra health and damage.' : 'Both of you ready up and the battle starts.'}</span>` +
           (host ? `<button type="button" class="ghost sm" data-coop="go" title="Start the battle now, with whatever's been picked">Start now</button><button type="button" class="ghost sm" data-coop="quit">End run</button>` : '') +
-          (account && account.admin ? `<button type="button" class="ghost sm" data-coop="back" title="Owner: back a duo">◂</button><button type="button" class="ghost sm" data-coop="skip" title="Owner: skip this duo">▸</button>` : '') + '</div>';
+          (account && account.admin ? `<button type="button" class="ghost sm" data-coop="back" title="Owner: back a duo">◂ Previous duo</button><button type="button" class="ghost sm" data-coop="skip" title="Owner: skip this duo">Skip duo ▸</button>` : '') + '</div>';
       }
     }
     box.innerHTML = body;

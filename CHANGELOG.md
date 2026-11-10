@@ -2,6 +2,12 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.95.1
+
+- **Co-op arcade, from the first play.** Esc pauses the battle for everyone (the run is yours; it says who paused in chat and resumes when the menu closes). Your three upgrades are remembered from battle to battle and come back whenever they still fit your archetype. The owner's skip arrows are labelled (Previous duo, Skip duo), and the owner can add a bot to Red to test with.
+- **The duos play their parts.** A close guard (Boulder in The Wall, Bastion in Presence) now stands right between you and its partner, lets the bow go and runs when it's away from that spot, dashes to get there when it's far, dash-bashes anyone who gets onto the partner, heals up sooner (medkits and amber from further off, the spring earlier) and hangs about the spring when there is one. Wardens with a Wall up stay behind it, and so does the partner behind them. Trappers veer round to put water between you and them, so the harpoon and the roots by the pool have something to work with.
+- Arenas: The Shallows' four pools are now a diamond (one is always between you and the far side); The Hollow has its pools in the corners and thorns in the middle of each wall, so there's nowhere to hug; The Stand has a healing spring in the middle for Bastion to hold; The Quarry has ten standing rocks.
+
 ## 0.95.0
 
 - **Co-op arcade.** A new main-menu mode: one or two people against a ladder of fourteen AI duos, each with its own small arena, one or two fixed map effects and a tactic that is the point of the fight (a colossus that body-blocks for a crossbow, two assassins who vanish together and come from two sides, two juggernauts who only want to bash you into the pens, two snipers across the lava, and so on). Four difficulties (Easy, Normal, Hard, Legend), three continues, a handicap when you're on your own, all three upgrades picked before each battle, battles best of three games, score per difficulty kept on the account. The host can bring a friend in by code or invite link between battles; the owner can skip forward and back through the duos to test them.

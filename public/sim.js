@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.95.0';
+const VERSION = '0.95.1';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -566,20 +566,20 @@ coopMap('coop_sinks', { name: 'The Sinks', theme: 'spring', desc: 'Sinkholes all
 coopMap('coop_yard', { name: 'The Yard', theme: 'farm', desc: 'Hay bales in lanes. Short sight lines; something is always round the next bale.',
   haz: [], pillars: [{ x: 300, y: 250, r: 27, kind: 'hay' }, { x: 300, y: 400, r: 27, kind: 'hay' }, { x: 300, y: 550, r: 27, kind: 'hay' }, { x: 480, y: 320, r: 27, kind: 'hay' }, { x: 480, y: 480, r: 27, kind: 'hay' }], power: [{ x: 600, y: 400 }] });
 coopMap('coop_shallows', { name: 'The Shallows', theme: 'marsh', desc: 'Four pools between you and them. A root beside one is a long swim.',
-  haz: [{ type: 'pit', water: true, shape: 'circle', x: 450, y: 250, r: 56 }, { type: 'pit', water: true, shape: 'circle', x: 450, y: 550, r: 56 }], pillars: [], power: [{ x: 600, y: 400 }] });
+  haz: [{ type: 'pit', water: true, shape: 'circle', x: 600, y: 215, r: 58 }, { type: 'pit', water: true, shape: 'circle', x: 400, y: 400, r: 58 }], pillars: [], power: [{ x: 600, y: 400 }] }); // (a diamond: a pool is always between you and the far side)
 coopMap('coop_gallery', { name: 'The Gallery', theme: 'ruins', desc: 'A long hall with a line of pillars down the middle. Shots come off the walls.',
   haz: [], pillars: [{ x: 600, y: 250, r: 26 }, { x: 450, y: 400, r: 26 }], power: [{ x: 600, y: 150 }, { x: 600, y: 650 }] });
 coopMap('coop_hollow', { name: 'The Hollow', theme: 'wisp', desc: 'A healing spring in the middle, dark pools in the corners. Watch the shadows.',
-  heal: { x: 600, y: 400, r: 55, rate: 10 }, haz: [{ type: 'pit', water: true, shape: 'circle', x: 380, y: 230, r: 50 }, { type: 'pit', water: true, shape: 'circle', x: 380, y: 570, r: 50 }], pillars: [{ x: 520, y: 400, r: 24 }], power: [{ x: 600, y: 180 }, { x: 600, y: 620 }] });
+  heal: { x: 600, y: 400, r: 55, rate: 10 }, haz: [{ type: 'pit', water: true, shape: 'circle', x: 130, y: 130, r: 66 }, { type: 'pit', water: true, shape: 'circle', x: 130, y: 670, r: 66 }], pillars: [{ x: 520, y: 400, r: 24 }], spikes: [{ side: 'top', a: 440, b: 760 }, { side: 'left', a: 290, b: 510 }], power: [{ x: 600, y: 180 }, { x: 600, y: 620 }] }); // (pools in the corners, thorns mid-wall: nowhere safe to hug)
 coopMap('coop_drain', { name: 'The Drain', theme: 'rift', desc: 'One great pit in the middle. Everything pulls towards it.',
   haz: [{ type: 'pit', shape: 'circle', x: 600, y: 400, r: 92, centre: true }], pillars: [{ x: 430, y: 300, r: 26 }, { x: 430, y: 500, r: 26 }], power: [{ x: 600, y: 200 }, { x: 600, y: 600 }] });
 coopMap('coop_stand', { name: 'The Stand', theme: 'meadow', desc: 'Two boulders by the middle and a drop at the top and bottom. Somewhere to make a stand.',
-  haz: [{ type: 'pit', shape: 'rect', x: 560, y: WALL, w: 80, h: 90 }], pillars: [{ x: 520, y: 330, r: 30 }], power: [{ x: 600, y: 400 }] });
+  heal: { x: 600, y: 400, r: 52, rate: 10 }, haz: [{ type: 'pit', shape: 'rect', x: 560, y: WALL, w: 80, h: 90 }], pillars: [{ x: 500, y: 300, r: 30 }], power: [{ x: 600, y: 230 }, { x: 600, y: 570 }] }); // (the spring in the middle is the juggernaut's to hold)
 coopMap('coop_maze', { name: 'The Maze', theme: 'farm', desc: 'Bales stacked into a maze, with more than one power-up to run for.',
   haz: [], pillars: [{ x: 200, y: 200, r: 26, kind: 'hay' }, { x: 200, y: 600, r: 26, kind: 'hay' }, { x: 360, y: 300, r: 28, kind: 'hay' }, { x: 360, y: 500, r: 28, kind: 'hay' }, { x: 500, y: 180, r: 24, kind: 'hay' }, { x: 500, y: 620, r: 24, kind: 'hay' }, { x: 520, y: 400, r: 30, kind: 'hay' }],
   power: [{ x: 600, y: 400 }, { x: 300, y: 400 }, { x: 900, y: 400 }] });
 coopMap('coop_quarry', { name: 'The Quarry', theme: 'dust', desc: 'A stone floor and standing rock. Nothing to fall into: it comes down to who hits harder.',
-  haz: [], pillars: [{ x: 350, y: 250, r: 28 }, { x: 350, y: 550, r: 28 }, { x: 500, y: 400, r: 30 }], power: [{ x: 600, y: 400 }] });
+  haz: [], pillars: [{ x: 250, y: 400, r: 26 }, { x: 380, y: 230, r: 28 }, { x: 380, y: 570, r: 28 }, { x: 500, y: 400, r: 30 }, { x: 600, y: 250, r: 26 }], power: [{ x: 600, y: 400 }] });
 coopMap('coop_pens', { name: 'The Pens', theme: 'farm', desc: 'Pens of boulders with a hole behind each, and a healing spring in the middle for whoever holds it.',
   heal: { x: 600, y: 400, r: 55, rate: 12 }, haz: [{ type: 'pit', shape: 'rect', x: 300, y: WALL, w: 110, h: 70 }], pillars: [{ x: 400, y: 260, r: 28 }, { x: 400, y: 540, r: 28 }, { x: 330, y: 400, r: 28 }], power: [{ x: 600, y: 240 }, { x: 600, y: 560 }] });
 coopMap('coop_narrows', { name: 'The Narrows', theme: 'rift', desc: 'A lava river with two narrow bridges. Long shots over the flow, and nowhere to hide on a bridge.',
@@ -4274,7 +4274,8 @@ function botPlan(w, p, T, foes, mates, D, G) {
   const ai = p.ai, st = STYLES[ai.style] || STYLES.skirmisher;
   const reach = botReach(p), outg = T ? outranged(p, T) : 0, ready = loaded(p);
   const cardPref = (p.role === 'sniper' ? 1.2 : 1) * (p.role === 'assassin' ? 0.8 : 1) * (has(p, 'deadeye') ? 1.15 : 1) * (has(p, 'pointblank') ? 0.7 : 1) * (has(p, 'holdline') || has(p, 'ram') ? 0.85 : 1); // (what the cards want: Deadeye far out, Point Blank and the brawling cards up close)
-  const pref = Math.min(reach * 0.8, (st.near + st.far) / 2 * G.pref * cardPref) * botPressIn(p);
+  let pref = Math.min(reach * 0.8, (st.near + st.far) / 2 * G.pref * cardPref) * botPressIn(p);
+  if (ai.tac && ai.tac.mode === 'guard' && tacP(p, 'guardD') < 160) pref = Math.min(pref, tacP(p, 'guardD') + 30); // (a body-shield's range is where it stands)
   const short = p.role === 'ninja' || p.role === 'crossbow' || p.role === 'assassin'; // (the Assassin's arrows hit hardest up close too)
   const rushReady = has(p, 'rush') && p.slots.some((id, i) => id === 'rush' && !(p.abCd[i] > 0)), pinning = has(p, 'pin');
   const hold = holdSpot(p), holdK = hold ? (p.hp < p.maxHp * 0.7 && senseArena().heal ? 1.6 : 1) * (T && Math.hypot(T.x - hold.x, T.y - hold.y) < hold.r + 60 ? 0.5 : 1) : 0; // (less while they're standing on it: that's a fight, not a stroll)
@@ -4327,7 +4328,7 @@ function botPlan(w, p, T, foes, mates, D, G) {
     }
     if (inBog(x, y, p.r)) sc -= 0.6; // slow, and no dashing out of trouble
     if (hold) { const dh = Math.hypot(hold.x - x, hold.y - y); sc += dh < hold.r + 40 ? 0.9 * holdK * (1 - dh / (hold.r + 40)) : -Math.min(0.6, (dh - hold.r) / 600) * holdK; } // the play: hold the spot
-    if (HEAL && p.hp < p.maxHp * 0.6) { const dh = Math.hypot(HEAL.x - x, HEAL.y - y); if (dh < HEAL.r) sc += 0.8 * G.heal * (1 - p.hp / p.maxHp); }
+    if (HEAL && p.hp < p.maxHp * (ai.tac && ai.tac.mode === 'guard' ? 0.8 : 0.6)) { const dh = Math.hypot(HEAL.x - x, HEAL.y - y); if (dh < HEAL.r) sc += (ai.tac && ai.tac.mode === 'guard' ? 1.4 : 0.8) * G.heal * (1 - p.hp / p.maxHp); }
     // don't stand on a teammate
     for (const m of mates) { const dm = Math.hypot(m.x - x, m.y - y); if (dm < 110) sc -= (110 - dm) / 110 * 0.5; }
     if (ai.tac && T && w.teamPlan) sc += tacSpotScore(w, p, T, x, y, mates); // the duo's formation
@@ -4559,7 +4560,7 @@ function botDashDir(p, wasDraw) {
 //   finisher   be at the spot from which a full draw puts a held (or about-to-be-held) enemy into a hazard
 //   rift       (Undertow) the void archer draws fully for rifts; the partner targets whoever the rift holds
 // Any mode also shares the team target (the one nearest a hazard, then the hurt one, then the held one).
-const TAC_DEF = { guardD: 150, behindD: 95, side: 45, bullyD: 240, bashEager: 3, unloadD: 190, flankAng: 1.2, flankWhen: 'cover', cross: 1.0, farD: 620, pickK: 2.2, pickRange: 520, stealthGap: 1.0, ambushAng: 1.1, trapGap: 220, finishD: 320, holdBias: 0.6, tacK: 1.0 };
+const TAC_DEF = { guardD: 150, behindD: 95, side: 45, bullyD: 240, bashEager: 3, unloadD: 190, flankAng: 1.2, flankWhen: 'cover', cross: 1.0, farD: 620, pickK: 2.2, pickRange: 520, stealthGap: 1.0, ambushAng: 1.1, trapGap: 220, finishD: 320, holdBias: 0.6, tacK: 1.0, wallK: 1.2, waterK: 0.9 };
 const tacOf = p => (p.ai && p.ai.tac) || null, tacP = (p, k) => { const t = tacOf(p); return t && t[k] != null ? t[k] : TAC_DEF[k]; };
 const heldBy = q => q.stuck > 0 || q.frozen > 0 || q.staggerT > 0 || q.pinned > 0 || q.vine > 0 || q.riftSlow > 0;
 function teamPlan(w) {
@@ -4608,6 +4609,19 @@ function finishSpot(w, us, T) {
 // the formation as a bias on the planning brain's spot scoring (so cover, hazards and range still count): the guard on the
 // line between the partner and the enemy and ahead of the partner; the partner behind the guard with a line of sight; a
 // flanker off to the side of the partner's line; a crossfire pair wide apart as seen from the target
+// our team's Wall between a spot and the enemy (they can't shoot us there; we stand behind it on purpose)
+const ourWallBetween = (w, team, x1, y1, x2, y2) => w.zones.some(z => z.ty === 'wall' && z.team === team && z.t > 0 && (() => { const d = (x2 - x1) * (z.y2 - z.y) - (y2 - y1) * (z.x2 - z.x); if (Math.abs(d) < 1e-9) return false; const t = ((z.x - x1) * (z.y2 - z.y) - (z.y - y1) * (z.x2 - z.x)) / d, u = ((z.x - x1) * (y2 - y1) - (z.y - y1) * (x2 - x1)) / d; return t >= 0 && t <= 1 && u >= 0 && u <= 1; })());
+// a hole or water on the straight line between two points (a harpoon or a root there is a knockout)
+function waterBetween(x1, y1, x2, y2) {
+  const dx = x2 - x1, dy = y2 - y1, d = Math.hypot(dx, dy); if (d < 60) return false;
+  for (let s = 30; s < d - 30; s += 18) { const x = x1 + dx / d * s, y = y1 + dy / d * s; for (const h of HAZ) if (h.type === 'pit' && inHaz(h, x, y, -10)) return true; }
+  return false;
+}
+// where a guard wants to stand: between the enemy and the partner, guardD from the enemy (or just ahead of the partner when they're nearer than that)
+function guardSpot(p, T, partner) {
+  const px = partner.x - T.x, py = partner.y - T.y, dP = Math.hypot(px, py) || 1, gd = Math.max(60, Math.min(tacP(p, 'guardD'), dP - 70));
+  return { x: T.x + px / dP * gd, y: T.y + py / dP * gd, dP };
+}
 function tacSpotScore(w, p, T, x, y, mates) {
   const ai = p.ai, tac = ai.tac, tp = (w.teamPlan || {})[p.team]; if (!tac || !tp) return 0;
   const K = tacP(p, 'tacK'), partner = mates.find(m => m.bot && tacOf(m)) || mates[0] || null;
@@ -4617,9 +4631,11 @@ function tacSpotScore(w, p, T, x, y, mates) {
       if (!partner || partner.dead) return 0;
       const px = partner.x - T.x, py = partner.y - T.y, dP = Math.hypot(px, py) || 1;
       const along = (dxT * px + dyT * py) / dP, perp = Math.abs(dxT * py - dyT * px) / dP; // (spot's place along and off the T→partner line)
-      let sc = K * Math.max(0, 1 - perp / 160) * (along > 0 ? 1 : 0.3);
+      let sc = K * Math.max(0, 1 - perp / 120) * (along > 0 ? 1 : 0.3);
       if (dST > dP - 40) sc -= K * 0.7; // (never behind the one we're guarding)
       if (dST < tacP(p, 'guardD') * 0.6) sc -= K * 0.4; // (not on top of them either: the shove-off is their move)
+      const g = guardSpot(p, T, partner), dg = Math.hypot(g.x - x, g.y - y); sc += K * 1.2 * Math.max(0, 1 - dg / 220); // (the spot itself: right there, not somewhere along the line)
+      if (ourWallBetween(w, p.team, x, y, T.x, T.y)) sc += K * (tacP(p, 'wallK') || 0); // (a Wall of ours up: it's for standing behind)
       return sc;
     }
     case 'behind': {
@@ -4629,6 +4645,7 @@ function tacSpotScore(w, p, T, x, y, mates) {
       const bx = x - g.x, by = y - g.y, dB = Math.hypot(bx, by) || 1, cosA = (bx * gx + by * gy) / (dB * dG), bd = tacP(p, 'behindD');
       let sc = cosA > 0.6 && dB > bd * 0.6 && dB < bd + 120 ? K * (0.6 + 0.4 * cosA) : 0; // (behind the guard, over their shoulder)
       if (dST < dG - 20) sc -= K * 0.7; // (never in front of the guard)
+      if (ourWallBetween(w, p.team, x, y, T.x, T.y)) sc += K * (tacP(p, 'wallK') || 0); // (the guard's Wall: stay behind it)
       return sc;
     }
     case 'flank': {
@@ -4644,6 +4661,11 @@ function tacSpotScore(w, p, T, x, y, mates) {
       const a = Math.abs(angOff(Math.atan2(partner.y - T.y, partner.x - T.x), Math.atan2(dyT, dxT))), want = tacP(p, 'cross');
       return K * Math.min(1, a / want) * (dST < tacP(p, 'farD') + 150 ? 1 : 0.5);
     }
+    case 'trapper': {
+      // water between us and them: a root by it, a harpoon over it, are the knockouts; veer round to put a pool in the way
+      if (!waterBetween(x, y, T.x, T.y)) return 0;
+      return K * tacP(p, 'waterK') * (dST < botReach(p) ? 1 : 0.5);
+    }
     default: return 0;
   }
 }
@@ -4653,8 +4675,9 @@ function tacticGoal(w, p, T, foes, mates, dt) {
   const toward = (x, y, k = 1) => { const dx = x - p.x, dy = y - p.y, d = Math.hypot(dx, dy) || 1, a = Math.min(1, d / 40); return [dx / d * a * k - p.vx / 500, dy / d * a * k - p.vy / 500]; };
   // a power-up that's ours to take (hunters go further for it, and anyone takes one right next to them)
   const pid = tp.pick[p.id], pu = pid != null ? w.pickups.find(u => u.id === pid) : null;
-  if (pu) { const d = Math.hypot(pu.x - p.x, pu.y - p.y), worth = pickupWorth(pu, p) * (tac.mode === 'hunt' ? tacP(p, 'pickK') : 1);
-    if (worth > 0.5 && d < (tac.mode === 'hunt' ? tacP(p, 'pickRange') : 200) && !(T && T.drawing && T.charge > 0.5 && d > 120)) {
+  const hunter = tac.mode === 'hunt' || (tac.mode === 'guard' && p.hp < p.maxHp * 0.7 && (pu && (pu.type === 'heal' || pu.type === 'amber'))); // (a hurt tank goes for anything that heals)
+  if (pu) { const d = Math.hypot(pu.x - p.x, pu.y - p.y), worth = pickupWorth(pu, p) * (hunter ? tacP(p, 'pickK') : 1);
+    if (worth > 0.5 && d < (hunter ? tacP(p, 'pickRange') : 200) && !(T && T.drawing && T.charge > 0.5 && d > 120)) {
       if (tac.mode === 'hunt' && d > 230 && p.dashN > 0 && ai.dodgeCd <= 0 && lethalDist(p.x + (pu.x - p.x) / d * 150, p.y + (pu.y - p.y) / d * 150) > 40 && Math.random() < dt * 2) { p.wantDash = true; ai.dashAim = Math.atan2(pu.y - p.y, pu.x - p.x); ai.dodgeCd = 0.6; }
       return toward(pu.x, pu.y); } }
   if (!T) return null;
@@ -4769,7 +4792,8 @@ function botThink(w, p, dt) {
   }, null);
   ai.strafeT -= dt;
   if (ai.strafeT <= 0) { ai.strafe *= -1; ai.strafeT = rand(0.9, 2.4); }
-  const hurtBad = HEAL && p.hp < p.maxHp * 0.5 && (!T || dT > 170);
+  const tank = ai.tac && ai.tac.mode === 'guard'; // (a guard is the team's health: it heals up sooner)
+  const hurtBad = HEAL && p.hp < p.maxHp * (tank ? 0.65 : 0.5) && (!T || dT > (tank ? 120 : 170));
   const healD = HEAL ? Math.hypot(HEAL.x - p.x, HEAL.y - p.y) : 0;
   const fallen = has(p, 'revive') && !p.reviveUsed ? mates.length >= 0 && w.players.find(q => q.team === p.team && q.dead && q.lastCause !== 'join' && q.lastCause !== 'switch') : null;
   const safeToRevive = fallen && !foes.some(q => Math.hypot(q.x - fallen.x, q.y - fallen.y) < 230);
@@ -4917,6 +4941,18 @@ function botThink(w, p, dt) {
 
   // --- the Terminator fight: get out of a rush's way, behind a pillar for the pull, off a barrage mark, round the back of the Juggernaut
   if (w.tm && iq >= 0.3) { const o = botTerminator(w, p, T, dt); if (o) { gx = o[0]; gy = o[1]; } }
+  // --- a guard (co-op): the spot between the enemy and the partner is the job. Far from it: let the bow go and run (a drawn
+  // bow is slow), dash to it when it's a long way, and dash-bash anyone who gets on the partner. A tank keeps itself healthy too
+  if (ai.tac && ai.tac.mode === 'guard' && tacP(p, 'guardD') < 160 && T && !hurtBad) { // (a close guard, a body-shield; a warden guarding from behind its wall keeps shooting)
+    const partner = mates.find(m => !m.dead) || null;
+    if (partner) {
+      const g = guardSpot(p, T, partner), dg = Math.hypot(g.x - p.x, g.y - p.y), onP = Math.hypot(T.x - partner.x, T.y - partner.y);
+      if (dg > 110 && !(T.drawing && T.charge > 0.5 && dT < 300)) { inp.draw = false; ai.reload = Math.max(ai.reload || 0, 0.2); } // (legs first)
+      if (dg > 260 && p.dashN > 0 && ai.dodgeCd <= 0 && lethalDist(p.x + (g.x - p.x) / dg * 160, p.y + (g.y - p.y) / dg * 160) > 50 && Math.random() < dt * 3) { p.wantDash = true; ai.dashAim = Math.atan2(g.y - p.y, g.x - p.x); ai.dodgeCd = 0.8; }
+      // on the partner: knock them off (a shove away from the partner, never into our own side)
+      if (onP < 160 && dT < 200 && p.dashN > 0 && (ai.bashCd || 0) <= 0 && !ai.tac.noShove) { const ang = Math.atan2(T.y - partner.y, T.x - partner.x); if (angOff(ang, Math.atan2(T.y - p.y, T.x - p.x)) < 1.2 && lethalDist(p.x + Math.cos(ang) * (dT + 40), p.y + Math.sin(ang) * (dT + 40)) > 50) { p.wantDash = true; ai.dashAim = Math.atan2(T.y - p.y, T.x - p.x); ai.bashCd = rand(1.2, 2); } }
+    }
+  }
   // --- the duo's tactic (co-op): where it wants us, over the usual brain (not while healing badly hurt or reviving)
   if (ai.tac && !hurtBad && !safeToRevive) { const tg = tacticGoal(w, p, T, foes, mates, dt); if (tg) { gx = tg[0]; gy = tg[1]; } }
   // --- tunnel vision: in the heat of it (a shot nearly drawn, a kill nearly there) a lesser player forgets their feet for a
