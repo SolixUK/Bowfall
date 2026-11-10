@@ -1,0 +1,96 @@
+{
+  "v": 1,
+  "difficulties": {
+    "easy":   { "name": "Easy",   "facets": [0.40, 0.60], "mult": 1.0 },
+    "normal": { "name": "Normal", "facets": [0.55, 0.75], "mult": 1.5 },
+    "hard":   { "name": "Hard",   "facets": [0.70, 0.90], "mult": 2.2 },
+    "legend": { "name": "Legend", "facets": [0.85, 0.97], "mult": 3.0 }
+  },
+  "continues": 3,
+  "duos": [
+    { "id": "pair", "name": "The Pair", "map": "coop_field", "effects": [],
+      "tell": "Two rangers, nothing fancy. They pick a target and both go for it.",
+      "members": [
+        { "name": "Wren", "el": "frost", "role": "ranger", "ups": ["quickshot", "momentum", "fleet"], "tac": { "mode": "focus" }, "look": { "hair": 2, "skin": 1 }, "voice": "keen" },
+        { "name": "Tally", "el": "storm", "role": "ranger", "ups": ["static", "dash", "quickshot"], "tac": { "mode": "focus" }, "look": { "hair": 5, "skin": 3 }, "voice": "dry" }
+      ] },
+    { "id": "hearth", "name": "Hearth", "map": "coop_ridge", "effects": ["hide"],
+      "tell": "A warden walls up on the ridge and sets you alight; the sniper behind the wall finishes it.",
+      "members": [
+        { "name": "Ember", "el": "flame", "role": "warden", "ups": ["wall", "bond", "stoke"], "tac": { "mode": "guard" }, "look": { "hair": 1, "skin": 2 }, "voice": "warm" },
+        { "name": "Sable", "el": "frost", "role": "sniper", "ups": ["holdline", "heavy", "steady"], "tac": { "mode": "behind", "behindD": 160 }, "look": { "hair": 6, "skin": 1 }, "voice": "quiet" }
+      ] },
+    { "id": "fever", "name": "Fever", "map": "coop_run", "effects": ["gale", "hide"],
+      "tell": "Two wardens who hardly need to hit you twice. Poison and fire do the rest while they heal up behind their walls.",
+      "members": [
+        { "name": "Mire", "el": "poison", "role": "warden", "ups": ["wall", "mend", "virulent"], "tac": { "mode": "guard", "guardD": 220 }, "look": { "hair": 3, "skin": 4 }, "voice": "sly" },
+        { "name": "Cinder", "el": "flame", "role": "warden", "ups": ["wall", "totem", "stoke"], "tac": { "mode": "guard", "guardD": 220 }, "look": { "hair": 1, "skin": 3 }, "voice": "warm" }
+      ] },
+    { "id": "brambles", "name": "Brambles", "map": "coop_sinks", "effects": ["force", "hide"],
+      "tell": "The trapper roots you next to the rim; the ranger is already lining up the push.",
+      "members": [
+        { "name": "Thistle", "el": "frost", "role": "trapper", "ups": ["trap", "briar", "deeproots"], "tac": { "mode": "trapper" }, "look": { "hair": 4, "skin": 2 }, "voice": "dry" },
+        { "name": "Flint", "el": "stone", "role": "ranger", "ups": ["fleet", "dash", "quickshot"], "tac": { "mode": "finisher" }, "look": { "hair": 2, "skin": 5 }, "voice": "keen" }
+      ] },
+    { "id": "wall", "name": "The Wall", "map": "coop_yard", "effects": ["vigil", "bounty"],
+      "tell": "A colossus stands in front and takes the hits. The crossbow behind it does the talking.",
+      "members": [
+        { "name": "Boulder", "el": "stone", "role": "juggernaut", "ups": ["colossus", "riot", "stance"], "tac": { "mode": "guard", "noShove": 1 }, "look": { "hair": 0, "skin": 5 }, "voice": "gruff" },
+        { "name": "Nix", "el": "void", "role": "crossbow", "ups": ["pointblank", "hairtrig", "repeater"], "tac": { "mode": "behind" }, "look": { "hair": 7, "skin": 1 }, "voice": "sly" }
+      ] },
+    { "id": "snares", "name": "Two Snares", "map": "coop_shallows", "effects": ["surge", "hide"],
+      "tell": "Traps everywhere, and a harpoon to drag you across the water into them.",
+      "members": [
+        { "name": "Briar", "el": "frost", "role": "trapper", "ups": ["trap", "harpoon", "deeproots"], "tac": { "mode": "trapper" }, "look": { "hair": 4, "skin": 3 }, "voice": "quiet" },
+        { "name": "Sedge", "el": "storm", "role": "trapper", "ups": ["trap", "briar", "deeproots"], "tac": { "mode": "trapper" }, "look": { "hair": 3, "skin": 2 }, "voice": "dry" }
+      ] },
+    { "id": "carnival", "name": "Carnival", "map": "coop_gallery", "effects": ["quick", "bounty"],
+      "tell": "Boomerangs and fireworks off every wall, and they are always first to the power-ups.",
+      "members": [
+        { "name": "Pip", "el": "storm", "role": "trickster", "ups": ["boomerang", "ricochet", "bankshot"], "tac": { "mode": "hunt" }, "look": { "hair": 5, "skin": 1 }, "voice": "bright" },
+        { "name": "Jinx", "el": "flame", "role": "trickster", "ups": ["rocket", "trick", "bankshot"], "tac": { "mode": "hunt" }, "look": { "hair": 1, "skin": 4 }, "voice": "bright" }
+      ] },
+    { "id": "shadows", "name": "Shadows", "map": "coop_hollow", "effects": ["vigil"],
+      "tell": "Two assassins vanish together and come at you from two sides. The holes are where they want you.",
+      "members": [
+        { "name": "Vesper", "el": "stone", "role": "assassin", "ups": ["stealth", "blink", "ambush"], "tac": { "mode": "syncstealth" }, "look": { "hair": 6, "skin": 4 }, "voice": "quiet" },
+        { "name": "Dusk", "el": "stone", "role": "assassin", "ups": ["stealth", "blink", "ambush"], "tac": { "mode": "syncstealth" }, "look": { "hair": 6, "skin": 2 }, "voice": "quiet" }
+      ] },
+    { "id": "undertow", "name": "Undertow", "map": "coop_drain", "effects": ["quick"],
+      "tell": "The rift drags you towards the drain; the fire catches you on the way.",
+      "members": [
+        { "name": "Null", "el": "void", "role": "ranger", "ups": ["rift", "horizon", "nullfield"], "tac": { "mode": "rift" }, "look": { "hair": 7, "skin": 3 }, "voice": "cold" },
+        { "name": "Spark", "el": "flame", "role": "trickster", "ups": ["wildfire", "flashpoint", "stoke"], "tac": { "mode": "finisher" }, "look": { "hair": 1, "skin": 1 }, "voice": "bright" }
+      ] },
+    { "id": "presence", "name": "Presence", "map": "coop_stand", "effects": ["vigil", "bounty"],
+      "tell": "The juggernaut stands between you and the ranger and will not be moved. The ranger does the damage.",
+      "members": [
+        { "name": "Bastion", "el": "blood", "role": "juggernaut", "ups": ["colossus", "ram", "riot"], "tac": { "mode": "guard" }, "look": { "hair": 0, "skin": 3 }, "voice": "gruff" },
+        { "name": "Swift", "el": "storm", "role": "ranger", "ups": ["fleet", "dash", "grapple"], "tac": { "mode": "behind", "behindD": 140 }, "look": { "hair": 2, "skin": 1 }, "voice": "keen" }
+      ] },
+    { "id": "blades", "name": "Two Blades", "map": "coop_maze", "effects": ["surge", "bounty"],
+      "tell": "Two ninjas who take every power-up in the maze and then both come for one of you.",
+      "members": [
+        { "name": "Kage", "el": "shadow", "role": "ninja", "ups": ["sharpstar", "swiftstep", "flurry"], "tac": { "mode": "hunt" }, "look": { "hair": 6, "skin": 2 }, "voice": "cold" },
+        { "name": "Yuki", "el": "frost", "role": "ninja", "ups": ["sharpstar", "swiftstep", "bladeguard"], "tac": { "mode": "hunt" }, "look": { "hair": 4, "skin": 1 }, "voice": "quiet" }
+      ] },
+    { "id": "bloodlust", "name": "Bloodlust", "map": "coop_quarry", "effects": ["gale", "quick"],
+      "tell": "Two crossbows that close in and empty everything they have. Every hit heals them.",
+      "members": [
+        { "name": "Red", "el": "blood", "role": "crossbow", "ups": ["transfusion", "frenzy", "hairtrig"], "tac": { "mode": "unload" }, "look": { "hair": 1, "skin": 2 }, "voice": "gruff" },
+        { "name": "Rust", "el": "blood", "role": "crossbow", "ups": ["transfusion", "frenzy", "hairtrig"], "tac": { "mode": "unload" }, "look": { "hair": 3, "skin": 5 }, "voice": "gruff" }
+      ] },
+    { "id": "battering", "name": "Battering", "map": "coop_pens", "effects": ["vigil", "hide"],
+      "tell": "Two juggernauts who barely bother to shoot. They rush and bash you into the pens, and heal on the spring between charges.",
+      "members": [
+        { "name": "Ox", "el": "blood", "role": "juggernaut", "ups": ["rush", "riot", "colossus"], "tac": { "mode": "bully" }, "look": { "hair": 0, "skin": 4 }, "voice": "gruff" },
+        { "name": "Hail", "el": "frost", "role": "juggernaut", "ups": ["rush", "riot", "colossus"], "tac": { "mode": "bully" }, "look": { "hair": 4, "skin": 1 }, "voice": "cold" }
+      ] },
+    { "id": "longshots", "name": "Long Shots", "map": "coop_narrows", "effects": ["quick", "force"],
+      "tell": "Two snipers on the far bank, one each side. Cross the bridge and you are in both their sights.",
+      "members": [
+        { "name": "Frost", "el": "frost", "role": "sniper", "ups": ["frostbite", "volley", "permafrost"], "tac": { "mode": "crossfire" }, "look": { "hair": 4, "skin": 2 }, "voice": "cold" },
+        { "name": "Ash", "el": "flame", "role": "sniper", "ups": ["pin", "heavy", "wildfire"], "tac": { "mode": "crossfire" }, "look": { "hair": 1, "skin": 5 }, "voice": "dry" }
+      ] }
+  ]
+}

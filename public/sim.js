@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.94.2';
+const VERSION = '0.95.0';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -500,6 +500,7 @@ function rollMut(w) {
   const v = (w.cfg.opt || {}).effect || 'random', r = Math.random();
   if (v === 'none') { w.cfg.mut = null; return; }
   if (MUTATORS[v]) { w.cfg.mut = v; return; }
+  if (/^[a-z]+\+[a-z]+$/.test(v) && mutKeys(v).length === 2) { w.cfg.mut = v; return; } // (a fixed pair, 'gale+force': the co-op ladder's duos)
   if (r < 0.2) { w.cfg.mut = null; return; }
   const a = MUT_KEYS[Math.floor(Math.random() * MUT_KEYS.length)];
   let b = null; if (r > 0.8) { const rest = MUT_KEYS.filter(k => k !== a); b = rest[Math.floor(Math.random() * rest.length)]; }
@@ -551,6 +552,39 @@ MAPS.holes = buildMap({
     spawns: [{ x: 110, y: 400 }, { x: 110, y: 300 }, { x: 110, y: 500 }, { x: 70, y: 400 }],
     power: [{ x: AW - 50, y: AH - 50 }], amberY: [WALL + 44, 330],
   });
+// ---- the co-op arcade's arenas: one per duo, simple and built round that duo's tactic (hidden from every list; the ladder picks them)
+const coopMap = (key, def) => { MAPS[key] = buildMap(Object.assign({ hidden: true, coop: true, spikes: [], amberY: [WALL + 44, 330] }, def)); };
+coopMap('coop_field', { name: 'The Field', theme: 'meadow', desc: 'Open ground, two boulders, a sinkhole at each end.',
+  haz: [{ type: 'pit', shape: 'circle', x: 250, y: 400, r: 42 }], pillars: [{ x: 430, y: 400, r: 30 }], power: [{ x: 600, y: 400 }] });
+coopMap('coop_ridge', { name: 'The Ridge', theme: 'dust', desc: 'A ridge of boulders across the middle with gaps to shoot through, and a drop on each flank.',
+  haz: [{ type: 'pit', shape: 'rect', x: 400, y: WALL, w: 130, h: 80 }], pillars: [{ x: 600, y: 190, r: 30 }, { x: 600, y: 400, r: 34, centre: true }], power: [{ x: 600, y: 295 }, { x: 600, y: 505 }] });
+coopMap('coop_run', { name: 'The Run', theme: 'grove', desc: 'A ring of trunks round the middle. Round and round.',
+  haz: [{ type: 'pit', shape: 'circle', x: 230, y: 400, r: 36 }], pillars: [{ x: 380, y: 400, r: 26, kind: 'trunk' }, { x: 444, y: 244, r: 26, kind: 'trunk' }, { x: 444, y: 556, r: 26, kind: 'trunk' }, { x: 600, y: 180, r: 26, kind: 'trunk' }], power: [{ x: 600, y: 400 }] });
+coopMap('coop_sinks', { name: 'The Sinks', theme: 'spring', desc: 'Sinkholes all round the edge, boulders in the middle. Stay off the rim.',
+  haz: [{ type: 'pit', shape: 'rect', x: 300, y: WALL, w: 200, h: 64 }, { type: 'pit', shape: 'rect', x: WALL, y: 560, w: 64, h: 130 }, { type: 'pit', shape: 'circle', x: 600, y: 110, r: 44 }],
+  pillars: [{ x: 560, y: 360, r: 28 }], power: [{ x: 600, y: 250 }, { x: 600, y: 550 }] });
+coopMap('coop_yard', { name: 'The Yard', theme: 'farm', desc: 'Hay bales in lanes. Short sight lines; something is always round the next bale.',
+  haz: [], pillars: [{ x: 300, y: 250, r: 27, kind: 'hay' }, { x: 300, y: 400, r: 27, kind: 'hay' }, { x: 300, y: 550, r: 27, kind: 'hay' }, { x: 480, y: 320, r: 27, kind: 'hay' }, { x: 480, y: 480, r: 27, kind: 'hay' }], power: [{ x: 600, y: 400 }] });
+coopMap('coop_shallows', { name: 'The Shallows', theme: 'marsh', desc: 'Four pools between you and them. A root beside one is a long swim.',
+  haz: [{ type: 'pit', water: true, shape: 'circle', x: 450, y: 250, r: 56 }, { type: 'pit', water: true, shape: 'circle', x: 450, y: 550, r: 56 }], pillars: [], power: [{ x: 600, y: 400 }] });
+coopMap('coop_gallery', { name: 'The Gallery', theme: 'ruins', desc: 'A long hall with a line of pillars down the middle. Shots come off the walls.',
+  haz: [], pillars: [{ x: 600, y: 250, r: 26 }, { x: 450, y: 400, r: 26 }], power: [{ x: 600, y: 150 }, { x: 600, y: 650 }] });
+coopMap('coop_hollow', { name: 'The Hollow', theme: 'wisp', desc: 'A healing spring in the middle, dark pools in the corners. Watch the shadows.',
+  heal: { x: 600, y: 400, r: 55, rate: 10 }, haz: [{ type: 'pit', water: true, shape: 'circle', x: 380, y: 230, r: 50 }, { type: 'pit', water: true, shape: 'circle', x: 380, y: 570, r: 50 }], pillars: [{ x: 520, y: 400, r: 24 }], power: [{ x: 600, y: 180 }, { x: 600, y: 620 }] });
+coopMap('coop_drain', { name: 'The Drain', theme: 'rift', desc: 'One great pit in the middle. Everything pulls towards it.',
+  haz: [{ type: 'pit', shape: 'circle', x: 600, y: 400, r: 92, centre: true }], pillars: [{ x: 430, y: 300, r: 26 }, { x: 430, y: 500, r: 26 }], power: [{ x: 600, y: 200 }, { x: 600, y: 600 }] });
+coopMap('coop_stand', { name: 'The Stand', theme: 'meadow', desc: 'Two boulders by the middle and a drop at the top and bottom. Somewhere to make a stand.',
+  haz: [{ type: 'pit', shape: 'rect', x: 560, y: WALL, w: 80, h: 90 }], pillars: [{ x: 520, y: 330, r: 30 }], power: [{ x: 600, y: 400 }] });
+coopMap('coop_maze', { name: 'The Maze', theme: 'farm', desc: 'Bales stacked into a maze, with more than one power-up to run for.',
+  haz: [], pillars: [{ x: 200, y: 200, r: 26, kind: 'hay' }, { x: 200, y: 600, r: 26, kind: 'hay' }, { x: 360, y: 300, r: 28, kind: 'hay' }, { x: 360, y: 500, r: 28, kind: 'hay' }, { x: 500, y: 180, r: 24, kind: 'hay' }, { x: 500, y: 620, r: 24, kind: 'hay' }, { x: 520, y: 400, r: 30, kind: 'hay' }],
+  power: [{ x: 600, y: 400 }, { x: 300, y: 400 }, { x: 900, y: 400 }] });
+coopMap('coop_quarry', { name: 'The Quarry', theme: 'dust', desc: 'A stone floor and standing rock. Nothing to fall into: it comes down to who hits harder.',
+  haz: [], pillars: [{ x: 350, y: 250, r: 28 }, { x: 350, y: 550, r: 28 }, { x: 500, y: 400, r: 30 }], power: [{ x: 600, y: 400 }] });
+coopMap('coop_pens', { name: 'The Pens', theme: 'farm', desc: 'Pens of boulders with a hole behind each, and a healing spring in the middle for whoever holds it.',
+  heal: { x: 600, y: 400, r: 55, rate: 12 }, haz: [{ type: 'pit', shape: 'rect', x: 300, y: WALL, w: 110, h: 70 }], pillars: [{ x: 400, y: 260, r: 28 }, { x: 400, y: 540, r: 28 }, { x: 330, y: 400, r: 28 }], power: [{ x: 600, y: 240 }, { x: 600, y: 560 }] });
+coopMap('coop_narrows', { name: 'The Narrows', theme: 'rift', desc: 'A lava river with two narrow bridges. Long shots over the flow, and nowhere to hide on a bridge.',
+  haz: [{ type: 'lava', shape: 'rect', x: 570, y: WALL, w: 60, h: 190 - WALL }, { type: 'lava', shape: 'rect', x: 570, y: 300, w: 60, h: 200, centre: true }], pillars: [{ x: 480, y: 240, r: 28 }], power: [{ x: 600, y: 245 }, { x: 600, y: 555 }] });
+const COOP_MAPS = Object.keys(MAPS).filter(k => MAPS[k].coop);
 const MAP_KEYS = Object.keys(MAPS).filter(k => !MAPS[k].hidden); // the arenas on offer in custom games (and the default ranked rotation)
 // ---- the arena pool: which built-in arenas are in custom games and which are in the ranked rotation. The owner sets it from
 // the Arena lab (kept on the server as the 'arenas' setting); with nothing set, every arena that isn't in the lab is in both.
@@ -1476,7 +1510,7 @@ const enemyOf = t => (t === 'red' ? 'blue' : 'red');
 
 function applyStats(p) {
   const h = id => (p.hones && p.hones[id]) || 0;
-  const R = p.role, is = (cond, v) => (cond ? v : 1), hc = 1 + (p.hcap || 0) / 100;
+  const R = p.sparring ? 'plain' : p.role, is = (cond, v) => (cond ? v : 1), hc = 1 + (p.hcap || 0) / 100; // (sparring: a plain archer for training, no archetype trait)
   // role traits (always on) and trade-off cards
   p.maxHp = 100 + (has(p, 'vital') ? 25 : 0) + 15 * h('hone_hp')
     + (R === 'juggernaut' ? 15 : 0) + (R === 'warden' ? 5 : 0) - (R === 'sniper' || R === 'ranger' ? 10 : 0)
@@ -1683,6 +1717,15 @@ function canTake(p, id) {
   if (n.active && !p.slots.includes(null)) return false;
   return true;
 }
+// the co-op arcade's upgrade pick, made before the battle: which cards an archer of this element and role could take next,
+// given the ones chosen so far (prerequisites, exclusions and the two ability slots, as in a match); solo: no team-only cards
+function forcedChoices(el, role, have, solo) {
+  if (!ELEMENTS[el] || !ROLES[role]) return [];
+  const up = [el]; for (const id of have || []) if (TREE[id] && !up.includes(id)) up.push(id);
+  const p = { element: el, role, up, hones: {}, slots: up.filter(id => TREE[id].active).slice(0, MAX_SLOTS) };
+  while (p.slots.length < MAX_SLOTS) p.slots.push(null);
+  return Object.keys(TREE).filter(id => !HONES[id] && canTake(p, id) && !(solo && TEAM_ONLY.includes(id)));
+}
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 // three cards: at least one from each of your trees when possible, filled with stackable boosts
 function rollOffer(p, avoid = [], opening = false, noAbil = false) {
@@ -1756,6 +1799,7 @@ function setBotMind(w, id, o) {
   if (o.gene) p.gene = Object.assign({}, o.gene);
   p.ai.plays = Array.isArray(o.plays) ? o.plays.filter(k => PLAYS[k]) : null;
   p.ai.builds = Array.isArray(o.builds) ? o.builds.filter(k => BUILDS[k]) : null;
+  if ('tactic' in o) p.ai.tac = o.tactic && typeof o.tactic === 'object' && o.tactic.mode ? Object.assign({}, o.tactic) : null;
   p.ai.base = { aggr: p.ai.aggr, tr: p.ai.tr ? Object.assign({}, p.ai.tr) : null, gene: p.gene ? Object.assign({}, p.gene) : null }; // (what a play leans from)
   return true;
 }
@@ -1988,8 +2032,8 @@ function resetMatch(w) {
   const M = w.match;
   M.rd = 1; M.gm = 1; M.wins = { red: 0, blue: 0 }; M.gw = { red: 0, blue: 0 }; M.picks = 0; M.mw = null;
   w.matchId = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-  for (const p of w.players) if (p.bot && !p.aiUser) pickStyle(p); // a fresh mood each match (matchmaking's AI players keep their own personality)
-  for (const p of w.players) if (p.bot && p.ai) choosePlay(w, p); // the play that fits this arena and these opponents, for those who have one
+  for (const p of w.players) if (p.bot && !p.aiUser && !(p.ai && p.ai.tac)) pickStyle(p); // a fresh mood each match (matchmaking's AI players, and the co-op duos, keep their own personality)
+  for (const p of w.players) if (p.bot && p.ai) { if (p.ai.tac) p.ai.play = null; else choosePlay(w, p); } // the play that fits this arena and these opponents, for those who have one (a duo has its tactic instead)
   for (const p of w.players) if (p.bot && p.ai) chooseBuild(p); // and the build they'll work toward
   for (const p of w.players) { restoreArch(p); p.kills = 0; p.deaths = 0; p.amber = 0; p.earned = 0; p.up = [p.element]; p.hones = {}; p.offer = null; p.picked = false; p.ready = false; p.streak = 0; p.emp = false; p.empPts = 0; p.stats = { shots: 0, hits: 0, dmg: 0, taken: 0, ring: 0, longest: 0 }; stripArch(w, p); applyStats(p); }
   ev(w, { e: 'matchStart' });
@@ -2257,7 +2301,7 @@ function fire(w, p, ang, c, burst, vol, x3) { // burst: 1-2 a Volley's shots, 4 
   if (recoil) kb *= 1.6;
   if (full && has(p, 'boulder')) kb *= 1.3;
   if (p.emp && p.element === 'stone') kb *= 1.35; // Landslide
-  const el = Object.keys(ELEMENTS).find(e => has(p, e)) || null;
+  const el = p.sparring ? null : Object.keys(ELEMENTS).find(e => has(p, e)) || null; // (sparring: no element either)
   let spread = p.pw.multi > 0 && !bri ? [-0.14, 0, 0.14] : [0];
   if (full && has(p, 'scatter')) { spread = p.pw.multi > 0 ? [-0.26, -0.13, 0, 0.13, 0.26] : [-0.13, 0, 0.13]; dmg *= 0.4; kb *= 0.45; }
   if (xb && !burst && p.fanArmed) { p.fanArmed = false; spread = [-0.3, -0.15, 0, 0.15, 0.3]; dmg *= 0.45; kb *= 0.5; }
@@ -2732,7 +2776,7 @@ function throwStar(w, p, ang, auto, c = 0.6) {
   const k = auto ? 0.6 : c, full = !auto && c >= 0.99;
   const dmg = 8.5 * (0.4 + 0.6 * k) * (p.dmgMul || 1) * (has(p, 'sharpstar') ? 1.25 : 1) * (dbl ? 1.75 : 1) * (auto ? 0.6 : 1);
   const kb = 430 * (0.5 + 0.5 * k) * (p.kbMul || 1) * (p.pw.heavy > 0 ? 1.9 : 1) * (p.emp && p.element === 'stone' ? 1.35 : 1) * (auto ? 0.6 : 1);
-  const el = Object.keys(ELEMENTS).find(e => has(p, e)) || null;
+  const el = p.sparring ? null : Object.keys(ELEMENTS).find(e => has(p, e)) || null; // (sparring: no element either)
   const spread = p.pw.multi > 0 ? [-0.14, 0, 0.14] : [0];
   const a0 = w.nid;
   for (const off of spread) makeStar(w, p, p.x, p.y, ang + off, { dmg, kb, el, dbl, life: 0.45, sp: 0.6 + 0.4 * k, fullDraw: full, auto });
@@ -2833,7 +2877,7 @@ function useAbility(w, p, id) {
         w.zones = w.zones.filter(z => !(z.ty === 'smark' && z.owner === p.id));
         p.x = m.x; p.y = m.y; p.vx = p.vy = 0; p.knock = 0; p.falling = 0;
         ev(w, { e: 'recall', id: p.id, x1: r1(x0), y1: r1(y0), x2: r1(m.x), y2: r1(m.y) });
-        const el = Object.keys(ELEMENTS).find(e => has(p, e)) || null;
+        const el = p.sparring ? null : Object.keys(ELEMENTS).find(e => has(p, e)) || null; // (sparring: no element either)
         for (let i = 0; i < 10; i++) makeStar(w, p, p.x, p.y, p.aim + i / 10 * TAU, { dmg: 5 * (p.dmgMul || 1) * (has(p, 'sharpstar') ? 1.25 : 1), kb: 380 * (p.kbMul || 1), el, life: 0.4, weak: true });
         ev(w, { e: 'blossom', id: p.id, x: r1(p.x), y: r1(p.y) });
         return true;
@@ -4286,6 +4330,7 @@ function botPlan(w, p, T, foes, mates, D, G) {
     if (HEAL && p.hp < p.maxHp * 0.6) { const dh = Math.hypot(HEAL.x - x, HEAL.y - y); if (dh < HEAL.r) sc += 0.8 * G.heal * (1 - p.hp / p.maxHp); }
     // don't stand on a teammate
     for (const m of mates) { const dm = Math.hypot(m.x - x, m.y - y); if (dm < 110) sc -= (110 - dm) / 110 * 0.5; }
+    if (ai.tac && T && w.teamPlan) sc += tacSpotScore(w, p, T, x, y, mates); // the duo's formation
     sc -= Math.hypot(x - p.x, y - p.y) / 2000; // a slight preference for staying put
     if (!best || sc > best.sc) best = { x, y, sc };
   }
@@ -4497,8 +4542,166 @@ function botDashDir(p, wasDraw) {
   if (p.wantDash && ai.dashAim != null) { inp.mx = Math.cos(ai.dashAim); inp.my = Math.sin(ai.dashAim); if (wasDraw && !inp.draw) inp.draw = true; }
   ai.dashAim = null;
 }
+// ---- Duo tactics (co-op). A tactic is set per bot with setBotMind({ tactic: { mode, ...params } }); teammates on a side
+// share a plan (w.teamPlan[team]), worked out once a tick by teamPlan(): the target, who guards whom, which power-up is
+// whose, when to stealth together. Every number here is a parameter the training tool tunes (TAC_DEF are the defaults).
+// Modes:
+//   guard      stand between the partner and the enemy and take the hits (noShove: body-block, never dash-bash or rush,
+//              since a shoved enemy is out of a short-reach partner's range)
+//   behind     stay behind the guard, a step to the side for a line of fire; fall back to normal play if the guard is down
+//   bully      get close under cover, then stay in their face: dash-bash and rush into walls and drops, shoot little, dodge little
+//   unload     get close under cover, then commit: short range, no retreat, trade hits
+//   flank      when the target is using cover, work round to 45–90° off the partner's line
+//   syncstealth both stealth together and come at the shared target 45–90° apart
+//   crossfire  two long-range archers hold spots whose lines to the target cross
+//   hunt       be first to the power-ups: they are shared out, and dashes are spent reaching them
+//   trapper    trap where a root leaves the enemy next to a hazard, spread from the partner's traps
+//   finisher   be at the spot from which a full draw puts a held (or about-to-be-held) enemy into a hazard
+//   rift       (Undertow) the void archer draws fully for rifts; the partner targets whoever the rift holds
+// Any mode also shares the team target (the one nearest a hazard, then the hurt one, then the held one).
+const TAC_DEF = { guardD: 150, behindD: 95, side: 45, bullyD: 240, bashEager: 3, unloadD: 190, flankAng: 1.2, flankWhen: 'cover', cross: 1.0, farD: 620, pickK: 2.2, pickRange: 520, stealthGap: 1.0, ambushAng: 1.1, trapGap: 220, finishD: 320, holdBias: 0.6, tacK: 1.0 };
+const tacOf = p => (p.ai && p.ai.tac) || null, tacP = (p, k) => { const t = tacOf(p); return t && t[k] != null ? t[k] : TAC_DEF[k]; };
+const heldBy = q => q.stuck > 0 || q.frozen > 0 || q.staggerT > 0 || q.pinned > 0 || q.vine > 0 || q.riftSlow > 0;
+function teamPlan(w) {
+  w.teamPlan = w.teamPlan || {};
+  for (const team of TEAMS) {
+    const us = w.players.filter(p => p.team === team && p.bot && tacOf(p) && !p.dead);
+    if (!us.length) { w.teamPlan[team] = null; continue; }
+    const tp = w.teamPlan[team] || (w.teamPlan[team] = {});
+    const foes = w.players.filter(q => q.team !== team && !q.dead && !q.npc && q.falling <= 0);
+    // the shared target: held with a drop behind first, then whoever's nearest a drop, then the hurt one; sticky, so the two aren't swapping every look
+    let best = null;
+    for (const q of foes) {
+      let sc = q.hp * 1.2 + Math.min(300, lethalDist(q.x, q.y)) * 0.8 - (heldBy(q) ? 180 : 0) + (q.id === tp.target ? -180 : 0) + (q.inv > 0 ? 400 : 0) + (q.stealthT > 0 ? 300 : 0); // (sticky: a pair that keeps swapping targets gets nowhere)
+      const dq = Math.min(...us.map(p => Math.hypot(q.x - p.x, q.y - p.y))); sc += dq * 0.6 - (dq < 320 ? 200 : 0); // (one right on top of us is the fight, whatever the plan said)
+      if (!best || sc < best.sc) best = { q, sc };
+    }
+    tp.target = best ? best.q.id : null;
+    tp.guard = (us.find(p => tacOf(p).mode === 'guard') || null); tp.back = us.find(p => tacOf(p).mode === 'behind') || null;
+    // power-ups shared out: each to the nearer of those who hunt (or who'd take it anyway when it's worth it)
+    tp.pick = {};
+    for (const u of w.pickups) { if (inBog(u.x, u.y, 30)) continue; let bp = null, bd = Infinity; for (const p of us) { const d = Math.hypot(u.x - p.x, u.y - p.y), k = tacOf(p).mode === 'hunt' ? 0.6 : 1; if (d * k < bd) { bd = d * k; bp = p; } } if (bp) tp.pick[bp.id] = tp.pick[bp.id] && Math.hypot(w.pickups.find(x => x.id === tp.pick[bp.id]).x - bp.x, w.pickups.find(x => x.id === tp.pick[bp.id]).y - bp.y) < bd ? tp.pick[bp.id] : u.id; }
+    // stealth together: the moment both have it ready and the target is in reach of a plan
+    const st = us.filter(p => tacOf(p).mode === 'syncstealth' && has(p, 'stealth'));
+    if (st.length >= 2) { const ready = st.every(p => p.slots.some((id, i) => id === 'stealth' && !(p.abCd[i] > 0)) && p.stealthT <= 0), T = foes.find(q => q.id === tp.target);
+      if (ready && T && st.every(p => Math.hypot(T.x - p.x, T.y - p.y) < 700) && !(tp.stealthGo > w.t - 3)) tp.stealthGo = w.t; }
+    // the finisher's spot: where a full draw throws the target into something deadly (for whoever is set to finish)
+    const T = foes.find(q => q.id === tp.target);
+    tp.finish = T ? finishSpot(w, us, T) : null;
+  }
+}
+// the best spot round the target from which a full-draw hit throws them into a hazard, at about finishD, reachable
+function finishSpot(w, us, T) {
+  let best = null; const fd = TAC_DEF.finishD;
+  for (let i = 0; i < 16; i++) {
+    const a = i / 16 * TAU, x = clamp(T.x + Math.cos(a) * fd, WALL + 40, AW - WALL - 40), y = clamp(T.y + Math.sin(a) * fd, WALL + 40, AH - WALL - 40);
+    if (lethalDist(x, y) < 60 || !clearShot(x, y, T.x, T.y)) continue;
+    const d = Math.hypot(T.x - x, T.y - y) || 1, ux = (T.x - x) / d, uy = (T.y - y) / d;
+    const risk = pushRisk(T.x, T.y, ux, uy, kbTravel(1, T.mass, 1.1), T.r);
+    if (risk < 0.35) continue;
+    const walk = Math.min(...us.map(p => Math.hypot(p.x - x, p.y - y)));
+    const sc = risk - walk / 1200; if (!best || sc > best.sc) best = { x, y, risk, sc };
+  }
+  return best;
+}
+// where this bot wants to be under its tactic (a direction to move), or null for the usual brain
+// the formation as a bias on the planning brain's spot scoring (so cover, hazards and range still count): the guard on the
+// line between the partner and the enemy and ahead of the partner; the partner behind the guard with a line of sight; a
+// flanker off to the side of the partner's line; a crossfire pair wide apart as seen from the target
+function tacSpotScore(w, p, T, x, y, mates) {
+  const ai = p.ai, tac = ai.tac, tp = (w.teamPlan || {})[p.team]; if (!tac || !tp) return 0;
+  const K = tacP(p, 'tacK'), partner = mates.find(m => m.bot && tacOf(m)) || mates[0] || null;
+  const dxT = x - T.x, dyT = y - T.y, dST = Math.hypot(dxT, dyT) || 1;
+  switch (tac.mode) {
+    case 'guard': {
+      if (!partner || partner.dead) return 0;
+      const px = partner.x - T.x, py = partner.y - T.y, dP = Math.hypot(px, py) || 1;
+      const along = (dxT * px + dyT * py) / dP, perp = Math.abs(dxT * py - dyT * px) / dP; // (spot's place along and off the T→partner line)
+      let sc = K * Math.max(0, 1 - perp / 160) * (along > 0 ? 1 : 0.3);
+      if (dST > dP - 40) sc -= K * 0.7; // (never behind the one we're guarding)
+      if (dST < tacP(p, 'guardD') * 0.6) sc -= K * 0.4; // (not on top of them either: the shove-off is their move)
+      return sc;
+    }
+    case 'behind': {
+      const g = tp.guard; if (!g || g.dead) return 0;
+      const gx = g.x - T.x, gy = g.y - T.y, dG = Math.hypot(gx, gy) || 1;
+      if (dG > botReach(p) * 1.1) return 0; // (the guard isn't on them yet: get there as usual)
+      const bx = x - g.x, by = y - g.y, dB = Math.hypot(bx, by) || 1, cosA = (bx * gx + by * gy) / (dB * dG), bd = tacP(p, 'behindD');
+      let sc = cosA > 0.6 && dB > bd * 0.6 && dB < bd + 120 ? K * (0.6 + 0.4 * cosA) : 0; // (behind the guard, over their shoulder)
+      if (dST < dG - 20) sc -= K * 0.7; // (never in front of the guard)
+      return sc;
+    }
+    case 'flank': {
+      if (!partner || partner.dead) return 0;
+      const cover = !botLos(w, partner, partner.x, partner.y, T.x, T.y) || !botLos(w, p, p.x, p.y, T.x, T.y);
+      if (tacP(p, 'flankWhen') === 'cover' && !cover) return 0;
+      const a = Math.abs(angOff(Math.atan2(partner.y - T.y, partner.x - T.x), Math.atan2(dyT, dxT))), want = tacP(p, 'flankAng');
+      return K * Math.max(0, 1 - Math.abs(a - want) / 0.7);
+    }
+    case 'crossfire': {
+      if (!partner || partner.dead) return 0;
+      if (!clearShot(x, y, T.x, T.y)) return 0;
+      const a = Math.abs(angOff(Math.atan2(partner.y - T.y, partner.x - T.x), Math.atan2(dyT, dxT))), want = tacP(p, 'cross');
+      return K * Math.min(1, a / want) * (dST < tacP(p, 'farD') + 150 ? 1 : 0.5);
+    }
+    default: return 0;
+  }
+}
+function tacticGoal(w, p, T, foes, mates, dt) {
+  const ai = p.ai, tac = ai.tac, tp = (w.teamPlan || {})[p.team]; if (!tac || !tp) return null;
+  const partner = mates.find(m => m.bot && tacOf(m)) || mates[0] || null;
+  const toward = (x, y, k = 1) => { const dx = x - p.x, dy = y - p.y, d = Math.hypot(dx, dy) || 1, a = Math.min(1, d / 40); return [dx / d * a * k - p.vx / 500, dy / d * a * k - p.vy / 500]; };
+  // a power-up that's ours to take (hunters go further for it, and anyone takes one right next to them)
+  const pid = tp.pick[p.id], pu = pid != null ? w.pickups.find(u => u.id === pid) : null;
+  if (pu) { const d = Math.hypot(pu.x - p.x, pu.y - p.y), worth = pickupWorth(pu, p) * (tac.mode === 'hunt' ? tacP(p, 'pickK') : 1);
+    if (worth > 0.5 && d < (tac.mode === 'hunt' ? tacP(p, 'pickRange') : 200) && !(T && T.drawing && T.charge > 0.5 && d > 120)) {
+      if (tac.mode === 'hunt' && d > 230 && p.dashN > 0 && ai.dodgeCd <= 0 && lethalDist(p.x + (pu.x - p.x) / d * 150, p.y + (pu.y - p.y) / d * 150) > 40 && Math.random() < dt * 2) { p.wantDash = true; ai.dashAim = Math.atan2(pu.y - p.y, pu.x - p.x); ai.dodgeCd = 0.6; }
+      return toward(pu.x, pu.y); } }
+  if (!T) return null;
+  const dT = Math.hypot(T.x - p.x, T.y - p.y) || 1, ux = (T.x - p.x) / dT, uy = (T.y - p.y) / dT;
+  switch (tac.mode) {
+    case 'guard': case 'behind': return null; // (formation: a bias on the planning brain, see tacSpotScore)
+    case 'bully': case 'unload': {
+      const near = tac.mode === 'bully' ? tacP(p, 'bullyD') : tacP(p, 'unloadD');
+      if (dT > near * 1.3) { const c = botCoverHop(p, T, dT, dt); if (c) return c; return [ux * 0.9 - uy * ai.strafe * 0.35, uy * 0.9 + ux * ai.strafe * 0.35]; }
+      if (dT > near) return [ux, uy];
+      return [-uy * ai.strafe * 0.6 + ux * 0.2, ux * ai.strafe * 0.6 + uy * 0.2]; // (in their face: circle, don't back off)
+    }
+    case 'flank': case 'crossfire': return null;
+    case 'finisher': case 'rift': {
+      const f = tp.finish; if (!f) return null;
+      // (worth the walk when the hold is on, or about to be: a trap set by the partner near them, a snare armed, a rift)
+      // (only once the hold is on, or about to be: a trap or rift of ours right where they're heading)
+      const soon = heldBy(T) || w.zones.some(z => (z.ty === 'trap' || z.ty === 'rift') && z.team === p.team && Math.hypot(z.x - T.x - T.vx * 0.5, z.y - T.y - T.vy * 0.5) < 110);
+      if (!soon) return null;
+      if (Math.hypot(f.x - p.x, f.y - p.y) < 30) return [-p.vx / 300, -p.vy / 300];
+      return toward(f.x, f.y, 1.1);
+    }
+    case 'syncstealth': {
+      if (p.stealthT > 0 && ai.ambush) return null; // (the ambush spot is already its own goal)
+      if (tp.stealthGo > w.t - 1.5 && dT > 200) return [ux, uy]; // (the moment it's called: close in while vanishing)
+      return null;
+    }
+    default: return null;
+  }
+}
+// trap placement for the trapper tactic: where a root leaves them next to a hazard (between the target and the nearest drop,
+// within reach), clear of the partner's traps; null for the usual placement
+function tacticTrapSpot(w, p, T) {
+  // (where they're heading, as the usual throw, nudged to the side nearest a drop: a root there is a knockout for the partner)
+  const px = T.x + T.vx * 0.6, py = T.y + T.vy * 0.6; let best = null;
+  for (let i = 0; i < 9; i++) {
+    const a = i / 8 * TAU, r = i === 8 ? 0 : 45, x = px + Math.cos(a) * r, y = py + Math.sin(a) * r;
+    if (Math.hypot(x - p.x, y - p.y) > TRAP_RANGE || HAZ.some(h => h.type === 'pit' && inHaz(h, x, y, TRAP_PIT_GAP))) continue;
+    const ld = lethalDist(x, y); if (ld < 28) continue;
+    const near = w.zones.some(z => z.ty === 'trap' && z.team === p.team && Math.hypot(z.x - x, z.y - y) < tacP(p, 'trapGap'));
+    const sc = -Math.min(ld, 300) / 100 - (near ? 2 : 0);
+    if (!best || sc > best.sc) best = { x, y, sc, ld };
+  }
+  return best;
+}
 function botThink(w, p, dt) {
-  const ai = p.ai, inp = p.input, D = botD(p), G = p.gene ? (p.geneSrc === p.gene ? p.geneAll : (p.geneSrc = p.gene, p.geneAll = Object.assign({}, GENE, p.gene))) : GENE, iq = D.iq || 0;
+  const ai = p.ai, inp = p.input, D = botD(p), G = p.gene ? (p.geneSrc === p.gene ? p.geneAll : (p.geneSrc = p.gene, p.geneAll = Object.assign({}, GENE, p.gene))) : GENE, iq = ai.tac ? Math.max(0.5, D.iq || 0) : D.iq || 0; // (a duo always uses the planning brain: the tactic lives in it)
   // how well this bot plays to its element (stacking shades, setting up a Stone throw): from Hard up, full before the smart brain arrives
   const es = Math.max(iq, clamp((D.dodge - 0.12) / 0.28, 0, 1));
   if (p.dead || p.falling > 0) { inp.draw = false; inp.mx = inp.my = 0; return; }
@@ -4546,6 +4749,8 @@ function botThink(w, p, dt) {
     if (setUp && Math.random() < teamK) { T = setUp; ai.target = T.id; ai.retarget = 1.5; }
     if (w.tm) { const med = foes.find(q => q.npc && q.npc.k === 'medic'); if (med && iq >= 0.3) T = med; else if (iq >= 0.3 && foes.some(q => q.npc && q.npc.k === 'term')) T = foes.find(q => q.npc && q.npc.k === 'term'); ai.target = T ? T.id : null; } // (the Terminator: repair drones first, else the machine itself)
   }
+  // a duo's shared target (co-op tactics): the team's choice overrides, when it's one we can see
+  if (ai.tac && w.teamPlan && w.teamPlan[p.team] && w.teamPlan[p.team].target) { const q = foes.find(f => f.id === w.teamPlan[p.team].target); if (q && (Math.hypot(q.x - p.x, q.y - p.y) < botReach(p) || !foes.some(f => Math.hypot(f.x - p.x, f.y - p.y) < botReach(p)))) { T = q; ai.target = q.id; } } // (unless it's out of our reach and someone else isn't: shoot what you can)
   botAttention(p, foes, T, dt);
   botHidden(w, p, foes, iq);
   const GP = ai.ghostPt, hunting = !T && GP && ai.ghost.kind === 'stealth';
@@ -4596,9 +4801,10 @@ function botThink(w, p, dt) {
     { const og = outranged(p, T), reach = botReach(p); if (dT > reach * 0.9 && (og > 0.3 || T.role === 'sniper')) { const c = botCoverHop(p, T, dT, dt); if (c) { gx = c[0]; gy = c[1]; } } }
     ai.bashCd = (ai.bashCd || 0) - dt;
     // a dash into them only when it would knock them into something and we'd land safely
-    if (dT < 220 && dT > 40 && p.dashN > 0 && ai.bashCd <= 0 && clearShot(p.x, p.y, T.x, T.y) && st.bash * ag * dashK(ai) > 0.1) {
+    const tacBash = ai.tac ? (ai.tac.mode === 'bully' ? tacP(p, 'bashEager') : ai.tac.noShove ? 0 : 1) : 1; // (a bully bashes at every chance; a body-blocking guard never)
+    if (tacBash > 0 && dT < 220 && dT > 40 && p.dashN > 0 && ai.bashCd <= 0 && clearShot(p.x, p.y, T.x, T.y) && (st.bash * ag * dashK(ai) > 0.1 || tacBash > 1)) {
       const ang = Math.atan2(T.y - p.y, T.x - p.x);
-      if (pushRisk(T.x, T.y, Math.cos(ang), Math.sin(ang), 200, T.r) > 0.6 && lethalDist(p.x + Math.cos(ang) * (dT + 40), p.y + Math.sin(ang) * (dT + 40)) > 60) { p.wantDash = true; ai.dashAim = ang; ai.bashCd = rand(1.5, 3); }
+      if ((pushRisk(T.x, T.y, Math.cos(ang), Math.sin(ang), 200, T.r) > 0.6 || (tacBash > 1 && Math.random() < dt * tacBash)) && lethalDist(p.x + Math.cos(ang) * (dT + 40), p.y + Math.sin(ang) * (dT + 40)) > 60) { p.wantDash = true; ai.dashAim = ang; ai.bashCd = rand(1.5, 3); }
     }
     if (!p.wantDash) botCloseIn(w, p, T, dT, botReach(p), D, dt);
   } else if (T) {
@@ -4617,6 +4823,7 @@ function botThink(w, p, dt) {
     // as you, or your back to a wall) the fight is on again, or two hurt archers would back into corners and trade misses
     // until the clock ran out
     if (shaky && (T.hp <= p.hp + 5 || Math.min(p.x - WALL, AW - WALL - p.x, p.y - WALL, AH - WALL - p.y) < 90)) shaky = false;
+    if (ai.tac && (ai.tac.mode === 'unload' || ai.tac.mode === 'bully')) shaky = false; // (committed: no backing off)
     ai.shakyT = shaky ? (ai.shakyT || 0) + dt : Math.max(0, (ai.shakyT || 0) - dt * 0.5);
     if (ai.shakyT > 4) shaky = false;
     const hold = holdSpot(p), hd = hold ? Math.hypot(hold.x - p.x, hold.y - p.y) : 0;
@@ -4653,7 +4860,8 @@ function botThink(w, p, dt) {
     }
     // dash-bash: brawlers (and bots with Battering Ram) dash straight into people
     ai.bashCd = (ai.bashCd || 0) - dt;
-    const bashy = st.bash * ag * (has(p, 'ram') ? 1.6 : 1);
+    const tacBash2 = ai.tac ? (ai.tac.mode === 'bully' ? tacP(p, 'bashEager') : ai.tac.noShove ? 0 : 1) : 1;
+    const bashy = st.bash * ag * (has(p, 'ram') ? 1.6 : 1) * tacBash2;
     if (d < 240 && d > 40 && p.dashN > 0 && ai.bashCd <= 0 && clearShot(p.x, p.y, T.x, T.y) && Math.random() < bashy * dt * 3 * dashK(ai)) {
       const lead = 0.25, bx = T.x + T.vx * lead, by = T.y + T.vy * lead, ang = Math.atan2(by - p.y, bx - p.x);
       if (lethalDist(p.x + Math.cos(ang) * (d + 40), p.y + Math.sin(ang) * (d + 40)) > 50) { p.wantDash = true; ai.dashAim = ang; ai.bashCd = rand(1.5, 3); }
@@ -4669,6 +4877,7 @@ function botThink(w, p, dt) {
   if (ai.ghost && ai.ghost.kind === 'stealth' && T && lethalDist(p.x, p.y) < 110 && iq >= 0.3) { const sw = safeWay(p); if (sw) { gx = gx * 0.4 + sw.x * (0.6 + 0.4 * iq); gy = gy * 0.4 + sw.y * (0.6 + 0.4 * iq); } }
   // stealthed: circle round to the far side of the target, so the shot throws them into a hazard or wall (or at least hits their back)
   if (p.stealthT > 0 && T) {
+    if (ai.tac && ai.tac.mode === 'syncstealth') { const m = mates.find(q => q.bot && q.ai && q.ai.ambush && q !== p); ai.tacAvoid = m ? Math.atan2(m.ai.ambush.y - T.y, m.ai.ambush.x - T.x) : null; } else ai.tacAvoid = null;
     const pt = ambushPoint(p, T); ai.ambush = pt;
     const d = Math.hypot(pt.x - p.x, pt.y - p.y) || 1;
     gx = (pt.x - p.x) / d; gy = (pt.y - p.y) / d;
@@ -4708,6 +4917,8 @@ function botThink(w, p, dt) {
 
   // --- the Terminator fight: get out of a rush's way, behind a pillar for the pull, off a barrage mark, round the back of the Juggernaut
   if (w.tm && iq >= 0.3) { const o = botTerminator(w, p, T, dt); if (o) { gx = o[0]; gy = o[1]; } }
+  // --- the duo's tactic (co-op): where it wants us, over the usual brain (not while healing badly hurt or reviving)
+  if (ai.tac && !hurtBad && !safeToRevive) { const tg = tacticGoal(w, p, T, foes, mates, dt); if (tg) { gx = tg[0]; gy = tg[1]; } }
   // --- tunnel vision: in the heat of it (a shot nearly drawn, a kill nearly there) a lesser player forgets their feet for a
   // few seconds: the edge sense and the planning brain's safety weight drop away until it passes. Rarer the better the
   // bot's positioning; the best hardly ever
@@ -4722,7 +4933,7 @@ function botThink(w, p, dt) {
   if (juke) { gx = juke[0] * 2 + gx * 0.2; gy = juke[1] * 2 + gy * 0.2; if (juke[2] && ai.dodgeCd <= 0 && p.dashN > 0 && lethalDist(p.x + juke[0] * 130, p.y + juke[1] * 130) > 40) { ai.dodgeCd = 0.5; p.wantDash = true; ai.dashAim = Math.atan2(juke[1], juke[0]); } }
   // --- dodge incoming enemy arrows
   ai.dodgeCd -= dt;
-  if (iq >= 0.5) {
+  if (ai.tac && ai.tac.mode === 'bully') { /* a bully doesn't dodge: it walks through */ } else if (iq >= 0.5) {
     const hit = incoming(w, p, G.dodgeT);
     // walking in on someone who outranges us: every dodge also gains ground (a diagonal step still clears the shot's
     // line), and a weaker shot is sometimes simply taken on the chin rather than given up ground for, when a hit
@@ -4875,7 +5086,7 @@ function botThink(w, p, dt) {
     if (p.autoT > 0) inp.draw = want; // full auto: just hold
     else { inp.draw = want && !inp.draw; if (want) ai.reload = rand(0.05, 0.25) + D.react * 0.5; }
   } else if (!inp.draw) {
-    if (ai.reload <= 0) {
+    if (ai.reload <= 0 && !(ai.tac && ai.tac.mode === 'bully' && dT < 320 && (p.dashN > 0 || p.slots.some((id, i) => id === 'rush' && !(p.abCd[i] > 0))))) { // (a bully with a bash or a rush up doesn't bother drawing)
       inp.draw = true;
       const st = STYLES[ai.style];
       ai.want = lethalDist(T.x, T.y) < 130 ? 1 : dT < 150 ? 0.35 : st && st.charge ? rand(Math.max(D.minCharge * 0.7, st.charge[0]), st.charge[1]) : rand(D.minCharge, 1);
@@ -4889,6 +5100,7 @@ function botThink(w, p, dt) {
       } else if (lean) ai.want = clamp(ai.want + lean, 0.3, 1);
       // (both brains) a target held by a teammate's root, freeze, stagger or pin with a drop behind them: the full draw finishes it
       if (teamK > 0.3 && (T.stuck > 0 || T.frozen > 0 || T.staggerT > 0 || T.pinned > 0 || T.vine > 0) && pushRisk(T.x, T.y, (T.x - p.x) / (dT || 1), (T.y - p.y) / (dT || 1), kbOn(p, T, 1), T.r) > 0.3) ai.want = 1;
+      if (ai.tac && ai.tac.mode === 'rift' && p.element === 'void' && !(T.riftSlow > 0)) ai.want = 1; // Undertow: the rift opens on a full-draw hit
       // Stone: a quick hit staggers them first, then the full draw throws them 20% further; staggered already: send it
       if (p.element === 'stone' && es >= 0.8 && dT < 320) {
         const d = dT || 1, ux = (T.x - p.x) / d, uy = (T.y - p.y) / d;
@@ -4984,7 +5196,8 @@ function ambushPoint(p, T) {
     const ux = (T.x - x) / (Math.hypot(T.x - x, T.y - y) || 1), uy = (T.y - y) / (Math.hypot(T.x - x, T.y - y) || 1);
     const risk = pushRisk(T.x, T.y, ux, uy, kb, T.r) + 0.4 * slamRisk(T.x, T.y, ux, uy, kb, T.r);
     const behind = angOff(a, T.aim) < 0.6 ? 0.25 : 0; // (their back: the Backstab lands either way)
-    const sc = risk + behind - Math.hypot(x - p.x, y - p.y) / 900;
+    const apart = p.ai && p.ai.tacAvoid != null ? (angOff(a, p.ai.tacAvoid) < 0.7 ? -0.6 : angOff(a, p.ai.tacAvoid) < tacP(p, 'ambushAng') + 0.5 ? 0.2 : 0) : 0; // (a partner coming in too: 45–90° off their line)
+    const sc = risk + behind + apart - Math.hypot(x - p.x, y - p.y) / 900;
     if (!best || sc > best.sc) best = { x, y, sc, risk };
   }
   if (!best) { const x = clamp(T.x - Math.cos(T.aim) * 150, WALL + 40, AW - WALL - 40), y = clamp(T.y - Math.sin(T.aim) * 150, WALL + 40, AH - WALL - 40); return { x, y, risk: 0 }; }
@@ -5048,7 +5261,9 @@ function botAbilities(w, p, T, dT, foes, dt) {
         const ax = Math.cos(p.input.aim), ay = Math.sin(p.input.aim);
         use = [80, 160, 240, 300].every(d => lethalDist(p.x + ax * d, p.y + ay * d) > 45);
         // the sharper bots save it for a shove into a hole or a wall, or a finishing blow; the rest charge when they can
-        if (use && (botD(p).iq || 0) >= 0.5) { const shove = Math.max(pushRisk(T.x, T.y, ax, ay, 230, T.r), 0.6 * slamRisk(T.x, T.y, ax, ay, 230, T.r)); use = shove > 0.4 || T.hp <= 12 || Math.random() < dt * 0.25; }
+        if (p.ai.tac && p.ai.tac.noShove) use = false; // (a body-blocking guard never shoves)
+        else if (p.ai.tac && p.ai.tac.mode === 'bully') { /* a bully rushes whenever lined up */ }
+        else if (use && (botD(p).iq || 0) >= 0.5) { const shove = Math.max(pushRisk(T.x, T.y, ax, ay, 230, T.r), 0.6 * slamRisk(T.x, T.y, ax, ay, 230, T.r)); use = shove > 0.4 || T.hp <= 12 || Math.random() < dt * 0.25; }
         break;
       }
       case 'fortify': use = p.hp < p.maxHp * 0.5 && foes.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 380); break;
@@ -5097,13 +5312,15 @@ function botAbilities(w, p, T, dT, foes, dt) {
       case 'trap':
         // throw it where the target is heading
         if (T && dT < TRAP_RANGE + 60 && dT > 60 && !(T.vine > 0) && !(T.vineSafe > 0) && Math.random() < dt * 0.8) {
-          const tx = T.x + T.vx * 0.6, ty = T.y + T.vy * 0.6;
+          const ts = p.ai.tac && p.ai.tac.mode === 'trapper' ? tacticTrapSpot(w, p, T) : null; // (the trapper tactic: where a root leaves them beside a drop)
+          const tx = ts ? ts.x : T.x + T.vx * 0.6, ty = ts ? ts.y : T.y + T.vy * 0.6;
           // not over a hole or water: a trap can't sit there (bogs and lava are fine)
           if (!HAZ.some(h => h.type === 'pit' && inHaz(h, tx, ty, TRAP_PIT_GAP))) { p.input.tx = tx; p.input.ty = ty; use = true; }
         }
         break;
       case 'stealth': {
         if (!T) break;
+        if (p.ai.tac && p.ai.tac.mode === 'syncstealth') { const tp = (w.teamPlan || {})[p.team]; use = !!(tp && tp.stealthGo > w.t - tacP(p, 'stealthGap')); break; } // together, on the team's call
         // the sharper bots stealth for a reason: a knockout to set up (something deadly near the target that a shot from the far
         // side would throw them into, close enough to reach before it wears off), or to get out of trouble; the rest just vanish
         const sk = botD(p).iq || 0, setup = sk > 0.2 ? ambushPoint(p, T) : null;
@@ -5126,7 +5343,8 @@ function botAbilities(w, p, T, dT, foes, dt) {
         if (T && dT < 500 && dT > 120) { p.input.tx = T.x + T.vx * 0.7; p.input.ty = T.y + T.vy * 0.7; use = true; }
         break;
       case 'wall': {
-        const threat = foes.find(q => botAware(p, q) && q.drawing && q.charge > 0.6 && Math.hypot(q.x - p.x, q.y - p.y) < 600 && angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.2);
+        const tp = p.ai.tac && w.teamPlan ? w.teamPlan[p.team] : null, ward = tp && tp.back && tp.back !== p && !tp.back.dead && Math.hypot(tp.back.x - p.x, tp.back.y - p.y) < 220 ? tp.back : null; // (a guard raises it for the partner behind too)
+        const threat = foes.find(q => botAware(p, q) && q.drawing && q.charge > 0.6 && Math.hypot(q.x - p.x, q.y - p.y) < 600 && (angOff(q.aim, Math.atan2(p.y - q.y, p.x - q.x)) < 0.2 || (ward && angOff(q.aim, Math.atan2(ward.y - q.y, ward.x - q.x)) < 0.2)));
         if (threat && Math.random() < dt * (2.5 + 6 * botD(p).dodge)) { p.input.aim = Math.atan2(threat.y - p.y, threat.x - p.x); use = true; }
         break;
       }
@@ -5994,6 +6212,8 @@ function step(w, dt) {
     p.speed = p.baseSpeed * (p.windT > 0 ? 1.4 : 1) * (p.fortT > 0 ? 0.6 : 1) * (p.trapSet ? 0.5 : 1) * (rallied ? 1.2 : 1) * (p.stealthT > 0 ? 1.3 : 1) * (p.swT > 0 ? 1.35 : 1) * (p.shade && p.shade.slow ? 1 - 0.06 * p.shade.n : 1) * (p.thornN > 0 ? 1 - 0.05 * p.thornN : 1) * (p.bot ? botD(p).speed : 1);
     p.rallied = rallied;
   }
+  // duos share a plan (co-op tactics), worked out before anyone thinks
+  if (w.players.some(p => p.bot && p.ai && p.ai.tac)) teamPlan(w);
   // what bots perceive lags reality: remember where everyone was over the last half second
   if (w.players.some(p => p.bot)) {
     (w.hist = w.hist || []).push({ t: w.t, p: w.players.map(q => [q.id, q.x, q.y, q.vx, q.vy]) });
@@ -6263,11 +6483,11 @@ function tierSvg(k, size = 22) {
 return {
   TIERS, tierOf, tierSvg,
   TM, TM_NAMES, TM_MINIONS, MASTERY, masteryOf, takeCard, applyStats,
-  AIM, AW, AH, WALL, GATES, MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, SKILL_MIN, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
+  AIM, AW, AH, WALL, GATES, MAPS, COOP_MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, OPTIONS, optPct, optValue, skillParams, SKILL_MIN, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, LAB_KEYS, applyArenaPool, arenaPool, rankedPool, arenaSense, PLAYS, BUILDS, facetParams, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg, emblemCol, emblemFull,
-  setInput, choose, canTake, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, BANNER_FRAME, frameAllowed, featProgress, achSeed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
+  setInput, choose, canTake, forcedChoices, setOption, setHandicap, HANDICAPS, ACHIEVEMENTS, ACH_ORDER, ACH_TIERS, BANNER_FINISH, finishAllowed, BANNER_FRAME, frameAllowed, featProgress, achSeed, tierTotal, bannerOf, achText, achBest, achFromGame, achFromMatch, achTierOf, achMigrate, HOLE_T, OPT_NAMES, setTitle, setMeta, VERSION, sawAt, windAt, treesOf, achFromEvents, achApply, rollOffer, step, snapshot, resetMatch,
   // used by the automated tests to hand out specific upgrades
   _grant(w, id, cards) { const p = w.players.find(q => q.id === id); for (const c of cards) takeCard(w, p, c); applyStats(p); p.picked = false; return p; },
 };

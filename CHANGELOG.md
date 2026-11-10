@@ -2,6 +2,12 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.95.0
+
+- **Co-op arcade.** A new main-menu mode: one or two people against a ladder of fourteen AI duos, each with its own small arena, one or two fixed map effects and a tactic that is the point of the fight (a colossus that body-blocks for a crossbow, two assassins who vanish together and come from two sides, two juggernauts who only want to bash you into the pens, two snipers across the lava, and so on). Four difficulties (Easy, Normal, Hard, Legend), three continues, a handicap when you're on your own, all three upgrades picked before each battle, battles best of three games, score per difficulty kept on the account. The host can bring a friend in by code or invite link between battles; the owner can skip forward and back through the duos to test them.
+- **The team brain.** Shared targets and formation modes for bots that fight as a pair (guard, behind, bully, unload, flank, crossfire, hunt, synchronised stealth, trapper and finisher), built on the planning brain's spot scoring so cover and hazards still count. A sparring loadout (a plain archer, no archetype or element) and `tools/duo-fit.js` to measure and train each duo against a sparring pair.
+- A fixed pair of map effects can be set for a match (`'gale+force'`); the duos use it.
+
 ## 0.94.2
 
 - **Teamwork, first part: targeting.** In team games bots now shoot what a teammate is already shooting when that enemy is under 60% health (two on one to finish; not from the start, or the other enemy is left free), and above all finish what a teammate has set up: an enemy held (rooted, frozen, staggered or pinned) with something deadly behind them is switched to at once and gets the full draw, since that's what the hold was for. How reliably depends on the player's mind facet. Measured in 2v2 bot mirrors the win-rate effect is within noise either way; the point is the play it produces (the frozen archer put into the water by the second shot), and it's the foundation for the flanking and front/back behaviours and the co-op duo mode (`docs/coop-duos.md`).

@@ -1514,6 +1514,7 @@ function serveFlag(cc, res) {
   if (!have) FLAGS.set(cc, job);
   job.then(send);
 }
+const coop = require('./lib/coop')({ Sim, send, sendRoom, sysChat, broadcast, markDirty, isOwner }); // the co-op arcade
 const social = require('./lib/social')({ season: () => SEASON.info(), rejoinFor: ws => { const r = awayRoomOf(ws); return r ? { code: r.code, mode: r.ranked.mode } : null; }, lookOf, seedRating: (u, h) => { if (seedRating(u, h)) markDirty(u); }, rankedMaps: () => rankedMaps(), statusOf: u => E.statusOf(u), store, track, markDirty, send, Sim, levelOf, flagOf, ELO_START, ratingOf, keyFor, rooms, createRoom, sendRoom, sysChat, broadcast, live, loadGuest });
 
 function makeCode() {
@@ -1580,6 +1581,7 @@ function roomInfo(room, ws) {
     name: room.name, pub: room.pub, locked: !!room.pwHash, max: room.max || 8, people: room.clients.size,
     ranked: room.ranked ? room.ranked.mode : undefined, arena: arenaInfo(room.world.cfg.map),
     delay: delayed(ws) ? WATCH_DELAY : undefined, // (spectating a ranked match: this many seconds behind)
+    coop: coop.info(room), cid: ws.cid, // the co-op arcade run, when one is on (and who you are in its lists)
     // the ranked draft: seconds left to choose, and who's ready
     draft: room.ranked && room.ranked.draftUntil && !room.ranked.go ? Math.max(0, Math.ceil((room.ranked.draftUntil - Date.now()) / 1000)) : undefined,
     ready: room.ranked && room.ranked.ready ? [...room.clients].filter(c => room.ranked.ready.has(c.cid) && c.pid).map(c => c.pid) : undefined,
@@ -1659,6 +1661,7 @@ function leave(ws) {
   if (ws.pid) Sim.leave(room.world, ws.pid);
   ws.room = null; ws.pid = null;
   setTimeout(() => social.presence(ws), 0);
+  if (room.coop) coop.left(room);
   if (!room.clients.size) { social.freeAI(room); if (room.z) { room.z.d.close(); room.z = null; } rooms.delete(room.code); return; }
   if (room.away && room.away.size && ranked_live(room)) { sysChat(room, `${ws.name} left.`); sendRoom(room); return; } // seats are being kept: watchers stay
   if ([...room.clients].every(c => c.watch)) { // only people watching are left: they see the last few seconds (they're behind), then it closes
@@ -1941,6 +1944,7 @@ async function handle(ws, m) {
       break;
     }
     case 'choose': if (ws.pid) Sim.choose(w, ws.pid, m.i | 0); break;
+    case 'coop': coop.handle(room, ws, m); break;
     case 'ready': social.draftReady(room, ws); break;
     case 'look': {
       // accounts show what the server knows they've earned; guests show what their browser says
@@ -1963,6 +1967,7 @@ async function handle(ws, m) {
     }
     case 'team': {
       const team = String(m.team);
+      if (room.coop && (team !== 'red' || (!ws.pid && [...room.clients].filter(c => c.pid && !c.watch).length >= 2))) { send(ws, { t: 'note', msg: team !== 'red' ? 'Everyone plays on Red in the arcade.' : 'The arcade is for one or two archers.' }); break; }
       if (ws.pid) Sim.setTeam(w, ws.pid, team);
       else { const err = joinTeam(room, ws, team); if (err) send(ws, { t: 'note', msg: err }); else sendRoom(room); }
       break;
@@ -1982,7 +1987,8 @@ async function handle(ws, m) {
       social.aiReply(room, text, ws.name);
       break;
     }
-    // host-only controls
+    // host-only controls (a co-op run sets the arena, the effects and the rules itself)
+    case 'roomcfg': case 'bot': case 'cfg': case 'hcap': case 'start': case 'lobby': case 'restart': if (room.coop) break; // falls through to the cases below when there's no run
     case 'roomcfg': if (isHost) { const before = roomState(room); applyRoomCfg(room, m, ws.name); announceRoom(room, before, roomState(room)); sendRoom(room); } break;
     case 'bot':
       if (!isHost) break;
@@ -2260,7 +2266,7 @@ function gameLoop() {
       const every = ph === 'play' || ph === 'pre' || ph === 'post' ? SNAP_EVERY : SNAP_EVERY * 3;
       if (room.tick % every === 0) {
         const evs = room.world.events.splice(0);
-        if (evs.length) { creditAchievements(room, evs); social.aiEvents(room, evs); }
+        if (evs.length) { creditAchievements(room, evs); social.aiEvents(room, evs); if (room.coop) coop.events(room, evs); }
         let watchers = 0; for (const c of room.clients) if (c.readyState === 1 && !c.quiet) watchers++;
         if (watchers) { // built once and sent to everyone in the room
           const t1 = process.hrtime.bigint();
@@ -2273,6 +2279,7 @@ function gameLoop() {
         }
       }
       if (room.ranked && room.tick % 15 === 0) afkTick(room, 15 * TICK);
+      if (room.coop && room.tick % 15 === 0) coop.tick(room);
       if (room.dq) sendDelayed(room);
       if (room.world.records.length) saveRecords(room);
     }
