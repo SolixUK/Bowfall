@@ -2,6 +2,11 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.95.2
+
+- **Battering bullies properly.** Ox and Hail never draw at range now (a drawn bow is slow): they come straight at you, dashing to close the ground while keeping a dash back, and up close they bash and Bull Rush while they have them, shooting only when they don't. The Pens has thorns along the walls to be bashed into. Against the sparring pair their hazard knockouts went up by a third and matches run half as long.
+- **The Narrows is a canyon.** Boulders out in the corners, open ground in the middle, a canyon down the centre with one tight crossing and a drop either side of it (a Highland Reach of its own).
+
 ## 0.95.1
 
 - **Co-op arcade, from the first play.** Esc pauses the battle for everyone (the run is yours; it says who paused in chat and resumes when the menu closes). Your three upgrades are remembered from battle to battle and come back whenever they still fit your archetype. The owner's skip arrows are labelled (Previous duo, Skip duo), and the owner can add a bot to Red to test with.

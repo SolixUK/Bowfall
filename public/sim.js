@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.95.1';
+const VERSION = '0.95.2';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -580,10 +580,11 @@ coopMap('coop_maze', { name: 'The Maze', theme: 'farm', desc: 'Bales stacked int
   power: [{ x: 600, y: 400 }, { x: 300, y: 400 }, { x: 900, y: 400 }] });
 coopMap('coop_quarry', { name: 'The Quarry', theme: 'dust', desc: 'A stone floor and standing rock. Nothing to fall into: it comes down to who hits harder.',
   haz: [], pillars: [{ x: 250, y: 400, r: 26 }, { x: 380, y: 230, r: 28 }, { x: 380, y: 570, r: 28 }, { x: 500, y: 400, r: 30 }, { x: 600, y: 250, r: 26 }], power: [{ x: 600, y: 400 }] });
-coopMap('coop_pens', { name: 'The Pens', theme: 'farm', desc: 'Pens of boulders with a hole behind each, and a healing spring in the middle for whoever holds it.',
-  heal: { x: 600, y: 400, r: 55, rate: 12 }, haz: [{ type: 'pit', shape: 'rect', x: 300, y: WALL, w: 110, h: 70 }], pillars: [{ x: 400, y: 260, r: 28 }, { x: 400, y: 540, r: 28 }, { x: 330, y: 400, r: 28 }], power: [{ x: 600, y: 240 }, { x: 600, y: 560 }] });
-coopMap('coop_narrows', { name: 'The Narrows', theme: 'rift', desc: 'A lava river with two narrow bridges. Long shots over the flow, and nowhere to hide on a bridge.',
-  haz: [{ type: 'lava', shape: 'rect', x: 570, y: WALL, w: 60, h: 190 - WALL }, { type: 'lava', shape: 'rect', x: 570, y: 300, w: 60, h: 200, centre: true }], pillars: [{ x: 480, y: 240, r: 28 }], power: [{ x: 600, y: 245 }, { x: 600, y: 555 }] });
+coopMap('coop_pens', { name: 'The Pens', theme: 'farm', desc: 'Pens of boulders with a hole behind each, thorns along the walls, and a healing spring in the middle for whoever holds it.',
+  heal: { x: 600, y: 400, r: 55, rate: 12 }, haz: [{ type: 'pit', shape: 'rect', x: 300, y: WALL, w: 110, h: 70 }], spikes: [{ side: 'top', a: 470, b: 780 }, { side: 'left', a: 150, b: 330 }, { side: 'left', a: 470, b: 650 }], pillars: [{ x: 400, y: 260, r: 28 }, { x: 400, y: 540, r: 28 }, { x: 330, y: 400, r: 28 }], power: [{ x: 600, y: 240 }, { x: 600, y: 560 }] });
+coopMap('coop_narrows', { name: 'The Narrows', theme: 'dusk', desc: 'A canyon splits the arena, with one tight crossing in the middle and drops either side of it. Cover sits out in the corners; the middle is open ground for long shots.',
+  haz: [{ type: 'pit', centre: true, shape: 'rect', x: 560, y: WALL - 20, w: 80, h: 300 }, { type: 'pit', centre: true, shape: 'rect', x: 560, y: 500, w: 80, h: 300 }, { type: 'pit', shape: 'circle', x: 470, y: 400, r: 44 }, { type: 'pit', shape: 'rect', x: 330, y: WALL - 20, w: 150, h: 70 }],
+  pillars: [{ x: 150, y: 150, r: 26 }, { x: 150, y: 650, r: 26 }, { x: 400, y: 120, r: 22 }, { x: 400, y: 680, r: 22 }], power: [{ x: 600, y: 245 }, { x: 600, y: 555 }] });
 const COOP_MAPS = Object.keys(MAPS).filter(k => MAPS[k].coop);
 const MAP_KEYS = Object.keys(MAPS).filter(k => !MAPS[k].hidden); // the arenas on offer in custom games (and the default ranked rotation)
 // ---- the arena pool: which built-in arenas are in custom games and which are in the ranked rotation. The owner sets it from
@@ -4686,7 +4687,9 @@ function tacticGoal(w, p, T, foes, mates, dt) {
     case 'guard': case 'behind': return null; // (formation: a bias on the planning brain, see tacSpotScore)
     case 'bully': case 'unload': {
       const near = tac.mode === 'bully' ? tacP(p, 'bullyD') : tacP(p, 'unloadD');
-      if (dT > near * 1.3) { const c = botCoverHop(p, T, dT, dt); if (c) return c; return [ux * 0.9 - uy * ai.strafe * 0.35, uy * 0.9 + ux * ai.strafe * 0.35]; }
+      // a bully doesn't hop boulder to boulder: it comes straight at you, and dashes to close the ground (keeping a dash back for the bash)
+      if (tac.mode === 'bully' && dT > 330 && (p.dashN >= 2 || (p.dashN > 0 && dT > 480)) && ai.dodgeCd <= 0 && lethalDist(p.x + ux * 170, p.y + uy * 170) > 50 && Math.random() < dt * 3) { p.wantDash = true; ai.dashAim = Math.atan2(uy, ux); ai.dodgeCd = 0.7; }
+      if (dT > near * 1.3) { const c = tac.mode === 'bully' ? null : botCoverHop(p, T, dT, dt); if (c) return c; return [ux * 0.9 - uy * ai.strafe * 0.35, uy * 0.9 + ux * ai.strafe * 0.35]; }
       if (dT > near) return [ux, uy];
       return [-uy * ai.strafe * 0.6 + ux * 0.2, ux * ai.strafe * 0.6 + uy * 0.2]; // (in their face: circle, don't back off)
     }
@@ -5121,8 +5124,10 @@ function botThink(w, p, dt) {
     const want = los && onTarget && dEff < (p.xbowRange || XBOW_RANGE) - 30 && T.inv <= 0 && (p.autoT > 0 || (p.bolts > 0 && ai.reload <= 0));
     if (p.autoT > 0) inp.draw = want; // full auto: just hold
     else { inp.draw = want && !inp.draw; if (want) ai.reload = rand(0.05, 0.25) + D.react * 0.5; }
+  } else if (ai.tac && ai.tac.mode === 'bully' && (dT > 260 || p.dashN > 0 || p.slots.some((id, i) => id === 'rush' && !(p.abCd[i] > 0)))) {
+    inp.draw = false; // (a bully doesn't shoot from range, a drawn bow is slow; up close it bashes and rushes while it has them, and only shoots when it hasn't)
   } else if (!inp.draw) {
-    if (ai.reload <= 0 && !(ai.tac && ai.tac.mode === 'bully' && dT < 320 && (p.dashN > 0 || p.slots.some((id, i) => id === 'rush' && !(p.abCd[i] > 0))))) { // (a bully with a bash or a rush up doesn't bother drawing)
+    if (ai.reload <= 0) {
       inp.draw = true;
       const st = STYLES[ai.style];
       ai.want = lethalDist(T.x, T.y) < 130 ? 1 : dT < 150 ? 0.35 : st && st.charge ? rand(Math.max(D.minCharge * 0.7, st.charge[0]), st.charge[1]) : rand(D.minCharge, 1);

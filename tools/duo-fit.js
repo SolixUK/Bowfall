@@ -14,7 +14,7 @@ const FIT = fs.existsSync(FIT_PATH) ? JSON.parse(fs.readFileSync(FIT_PATH, 'utf8
 const TUNE = {
   guard: { guardD: [70, 200], tacK: [0.6, 2.0], wallK: [0.6, 2.0] },
   behind: { behindD: [60, 220], side: [20, 90], tacK: [0.4, 1.8], wallK: [0.6, 2.0] },
-  bully: { bullyD: [160, 340], bashEager: [1, 5] },
+  bully: { bullyD: [120, 260], bashEager: [1, 5] },
   unload: { unloadD: [120, 300] },
   crossfire: { cross: [0.6, 1.6], farD: [480, 760], tacK: [0.3, 1.5] },
   flank: { flankAng: [0.8, 1.6], tacK: [0.4, 1.8] },
