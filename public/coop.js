@@ -17,6 +17,9 @@ function coopFactory(ctx) {
   // one against two: the duo plays a step softer and the person carries more health and weight on top of the level's handicap
   // (a duo's own `solo` adds to this: the ones whose whole idea is ganging up on one archer)
   const SOLO_SK = -0.08, SOLO_HCAP = 30;
+  // each duo's own adjustment by level (lv: skill added at levels 2, 5 and 8, in between by straight lines, flat beyond), fitted
+  // so that every duo beats a pair of ordinary bots of its own skill about as often as the others do, at every level (tools/duo-level.js)
+  const lvOff = (d, L) => { const a = d.lv; if (!Array.isArray(a) || a.length !== 3) return 0; return L <= 2 ? a[0] : L <= 5 ? a[0] + (a[1] - a[0]) * (L - 2) / 3 : L <= 8 ? a[1] + (a[2] - a[1]) * (L - 5) / 3 : a[2]; };
   const DIFFS = Object.fromEntries(Array.from({ length: LEVELS }, (_, i) => [i + 1, DIFF(i + 1)]));
   const BASE_SCORE = 100, CARD_WAIT = 12, CONT_WAIT = 12; // (CONT_WAIT: seconds the Continue? countdown gives you after a loss)
   const BOSS = DUOS.find(d => d.boss) || null, LADDER = DUOS.filter(d => !d.boss); // points a duo is worth before the difficulty multiplier; seconds the result card shows before moving on
@@ -60,11 +63,11 @@ function coopFactory(ctx) {
       b.name = m.name; b.coopDuo = true; Sim.setLoadout(w, b.id, m.el, m.role); b.forceUp = m.ups.slice();
       // their skill: the difficulty's band, rising with the place on the ladder (whoever you meet first is the gentlest, whoever
       // you meet last the sharpest), the second member a touch sharper; team sense always full (the tactic depends on it)
-      const k = N() > 1 ? C.idx / (N() - 1) : 1, f = Math.min(1, D.facets[0] + (D.facets[1] - D.facets[0]) * k + 0.02 * i + (d.boost || 0) + (m.boost || 0) + (humansOf(room).length <= 1 ? SOLO_SK + (d.solo || 0) : 0)); // (solo: a duo that's harder one against two plays a touch softer) // (boost: a duo whose tactic costs it firepower plays a touch sharper)
+      const k = N() > 1 ? C.idx / (N() - 1) : 1, f = Math.min(1, D.facets[0] + (D.facets[1] - D.facets[0]) * k + 0.02 * i + (d.boost || 0) + (m.boost || 0) + lvOff(d, C.diff) + (humansOf(room).length <= 1 ? SOLO_SK + (d.solo || 0) : 0)); // (solo: a duo that's harder one against two plays a touch softer) // (boost: a duo whose tactic costs it firepower plays a touch sharper)
       if (m.boss) { // the machine: the top of the band and past it, inhuman at dodging, more health against two of you
         // (a hard fight, not an impossible one: the middle of the difficulty's band and a little more, sharper feet than eye)
         // (the hardest fight of the run: the top of the difficulty's band and a step past it, sharper feet than eye)
-        const solo = humansOf(room).length <= 1, top = Math.min(1, D.facets[1] + 0.03);
+        const solo = humansOf(room).length <= 1, top = Math.max(0.05, Math.min(1, D.facets[1] + 0.03 + lvOff(d, C.diff)));
         b.element = null; // (no element: it's a machine)
         b.dparams = Sim.facetParams({ aim: top, pos: top, dodge: Math.min(1, top + 0.1), mind: 1 });
         b.boss = { hp: m.boss.hp[solo ? 0 : 1], sense: Math.min(1, 0.15 + 0.6 * top * top), el: m.extra || [], mode: null, at: 0 };

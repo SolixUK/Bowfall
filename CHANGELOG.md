@@ -2,6 +2,24 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.7
+
+- Presence plays sharper against two of you (+0.08 skill at every level): against a pair of ordinary bots of its own skill it was winning only about 30%, because Bastion can't shield two archers at once. Alone you face exactly what you did before: its solo adjustment grows by the same amount, so the cut you get when it's one against two is unchanged.
+
+## 0.99.6
+
+- **The line-up.** Every match now opens on a line-up for a few seconds before the first countdown. Red's archers are on cards down the left and Blue's down the right, with a VS crest between. Each card shows the archer, their name, their rank (or level), their flag faded behind, and their element and role. AI players are tagged. The halves slide in, the cards fly in one after another with a shine across them, the crest drops in with a flash, and the whole thing clears just as the 3-2-1 starts. It plays in ranked, custom games, the arcade and practice, but not in the tutorial or the training drills.
+- **Snipers are weaker up close.** Marksman now scales both ways: 25% less damage when the arrow has flown under 150px, even at 400px, and up to 30% more from 700px out, as before. A sniper played like a ranger at mid range no longer out-hits one.
+- **AI players learned from the duos.** Any sharp enough bot now harpoons someone who's rooted, frozen or stunned, since they can't step aside. Sharper trappers also place traps where a root leaves you next to a drop, the way the arcade trappers do. The rest the duos learned already applied to every bot: chaining a trap or toss onto other holds, when to throw a toss, volleys on held targets, reaction delays on totems and smoke, and revives.
+- **The Terminator** grows and shrinks between builds over a moment instead of flicking. Below 30% health it goes into **Repair mode**: it folds down small and quick (faster feet, dashes back sooner) and runs for the embers and medkits, which heal it double. It stays that way until it's back to 60% health or 12 seconds pass. Then it returns to whichever build fits the range, and won't repair again for 18 seconds. A green ring and a callout show when it happens. Cut it off from the heals.
+- **Every arcade battle tuned against its own level.** Each duo, and the Terminator, played a pair of ordinary bots of its own skill at levels 2, 5 and 8. A duo whose tactic or kit punched above its skill there gets less skill at that level, and one that fell short gets a little more. It's tuned so no duo is a walkover at one difficulty and a wall at another. The numbers are `lv` in `lib/duos.json`, and `tools/duo-level.js` re-runs the fit.
+- **Formations react with their skill.** A duo's formation (a guard stepping across, the archer tucking in behind it) now re-forms a beat late in weaker hands and almost at once in sharp ones. Swift's dash back into Bastion's shadow comes less often the weaker the pair.
+- Arcade plays and moments no longer go into Best of the Week.
+
+## 0.99.5
+
+- Dashing against a Harpoon is a tug of war now. Before, a dash during the reel cancelled the pull completely, and a dash just before the reel did nothing because the reel wiped it out. Now the two pull against each other. Dash away as the rope reels you in and you're dragged about half as far (in a test, about 150px instead of 320). You're airborne during the dash, so it can carry you over a hole or water on the way. It slows or swerves the pull but doesn't break the line.
+
 ## 0.99.4
 
 - Playing the arcade alone is fairer. One against two is a different game, so on your own you now get 30% more handicap on top of the level's (+80% on Easy down to +50% on Legend), and the duos play a step softer. The five built around ganging up on one archer (Shadows, Two Blades, Bloodlust, The Wall and Battering) are softer again when you're alone, like Presence. Against two of you, nothing changes.

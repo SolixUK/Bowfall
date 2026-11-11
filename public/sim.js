@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.4';
+const VERSION = '0.99.7';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1198,7 +1198,7 @@ function setTitle(w, id, key) {
 const isLocked = key => LOCK_PREMIUM && !!((ELEMENTS[key] || ROLES[key] || {}).premium);
 const ROLES = {
   sniper:     { name: 'Sniper',     cat: 'Power',   blurb: 'Harder, faster, longer shots.',
-    trait: { name: 'Marksman', desc: 'Arrows fly 25% faster and hit harder the further they fly: nothing extra up close, rising to 30% more damage at 700px and beyond. A slightly longer pause between shots. 10 less health.' } },
+    trait: { name: 'Marksman', desc: 'Arrows fly 25% faster and hurt more the further they fly: 25% less damage up close (under 150px), even at 400px, rising to 30% more at 700px and beyond. A slightly longer pause between shots. 10 less health.' } },
   juggernaut: { name: 'Juggernaut', cat: 'Power',   blurb: 'Tough to move, dangerous up close.',
     trait: { name: 'Heavyweight', desc: '15 more health, a bigger body, 20% less knockback taken, and heals 2 health a second after 4 seconds without being hit. Dashing into enemies shoves them 50% harder. Arrows deal 20% less damage. 7% slower.' } },
   ranger:     { name: 'Ranger',     cat: 'Agility', blurb: 'Speed, quick dashes and a grapple.',
@@ -1465,7 +1465,7 @@ const MAX_TEAM = 4;
 const _unused_ = 0;
 const LETHAL = { lava: 1, burn: 1, spikes: 1, wall: 1, crush: 1, pit: 1, water: 1, saw: 1 };
 const has = (p, id) => p.up.includes(id);
-const TIMES = { pre: 3, post: 10, roundPost: 11.5, pick: 20, game: 120 };
+const TIMES = { pre: 3, post: 10, roundPost: 11.5, pick: 20, game: 120, intro: 3.6 }; // intro: the line-up of both teams before a match's first countdown
 
 // is there a hole, water or lava on the line from the target to the thrower (that a harpoon's pull would drag them over)?
 function harpoonThrough(T, p) {
@@ -1508,7 +1508,7 @@ function createWorld(cfg = {}) {
     t: 0, nid: 1, players: [], arrows: [], pickups: [], zones: [], events: [], amberT: 2, puT: 8,
     cfg: {
       pointsToWin: cfg.pointsToWin === 5 ? 5 : 3, gamesToWin: 2, // each round is best of three games
-      diff: DIFF[cfg.diff] ? cfg.diff : 'normal', map: MAPS[cfg.map] ? cfg.map : 'meadow', termLv: clamp(+cfg.termLv || 3, 1, 5), termOnly: cfg.termOnly || null, term: !!cfg.term, // (termLv: the Terminator's difficulty; termOnly: one mode, for testing; term: the Terminator on any arena)
+      noIntro: !!cfg.noIntro, diff: DIFF[cfg.diff] ? cfg.diff : 'normal', map: MAPS[cfg.map] ? cfg.map : 'meadow', termLv: clamp(+cfg.termLv || 3, 1, 5), termOnly: cfg.termOnly || null, term: !!cfg.term, // (termLv: the Terminator's difficulty; termOnly: one mode, for testing; term: the Terminator on any arena)
       opt: Object.assign(optDefaults(), cfg.opt || {}), mut: null,
     },
     // a match is won on points; each round (1 point) is won by the first team to win 2 games (best of three)
@@ -1536,14 +1536,14 @@ function applyStats(p) {
   p.maxHp = Math.round(p.maxHp * OPT('hp') * hc * (p.boss ? p.boss.hp : 1));
   if (p.hp > p.maxHp) p.hp = p.maxHp;
   p.mass = (1 + (p.hcap || 0) / 200) * is(has(p, 'stance'), 1 / 0.5) * is(R === 'juggernaut', 1.25) * is(R === 'warden', 1.1) * is(has(p, 'colossus'), 1 / 0.65) / is(has(p, 'feather'), 1.3) / is(has(p, 'longstep'), 1.15) / is(R === 'crossbow', 0.85);
-  p.r = 16 * is(R === 'juggernaut', 1.1) * is(has(p, 'colossus'), 1.35) * is(!!p.boss, 1.18) * OPT('size'); // (the arcade's machine stands a size bigger)
+  p.r = 16 * is(R === 'juggernaut', 1.1) * is(has(p, 'colossus'), 1.35) * is(!!p.boss, p.boss && p.boss.mode === 'repair' ? 0.9 : 1.18) * OPT('size'); // (repairing, it folds itself down small) // (the arcade's machine stands a size bigger)
   p.baseSpeed = 235 * (has(p, 'fleet') ? 1.1 : 1) * (1 + 0.05 * h('hone_speed')) * is(R === 'juggernaut', 0.93) * is(R === 'ranger', 1.05) * is(R === 'ninja', 1.12) * is(R === 'crossbow', 1.08)
-    * is(has(p, 'colossus'), 0.9) * is(has(p, 'feather'), 1.15) * is(has(p, 'quickfeet'), 1.08) * OPT('mspeed');
+    * is(has(p, 'colossus'), 0.9) * is(has(p, 'feather'), 1.15) * is(has(p, 'quickfeet'), 1.08) * is(!!(p.boss && p.boss.mode === 'repair'), 1.15) * OPT('mspeed');
   p.rampMul = has(p, 'fleet') ? 0.4 : has(p, 'feather') ? 0.8 : 1;
   p.agile = has(p, 'fleet') ? 3 : 1; p.resp = has(p, 'fleet') ? 1.6 : 1; // Fleet Foot: sharper turns and stops
   // one dash at a time for everyone (no charges), on a short cooldown
   p.dashCdMax = R === 'ninja' ? 0.95 * is(has(p, 'swiftstep'), 0.7) * is(has(p, 'overload'), 1.2)
-    : 0.85 * is(has(p, 'dash'), 0.65) * is(R === 'ranger', 0.85) * is(has(p, 'overload'), 1.2);
+    : 0.85 * is(has(p, 'dash'), 0.65) * is(R === 'ranger', 0.85) * is(has(p, 'overload'), 1.2) * is(!!(p.boss && p.boss.mode === 'repair'), 0.6);
   p.dashMaxN = 1;
   p.dashN = Math.min(p.dashN == null ? p.dashMaxN : p.dashN, p.dashMaxN);
   p.drawMul = (has(p, 'steady') ? 1.25 : 1) * (1 + 0.08 * h('hone_draw')) * is(R === 'trickster', 1.12) * is(R === 'ranger', 1.12) * is(R === 'sniper', 1) * mutMul(CFG.mut, 'draw');
@@ -1965,11 +1965,14 @@ function freshBody(p, x, y) {
 function startPre(w) {
   const M = w.match;
   M.ph = 'pre'; M.T = TIMES.pre; M.rw = null; M.clutch = {}; M.first = null;
+  // the first game of a match opens on the line-up (both teams' cards) before the countdown, when someone's there to see it
+  const intro = M.rd === 1 && M.gm === 1 && !w.cfg.noIntro && w.players.some(p => !p.bot && !p.npc);
+  if (intro) M.T += TIMES.intro;
   w.arrows = []; w.pickups = []; w.zones = []; w.later = [];
   w.cracks = MAP.cracks.map(() => 0); useMap(w);
   w.ball = BALL ? { x: BALL.x, y: BALL.y, vx: 0, vy: 0, r: BALL.r, out: 0, spin: 0 } : null;
   for (const p of w.players) { placeForRound(w, p); p.g0 = { k: p.kills, dmg: p.stats.dmg, hits: p.stats.hits, shots: p.stats.shots, ring: p.stats.ring, taken: p.stats.taken, as: p.stats.as || 0, bull: p.stats.bull || 0 }; p.hitBy = {}; p.gEmp = p.emp; }
-  ev(w, { e: 'phase', ph: 'pre', rd: M.rd, gm: M.gm });
+  ev(w, { e: 'phase', ph: 'pre', rd: M.rd, gm: M.gm, it: intro ? 1 : undefined });
 }
 // ends one game; the first team to win gamesToWin games takes the round and a point
 // a few lines about what happened in the game that just ended; the client turns them into words
@@ -2516,7 +2519,7 @@ function stepBody(w, f, mx, my, dt) {
   if (f.hook) {
     const H = f.hook, o = w.players.find(q => q.id === H.by), dx = o ? o.x - f.x : 0, dy = o ? o.y - f.y : 0, d = Math.hypot(dx, dy) || 1;
     if (!o || o.dead || f.dead || d > HOOK_MAX) f.hook = null;
-    else if (H.t > 0) { H.t -= dt; if (H.t <= 0) { const v = Math.min(HOOK_PULL, 240 + d * 2.4); f.vx = dx / d * v; f.vy = dy / d * v; f.knock = Math.max(f.knock, 0.45); f.stuck = 0; f.lastHitBy = o.id; f.lastHitT = w.t; H.pull = 0.45; ev(w, { e: 'reel', id: f.id, by: o.id, x: r1(f.x), y: r1(f.y) }); } }
+    else if (H.t > 0) { H.t -= dt; if (H.t <= 0) { const v = Math.min(HOOK_PULL, 240 + d * 2.4), keep = f.dashT > 0 ? HOOK_DASH : 0; f.vx = dx / d * v + f.vx * keep; f.vy = dy / d * v + f.vy * keep; /* (dashing away as it reels: the two pull against each other) */ f.knock = Math.max(f.knock, 0.45); f.stuck = 0; f.lastHitBy = o.id; f.lastHitT = w.t; H.pull = 0.45; ev(w, { e: 'reel', id: f.id, by: o.id, x: r1(f.x), y: r1(f.y) }); } }
     else if ((H.pull -= dt) <= 0 || d < o.r + f.r + 30) { if (d < o.r + f.r + 30) { f.vx *= 0.3; f.vy *= 0.3; } f.hook = null; } // (the rope goes slack once they've arrived: they stop at your feet)
   }
   let sp = f.speed;
@@ -2639,7 +2642,9 @@ function updatePlayer(w, p, dt) {
     // frost: the dash is slower but goes as far (speed, fade and duration all stretch together)
     const k = p.slow > 0 ? (p.sure ? 0.9 : 0.7) : 1;
     p.dashK = k;
-    p.vx = dx * MOVE.dashSpeed * k; p.vy = dy * MOVE.dashSpeed * k; p.dashT = MOVE.dashTime / k * (p.dashWeak > 0 ? 0.45 : 1); p.knock = 0;
+    // (on a harpoon's rope as it reels you in: the dash fights the pull rather than cancelling it; enough to slow it, swerve it, or carry you over a hole on the way, not to break free)
+    if (p.hook && p.hook.t <= 0) { p.vx += dx * MOVE.dashSpeed * k * HOOK_DASH; p.vy += dy * MOVE.dashSpeed * k * HOOK_DASH; } else { p.vx = dx * MOVE.dashSpeed * k; p.vy = dy * MOVE.dashSpeed * k; }
+    p.dashT = MOVE.dashTime / k * (p.dashWeak > 0 ? 0.45 : 1); p.knock = 0;
     if (p.dashN === p.dashMaxN) p.dashCd = p.dashCdMax;
     p.dashN--;
     p.dashDir = [dx, dy]; p.shoved = [];
@@ -3570,7 +3575,7 @@ const rangeOf = (w, p) => p.role === 'crossbow' ? Math.round(p.xbowRange || XBOW
   : p.role === 'ninja' ? Math.round(STAR_SPEED * optValue((w.cfg || {}).opt, 'aspeed') * mutMul((w.cfg || {}).mut, 'aspeed') * STAR_FLY) : null;
 const SNIPE_FULL = Math.hypot(AW - 2 * WALL, AH - 2 * WALL); // corner to corner
 // Harpoon: hooked for HOOK_DELAY seconds, then reeled toward the thrower at up to HOOK_PULL (it breaks past HOOK_MAX)
-const HOOK_DELAY = 0.5, HOOK_PULL = 1150, HOOK_MAX = 1000;
+const HOOK_DELAY = 0.5, HOOK_PULL = 1150, HOOK_MAX = 1000, HOOK_DASH = 0.6; // (HOOK_DASH: how much of a dash counts against the rope)
 const STAR_SPEED = 1300, STAR_FLY = 0.222, STAR_LIFE_K = 0.704; // a shuriken's top speed (an arrow's), its reach in seconds of full speed (drag 2.4 over its life), and how much shorter it lives than at the old 1050
 const VOLLEY_GAP = 0.12, BLINK_RANGE = 300, HARPOON_RANGE = 420, NINJA_BLINK = 220, FLASH_RANGE = 240;
 // is this archer hidden inside smoke from someone standing at (x, y)?
@@ -3625,9 +3630,9 @@ function arrowHit(w, a, f) {
   if (a.own && has(a.own, 'holdline') && Math.hypot(f.x - a.own.x, f.y - a.own.y) < 250) kf *= 1.5; // Hold the Line
   const bank = a.bnc && a.own && has(a.own, 'bankshot'); if (bank) kf *= 1.4; // Bank Shot
   // Deadeye: no bonus under 200px of flight, rising to +60% at 700px
-  // Marksman (every Sniper): nothing under 150px of flight, rising to +30% at 700px
+  // Marksman (every Sniper): a long gun, clumsy up close: −25% inside 150px of flight, back to even at 400px, rising to +30% at 700px
   const range = (a.own && has(a.own, 'deadeye') ? 0.6 * clamp((a.dist - 200) / 500, 0, 1) : 0)
-    + (a.own && a.own.role === 'sniper' ? 0.3 * clamp((a.dist - 150) / 550, 0, 1) : 0)
+    + (a.own && a.own.role === 'sniper' ? (a.dist < 400 ? -0.25 * clamp((400 - a.dist) / 250, 0, 1) : 0.3 * clamp((a.dist - 400) / 300, 0, 1)) : 0)
     + (a.own && a.own.role === 'assassin' ? 0.4 * clamp((450 - a.dist) / 300, 0, 1) : 0); // Backstab's other half: the shorter the shot the harder it hits, +40% inside 150px, nothing from 450px out
   const held = f.stuck > 0 || f.frozen > 0;
   const chill = a.el === 'frost' && (f.slow > 0 || f.frozen > 0) ? 1.3 : 1; // Frost Arrows
@@ -4021,11 +4026,11 @@ function updatePickups(w, dt) {
         if (u.type === 'amber') {
           // a little health and a head start on your cooldowns
           const g = AMBER.pickup; p.amber += g; p.earned += g;
-          p.hp = Math.min(p.maxHp, p.hp + AMBER_BOOST.hp);
+          p.hp = Math.min(p.maxHp, p.hp + AMBER_BOOST.hp * (p.boss && p.boss.mode === 'repair' ? BOSS_REPAIR.heal : 1));
           if (p.dashN < p.dashMaxN) p.dashCd = Math.max(0, p.dashCd - AMBER_BOOST.dash);
           p.abCd = p.abCd.map(c => Math.max(0, c - AMBER_BOOST.ability));
         }
-        else if (u.type === 'heal') p.hp = Math.min(p.maxHp, p.hp + 40);
+        else if (u.type === 'heal') p.hp = Math.min(p.maxHp, p.hp + 40 * (p.boss && p.boss.mode === 'repair' ? BOSS_REPAIR.heal : 1));
         else p.pw[u.type] = PU[u.type].dur * (w.tm ? 2 : 1); // (the Terminator arena: stronger power-ups)
         ev(w, { e: 'pick', id: p.id, ty: u.type, x: r1(u.x), y: r1(u.y) });
         w.pickups.splice(i, 1);
@@ -4226,6 +4231,9 @@ function choosePlay(w, p) {
   if (L.tr) { ai.tr = Object.assign({}, TR0, ai.tr || {}); for (const k in L.tr) ai.tr[k] = Math.max(ai.tr[k], L.tr[k]); }
   if (L.gene) { p.gene = Object.assign({}, p.gene || {}); for (const k in L.gene) p.gene[k] = (p.gene[k] == null ? 1 : p.gene[k]) * L.gene[k]; }
 }
+// a duo's formation reacts as fast as its feet are good: a sharp pair re-forms almost at once, a weaker one a beat late
+// (seconds added to the re-plan at no positioning skill, none at full)
+const TAC_LAG = 0.6;
 const GENE = { pref: 1, safety: 1, push: 1, los: 1, pick: 1, jink: 0.5, kbScale: 1, dodgeT: 0.55, retreat: 0.3, cand: 130, heal: 1, fireTol: 0.9, far: 380, quick: 0.45, mid: 0.8, riskFull: 0.5, planDt: 0.12 };
 // how far a hit of charge c would shove an archer of this mass (knockback, then the slide after it)
 function kbTravel(c, mass, mul) {
@@ -4633,7 +4641,11 @@ const BOSS_MODES = {
   close: { name: 'Juggernaut', role: 'juggernaut', ups: ['colossus', 'ram', 'rush', 'riot'], tac: { mode: 'bully', bullyD: 180, bashEager: 4 }, aggr: 1 },
   mid:   { name: 'Hunter',     role: 'ranger',     ups: ['trap', 'briar', 'dash', 'quickshot', 'deeproots'], tac: { mode: 'trapper', waterK: 0.6 }, aggr: 0.7 },
   long:  { name: 'Marksman',   role: 'sniper',     ups: ['wall', 'gust', 'longbow', 'steady', 'heavy'], tac: { mode: 'focus' }, aggr: 0.35 },
+  // badly hurt: it folds down small and quick (faster feet, dashes back sooner) and runs for the embers and medkits, healing
+  // twice what they'd give you, until it's fit to fight again (or it's run out of time), then back to whichever build fits the range
+  repair: { name: 'Repair',    role: 'ranger',     ups: ['fleet', 'dash', 'quickshot'], tac: { mode: 'repair' }, aggr: 0.15 },
 };
+const BOSS_REPAIR = { at: 0.3, done: 0.6, max: 12, gap: 18, heal: 2 }; // below 30% health, until 60% (12 s at most), not again for 18 s after; pickups heal double
 function bossSet(w, p, mode) {
   const M = BOSS_MODES[mode]; if (!M) return;
   const frac = p.maxHp ? p.hp / p.maxHp : 1;
@@ -4648,10 +4660,13 @@ function bossSet(w, p, mode) {
 function bossTick(w, p, dt) {
   const foes = w.players.filter(q => q.team !== p.team && !q.dead && !q.npc && q.falling <= 0); if (!foes.length) return;
   if (!p.boss.mode) return bossSet(w, p, 'mid');
-  if (w.t - p.boss.at < BOSS_SWITCH || p.rush || p.knock > 0 || p.falling > 0) return;
-  const cx = foes.reduce((a, q) => a + q.x, 0) / foes.length, cy = foes.reduce((a, q) => a + q.y, 0) / foes.length, d = Math.hypot(cx - p.x, cy - p.y), m = p.boss.mode;
+  const B = p.boss, hpk = p.hp / (p.maxHp || 1), busy = p.rush || p.knock > 0 || p.falling > 0 || p.dashT > 0;
+  const cx = foes.reduce((a, q) => a + q.x, 0) / foes.length, cy = foes.reduce((a, q) => a + q.y, 0) / foes.length, d = Math.hypot(cx - p.x, cy - p.y), m = B.mode;
   // (a little slack either side of each line, so it isn't flickering on the boundary)
   const want = d < BOSS_NEAR + (m === 'close' ? 40 : 0) ? 'close' : d > BOSS_FAR - (m === 'long' ? 50 : 0) ? 'long' : 'mid';
+  if (m === 'repair') { if (!busy && (hpk >= BOSS_REPAIR.done || w.t - B.at > BOSS_REPAIR.max)) { B.repEnd = w.t; bossSet(w, p, want); } return; }
+  if (hpk < BOSS_REPAIR.at && !busy && w.t - (B.repEnd != null ? B.repEnd : -99) > BOSS_REPAIR.gap) return bossSet(w, p, 'repair');
+  if (w.t - B.at < BOSS_SWITCH || busy) return;
   if (want !== m) bossSet(w, p, want);
 }
 // Reviving a knocked-out teammate (the Revive card, or the Revives rule): is it worth it now? Weighed like a person would:
@@ -4820,6 +4835,14 @@ function tacticGoal(w, p, T, foes, mates, dt) {
   const ai = p.ai, tac = ai.tac, tp = (w.teamPlan || {})[p.team]; if (!tac || !tp) return null;
   const partner = mates.find(m => m.bot && tacOf(m)) || mates[0] || null;
   const toward = (x, y, k = 1) => { const dx = x - p.x, dy = y - p.y, d = Math.hypot(dx, dy) || 1, a = Math.min(1, d / 40); return [dx / d * a * k - p.vx / 500, dy / d * a * k - p.vy / 500]; };
+  if (tac.mode === 'repair') { // (the machine, badly hurt: to the heals, quick, the ones away from the archers first)
+    let best = null;
+    for (const u of w.pickups) { if (u.type !== 'amber' && u.type !== 'heal') continue; const d = Math.hypot(u.x - p.x, u.y - p.y), near = Math.min(...foes.map(q => Math.hypot(q.x - u.x, q.y - u.y)), 999);
+      const sc = d - Math.min(near, 400) * 0.6 - (u.type === 'heal' ? 150 : 0) + (lethalDist(u.x, u.y) < 40 ? 300 : 0); if (!best || sc < best.sc) best = { u, sc, d }; }
+    if (best) { const u = best.u; if (best.d > 180 && p.dashN > 0 && ai.dodgeCd <= 0 && lethalDist(p.x + (u.x - p.x) / best.d * 150, p.y + (u.y - p.y) / best.d * 150) > 50 && Math.random() < dt * 3) { p.wantDash = true; ai.dashAim = Math.atan2(u.y - p.y, u.x - p.x); ai.dodgeCd = 0.5; } return toward(u.x, u.y, 1.1); }
+    if (T) { const dT = Math.hypot(T.x - p.x, T.y - p.y) || 1; if (dT < 520) { const gx = clamp(p.x - (T.x - p.x) / dT * 200, WALL + 60, AW - WALL - 60), gy = clamp(p.y - (T.y - p.y) / dT * 200, WALL + 60, AH - WALL - 60); if (lethalDist(gx, gy) > 60) return toward(gx, gy); } }
+    return null;
+  }
   // a power-up that's ours to take (hunters go further for it, and anyone takes one right next to them)
   const pid = tp.pick[p.id], pu = pid != null ? w.pickups.find(u => u.id === pid) : null;
   const hunter = tac.mode === 'hunt' || (tac.mode === 'guard' && p.hp < p.maxHp * 0.7 && (pu && (pu.type === 'heal' || pu.type === 'amber'))); // (a hurt tank goes for anything that heals)
@@ -4973,7 +4996,7 @@ function botThink(w, p, dt) {
   const chan = w.pickups.find(u => u.chan);
   const chanD = chan ? Math.hypot(chan.x - p.x, chan.y - p.y) : Infinity;
   let plan = null; // smart bots re-plan where to stand several times a second
-  if (T && iq >= 0.5) { ai.planT = (ai.planT || 0) - dt; if (ai.planT <= 0 || !ai.plan) { ai.planT = G.planDt; ai.plan = botPlan(w, p, T, foes, mates, D, G); } plan = ai.plan; }
+  if (T && iq >= 0.5) { ai.planT = (ai.planT || 0) - dt; if (ai.planT <= 0 || !ai.plan) { ai.planT = G.planDt + (ai.tac ? TAC_LAG * (1 - clamp(D.posK != null ? D.posK : 0.6, 0, 1)) * rand(0.6, 1.4) : 0); ai.plan = botPlan(w, p, T, foes, mates, D, G); } plan = ai.plan; }
   const wantChan = chan && chanD < 620 && (ai.aggr == null ? 0.6 : ai.aggr) > 0.3 && p.hp > p.maxHp * 0.3;
   if (wantChan && !safeToRevive) {
     gx = (chan.x - p.x) / 60 - p.vx / 160; gy = (chan.y - p.y) / 60 - p.vy / 160;
@@ -5368,7 +5391,7 @@ function botThink(w, p, dt) {
       // covered from whoever is shooting: no dodge (it would only step out of cover). The arrow hits the guard.
       if (p.wantDash && ai.dashAim == null && threats.length && threats.every(shielded)) p.wantDash = false;
       // lost it (they've walked or dashed round the guard): a dash back into the guard's shadow, the other way
-      if (!p.wantDash && !shielded(T) && Math.hypot(g.x - p.x, g.y - p.y) < 240 && p.dashN > 0 && ai.dodgeCd <= 0 && Math.random() < dt * 5) {
+      if (!p.wantDash && !shielded(T) && Math.hypot(g.x - p.x, g.y - p.y) < 240 && p.dashN > 0 && ai.dodgeCd <= 0 && Math.random() < dt * 5 * Math.pow(clamp(D.posK != null ? D.posK : 0.6, 0, 1), 2)) { // (the weaker the pair, the slower to see it)
         const ux = g.x - T.x, uy = g.y - T.y, ul = Math.hypot(ux, uy) || 1, sx = g.x + ux / ul * (g.r + p.r + 26), sy = g.y + uy / ul * (g.r + p.r + 26), sd = Math.hypot(sx - p.x, sy - p.y);
         if (sd > 60 && sd < 230) { const a = Math.atan2(sy - p.y, sx - p.x); if (dashClear(p, a, Math.min(sd, 170))) { p.wantDash = true; ai.dashAim = a; ai.dodgeCd = 0.5; } }
       }
@@ -5521,6 +5544,8 @@ function botAbilities(w, p, T, dT, foes, dt) {
         // bot waits for that; otherwise it pulls now and then just to bring them close (more often the worse it is)
         const through = harpoonThrough(T, p), sk = botD(p).iq || 0.5;
         if (p.ai.tac && p.ai.tac.mode === 'trapper') { const held = T.stuck > 0.4 || T.vine > 0.4 || T.frozen > 0.4; use = (held || through) && Math.random() < dt * (held ? 8 : 3); break; } // (the duo: the harpoon is for someone rooted, or with water in the way; the feet do the rest)
+        // (what the duos learned, for every sharp enough bot: someone rooted, frozen or stunned can't step aside, so reel them while they're held)
+        if (sk > 0.3 && (T.stuck > 0.4 || T.vine > 0.4 || T.frozen > 0.4 || T.stunT > 0.4)) { use = Math.random() < dt * 8 * sk; break; }
         use = through ? Math.random() < dt * (2 + 6 * sk) : Math.random() < dt * 0.6 * (1.2 - sk);
         break;
       }
@@ -5593,7 +5618,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
           break;
         }
         if (T && dT < Math.min(TRAP_RANGE + 60, ROOTK.trapMax) && dT > 60 && !(T.vine > 0) && !(T.vineSafe > 0) && (!ROOTK.gate || steady) && (!ROOTK.trapSlow || heldBy(T) || Math.hypot(T.vx, T.vy) < ROOTK.trapSlow) && Math.random() < dt * (ROOTK.trapSlow ? 2.5 : 0.8)) { // (trapSlow: only under someone standing or slowed, drawing a bow say: a trap takes most of a second to set, and a walker is long gone)
-          const ts = p.ai.tac && p.ai.tac.mode === 'trapper' ? tacticTrapSpot(w, p, T) : null; // (the trapper tactic: where a root leaves them beside a drop)
+          const ts = (p.ai.tac && p.ai.tac.mode === 'trapper') || (!p.ai.tac && Math.random() < clamp(((botD(p).posK || 0) - 0.5) * 2, 0, 1)) ? tacticTrapSpot(w, p, T) : null; // (and any trapper with a good eye for the ground: the sharper, the more often) // (the trapper tactic: where a root leaves them beside a drop)
           const vs = Math.hypot(tvx, tvy), vk = vs > ROOTK.trapVmax ? ROOTK.trapVmax / vs : 1;
           const miss = ROOTK.errK * (1 - (botD(p).aimK != null ? botD(p).aimK : 0.7)) * vs * vk * ROOTK.trapLead, ma = rand(0, TAU); // (a weaker bot's guess wanders)
           const bx = (T.x - p.x) / (dT || 1) * ROOTK.behind, by = (T.y - p.y) / (dT || 1) * ROOTK.behind; // (a little behind them, as seen from us: where they back off to, and out of the corner of their eye)

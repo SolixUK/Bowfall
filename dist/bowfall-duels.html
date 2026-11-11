@@ -1018,6 +1018,59 @@
   .board { grid-template-columns: 10px 1fr 22px; }
   .board .team-h { grid-column: 1 / -1; font: 700 12px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .01em; margin-top: 4px; }
   .board .out { opacity: .38; }
+  /* the line-up before a match's first countdown: Red's cards on the left, Blue's on the right, a VS crest between */
+  .vsi { position: absolute; inset: 0; z-index: 30; pointer-events: none; overflow: hidden; font-family: 'Rajdhani', 'Arial Narrow', sans-serif; --ink: #f4ecdc; }
+  .vsi .half { position: absolute; top: 0; bottom: 0; width: 58%; }
+  .vsi .half.red { left: 0; clip-path: polygon(0 0, 100% 0, 86% 100%, 0 100%); background: radial-gradient(120% 90% at 30% 50%, rgba(150,22,26,.82), rgba(40,6,10,.93) 70%), #1a0508; transform: translateX(-102%); animation: vsiInL .42s cubic-bezier(.2,.9,.2,1) forwards; }
+  .vsi .half.blue { right: 0; clip-path: polygon(14% 0, 100% 0, 100% 100%, 0 100%); background: radial-gradient(120% 90% at 70% 50%, rgba(22,66,170,.82), rgba(6,14,44,.93) 70%), #050a1a; transform: translateX(102%); animation: vsiInR .42s cubic-bezier(.2,.9,.2,1) forwards; }
+  .vsi .half::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0 2px, transparent 2px 14px); }
+  .vsi .seam { position: absolute; top: -10%; bottom: -10%; left: 50%; width: 6px; margin-left: -3px; transform: skewX(-8deg) scaleY(0); background: linear-gradient(#fff0, #fff, #fff0); box-shadow: 0 0 24px 6px rgba(255,236,200,.7); animation: vsiSeam .5s .28s ease-out forwards; }
+  .vsi .streak { position: absolute; height: 2px; width: 30%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.85), transparent); opacity: 0; animation: vsiStreak 1.1s linear infinite; }
+  .vsi .row { position: absolute; top: 50%; display: flex; gap: clamp(6px, 1.2vw, 16px); transform: translateY(-46%); }
+  .vsi .row.red { right: calc(50% + clamp(54px, 7vw, 96px)); flex-direction: row-reverse; }
+  .vsi .row.blue { left: calc(50% + clamp(54px, 7vw, 96px)); }
+  .vsi .card { position: relative; width: clamp(92px, 13vw, 200px); height: clamp(170px, 52vh, 400px); transform: skewX(-7deg); border-radius: 4px; overflow: hidden; opacity: 0; background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.35)), rgba(12,10,14,.75); }
+  .vsi .row.red .card { border: 2px solid #ff5a45; box-shadow: 0 0 22px rgba(255,70,50,.55), inset 0 0 30px rgba(255,60,40,.25); animation: vsiCardL .5s cubic-bezier(.15,.95,.25,1.15) forwards; }
+  .vsi .row.blue .card { border: 2px solid #3d8bff; box-shadow: 0 0 22px rgba(60,130,255,.55), inset 0 0 30px rgba(60,120,255,.25); animation: vsiCardR .5s cubic-bezier(.15,.95,.25,1.15) forwards; }
+  .vsi .card > .in { position: absolute; top: 0; bottom: 0; left: -14%; right: -14%; transform: skewX(7deg); }
+  .vsi .card > .in::before { content: ''; position: absolute; left: 10%; right: 10%; top: 12%; height: 56%; background: radial-gradient(closest-side, var(--glow, rgba(255,255,255,.22)), transparent); }
+  .vsi .row.red .card { --glow: rgba(255,110,80,.35); } .vsi .row.blue .card { --glow: rgba(90,150,255,.35); }
+  .vsi .card .flagbg { position: absolute; inset: -10% -20%; background-size: cover; background-position: center; opacity: .3; filter: saturate(1.15) blur(.5px); -webkit-mask-image: linear-gradient(180deg, #000 10%, transparent 80%); mask-image: linear-gradient(180deg, #000 10%, transparent 80%); animation: vsiDrift 4s linear forwards; }
+  .vsi .card canvas { position: absolute; left: 50%; top: 38%; width: 66%; aspect-ratio: 1; transform: translate(-50%, -50%); filter: drop-shadow(0 10px 14px rgba(0,0,0,.7)); animation: vsiPortrait 3.6s ease-out forwards; }
+  .vsi .card .shine { position: absolute; top: 0; bottom: 0; width: 40%; left: -60%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.35), transparent); animation: vsiShine .9s ease-out forwards; }
+  .vsi .card .info { position: absolute; left: 12%; right: 12%; bottom: 0; padding: 26px 4px 14px; text-align: center; background: linear-gradient(180deg, transparent, rgba(0,0,0,.85) 40%); color: var(--ink); }
+  .vsi .card .nm { font: 700 clamp(14px, 1.7vw, 24px)/1.05 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 6px #000; }
+  .vsi .card .rk { margin-top: 3px; font: 600 clamp(10px, 1vw, 14px) 'Titillium Web', sans-serif; display: flex; gap: 4px; justify-content: center; align-items: center; color: var(--rc, #d8cdb8); }
+  .vsi .card .rk svg { width: 16px; height: 16px; }
+  .vsi .card .ar { margin-top: 2px; font: 600 clamp(9px, .85vw, 12px) 'Titillium Web', sans-serif; color: #b9ae98; letter-spacing: .06em; text-transform: uppercase; }
+  .vsi .card .ar i { font-style: normal; color: var(--ec, #fff); }
+  .vsi .card .aitag2 { position: absolute; top: 8px; right: 8px; font: 700 11px 'Rajdhani', sans-serif; padding: 1px 6px; border-radius: 3px; background: rgba(0,0,0,.6); color: #ffcf5a; border: 1px solid rgba(255,207,90,.5); transform: skewX(7deg); }
+  .vsi .card.you { outline: 2px solid rgba(255,255,255,.75); outline-offset: 3px; }
+  .vsi .crest { position: absolute; left: 50%; top: 50%; width: clamp(90px, 11vw, 150px); aspect-ratio: 1; transform: translate(-50%, -50%) scale(3) rotate(45deg); opacity: 0; animation: vsiCrest .5s .35s cubic-bezier(.2,1.4,.3,1) forwards; }
+  .vsi .crest .dia { position: absolute; inset: 0; border: 3px solid #fff4dc; background: radial-gradient(circle, rgba(80,120,255,.55), rgba(10,10,30,.9) 70%); box-shadow: 0 0 40px rgba(255,230,190,.8), inset 0 0 26px rgba(120,170,255,.6); }
+  .vsi .crest .ring { position: absolute; inset: -22%; border: 2px dashed rgba(255,240,210,.45); border-radius: 50%; animation: vsiSpin 6s linear infinite; }
+  .vsi .crest b { position: absolute; inset: 0; display: grid; place-items: center; transform: rotate(-45deg); font: 700 italic clamp(34px, 4.4vw, 60px) 'Rajdhani', sans-serif; color: #fff; text-shadow: 0 0 16px rgba(130,180,255,.95), 0 4px 0 #1b2a6a; }
+  .vsi .flash { position: absolute; inset: 0; background: #fff; opacity: 0; animation: vsiFlash .5s .4s ease-out; }
+  .vsi .top { position: absolute; left: 0; right: 0; top: 6%; text-align: center; color: var(--ink); opacity: 0; animation: vsiFade .5s .55s forwards; }
+  .vsi .top b { display: block; font: 700 clamp(20px, 2.6vw, 38px) 'Rajdhani', sans-serif; letter-spacing: .14em; text-transform: uppercase; text-shadow: 0 3px 12px #000; }
+  .vsi .top small { font: 600 clamp(11px, 1.1vw, 15px) 'Titillium Web', sans-serif; color: #d8c9a8; letter-spacing: .08em; }
+  .vsi .side { position: absolute; top: 14%; font: 700 clamp(13px, 1.4vw, 20px) 'Rajdhani', sans-serif; letter-spacing: .3em; text-transform: uppercase; opacity: 0; animation: vsiFade .4s .45s forwards; }
+  .vsi .side.red { left: 4%; color: #ff8a7a; } .vsi .side.blue { right: 4%; color: #8fb8ff; text-align: right; }
+  .vsi.out { animation: vsiOut .38s ease-in forwards; }
+  @keyframes vsiInL { to { transform: none; } } @keyframes vsiInR { to { transform: none; } }
+  @keyframes vsiSeam { to { transform: skewX(-8deg) scaleY(1); } }
+  @keyframes vsiCardL { 0% { opacity: 0; transform: skewX(-7deg) translateX(-60vw); filter: blur(8px); } 70% { opacity: 1; filter: blur(0); } 100% { opacity: 1; transform: skewX(-7deg); } }
+  @keyframes vsiCardR { 0% { opacity: 0; transform: skewX(-7deg) translateX(60vw); filter: blur(8px); } 70% { opacity: 1; filter: blur(0); } 100% { opacity: 1; transform: skewX(-7deg); } }
+  @keyframes vsiShine { to { left: 130%; } }
+  @keyframes vsiDrift { from { transform: scale(1.15) translateX(-4%); } to { transform: scale(1.05) translateX(4%); } }
+  @keyframes vsiPortrait { from { transform: translate(-50%, -46%) scale(1.08); } to { transform: translate(-50%, -50%) scale(1); } }
+  @keyframes vsiCrest { 0% { opacity: 0; transform: translate(-50%, -50%) scale(3) rotate(45deg); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(45deg); } }
+  @keyframes vsiSpin { to { transform: rotate(360deg); } }
+  @keyframes vsiFlash { 0% { opacity: .55; } 100% { opacity: 0; } }
+  @keyframes vsiFade { to { opacity: 1; } }
+  @keyframes vsiStreak { 0% { opacity: 0; transform: translateX(-40vw); } 20% { opacity: .9; } 100% { opacity: 0; transform: translateX(140vw); } }
+  @keyframes vsiOut { to { opacity: 0; transform: scale(1.06); } }
+  @media (prefers-reduced-motion: reduce) { .vsi *, .vsi { animation-duration: .01s !important; animation-delay: 0s !important; } }
   .countdown { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; font: 700 96px 'Rajdhani', 'Arial Narrow', sans-serif; text-shadow: 0 6px 40px rgba(0,0,0,.8); color: var(--text); }
   .card.shop { max-width: 1240px; }
   .shopbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
@@ -1841,6 +1894,7 @@
   <div class="abrow" id="abRow"><div class="abil" id="abil" hidden></div><div class="lpabil" id="lpAbil" hidden></div></div>
   <div class="death" id="death" hidden><span class="big" id="deathBig">Knocked out</span><span class="small" id="deathSmall"></span></div>
   <div class="countdown" id="countdown" hidden></div>
+  <div class="vsi" id="vsIntro" hidden aria-hidden="true"></div>
   <div class="qhelp" id="qHelp" hidden></div>
   <div class="banner" id="banner"></div>
   <div class="mutann" id="mutAnn" aria-live="polite"></div>
@@ -2635,7 +2689,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.4';
+const VERSION = '0.99.7';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -3824,7 +3878,7 @@ function setTitle(w, id, key) {
 const isLocked = key => LOCK_PREMIUM && !!((ELEMENTS[key] || ROLES[key] || {}).premium);
 const ROLES = {
   sniper:     { name: 'Sniper',     cat: 'Power',   blurb: 'Harder, faster, longer shots.',
-    trait: { name: 'Marksman', desc: 'Arrows fly 25% faster and hit harder the further they fly: nothing extra up close, rising to 30% more damage at 700px and beyond. A slightly longer pause between shots. 10 less health.' } },
+    trait: { name: 'Marksman', desc: 'Arrows fly 25% faster and hurt more the further they fly: 25% less damage up close (under 150px), even at 400px, rising to 30% more at 700px and beyond. A slightly longer pause between shots. 10 less health.' } },
   juggernaut: { name: 'Juggernaut', cat: 'Power',   blurb: 'Tough to move, dangerous up close.',
     trait: { name: 'Heavyweight', desc: '15 more health, a bigger body, 20% less knockback taken, and heals 2 health a second after 4 seconds without being hit. Dashing into enemies shoves them 50% harder. Arrows deal 20% less damage. 7% slower.' } },
   ranger:     { name: 'Ranger',     cat: 'Agility', blurb: 'Speed, quick dashes and a grapple.',
@@ -4091,7 +4145,7 @@ const MAX_TEAM = 4;
 const _unused_ = 0;
 const LETHAL = { lava: 1, burn: 1, spikes: 1, wall: 1, crush: 1, pit: 1, water: 1, saw: 1 };
 const has = (p, id) => p.up.includes(id);
-const TIMES = { pre: 3, post: 10, roundPost: 11.5, pick: 20, game: 120 };
+const TIMES = { pre: 3, post: 10, roundPost: 11.5, pick: 20, game: 120, intro: 3.6 }; // intro: the line-up of both teams before a match's first countdown
 
 // is there a hole, water or lava on the line from the target to the thrower (that a harpoon's pull would drag them over)?
 function harpoonThrough(T, p) {
@@ -4134,7 +4188,7 @@ function createWorld(cfg = {}) {
     t: 0, nid: 1, players: [], arrows: [], pickups: [], zones: [], events: [], amberT: 2, puT: 8,
     cfg: {
       pointsToWin: cfg.pointsToWin === 5 ? 5 : 3, gamesToWin: 2, // each round is best of three games
-      diff: DIFF[cfg.diff] ? cfg.diff : 'normal', map: MAPS[cfg.map] ? cfg.map : 'meadow', termLv: clamp(+cfg.termLv || 3, 1, 5), termOnly: cfg.termOnly || null, term: !!cfg.term, // (termLv: the Terminator's difficulty; termOnly: one mode, for testing; term: the Terminator on any arena)
+      noIntro: !!cfg.noIntro, diff: DIFF[cfg.diff] ? cfg.diff : 'normal', map: MAPS[cfg.map] ? cfg.map : 'meadow', termLv: clamp(+cfg.termLv || 3, 1, 5), termOnly: cfg.termOnly || null, term: !!cfg.term, // (termLv: the Terminator's difficulty; termOnly: one mode, for testing; term: the Terminator on any arena)
       opt: Object.assign(optDefaults(), cfg.opt || {}), mut: null,
     },
     // a match is won on points; each round (1 point) is won by the first team to win 2 games (best of three)
@@ -4162,14 +4216,14 @@ function applyStats(p) {
   p.maxHp = Math.round(p.maxHp * OPT('hp') * hc * (p.boss ? p.boss.hp : 1));
   if (p.hp > p.maxHp) p.hp = p.maxHp;
   p.mass = (1 + (p.hcap || 0) / 200) * is(has(p, 'stance'), 1 / 0.5) * is(R === 'juggernaut', 1.25) * is(R === 'warden', 1.1) * is(has(p, 'colossus'), 1 / 0.65) / is(has(p, 'feather'), 1.3) / is(has(p, 'longstep'), 1.15) / is(R === 'crossbow', 0.85);
-  p.r = 16 * is(R === 'juggernaut', 1.1) * is(has(p, 'colossus'), 1.35) * is(!!p.boss, 1.18) * OPT('size'); // (the arcade's machine stands a size bigger)
+  p.r = 16 * is(R === 'juggernaut', 1.1) * is(has(p, 'colossus'), 1.35) * is(!!p.boss, p.boss && p.boss.mode === 'repair' ? 0.9 : 1.18) * OPT('size'); // (repairing, it folds itself down small) // (the arcade's machine stands a size bigger)
   p.baseSpeed = 235 * (has(p, 'fleet') ? 1.1 : 1) * (1 + 0.05 * h('hone_speed')) * is(R === 'juggernaut', 0.93) * is(R === 'ranger', 1.05) * is(R === 'ninja', 1.12) * is(R === 'crossbow', 1.08)
-    * is(has(p, 'colossus'), 0.9) * is(has(p, 'feather'), 1.15) * is(has(p, 'quickfeet'), 1.08) * OPT('mspeed');
+    * is(has(p, 'colossus'), 0.9) * is(has(p, 'feather'), 1.15) * is(has(p, 'quickfeet'), 1.08) * is(!!(p.boss && p.boss.mode === 'repair'), 1.15) * OPT('mspeed');
   p.rampMul = has(p, 'fleet') ? 0.4 : has(p, 'feather') ? 0.8 : 1;
   p.agile = has(p, 'fleet') ? 3 : 1; p.resp = has(p, 'fleet') ? 1.6 : 1; // Fleet Foot: sharper turns and stops
   // one dash at a time for everyone (no charges), on a short cooldown
   p.dashCdMax = R === 'ninja' ? 0.95 * is(has(p, 'swiftstep'), 0.7) * is(has(p, 'overload'), 1.2)
-    : 0.85 * is(has(p, 'dash'), 0.65) * is(R === 'ranger', 0.85) * is(has(p, 'overload'), 1.2);
+    : 0.85 * is(has(p, 'dash'), 0.65) * is(R === 'ranger', 0.85) * is(has(p, 'overload'), 1.2) * is(!!(p.boss && p.boss.mode === 'repair'), 0.6);
   p.dashMaxN = 1;
   p.dashN = Math.min(p.dashN == null ? p.dashMaxN : p.dashN, p.dashMaxN);
   p.drawMul = (has(p, 'steady') ? 1.25 : 1) * (1 + 0.08 * h('hone_draw')) * is(R === 'trickster', 1.12) * is(R === 'ranger', 1.12) * is(R === 'sniper', 1) * mutMul(CFG.mut, 'draw');
@@ -4591,11 +4645,14 @@ function freshBody(p, x, y) {
 function startPre(w) {
   const M = w.match;
   M.ph = 'pre'; M.T = TIMES.pre; M.rw = null; M.clutch = {}; M.first = null;
+  // the first game of a match opens on the line-up (both teams' cards) before the countdown, when someone's there to see it
+  const intro = M.rd === 1 && M.gm === 1 && !w.cfg.noIntro && w.players.some(p => !p.bot && !p.npc);
+  if (intro) M.T += TIMES.intro;
   w.arrows = []; w.pickups = []; w.zones = []; w.later = [];
   w.cracks = MAP.cracks.map(() => 0); useMap(w);
   w.ball = BALL ? { x: BALL.x, y: BALL.y, vx: 0, vy: 0, r: BALL.r, out: 0, spin: 0 } : null;
   for (const p of w.players) { placeForRound(w, p); p.g0 = { k: p.kills, dmg: p.stats.dmg, hits: p.stats.hits, shots: p.stats.shots, ring: p.stats.ring, taken: p.stats.taken, as: p.stats.as || 0, bull: p.stats.bull || 0 }; p.hitBy = {}; p.gEmp = p.emp; }
-  ev(w, { e: 'phase', ph: 'pre', rd: M.rd, gm: M.gm });
+  ev(w, { e: 'phase', ph: 'pre', rd: M.rd, gm: M.gm, it: intro ? 1 : undefined });
 }
 // ends one game; the first team to win gamesToWin games takes the round and a point
 // a few lines about what happened in the game that just ended; the client turns them into words
@@ -5142,7 +5199,7 @@ function stepBody(w, f, mx, my, dt) {
   if (f.hook) {
     const H = f.hook, o = w.players.find(q => q.id === H.by), dx = o ? o.x - f.x : 0, dy = o ? o.y - f.y : 0, d = Math.hypot(dx, dy) || 1;
     if (!o || o.dead || f.dead || d > HOOK_MAX) f.hook = null;
-    else if (H.t > 0) { H.t -= dt; if (H.t <= 0) { const v = Math.min(HOOK_PULL, 240 + d * 2.4); f.vx = dx / d * v; f.vy = dy / d * v; f.knock = Math.max(f.knock, 0.45); f.stuck = 0; f.lastHitBy = o.id; f.lastHitT = w.t; H.pull = 0.45; ev(w, { e: 'reel', id: f.id, by: o.id, x: r1(f.x), y: r1(f.y) }); } }
+    else if (H.t > 0) { H.t -= dt; if (H.t <= 0) { const v = Math.min(HOOK_PULL, 240 + d * 2.4), keep = f.dashT > 0 ? HOOK_DASH : 0; f.vx = dx / d * v + f.vx * keep; f.vy = dy / d * v + f.vy * keep; /* (dashing away as it reels: the two pull against each other) */ f.knock = Math.max(f.knock, 0.45); f.stuck = 0; f.lastHitBy = o.id; f.lastHitT = w.t; H.pull = 0.45; ev(w, { e: 'reel', id: f.id, by: o.id, x: r1(f.x), y: r1(f.y) }); } }
     else if ((H.pull -= dt) <= 0 || d < o.r + f.r + 30) { if (d < o.r + f.r + 30) { f.vx *= 0.3; f.vy *= 0.3; } f.hook = null; } // (the rope goes slack once they've arrived: they stop at your feet)
   }
   let sp = f.speed;
@@ -5265,7 +5322,9 @@ function updatePlayer(w, p, dt) {
     // frost: the dash is slower but goes as far (speed, fade and duration all stretch together)
     const k = p.slow > 0 ? (p.sure ? 0.9 : 0.7) : 1;
     p.dashK = k;
-    p.vx = dx * MOVE.dashSpeed * k; p.vy = dy * MOVE.dashSpeed * k; p.dashT = MOVE.dashTime / k * (p.dashWeak > 0 ? 0.45 : 1); p.knock = 0;
+    // (on a harpoon's rope as it reels you in: the dash fights the pull rather than cancelling it; enough to slow it, swerve it, or carry you over a hole on the way, not to break free)
+    if (p.hook && p.hook.t <= 0) { p.vx += dx * MOVE.dashSpeed * k * HOOK_DASH; p.vy += dy * MOVE.dashSpeed * k * HOOK_DASH; } else { p.vx = dx * MOVE.dashSpeed * k; p.vy = dy * MOVE.dashSpeed * k; }
+    p.dashT = MOVE.dashTime / k * (p.dashWeak > 0 ? 0.45 : 1); p.knock = 0;
     if (p.dashN === p.dashMaxN) p.dashCd = p.dashCdMax;
     p.dashN--;
     p.dashDir = [dx, dy]; p.shoved = [];
@@ -6196,7 +6255,7 @@ const rangeOf = (w, p) => p.role === 'crossbow' ? Math.round(p.xbowRange || XBOW
   : p.role === 'ninja' ? Math.round(STAR_SPEED * optValue((w.cfg || {}).opt, 'aspeed') * mutMul((w.cfg || {}).mut, 'aspeed') * STAR_FLY) : null;
 const SNIPE_FULL = Math.hypot(AW - 2 * WALL, AH - 2 * WALL); // corner to corner
 // Harpoon: hooked for HOOK_DELAY seconds, then reeled toward the thrower at up to HOOK_PULL (it breaks past HOOK_MAX)
-const HOOK_DELAY = 0.5, HOOK_PULL = 1150, HOOK_MAX = 1000;
+const HOOK_DELAY = 0.5, HOOK_PULL = 1150, HOOK_MAX = 1000, HOOK_DASH = 0.6; // (HOOK_DASH: how much of a dash counts against the rope)
 const STAR_SPEED = 1300, STAR_FLY = 0.222, STAR_LIFE_K = 0.704; // a shuriken's top speed (an arrow's), its reach in seconds of full speed (drag 2.4 over its life), and how much shorter it lives than at the old 1050
 const VOLLEY_GAP = 0.12, BLINK_RANGE = 300, HARPOON_RANGE = 420, NINJA_BLINK = 220, FLASH_RANGE = 240;
 // is this archer hidden inside smoke from someone standing at (x, y)?
@@ -6251,9 +6310,9 @@ function arrowHit(w, a, f) {
   if (a.own && has(a.own, 'holdline') && Math.hypot(f.x - a.own.x, f.y - a.own.y) < 250) kf *= 1.5; // Hold the Line
   const bank = a.bnc && a.own && has(a.own, 'bankshot'); if (bank) kf *= 1.4; // Bank Shot
   // Deadeye: no bonus under 200px of flight, rising to +60% at 700px
-  // Marksman (every Sniper): nothing under 150px of flight, rising to +30% at 700px
+  // Marksman (every Sniper): a long gun, clumsy up close: −25% inside 150px of flight, back to even at 400px, rising to +30% at 700px
   const range = (a.own && has(a.own, 'deadeye') ? 0.6 * clamp((a.dist - 200) / 500, 0, 1) : 0)
-    + (a.own && a.own.role === 'sniper' ? 0.3 * clamp((a.dist - 150) / 550, 0, 1) : 0)
+    + (a.own && a.own.role === 'sniper' ? (a.dist < 400 ? -0.25 * clamp((400 - a.dist) / 250, 0, 1) : 0.3 * clamp((a.dist - 400) / 300, 0, 1)) : 0)
     + (a.own && a.own.role === 'assassin' ? 0.4 * clamp((450 - a.dist) / 300, 0, 1) : 0); // Backstab's other half: the shorter the shot the harder it hits, +40% inside 150px, nothing from 450px out
   const held = f.stuck > 0 || f.frozen > 0;
   const chill = a.el === 'frost' && (f.slow > 0 || f.frozen > 0) ? 1.3 : 1; // Frost Arrows
@@ -6647,11 +6706,11 @@ function updatePickups(w, dt) {
         if (u.type === 'amber') {
           // a little health and a head start on your cooldowns
           const g = AMBER.pickup; p.amber += g; p.earned += g;
-          p.hp = Math.min(p.maxHp, p.hp + AMBER_BOOST.hp);
+          p.hp = Math.min(p.maxHp, p.hp + AMBER_BOOST.hp * (p.boss && p.boss.mode === 'repair' ? BOSS_REPAIR.heal : 1));
           if (p.dashN < p.dashMaxN) p.dashCd = Math.max(0, p.dashCd - AMBER_BOOST.dash);
           p.abCd = p.abCd.map(c => Math.max(0, c - AMBER_BOOST.ability));
         }
-        else if (u.type === 'heal') p.hp = Math.min(p.maxHp, p.hp + 40);
+        else if (u.type === 'heal') p.hp = Math.min(p.maxHp, p.hp + 40 * (p.boss && p.boss.mode === 'repair' ? BOSS_REPAIR.heal : 1));
         else p.pw[u.type] = PU[u.type].dur * (w.tm ? 2 : 1); // (the Terminator arena: stronger power-ups)
         ev(w, { e: 'pick', id: p.id, ty: u.type, x: r1(u.x), y: r1(u.y) });
         w.pickups.splice(i, 1);
@@ -6852,6 +6911,9 @@ function choosePlay(w, p) {
   if (L.tr) { ai.tr = Object.assign({}, TR0, ai.tr || {}); for (const k in L.tr) ai.tr[k] = Math.max(ai.tr[k], L.tr[k]); }
   if (L.gene) { p.gene = Object.assign({}, p.gene || {}); for (const k in L.gene) p.gene[k] = (p.gene[k] == null ? 1 : p.gene[k]) * L.gene[k]; }
 }
+// a duo's formation reacts as fast as its feet are good: a sharp pair re-forms almost at once, a weaker one a beat late
+// (seconds added to the re-plan at no positioning skill, none at full)
+const TAC_LAG = 0.6;
 const GENE = { pref: 1, safety: 1, push: 1, los: 1, pick: 1, jink: 0.5, kbScale: 1, dodgeT: 0.55, retreat: 0.3, cand: 130, heal: 1, fireTol: 0.9, far: 380, quick: 0.45, mid: 0.8, riskFull: 0.5, planDt: 0.12 };
 // how far a hit of charge c would shove an archer of this mass (knockback, then the slide after it)
 function kbTravel(c, mass, mul) {
@@ -7259,7 +7321,11 @@ const BOSS_MODES = {
   close: { name: 'Juggernaut', role: 'juggernaut', ups: ['colossus', 'ram', 'rush', 'riot'], tac: { mode: 'bully', bullyD: 180, bashEager: 4 }, aggr: 1 },
   mid:   { name: 'Hunter',     role: 'ranger',     ups: ['trap', 'briar', 'dash', 'quickshot', 'deeproots'], tac: { mode: 'trapper', waterK: 0.6 }, aggr: 0.7 },
   long:  { name: 'Marksman',   role: 'sniper',     ups: ['wall', 'gust', 'longbow', 'steady', 'heavy'], tac: { mode: 'focus' }, aggr: 0.35 },
+  // badly hurt: it folds down small and quick (faster feet, dashes back sooner) and runs for the embers and medkits, healing
+  // twice what they'd give you, until it's fit to fight again (or it's run out of time), then back to whichever build fits the range
+  repair: { name: 'Repair',    role: 'ranger',     ups: ['fleet', 'dash', 'quickshot'], tac: { mode: 'repair' }, aggr: 0.15 },
 };
+const BOSS_REPAIR = { at: 0.3, done: 0.6, max: 12, gap: 18, heal: 2 }; // below 30% health, until 60% (12 s at most), not again for 18 s after; pickups heal double
 function bossSet(w, p, mode) {
   const M = BOSS_MODES[mode]; if (!M) return;
   const frac = p.maxHp ? p.hp / p.maxHp : 1;
@@ -7274,10 +7340,13 @@ function bossSet(w, p, mode) {
 function bossTick(w, p, dt) {
   const foes = w.players.filter(q => q.team !== p.team && !q.dead && !q.npc && q.falling <= 0); if (!foes.length) return;
   if (!p.boss.mode) return bossSet(w, p, 'mid');
-  if (w.t - p.boss.at < BOSS_SWITCH || p.rush || p.knock > 0 || p.falling > 0) return;
-  const cx = foes.reduce((a, q) => a + q.x, 0) / foes.length, cy = foes.reduce((a, q) => a + q.y, 0) / foes.length, d = Math.hypot(cx - p.x, cy - p.y), m = p.boss.mode;
+  const B = p.boss, hpk = p.hp / (p.maxHp || 1), busy = p.rush || p.knock > 0 || p.falling > 0 || p.dashT > 0;
+  const cx = foes.reduce((a, q) => a + q.x, 0) / foes.length, cy = foes.reduce((a, q) => a + q.y, 0) / foes.length, d = Math.hypot(cx - p.x, cy - p.y), m = B.mode;
   // (a little slack either side of each line, so it isn't flickering on the boundary)
   const want = d < BOSS_NEAR + (m === 'close' ? 40 : 0) ? 'close' : d > BOSS_FAR - (m === 'long' ? 50 : 0) ? 'long' : 'mid';
+  if (m === 'repair') { if (!busy && (hpk >= BOSS_REPAIR.done || w.t - B.at > BOSS_REPAIR.max)) { B.repEnd = w.t; bossSet(w, p, want); } return; }
+  if (hpk < BOSS_REPAIR.at && !busy && w.t - (B.repEnd != null ? B.repEnd : -99) > BOSS_REPAIR.gap) return bossSet(w, p, 'repair');
+  if (w.t - B.at < BOSS_SWITCH || busy) return;
   if (want !== m) bossSet(w, p, want);
 }
 // Reviving a knocked-out teammate (the Revive card, or the Revives rule): is it worth it now? Weighed like a person would:
@@ -7446,6 +7515,14 @@ function tacticGoal(w, p, T, foes, mates, dt) {
   const ai = p.ai, tac = ai.tac, tp = (w.teamPlan || {})[p.team]; if (!tac || !tp) return null;
   const partner = mates.find(m => m.bot && tacOf(m)) || mates[0] || null;
   const toward = (x, y, k = 1) => { const dx = x - p.x, dy = y - p.y, d = Math.hypot(dx, dy) || 1, a = Math.min(1, d / 40); return [dx / d * a * k - p.vx / 500, dy / d * a * k - p.vy / 500]; };
+  if (tac.mode === 'repair') { // (the machine, badly hurt: to the heals, quick, the ones away from the archers first)
+    let best = null;
+    for (const u of w.pickups) { if (u.type !== 'amber' && u.type !== 'heal') continue; const d = Math.hypot(u.x - p.x, u.y - p.y), near = Math.min(...foes.map(q => Math.hypot(q.x - u.x, q.y - u.y)), 999);
+      const sc = d - Math.min(near, 400) * 0.6 - (u.type === 'heal' ? 150 : 0) + (lethalDist(u.x, u.y) < 40 ? 300 : 0); if (!best || sc < best.sc) best = { u, sc, d }; }
+    if (best) { const u = best.u; if (best.d > 180 && p.dashN > 0 && ai.dodgeCd <= 0 && lethalDist(p.x + (u.x - p.x) / best.d * 150, p.y + (u.y - p.y) / best.d * 150) > 50 && Math.random() < dt * 3) { p.wantDash = true; ai.dashAim = Math.atan2(u.y - p.y, u.x - p.x); ai.dodgeCd = 0.5; } return toward(u.x, u.y, 1.1); }
+    if (T) { const dT = Math.hypot(T.x - p.x, T.y - p.y) || 1; if (dT < 520) { const gx = clamp(p.x - (T.x - p.x) / dT * 200, WALL + 60, AW - WALL - 60), gy = clamp(p.y - (T.y - p.y) / dT * 200, WALL + 60, AH - WALL - 60); if (lethalDist(gx, gy) > 60) return toward(gx, gy); } }
+    return null;
+  }
   // a power-up that's ours to take (hunters go further for it, and anyone takes one right next to them)
   const pid = tp.pick[p.id], pu = pid != null ? w.pickups.find(u => u.id === pid) : null;
   const hunter = tac.mode === 'hunt' || (tac.mode === 'guard' && p.hp < p.maxHp * 0.7 && (pu && (pu.type === 'heal' || pu.type === 'amber'))); // (a hurt tank goes for anything that heals)
@@ -7599,7 +7676,7 @@ function botThink(w, p, dt) {
   const chan = w.pickups.find(u => u.chan);
   const chanD = chan ? Math.hypot(chan.x - p.x, chan.y - p.y) : Infinity;
   let plan = null; // smart bots re-plan where to stand several times a second
-  if (T && iq >= 0.5) { ai.planT = (ai.planT || 0) - dt; if (ai.planT <= 0 || !ai.plan) { ai.planT = G.planDt; ai.plan = botPlan(w, p, T, foes, mates, D, G); } plan = ai.plan; }
+  if (T && iq >= 0.5) { ai.planT = (ai.planT || 0) - dt; if (ai.planT <= 0 || !ai.plan) { ai.planT = G.planDt + (ai.tac ? TAC_LAG * (1 - clamp(D.posK != null ? D.posK : 0.6, 0, 1)) * rand(0.6, 1.4) : 0); ai.plan = botPlan(w, p, T, foes, mates, D, G); } plan = ai.plan; }
   const wantChan = chan && chanD < 620 && (ai.aggr == null ? 0.6 : ai.aggr) > 0.3 && p.hp > p.maxHp * 0.3;
   if (wantChan && !safeToRevive) {
     gx = (chan.x - p.x) / 60 - p.vx / 160; gy = (chan.y - p.y) / 60 - p.vy / 160;
@@ -7994,7 +8071,7 @@ function botThink(w, p, dt) {
       // covered from whoever is shooting: no dodge (it would only step out of cover). The arrow hits the guard.
       if (p.wantDash && ai.dashAim == null && threats.length && threats.every(shielded)) p.wantDash = false;
       // lost it (they've walked or dashed round the guard): a dash back into the guard's shadow, the other way
-      if (!p.wantDash && !shielded(T) && Math.hypot(g.x - p.x, g.y - p.y) < 240 && p.dashN > 0 && ai.dodgeCd <= 0 && Math.random() < dt * 5) {
+      if (!p.wantDash && !shielded(T) && Math.hypot(g.x - p.x, g.y - p.y) < 240 && p.dashN > 0 && ai.dodgeCd <= 0 && Math.random() < dt * 5 * Math.pow(clamp(D.posK != null ? D.posK : 0.6, 0, 1), 2)) { // (the weaker the pair, the slower to see it)
         const ux = g.x - T.x, uy = g.y - T.y, ul = Math.hypot(ux, uy) || 1, sx = g.x + ux / ul * (g.r + p.r + 26), sy = g.y + uy / ul * (g.r + p.r + 26), sd = Math.hypot(sx - p.x, sy - p.y);
         if (sd > 60 && sd < 230) { const a = Math.atan2(sy - p.y, sx - p.x); if (dashClear(p, a, Math.min(sd, 170))) { p.wantDash = true; ai.dashAim = a; ai.dodgeCd = 0.5; } }
       }
@@ -8147,6 +8224,8 @@ function botAbilities(w, p, T, dT, foes, dt) {
         // bot waits for that; otherwise it pulls now and then just to bring them close (more often the worse it is)
         const through = harpoonThrough(T, p), sk = botD(p).iq || 0.5;
         if (p.ai.tac && p.ai.tac.mode === 'trapper') { const held = T.stuck > 0.4 || T.vine > 0.4 || T.frozen > 0.4; use = (held || through) && Math.random() < dt * (held ? 8 : 3); break; } // (the duo: the harpoon is for someone rooted, or with water in the way; the feet do the rest)
+        // (what the duos learned, for every sharp enough bot: someone rooted, frozen or stunned can't step aside, so reel them while they're held)
+        if (sk > 0.3 && (T.stuck > 0.4 || T.vine > 0.4 || T.frozen > 0.4 || T.stunT > 0.4)) { use = Math.random() < dt * 8 * sk; break; }
         use = through ? Math.random() < dt * (2 + 6 * sk) : Math.random() < dt * 0.6 * (1.2 - sk);
         break;
       }
@@ -8219,7 +8298,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
           break;
         }
         if (T && dT < Math.min(TRAP_RANGE + 60, ROOTK.trapMax) && dT > 60 && !(T.vine > 0) && !(T.vineSafe > 0) && (!ROOTK.gate || steady) && (!ROOTK.trapSlow || heldBy(T) || Math.hypot(T.vx, T.vy) < ROOTK.trapSlow) && Math.random() < dt * (ROOTK.trapSlow ? 2.5 : 0.8)) { // (trapSlow: only under someone standing or slowed, drawing a bow say: a trap takes most of a second to set, and a walker is long gone)
-          const ts = p.ai.tac && p.ai.tac.mode === 'trapper' ? tacticTrapSpot(w, p, T) : null; // (the trapper tactic: where a root leaves them beside a drop)
+          const ts = (p.ai.tac && p.ai.tac.mode === 'trapper') || (!p.ai.tac && Math.random() < clamp(((botD(p).posK || 0) - 0.5) * 2, 0, 1)) ? tacticTrapSpot(w, p, T) : null; // (and any trapper with a good eye for the ground: the sharper, the more often) // (the trapper tactic: where a root leaves them beside a drop)
           const vs = Math.hypot(tvx, tvy), vk = vs > ROOTK.trapVmax ? ROOTK.trapVmax / vs : 1;
           const miss = ROOTK.errK * (1 - (botD(p).aimK != null ? botD(p).aimK : 0.7)) * vs * vk * ROOTK.trapLead, ma = rand(0, TAU); // (a weaker bot's guess wanders)
           const bx = (T.x - p.x) / (dT || 1) * ROOTK.behind, by = (T.y - p.y) / (dT || 1) * ROOTK.behind; // (a little behind them, as seen from us: where they back off to, and out of the corner of their eye)
@@ -9409,7 +9488,7 @@ return {
 };
 });
 </script>
-<script>window.BOWFALL_DUOS = {"roster":{"v":1,"difficulties":{"easy":{"name":"Easy","facets":[0.4,0.6],"mult":1},"normal":{"name":"Normal","facets":[0.55,0.75],"mult":1.5},"hard":{"name":"Hard","facets":[0.7,0.9],"mult":2.2},"legend":{"name":"Legend","facets":[0.85,0.97],"mult":3}},"continues":3,"duos":[{"id":"pair","name":"The Pair","map":"coop_field","effects":[],"tell":"Two rangers, nothing fancy. They pick a target and both go for it.","members":[{"name":"Wren","el":"frost","role":"ranger","ups":["quickshot","momentum","fleet"],"tac":{"mode":"focus"},"look":{"hair":2,"skin":1},"voice":"keen"},{"name":"Tally","el":"storm","role":"ranger","ups":["static","dash","quickshot"],"tac":{"mode":"focus"},"look":{"hair":5,"skin":3},"voice":"dry"}]},{"id":"hearth","name":"Hearth","map":"rift","effects":["hide"],"tell":"A warden stands by the sniper, walls up the both of them and keeps them healed. The sniper does the rest from behind the wall.","members":[{"name":"Ember","el":"flame","role":"warden","ups":["wall","mend","stoke"],"tac":{"mode":"guard","shieldD":60,"wallK":1.6},"look":{"hair":1,"skin":2},"voice":"warm"},{"name":"Sable","el":"frost","role":"sniper","ups":["holdline","heavy","steady"],"tac":{"mode":"focus"},"look":{"hair":6,"skin":1},"voice":"quiet"}]},{"id":"fever","name":"Fever","map":"coop_run","effects":["gale","hide"],"tell":"Two wardens who hold the middle behind their walls. Poison and fire do the rest.","members":[{"name":"Mire","el":"poison","role":"warden","ups":["wall","mend","virulent"],"tac":{"mode":"guard","guardD":220,"wallK":1.4},"look":{"hair":3,"skin":4},"voice":"sly"},{"name":"Cinder","el":"flame","role":"warden","ups":["wall","flashpoint","stoke"],"tac":{"mode":"guard","guardD":220,"wallK":1.4},"look":{"hair":1,"skin":3},"voice":"warm"}]},{"id":"brambles","name":"Brambles","map":"coop_sinks","effects":["vigil","surge"],"tell":"The trapper roots you next to the rim; the ranger is already lining up the push.","members":[{"name":"Thistle","el":"frost","role":"trapper","ups":["trap","briar","deeproots"],"tac":{"mode":"trapper"},"look":{"hair":4,"skin":2},"voice":"dry"},{"name":"Flint","el":"stone","role":"ranger","ups":["fleet","dash","quickshot"],"tac":{"mode":"finisher"},"look":{"hair":2,"skin":5},"voice":"keen"}]},{"id":"wall","name":"The Wall","map":"coop_yard","effects":["vigil","bounty"],"tell":"A frost colossus stands in your face and slows you down. The crossbow behind it does the talking.","members":[{"name":"Boulder","el":"frost","role":"juggernaut","ups":["colossus","riot","stance"],"tac":{"mode":"guard","body":1,"noShove":1,"guardD":90,"tacK":1.6},"look":{"hair":0,"skin":5},"voice":"gruff"},{"name":"Nix","el":"shadow","role":"crossbow","ups":["pointblank","hairtrig","repeater"],"tac":{"mode":"behind","behindD":70},"look":{"hair":7,"skin":1},"voice":"sly"}],"boost":0.06,"solo":-0.1},{"id":"snares","name":"Two Snares","map":"coop_shallows","effects":["surge","hide"],"tell":"Traps everywhere and a harpoon each. Get rooted and you're dragged across the water.","members":[{"name":"Briar","el":"frost","role":"trapper","ups":["trap","harpoon","deeproots"],"tac":{"mode":"trapper"},"look":{"hair":4,"skin":3},"voice":"quiet"},{"name":"Sedge","el":"storm","role":"trapper","ups":["briar","harpoon","deeproots"],"tac":{"mode":"trapper"},"look":{"hair":3,"skin":2},"voice":"dry"}],"boost":0.06},{"id":"carnival","name":"Carnival","map":"coop_gallery","effects":["quick","bounty"],"tell":"Boomerangs and fireworks off every wall, and they are always first to the power-ups.","members":[{"name":"Pip","el":"storm","role":"trickster","ups":["rocket","boomerang","static"],"tac":{"mode":"hunt"},"look":{"hair":5,"skin":1},"voice":"bright"},{"name":"Jinx","el":"flame","role":"trickster","ups":["rocket","boomerang","wildfire"],"tac":{"mode":"hunt"},"look":{"hair":1,"skin":4},"voice":"bright"}]},{"id":"shadows","name":"Shadows","map":"coop_hollow","effects":["vigil"],"tell":"Two assassins vanish together and come at you from two sides. The holes are where they want you.","members":[{"name":"Vesper","el":"stone","role":"assassin","ups":["stealth","blink","ambush"],"tac":{"mode":"syncstealth"},"look":{"hair":6,"skin":4},"voice":"quiet"},{"name":"Dusk","el":"stone","role":"assassin","ups":["stealth","blink","ambush"],"tac":{"mode":"syncstealth"},"look":{"hair":6,"skin":2},"voice":"quiet"}],"solo":-0.1},{"id":"undertow","name":"Undertow","map":"coop_drain","effects":["quick"],"tell":"The rift drags you towards the drain; the fire catches you on the way.","members":[{"name":"Null","el":"void","role":"ranger","ups":["rift","horizon","nullfield"],"tac":{"mode":"rift"},"look":{"hair":7,"skin":3},"voice":"cold"},{"name":"Spark","el":"flame","role":"trickster","ups":["wildfire","flashpoint","stoke"],"tac":{"mode":"finisher"},"look":{"hair":1,"skin":1},"voice":"bright"}]},{"id":"presence","name":"Presence","map":"coop_stand","effects":["vigil","hide"],"tell":"The juggernaut stands in front of the ranger and will not be moved. Get round it, and the ranger is already back in its shadow.","members":[{"name":"Bastion","el":"blood","role":"juggernaut","ups":["colossus","ram","riot"],"tac":{"mode":"guard","body":1,"guardD":230,"tacK":1.4},"look":{"hair":0,"skin":3},"voice":"gruff"},{"name":"Swift","el":"storm","role":"ranger","ups":["fleet","dash","grapple"],"tac":{"mode":"behind","behindD":70,"tacK":1.4},"look":{"hair":2,"skin":1},"voice":"keen","boost":0.06}],"boost":0.06,"solo":-0.12},{"id":"blades","name":"Two Blades","map":"coop_maze","effects":["surge","bounty"],"tell":"Fire and ice: two ninjas who take every power-up in the dojo, then both come for one of you.","members":[{"name":"Kage","el":"flame","role":"ninja","ups":["sharpstar","swiftstep","flurry"],"tac":{"mode":"hunt"},"look":{"hair":6,"skin":2},"voice":"cold"},{"name":"Yuki","el":"frost","role":"ninja","ups":["sharpstar","swiftstep","bladeguard"],"tac":{"mode":"hunt"},"look":{"hair":4,"skin":1},"voice":"quiet"}],"solo":-0.1},{"id":"bloodlust","name":"Bloodlust","map":"coop_quarry","effects":["gale","quick"],"tell":"Two crossbows that close in and empty everything they have. Every hit heals them.","members":[{"name":"Red","el":"blood","role":"crossbow","ups":["transfusion","frenzy","hairtrig"],"tac":{"mode":"unload"},"look":{"hair":1,"skin":2},"voice":"gruff"},{"name":"Rust","el":"blood","role":"crossbow","ups":["transfusion","frenzy","hairtrig"],"tac":{"mode":"unload"},"look":{"hair":3,"skin":5},"voice":"gruff"}],"solo":-0.12},{"id":"battering","name":"Battering","map":"coop_pens","effects":[],"tell":"Two juggernauts who barely bother to shoot. They rush and bash you into the thorns and the holes, and heal on the spring between charges.","members":[{"name":"Ox","el":"blood","role":"juggernaut","ups":["rush","riot","colossus"],"tac":{"mode":"bully"},"look":{"hair":0,"skin":4},"voice":"gruff"},{"name":"Hail","el":"frost","role":"juggernaut","ups":["rush","riot","colossus"],"tac":{"mode":"bully"},"look":{"hair":4,"skin":1},"voice":"cold"}],"solo":-0.1},{"id":"longshots","name":"Long Shots","map":"coop_narrows","effects":["quick","force"],"tell":"Two snipers on the far bank, one each side. Cross the bridge and you are in both their sights.","members":[{"name":"Frost","el":"frost","role":"sniper","ups":["frostbite","volley","permafrost"],"tac":{"mode":"crossfire"},"look":{"hair":4,"skin":2},"voice":"cold"},{"name":"Ash","el":"flame","role":"sniper","ups":["pin","heavy","wildfire"],"tac":{"mode":"crossfire"},"look":{"hair":1,"skin":5},"voice":"dry"}]},{"id":"machine","name":"The Terminator","boss":true,"map":"coop_core","effects":[],"tell":"One machine, three builds. Get close and it grows and bashes; keep your distance and it snipes from behind a wall; in between it roots you and lines up the push. It changes every few seconds, so make it change badly.","members":[{"name":"Terminator","el":null,"role":"ranger","ups":[],"extra":[],"tac":{"mode":"focus"},"voice":"cold","boss":{"hp":[1.2,1.65]}}]}]},"fit":{"v":1,"duos":{"pair":{"tacs":[{},{}],"pct":88,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"shadows":{"tacs":[{"stealthGap":1.2},{"stealthGap":1.2}],"pct":84,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"undertow":{"tacs":[{},{}],"pct":69,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"fever":{"tacs":[{},{}],"pct":97,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"bloodlust":{"tacs":[{"unloadD":250},{"unloadD":250}],"pct":78,"sparSk":0.93,"sk":0.85,"n":30,"at":"2026-11-10"},"carnival":{"tacs":[{},{}],"pct":53,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"battering":{"tacs":[{"bullyD":196,"bashEager":3},{"bullyD":196,"bashEager":3}],"pct":89,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"blades":{"tacs":[{"pickK":2.08},{"pickK":2.08}],"pct":75,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"brambles":{"tacs":[{"trapGap":184},{"finishD":348}],"pct":65,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"hearth":{"tacs":[{},{}],"pct":98,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"longshots":{"tacs":[{"cross":1.35},{"cross":1.35}],"pct":72,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"wall":{"tacs":[{"tacK":1.86},{}],"pct":62,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"presence":{"tacs":[{},{"tacK":1.12,"wallK":1}],"pct":44,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"snares":{"tacs":[{"waterK":1},{"waterK":1}],"pct":53,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"}}}};</script>
+<script>window.BOWFALL_DUOS = {"roster":{"v":1,"difficulties":{"easy":{"name":"Easy","facets":[0.4,0.6],"mult":1},"normal":{"name":"Normal","facets":[0.55,0.75],"mult":1.5},"hard":{"name":"Hard","facets":[0.7,0.9],"mult":2.2},"legend":{"name":"Legend","facets":[0.85,0.97],"mult":3}},"continues":3,"duos":[{"id":"pair","name":"The Pair","map":"coop_field","effects":[],"tell":"Two rangers, nothing fancy. They pick a target and both go for it.","members":[{"name":"Wren","el":"frost","role":"ranger","ups":["quickshot","momentum","fleet"],"tac":{"mode":"focus"},"look":{"hair":2,"skin":1},"voice":"keen"},{"name":"Tally","el":"storm","role":"ranger","ups":["static","dash","quickshot"],"tac":{"mode":"focus"},"look":{"hair":5,"skin":3},"voice":"dry"}],"lv":[0.077,0,-0.082]},{"id":"hearth","name":"Hearth","map":"rift","effects":["hide"],"tell":"A warden stands by the sniper, walls up the both of them and keeps them healed. The sniper does the rest from behind the wall.","members":[{"name":"Ember","el":"flame","role":"warden","ups":["wall","mend","stoke"],"tac":{"mode":"guard","shieldD":60,"wallK":1.6},"look":{"hair":1,"skin":2},"voice":"warm"},{"name":"Sable","el":"frost","role":"sniper","ups":["holdline","heavy","steady"],"tac":{"mode":"focus"},"look":{"hair":6,"skin":1},"voice":"quiet"}],"lv":[-0.171,-0.154,-0.162]},{"id":"fever","name":"Fever","map":"coop_run","effects":["gale","hide"],"tell":"Two wardens who hold the middle behind their walls. Poison and fire do the rest.","members":[{"name":"Mire","el":"poison","role":"warden","ups":["wall","mend","virulent"],"tac":{"mode":"guard","guardD":220,"wallK":1.4},"look":{"hair":3,"skin":4},"voice":"sly"},{"name":"Cinder","el":"flame","role":"warden","ups":["wall","flashpoint","stoke"],"tac":{"mode":"guard","guardD":220,"wallK":1.4},"look":{"hair":1,"skin":3},"voice":"warm"}],"lv":[-0.206,-0.168,-0.204]},{"id":"brambles","name":"Brambles","map":"coop_sinks","effects":["vigil","surge"],"tell":"The trapper roots you next to the rim; the ranger is already lining up the push.","members":[{"name":"Thistle","el":"frost","role":"trapper","ups":["trap","briar","deeproots"],"tac":{"mode":"trapper"},"look":{"hair":4,"skin":2},"voice":"dry"},{"name":"Flint","el":"stone","role":"ranger","ups":["fleet","dash","quickshot"],"tac":{"mode":"finisher"},"look":{"hair":2,"skin":5},"voice":"keen"}],"lv":[0.043,0.03,0.022]},{"id":"wall","name":"The Wall","map":"coop_yard","effects":["vigil","bounty"],"tell":"A frost colossus stands in your face and slows you down. The crossbow behind it does the talking.","members":[{"name":"Boulder","el":"frost","role":"juggernaut","ups":["colossus","riot","stance"],"tac":{"mode":"guard","body":1,"noShove":1,"guardD":90,"tacK":1.6},"look":{"hair":0,"skin":5},"voice":"gruff"},{"name":"Nix","el":"shadow","role":"crossbow","ups":["pointblank","hairtrig","repeater"],"tac":{"mode":"behind","behindD":70},"look":{"hair":7,"skin":1},"voice":"sly"}],"boost":0.06,"solo":-0.1,"lv":[0.068,0.08,0.037]},{"id":"snares","name":"Two Snares","map":"coop_shallows","effects":["surge","hide"],"tell":"Traps everywhere and a harpoon each. Get rooted and you're dragged across the water.","members":[{"name":"Briar","el":"frost","role":"trapper","ups":["trap","harpoon","deeproots"],"tac":{"mode":"trapper"},"look":{"hair":4,"skin":3},"voice":"quiet"},{"name":"Sedge","el":"storm","role":"trapper","ups":["briar","harpoon","deeproots"],"tac":{"mode":"trapper"},"look":{"hair":3,"skin":2},"voice":"dry"}],"boost":0.06,"lv":[0.032,0.028,0.08]},{"id":"carnival","name":"Carnival","map":"coop_gallery","effects":["quick","bounty"],"tell":"Boomerangs and fireworks off every wall, and they are always first to the power-ups.","members":[{"name":"Pip","el":"storm","role":"trickster","ups":["rocket","boomerang","static"],"tac":{"mode":"hunt"},"look":{"hair":5,"skin":1},"voice":"bright"},{"name":"Jinx","el":"flame","role":"trickster","ups":["rocket","boomerang","wildfire"],"tac":{"mode":"hunt"},"look":{"hair":1,"skin":4},"voice":"bright"}],"lv":[0.026,0.08,-0.001]},{"id":"shadows","name":"Shadows","map":"coop_hollow","effects":["vigil"],"tell":"Two assassins vanish together and come at you from two sides. The holes are where they want you.","members":[{"name":"Vesper","el":"stone","role":"assassin","ups":["stealth","blink","ambush"],"tac":{"mode":"syncstealth"},"look":{"hair":6,"skin":4},"voice":"quiet"},{"name":"Dusk","el":"stone","role":"assassin","ups":["stealth","blink","ambush"],"tac":{"mode":"syncstealth"},"look":{"hair":6,"skin":2},"voice":"quiet"}],"solo":-0.1,"lv":[-0.165,-0.156,-0.145]},{"id":"undertow","name":"Undertow","map":"coop_drain","effects":["quick"],"tell":"The rift drags you towards the drain; the fire catches you on the way.","members":[{"name":"Null","el":"void","role":"ranger","ups":["rift","horizon","nullfield"],"tac":{"mode":"rift"},"look":{"hair":7,"skin":3},"voice":"cold"},{"name":"Spark","el":"flame","role":"trickster","ups":["wildfire","flashpoint","stoke"],"tac":{"mode":"finisher"},"look":{"hair":1,"skin":1},"voice":"bright"}],"lv":[-0.024,-0.008,-0.046]},{"id":"presence","name":"Presence","map":"coop_stand","effects":["vigil","hide"],"tell":"The juggernaut stands in front of the ranger and will not be moved. Get round it, and the ranger is already back in its shadow.","members":[{"name":"Bastion","el":"blood","role":"juggernaut","ups":["colossus","ram","riot"],"tac":{"mode":"guard","body":1,"guardD":230,"tacK":1.4},"look":{"hair":0,"skin":3},"voice":"gruff"},{"name":"Swift","el":"storm","role":"ranger","ups":["fleet","dash","grapple"],"tac":{"mode":"behind","behindD":70,"tacK":1.4},"look":{"hair":2,"skin":1},"voice":"keen","boost":0.06}],"boost":0.06,"solo":-0.2,"lv":[0.08,0.08,0.08]},{"id":"blades","name":"Two Blades","map":"coop_maze","effects":["surge","bounty"],"tell":"Fire and ice: two ninjas who take every power-up in the dojo, then both come for one of you.","members":[{"name":"Kage","el":"flame","role":"ninja","ups":["sharpstar","swiftstep","flurry"],"tac":{"mode":"hunt"},"look":{"hair":6,"skin":2},"voice":"cold"},{"name":"Yuki","el":"frost","role":"ninja","ups":["sharpstar","swiftstep","bladeguard"],"tac":{"mode":"hunt"},"look":{"hair":4,"skin":1},"voice":"quiet"}],"solo":-0.1,"lv":[-0.129,-0.097,-0.136]},{"id":"bloodlust","name":"Bloodlust","map":"coop_quarry","effects":["gale","quick"],"tell":"Two crossbows that close in and empty everything they have. Every hit heals them.","members":[{"name":"Red","el":"blood","role":"crossbow","ups":["transfusion","frenzy","hairtrig"],"tac":{"mode":"unload"},"look":{"hair":1,"skin":2},"voice":"gruff"},{"name":"Rust","el":"blood","role":"crossbow","ups":["transfusion","frenzy","hairtrig"],"tac":{"mode":"unload"},"look":{"hair":3,"skin":5},"voice":"gruff"}],"solo":-0.12,"lv":[-0.172,-0.138,-0.173]},{"id":"battering","name":"Battering","map":"coop_pens","effects":[],"tell":"Two juggernauts who barely bother to shoot. They rush and bash you into the thorns and the holes, and heal on the spring between charges.","members":[{"name":"Ox","el":"blood","role":"juggernaut","ups":["rush","riot","colossus"],"tac":{"mode":"bully"},"look":{"hair":0,"skin":4},"voice":"gruff"},{"name":"Hail","el":"frost","role":"juggernaut","ups":["rush","riot","colossus"],"tac":{"mode":"bully"},"look":{"hair":4,"skin":1},"voice":"cold"}],"solo":-0.1,"lv":[-0.202,0.073,0.026]},{"id":"longshots","name":"Long Shots","map":"coop_narrows","effects":["quick","force"],"tell":"Two snipers on the far bank, one each side. Cross the bridge and you are in both their sights.","members":[{"name":"Frost","el":"frost","role":"sniper","ups":["frostbite","volley","permafrost"],"tac":{"mode":"crossfire"},"look":{"hair":4,"skin":2},"voice":"cold"},{"name":"Ash","el":"flame","role":"sniper","ups":["pin","heavy","wildfire"],"tac":{"mode":"crossfire"},"look":{"hair":1,"skin":5},"voice":"dry"}],"lv":[-0.141,-0.092,-0.118]},{"id":"machine","name":"The Terminator","boss":true,"map":"coop_core","effects":[],"tell":"One machine, three builds. Get close and it grows and bashes; keep your distance and it snipes from behind a wall; in between it roots you and lines up the push. It changes every few seconds, so make it change badly.","members":[{"name":"Terminator","el":null,"role":"ranger","ups":[],"extra":[],"tac":{"mode":"focus"},"voice":"cold","boss":{"hp":[1.2,1.65]}}],"lv":[0.08,0.078,0.08]}]},"fit":{"v":1,"duos":{"pair":{"tacs":[{},{}],"pct":88,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"shadows":{"tacs":[{"stealthGap":1.2},{"stealthGap":1.2}],"pct":84,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"undertow":{"tacs":[{},{}],"pct":69,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"fever":{"tacs":[{},{}],"pct":97,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"bloodlust":{"tacs":[{"unloadD":250},{"unloadD":250}],"pct":78,"sparSk":0.93,"sk":0.85,"n":30,"at":"2026-11-10"},"carnival":{"tacs":[{},{}],"pct":53,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"battering":{"tacs":[{"bullyD":196,"bashEager":3},{"bullyD":196,"bashEager":3}],"pct":89,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"blades":{"tacs":[{"pickK":2.08},{"pickK":2.08}],"pct":75,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"brambles":{"tacs":[{"trapGap":184},{"finishD":348}],"pct":65,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"hearth":{"tacs":[{},{}],"pct":98,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"longshots":{"tacs":[{"cross":1.35},{"cross":1.35}],"pct":72,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"wall":{"tacs":[{"tacK":1.86},{}],"pct":62,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"presence":{"tacs":[{},{"tacK":1.12,"wallK":1}],"pct":44,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"snares":{"tacs":[{"waterK":1},{"waterK":1}],"pct":53,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"}}}};</script>
 <script>
 // The co-op arcade: a team of people (one or two) against a ladder of fourteen AI duos, each with its own arena, map effects
 // and a tactic that is the whole point of the fight. A run has three continues. Everyone picks their archetype and all three
@@ -9430,6 +9509,9 @@ function coopFactory(ctx) {
   // one against two: the duo plays a step softer and the person carries more health and weight on top of the level's handicap
   // (a duo's own `solo` adds to this: the ones whose whole idea is ganging up on one archer)
   const SOLO_SK = -0.08, SOLO_HCAP = 30;
+  // each duo's own adjustment by level (lv: skill added at levels 2, 5 and 8, in between by straight lines, flat beyond), fitted
+  // so that every duo beats a pair of ordinary bots of its own skill about as often as the others do, at every level (tools/duo-level.js)
+  const lvOff = (d, L) => { const a = d.lv; if (!Array.isArray(a) || a.length !== 3) return 0; return L <= 2 ? a[0] : L <= 5 ? a[0] + (a[1] - a[0]) * (L - 2) / 3 : L <= 8 ? a[1] + (a[2] - a[1]) * (L - 5) / 3 : a[2]; };
   const DIFFS = Object.fromEntries(Array.from({ length: LEVELS }, (_, i) => [i + 1, DIFF(i + 1)]));
   const BASE_SCORE = 100, CARD_WAIT = 12, CONT_WAIT = 12; // (CONT_WAIT: seconds the Continue? countdown gives you after a loss)
   const BOSS = DUOS.find(d => d.boss) || null, LADDER = DUOS.filter(d => !d.boss); // points a duo is worth before the difficulty multiplier; seconds the result card shows before moving on
@@ -9473,11 +9555,11 @@ function coopFactory(ctx) {
       b.name = m.name; b.coopDuo = true; Sim.setLoadout(w, b.id, m.el, m.role); b.forceUp = m.ups.slice();
       // their skill: the difficulty's band, rising with the place on the ladder (whoever you meet first is the gentlest, whoever
       // you meet last the sharpest), the second member a touch sharper; team sense always full (the tactic depends on it)
-      const k = N() > 1 ? C.idx / (N() - 1) : 1, f = Math.min(1, D.facets[0] + (D.facets[1] - D.facets[0]) * k + 0.02 * i + (d.boost || 0) + (m.boost || 0) + (humansOf(room).length <= 1 ? SOLO_SK + (d.solo || 0) : 0)); // (solo: a duo that's harder one against two plays a touch softer) // (boost: a duo whose tactic costs it firepower plays a touch sharper)
+      const k = N() > 1 ? C.idx / (N() - 1) : 1, f = Math.min(1, D.facets[0] + (D.facets[1] - D.facets[0]) * k + 0.02 * i + (d.boost || 0) + (m.boost || 0) + lvOff(d, C.diff) + (humansOf(room).length <= 1 ? SOLO_SK + (d.solo || 0) : 0)); // (solo: a duo that's harder one against two plays a touch softer) // (boost: a duo whose tactic costs it firepower plays a touch sharper)
       if (m.boss) { // the machine: the top of the band and past it, inhuman at dodging, more health against two of you
         // (a hard fight, not an impossible one: the middle of the difficulty's band and a little more, sharper feet than eye)
         // (the hardest fight of the run: the top of the difficulty's band and a step past it, sharper feet than eye)
-        const solo = humansOf(room).length <= 1, top = Math.min(1, D.facets[1] + 0.03);
+        const solo = humansOf(room).length <= 1, top = Math.max(0.05, Math.min(1, D.facets[1] + 0.03 + lvOff(d, C.diff)));
         b.element = null; // (no element: it's a machine)
         b.dparams = Sim.facetParams({ aim: top, pos: top, dodge: Math.min(1, top + 0.1), mind: 1 });
         b.boss = { hp: m.boss.hp[solo ? 0 : 1], sense: Math.min(1, 0.15 + 0.6 * top * top), el: m.extra || [], mode: null, at: 0 };
@@ -9676,7 +9758,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.99.4';
+const PAGE_VERSION = '0.99.7';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -11349,7 +11431,7 @@ function startTutorial() {
 // the dummy's arena: the Meadow, except for the dodge step, which is on an empty field so there's nothing to think about
 // but the arrows (the knockback step after it needs the Meadow's pit). Only the arena changes; you and the dummy carry on
 function tutWorld(map) {
-  world = Sim.createWorld({ map, diff: 'easy', opt: { effect: 'none' } });
+  world = Sim.createWorld({ map, diff: 'easy', noIntro: true, opt: { effect: 'none' } });
   const me = Sim.join(world, { name: playerName(), team: 'red', element: TUT_LOADOUT.el, role: TUT_LOADOUT.ro });
   const dummy = Sim.addBot(world, 'blue'); dummy.name = 'Dummy'; Sim.setLoadout(world, dummy.id, 'stone', 'sniper');
   Sim.startMatch(world);
@@ -11406,7 +11488,7 @@ function tutNext() {
 }
 function tutSkipToMatch() { TUT.step = tutIdx('pick') - 1; tutNext(); }
 function startTutFight() {
-  world = Sim.createWorld({ map: 'meadow', diff: 'easy', opt: { effect: 'none' } });
+  world = Sim.createWorld({ map: 'meadow', diff: 'easy', noIntro: true, opt: { effect: 'none' } });
   const me = Sim.join(world, { name: playerName(), team: 'red', element: TUT_LOADOUT.el, role: TUT_LOADOUT.ro });
   const bot = Sim.addBot(world, 'blue'); Sim.setLoadout(world, bot.id, 'flame', 'ranger'); bot.name = 'Bot';
   // an adaptive bot: it starts easy and gets better or worse after each game, so it settles near your level (and that
@@ -12418,7 +12500,7 @@ function startDrill(kind) {
   const D = DRILLS[kind];
   if (kind === 'dodge' || kind === 'duel') { const M = MAPS.chasm; M.base = M.base || M.haz.slice(); M.haz.length = 0; M.haz.push(...M.base); floorKey = null; }
   if (kind === 'sink') { MAPS.holes.haz.length = 0; floorKey = null; }
-  world = Sim.createWorld({ map: D.map, diff: 'normal', opt: { upg: 'off', effect: 'none' } }); // standard rules, and no upgrade picks
+  world = Sim.createWorld({ map: D.map, diff: 'normal', noIntro: true, opt: { upg: 'off', effect: 'none' } }); // standard rules, and no upgrade picks
   setArena(D.map);
   // every drill is played as a plain Frost Trapper, so scores compare fairly: a role whose trait doesn't change how you
   // move or draw (the Ranger moves faster), with no opening upgrade
@@ -16035,6 +16117,49 @@ function announceMuts(mut) {
   box.querySelectorAll('.mp').forEach(el => { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; });
   ks.forEach((k, i) => setTimeout(() => play('mapFx', i), i * 350));
 }
+// ---- the line-up: both teams' cards before a match's first countdown (Red left, Blue right), then it clears for the 3-2-1
+const VSI = { on: false, t: null };
+function vsiRank(p, card, co) {
+  if (p.bo) return { txt: 'The machine', col: '#ff6a5a', svg: '' };
+  if (co && p.b && co.diffName) return { txt: `Arcade · ${co.diffName} ${co.diff}`, col: '#ffcf5a', svg: '' }; // (a duo: the run's difficulty)
+  if (card && card.elo != null && card.g > 0) { const T = Sim.tierOf(card.elo, true); return { txt: T.label, col: T.col, svg: Sim.tierSvg(T.k, 16) }; }
+  if (p.lv) { const r = rankOf(p.lv); return { txt: `${r.name} · Level ${p.lv}`, col: r.col, svg: '' }; }
+  if (p.b) { const D = { easy: 'Easy', normal: 'Normal', hard: 'Hard', extreme: 'Extreme', master: 'Master' }; return { txt: p.df && D[p.df] ? D[p.df] + ' bot' : 'AI archer', col: '#d8cdb8', svg: '' }; }
+  return { txt: 'Unranked', col: '#a9a196', svg: '' };
+}
+function vsiPortrait(cvs, p, faceLeft) {
+  const g = cvs.getContext('2d'), keep = ctx;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cvs.width, cvs.height); g.setTransform(cvs.width / 64, 0, 0, cvs.width / 64, 0, 0);
+  ctx = g;
+  try { drawPlayer(Object.assign({}, p, { id: '_vsi' + p.id, x: 32, y: 34, a: faceLeft ? Math.PI + 0.45 : -0.45, rz: p.bo ? 19 : 15, n: '', ch: 0, dr: 0, f: 0, d: 0, hp: 1, mh: 1, sth: 0, fx: undefined }), false, true); }
+  catch (e) {} finally { ctx = keep; }
+}
+function vsiShow(v) {
+  const el = $('vsIntro'); if (!el || !v || RP.on || FARM.on || TUT.on || TR.on) return;
+  const ps = v.p.filter(p => !p.nk && (p.tm === 'red' || p.tm === 'blue')); if (!ps.length) return;
+  const cards = (roomInfo && mode === 'online' && roomInfo.cards) || {}, co = coopInfo(), m = v.m || {};
+  const arena = MAPS[m.map] ? MAPS[m.map].name : '', sub = co ? `Arcade · ${co.duo ? esc(co.duo.name) : 'the duo'}` : roomInfo && roomInfo.ranked && mode === 'online' ? 'Ranked match' : 'Match';
+  const card = (p, i, side) => { const c = cards['p' + p.id], R = vsiRank(p, c, co), E = ELEMENTS[p.el], Ro = ROLES[p.ro], cc = String(p.cc || '').toLowerCase();
+    const flag = FLAG_RE.test(cc) && !window.BOWFALL_OFFLINE ? `<div class="flagbg" style="background-image:url('/flag/${cc}.png')"></div>` : '';
+    return `<div class="card${p.id === myId ? ' you' : ''}" style="animation-delay:${(0.12 + i * 0.13).toFixed(2)}s"><div class="in">${flag}<canvas width="192" height="192" data-vsi="${esc(p.id)}" data-side="${side}"></canvas><div class="shine" style="animation-delay:${(0.55 + i * 0.13).toFixed(2)}s"></div>`
+      + `<div class="info"><div class="nm">${esc(p.n || 'Archer')}</div><div class="rk" style="--rc:${R.col}">${R.svg}<span>${esc(R.txt)}</span></div><div class="ar">${p.bo ? 'Three builds' : `<i style="--ec:${E ? E.color : '#fff'}">${E ? esc(E.name) : ''}</i> ${Ro ? esc(Ro.name) : ''}`}</div></div></div>`
+      + `${p.b || (c && c.ai) ? '<span class="aitag2">AI</span>' : ''}</div>`; };
+  const red = ps.filter(p => p.tm === 'red'), blue = ps.filter(p => p.tm === 'blue');
+  let streaks = ''; for (let i = 0; i < 7; i++) streaks += `<div class="streak" style="top:${(8 + i * 13).toFixed(0)}%;animation-delay:${(i * 0.17).toFixed(2)}s"></div>`;
+  el.innerHTML = `<div class="half red"></div><div class="half blue"></div>${streaks}<div class="seam"></div><div class="side red">Red</div><div class="side blue">Blue</div>`
+    + `<div class="row red">${red.map((p, i) => card(p, i, 'red')).join('')}</div><div class="row blue">${blue.map((p, i) => card(p, i, 'blue')).join('')}</div>`
+    + `<div class="crest"><div class="ring"></div><div class="dia"></div><b>VS</b></div><div class="flash"></div><div class="top"><b>${esc(arena)}</b><small>${sub}</small></div>`;
+  el.classList.remove('out'); el.hidden = false; VSI.on = true;
+  el.querySelectorAll('canvas[data-vsi]').forEach(c => { const p = ps.find(q => String(q.id) === c.dataset.vsi); if (p) vsiPortrait(c, p, c.dataset.side === 'blue'); });
+  try { nz(0.45, 0.05, 'bandpass', 300, 2600, 1.4); nz(0.45, 0.05, 'bandpass', 2600, 300, 1.4, 0.05); os('sine', 140, 38, 0.7, 0.09, 0.38); nz(0.3, 0.06, 'lowpass', 1200, 150, 1, 0.38); os('triangle', 660, 990, 0.25, 0.02, 0.6); } catch (e) {}
+  clearTimeout(VSI.t); VSI.t = setTimeout(() => vsiHide(), Sim.TIMES.intro * 1000 - 380);
+}
+function vsiHide(now) {
+  const el = $('vsIntro'); if (!el || el.hidden) { VSI.on = false; return; }
+  clearTimeout(VSI.t); VSI.on = false;
+  if (now) { el.hidden = true; el.innerHTML = ''; return; }
+  el.classList.add('out'); VSI.t = setTimeout(() => { el.hidden = true; el.innerHTML = ''; }, 400);
+}
 function banner(title, sub = '') {
   if (hunting()) return;
   const b = $('banner');
@@ -16273,13 +16398,18 @@ function eventFx(e) {
           if (e.gm === 1 && e.rd === 1) { $('resClan').hidden = true; const wp = $('wipe'); wp.classList.remove('go'); void wp.offsetWidth; wp.classList.add('go'); } // the arena is revealed as the first countdown starts
           // both teams one round from the match: the deciding round; and if both are also one game from it, the last arrow
           const decide = m && !m.cq && m.ptw > 1 && m.wr === m.ptw - 1 && m.wb === m.ptw - 1, last = decide && m.gr === m.gtw - 1 && m.gb === m.gtw - 1;
+          const lineUp = e.it && !RP.on && !FARM.on, hold = lineUp ? Sim.TIMES.intro * 1000 : 0; // (the line-up first: the round's banner after it)
+          if (lineUp) vsiShow(view);
+          const go = () => {
           if (last) { banner('Last Arrow', 'Whoever wins this game wins the match'); play('lastArrow'); }
           else if (e.gm === 1) banner(decide ? 'Deciding round' : 'Round ' + e.rd, m ? `First to ${m.gtw} game${m.gtw === 1 ? '' : 's'} · ${decide ? 'it wins the match' : `Points ${m.wr}–${m.wb}`}` : '');
           else banner('Game ' + e.gm, m ? `Round ${e.rd} · Games ${m.gr}–${m.gb}` : '');
           play('roundStart');
           if (m && m.mut && !m.cq && e.gm === 1 && e.rd === 1) setTimeout(() => announceMuts(m.mut), 250); // this match's map effects, once as it starts
+          };
+          if (hold) setTimeout(() => { if (view && view.m.ph === 'pre') go(); }, hold); else go();
         }
-        else if (e.ph === 'play') { banner('Fight!'); play('fight'); if (iPlay()) funnel('start'); }
+        else if (e.ph === 'play') { vsiHide(true); banner('Fight!'); play('fight'); if (iPlay()) funnel('start'); }
         else if (e.ph === 'pick') { sfx.pick(); }
         break;
       }
@@ -16473,9 +16603,10 @@ function eventFx(e) {
       case 'grapple': fx.ropes.push({ x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2, id: e.id, life: 0 }); play('grapple'); break;
       case 'revive': burst(e.x, e.y, '#7dff8a', 30, 200, 3); floater(e.x, e.y - 34, 'Revived!', '#7dff8a', 18); feedAdd(`${esc(e.bn)} revived ${esc(e.n)}`, e.id === myId || e.by === myId); sfx.win(); break;
       case 'hcap': feedAdd(`${esc(e.n)} <span class="cause">handicap ${e.v ? hcapLabel(e.v) : 'off'}</span>`, e.id === myId); break;
-      case 'bossMode': { const col = { close: '255,138,61', mid: '199,179,255', long: '143,243,255' }[e.m] || '255,60,60';
+      case 'bossMode': { const col = { close: '255,138,61', mid: '199,179,255', long: '143,243,255', repair: '120,255,150' }[e.m] || '255,60,60';
         for (let n = 0; n < 3; n++) fx.rings.push({ x: e.x, y: e.y, r: 8, life: -0.08 * n, col, max: 110 - n * 25 });
         burst(e.x, e.y, `rgb(${col})`, 26, 280, 3); burst(e.x, e.y, '#ff5a46', 10, 160, 2); }
+        if (e.m === 'repair') { callout({ kicker: 'The machine is hurt', title: 'Repair mode', sub: 'It shrinks and runs for the heals. Cut it off before it patches itself up.', color: '#78ff96', tier: 1, plain: '<b>Repair mode</b> · it runs for the heals: cut it off' }); play('termShift'); break; }
         callout({ kicker: 'The machine changes', title: e.n + ' mode', sub: e.m === 'close' ? 'It grows and comes to bash you. Get away.' : e.m === 'long' ? 'It snipes from behind a wall. Get in close.' : 'It roots you and lines up the push. Keep moving.', color: e.m === 'close' ? '#ff8a3d' : e.m === 'long' ? '#8ff3ff' : '#c7b3ff', tier: 1, plain: `<b>${esc(e.n)} mode</b> · ${e.m === 'close' ? 'it grows and comes to bash you' : e.m === 'long' ? 'it snipes from behind a wall' : 'it roots you and lines up the push'}` }); play('termShift'); break;
       case 'join': if (mode === 'online') feedAdd(`${nameTag(e.n, TEAM_COL[e.tm])} joined ${teamName(e.tm)}`); break;
       case 'switch': if (mode === 'online') feedAdd(`${nameTag(e.n, TEAM_COL[e.tm])} moved to ${teamName(e.tm)}`); break;
@@ -16834,6 +16965,7 @@ const NET = {
     for (const [t, ms] of this.f) if (ms > 34) { const X = W2 - (now - t) / 10000 * W2; g.fillStyle = 'rgba(90,209,255,0.9)'; g.fillRect(X, 0, 2, Math.min(1, ms / 200) * H2 * 0.5); }
   },
 };
+const BOSS_RZ = new Map();
 function interpView(now) {
   if (!snaps.length) return null;
   const latest = snaps[snaps.length - 1];
@@ -16858,6 +16990,10 @@ function interpView(now) {
     const ba = A.s.b, bb = B.s.b;
     if (ba && bb && !ba.o && !bb.o && Math.hypot(ba.x - bb.x, ba.y - bb.y) < 150) v.b = Object.assign({}, bb, { x: lerp(ba.x, bb.x, k), y: lerp(ba.y, bb.y, k) });
   }
+  // the machine grows and shrinks between its builds over a moment rather than in one frame
+  if (v.p.some(p => p.bo)) v.p = v.p.map(p => { if (!p.bo || p.d) return p; const s = BOSS_RZ.get(p.id), r = p.rz || 16;
+    if (!s || now - s.t > 1000) { BOSS_RZ.set(p.id, { r, t: now }); return p; }
+    const dt = Math.min(0.1, (now - s.t) / 1000); s.t = now; s.r += (r - s.r) * Math.min(1, dt * 9); if (Math.abs(r - s.r) < 0.15) s.r = r; return Object.assign({}, p, { rz: s.r }); });
   // our own archer: newest state, nudged forward by its velocity
   const meL = latest.s.p.find(p => p.id === myId);
   if (meL) {
@@ -18457,7 +18593,7 @@ function drawBoomHeld(R, p) {
 }
 // ---- the arcade's machine: a steel shell with armour seams and a core light in the colour of its mode, a visor with one
 // scanning red eye, and a compound bow of steel with a red laser string
-const BOSS_COL = { c: '255,138,61', m: '199,179,255', l: '143,243,255' };
+const BOSS_COL = { c: '255,138,61', m: '199,179,255', l: '143,243,255', r: '120,255,150' };
 function drawBossBody(p, R) {
   const g = ctx.createRadialGradient(-R * 0.35, -R * 0.45, R * 0.1, 0, 0, R);
   g.addColorStop(0, '#d5dbe2'); g.addColorStop(0.5, '#717b86'); g.addColorStop(1, '#262b33');
@@ -20801,7 +20937,8 @@ function updateHud() {
   for (const k of active) { const el = $('pb-' + k); if (el) el.style.width = (me.pw[k] / PU[k].dur * 100) + '%'; }
 
   if (m.ph !== 'post' && !$('gameSum').hidden) $('gameSum').hidden = true;
-  const cd = m.ph === 'pre' ? m.T : 0;
+  const cd = m.ph === 'pre' && m.T <= Sim.TIMES.pre ? m.T : 0; // (above that: the line-up is still on)
+  if (VSI.on && m.ph !== 'pre') vsiHide(true);
   $('countdown').hidden = !cd || hunting();
   if (cd) setC('cd', cd, v => { $('countdown').textContent = v; sfx.count(v); });
 
@@ -22092,7 +22229,7 @@ function playTick() {
   PC = PLAY;
   try { while (PLAY.pending.length && (all || now >= PLAY.pending[0].due)) farmCapture(PLAY.pending.shift()); }
   catch (e) { PLAY.pending = []; } finally { PC = FARM; }
-  if (all && !PLAY.pending.length && !PLAY.offered) { PLAY.offered = true; if (mode === 'online' && account && !OFFLINE) { // (yours, and the best of anyone else's: the server takes an AI player's, never another person's)
+  if (all && !PLAY.pending.length && !PLAY.offered) { PLAY.offered = true; if (mode === 'online' && account && !OFFLINE && !coopInfo()) { // (never the arcade's: its battles are against the duos, not people) (yours, and the best of anyone else's: the server takes an AI player's, never another person's)
     const offers = []; for (const mine of [true, false]) for (const kind of ['play', 'moment']) { const x = playBest(PLAY.list.filter(q => (q.k === myId) === mine), kind); if (x) offers.push([x, kind]); }
     // yours, if it's the play or the moment of the whole game: the better of the two is marked for the Crest bonus, and sent first
     const tops = offers.filter(([x, kind]) => x.k === myId && playBest(PLAY.list, kind) === x).sort((a, b) => playVal(b[0], b[1]) - playVal(a[0], a[1]));

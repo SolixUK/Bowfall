@@ -362,7 +362,7 @@ function saveRecords(room) {
       if (room.ranked && social.matchEnded) social.matchEnded(room); // for matchmaking: who's just come free
       const rated = new Map(), users = new Map();
       if (ros) for (const p of ros.p) { const u = userOfPid(room, p.id); if (u) users.set(p.id, u); }
-      { const ai = room.ai ? [...room.ai].map(([pid, u]) => [pid, u.name]) : []; for (const [pid, u] of users) if (u && typeof u.id === 'number' && !(u.career && u.career.ai)) RECENT_RANKED.set(u.id, { at: Date.now(), map: room.world && room.world.cfg.map, pid, mid: r.mid, ai }); } // (for the plays of the week: who's just played a ranked match, where)
+      { const ai = room.ai ? [...room.ai].map(([pid, u]) => [pid, u.name]) : []; if (!room.coop) for (const [pid, u] of users) if (u && typeof u.id === 'number' && !(u.career && u.career.ai)) RECENT_RANKED.set(u.id, { at: Date.now(), map: room.world && room.world.cfg.map, pid, mid: r.mid, ai }); } // (for the plays of the week: who's just played a ranked match, where)
       if (ros && r.win && room.ranked) { // only matchmade (ranked) games change ratings; custom games don't
         const key = keyFor(room.ranked.mode);
         // each player's share of what their team did this match: knockouts, assists (half) and damage (per 40)
@@ -1100,6 +1100,7 @@ async function api(req, res, url) {
     const data = String((body && body.data) || ''), meta = body && body.meta && typeof body.meta === 'object' ? body.meta : {};
     if (!/^[A-Za-z0-9+/=]+$/.test(data) || data.length > 650 * 1024) return json(res, 400, { error: 'That replay is too big.' });
     let clip; try { clip = JSON.parse(zlib.gunzipSync(Buffer.from(data, 'base64'), { maxOutputLength: 8 * 1024 * 1024 }).toString('utf8')); } catch (e) { return json(res, 400, { error: 'Bad replay.' }); }
+    if (clip && Sim.MAPS && Sim.MAPS[clip.map] && Sim.MAPS[clip.map].coop) return json(res, 400, { error: 'Arcade plays are not kept for the week.' }); // (the arcade's battles are against the duos)
     if (!clip || clip.v !== 1 || clip.map !== rec.map || !Array.isArray(clip.f) || clip.f.length < 10 || clip.f.length > 900 || !Array.isArray(clip.segs)) return json(res, 400, { error: 'Bad replay.', why: !clip ? 'none' : clip.map !== rec.map ? `map ${clip.map} vs ${rec.map}` : `frames ${(clip.f || []).length}` });
     // it has to be theirs: the knockouts in it are by the player the server had them as in that match
     // it has to be theirs, or an AI player's from that match (each match's AI play taken once, whoever sends it)
