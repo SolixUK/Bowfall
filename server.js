@@ -1999,7 +1999,14 @@ async function handle(ws, m) {
       const mute = room.muted && room.muted.get(ws.name.toLowerCase());
       if (mute && mute > now) { send(ws, { t: 'chat', sys: 1, m: `You're muted for ${Math.ceil((mute - now) / 60000)} more minute(s).` }); break; }
       const p = ws.pid && w.players.find(q => q.id === ws.pid);
-      broadcast(room, { t: 'chat', n: ws.name, tm: p ? p.team : 'spec', c: p ? p.color : null, m: text, acc: ws.user ? 1 : 0, adm: ws.user && ws.user.admin ? 1 : undefined, sp: ws.sp || undefined, fd: ws.fd || undefined, pt: ws.pt || undefined });
+      const msg = { t: 'chat', n: ws.name, tm: p ? p.team : 'spec', c: p ? p.color : null, m: text, acc: ws.user ? 1 : 0, adm: ws.user && ws.user.admin ? 1 : undefined, sp: ws.sp || undefined, fd: ws.fd || undefined, pt: ws.pt || undefined };
+      if (m.team && p) { // team chat: only your own side hears it, and "focus <name>" is a call the bots on your side may follow
+        msg.team = 1; for (const c of room.clients) { const q = c.pid && w.players.find(x => x.id === c.pid); if (q && q.team === p.team) send(c, msg); }
+        const f = text.match(/^(?:focus|go for|target|kill|on)\s+@?([\w-]{2,})/i);
+        if (f) { const k = f[1].toLowerCase(), T = w.players.find(q => q.team !== p.team && !q.dead && !q.npc && q.name.toLowerCase().startsWith(k)); if (T) Sim.teamCall(w, p.team, T.id, p.id, 'any'); }
+        break;
+      }
+      broadcast(room, msg);
       social.aiReply(room, text, ws.name);
       break;
     }

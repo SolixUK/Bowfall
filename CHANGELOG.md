@@ -2,6 +2,24 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.9
+
+- **Trapper: Snapped Draw.** A Trapper's brambles (Bramble Trap, Bramble Toss, Snare Arrow, Rip) catch your arms as well as your feet. If you're drawing when one roots you, the draw is lost and you start again from nothing. A green snap and "Draw snapped!" show when it happens.
+- **The last 10 seconds are loud now.** A big "Final 10 seconds" announcement comes with a shake and a low rumble. A red glow then breathes round the edge of the arena until the game ends, pulsing faster as the clock runs out.
+- **Momentum.** A dash no longer stops a heavy knockback dead. When you're flying faster than you can run, the dash is added to the throw: you keep 60% of the speed beyond a run. In a test, a hit that throws you 400px still carries you about 270px if you dash straight back at once. A dash still helps a lot, but it can't cancel a big hit.
+- **Bots pick targets more cleverly** (the better their team sense, the more). Damage dealers come first (snipers, crossbows, assassins, then rangers and ninjas) and tanks last (wardens, then juggernauts). Anyone one good hit from going down jumps the queue, so a full-health sniper isn't chosen over a juggernaut on its last sliver.
+- **Focus calls.** A bot with good team sense now calls the focus for its side now and then, for example "Focus Nix first!", "Go for Nix, they hit hardest." or "Nix is low, finish them!". The target gets a "Focus" marker. Each teammate bot decides once whether to go along with it (the better its team sense, the likelier), and a near-dead enemy still beats the call. Calls show in your team's chat online, and in the feed in local games.
+- **Team chat.** In game, Tab switches the chat between everyone and your team, and team lines are tagged [Team]. Type "focus <name>" (or "go for", "target", "kill", "on") in team chat and the bots on your side may follow your call.
+- Fixed: the Terminator's size and speed changed one build late, so it didn't shrink as it went into Repair mode, then turned up small the next game. Each build now applies at once, and the machine starts every game whole, in its first build.
+
+## 0.99.8
+
+- The line-up holds together on wide screens: the cards, labels, title and crest sit in a centred frame sized by the screen's height, so on a wide monitor they're bigger and grouped instead of spread out to the edges.
+- The line-up's red and blue halves are see-through (with a light blur), so the arena shows faintly behind them.
+- The red and blue halves now meet exactly on the bright seam, through the middle of the screen (they used to overlap off-centre).
+- More flair on the line-up: each card burns with a team-coloured aura that breathes, a glowing edge that flickers, smoky light licking up from below and down from the top, and embers rising past it.
+- Long lines on the cards cut off with an ellipsis rather than wrapping on small screens.
+
 ## 0.99.7
 
 - Presence plays sharper against two of you (+0.08 skill at every level): against a pair of ordinary bots of its own skill it was winning only about 30%, because Bastion can't shield two archers at once. Alone you face exactly what you did before: its solo adjustment grows by the same amount, so the cut you get when it's one against two is unchanged.

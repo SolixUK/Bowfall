@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.7';
+const VERSION = '0.99.9';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1968,7 +1968,8 @@ function startPre(w) {
   // the first game of a match opens on the line-up (both teams' cards) before the countdown, when someone's there to see it
   const intro = M.rd === 1 && M.gm === 1 && !w.cfg.noIntro && w.players.some(p => !p.bot && !p.npc);
   if (intro) M.T += TIMES.intro;
-  w.arrows = []; w.pickups = []; w.zones = []; w.later = [];
+  w.arrows = []; w.pickups = []; w.zones = []; w.later = []; w.calls = {};
+  for (const p of w.players) if (p.boss && p.boss.mode) { p.boss.repEnd = null; bossSet(w, p, 'mid', true); } // (the machine starts every game whole, in its first build)
   w.cracks = MAP.cracks.map(() => 0); useMap(w);
   w.ball = BALL ? { x: BALL.x, y: BALL.y, vx: 0, vy: 0, r: BALL.r, out: 0, spin: 0 } : null;
   for (const p of w.players) { placeForRound(w, p); p.g0 = { k: p.kills, dmg: p.stats.dmg, hits: p.stats.hits, shots: p.stats.shots, ring: p.stats.ring, taken: p.stats.taken, as: p.stats.as || 0, bull: p.stats.bull || 0 }; p.hitBy = {}; p.gEmp = p.emp; }
@@ -2643,7 +2644,13 @@ function updatePlayer(w, p, dt) {
     const k = p.slow > 0 ? (p.sure ? 0.9 : 0.7) : 1;
     p.dashK = k;
     // (on a harpoon's rope as it reels you in: the dash fights the pull rather than cancelling it; enough to slow it, swerve it, or carry you over a hole on the way, not to break free)
-    if (p.hook && p.hook.t <= 0) { p.vx += dx * MOVE.dashSpeed * k * HOOK_DASH; p.vy += dy * MOVE.dashSpeed * k * HOOK_DASH; } else { p.vx = dx * MOVE.dashSpeed * k; p.vy = dy * MOVE.dashSpeed * k; }
+    if (p.hook && p.hook.t <= 0) { p.vx += dx * MOVE.dashSpeed * k * HOOK_DASH; p.vy += dy * MOVE.dashSpeed * k * HOOK_DASH; }
+    else {
+      // momentum: thrown hard (a knockback, faster than you can run), the dash is added to how you're flying, not swapped for it;
+      // what's kept is the part of the throw beyond a run. A dash against a big hit slows and bends it; it can't stop it dead
+      const sp0 = Math.hypot(p.vx, p.vy), run = p.speed || 235, extra = p.knock > 0 && sp0 > run * 1.15 ? (sp0 - run) / sp0 * MOMENTUM_KEEP : 0;
+      p.vx = dx * MOVE.dashSpeed * k + p.vx * extra; p.vy = dy * MOVE.dashSpeed * k + p.vy * extra;
+    }
     p.dashT = MOVE.dashTime / k * (p.dashWeak > 0 ? 0.45 : 1); p.knock = 0;
     if (p.dashN === p.dashMaxN) p.dashCd = p.dashCdMax;
     p.dashN--;
@@ -3418,6 +3425,17 @@ function shadeTick(w, f, dt) {
   ev(w, { e: 'shadeBurst', id: f.id, x: r1(f.x), y: r1(f.y), n: s.n });
   hurt(w, f, shadeDmg(s.n) * big, kx, ky, 'shade', s.by);
 }
+// how much an archetype hurts you if left alone (the targeting weight; 1 is an all-rounder)
+const ROLE_THREAT = { sniper: 1.25, crossbow: 1.2, assassin: 1.2, ranger: 1.1, ninja: 1.1, trickster: 1.05, trapper: 1, warden: 0.85, juggernaut: 0.75 };
+const CALL_LIFE = 10; // seconds a focus call holds
+// a call to the team: "focus X first" (from a bot, or a person in team chat); bots who listen weigh that target heavily
+function teamCall(w, team, tid, byId, why) {
+  const T = w.players.find(q => q.id === tid), by = w.players.find(q => q.id === byId);
+  if (!T || T.team === team || T.dead) return false;
+  w.calls = w.calls || {}; w.calls[team] = { tid, by: byId, t: w.t };
+  ev(w, { e: 'call', tm: team, by: byId, n: by ? by.name : '', tid, tn: T.name, why: why || 'any', hu: by && !by.bot ? 1 : undefined });
+  return true;
+}
 // Mend: 45 health (half on anyone poisoned), carried to a teammate at MEND_SPEED px/s
 const MEND_HEAL = 45, MEND_SPEED = 650;
 const mendHeal = q => { const was = q.hp; q.hp = Math.min(q.maxHp, q.hp + MEND_HEAL * (q.poisonT > 0 ? 0.5 : 1)); return Math.round(q.hp - was); };
@@ -3427,9 +3445,12 @@ const RIP_DELAY = 1, SHROUD_R = 140, ECLIPSE_R = 150, MEND_RANGE = 350, BRIAR = 
 // rooted. plant: brambles (traps, Bramble Toss, Snare Arrow, Rip), which can't hold you again for VINE_SAFE seconds after
 // they let go, so a Trapper can't keep you locked down by casting trap after trap under you
 const VINE_SAFE = 2;
+let ROOT_W = null; // (the world being stepped: root() is called from deep inside it)
 function root(f, t, by, plant) {
   if (plant && (f.vineSafe || 0) > 0) return false;
   if (by && has(by, 'deeproots')) t *= 2; const held = f.sure ? t * 0.4 : t; f.stuck = Math.max(f.stuck, held); if (plant) f.vine = Math.max(f.vine || 0, held);
+  // Snapped Draw (every Trapper): brambles of theirs catch your arms as well as your feet, so a bow you were drawing is lost
+  if (by && by.role === 'trapper' && plant && f.drawing && f.charge > 0.05) { f.drawing = false; f.charge = 0; f.over = 0; if (ROOT_W) ev(ROOT_W, { e: 'drawBreak', id: f.id, by: by.id, x: r1(f.x), y: r1(f.y) }); }
   return true;
 }
 // elemental and trapper effects when an arrow lands
@@ -3575,6 +3596,7 @@ const rangeOf = (w, p) => p.role === 'crossbow' ? Math.round(p.xbowRange || XBOW
   : p.role === 'ninja' ? Math.round(STAR_SPEED * optValue((w.cfg || {}).opt, 'aspeed') * mutMul((w.cfg || {}).mut, 'aspeed') * STAR_FLY) : null;
 const SNIPE_FULL = Math.hypot(AW - 2 * WALL, AH - 2 * WALL); // corner to corner
 // Harpoon: hooked for HOOK_DELAY seconds, then reeled toward the thrower at up to HOOK_PULL (it breaks past HOOK_MAX)
+const MOMENTUM_KEEP = 0.6; // (how much of a throw beyond running speed carries through a dash)
 const HOOK_DELAY = 0.5, HOOK_PULL = 1150, HOOK_MAX = 1000, HOOK_DASH = 0.6; // (HOOK_DASH: how much of a dash counts against the rope)
 const STAR_SPEED = 1300, STAR_FLY = 0.222, STAR_LIFE_K = 0.704; // a shuriken's top speed (an arrow's), its reach in seconds of full speed (drag 2.4 over its life), and how much shorter it lives than at the old 1050
 const VOLLEY_GAP = 0.12, BLINK_RANGE = 300, HARPOON_RANGE = 420, NINJA_BLINK = 220, FLASH_RANGE = 240;
@@ -4646,16 +4668,17 @@ const BOSS_MODES = {
   repair: { name: 'Repair',    role: 'ranger',     ups: ['fleet', 'dash', 'quickshot'], tac: { mode: 'repair' }, aggr: 0.15 },
 };
 const BOSS_REPAIR = { at: 0.3, done: 0.6, max: 12, gap: 18, heal: 2 }; // below 30% health, until 60% (12 s at most), not again for 18 s after; pickups heal double
-function bossSet(w, p, mode) {
+function bossSet(w, p, mode, quiet) {
   const M = BOSS_MODES[mode]; if (!M) return;
   const frac = p.maxHp ? p.hp / p.maxHp : 1;
   p.role = M.role; p.up = (p.element ? [p.element] : []).concat(p.boss.el || [], M.ups);
+  p.boss.mode = mode; // (before the stats: its size, speed and dash depend on the mode it's going into)
   applyStats(p); p.hp = Math.max(1, Math.round(p.maxHp * frac));
   p.abCd = p.slots.map(() => 1.2); p.abHold = [0, 0]; p.drawing = false; p.charge = 0; p.over = 0; // (a moment before the new build's abilities are up)
   for (const k of Object.values(ARM_FLAG)) if (k !== 'snare') p[k] = false;
   if (p.ai) { p.ai.tac = Object.assign({}, M.tac); p.ai.style = p.ai.baseStyle = ROLE_STYLE[M.role] || 'skirmisher'; p.ai.aggr = M.aggr; p.ai.plan = null; p.ai.coverP = null; p.ai.mend = false; }
   p.boss.mode = mode; p.boss.at = w.t;
-  ev(w, { e: 'bossMode', id: p.id, m: mode, n: M.name, x: r1(p.x), y: r1(p.y) });
+  if (!quiet) ev(w, { e: 'bossMode', id: p.id, m: mode, n: M.name, x: r1(p.x), y: r1(p.y) });
 }
 function bossTick(w, p, dt) {
   const foes = w.players.filter(q => q.team !== p.team && !q.dead && !q.npc && q.falling <= 0); if (!foes.length) return;
@@ -4930,6 +4953,13 @@ function botThink(w, p, dt) {
     let bestS = Infinity;
     for (const q of foes) {
       let s = Math.hypot(q.x - p.x, q.y - p.y) + q.hp * 1.5 - (lethalDist(q.x, q.y) < 120 ? 150 : 0) + (q.inv > 0 ? 400 : 0);
+      // who to kill first (team sense): the damage dealers before the tanks, unless the tank is one good hit from going down
+      if (teamK > 0) {
+        s -= ((ROLE_THREAT[q.role] || 1) - 1) * 320 * teamK;
+        if (q.hp <= 24 && Math.hypot(q.x - p.x, q.y - p.y) < botReach(p)) s -= 300 * teamK; // (a kill in hand beats any plan)
+        const C = w.calls && w.calls[p.team];
+        if (C && C.tid === q.id && C.by !== p.id && w.t - C.t < CALL_LIFE && ai.heard === C.t + ':' + 1) s -= 230; // (the team's call, if we're listening)
+      }
       // teamwork (team sense: the mind facet, or the skill): shoot what your team is shooting (two on one ends it; split fire
       // doesn't), and above all finish what a teammate has set up: someone held (rooted, frozen, staggered, pinned) with
       // something deadly behind them is the shot the hold was for
@@ -4956,6 +4986,18 @@ function botThink(w, p, dt) {
     }
     ai.target = T ? T.id : null;
     ai.retarget = rand(0.8, 1.6);
+  }
+  // the team's call: whether we go along with it is decided once a call (the better the team sense, the likelier)
+  { const C = w.calls && w.calls[p.team]; if (C && C.by !== p.id && ai.heard !== C.t + ':1' && ai.heard !== C.t + ':0') { ai.heard = C.t + ':' + (Math.random() < 0.25 + 0.7 * teamK ? 1 : 0); ai.retarget = Math.min(ai.retarget, rand(0.2, 0.6)); } }
+  // and making one: a bot with team sense, on a team of two or more facing two or more, calls the focus now and then
+  if (!ai.tac && teamK >= 0.45 && mates.length && foes.length >= 2 && !w.cq && !w.tm && w.match.ph === 'play') {
+    const C = w.calls && w.calls[p.team], gap = C ? w.t - C.t : 99, gone = C && !foes.some(q => q.id === C.tid);
+    if ((gap > CALL_LIFE || gone) && gap > 6 && Math.random() < dt * 0.35 * teamK) {
+      // the most worth killing: the damage they do, over how long they take to kill (health, and a tank's toughness)
+      let best = null, second = null;
+      for (const q of foes) { const v = (ROLE_THREAT[q.role] || 1) / Math.max(15, q.hp * (q.role === 'juggernaut' ? 1.35 : q.role === 'warden' ? 1.15 : 1)); if (!best || v > best.v) { second = best; best = { q, v }; } else if (!second || v > second.v) second = { q, v }; }
+      if (best && second && best.v > second.v * 1.25) teamCall(w, p.team, best.q.id, p.id, best.q.hp <= 30 ? 'low' : (ROLE_THREAT[best.q.role] || 1) > 1.05 ? 'dps' : 'any');
+    }
   }
   // (a hold with a drop behind it doesn't wait for the next look round: switch to it now)
   if (mates.length && teamK > 0.3 && T && !(T.stuck > 0 || T.frozen > 0 || T.staggerT > 0 || T.pinned > 0 || T.vine > 0)) {
@@ -6500,6 +6542,7 @@ function tmSnap(w) {
 }
 
 function step(w, dt) {
+  ROOT_W = w;
   useMap(w);
   w.t += dt;
   const M = w.match;
@@ -6798,7 +6841,7 @@ function tierSvg(k, size = 22) {
 return {
   TIERS, tierOf, tierSvg,
   TM, TM_NAMES, TM_MINIONS, MASTERY, masteryOf, takeCard, applyStats,
-  AIM, AW, AH, WALL, GATES, MAPS, COOP_MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, STAR_SPEED, OPTIONS, optPct, optValue, skillParams, SKILL_MIN, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
+  teamCall, AIM, AW, AH, WALL, GATES, MAPS, COOP_MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, STAR_SPEED, OPTIONS, optPct, optValue, skillParams, SKILL_MIN, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, FINAL, ROOTK, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, LAB_KEYS, applyArenaPool, arenaPool, rankedPool, arenaSense, PLAYS, BUILDS, facetParams, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg, emblemCol, emblemFull,
