@@ -10,10 +10,13 @@ function coopFactory(ctx) {
   const ROSTER = ctx.roster, FIT = ctx.fit && ctx.fit.duos ? ctx.fit : { duos: {} };
   const DUOS = ROSTER.duos, CONTINUES = ROSTER.continues || 3;
   // difficulty: a level from 1 to 10. The duos' skill band rises with it (level 2 is the old Easy, 5 Normal, 7 Hard, 10 Legend),
-  // and so does the score; the handicap you get when you're on your own shrinks from +50% to +20%
+  // and so does the score; the handicap you get when you're on your own shrinks from +80% to +50% (the level's +50% to +20%, plus SOLO_HCAP)
   const LEVELS = 10, OLD = { easy: 2, normal: 5, hard: 7, legend: 10 };
   const levelOf = v => { const n = typeof v === 'string' && OLD[v] ? OLD[v] : Math.round(+v); return n >= 1 && n <= LEVELS ? n : 5; };
   const DIFF = L => { const k = (L - 1) / (LEVELS - 1); return { level: L, name: L <= 3 ? 'Easy' : L <= 6 ? 'Normal' : L <= 8 ? 'Hard' : 'Legend', facets: [0.35 + 0.5 * k, 0.55 + 0.43 * k], mult: +(1 + 0.25 * (L - 1)).toFixed(2), hcap: Math.round((50 - 30 * k) / 10) * 10 }; };
+  // one against two: the duo plays a step softer and the person carries more health and weight on top of the level's handicap
+  // (a duo's own `solo` adds to this: the ones whose whole idea is ganging up on one archer)
+  const SOLO_SK = -0.08, SOLO_HCAP = 30;
   const DIFFS = Object.fromEntries(Array.from({ length: LEVELS }, (_, i) => [i + 1, DIFF(i + 1)]));
   const BASE_SCORE = 100, CARD_WAIT = 12, CONT_WAIT = 12; // (CONT_WAIT: seconds the Continue? countdown gives you after a loss)
   const BOSS = DUOS.find(d => d.boss) || null, LADDER = DUOS.filter(d => !d.boss); // points a duo is worth before the difficulty multiplier; seconds the result card shows before moving on
@@ -57,7 +60,7 @@ function coopFactory(ctx) {
       b.name = m.name; b.coopDuo = true; Sim.setLoadout(w, b.id, m.el, m.role); b.forceUp = m.ups.slice();
       // their skill: the difficulty's band, rising with the place on the ladder (whoever you meet first is the gentlest, whoever
       // you meet last the sharpest), the second member a touch sharper; team sense always full (the tactic depends on it)
-      const k = N() > 1 ? C.idx / (N() - 1) : 1, f = Math.min(1, D.facets[0] + (D.facets[1] - D.facets[0]) * k + 0.02 * i + (d.boost || 0)); // (boost: a duo whose tactic costs it firepower plays a touch sharper)
+      const k = N() > 1 ? C.idx / (N() - 1) : 1, f = Math.min(1, D.facets[0] + (D.facets[1] - D.facets[0]) * k + 0.02 * i + (d.boost || 0) + (m.boost || 0) + (humansOf(room).length <= 1 ? SOLO_SK + (d.solo || 0) : 0)); // (solo: a duo that's harder one against two plays a touch softer) // (boost: a duo whose tactic costs it firepower plays a touch sharper)
       if (m.boss) { // the machine: the top of the band and past it, inhuman at dodging, more health against two of you
         // (a hard fight, not an impossible one: the middle of the difficulty's band and a little more, sharper feet than eye)
         // (the hardest fight of the run: the top of the difficulty's band and a step past it, sharper feet than eye)
@@ -86,7 +89,7 @@ function coopFactory(ctx) {
       Sim.setTeam(w, p.id, 'red');
       const picks = C.picks.get(c.cid) || [];
       p.forceUp = picks.filter(id => Sim.TREE[id]).slice(0, 3);
-      Sim.setHandicap(w, p.id, C.solo ? DIFF(C.diff).hcap : 0);
+      Sim.setHandicap(w, p.id, C.solo ? DIFF(C.diff).hcap + SOLO_HCAP : 0);
     }
     if (!Sim.startMatch(w)) { sysChat(room, 'Could not start the battle.'); return; }
     C.st = 'play'; C.fights++; C.fightAt = Date.now();

@@ -34,11 +34,16 @@ function play(duo, N, sk, sparSk, tacOn, tacs) {
     const ids = [];
     duo.members.forEach((c, i) => {
       const b = S.addBot(w, ta); S.setLoadout(w, b.id, c.el, c.ro || c.role); b.forceUp = c.ups.slice();
-      b.dparams = S.facetParams({ aim: sk, pos: sk, dodge: sk, mind: 1 });
+      const bs = sk + (duo.boost || 0) + (c.boost || 0); b.dparams = S.facetParams({ aim: bs, pos: bs, dodge: bs, mind: 1 }); // (the ladder's skill boosts, as in a run)
       S.setBotMind(w, b.id, { aggr: 0.7, tr: { cover: 0.4, edge: 0.5, dash: 0.7, charge: 0.2 }, tactic: tacOn ? Object.assign({}, c.tac, tacs ? tacs[i] : null) : null });
       ids.push(b.id);
     });
-    for (let i = 0; i < 2; i++) { const b = S.addBot(w, tb); S.setLoadout(w, b.id, 'frost', 'ranger'); b.sparring = true; b.dparams = S.facetParams({ aim: sparSk, pos: sparSk, dodge: sparSk, mind: 0.3 }); S.setBotMind(w, b.id, { aggr: 0.9, tr: { cover: 0.3, edge: 0.4, dash: 0.6, charge: 0.2 }, gene: { pref: 0.6, noLearn: true } }); }
+    // the opposition: the plain sparring pair, or (SPAR=el,role[,up+up+up] and STYLE=push|kite) a real archetype pair playing a strategy
+    const SP = process.env.SPAR ? process.env.SPAR.split(',') : null, kite = process.env.STYLE === 'kite';
+    for (let i = 0; i < 2; i++) { const b = S.addBot(w, tb); S.setLoadout(w, b.id, SP ? SP[0] : 'frost', SP ? SP[1] : 'ranger'); if (SP) { if (SP[2]) b.forceUp = SP[2].split('+'); } else b.sparring = true;
+      b.dparams = S.facetParams({ aim: sparSk, pos: sparSk, dodge: sparSk, mind: SP ? 0.6 : 0.3 });
+      if (!SP) S.setBotMind(w, b.id, { aggr: 0.9, tr: { cover: 0.3, edge: 0.4, dash: 0.6, charge: 0.2 }, gene: { pref: 0.6, noLearn: true } });
+      else S.setBotMind(w, b.id, { aggr: kite ? 0.35 : 1, tr: { cover: kite ? 0.6 : 0.2, edge: 0.4, dash: 0.6, charge: kite ? 0.6 : 0.2 }, gene: { pref: kite ? 1.3 : 0.5, noLearn: true } }); }
     S.startMatch(w);
     for (let i = 0; i < 60 * 60 * 15 && w.match.ph !== 'over'; i++) {
       S.step(w, 1 / 60); t += 1 / 60;

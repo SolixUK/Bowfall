@@ -2,6 +2,21 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.4
+
+- Playing the arcade alone is fairer. One against two is a different game, so on your own you now get 30% more handicap on top of the level's (+80% on Easy down to +50% on Legend), and the duos play a step softer. The five built around ganging up on one archer (Shadows, Two Blades, Bloodlust, The Wall and Battering) are softer again when you're alone, like Presence. Against two of you, nothing changes.
+- The Terminator has more health against two of you (1.65 times, was 1.55). Alone it's unchanged.
+
+## 0.99.3
+
+- Battering: Juggernaut's Hide is gone too. They play on a plain field now.
+- Presence: Swift (the ranger) is sharper, and Bastion dash-bashes you whenever the bash is lined up to throw you into water, a drop or the thorns, not only when you're on Swift.
+- Brambles and Two Snares land more: the finisher waits half a second (not 1.4) for a rooted target before it goes for the push, Brambles plays under Arcane Surge (abilities recharge faster) and the Two Snares are a touch sharper.
+- Fever and Hearth carry less healing: Cinder trades the Mending Totem for Flashpoint, and Ember trades Bond for Stoke the Fire.
+- Presence plays softer when you face them alone: Bastion can only shield one archer at a time, so against two of you they keep their full edge, but one against two it was a wall. (A duo can now carry a solo adjustment; Presence is the first.)
+- Blast Tips are toned down: the burst does 6 damage (was 8) and shoves 20% less. Fireworks are unchanged.
+- The Dojo's yin-yang is faded into the floorboards, a stain in the wood rather than a sticker on top.
+
 ## 0.99.2
 
 - Battering no longer has Warden's Vigil (Juggernaut's Hide only): the juggernauts were healing back everything between charges.

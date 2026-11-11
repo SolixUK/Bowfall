@@ -97,7 +97,7 @@
      "ups": [
       "wall",
       "mend",
-      "bond"
+      "stoke"
      ],
      "tac": {
       "mode": "guard",
@@ -166,7 +166,7 @@
      "role": "warden",
      "ups": [
       "wall",
-      "totem",
+      "flashpoint",
       "stoke"
      ],
      "tac": {
@@ -188,7 +188,7 @@
    "map": "coop_sinks",
    "effects": [
     "vigil",
-    "hide"
+    "surge"
    ],
    "tell": "The trapper roots you next to the rim; the ranger is already lining up the push.",
    "members": [
@@ -282,7 +282,8 @@
      "voice": "sly"
     }
    ],
-   "boost": 0.06
+   "boost": 0.06,
+   "solo": -0.1
   },
   {
    "id": "snares",
@@ -330,7 +331,8 @@
      },
      "voice": "dry"
     }
-   ]
+   ],
+   "boost": 0.06
   },
   {
    "id": "carnival",
@@ -425,7 +427,8 @@
      },
      "voice": "quiet"
     }
-   ]
+   ],
+   "solo": -0.1
   },
   {
    "id": "undertow",
@@ -523,10 +526,12 @@
       "hair": 2,
       "skin": 1
      },
-     "voice": "keen"
+     "voice": "keen",
+     "boost": 0.06
     }
    ],
-   "boost": 0.06
+   "boost": 0.06,
+   "solo": -0.12
   },
   {
    "id": "blades",
@@ -574,7 +579,8 @@
      },
      "voice": "quiet"
     }
-   ]
+   ],
+   "solo": -0.1
   },
   {
    "id": "bloodlust",
@@ -622,15 +628,14 @@
      },
      "voice": "gruff"
     }
-   ]
+   ],
+   "solo": -0.12
   },
   {
    "id": "battering",
    "name": "Battering",
    "map": "coop_pens",
-   "effects": [
-    "hide"
-   ],
+   "effects": [],
    "tell": "Two juggernauts who barely bother to shoot. They rush and bash you into the thorns and the holes, and heal on the spring between charges.",
    "members": [
     {
@@ -669,7 +674,8 @@
      },
      "voice": "cold"
     }
-   ]
+   ],
+   "solo": -0.1
   },
   {
    "id": "longshots",
@@ -740,7 +746,7 @@
      "boss": {
       "hp": [
        1.2,
-       1.55
+       1.65
       ]
      }
     }

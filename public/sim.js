@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.2';
+const VERSION = '0.99.4';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -2365,10 +2365,10 @@ function explode(w, x, y, owner, team, k = 1, fw = false) { // k: size of the bl
     if (p.dead || p.falling > 0) continue;
     const dx = p.x - x, dy = p.y - y, d = Math.hypot(dx, dy);
     if (d > 125 * k + p.r) continue;
-    const n = d || 1, force = (250 + 650 * Math.max(0, 1 - d / (130 * k))) * (fw ? 0.7 : 1);
+    const n = d || 1, force = (250 + 650 * Math.max(0, 1 - d / (130 * k))) * (fw ? 0.7 : 0.8); // (Blast Tips: 20% softer than they were)
     if (p.id === owner) { // rocket jump: knockback, no damage
       p.vx += dx / n * force * 0.8; p.vy += dy / n * force * 0.8; p.knock = Math.max(p.knock, 0.35);
-    } else if (p.team !== team) hurt(w, p, fw ? ROCKET.dmg : 8 * k, dx / n * force, dy / n * force, 'blast', owner);
+    } else if (p.team !== team) hurt(w, p, fw ? ROCKET.dmg : 6 * k, dx / n * force, dy / n * force, 'blast', owner);
   }
 }
 
@@ -5135,6 +5135,8 @@ function botThink(w, p, dt) {
       // the bow only while the partner's covered and we're in place: a drawn bow is slow, and getting there matters more
       if (!covering && dg > 50) { inp.draw = false; ai.reload = Math.max(ai.reload || 0, 0.2); }
       if (dg > 150 && !covering && p.dashN > 0 && ai.dodgeCd <= 0 && dashClear(p, Math.atan2(g.y - p.y, g.x - p.x), Math.min(dg, 170)) && Math.random() < dt * 6) { p.wantDash = true; ai.dashAim = Math.atan2(g.y - p.y, g.x - p.x); ai.dodgeCd = 0.6; }
+      // a bash lined up to throw them into a drop, the water or the thorns: take it (a knockout is the best shield there is)
+      if (!ai.tac.noShove && dT < 200 && dT > 40 && p.dashN > 0 && (ai.bashCd || 0) <= 0) { const a = Math.atan2(T.y - p.y, T.x - p.x); if (pushRisk(T.x, T.y, Math.cos(a), Math.sin(a), 230, T.r) > 0.55 && dashClear(p, a, Math.min(dT, 170))) { p.wantDash = true; ai.dashAim = a; ai.bashCd = rand(1.2, 2); } }
       // on the partner: knock them off (a shove away from the partner, never into our own side)
       if (onP < 160 && dT < 200 && p.dashN > 0 && (ai.bashCd || 0) <= 0 && !ai.tac.noShove) { const ang = Math.atan2(T.y - partner.y, T.x - partner.x); if (angOff(ang, Math.atan2(T.y - p.y, T.x - p.x)) < 1.2 && dashClear(p, Math.atan2(T.y - p.y, T.x - p.x), Math.min(dT, 170))) { p.wantDash = true; ai.dashAim = Math.atan2(T.y - p.y, T.x - p.x); ai.bashCd = rand(1.2, 2); } }
       ai.bodyMove = true;
@@ -5343,7 +5345,7 @@ function botThink(w, p, dt) {
     }
   } else if (ai.tac && (ai.tac.mode === 'finisher' || ai.tac.mode === 'trapper' || ai.tac.mode === 'rift') && heldBy(T) && p.charge >= ai.want
       && pushRisk(T.x, T.y, (T.x - p.x) / (dT || 1), (T.y - p.y) / (dT || 1), kbOn(p, T, Math.max(0.8, p.charge)), T.r) < 0.45 && Math.max(T.stuck || 0, T.vine || 0, T.frozen || 0) > 0.35 + dT / Math.max(400, shotSpeed(p, 1))
-      && (w.teamPlan && w.teamPlan[p.team] && w.teamPlan[p.team].finish) && (ai.koWait = (ai.koWait || 0) + dt) < 1.4) {
+      && (w.teamPlan && w.teamPlan[p.team] && w.teamPlan[p.team].finish) && (ai.koWait = (ai.koWait || 0) + dt) < 0.55) {
     // (rooted, and no drop behind them from here: hold the full draw and walk round to where there is, while the root lasts)
     ai.want = 1;
   } else if (p.briarArmed && p.charge >= ai.want && !clearLane(p.x, p.y, T.x, T.y, BRIAR.r) && (ai.briarHold = (ai.briarHold || 0) + dt) < 1.5) {

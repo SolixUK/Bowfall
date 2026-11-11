@@ -2637,7 +2637,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.99.2"></script>
+<script src="sim.js?v=0.99.4"></script>
 <script src="coop-data.js"></script>
 <script src="coop.js"></script>
 <script>
@@ -2647,7 +2647,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.99.2';
+const PAGE_VERSION = '0.99.4';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -10068,8 +10068,9 @@ function paintDojo(g) {
   g.strokeStyle = 'rgba(52,30,16,0.55)'; g.lineWidth = 7; g.strokeRect(WALL + 46, WALL + 46, AW - 2 * WALL - 92, AH - 2 * WALL - 92);
   g.strokeStyle = 'rgba(52,30,16,0.35)'; g.lineWidth = 2; g.strokeRect(WALL + 58, WALL + 58, AW - 2 * WALL - 116, AH - 2 * WALL - 116);
   // the yin and yang, inlaid in the middle of the floor
-  const r = 82; g.translate(AW / 2, AH / 2); g.rotate(Math.PI / 2); g.globalAlpha = 0.78;
-  const ink = '#2a1a10', paper = '#efe3c8';
+  // (soaked into the wood, not stuck on it: faint, and the grain shows through)
+  const r = 82; g.translate(AW / 2, AH / 2); g.rotate(Math.PI / 2); g.globalAlpha = 0.3;
+  const ink = '#2a1a10', paper = '#e8d6b0';
   g.fillStyle = ink; g.beginPath(); g.arc(0, 0, r + 6, 0, TAU); g.fill();
   g.fillStyle = paper; g.beginPath(); g.arc(0, 0, r, -Math.PI / 2, Math.PI / 2); g.fill();
   g.fillStyle = ink; g.beginPath(); g.arc(0, 0, r, Math.PI / 2, Math.PI * 1.5); g.fill();
