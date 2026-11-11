@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.9';
+const VERSION = '0.99.10';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -3427,6 +3427,9 @@ function shadeTick(w, f, dt) {
 }
 // how much an archetype hurts you if left alone (the targeting weight; 1 is an all-rounder)
 const ROLE_THREAT = { sniper: 1.25, crossbow: 1.2, assassin: 1.2, ranger: 1.1, ninja: 1.1, trickster: 1.05, trapper: 1, warden: 0.85, juggernaut: 0.75 };
+// targeting weights (tools/target-fit.js tests them): health counts this much per point, a role's threat this much per unit
+// above or below 1, and someone at lowHp or less within reach this much more
+const TARGET_W = { hp: 1.5, threat: 320, finish: 300, lowHp: 24 };
 const CALL_LIFE = 10; // seconds a focus call holds
 // a call to the team: "focus X first" (from a bot, or a person in team chat); bots who listen weigh that target heavily
 function teamCall(w, team, tid, byId, why) {
@@ -4952,11 +4955,12 @@ function botThink(w, p, dt) {
   if (!T || ai.retarget <= 0) {
     let bestS = Infinity;
     for (const q of foes) {
-      let s = Math.hypot(q.x - p.x, q.y - p.y) + q.hp * 1.5 - (lethalDist(q.x, q.y) < 120 ? 150 : 0) + (q.inv > 0 ? 400 : 0);
+      const TW = ai.tw || TARGET_W;
+      let s = Math.hypot(q.x - p.x, q.y - p.y) + q.hp * TW.hp - (lethalDist(q.x, q.y) < 120 ? 150 : 0) + (q.inv > 0 ? 400 : 0);
       // who to kill first (team sense): the damage dealers before the tanks, unless the tank is one good hit from going down
       if (teamK > 0) {
-        s -= ((ROLE_THREAT[q.role] || 1) - 1) * 320 * teamK;
-        if (q.hp <= 24 && Math.hypot(q.x - p.x, q.y - p.y) < botReach(p)) s -= 300 * teamK; // (a kill in hand beats any plan)
+        s -= ((ROLE_THREAT[q.role] || 1) - 1) * TW.threat * teamK;
+        if (q.hp <= TW.lowHp && Math.hypot(q.x - p.x, q.y - p.y) < botReach(p)) s -= TW.finish * teamK; // (a kill in hand beats any plan)
         const C = w.calls && w.calls[p.team];
         if (C && C.tid === q.id && C.by !== p.id && w.t - C.t < CALL_LIFE && ai.heard === C.t + ':' + 1) s -= 230; // (the team's call, if we're listening)
       }
@@ -4990,7 +4994,7 @@ function botThink(w, p, dt) {
   // the team's call: whether we go along with it is decided once a call (the better the team sense, the likelier)
   { const C = w.calls && w.calls[p.team]; if (C && C.by !== p.id && ai.heard !== C.t + ':1' && ai.heard !== C.t + ':0') { ai.heard = C.t + ':' + (Math.random() < 0.25 + 0.7 * teamK ? 1 : 0); ai.retarget = Math.min(ai.retarget, rand(0.2, 0.6)); } }
   // and making one: a bot with team sense, on a team of two or more facing two or more, calls the focus now and then
-  if (!ai.tac && teamK >= 0.45 && mates.length && foes.length >= 2 && !w.cq && !w.tm && w.match.ph === 'play') {
+  if (!ai.tac && !ai.noCall && teamK >= 0.45 && mates.length && foes.length >= 2 && !w.cq && !w.tm && w.match.ph === 'play') {
     const C = w.calls && w.calls[p.team], gap = C ? w.t - C.t : 99, gone = C && !foes.some(q => q.id === C.tid);
     if ((gap > CALL_LIFE || gone) && gap > 6 && Math.random() < dt * 0.35 * teamK) {
       // the most worth killing: the damage they do, over how long they take to kill (health, and a tank's toughness)
@@ -6841,7 +6845,7 @@ function tierSvg(k, size = 22) {
 return {
   TIERS, tierOf, tierSvg,
   TM, TM_NAMES, TM_MINIONS, MASTERY, masteryOf, takeCard, applyStats,
-  teamCall, AIM, AW, AH, WALL, GATES, MAPS, COOP_MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, STAR_SPEED, OPTIONS, optPct, optValue, skillParams, SKILL_MIN, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
+  teamCall, TARGET_W, AIM, AW, AH, WALL, GATES, MAPS, COOP_MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, STAR_SPEED, OPTIONS, optPct, optValue, skillParams, SKILL_MIN, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, FINAL, ROOTK, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, LAB_KEYS, applyArenaPool, arenaPool, rankedPool, arenaSense, PLAYS, BUILDS, facetParams, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg, emblemCol, emblemFull,

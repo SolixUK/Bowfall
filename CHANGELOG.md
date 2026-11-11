@@ -2,6 +2,12 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.10
+
+- Fixed: starting a new arcade run soon after ending one could leave you without your upgrades (your Volley, say) until you reloaded the page. The page only re-sent your remembered picks when something about the brief looked different, and a fresh run at the first duo looked just like the last one. It now re-sends them for every run, and whenever the run's copy doesn't match yours.
+- Fixed: the archers on the line-up cards were stretched tall. They're drawn square now.
+- Targeting tested (`tools/target-fit.js`): two teams with the same line-up (a tank and a damage dealer), differing only in how they choose targets, over thousands of games. Always going for the tank first lost clearly (40% of games). Damage dealers first, whoever's nearest, whoever's lowest and the 0.99.9 rule all came out within a few percent of each other, inside the noise. So the 0.99.9 rule stays: a lean toward damage dealers, finishing the near-dead, and mostly shooting whoever's in front of you.
+
 ## 0.99.9
 
 - **Trapper: Snapped Draw.** A Trapper's brambles (Bramble Trap, Bramble Toss, Snare Arrow, Rip) catch your arms as well as your feet. If you're drawing when one roots you, the draw is lost and you start again from nothing. A green snap and "Draw snapped!" show when it happens.

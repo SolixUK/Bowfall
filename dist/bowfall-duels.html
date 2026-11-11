@@ -1059,7 +1059,7 @@
   .vsi .card > .in::before { content: ''; position: absolute; left: 10%; right: 10%; top: 12%; height: 56%; background: radial-gradient(closest-side, var(--glow, rgba(255,255,255,.22)), transparent); }
   .vsi .row.red .card { --glow: rgba(255,110,80,.35); } .vsi .row.blue .card { --glow: rgba(90,150,255,.35); }
   .vsi .card .flagbg { position: absolute; inset: -10% -20%; background-size: cover; background-position: center; opacity: .3; filter: saturate(1.15) blur(.5px); -webkit-mask-image: linear-gradient(180deg, #000 10%, transparent 80%); mask-image: linear-gradient(180deg, #000 10%, transparent 80%); animation: vsiDrift 4s linear forwards; }
-  .vsi .card canvas { position: absolute; left: 50%; top: 38%; width: 66%; aspect-ratio: 1; transform: translate(-50%, -50%); filter: drop-shadow(0 10px 14px rgba(0,0,0,.7)); animation: vsiPortrait 3.6s ease-out forwards; }
+  .vsi .card canvas { position: absolute; left: 50%; top: 40%; width: 92%; height: auto !important; max-height: none; aspect-ratio: 1 / 1; transform: translate(-50%, -50%); filter: drop-shadow(0 10px 14px rgba(0,0,0,.7)); animation: vsiPortrait 3.6s ease-out forwards; }
   .vsi .card .shine { position: absolute; top: 0; bottom: 0; width: 40%; left: -60%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.35), transparent); animation: vsiShine .9s ease-out forwards; }
   .vsi .card .info { position: absolute; left: 12%; right: 12%; bottom: 0; padding: 26px 4px 14px; text-align: center; background: linear-gradient(180deg, transparent, rgba(0,0,0,.85) 40%); color: var(--ink); }
   .vsi .card .nm { font: 700 clamp(14px, min(1.7vw, 3vh), 28px)/1.05 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 6px #000; }
@@ -2714,7 +2714,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.9';
+const VERSION = '0.99.10';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -6132,6 +6132,9 @@ function shadeTick(w, f, dt) {
 }
 // how much an archetype hurts you if left alone (the targeting weight; 1 is an all-rounder)
 const ROLE_THREAT = { sniper: 1.25, crossbow: 1.2, assassin: 1.2, ranger: 1.1, ninja: 1.1, trickster: 1.05, trapper: 1, warden: 0.85, juggernaut: 0.75 };
+// targeting weights (tools/target-fit.js tests them): health counts this much per point, a role's threat this much per unit
+// above or below 1, and someone at lowHp or less within reach this much more
+const TARGET_W = { hp: 1.5, threat: 320, finish: 300, lowHp: 24 };
 const CALL_LIFE = 10; // seconds a focus call holds
 // a call to the team: "focus X first" (from a bot, or a person in team chat); bots who listen weigh that target heavily
 function teamCall(w, team, tid, byId, why) {
@@ -7657,11 +7660,12 @@ function botThink(w, p, dt) {
   if (!T || ai.retarget <= 0) {
     let bestS = Infinity;
     for (const q of foes) {
-      let s = Math.hypot(q.x - p.x, q.y - p.y) + q.hp * 1.5 - (lethalDist(q.x, q.y) < 120 ? 150 : 0) + (q.inv > 0 ? 400 : 0);
+      const TW = ai.tw || TARGET_W;
+      let s = Math.hypot(q.x - p.x, q.y - p.y) + q.hp * TW.hp - (lethalDist(q.x, q.y) < 120 ? 150 : 0) + (q.inv > 0 ? 400 : 0);
       // who to kill first (team sense): the damage dealers before the tanks, unless the tank is one good hit from going down
       if (teamK > 0) {
-        s -= ((ROLE_THREAT[q.role] || 1) - 1) * 320 * teamK;
-        if (q.hp <= 24 && Math.hypot(q.x - p.x, q.y - p.y) < botReach(p)) s -= 300 * teamK; // (a kill in hand beats any plan)
+        s -= ((ROLE_THREAT[q.role] || 1) - 1) * TW.threat * teamK;
+        if (q.hp <= TW.lowHp && Math.hypot(q.x - p.x, q.y - p.y) < botReach(p)) s -= TW.finish * teamK; // (a kill in hand beats any plan)
         const C = w.calls && w.calls[p.team];
         if (C && C.tid === q.id && C.by !== p.id && w.t - C.t < CALL_LIFE && ai.heard === C.t + ':' + 1) s -= 230; // (the team's call, if we're listening)
       }
@@ -7695,7 +7699,7 @@ function botThink(w, p, dt) {
   // the team's call: whether we go along with it is decided once a call (the better the team sense, the likelier)
   { const C = w.calls && w.calls[p.team]; if (C && C.by !== p.id && ai.heard !== C.t + ':1' && ai.heard !== C.t + ':0') { ai.heard = C.t + ':' + (Math.random() < 0.25 + 0.7 * teamK ? 1 : 0); ai.retarget = Math.min(ai.retarget, rand(0.2, 0.6)); } }
   // and making one: a bot with team sense, on a team of two or more facing two or more, calls the focus now and then
-  if (!ai.tac && teamK >= 0.45 && mates.length && foes.length >= 2 && !w.cq && !w.tm && w.match.ph === 'play') {
+  if (!ai.tac && !ai.noCall && teamK >= 0.45 && mates.length && foes.length >= 2 && !w.cq && !w.tm && w.match.ph === 'play') {
     const C = w.calls && w.calls[p.team], gap = C ? w.t - C.t : 99, gone = C && !foes.some(q => q.id === C.tid);
     if ((gap > CALL_LIFE || gone) && gap > 6 && Math.random() < dt * 0.35 * teamK) {
       // the most worth killing: the damage they do, over how long they take to kill (health, and a tank's toughness)
@@ -9546,7 +9550,7 @@ function tierSvg(k, size = 22) {
 return {
   TIERS, tierOf, tierSvg,
   TM, TM_NAMES, TM_MINIONS, MASTERY, masteryOf, takeCard, applyStats,
-  teamCall, AIM, AW, AH, WALL, GATES, MAPS, COOP_MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, STAR_SPEED, OPTIONS, optPct, optValue, skillParams, SKILL_MIN, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
+  teamCall, TARGET_W, AIM, AW, AH, WALL, GATES, MAPS, COOP_MAPS, setBans, isBanned, MOVE_FEEL, MAP_KEYS, ARENA_LIMITS, ARENA_THEMES, RED_SPAWNS, cleanArena, registerArena, arenaCode, arenaId, TRAIN_MAX, TRAIN_V, trainCurrent, TRAIN_GRADES, trainGrade, interceptAim, shotSpeed, shotDrag, gradeBest, TRAIN_KNOCK, knockSpot, KNOCK_KO, KNOCK_BONUS, PU, PU_TIMED, TREE, HONES, ELEMENTS, ROLES, MAX_SLOTS, CAP_PICKS, STAR_SPEED, OPTIONS, optPct, optValue, skillParams, SKILL_MIN, STYLES, setBotMind, ROLE_STYLE, AMBER_BOOST, TRAP_RANGE, XBOW_RANGE, rangeOf, outOfPits, TRAP_PIT_GAP,
   TEAMS, TEAM_INFO, DIFF, MAX_TEAM, AMBER, TIMES, FINAL, ROOTK, BULLSEYE, CRIT_MUL, CHANNEL, CHANNEL_TIME, CHANNEL_R, LOCK_PREMIUM, isLocked, EMPOWER, EMPOWER_AT, EMPOWER_BONUS, CRACK_WARN, STYLES, cardInfo, archetypeName,
   plagueR, BRIAR, SHADE, MUTATORS, mutMul, mutKeys, EMOTES, LAB_KEYS, applyArenaPool, arenaPool, rankedPool, arenaSense, PLAYS, BUILDS, facetParams, createWorld, join, leave, addBot, removeBot, packSnap, unpackSnap, snapDelta, applyDelta, deltaEmpty, packDelta, unpackDelta, setTeam, setBotDifficulty, setBotSkill, setMap, setPointsToWin, canStart, startMatch, toLobby, setLoadout,
   EMB_COLS, EMB_SHAPES, EMB_PATS, EMB_SYMS, emblemOk, emblemDefault, emblemSvg, emblemCol, emblemFull,
@@ -9595,7 +9599,7 @@ function coopFactory(ctx) {
   function info(room) {
     const C = room.coop; if (!C) return undefined;
     const d = duoAt(C.idx);
-    return { st: C.st, diff: C.diff, diffName: DIFF(C.diff).name, tot: C.st === 'done' ? C.tot : undefined, sweeps: C.sweeps || 0, used: C.used || 0, idx: C.idx, n: N(), lives: C.lives, score: C.score, solo: C.solo ? 1 : 0, beaten: C.beaten, fights: C.fights, paused: C.paused || undefined, test: C.test ? 1 : undefined,
+    return { st: C.st, run: C.startedAt, diff: C.diff, diffName: DIFF(C.diff).name, tot: C.st === 'done' ? C.tot : undefined, sweeps: C.sweeps || 0, used: C.used || 0, idx: C.idx, n: N(), lives: C.lives, score: C.score, solo: C.solo ? 1 : 0, beaten: C.beaten, fights: C.fights, paused: C.paused || undefined, test: C.test ? 1 : undefined,
       cont: C.st === 'lost' && !C.test ? Math.max(0, CONT_WAIT - (Date.now() - C.cardAt) / 1000) : undefined,
       duo: { id: d.id, name: d.name, boss: d.boss ? 1 : undefined, tell: d.tell, map: d.map, mapName: Sim.MAPS[d.map] ? Sim.MAPS[d.map].name : d.map, effects: d.effects, members: d.members.map(m => ({ name: m.name, el: m.el, ro: m.role, ups: m.ups })) },
       ready: [...C.ready], picks: Object.fromEntries([...C.picks].map(([cid, v]) => [cid, v])), result: C.result || undefined, best: C.best || undefined };
@@ -9826,7 +9830,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.99.9';
+const PAGE_VERSION = '0.99.10';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -15669,7 +15673,7 @@ function renderCoop(v, meL, host) {
         if (host) body += `<div class="coopfoot"><button type="button" class="cta sm" data-coop="next">${r.won ? 'Next duo' : 'Try again'}</button><button type="button" class="ghost sm" data-coop="quit">End run</button></div>`;
       } else { // the brief: pick three upgrades, ready up (the last battle's picks come back when they still fit the archetype)
         if (meL) { const keep = []; for (const id of COOP.picks) if (Sim.forcedChoices(meL.el, meL.ro, keep, !!C.solo).includes(id) && keep.length < 3) keep.push(id); COOP.picks = keep;
-          const sent = JSON.stringify([C.idx, meL.el, meL.ro, keep]); if (COOP.sent !== sent && (keep.length || (C.picks[myCid()] || []).length)) { COOP.sent = sent; coopAct('pick', { ups: keep }); } }
+          const sent = JSON.stringify([C.run, C.idx, meL.el, meL.ro, keep, (C.picks[myCid()] || []).join()]); /* (the run too: a new run starts at the first duo with nothing picked, however much it looks like the last one) */ if (COOP.sent !== sent && (keep.length || (C.picks[myCid()] || []).length)) { COOP.sent = sent; coopAct('pick', { ups: keep }); } }
         const have = COOP.picks.filter(id => TREE[id]);
         const opts = meL ? Sim.forcedChoices(meL.el, meL.ro, have, !!C.solo) : [];
         const slots = [0, 1, 2].map(i => have[i] ? `<button type="button" class="slotc full" data-coopdrop="${have[i]}" title="${esc(TREE[have[i]].desc)}">${esc(TREE[have[i]].name)} ×</button>` : `<span class="slotc">Upgrade ${i + 1}</span>`).join('');
