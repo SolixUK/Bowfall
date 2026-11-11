@@ -1058,6 +1058,16 @@
   .vsi .card > .in { position: absolute; top: 0; bottom: 0; left: -14%; right: -14%; transform: skewX(7deg); }
   .vsi .card > .in::before { content: ''; position: absolute; left: 10%; right: 10%; top: 12%; height: 56%; background: radial-gradient(closest-side, var(--glow, rgba(255,255,255,.22)), transparent); }
   .vsi .row.red .card { --glow: rgba(255,110,80,.35); } .vsi .row.blue .card { --glow: rgba(90,150,255,.35); }
+  /* each card dressed in its archer's element (the team still shows in the frame and the aura round it) */
+  .vsi .card.el-frost > .in { background: radial-gradient(90% 60% at 50% 20%, rgba(170,225,255,.35), transparent 70%), repeating-linear-gradient(60deg, rgba(200,240,255,.07) 0 2px, transparent 2px 22px), repeating-linear-gradient(-60deg, rgba(200,240,255,.07) 0 2px, transparent 2px 22px), linear-gradient(180deg, #0f2a3d, #071521); }
+  .vsi .card.el-flame > .in { background: radial-gradient(100% 55% at 50% 100%, rgba(255,120,30,.55), transparent 70%), radial-gradient(3px 3px at 20% 70%, #ffb35a, transparent), radial-gradient(2px 2px at 70% 55%, #ffd27a, transparent), radial-gradient(2px 2px at 40% 40%, #ff8a3d, transparent), linear-gradient(180deg, #2a0d06, #170503); }
+  .vsi .card.el-stone > .in { background: radial-gradient(40% 25% at 25% 30%, rgba(140,115,85,.35), transparent), radial-gradient(35% 20% at 75% 60%, rgba(120,100,75,.35), transparent), radial-gradient(50% 30% at 40% 85%, rgba(160,130,95,.3), transparent), linear-gradient(180deg, #2b241c, #15110c); }
+  .vsi .card.el-storm > .in { background: linear-gradient(115deg, transparent 46%, rgba(255,240,140,.5) 47%, transparent 49%), linear-gradient(70deg, transparent 60%, rgba(200,180,255,.35) 61%, transparent 62.5%), radial-gradient(90% 60% at 50% 15%, rgba(150,120,255,.4), transparent 70%), linear-gradient(180deg, #1b1538, #0b0918); }
+  .vsi .card.el-poison > .in { background: radial-gradient(8px 8px at 25% 75%, rgba(150,255,110,.5), transparent), radial-gradient(5px 5px at 65% 62%, rgba(150,255,110,.45), transparent), radial-gradient(10px 10px at 78% 82%, rgba(120,230,90,.35), transparent), radial-gradient(100% 50% at 50% 100%, rgba(90,200,60,.4), transparent 70%), linear-gradient(180deg, #11240e, #081306); }
+  .vsi .card.el-blood > .in { background: linear-gradient(180deg, rgba(150,10,25,.65) 0 6%, transparent 6%), radial-gradient(6px 22px at 25% 6%, rgba(160,10,30,.8), transparent), radial-gradient(5px 30px at 62% 6%, rgba(160,10,30,.75), transparent), radial-gradient(100% 60% at 50% 40%, rgba(200,30,50,.3), transparent 70%), linear-gradient(180deg, #2a0710, #140307); }
+  .vsi .card.el-void > .in { background: radial-gradient(circle at 50% 40%, rgba(10,0,25,.9) 0 12%, transparent 13%), conic-gradient(from 0deg at 50% 40%, rgba(170,90,255,.35), transparent 25%, rgba(120,60,220,.3) 50%, transparent 75%, rgba(170,90,255,.35)), linear-gradient(180deg, #1c0d33, #0b0516); }
+  .vsi .card.el-shadow > .in { background: radial-gradient(60% 40% at 30% 70%, rgba(120,120,140,.25), transparent), radial-gradient(50% 35% at 70% 30%, rgba(90,90,110,.25), transparent), linear-gradient(180deg, #16161c, #08080b); }
+  .vsi .card.el-machine > .in { background: repeating-linear-gradient(0deg, rgba(255,255,255,.04) 0 1px, transparent 1px 12px), repeating-linear-gradient(90deg, rgba(255,255,255,.04) 0 1px, transparent 1px 12px), radial-gradient(80% 50% at 50% 40%, rgba(255,90,70,.3), transparent 70%), linear-gradient(180deg, #23272e, #0e1013); }
   .vsi .card .flagbg { position: absolute; inset: -10% -20%; background-size: cover; background-position: center; opacity: .3; filter: saturate(1.15) blur(.5px); -webkit-mask-image: linear-gradient(180deg, #000 10%, transparent 80%); mask-image: linear-gradient(180deg, #000 10%, transparent 80%); animation: vsiDrift 4s linear forwards; }
   .vsi .card canvas { position: absolute; left: 50%; top: 40%; width: 92%; height: auto !important; max-height: none; aspect-ratio: 1 / 1; transform: translate(-50%, -50%); filter: drop-shadow(0 10px 14px rgba(0,0,0,.7)); animation: vsiPortrait 3.6s ease-out forwards; }
   .vsi .card .shine { position: absolute; top: 0; bottom: 0; width: 40%; left: -60%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.35), transparent); animation: vsiShine .9s ease-out forwards; }
@@ -2714,7 +2724,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.11';
+const VERSION = '0.99.12';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -4032,7 +4042,7 @@ const TREE = {
   volley:    { tree: 'sniper', also: ['ranger'], active: { cd: 10 }, name: 'Volley', desc: 'Your next shot fires as a burst of three arrows, one after another along your aim. Each deals 65% of the damage and knockback.' },
   quickshot: { tree: 'ranger', name: 'Quickshot', desc: 'For a moment after dashing, your bow draws three times as fast.', reqAny: ['dash', 'momentum'] },
   surefoot:  { tree: 'ranger', name: 'Sure Footing', desc: 'Bogs, frost, snares and freezes barely hold you, and you can dash out of bogs.' },
-  feather:   { tree: 'ranger', trade: true, name: 'Featherweight', desc: '15% faster with a quicker build-up, but you take 30% more knockback.' },
+  feather:   { tree: 'ranger', trade: true, retired: true, name: 'Featherweight', desc: '15% faster with a quicker build-up, but you take 30% more knockback.' },
   grapple:   { tree: 'ranger', cap: true, active: { cd: 6 }, name: 'Grapple', desc: 'Fire a line at the wall or boulder you are aiming at and get pulled to it. Crosses pits and lava.' },
 
   ricochet:  { tree: 'trickster', name: 'Ricochet', desc: 'Arrows bounce once off walls and boulders (losing a little speed and power, as any bounce does).' },
@@ -4170,7 +4180,7 @@ const MAX_TEAM = 4;
 const _unused_ = 0;
 const LETHAL = { lava: 1, burn: 1, spikes: 1, wall: 1, crush: 1, pit: 1, water: 1, saw: 1 };
 const has = (p, id) => p.up.includes(id);
-const TIMES = { pre: 3, post: 10, roundPost: 11.5, pick: 20, game: 120, intro: 3.6 }; // intro: the line-up of both teams before a match's first countdown
+const TIMES = { pre: 3, post: 10, roundPost: 11.5, pick: 20, game: 120, intro: 5.6 }; // intro: the line-up of both teams before a match's first countdown
 
 // is there a hole, water or lava on the line from the target to the thrower (that a harpoon's pull would drag them over)?
 function harpoonThrough(T, p) {
@@ -4432,7 +4442,7 @@ const inTree = (p, id) => treesOf(id).some(t => t === p.element || t === p.role 
 const picksIn = (p, tree) => p.up.filter(id => !TREE[id].base && TREE[id].tree === tree && !TREE[id].cap).length;
 function canTake(p, id) {
   const n = TREE[id];
-  if (!n || n.base || has(p, id) || !inTree(p, id)) return false;
+  if (!n || n.base || n.retired || has(p, id) || !inTree(p, id)) return false; // (retired cards: kept so old records still read, never offered)
   if (n.req && !n.req.every(r => has(p, r))) return false;
   if (n.reqAny && !n.reqAny.some(r => has(p, r))) return false;
   if (n.excl && n.excl.some(x => has(p, x))) return false;
@@ -7099,7 +7109,8 @@ function botPlan(w, p, T, foes, mates, D, G) {
       // knockback worry matters a little less there, because hanging back isn't an answer to it
       const og = outranged(p, q), free = d > reach && d < botReach(q) + 60 ? og : 0;
       sc -= pushRisk(x, y, dx / d, dy / d, kbTravel(q.drawing ? Math.max(0.7, q.charge) : 0.9, p.mass, q.kbMul) * G.kbScale, p.r) * threat * 3 * G.safety * lapse * (1 - 0.35 * free) * (short && d < reach ? 0.5 : 1);
-      sc -= (0.4 + 0.8 * og) * threat * free;
+      sc -= (0.8 + 1.4 * og) * threat * free; // (hovering where they reach us and we don't reach them: the worst spot there is)
+      if (og > 0.3 && q === T && d < reach * 0.95) sc += 0.35 * og; // (and the outranged want to be where their own shots land)
       // closing on a drawn bow: the open ground is for the moment after it looses, not while it's aimed at you. A spot in their
       // sight while they're drawn is much worse, and much better once the shot is away (walk, then hide, then walk)
       if (free && q.drawing) sc -= 1.6 * q.charge * og; else if (free && !q.drawing && q.nockT > 0) sc += 0.5 * og;
@@ -7148,13 +7159,14 @@ function botCoverHop(p, T, d, dt) {
   const ai = p.ai; let P = ai.coverP;
   if (T.disarm > 0.3 || T.frozen > 0) { ai.coverP = null; return null; } // (frozen, stunned, disarmed: they can't shoot, so walk straight in)
   if ((ai.coverOff2 = (ai.coverOff2 || 0) - dt) > 0 && !P) return null; // (just left one: cross the open for a bit before looking for the next)
-  if (P && (Math.hypot(P.x - T.x, P.y - T.y) > d - 20 || Math.hypot(P.x - p.x, P.y - p.y) > 460 || (ai.coverT = (ai.coverT || 0) + dt) > 6)) P = ai.coverP = null; // (passed it, or it's stale)
+  if (P && (Math.hypot(P.x - T.x, P.y - T.y) > d - 20 || Math.hypot(P.x - p.x, P.y - p.y) > 460 || (ai.coverT = (ai.coverT || 0) + dt) > (outranged(p, T) > 0.5 ? 2.5 : 6))) P = ai.coverP = null; // (passed it, or it's stale)
   if (!P) {
     let best = null;
     for (const q of PILLARS) {
       if (q.tower) continue;
       const dm = Math.hypot(q.x - p.x, q.y - p.y), dq = Math.hypot(q.x - T.x, q.y - T.y);
       if (dm > 420 || dq > d - 90 || dq < 150) continue; // (it has to be real progress toward them)
+      if (outranged(p, T) > 0.5 && dq > botReach(p) * 1.05) continue; // (badly outranged: only a rock we can shoot from; one short of our range is just a place to be pinned down)
       const off = angOff(Math.atan2(q.y - p.y, q.x - p.x), Math.atan2(T.y - p.y, T.x - p.x)); if (off > 1.1) continue;
       const sc = dm + off * 200; if (!best || sc < best.sc) best = { q, sc };
     }
@@ -7811,7 +7823,12 @@ function botThink(w, p, dt) {
       const fwd = d > reach ? 0.8 + 0.2 * outg : 0.8, side = 0.5 - 0.25 * (d > reach ? outg : 0);
       gx = ux * fwd - uy * ai.strafe * side; gy = uy * fwd + ux * ai.strafe * side;
       // outgunned on the way in (or walking into a sniper): boulder to boulder rather than across the open
-      if (d > reach * 0.9 && (outg > 0.3 || T.role === 'sniper')) { const c = botCoverHop(p, T, d, dt); if (c) { gx = c[0]; gy = c[1]; } }
+      // (but already being shot while out of our own reach: no hiding behind rocks that don't get us closer, and now and then a
+      // dash straight in between their shots. Hovering at the edge of our range is the worst place there is: their target, never their threat)
+      const shotAt = outg > 0.3 && d > reach * 0.85 && (w.t - (p.lastHurtT || -99) < 2.5 || outg > 0.5); // (badly outranged, a crossbow against bows: always)
+      if (d > reach * 0.9 && (outg > 0.3 || T.role === 'sniper') && !shotAt) { const c = botCoverHop(p, T, d, dt); if (c) { gx = c[0]; gy = c[1]; } }
+      if (shotAt) { gx = ux * 1.2 - uy * ai.strafe * 0.25; gy = uy * 1.2 + ux * ai.strafe * 0.25; ai.coverP = null;
+        if (p.dashN > 0 && ai.dodgeCd <= 0 && !(T.drawing && T.charge > 0.3) && Math.random() < dt * 2.5 && lethalDist(p.x + ux * 220, p.y + uy * 220) > p.r + 30 && clearShot(p.x, p.y, p.x + ux * 220, p.y + uy * 220)) { p.wantDash = true; ai.dashAim = Math.atan2(uy, ux); ai.dodgeCd = 0.6; } }
       botCloseIn(w, p, T, d, reach, D, dt);
     }
     else {
@@ -7929,7 +7946,8 @@ function botThink(w, p, dt) {
   // shot is about to go (decided once per draw, a little late or a little early, not on the instant), the better the bot
   // the more often; a dash begun inside the shooter's last glance is the one that makes them miss. The shooter's lead then lands on where it would have been.
   const juke = botJuke(w, p, foes, D, dt);
-  if (juke) { gx = juke[0] * 2 + gx * 0.2; gy = juke[1] * 2 + gy * 0.2; if (juke[2] && ai.dodgeCd <= 0 && p.dashN > 0 && lethalDist(p.x + juke[0] * 130, p.y + juke[1] * 130) > 40) { ai.dodgeCd = 0.5; p.wantDash = true; ai.dashAim = Math.atan2(juke[1], juke[0]); } }
+  const gapF = T && dT > botReach(p) * 0.85 && dT < botReach(T) ? outranged(p, T) : 0; // (outranged and out of our own reach: every sidestep also gains ground)
+  if (juke) { const jk = gapF > 0.3 ? 0.9 : 2; gx = juke[0] * jk + gx * 0.2 + (gapF > 0.3 ? (T.x - p.x) / dT * 2 * gapF : 0); gy = juke[1] * jk + gy * 0.2 + (gapF > 0.3 ? (T.y - p.y) / dT * 2 * gapF : 0); /* (weaving less and closing more) */ if (juke[2] && ai.dodgeCd <= 0 && p.dashN > 0 && lethalDist(p.x + juke[0] * 130, p.y + juke[1] * 130) > 40) { ai.dodgeCd = 0.5; p.wantDash = true; ai.dashAim = Math.atan2(juke[1], juke[0]); } }
   // --- dodge incoming enemy arrows
   ai.dodgeCd -= dt;
   if (ai.tac && ai.tac.mode === 'bully') { /* a bully doesn't dodge: it walks through */ } else if (iq >= 0.5) {
@@ -7976,7 +7994,7 @@ function botThink(w, p, dt) {
       if (px * cx + py * cy < 0) { px = -px; py = -py; }
       // outranged and with ground to make up: the dodge goes diagonally forward, so every shot avoided is also a step closer
       const og = T ? outranged(p, T) : 0, fx = og > 0.3 && T ? (T.x - p.x) / (dT || 1) * og : 0, fy = og > 0.3 && T ? (T.y - p.y) / (dT || 1) * og : 0;
-      gx = px * 2 + fx * 1.5 + gx * 0.3; gy = py * 2 + fy * 1.5 + gy * 0.3;
+      const fk = gapF > 0.3 ? 3.4 : 1.5; gx = px * 2 + fx * fk + gx * 0.3; gy = py * 2 + fy * fk + gy * 0.3;
       if (ai.dodgeCd <= 0) {
         ai.dodgeCd = 0.7;
         const dx2 = px + fx, dy2 = py + fy;
@@ -9830,7 +9848,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.99.11';
+const PAGE_VERSION = '0.99.12';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -14487,7 +14505,7 @@ function renderBalance() {
     note = 'Win % is a team result, so one strong teammate lifts everyone on their side. The ± is the 95% margin: two rows whose ranges overlap may not really differ. Greyed rows have fewer than ' + MIN_N + ' games.';
   } else if (T === 'up') {
     // compare archers who had each card with archers who could have had it but didn't
-    const ids = Object.keys(TREE).filter(id => !TREE[id].base).concat(Object.keys(HONES));
+    const ids = Object.keys(TREE).filter(id => !TREE[id].base && !TREE[id].retired).concat(Object.keys(HONES));
     const has = (r, id) => HONES[id] ? (r.hn && r.hn[id] > 0) : (r.up || []).includes(id);
     const eligible = (r, id) => HONES[id] ? true : Sim.treesOf(id).some(t => t === 'element' || t === r.el || t === r.ro);
     const items = ids.map(id => {
@@ -14708,7 +14726,7 @@ function syncTitle(me) {
 function helpHtml() {
   const N = Sim.EMPOWER_AT, T = Sim.TIMES;
   const tagsFor = n => (n.active ? `<span class="tg act">Q/E · ${n.active.cd}s</span>` : '') + (n.cap ? '<span class="tg cap">Capstone</span>' : '') + (n.trade ? '<span class="tg trade">Trade-off</span>' : '');
-  const cards = tree => Object.entries(TREE).filter(([id, n]) => Sim.treesOf(id).includes(tree) && !n.base).map(([, n]) => `<li><b>${esc(n.name)}</b>${tagsFor(n)}: ${esc(n.desc)}</li>`).join('');
+  const cards = tree => Object.entries(TREE).filter(([id, n]) => Sim.treesOf(id).includes(tree) && !n.base && !n.retired).map(([, n]) => `<li><b>${esc(n.name)}</b>${tagsFor(n)}: ${esc(n.desc)}</li>`).join('');
   const sec = (id, title, body) => ({ id, title, html: `<section class="help-sec" id="help-${id}"><h3>${title}</h3>${body}</section>` });
   const S = [
     sec('basics', 'Basics', `
@@ -16217,7 +16235,7 @@ function vsiShow(v) {
   const card = (p, i, side) => { const c = cards['p' + p.id], R = vsiRank(p, c, co), E = ELEMENTS[p.el], Ro = ROLES[p.ro], cc = String(p.cc || '').toLowerCase();
     const flag = FLAG_RE.test(cc) && !window.BOWFALL_OFFLINE ? `<div class="flagbg" style="background-image:url('/flag/${cc}.png')"></div>` : '';
     const d = (0.12 + i * 0.13).toFixed(2); let em = ''; for (let k = 0; k < 9; k++) em += `<i class="em" style="left:${(6 + Math.random() * 88).toFixed(0)}%;--e:${(+d + 0.4 + Math.random() * 1.6).toFixed(2)}s;--t:${(1.3 + Math.random() * 1.4).toFixed(2)}s;--x:${(Math.random() * 60 - 30).toFixed(0)}px"></i>`;
-    return `<div class="cw" style="--d:${d}s"><div class="aura"></div><div class="smk t"></div><div class="smk b"></div><div class="card${p.id === myId ? ' you' : ''}" style="animation-delay:${d}s"><div class="in">${flag}<canvas width="192" height="192" data-vsi="${esc(p.id)}" data-side="${side}"></canvas><div class="shine" style="animation-delay:${(0.55 + i * 0.13).toFixed(2)}s"></div>`
+    return `<div class="cw" style="--d:${d}s"><div class="aura"></div><div class="smk t"></div><div class="smk b"></div><div class="card el-${p.bo ? 'machine' : esc(p.el || 'none')}${p.id === myId ? ' you' : ''}" style="animation-delay:${d}s"><div class="in">${flag}<canvas width="192" height="192" data-vsi="${esc(p.id)}" data-side="${side}"></canvas><div class="shine" style="animation-delay:${(0.55 + i * 0.13).toFixed(2)}s"></div>`
       + `<div class="info"><div class="nm">${esc(p.n || 'Archer')}</div><div class="rk" style="--rc:${R.col}">${R.svg}<span>${esc(R.txt)}</span></div><div class="ar">${p.bo ? 'Three builds' : `<i style="--ec:${E ? E.color : '#fff'}">${E ? esc(E.name) : ''}</i> ${Ro ? esc(Ro.name) : ''}`}</div></div></div>`
       + `${p.b || (c && c.ai) ? '<span class="aitag2">AI</span>' : ''}</div><div class="edge"></div>${em}</div>`; };
   const red = ps.filter(p => p.tm === 'red'), blue = ps.filter(p => p.tm === 'blue');
@@ -16227,7 +16245,7 @@ function vsiShow(v) {
     + `<div class="crest"><div class="ring"></div><div class="dia"></div><b>VS</b></div><div class="top"><b>${esc(arena)}</b><small>${sub}</small></div></div><div class="flash"></div>`;
   el.classList.remove('out'); el.hidden = false; VSI.on = true;
   el.style.setProperty('--sk', (el.clientHeight * Math.tan(8 * Math.PI / 180) / 2).toFixed(1) + 'px'); // (the seam is skewed 8°: the halves meet exactly on it)
-  el.querySelectorAll('canvas[data-vsi]').forEach(c => { const p = ps.find(q => String(q.id) === c.dataset.vsi); if (p) vsiPortrait(c, p, c.dataset.side === 'blue'); });
+  el.querySelectorAll('canvas[data-vsi]').forEach(c => { const p = ps.find(q => String(q.id) === c.dataset.vsi); if (!p) return; const px = Math.max(96, Math.min(1024, Math.round((c.offsetWidth || 192) * (window.devicePixelRatio || 1) * 1.15))); c.width = c.height = px; vsiPortrait(c, p, c.dataset.side === 'blue'); });
   try { nz(0.45, 0.05, 'bandpass', 300, 2600, 1.4); nz(0.45, 0.05, 'bandpass', 2600, 300, 1.4, 0.05); os('sine', 140, 38, 0.7, 0.09, 0.38); nz(0.3, 0.06, 'lowpass', 1200, 150, 1, 0.38); os('triangle', 660, 990, 0.25, 0.02, 0.6); } catch (e) {}
   clearTimeout(VSI.t); VSI.t = setTimeout(() => vsiHide(), Sim.TIMES.intro * 1000 - 380);
 }
@@ -22048,7 +22066,7 @@ const farmAI = name => (FARM.ai || []).find(a => a.name === name);
 // the archetype a row will play, if it's fixed (a chosen one, or "their mains" when they have only one)
 const farmLoadout = r => { if (r.lo) return r.lo.split('|'); const a = farmAI(r.who); return a && a.loadouts.length === 1 ? a.loadouts[0] : null; };
 // every upgrade that archetype can take (abilities first)
-const farmCards = (el, ro) => Object.keys(TREE).filter(id => { const T = TREE[id]; if (T.base) return false; const tr = Sim.treesOf(id); return tr.includes(el) || tr.includes(ro); }).sort((a, b) => (!!TREE[b].active - !!TREE[a].active) || TREE[a].name.localeCompare(TREE[b].name));
+const farmCards = (el, ro) => Object.keys(TREE).filter(id => { const T = TREE[id]; if (T.base || T.retired) return false; const tr = Sim.treesOf(id); return tr.includes(el) || tr.includes(ro); }).sort((a, b) => (!!TREE[b].active - !!TREE[a].active) || TREE[a].name.localeCompare(TREE[b].name));
 function farmDefault(team) { // a sensible next pick: the strongest free one for red, a mid one for blue
   const L = FARM.ai || [], used = new Set([...FARM.team.red, ...FARM.team.blue].map(x => x.who));
   const free = L.filter(a => !used.has(a.name)); if (!free.length) return { who: 'skill:0.55', lo: '' };

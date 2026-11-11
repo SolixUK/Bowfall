@@ -2,6 +2,15 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.12
+
+- The line-up stays up for 5.6 seconds (was 3.6) before the countdown.
+- The archers on the cards are sharp now: each one is drawn fresh at the size it shows, at your screen's pixel density, instead of a small picture scaled up.
+- Each card is dressed in its archer's element: icy crystal for Frost, a fire glow and embers for Flame, rock for Stone, lightning across violet for Storm, rising bubbles for Poison, dripping crimson for Blood, a swirling dark for Void, smoke for Shadow, and steel for the Terminator. The team still shows in the frame and the glow round it.
+- Bots outranged and out of their own reach (a crossbowman against bows, say) no longer hover at the edge of their range getting shot. Once they're being hit out there, they stop hiding behind rocks that don't get them closer. Their sidesteps carry them forward, they weave less, and now and then they dash straight in between shots. That edge is the worst place to be: in reach of their bows, out of reach of your own.
+- **Crossbow bots are braver.** The biggest cause of the hanging back was cover. Badly outranged bots (a crossbow against bows) were stepping from rock to rock toward their target, and kept stopping at rocks short of their own range. They now only use a rock they can shoot from, and give up waiting behind one after 2.5 seconds (it was 6). Their planning also counts hovering out of their own reach as much worse, and being within it as better. Against archers standing still, a crossbow bot spent 31% of its time out of its own reach; now it's 14%. One against one with a ranger, it still wins as often as before.
+- **Featherweight is gone** from the Ranger's upgrades. Fleet Foot does its job without the 30% extra knockback. Old match records that mention it still read fine.
+
 ## 0.99.11
 
 - The split-second freeze when you got hit was real: a "hit-stop" held the picture for 50–80 ms on full-draw or bullseye hits, including ones that hit *you*. A burst of hits strung those together, and online the picture then jumped to catch up with the server. Now it only happens on hits you land and knockouts you score, at most once every 0.7 seconds, and never online. Being hit just shakes the screen, as before.

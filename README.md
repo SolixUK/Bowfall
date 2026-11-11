@@ -124,7 +124,6 @@ Cards in *italics* are **trade-offs**: something big for a real cost.
 | Potent Toxin | Poison hurts 50% more | Arrows deal 15% less direct damage |
 | Glass Cannon | Arrows deal 30% more damage | 10 less health |
 | Colossus | A third larger: 30 more health, 35% less knockback; dashes slam 40% harder for +6 damage; bigger arrows (easier to land) | Arrows fly 15% slower, you move 10% slower, much easier to hit |
-| Featherweight | 15% faster, quicker build-up | Take 30% more knockback |
 | Scattershot | Full draws fire three arrows in a fan | Each deals 40% of the damage and 45% of the knockback |
 | Guardian's Oath | Teammates near you take 20% less damage | You take 10% more |
 | Obsidian | Arrows knock back 30% harder | Arrows fly 8% slower |

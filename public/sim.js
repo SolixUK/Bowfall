@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.11';
+const VERSION = '0.99.12';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1327,7 +1327,7 @@ const TREE = {
   volley:    { tree: 'sniper', also: ['ranger'], active: { cd: 10 }, name: 'Volley', desc: 'Your next shot fires as a burst of three arrows, one after another along your aim. Each deals 65% of the damage and knockback.' },
   quickshot: { tree: 'ranger', name: 'Quickshot', desc: 'For a moment after dashing, your bow draws three times as fast.', reqAny: ['dash', 'momentum'] },
   surefoot:  { tree: 'ranger', name: 'Sure Footing', desc: 'Bogs, frost, snares and freezes barely hold you, and you can dash out of bogs.' },
-  feather:   { tree: 'ranger', trade: true, name: 'Featherweight', desc: '15% faster with a quicker build-up, but you take 30% more knockback.' },
+  feather:   { tree: 'ranger', trade: true, retired: true, name: 'Featherweight', desc: '15% faster with a quicker build-up, but you take 30% more knockback.' },
   grapple:   { tree: 'ranger', cap: true, active: { cd: 6 }, name: 'Grapple', desc: 'Fire a line at the wall or boulder you are aiming at and get pulled to it. Crosses pits and lava.' },
 
   ricochet:  { tree: 'trickster', name: 'Ricochet', desc: 'Arrows bounce once off walls and boulders (losing a little speed and power, as any bounce does).' },
@@ -1465,7 +1465,7 @@ const MAX_TEAM = 4;
 const _unused_ = 0;
 const LETHAL = { lava: 1, burn: 1, spikes: 1, wall: 1, crush: 1, pit: 1, water: 1, saw: 1 };
 const has = (p, id) => p.up.includes(id);
-const TIMES = { pre: 3, post: 10, roundPost: 11.5, pick: 20, game: 120, intro: 3.6 }; // intro: the line-up of both teams before a match's first countdown
+const TIMES = { pre: 3, post: 10, roundPost: 11.5, pick: 20, game: 120, intro: 5.6 }; // intro: the line-up of both teams before a match's first countdown
 
 // is there a hole, water or lava on the line from the target to the thrower (that a harpoon's pull would drag them over)?
 function harpoonThrough(T, p) {
@@ -1727,7 +1727,7 @@ const inTree = (p, id) => treesOf(id).some(t => t === p.element || t === p.role 
 const picksIn = (p, tree) => p.up.filter(id => !TREE[id].base && TREE[id].tree === tree && !TREE[id].cap).length;
 function canTake(p, id) {
   const n = TREE[id];
-  if (!n || n.base || has(p, id) || !inTree(p, id)) return false;
+  if (!n || n.base || n.retired || has(p, id) || !inTree(p, id)) return false; // (retired cards: kept so old records still read, never offered)
   if (n.req && !n.req.every(r => has(p, r))) return false;
   if (n.reqAny && !n.reqAny.some(r => has(p, r))) return false;
   if (n.excl && n.excl.some(x => has(p, x))) return false;
@@ -4394,7 +4394,8 @@ function botPlan(w, p, T, foes, mates, D, G) {
       // knockback worry matters a little less there, because hanging back isn't an answer to it
       const og = outranged(p, q), free = d > reach && d < botReach(q) + 60 ? og : 0;
       sc -= pushRisk(x, y, dx / d, dy / d, kbTravel(q.drawing ? Math.max(0.7, q.charge) : 0.9, p.mass, q.kbMul) * G.kbScale, p.r) * threat * 3 * G.safety * lapse * (1 - 0.35 * free) * (short && d < reach ? 0.5 : 1);
-      sc -= (0.4 + 0.8 * og) * threat * free;
+      sc -= (0.8 + 1.4 * og) * threat * free; // (hovering where they reach us and we don't reach them: the worst spot there is)
+      if (og > 0.3 && q === T && d < reach * 0.95) sc += 0.35 * og; // (and the outranged want to be where their own shots land)
       // closing on a drawn bow: the open ground is for the moment after it looses, not while it's aimed at you. A spot in their
       // sight while they're drawn is much worse, and much better once the shot is away (walk, then hide, then walk)
       if (free && q.drawing) sc -= 1.6 * q.charge * og; else if (free && !q.drawing && q.nockT > 0) sc += 0.5 * og;
@@ -4443,13 +4444,14 @@ function botCoverHop(p, T, d, dt) {
   const ai = p.ai; let P = ai.coverP;
   if (T.disarm > 0.3 || T.frozen > 0) { ai.coverP = null; return null; } // (frozen, stunned, disarmed: they can't shoot, so walk straight in)
   if ((ai.coverOff2 = (ai.coverOff2 || 0) - dt) > 0 && !P) return null; // (just left one: cross the open for a bit before looking for the next)
-  if (P && (Math.hypot(P.x - T.x, P.y - T.y) > d - 20 || Math.hypot(P.x - p.x, P.y - p.y) > 460 || (ai.coverT = (ai.coverT || 0) + dt) > 6)) P = ai.coverP = null; // (passed it, or it's stale)
+  if (P && (Math.hypot(P.x - T.x, P.y - T.y) > d - 20 || Math.hypot(P.x - p.x, P.y - p.y) > 460 || (ai.coverT = (ai.coverT || 0) + dt) > (outranged(p, T) > 0.5 ? 2.5 : 6))) P = ai.coverP = null; // (passed it, or it's stale)
   if (!P) {
     let best = null;
     for (const q of PILLARS) {
       if (q.tower) continue;
       const dm = Math.hypot(q.x - p.x, q.y - p.y), dq = Math.hypot(q.x - T.x, q.y - T.y);
       if (dm > 420 || dq > d - 90 || dq < 150) continue; // (it has to be real progress toward them)
+      if (outranged(p, T) > 0.5 && dq > botReach(p) * 1.05) continue; // (badly outranged: only a rock we can shoot from; one short of our range is just a place to be pinned down)
       const off = angOff(Math.atan2(q.y - p.y, q.x - p.x), Math.atan2(T.y - p.y, T.x - p.x)); if (off > 1.1) continue;
       const sc = dm + off * 200; if (!best || sc < best.sc) best = { q, sc };
     }
@@ -5106,7 +5108,12 @@ function botThink(w, p, dt) {
       const fwd = d > reach ? 0.8 + 0.2 * outg : 0.8, side = 0.5 - 0.25 * (d > reach ? outg : 0);
       gx = ux * fwd - uy * ai.strafe * side; gy = uy * fwd + ux * ai.strafe * side;
       // outgunned on the way in (or walking into a sniper): boulder to boulder rather than across the open
-      if (d > reach * 0.9 && (outg > 0.3 || T.role === 'sniper')) { const c = botCoverHop(p, T, d, dt); if (c) { gx = c[0]; gy = c[1]; } }
+      // (but already being shot while out of our own reach: no hiding behind rocks that don't get us closer, and now and then a
+      // dash straight in between their shots. Hovering at the edge of our range is the worst place there is: their target, never their threat)
+      const shotAt = outg > 0.3 && d > reach * 0.85 && (w.t - (p.lastHurtT || -99) < 2.5 || outg > 0.5); // (badly outranged, a crossbow against bows: always)
+      if (d > reach * 0.9 && (outg > 0.3 || T.role === 'sniper') && !shotAt) { const c = botCoverHop(p, T, d, dt); if (c) { gx = c[0]; gy = c[1]; } }
+      if (shotAt) { gx = ux * 1.2 - uy * ai.strafe * 0.25; gy = uy * 1.2 + ux * ai.strafe * 0.25; ai.coverP = null;
+        if (p.dashN > 0 && ai.dodgeCd <= 0 && !(T.drawing && T.charge > 0.3) && Math.random() < dt * 2.5 && lethalDist(p.x + ux * 220, p.y + uy * 220) > p.r + 30 && clearShot(p.x, p.y, p.x + ux * 220, p.y + uy * 220)) { p.wantDash = true; ai.dashAim = Math.atan2(uy, ux); ai.dodgeCd = 0.6; } }
       botCloseIn(w, p, T, d, reach, D, dt);
     }
     else {
@@ -5224,7 +5231,8 @@ function botThink(w, p, dt) {
   // shot is about to go (decided once per draw, a little late or a little early, not on the instant), the better the bot
   // the more often; a dash begun inside the shooter's last glance is the one that makes them miss. The shooter's lead then lands on where it would have been.
   const juke = botJuke(w, p, foes, D, dt);
-  if (juke) { gx = juke[0] * 2 + gx * 0.2; gy = juke[1] * 2 + gy * 0.2; if (juke[2] && ai.dodgeCd <= 0 && p.dashN > 0 && lethalDist(p.x + juke[0] * 130, p.y + juke[1] * 130) > 40) { ai.dodgeCd = 0.5; p.wantDash = true; ai.dashAim = Math.atan2(juke[1], juke[0]); } }
+  const gapF = T && dT > botReach(p) * 0.85 && dT < botReach(T) ? outranged(p, T) : 0; // (outranged and out of our own reach: every sidestep also gains ground)
+  if (juke) { const jk = gapF > 0.3 ? 0.9 : 2; gx = juke[0] * jk + gx * 0.2 + (gapF > 0.3 ? (T.x - p.x) / dT * 2 * gapF : 0); gy = juke[1] * jk + gy * 0.2 + (gapF > 0.3 ? (T.y - p.y) / dT * 2 * gapF : 0); /* (weaving less and closing more) */ if (juke[2] && ai.dodgeCd <= 0 && p.dashN > 0 && lethalDist(p.x + juke[0] * 130, p.y + juke[1] * 130) > 40) { ai.dodgeCd = 0.5; p.wantDash = true; ai.dashAim = Math.atan2(juke[1], juke[0]); } }
   // --- dodge incoming enemy arrows
   ai.dodgeCd -= dt;
   if (ai.tac && ai.tac.mode === 'bully') { /* a bully doesn't dodge: it walks through */ } else if (iq >= 0.5) {
@@ -5271,7 +5279,7 @@ function botThink(w, p, dt) {
       if (px * cx + py * cy < 0) { px = -px; py = -py; }
       // outranged and with ground to make up: the dodge goes diagonally forward, so every shot avoided is also a step closer
       const og = T ? outranged(p, T) : 0, fx = og > 0.3 && T ? (T.x - p.x) / (dT || 1) * og : 0, fy = og > 0.3 && T ? (T.y - p.y) / (dT || 1) * og : 0;
-      gx = px * 2 + fx * 1.5 + gx * 0.3; gy = py * 2 + fy * 1.5 + gy * 0.3;
+      const fk = gapF > 0.3 ? 3.4 : 1.5; gx = px * 2 + fx * fk + gx * 0.3; gy = py * 2 + fy * fk + gy * 0.3;
       if (ai.dodgeCd <= 0) {
         ai.dodgeCd = 0.7;
         const dx2 = px + fx, dy2 = py + fy;
