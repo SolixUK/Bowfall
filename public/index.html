@@ -2716,7 +2716,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.99.10"></script>
+<script src="sim.js?v=0.99.11"></script>
 <script src="coop-data.js"></script>
 <script src="coop.js"></script>
 <script>
@@ -2726,7 +2726,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.99.10';
+const PAGE_VERSION = '0.99.11';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -9165,7 +9165,10 @@ function floater(x, y, text, color, size = 16, mine = false) {
 }
 function shake(v) { if (STUDIO.on && !STUDIO.cur.shake) return; if (!reduceMotion && OPTS.shake) fx.shake = Math.max(fx.shake, v); }
 // impact feel: a split-second freeze on big hits (hit-stop), a short slow-down on your knockouts in practice, and an edge flash
-function impact(stop, slow) { if (!OPTS.shake || RP.on) return; fx.stop = Math.max(fx.stop, stop); if (slow && mode === 'local' && !reduceMotion) fx.slow = Math.max(fx.slow, slow); }
+// (only on hits you land and knockouts you score, at most once every 0.7 s, and never online, where the held picture would
+// jump to catch up with the server: being hit, above all by a burst, mustn't freeze your own screen)
+let impactAt = -9;
+function impact(stop, slow) { if (!OPTS.shake || RP.on || mode === 'online' || clock - impactAt < 0.7) return; impactAt = clock; fx.stop = Math.max(fx.stop, stop); if (slow && mode === 'local' && !reduceMotion) fx.slow = Math.max(fx.slow, slow); }
 function edgeFlash(col, a) { if (!reduceMotion) fx.flash = { col, a, t: 0 }; }
 function feedAdd(html, mine) { feed.push({ html, mine, t: clock }); if (feed.length > 6) feed.shift(); renderFeed(); }
 function renderFeed() { $('feed').innerHTML = feed.map(f => `<div class="${f.mine ? 'mine' : ''}">${f.html}</div>`).join(''); }
@@ -9277,7 +9280,7 @@ function eventFx(e) {
         if (e.ls) floater(e.x, e.y - 50, 'Long shot!', '#ffcf5a', 15);
         if (e.cr) { floater(e.x, e.y - 34, 'Bullseye!', '#ffffff', 14); if (e.by === myId) play('bulls'); }
         if (e.id === myId) shake(6); else if (e.cr && e.by === myId) shake(4);
-        if ((e.fd || e.cr) && (e.id === myId || e.by === myId)) impact(e.fd && e.cr ? 0.075 : 0.05);
+        if ((e.fd || e.cr) && e.by === myId) impact(e.fd && e.cr ? 0.06 : 0.04); // (your hit lands: a beat of weight; theirs on you: just the shake)
         if (e.el === 'stone') stoneHit(e.x, e.y, e.fd || e.cr, e.by === myId);
         break;
       }
@@ -9619,7 +9622,7 @@ function onKill(e) {
     // (amber points are no longer shown)
     notice(howSentence(how, { name: 'you', you: true }, { name: e.vn, html: nameTag(e.vn, e.vc) }, e.m));
   }
-  if (e.v === myId) { sfx.hurt(); shake(10); myDeath = e; impact(0.08); edgeFlash('255,70,80', 0.45); }
+  if (e.v === myId) { sfx.hurt(); shake(10); myDeath = e; edgeFlash('255,70,80', 0.45); }
   else if (e.k === myId) { impact(0.09, 0.3); edgeFlash('255,207,90', 0.35); }
 }
 // one line per highlight the sim picked out for the game that just ended

@@ -2,6 +2,10 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.11
+
+- The split-second freeze when you got hit was real: a "hit-stop" held the picture for 50–80 ms on full-draw or bullseye hits, including ones that hit *you*. A burst of hits strung those together, and online the picture then jumped to catch up with the server. Now it only happens on hits you land and knockouts you score, at most once every 0.7 seconds, and never online. Being hit just shakes the screen, as before.
+
 ## 0.99.10
 
 - Fixed: starting a new arcade run soon after ending one could leave you without your upgrades (your Volley, say) until you reloaded the page. The page only re-sent your remembered picks when something about the brief looked different, and a fresh run at the first duo looked just like the last one. It now re-sends them for every run, and whenever the run's copy doesn't match yours.
