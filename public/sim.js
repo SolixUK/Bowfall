@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.28';
+const VERSION = '0.99.29';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -2824,6 +2824,13 @@ function dashAngle(p) {
   return p.aim;
 }
 const PARRY_REACH = 0.15; // seconds a Parry can reach back to undo a hit that just landed
+// where a ninja's blink that way would land (as ninjaBlink works it out), and whether that and the slide after are clear of drops
+function blinkEnd(p, a) {
+  const dx = Math.cos(a), dy = Math.sin(a); let reach = NINJA_BLINK * (has(p, 'longstep') ? 1.4 : 1) * (p.slow > 0 && !p.sure ? 0.7 : 1), nx = p.x, ny = p.y;
+  for (; reach > 10; reach -= 8) { nx = clamp(p.x + dx * reach, WALL + p.r, AW - WALL - p.r); ny = clamp(p.y + dy * reach, WALL + p.r, AH - WALL - p.r); if (!PILLARS.some(q => Math.hypot(nx - q.x, ny - q.y) < q.r + p.r)) break; }
+  return { x: nx, y: ny, dx, dy };
+}
+const blinkSafe = (p, a) => { const e = blinkEnd(p, a); return lethalDist(e.x, e.y) > p.r + 18 && lethalDist(e.x + e.dx * 45, e.y + e.dy * 45) > p.r + 6; };
 function ninjaBlink(w, p, back) { // back: Echo Step's spot to return to
   const a = back ? Math.atan2(back.y - p.y, back.x - p.x) : dashAngle(p);
   const dx = Math.cos(a), dy = Math.sin(a);
@@ -4720,6 +4727,11 @@ function botSeeTraps(w, p, T, D, dt) {
 // being drawn is held through the dash tick and loosed the next.
 function botDashDir(p, wasDraw) {
   const ai = p.ai, inp = p.input;
+  // a ninja's blink has a set length (it can't stop short) and slides on after it lands: before it goes, check where it
+  // ends. Into a drop, or onto its edge: turn it a little either way to a safe landing, or don't blink at all
+  if (p.wantDash && p.role === 'ninja' && !p.echo) { const a0 = ai.dashAim != null ? ai.dashAim : Math.atan2(inp.my || 0, inp.mx || 0); let ok = null;
+    for (const da of [0, 0.3, -0.3, 0.6, -0.6, 0.9, -0.9]) if (blinkSafe(p, a0 + da)) { ok = a0 + da; break; }
+    if (ok == null) p.wantDash = false; else if (ai.dashAim != null || ok !== a0) ai.dashAim = ok; }
   if (p.wantDash && ai.dashAim != null) { inp.mx = Math.cos(ai.dashAim); inp.my = Math.sin(ai.dashAim); if (wasDraw && !inp.draw) inp.draw = true; }
   ai.dashAim = null;
 }

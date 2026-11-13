@@ -2,6 +2,25 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.29
+
+- **Ninja bots don't blink into holes any more.** A blink has a set length and slides on after it lands, but bots only checked a normal dash's worth of ground ahead. Now they check where the blink actually ends and the slide after it. If that's a drop or the edge of one, they turn the blink a little either way to a safe landing, or don't blink at all. Self-knockouts went from 4% of ninja knockouts to 2% (blinks into drops from 10 to 1), and ninja's win rate in testing went from 44% to 48%.
+- **Smoother online movement.**
+  - Each update's place on the timeline now comes from the server's own tick (60 a second, evenly spaced) instead of when it arrived. Network jitter no longer turns into little lurches in everyone's movement.
+  - When an update comes late, archers and arrows carry on along their way for up to a tenth of a second instead of freezing.
+  - An arrow that hits someone between updates now flies on to them instead of vanishing a moment early (the same fix the kill cam got in 0.99.25).
+- **Soul Siphon in Shadow's colours, in proportion to the heal.** The stream is dusk violet and pale lavender with dark wisps. The heal number is lavender, without the green. How much of it you see follows the size of the heal:
+  - a 1- or 2-shade burst's couple of health is just two or three wisps and a small ring;
+  - a big burst gets a full stream (up to 20 wisps), the link back to you, a flare and two rings.
+- **`node tools/release.js <version>`.** It runs the release checks in one go:
+  - checks the changelog has the version;
+  - sets the version in all four places;
+  - syntax-checks every script, including the page's;
+  - plays two bot matches with the sim;
+  - builds the offline file;
+  - checks no secrets have crept into the files.
+- **Stone, investigated.** In bot tests Stone wins about 36–41%. Most knockouts come from arrow damage, and Stone is the only element that adds no damage of its own (Flame's burn alone accounted for 67 knockouts in one test). Stone does land the most wall slams (269, against 221 for the others and 151 for Flame), but bots fight away from walls and drops, so that rarely decides a game. Against people, who fight closer to walls and drops, its knockback is worth a lot more, which is why it feels strong in play. No change for now.
+
 ## 0.99.28
 
 - **Shadow burst wisps fly to the right archer in kill cams.** The effects in a replay looked people up in the live game behind it rather than in the replay. So the wisps from a burst, and Soul Siphon's stream, headed for wherever the shooter was standing after the match. Effects now find people in the replay frame playing at that moment. That also fixes any other replayed effect that looks someone up.

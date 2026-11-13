@@ -366,6 +366,7 @@ Friends can join straight from a link, for example `https://your-host/play?room=
 | `public/index.html` | Client: menus, rendering, sound, HUD, pick screen. Online it smooths other players with 100 ms interpolation. |
 | `public/sfx/mix.json` | The shipped sound mix from the sound desk (empty means the built-in sounds as they are). |
 | `build-offline.js` | `npm run build:offline` builds a single-file offline copy at `dist/bowfall-duels.html`: double-click it to play practice games with no server. |
+| `tools/release.js` | `node tools/release.js <version>` before every release. It checks the changelog has the version, sets the version in all four places (package.json, `VERSION` in `public/sim.js`, `PAGE_VERSION` and the `sim.js?v=` cache key in `public/index.html`), syntax-checks every script, plays two bot matches with the sim, builds the offline file and checks no secrets have crept into the files. |
 
 ## Tuning
 
