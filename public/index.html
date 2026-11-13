@@ -461,6 +461,7 @@
   .mm { position: relative; display: grid; grid-template-columns: 44px 1fr; grid-template-rows: auto auto; column-gap: 12px; align-items: baseline; text-align: left; padding: 14px 18px; background: linear-gradient(90deg, rgba(16,28,19,.95), rgba(16,28,19,.7)); border: 1px solid var(--line); border-left: 3px solid var(--line); color: var(--text); cursor: pointer; transition: transform .12s, border-color .12s, background .12s; clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%); }
   .mm .mmk { grid-row: 1 / span 2; font: 700 15px 'Rajdhani', 'Arial Narrow', sans-serif; color: var(--muted); }
   .mm b { font: 700 26px/1.1 'Rajdhani', 'Arial Narrow', sans-serif; text-transform: uppercase; letter-spacing: .03em; }
+  .mm b .mmi { width: .95em; height: .95em; vertical-align: -.12em; margin-right: .42em; color: var(--gold); opacity: .9; flex: 0 0 auto; } /* the main menu's little symbols */
   .mm small { color: var(--muted); font-size: 13.5px; }
   .mm:hover:not(:disabled), .mm:focus-visible { transform: translateX(6px); border-left-color: var(--gold); background: linear-gradient(90deg, rgba(255,207,90,.12), rgba(16,28,19,.7)); outline: none; }
   .mm:hover:not(:disabled) .mmk { color: var(--gold); }
@@ -2003,14 +2004,14 @@
       </div>
       <div class="hometitle"><span class="eyebrow">Knockback archery · Team rounds</span><h1>Bow<span>fall</span></h1><div class="homelinks"><div class="online" id="homeOnline" hidden><i></i><b id="homeOnlineN">0</b> online</div></div></div>
       <nav class="mainmenu" aria-label="Main menu">
-        <button class="mm" id="mFind" type="button"><span class="mmk">01</span><b>Find game</b><small>Ranked matchmaking by rating: 1v1, 2v2, 3v3 or any of them at once, on your own or with friends.</small><em class="mmlock" id="mFindBadge" hidden></em></button>
-        <button class="mm" id="mCustom" type="button"><span class="mmk">02</span><b>Custom games</b><small>Browse public games, join with a code, host your own, practise against bots, or build your own arena.</small></button>
-        <button class="mm" id="mCoop" type="button"><span class="mmk">03</span><b>Co-op arcade</b><small>You and a friend (or just you) against fourteen AI duos in a row, each with its own arena and its own trick. Three continues.</small></button>
-        <button class="mm" id="mTrain" type="button"><span class="mmk">04</span><b>Training</b></button>
-        <button class="mm" id="mStore" type="button"><span class="mmk">05</span><b>Store</b><em class="mmlock" id="mStoreBadge" hidden></em></button>
-        <button class="mm" id="mScores" type="button"><span class="mmk">06</span><b>Highscores</b></button>
-        <button class="mm" id="mTut" type="button"><span class="mmk">07</span><b>Tutorial</b><em class="mmlock tutnew" id="mTutBadge" hidden>New? Start here</em></button>
-        <button class="mm" id="mOpts" type="button"><span class="mmk">08</span><b>Options</b></button>
+        <button class="mm" id="mFind" type="button"><span class="mmk">01</span><b><svg class="mmi" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>Find game</b><small>Ranked matchmaking by rating: 1v1, 2v2, 3v3 or any of them at once, on your own or with friends.</small><em class="mmlock" id="mFindBadge" hidden></em></button>
+        <button class="mm" id="mCustom" type="button"><span class="mmk">02</span><b><svg class="mmi" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20L20 4M20 4h-5M20 4v5M4 4l16 16M4 4h5M4 4v5M7 20l-3 0 0-3M17 20h3v-3"/></svg>Custom games</b><small>Browse public games, join with a code, host your own, practise against bots, or build your own arena.</small></button>
+        <button class="mm" id="mCoop" type="button"><span class="mmk">03</span><b><svg class="mmi" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M12 13V7"/><circle cx="12" cy="5" r="2.5"/><circle cx="17" cy="16.5" r="1"/></svg>Co-op arcade</b><small>You and a friend (or just you) against fourteen AI duos in a row, each with its own arena and its own trick. Three continues.</small></button>
+        <button class="mm" id="mTrain" type="button"><span class="mmk">04</span><b><svg class="mmi" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2.5 9 2.5 12 0v-5M22 9v6"/></svg>Training</b></button>
+        <button class="mm" id="mStore" type="button"><span class="mmk">05</span><b><svg class="mmi" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l2-5h14l2 5"/><path d="M3 9c0 2 3.5 2 3.5 0 0 2 3.5 2 3.5 0 0 2 4 2 4 0 0 2 3.5 2 3.5 0 0 2 3.5 2 3.5 0"/><path d="M5 11v9h14v-9M10 20v-5h4v5"/></svg>Store</b><em class="mmlock" id="mStoreBadge" hidden></em></button>
+        <button class="mm" id="mScores" type="button"><span class="mmk">06</span><b><svg class="mmi" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v6a4 4 0 0 1-8 0z"/><path d="M8 6H4v1a4 4 0 0 0 4 4M16 6h4v1a4 4 0 0 1-4 4M12 14v4M8 21h8M9 18h6"/></svg>Highscores</b></button>
+        <button class="mm" id="mTut" type="button"><span class="mmk">07</span><b><svg class="mmi" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5c3-1.5 6-1.5 9 0v15c-3-1.5-6-1.5-9 0z"/><path d="M21 5c-3-1.5-6-1.5-9 0v15c3-1.5 6-1.5 9 0z"/></svg>Tutorial</b><em class="mmlock tutnew" id="mTutBadge" hidden>New? Start here</em></button>
+        <button class="mm" id="mOpts" type="button"><span class="mmk">08</span><b><svg class="mmi" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 3.3a4.5 4.5 0 0 0-5.9 5.9L3 15l3 3 5.8-5.8a4.5 4.5 0 0 0 5.9-5.9l-3 3-2.4-.6-.6-2.4z"/></svg>Options</b></button>
       </nav>
       <div class="homefoot">
         <div class="btnrow"><button class="ghost sm" id="helpBtn" type="button">How to play</button><button class="ghost sm" id="achBtn" type="button">Achievements</button><button class="ghost sm" id="balBtn" type="button">Balance data</button><a class="ghost sm" id="fnBtn" href="/api/funnel?html=1" target="_blank" rel="noopener" hidden>Funnel</a><a class="ghost sm" id="onBtn" href="/api/online?html=1" target="_blank" rel="noopener" hidden>Online now</a><button class="ghost sm" id="sndBtn" type="button" hidden>Sound desk</button><button class="ghost sm" id="farmBtn" type="button" hidden title="AI players fight each other for you to record: trailers, promos, highlight clips">Clip farm</button><button class="ghost sm" id="labBtn" type="button" hidden title="Try new arenas against bots, and choose which arenas are in custom games and the ranked rotation">Arena lab</button><button class="ghost sm" id="aimBtn" type="button" hidden title="Start a real ranked match of AI players at a rating of your choice and watch it, to see how each level plays">AI match</button><button class="ghost sm" id="lgBtn" type="button" hidden title="Run many fast matches between the AI players here on your machine, then send the results up to settle their ratings against each other">AI league</button></div>
@@ -2148,7 +2149,7 @@
       <p class="status" id="coopDiffNote"></p>
       <div class="archrow"><span class="lbl">Where it runs</span><div class="chips" id="coopWhere" data-navsec></div></div>
       <p class="status" id="coopWhereNote"></p>
-      <div class="archrow" id="coopTestRow" hidden><span class="lbl">Owner</span><div class="chips" data-navsec><button type="button" class="chip2" id="coopTest">Test mode: unlimited retries</button></div></div>
+      <div class="archrow" id="coopTestRow" hidden><span class="lbl">Owner</span><div class="chips" data-navsec><button type="button" class="chip2" id="coopTest">Test mode: unlimited retries</button><button type="button" class="chip2" id="coopFlat" title="In a test run, every duo plays at the middle of the level's skill band instead of getting sharper along the ladder, so you can compare them like for like">Flat ladder: no climb</button></div></div>
       <div class="row" data-navsec>
         <button class="cta" type="button" id="coopStart">Start a run</button>
         <div class="field"><label for="coopCode">Join a friend's run</label><input class="code" id="coopCode" maxlength="4" autocomplete="off" placeholder="ABCD"></div>
@@ -2704,7 +2705,7 @@
     <div class="bal-filters">
       <div class="field"><label for="balWho">Archers</label><select id="balWho"><option value="all">Everyone</option><option value="human">People only</option><option value="bot">Bots only</option><option value="me">Just me</option></select></div>
       <div class="field"><label for="balMap">Arena</label><select id="balMap"></select></div>
-      <div class="field"><label for="balSrc">Source</label><select id="balSrc"><option value="all">All games</option><option value="practice">Practice</option><option value="online">Online</option><option value="sim">Simulated</option></select></div>
+      <div class="field"><label for="balSrc">Source</label><select id="balSrc"><option value="all">All games</option><option value="practice">Practice</option><option value="online">Online</option><option value="league">AI league</option><option value="sim">Simulated</option></select></div>
       <div class="field"><label for="balVer">Version</label><select id="balVer"><option value="cur">This version</option><option value="all">All versions</option></select></div>
       <div class="field"><label for="balRules">Rules</label><select id="balRules"><option value="std">Standard rules only</option><option value="all">Any rules</option></select></div>
       <div class="field"><label for="balSize">Team size</label><select id="balSize"><option value="all">Any</option><option value="1">1v1</option><option value="2">2v2</option><option value="3">3v3</option><option value="4">4v4</option></select></div>
@@ -2726,7 +2727,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.99.12"></script>
+<script src="sim.js?v=0.99.15"></script>
 <script src="coop-data.js"></script>
 <script src="coop.js"></script>
 <script>
@@ -2736,7 +2737,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.99.12';
+const PAGE_VERSION = '0.99.15';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -6079,7 +6080,7 @@ function connect(joinMsg) {
       m.rcv = performance.now(); roomInfo = m;
       if (m.arena && m.arena.def) useRoomArena(m.arena);
       if (pendingArena && m.amHost) { act({ t: 'cfg', arena: pendingArena }); pendingArena = null; }
-      if (COOP.pending && m.amHost) { act({ t: 'coop', op: 'start', diff: COOP.pending, test: COOP.test && coopOwner() }); COOP.pending = null; }
+      if (COOP.pending && m.amHost) { act({ t: 'coop', op: 'start', diff: COOP.pending, test: COOP.test && coopOwner(), flat: COOP.test && COOP.flat && coopOwner() }); COOP.pending = null; }
       if (m.coop) { const k = m.coop.idx + ':' + m.coop.st + ':' + (m.coop.fights || 0); if (COOP.key !== k) { COOP.key = k; COOP.sent = null; } } // (your picks are remembered from battle to battle)
       $('roomTag').innerHTML = 'Room <b>' + esc(m.code) + '</b>' + (m.coop ? ` · Duo <b>${m.coop.idx + 1}/${m.coop.n}</b> · ${m.coop.lives} continue${m.coop.lives === 1 ? '' : 's'} · <b>${m.coop.score}</b>` : '');
       hc.lb = hc.gm = hc.lbHead = hc.gmHead = null;
@@ -7860,6 +7861,8 @@ function lgMatch(red, blue, mode) {
   }
   Sim.startMatch(w); w.events.length = 0;
   for (let i = 0; i < 60 * 60 * 25 && w.match.ph !== 'over'; i++) { Sim.step(w, 1 / 60); w.events.length = 0; }
+  // (each game's record goes to the balance data as well, marked as the AI league's)
+  if (w.records.length) { LG.recs = LG.recs || []; for (const r of w.records.splice(0)) if (r.type === 'game') LG.recs.push(Object.assign({}, r, { p: r.p.map(({ id, ...x }) => x) })); }
   return w.match.mw ? { win: w.match.mw, ro } : null;
 }
 // a round's pairings: everyone sorted by rating (with a little shuffle), neighbours paired; 2v2 takes fours, strongest with weakest
@@ -7897,6 +7900,7 @@ function lgTable(rated) {
 async function lgSend(dry) {
   $('lgErr').textContent = ''; $('lgPreview').disabled = $('lgApply').disabled = true;
   try {
+    if (!dry && LG.recs && LG.recs.length) { const recs = LG.recs.splice(0); for (let i = 0; i < recs.length; i += 400) await fetch('/api/owner/aibalance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recs: recs.slice(i, i + 400) }) }).catch(() => {}); } // (the league's games, into the balance data)
     const r = await fetch('/api/owner/ailelo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ results: LG.results, weight: +$('lgWeight').value, dry }) });
     const d = await r.json().catch(() => ({ error: `The server answered ${r.status} without a result (an older server, or the results were too big to send).` }));
     if (!r.ok || d.error) throw new Error(d.error || 'Could not send it.');
@@ -8478,7 +8482,8 @@ $('pracBtn').onclick = () => { closeSubs(); startPractice(); };
 // ================= co-op arcade =================
 // One or two people against the ladder of AI duos (lib/duos.json on the server). The lobby shows the duo coming up, its
 // tell, its archetypes and upgrades; everyone picks an archetype as usual and all three upgrades here, then readies up.
-const COOP = { diff: (v => ({ easy: 2, normal: 5, hard: 7, legend: 10 })[v] || Math.max(1, Math.min(10, Math.round(+v) || 5)))(store.get('bowfall-coop-diff', '5')), where: store.get('bowfall-coop-where', 'local'), test: store.get('bowfall-coop-test', '0') === '1', pending: null, picks: (() => { try { const a = JSON.parse(store.get('bowfall-coop-picks', '[]')); return Array.isArray(a) ? a.filter(id => TREE[id]).slice(0, 3) : []; } catch (e) { return []; } })(), key: null }; // (what you last played is remembered: difficulty, where, and your three upgrades)
+const COOP_FLAT0 = store.get('bowfall-coop-flat', '0') === '1';
+const COOP = { diff: (v => ({ easy: 2, normal: 5, hard: 7, legend: 10 })[v] || Math.max(1, Math.min(10, Math.round(+v) || 5)))(store.get('bowfall-coop-diff', '5')), where: store.get('bowfall-coop-where', 'local'), test: store.get('bowfall-coop-test', '0') === '1', flat: COOP_FLAT0, pending: null, picks: (() => { try { const a = JSON.parse(store.get('bowfall-coop-picks', '[]')); return Array.isArray(a) ? a.filter(id => TREE[id]).slice(0, 3) : []; } catch (e) { return []; } })(), key: null }; // (what you last played is remembered: difficulty, where, and your three upgrades)
 const coopKeep = () => store.set('bowfall-coop-picks', JSON.stringify(COOP.picks));
 const coopOwner = () => OFFLINE || !!(account && account.admin);
 const COOP_WHERE = { local: ['On this device', 'Runs right here: no lag, nothing over the internet. Solo, or with friends on controllers on this screen.'], online: ['Online', 'Runs on the Bowfall server in a private room, so a friend on another computer can join with its code or your invite link.'] };
@@ -8491,9 +8496,10 @@ function coopOpen() {
   if (OFFLINE || !COOP_WHERE[COOP.where]) COOP.where = 'local';
   $('coopWhere').innerHTML = Object.entries(COOP_WHERE).map(([k, d]) => `<button type="button" class="chip2${k === COOP.where ? ' sel' : ''}" data-cwhere="${k}"${k === 'online' && OFFLINE ? ' disabled title="Needs the Bowfall server"' : ''}>${d[0]}</button>`).join('');
   $('coopWhereNote').textContent = COOP_WHERE[COOP.where][1] + (COOP.where === 'local' && LP.list.length ? ` ${LP.list.length} on controller${LP.list.length === 1 ? '' : 's'} will join you.` : '');
-  $('coopTestRow').hidden = !coopOwner(); $('coopTest').classList.toggle('sel', COOP.test && coopOwner());
+  $('coopTestRow').hidden = !coopOwner(); $('coopTest').classList.toggle('sel', COOP.test && coopOwner()); $('coopFlat').classList.toggle('sel', !!COOP.flat && COOP.test && coopOwner()); $('coopFlat').disabled = !COOP.test;
   $('coopErr').textContent = '';
 }
+$('coopFlat').onclick = () => { COOP.flat = !COOP.flat; store.set('bowfall-coop-flat', COOP.flat ? '1' : '0'); coopOpen(); };
 $('coopTest').onclick = () => { COOP.test = !COOP.test; store.set('bowfall-coop-test', COOP.test ? '1' : '0'); coopOpen(); };
 $('coopWhere').addEventListener('click', e => { const b = e.target.closest('[data-cwhere]'); if (!b || b.disabled) return; COOP.where = b.dataset.cwhere; store.set('bowfall-coop-where', COOP.where); coopOpen(); });
 $('coopLevel').addEventListener('input', () => { COOP.diff = +$('coopLevel').value; store.set('bowfall-coop-diff', String(COOP.diff)); coopOpen(); });
@@ -8550,7 +8556,7 @@ function coopWinTick() {
   for (let k = 0; k < 6; k++) setTimeout(() => { if (WIN.on) burst(view ? view.p[0].x : 600, 200, ['#ffcf5a', '#ff8a3d', '#8ff3ff', '#7dff8a'][k % 4], 40, 420, 3); }, k * 350);
 }
 $('winClose').onclick = () => { WIN.shut = WIN.key; $('coopWin').hidden = true; WIN.on = false; };
-$('winAgain').onclick = () => { WIN.shut = WIN.key; $('coopWin').hidden = true; WIN.on = false; coopAct('start', { diff: coopInfo().diff, test: !!coopInfo().test }); };
+$('winAgain').onclick = () => { WIN.shut = WIN.key; $('coopWin').hidden = true; WIN.on = false; coopAct('start', { diff: coopInfo().diff, test: !!coopInfo().test, flat: !!coopInfo().flat }); };
 $('contNo').onclick = () => coopAct('giveup');
 function renderCoop(v, meL, host) {
   const C = coopInfo(), box = $('lbCoop');
@@ -8659,7 +8665,7 @@ function startLocalCoop(diff) {
   myId = me.id; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {}; clearChat();
   LCO.room = { host: 'me', coop: null, ranked: null, world };
   setScreens();
-  coopLocalAct({ op: 'start', diff, test: COOP.test && coopOwner() });
+  coopLocalAct({ op: 'start', diff, test: COOP.test && coopOwner(), flat: COOP.test && COOP.flat && coopOwner() });
   if (!LCO.room.coop) { toMenu(); openSub('coopScr'); }
 }
 
@@ -8675,7 +8681,7 @@ $('lbCoop').addEventListener('click', e => {
   else if (op === 'go' || op === 'next' || op === 'quit') coopAct(op);
   else if (op === 'skip') coopAct('skip', { dir: 1 });
   else if (op === 'back') coopAct('skip', { dir: -1 });
-  else if (op === 'again') coopAct('start', { diff: coopInfo().diff, test: !!coopInfo().test });
+  else if (op === 'again') coopAct('start', { diff: coopInfo().diff, test: !!coopInfo().test, flat: !!coopInfo().flat });
   else if (op === 'leave') $('lbLeave').click();
 });
 setInterval(() => { try { coopContTick(); coopWinTick(); } catch (e) { /* never in the way */ } }, 100);

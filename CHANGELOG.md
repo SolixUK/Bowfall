@@ -2,6 +2,62 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.15
+
+**Balance, from a big overnight test.** Every upgrade (124 of them) was measured against the rest of its own tree. In each mirror match both sides had the same element, role, skill and two other upgrades, and only the third card differed. That's about 750 games a card, on every ranked arena, with team-only cards tested 2v2. 50% is an average card. Situational cards and cards that are mostly skill expression were left alone. Only raw-stat outliers and cards the bots were misplaying were changed, and every change was re-tested:
+- **Blade Guard** (ninja), 79%: the strongest card in the game, but most of that was the bots shooting straight into a raised guard, which a person wouldn't do. Bots now wait a guard out (Parry, Hair Trigger, Blade Guard), the duller ones less reliably. The ninja's full auto is also shorter and lighter (1.4 seconds, a little under half damage per star). Now 61%.
+- **Riot Shield** (juggernaut), 74%: in a duel you're always facing whoever's shooting you, so it was a flat 35% cut on everything. Now 22% less damage and 20% less knockback. 63%.
+- **Mend** (warden), 71%: alone it was a free 45 health every 12 seconds. Healing yourself is now 30; a teammate still gets 45. 65%.
+- **Second Wind** (assassin), 66%: you get back three quarters of the last 2 seconds' damage, not all of it. 61%.
+- **Ballista** (sniper), 66%: the loaded bolt gives 75% more knockback (was double) and 40% more damage (was 50%). 60%.
+- **Scattershot** (trickster), 30%: each arrow of the fan does 50% damage and 55% knockback (was 40% and 45%). 37%. Still below average, but it's a spread shot.
+- **Blood Pact** (blood), 35%: heals 65% of your damage (was 55%). 42%.
+- **Hold the Line** (sniper), 38%: works within 320px (was 250) and knocks 60% harder (was 50%). 40%.
+- **Cloak and Dagger** (assassin), 38%: costs 5 health (was 10). 45%.
+- **Long Step** (ninja): 7% more knockback taken (was 15%).
+- **Piercing Shot** (sniper) needs a second enemy to go through, so it's now a team card and never offered in a 1v1.
+- **Harpoon** (trapper), 34%: the bots were reeling people in with no drop in the way, which only frees a rooted target and hands them the fight. Now they save it for a pull across a hole, water or lava. 45%.
+- **Firework**, 34%: bots fire it to herd someone near a drop or a wall, or someone standing still, not at someone running in the open. 38%. It's a herding tool and still measures below average.
+- The bots' own sense of which cards are worth taking was re-measured from all of this, so they pick better (Stealth over Second Wind for an assassin, for example).
+
+- **Sniper**: arrows now fly 15% faster than other archers' (was 25%). Against a mix of every other role, Master-level sniper bots won 66–69% of their duels, the biggest outlier among the roles. 15% brought that to 62%. The long-range damage bonus and the close-range penalty are unchanged, so the edge is still at range.
+
+**The AI players' arena knowledge, rebuilt.** It's what they pick archetypes by, from 178,716 simulated games. The old table was from before the sniper's close-range penalty, which is why sharp AI players were taking sniper on the Pitch. There, sniper now measures below average and crossbow and ninja on top.
+
+**Roles and elements** (Master bots, 1v1, every ranked arena; a role's element is fixed for the test):
+- Roles: sniper 57%, warden 56%, ranger 54%, crossbow 51%, assassin 50%, juggernaut 49%, trapper 48%, trickster 43%, ninja 41%.
+- Elements (on rangers): storm 55%, flame 54%, poison 54%, blood 53%, frost 51%, stone 47%, void 44%, shadow 42%.
+
+**Ninja.** In duels against a mix of other roles, ninja bots win under 20%. They spend two thirds of the time more than 500px out, walking in and being shot and knocked back by archers who keep their distance. Ninja bots now blink in even with a bow drawn at them (they can't wait for a gap the way a bow can), and spend blinks on it more readily. That didn't move the number on its own, and nor did a 25% knockback resistance or 7% more speed in a test, so nothing more was changed here. It needs its own look.
+
+**Bots**
+- **Snipers stay back.** A sniper now counts its working range as 1,100px (1,250 with Longbow), not 900. Bots in general stand further back (500–820px rather than 420–660), and only step in a little when they keep missing. They won't walk into the open for an ember or a power-up that brings them closer to an enemy. The Long Shots pair hold their own bank of the Narrows and never cross the middle; in a test they now stay past the canyon nearly all the time, where before they ended up on the bridge.
+- **Assassins work round to your back.** The ambush spot a stealthed assassin circled to was actually in front of its target (the check was the wrong way round). Every assassin bot now also likes spots at its target's back and in close, where its shots hurt most.
+- **Aim that moves like a hand.** A bot's aim now speeds up into a swing and eases out onto the target. A top bot's swing is quick but never an instant flick, and a weak one is slow at the start and end rather than crawling at a steady pace. A full turn still takes about as long as before.
+- **AI players emote**, now and then and each in their own temperament: a laugh or a cool face after an easy knockout, angry when it keeps going wrong, a handshake (or a sulk) at the end. Never more than one every 8 seconds.
+- **Draw length tested.** Always full, always quick, and five rules in between were tested against the current one for seven roles. None came out clearly better, so the current rule (quick up close, full when far or when the push would land) stays.
+
+**Arcade**
+- **Flat ladder** for the owner's test runs: every duo plays at the middle of the level's skill band with no climb, so you can compare duos like for like.
+
+**Everything else**
+- **The Dojo** is in the main rotation (custom games and ranked) as a regular arena. If you'd saved your own arena pool, it joins that once; after that it's yours to switch.
+- **Bloodthirst** says what it does: everyone heals for 35% of the damage they deal.
+- **AI league games now go into the balance data**, under a new "AI league" source. Ranked games with AI players were already recorded. The Archers filter (People only, Bots only) shows how bots and people do differently.
+- The main menu buttons have little symbols: a magnifier, crossed arrows, an arcade stick, a mortarboard, a shop front, a trophy, a book and a spanner.
+
+## 0.99.14
+
+- **Frostbite nerfed.** It now takes 5 frost hits to freeze (was 3), each within 6 seconds of the last. Hits on someone already frozen don't count toward the next freeze, so a freeze can't be chained straight into another: once it thaws you're back to needing five. Winter's Grip (empowered Frost) still freezes on the 2nd hit, and the same no-chaining rule applies to it. In a test of two frost crossbows (Frostbite and Triple Bolt) against two rangers, freezes fell from 2.7 a game to 1.6.
+
+## 0.99.13
+
+- **Battering's juggernauts come at you.** Two things kept them hanging back:
+  - Their weave against a drawn bow was replacing their walk in rather than adding to it. A bully's weave is now a stagger on the way in.
+  - Steering round a rock, a big archer could flip sides every time its strafe flipped, and pace up and down in front of the same rock. Now a side, once chosen, is kept until it's past (for every bot), and there's always some way forward in the steering.
+
+  In a test against a sniper at the far end of The Pens, the first juggernaut used to take 11 seconds to reach you, while the second paced up and down 800px away. Now both are usually on top of you in 5 to 7 seconds. Being in your face makes them stronger, so their skill at each level is trimmed to keep them level with the other duos.
+
 ## 0.99.12
 
 - The line-up stays up for 5.6 seconds (was 3.6) before the countdown.

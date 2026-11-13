@@ -555,7 +555,7 @@ async function api(req, res, url) {
   const method = req.method;
   let m;
   const me = await userFromReq(req);
-  const body = method === 'POST' ? await readBody(req, route === '/clip' || route === '/weekplay' || route === '/share' ? 700 * 1024 : route === '/owner/ailelo' ? 4 * 1024 * 1024 : undefined).catch(() => null) : null;
+  const body = method === 'POST' ? await readBody(req, route === '/clip' || route === '/weekplay' || route === '/share' ? 700 * 1024 : route === '/owner/ailelo' || route === '/owner/aibalance' ? 4 * 1024 * 1024 : undefined).catch(() => null) : null;
   if (method === 'POST' && !body) return json(res, 400, { error: 'Bad request.' });
 
   // balance data for the in-game screen
@@ -667,7 +667,7 @@ async function api(req, res, url) {
   if (route === '/arena-pool' && method === 'POST') {
     if (!me || !me.admin) return json(res, 403, { error: 'Only the game owner can change the arenas.' });
     const keys = Sim.LAB_KEYS(), clean = l => (Array.isArray(l) ? l.map(String).filter(k => keys.includes(k)) : []);
-    const cfg = { ranked: clean(body.ranked), custom: clean(body.custom) };
+    const cfg = { ranked: clean(body.ranked), custom: clean(body.custom), known: Sim.LAB_KEYS() }; // (known: every arena there was when this was saved, so a later one can join by itself)
     if (!cfg.ranked.length) return json(res, 400, { error: 'The ranked rotation needs at least one arena.' });
     if (!cfg.custom.length) return json(res, 400, { error: 'Custom games need at least one arena.' });
     SETTINGS.arenas = cfg; await store.setSetting('arenas', cfg); Sim.applyArenaPool(cfg);
@@ -684,6 +684,14 @@ async function api(req, res, url) {
   // rated here with the same rating code as a ranked match, so the AI players' ratings settle against each other without
   // anyone watching. dry: work it out and report, change nothing. weight: a multiplier on the rating change (1 to 4), for a
   // recalibration. Only ratings move (1v1 or team, by mode): no careers, records or learning.
+  // the owner's AI league games, for the balance data (source "AI league"; every archer in them is an AI player)
+  if (route === '/owner/aibalance' && method === 'POST') {
+    if (!me || !me.admin) return json(res, 403, { error: 'Only the game owner can do that.' });
+    const list = Array.isArray(body.recs) ? body.recs.slice(0, 400) : [];
+    const lines = list.filter(r => r && r.type === 'game' && Array.isArray(r.p) && r.p.length <= 8).map(r => JSON.stringify(Object.assign({}, r, { src: 'league', humans: 0, p: r.p.map(x => Object.assign({}, x, { b: 1 })) }))).join('\n');
+    if (lines) { balanceCache = null; await new Promise(ok => fs.appendFile(DATA_FILE, lines + '\n', () => ok())); }
+    return json(res, 200, { ok: true, n: list.length });
+  }
   if (route === '/owner/ailelo' && method === 'POST') {
     if (!me || !me.admin) return json(res, 403, { error: 'Only the game owner can do that.' });
     const list = Array.isArray(body.results) ? body.results.slice(0, 5000) : [], weight = Math.max(1, Math.min(4, +body.weight || 1)), dry = !!body.dry;
