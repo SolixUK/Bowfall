@@ -2727,7 +2727,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.99.24"></script>
+<script src="sim.js?v=0.99.28"></script>
 <script src="coop-data.js"></script>
 <script src="coop.js"></script>
 <script>
@@ -2737,7 +2737,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.99.24';
+const PAGE_VERSION = '0.99.28';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -3380,6 +3380,7 @@ defSnd('stoneHit', 'element', 'Stone crunch', (big = false) => nz(big ? 0.16 : 0
 defSnd('flashpoint', 'element', 'Flashpoint', () => nz(0.25, 0.09, 'lowpass', 1400, 300, 1), { ab: 'flashpoint' });
 defSnd('shade', 'element', 'Shadow stack', (n = 1, v = 1) => os('sine', 240 - 25 * n, 120, 0.2, 0.05 * v), { el: 'shadow', vars: [['1 stack', [1]], ['3 stacks', [3]]], vol: a => a[1] == null ? 1 : a[1] });
 defSnd('shadeUp', 'element', 'Deep Shade', () => os('sine', 180, 90, 0.2, 0.04), { ab: 'deepshade' });
+defSnd('siphon', 'element', 'Soul Siphon heal', () => { os('sine', 520, 880, 0.35, 0.045); os('triangle', 780, 1180, 0.28, 0.025); }, { el: 'shadow', vol: vMine });
 defSnd('shadeBurst', 'element', 'Shadow burst', (big = 1) => { nz(0.22, 0.09 * big, 'lowpass', 700, 160, 2); os('sawtooth', 140, 50, 0.22, 0.035 * big); }, { el: 'shadow', vol: vMine, vars: [['Small', [0.72]], ['Big', [1.6]]] });
 defSnd('eclipse', 'element', 'Eclipse', () => { nz(0.6, 0.08, 'lowpass', 500, 120, 1); os('sine', 220, 70, 0.6, 0.05); }, { ab: 'eclipse' });
 defSnd('transfuse', 'element', 'Transfusion', (v = 1) => os('sine', 330, 660, 0.25, 0.035 * v), { ab: 'transfusion', vol: vMine });
@@ -9483,16 +9484,24 @@ function eventFx(e) {
         // and on whoever planted it: the shade's power comes back to them, wisps streaming in and a dark pulse round them
         const by = e.by != null && view && view.p.find(z => z.id === e.by);
         if (by && !by.dead) {
-          if (!lightFx()) for (let i = 0; i < Math.min(16, 3 + n * 1.5); i++) { const a = rand(0, TAU), v = rand(80, 200); fx.parts.push({ x: e.x + rand(-10, 10), y: e.y + rand(-10, 10), vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0, max: rand(0.55, 0.85), color: i % 2 ? '#8e95c9' : '#c9ccf2', r: rand(1.8, 3), home: by }); }
+          if (!lightFx()) for (let i = 0; i < Math.min(16, 3 + n * 1.5); i++) { const a = rand(0, TAU), v = rand(80, 200); fx.parts.push({ x: e.x + rand(-10, 10), y: e.y + rand(-10, 10), vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0, max: rand(0.55, 0.85), color: i % 2 ? '#8e95c9' : '#c9ccf2', r: rand(1.8, 3), home: { x: by.x, y: by.y }, homeId: by.id }); }
           fx.rings.push({ x: by.x, y: by.y, r: 6, life: -0.3, col: '142,149,201', max: 34 + 3 * Math.min(10, n), lw: 4 });
           if (by.id === myId && n >= 3) floater(by.x, by.y - 44, n >= 6 ? 'Shadow burst!' : 'Burst', '#aab0e0', n >= 6 ? 15 : 12, true);
         }
         break;
       }
-      case 'siphon': { // Soul Siphon: the burst heals whoever planted it
-        const q = view && view.p.find(z => z.id === e.id);
-        if (q) { if (!lightFx()) for (let i = 0; i < 10; i++) { const a = rand(0, TAU), v = rand(60, 160); fx.parts.push({ x: e.x, y: e.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0, max: 0.8, color: '#b9f0c8', r: rand(1.8, 2.8), home: q }); }
-          floater(q.x + 14, q.y - 30, '+' + e.v, '#a8f0c0', 14, q.id === myId); fx.rings.push({ x: q.x, y: q.y, r: 6, life: -0.35, col: '125,255,170', max: 30, lw: 3 }); }
+      case 'siphon': { // Soul Siphon: the burst heals whoever planted it. A good stream of it, so it reads at a glance
+        const q = view && view.p.find(z => z.id === e.id), big = Math.min(1.6, 0.8 + (e.v || 0) / 25);
+        if (q) {
+          const nP = lightFx() ? 8 : Math.round(22 * big);
+          for (let i = 0; i < nP; i++) { const a = rand(0, TAU), v = rand(90, 240); fx.parts.push({ x: e.x + rand(-12, 12), y: e.y + rand(-12, 12), vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: -rand(0, 0.25), max: rand(0.9, 1.3), color: i % 3 === 0 ? '#ffffff' : i % 3 === 1 ? '#7dffaa' : '#b9f0c8', r: rand(2.6, 4.4), home: { x: q.x, y: q.y }, homeId: q.id }); } // (in waves: some leave a moment later, so it reads as a stream)
+          fx.bolts.push({ x1: e.x, y1: e.y, x2: q.x, y2: q.y, life: 0, col: '125,255,170' }); fx.bolts.push({ x1: e.x, y1: e.y, x2: q.x, y2: q.y, life: -0.12, col: '200,255,220' });
+          burst(e.x, e.y, '#7dffaa', 10, 120, 2.6);
+          fx.rings.push({ x: q.x, y: q.y, r: 6, life: -0.45, col: '125,255,170', max: 44 * big, lw: 6 }); fx.rings.push({ x: q.x, y: q.y, r: 6, life: -0.6, col: '220,255,230', max: 30 * big, lw: 3 });
+          for (let i = 0; i < 14; i++) { const a = rand(0, TAU), v = rand(60, 130); fx.parts.push({ x: q.x, y: q.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: -0.45, max: 0.5, color: '#7dffaa', r: rand(2, 3.4) }); } // (and a green flare on them as it arrives)
+          floater(q.x + 16, q.y - 34, '+' + e.v + ' ♥', '#7dffaa', Math.round(16 + 4 * big), q.id === myId);
+          if (q.id === myId) play('siphon');
+        }
         break;
       }
       case 'nightfall': { // empowered Shadow: a big burst and they melt into the dark
@@ -9828,7 +9837,7 @@ function updateFx(dt) {
       if (t) { while (t.length && clock - t[0].at > 0.18) t.shift(); if (!t.length) TRAIL.delete(p.id); }
     }
   } else TRAIL.clear();
-  for (let i = fx.parts.length - 1; i >= 0; i--) { const p = fx.parts[i]; p.life += dt; if (p.home) { const hx = p.home.x - p.x, hy = p.home.y - p.y, hd = Math.hypot(hx, hy) || 1, sp = 260 + 900 * Math.min(1, p.life / p.max); p.vx += (hx / hd * sp - p.vx) * Math.min(1, dt * 7); p.vy += (hy / hd * sp - p.vy) * Math.min(1, dt * 7); if (hd < 14) p.life = p.max + 1; } /* (home: a wisp drawn in to someone, the shade's power going back to whoever planted it) */ p.x += p.vx * dt; p.y += p.vy * dt; if (!p.home) { p.vx *= 0.94; p.vy *= 0.94; } if (p.life > p.max) fx.parts.splice(i, 1); }
+  for (let i = fx.parts.length - 1; i >= 0; i--) { const p = fx.parts[i]; p.life += dt; if (p.life < 0) continue; /* (not out yet: a delayed one) */ if (p.home) { if (p.homeId != null && fx.drawn) { const z = fx.drawn.p.find(y => y.id === p.homeId); if (z && !z.d) { p.home.x = z.x; p.home.y = z.y; } } /* (following them as they move, in whatever's on screen: the game, or a replay) */ const hx = p.home.x - p.x, hy = p.home.y - p.y, hd = Math.hypot(hx, hy) || 1, sp = 260 + 900 * Math.min(1, p.life / p.max); p.vx += (hx / hd * sp - p.vx) * Math.min(1, dt * 7); p.vy += (hy / hd * sp - p.vy) * Math.min(1, dt * 7); if (hd < 14) p.life = p.max + 1; } /* (home: a wisp drawn in to someone, the shade's power going back to whoever planted it) */ p.x += p.vx * dt; p.y += p.vy * dt; if (!p.home) { p.vx *= 0.94; p.vy *= 0.94; } if (p.life > p.max) fx.parts.splice(i, 1); }
   for (let i = fx.floaters.length - 1; i >= 0; i--) { const f = fx.floaters[i]; f.life += dt; f.y -= 40 * dt; if (f.life > 0.9) fx.floaters.splice(i, 1); }
   for (const m of fx.mends) m.t += dt; fx.mends = fx.mends.filter(m => m.t < m.tt + 0.25);
   for (const c of fx.crosses) c.t += dt; fx.crosses = fx.crosses.filter(c => c.t < 1.1);
@@ -12972,6 +12981,7 @@ function drawEdgeFlash() {
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore();
 }
 function render(replaying) {
+  fx.drawn = view; // (what's on screen: for effects that follow someone)
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.fillStyle = THEME.forest; ctx.fillRect(0, 0, W, H);
   let sx = 0, sy = 0;
@@ -13029,7 +13039,7 @@ function render(replaying) {
   if (me && me.sr && !me.d && !replaying) drawShroud(me);
   for (const r of fx.rings) { if (r.life < 0) continue; ctx.strokeStyle = `rgba(${r.col || '255,138,61'},${1 - r.life / 0.4})`; ctx.lineWidth = r.lw || 6; ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, TAU); ctx.stroke(); }
   drawMends(view);
-  if (!(STUDIO.on && !STUDIO.cur.parts)) for (const p of fx.parts) { ctx.globalAlpha = Math.max(0, 1 - p.life / p.max); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU); ctx.fill(); }
+  if (!(STUDIO.on && !STUDIO.cur.parts)) for (const p of fx.parts) { if (p.life < 0) continue; ctx.globalAlpha = Math.max(0, 1 - p.life / p.max); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU); ctx.fill(); }
   ctx.globalAlpha = 1; ctx.textAlign = 'center';
   for (const f of fx.floaters) {
     ctx.globalAlpha = clamp((0.9 - f.life) * 3, 0, 1);
@@ -14341,8 +14351,24 @@ function replayFrameAt(t) {
   return Object.assign({}, A.v, {
     m: Object.assign({}, A.v.m, { gt: lerp(A.v.m.gt || 0, B.v.m.gt || 0, k) }),
     p: A.v.p.map(q => { const n = pb.get(q.id); return n && n.d === q.d && Math.hypot(n.x - q.x, n.y - q.y) < 120 ? Object.assign({}, q, { x: lerp(q.x, n.x, k), y: lerp(q.y, n.y, k), a: lerpAng(q.a, n.a, k), f: q.f && n.f ? lerp(q.f, n.f, k) : q.f }) : q; }),
-    a: A.v.a.map(q => { const n = ab.get(q.id); return n && !q.s && !n.s && Math.hypot(n.x - q.x, n.y - q.y) < 450 ? Object.assign({}, q, { x: lerp(q.x, n.x, k), y: lerp(q.y, n.y, k) }) : q; }),
+    a: A.v.a.map(q => { const n = ab.get(q.id);
+      if (n) return !q.s && Math.hypot(n.x - q.x, n.y - q.y) < 450 ? Object.assign({}, q, { x: lerp(q.x, n.x, k), y: lerp(q.y, n.y, k) }) : q; // (on to where it is next, or where it sticks)
+      if (q.s) return q;
+      // gone by the next frame: it hit someone in between. Updates come 30 a second online, and slow motion holds each one for
+      // several screen frames, so leaving it where it last was makes it stop short and vanish. Fly it on to the hit instead
+      // (where the hit event says it landed), or failing that, on along its path
+      const end = replayArrowEnd(q.id, A.t, B.t);
+      if (end) { const kk = end.t > A.t ? clamp((t - A.t) / (end.t - A.t), 0, 1) : 1; return Object.assign({}, q, { x: lerp(q.x, end.x, kk), y: lerp(q.y, end.y, kk) }); }
+      const P = fr[lo - 1], pq = P && P.t < A.t && P.v.a.find(z => z.id === q.id);
+      if (pq && !pq.s) { const f = (t - A.t) / (A.t - P.t); if (f < 1.5 && Math.hypot(q.x - pq.x, q.y - pq.y) < 450) return Object.assign({}, q, { x: q.x + (q.x - pq.x) * f, y: q.y + (q.y - pq.y) * f }); }
+      return q; }),
   });
+}
+// where an arrow that's gone by the next recorded frame ended up: its hit (the hit event carries the arrow's id and where it landed)
+function replayArrowEnd(id, t0, t1) {
+  const R = RP.on; if (!R || !R.evs) return null;
+  if (!R.arrEnd) { R.arrEnd = new Map(); for (const x of R.evs) if (x.e.e === 'hit' && x.e.aid != null && x.e.x != null && !R.arrEnd.has(x.e.aid)) R.arrEnd.set(x.e.aid, { t: x.t, x: x.e.x, y: x.e.y }); }
+  const e = R.arrEnd.get(id); return e && e.t >= t0 - 0.02 && e.t <= t1 + 0.05 ? e : null;
 }
 // ---- smooth cameras (the clip farm's, and the clip studio's smooth follow)
 // a box round what matters whose edges grow quickly (so nothing leaves the picture) and shrink slowly; the camera eases to fit it
@@ -14399,7 +14425,7 @@ function replayTick(dt) {
   R.cur += dt * R.rate * (R.mul || 1);
   if (R.holdAt != null) R.cur = R.holdAt; // (a freeze frame: the picture held, the camera still settling)
   // replay the visual effects as their moment comes round
-  while (R.fired < R.evs.length && R.evs[R.fired].t <= R.cur) { replayFx(R.evs[R.fired].e); R.fired++; }
+  if (R.fired < R.evs.length && R.evs[R.fired].t <= R.cur) { const live = view; view = replayFrameAt(R.cur); /* (effects that look someone up, like a burst's wisps flying back to whoever planted it, find them where they are in the replay, not in the live game behind it) */ try { while (R.fired < R.evs.length && R.evs[R.fired].t <= R.cur) { replayFx(R.evs[R.fired].e); R.fired++; } } finally { view = live; } }
   if (R.cur >= seg.t1) {
     if (++R.si >= R.segs.length) { endReplay(); return null; }
     // cut to the next knockout: skip the quiet bit in between (and its effects), with a quick flash

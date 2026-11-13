@@ -14,13 +14,15 @@
 //   node tools/arena-fit.js run [matches]    simulate (a few hours: thousands of matchups, two at a time) into tools/fit-out/
 //   node tools/arena-fit.js run roles,plays  just those parts (roles, plays, cards, effects, els, effels)
 //   node tools/arena-fit.js build            read tools/fit-out/*.jsonl and write lib/ai-meta.json
+//   node tools/arena-fit.js prep <arena> [N] a new arena, before it goes into the rotation: checks, its tables, the rebuild (see prep below)
 'use strict';
 const fs = require('fs'), path = require('path'), { spawn } = require('child_process');
 const S = require('../public/sim.js');
 const OUT = path.join(__dirname, 'fit-out'), META = path.join(__dirname, '..', 'lib', 'ai-meta.json');
 const ROLES = ['frost,sniper', 'stone,juggernaut', 'frost,ranger', 'storm,trickster', 'flame,warden', 'poison,trapper', 'shadow,assassin', 'shadow,ninja', 'void,crossbow'];
 const ELS = ['frost', 'flame', 'storm', 'poison', 'stone', 'void', 'shadow', 'blood'];
-const maps = () => S.rankedPool();
+let ONLY = null; // (prep: one arena only, its rows replaced, the others' kept)
+const maps = () => (ONLY ? [ONLY] : S.rankedPool());
 const parse = s => { const [el, ro, play] = s.split(','); return { el, ro, play: play || null }; };
 
 // one matchup: two Master bots, sides alternating, N matches → game and match wins (and, with random picks, each side's cards per game won or lost)
@@ -63,14 +65,15 @@ function jobs(parts) {
 async function run(N, parts) {
   fs.mkdirSync(OUT, { recursive: true });
   const J = jobs(parts); let i = 0; const t0 = Date.now();
-  for (const k of new Set(J.map(j => j[0]))) fs.writeFileSync(path.join(OUT, k + '.jsonl'), '');
+  for (const k of new Set(J.map(j => j[0]))) { const f = path.join(OUT, k + '.jsonl');
+    if (!ONLY) fs.writeFileSync(f, ''); else { let keep = []; try { keep = fs.readFileSync(f, 'utf8').trim().split('\n').filter(l => l && JSON.parse(l).map !== ONLY); } catch (e) {} fs.writeFileSync(f, keep.length ? keep.join('\n') + '\n' : ''); } }
   console.log(`${J.length} matchups`);
   const worker = () => new Promise(res => { const next = () => { if (i >= J.length) return res(); const [kind, ...args] = J[i++];
     const n = kind === 'roles' || kind === 'cards' ? N : Math.max(2, Math.round(N * 2 / 3));
     const ch = spawn(process.execPath, [__filename, 'one', kind, ...args, String(n)], { stdio: ['ignore', 'pipe', 'inherit'] });
     let out = ''; ch.stdout.on('data', d => out += d); ch.on('close', () => { if (out.trim()) fs.appendFileSync(path.join(OUT, kind + '.jsonl'), out.trim() + '\n'); if (i % 50 === 0) console.log(`${i}/${J.length}, ${Math.round((Date.now() - t0) / 60000)} min`); next(); }); }; next(); });
   await Promise.all([worker(), worker()]);
-  fs.writeFileSync(path.join(OUT, 'DONE'), new Date().toISOString());
+  if (!ONLY) fs.writeFileSync(path.join(OUT, 'DONE'), new Date().toISOString());
   console.log('done');
 }
 function build() {
@@ -125,8 +128,40 @@ function build() {
   fs.writeFileSync(META, JSON.stringify(meta));
   console.log(`wrote ${META}: ${Object.keys(meta.roles).length} arenas, ${Object.keys(meta.effects).length} effects, ${Object.keys(meta.plays).length} arenas of plays, ${Object.keys(meta.cardMap).length} arenas of cards, ${meta.games} games`);
 }
+// ---- prep: everything a new arena needs before it goes into the rotation, so the AI players know it on day one
+//   1. its profile (open sight lines, drops, harpoon sense, hold spot), as the bots and the AI players' picks see it
+//   2. a self-knockout check: each archetype on it (Master, 1v1 against each other) and how often bots walk or blink into its
+//      drops on their own. Over a few percent is a bot-brain problem with this arena to fix before trusting any number below
+//   3. its roles, plays and cards tables (only this arena's rows are replaced), then lib/ai-meta.json rebuilt
+//   4. the result: archetypes best to worst here, its best and worst cards, and how that differs from the nearest arena it
+//      was borrowing from until now
+async function prep(map, N) {
+  if (!map || !S.arenaSense(map)) { console.log('usage: node tools/arena-fit.js prep <arena key> [matches per matchup]'); return; }
+  const a = S.arenaSense(map), r2 = x => Math.round(x * 100) / 100;
+  console.log(`1. ${map}: open ${r2(a.open)}, drops ${r2(a.holes)}, harpoon ${r2(a.hook)}, size ${r2(a.big)}, ${a.island ? 'island, ' : ''}${a.hold ? 'a spot to hold' : 'no spot to hold'}`);
+  const old = (() => { try { return JSON.parse(fs.readFileSync(META, 'utf8')); } catch (e) { return null; } })();
+  console.log('2. self-knockouts (Master 1v1s, every archetype):');
+  let bad = 0;
+  for (const A of ROLES) { let self = 0, ko = 0; const ar = parse(A);
+    for (const B of ROLES) { const b = parse(B); for (let m = 0; m < 2; m++) { const w = S.createWorld({ map, opt: { effect: 'none' } }); w.cfg.pointsToWin = 1; w.cfg.gamesToWin = 2;
+      const pa = S.addBot(w, m ? 'blue' : 'red'), pb = S.addBot(w, m ? 'red' : 'blue'); S.setLoadout(w, pa.id, ar.el, ar.ro); S.setLoadout(w, pb.id, b.el, b.ro); pa.dparams = pb.dparams = S.skillParams(0.9);
+      S.startMatch(w); for (let i = 0; i < 60 * 60 * 12 && w.match.ph !== 'over'; i++) { S.step(w, 1 / 60); for (const e of w.events) if (e.e === 'kill' && !e.npc && e.v === pa.id) { ko++; if (!e.k || e.k === e.v) self++; } w.events.length = 0; } } }
+    const pc = ko ? Math.round(100 * self / ko) : 0; if (pc > 3) bad++;
+    console.log(`   ${ar.ro.padEnd(11)} ${pc}% of ${ko} knockouts${pc > 3 ? '   <- too many: fix before trusting the tables' : ''}`); }
+  ONLY = map;
+  console.log('3. roles, plays and cards on ' + map + ' (this takes a while)...');
+  await run(N, ['roles', 'plays', 'cards']);
+  build();
+  const M = JSON.parse(fs.readFileSync(META, 'utf8')), fit = M.roles[map] || {}, near = old && old.sense ? Object.keys(old.sense).filter(k => k !== map).sort((x, y) => { const d = k => { const s2 = old.sense[k]; return Math.abs(s2.open - a.open) * 2 + Math.abs(s2.holes - a.holes) * 2 + Math.abs(s2.big - a.big); }; return d(x) - d(y); })[0] : null;
+  console.log(`4. ${map}, archetypes best to worst (the arena's own lean; ${old && old.roles[map] ? 'was measured before' : 'borrowed from ' + near + ' until now'}):`);
+  for (const [ro, f] of Object.entries(fit).sort((x, y) => y[1] - x[1])) { const was = old && (old.roles[map] || old.roles[near] || {})[ro]; console.log(`   ${ro.padEnd(11)} ${f >= 0 ? '+' : ''}${f.toFixed(3)}${was != null ? `   (was ${was >= 0 ? '+' : ''}${was.toFixed(3)})` : ''}`); }
+  const cm = Object.entries(M.cardMap[map] || {}).sort((x, y) => y[1] - x[1]);
+  if (cm.length) console.log(`   best cards: ${cm.slice(0, 6).map(([k, v]) => k + ' ' + (v >= 0 ? '+' : '') + v).join(', ')}\n   worst cards: ${cm.slice(-6).map(([k, v]) => k + ' ' + v).join(', ')}`);
+  if (bad) console.log(`   ${bad} archetype(s) knock themselves out too often here: see step 2`);
+}
 const [cmd, ...rest] = process.argv.slice(2);
 if (cmd === 'one') { const [kind, map, effect, A, B, N] = rest; console.log(JSON.stringify(duel(map, effect, A, B, +N || 6, kind === 'cards'))); }
 else if (cmd === 'run') { const parts = (rest.find(x => /^[a-z,]+$/.test(x)) || '').split(',').filter(Boolean); run(+rest.find(x => /^\d+$/.test(x)) || 6, parts.length ? parts : null); }
 else if (cmd === 'build') build();
-else console.log('node tools/arena-fit.js run [matches] [roles,plays,cards,effects,els,effels] | build');
+else if (cmd === 'prep') prep(rest[0], +rest[1] || 8);
+else console.log('node tools/arena-fit.js run [matches] [roles,plays,cards,effects,els,effels] | build | prep <arena> [matches]');

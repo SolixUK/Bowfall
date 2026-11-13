@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.24';
+const VERSION = '0.99.28';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -3455,6 +3455,12 @@ const DEEP_SHADE = 1.5, SIPHON = 0.4, NIGHTFALL_FADE = 1.5; // Deep Shade's burs
 const BURN_DPS = 4, POISON_DPS = 1.2, BLOOD_HEAL = 0.35, BLOOD_PACT_HEAL = 0.65, STAGGER_KB = 1.25, STAGGER_DRAW = 0.5, VOID_DMG = 0.06; // the elements' base numbers (0.83 balance pass)
 // a shade of p's on q that bursts for enough to finish them (another hit would only restart its fuse)
 const shadeKills = (p, q) => !!(q && q.shade && q.shade.by === p.id && shadeDmg(q.shade.n) * (has(p, 'deepshade') ? DEEP_SHADE : 1) >= q.hp - 0.5 && q.shade.t > 0.05);
+// a shade on q that will finish them when it bursts (whoever planted it): what's coming, and when
+function shadeDoom(w, q) {
+  const s = q.shade; if (!s || !(s.t > 0)) return null;
+  const o = w.players.find(z => z.id === s.by), dmg = shadeDmg(s.n) * (o && has(o, 'deepshade') ? DEEP_SHADE : 1);
+  return dmg >= q.hp - 0.5 ? { t: s.t, dmg, by: o } : null;
+}
 function plantShade(w, f, owner) {
   const add = owner.emp && owner.element === 'shadow' ? 2 : 1;
   if (!f.shade) f.shade = { by: owner.id, t: SHADE.t, n: 0 };
@@ -5174,7 +5180,7 @@ function botThink(w, p, dt) {
     const near = Math.min(st.near * (1.3 - ag * 0.6) * bandK, reach * 0.55), far = Math.min(st.far * (1.25 - ag * 0.5) * bandK, reach * 0.88) * pressIn;
     const dx = T.x - p.x, dy = T.y - p.y, d = dT || 1, ux = dx / d, uy = dy / d;
     // (backing off from someone who outranges you only means being shot in the back: the outgunned stand their ground unless nearly dead)
-    let shaky = p.hp < p.maxHp * (outg > 0.5 ? 0.15 : 0.35) * (p.element === 'blood' && es >= 0.5 ? 0.7 : 1) && ag < 0.65 && d < far * 1.2; // (Blood: hits heal, so backing off hurt is the wrong move)
+    let shaky = !(ai.doom && ai.doom.all) && p.hp < p.maxHp * (outg > 0.5 ? 0.15 : 0.35) * (p.element === 'blood' && es >= 0.5 ? 0.7 : 1) && ag < 0.65 && d < far * 1.2; // (Blood: hits heal, so backing off hurt is the wrong move)
     // backing off hurt is for a moment, not for the rest of the game: after a few seconds of it (or with the enemy as hurt
     // as you, or your back to a wall) the fight is on again, or two hurt archers would back into corners and trade misses
     // until the clock ran out
@@ -5307,6 +5313,36 @@ function botThink(w, p, dt) {
     if (q) { const dq = Math.hypot(q.x - p.x, q.y - p.y) || 1, ux = (p.x - q.x) / dq, uy = (p.y - q.y) / dq; let bx = ux - uy * ai.strafe * 0.6, by = uy + ux * ai.strafe * 0.6;
       if (lethalDist(p.x + bx * 80, p.y + by * 80) < p.r + 40) { bx = -uy * ai.strafe; by = ux * ai.strafe; } // (not backwards into a drop: sideways)
       gx = bx; gy = by; ai.coverP = null; } }
+  // --- a shade on us that will finish us when it bursts (we can see it ticking down, and its size). Those who know what
+  // it means (the sharper, the surer; decided once per shade) do something drastic about it in the time that's left:
+  // heal past it (Mend, a medkit, enough amber, or the spring, whichever can be reached and is enough in time), or,
+  // failing that, go all in: a last enemy who can be knocked out before it pops ends the game first, and anyone
+  // might be taken down with us (Blood's arrows heal, too). The shot is drawn only as far as the time allows
+  { const dm = shadeDoom(w, p);
+    if (!dm) ai.doom = null;
+    else {
+      if (!ai.doom || ai.doom.by !== (dm.by && dm.by.id)) ai.doom = { by: dm.by && dm.by.id, knows: Math.random() < 0.25 + 0.75 * clamp(D.mind != null ? D.mind : D.iq || 0, 0, 1) };
+      const dg = ai.doom; dg.t = dm.t; dg.heal = null; dg.go = null; dg.all = false;
+      if (dg.knows) {
+        const need = dm.dmg - p.hp + 1, sp = Math.max(120, p.speed), reach = (d) => Math.max(0, d - (p.dashN > 0 ? 170 : 0)) / sp + 0.1;
+        const mendI = p.slots.indexOf('mend');
+        if (mendI >= 0 && !(p.abCd[mendI] > 0) && MEND_SELF * (p.poisonT > 0 ? 0.5 : 1) >= need) dg.heal = 'mend';
+        else {
+          let best = null;
+          for (const u of w.pickups) { if (u.chan || inBog(u.x, u.y, 30)) continue; const gain = u.type === 'heal' ? 40 : u.type === 'amber' ? AMBER_BOOST.hp : 0; if (gain < need) continue;
+            const d = Math.hypot(u.x - p.x, u.y - p.y), tt = reach(d); if (tt < dm.t - 0.05 && (!best || tt < best.tt)) best = { x: u.x, y: u.y, tt, d }; }
+          if (!best && HEAL) { const d = Math.max(0, Math.hypot(HEAL.x - p.x, HEAL.y - p.y) - HEAL.r * 0.6), tt = reach(d), rate = HEAL.rate * (p.poisonT > 0 ? 0.5 : 1); if (tt + need / rate < dm.t - 0.05) best = { x: HEAL.x, y: HEAL.y, tt, d }; }
+          if (best) { dg.heal = 'go'; dg.go = best; }
+        }
+        if (dg.go) { const dx = dg.go.x - p.x, dy = dg.go.y - p.y, d = Math.hypot(dx, dy) || 1;
+          if (d > 140 && p.dashN > 0 && !(p.dashT > 0) && ai.dodgeCd <= 0 && dashClear(p, Math.atan2(dy, dx), Math.min(d, 170))) { p.wantDash = true; ai.dashAim = Math.atan2(dy, dx); ai.dodgeCd = 0.4; }
+          gx = dx / d * Math.min(1, d / 30); gy = dy / d * Math.min(1, d / 30); ai.coverP = null; ai.doomMv = w.t; }
+        else if (!dg.heal && T) { dg.all = true; // all in: get in reach and shoot
+          if (dT > botReach(p) * 0.75) { const ux = (T.x - p.x) / (dT || 1), uy = (T.y - p.y) / (dT || 1); gx = ux; gy = uy; ai.coverP = null; ai.doomMv = w.t;
+            if (dT > botReach(p) && p.dashN > 0 && !(p.dashT > 0) && ai.dodgeCd <= 0 && dashClear(p, Math.atan2(uy, ux), 170)) { p.wantDash = true; ai.dashAim = Math.atan2(uy, ux); ai.dodgeCd = 0.4; } } }
+      }
+    }
+  }
   // the harpoon play, once it's in: the line holds half a second before it reels, so get to where the pull drags them over a
   // drop (a step, or a dash). Those who know the trick (role knowledge); the duo has its own
   if (!ai.tac && !hurtBad && kn(p) > 0.35) { const q = foes.find(f => f.hook && f.hook.by === p.id && f.hook.t > 0);
@@ -5329,7 +5365,7 @@ function botThink(w, p, dt) {
   // like a person, the bot dodges the *draw*: a bow drawn well back and pointed its way gets a sidestep or a dash as the
   // shot is about to go (decided once per draw, a little late or a little early, not on the instant), the better the bot
   // the more often; a dash begun inside the shooter's last glance is the one that makes them miss. The shooter's lead then lands on where it would have been.
-  const hookMv = ai.hookMv === w.t; // (on the way to the harpoon spot: the half second matters more than a juke; a shot actually coming still gets dodged, but the spot keeps most of its pull)
+  const hookMv = ai.hookMv === w.t || ai.doomMv === w.t; // (on the way to the harpoon spot: the half second matters more than a juke; a shot actually coming still gets dodged, but the spot keeps most of its pull)
   const juke = hookMv ? null : botJuke(w, p, foes, D, dt);
   const gapF = T && dT > botReach(p) * 0.85 && dT < botReach(T) ? outranged(p, T) : 0; // (outranged and out of our own reach: every sidestep also gains ground)
   const bully = ai.tac && ai.tac.mode === 'bully'; // (a bully's weave is a stagger on the way in, never instead of it: the goal keeps its full weight)
@@ -5526,6 +5562,8 @@ function botThink(w, p, dt) {
         const per = p.role === 'crossbow' ? 0.2 : 1 / (p.drawMul || 1), flight = dT / Math.max(300, shotSpeed(p, ai.want)), need = ai.want * per + flight + 0.15; // (a full draw takes a second)
         if (T.shade.t < need) ai.want = clamp((T.shade.t - flight - 0.15) / per, 0.3, 1);
       }
+      // a shade about to finish us and nothing to heal with: the shot has to land before it pops, so it's drawn only as far as that allows
+      if (ai.doom && ai.doom.all) { const per = p.role === 'crossbow' ? 0.2 : 1 / (p.drawMul || 1), flight = dT / Math.max(300, shotSpeed(p, ai.want)); ai.want = clamp(Math.min(ai.want, (ai.doom.t - flight - 0.1) / per), 0.2, 1); }
       // Void: with marks on them, a half draw already homes in; the full draw is for the finish
       if (p.element === 'void' && T.voidBy === p.id && T.voidT > w.t && (T.voidN || 0) >= 2 && es >= 0.5 && ai.want < 1 && T.hp > 25) ai.want = Math.max(ai.want, 0.6);
     }
@@ -5771,7 +5809,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
       }
       case 'mend': {
         const hurtMate = w.players.some(q => q !== p && q.team === p.team && !q.dead && !q.npc && q.hp < q.maxHp * 0.55 && Math.hypot(q.x - p.x, q.y - p.y) < MEND_RANGE);
-        use = noticed(p, 'mend', hurtMate || p.hp < p.maxHp * 0.6, dt);
+        use = (p.ai.doom && p.ai.doom.heal === 'mend') || noticed(p, 'mend', hurtMate || p.hp < p.maxHp * 0.6, dt); // (a shade about to finish them: Mend now, whatever else)
         break;
       }
       case 'execute': use = !!T && T.hp < T.maxHp * 0.45 && chg > 0.3; break;

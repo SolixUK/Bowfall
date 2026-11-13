@@ -2,6 +2,35 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.28
+
+- **Shadow burst wisps fly to the right archer in kill cams.** The effects in a replay looked people up in the live game behind it rather than in the replay. So the wisps from a burst, and Soul Siphon's stream, headed for wherever the shooter was standing after the match. Effects now find people in the replay frame playing at that moment. That also fixes any other replayed effect that looks someone up.
+- **The wisps follow the archer as they move**, live and in replays, instead of flying to the spot where the archer stood when the burst went off.
+
+## 0.99.27
+
+- **Bots react to a shade that will finish them.** A bot can see the shade on it ticking down and how big it is. When the burst would knock it out, a bot that knows what that means does something drastic in the time that's left. The sharper the bot, the more surely; the decision is made once per shade.
+  - **Heal past it:** Mend if it's ready, or else whichever medkit, amber or spring it can reach in time that heals enough. It dashes there, and that takes priority over sidestepping.
+  - **Otherwise, all in:** it closes to range and shoots, drawing only as far as the time allows. It stops backing off at low health. Against a last enemy, a knockout first wins the game; Blood's arrows heal on the way.
+  - Against Shadow, bots in that spot were caught by a burst 180 times instead of 230 (about 1,000 games each). Shadow won 46% of those games instead of 51%.
+- **How strong is Shadow?** In a like-for-like test, each element against a random other element, the same archetype on both sides, mixed skill (0.6 to 0.95), ranked arenas, about 735 games each:
+  - Flame 62%, Poison 59%, Frost 52%, Shadow 50%, Blood 49%, Void 47%, Storm 46%, Stone 36%.
+  - Self-knockouts were 0 to 1% for every element.
+- **Preparing a new arena:** `node tools/arena-fit.js prep <arena>`. It checks the arena's profile and how often bots knock themselves out on it, measures its roles, plays and cards (replacing only that arena's rows), and rebuilds the AI's tables. The plan is in `docs/new-arena-prep.md`. Dojo was already measured, and sniper is one of its best picks.
+
+## 0.99.26
+
+- **Soul Siphon is easier to see.** A burst that heals you now:
+  - sends a thick stream of white and green wisps to you, in waves, so it reads as a stream;
+  - draws two quick green links from the target to you, with a green puff where it burst;
+  - ends in a green flare and two rings on you as it arrives.
+  
+  The heal number is bigger, with a ♥ (larger the bigger the heal). You also hear a soft rising chime when it's yours. Other effects can now hold their particles back a moment, so streams like this can come in waves.
+
+## 0.99.25
+
+- **Smoother arrows in kill cams.** An arrow that hits someone between two recorded frames now flies on to the exact spot it landed (from the hit itself) before it disappears. Before, it froze where it last was and vanished short of the target. Online the game records 30 updates a second, so in slow motion that gap was easy to see. An arrow that disappears without a recorded hit carries on along its path, and one that sticks in the ground or a wall now glides to where it stuck instead of jumping there.
+
 ## 0.99.24
 
 - **Shadow stacks to 10.** Past 5, every hit still adds 10 to the burst (50, 60, 70, 80, 90), so there's no longer a point where you have to stop shooting for it to pay off.
