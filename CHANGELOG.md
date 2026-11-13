@@ -2,6 +2,26 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.23
+
+- **The harpoon play, for every bot that knows it.**
+  - Before throwing, they look for a spot they can reach in the half second the line holds (a step, or a dash) from which the reel drags the target over a hole or lava. They throw when there's one, not only when a drop is already in between.
+  - Once it lands, they get to that spot. They aim for where the target will be when it reels, keep that spot while it still works, and put it ahead of jukes. A shot actually coming at them still gets dodged.
+  - With the harpoon ready on an arena built for it, they also favour standing with a drop between them and their target.
+  - In a trace of 150 matches, the pull went over a drop 57% of the time, against 47% before, and reels that ended in a knockout went from 30 to 41.
+- **Arenas for it.** Each arena now has a harpoon measure: how much of the floor someone can be dragged over a drop from. It's highest on Meadow, Rift, Spring, Beach, Highland Reach and Moat Keep; middling on Mill and Farm; low on Sideline (small pools in the corners); and nil on Pitch and Dojo.
+  - The harpoon play is only tried where it's 0.55 or more, and pre-positioning for it only at 0.6 or more.
+  - Bots value the Harpoon card by it, so it's a poor pick on Sideline and a good one on Moat Keep.
+  - A drop that happens to be in between is still taken anywhere.
+- **Role knowledge.** Bots now have a knowledge of the archetype they're playing, separate from their aim and reactions. It's their general sense unless they've been given more. It decides the harpoon play, how well they place and lead a Bramble Trap, not wasting a Snare on someone already held, saving Bull Rush for a shove into something, the assassin's ambush and Rip.
+- **Specialists know their role instead of playing better overall.** A specialist's aim, dodging, reactions and positioning on their pick are now their own. What they get on it is a top player's role knowledge (0.55 + 0.45 × skill) and a sharper sense of its upgrades (mind +0.25). The hold-up rule is unchanged.
+  - That's worth only a point or two of win rate so far, against about 15 for the old flat skill boost. So expect specialists on weak archetypes to rest it more often until each archetype has more tricks for knowledge to unlock.
+
+## 0.99.22
+
+- **Specialist AI players.** About one AI player in eight is now a one-trick on an archetype the arenas don't favour: trickster, ninja, trapper, juggernaut, assassin or crossbow. That's their main if it's one of those; otherwise one settled from their name. On it they play a notch above their usual skill (+0.08, about what an off-meta archetype needs to stand level with the meta picks), and they bring it to most matches (85%) whatever the arena. They don't swap off it at the end of the draft.
+- **Only while it holds up.** Each specialist keeps a record of their last 50 or so games on it, with older ones fading. Their rating follows their results, so it's a record at their own rating. Once it's under 42% over a dozen or more games, they stop forcing it and pick like everyone else (keeping the edge if they do play it). They go back to it once the slump has faded (a few dozen matches on other things), or sooner if they're winning half when they do play it. In a simulation of 400 matches, a specialist winning 55% on it plays it about 80% of the time, one at 50% about 60%, and one at 38% about a quarter. The AI players page shows who's a specialist, and whether they're resting it.
+
 ## 0.99.21
 
 - **Volley on frozen targets.** Bots with Frostbite go back to firing Volley at someone who's already frozen. Those hits don't build the next freeze, but a frozen target can't dodge, so all three arrows land and Volley's cooldown resets. They still use it to finish a freeze they're building too. In the same test as last time (about 750 games), the pair wins 54%.

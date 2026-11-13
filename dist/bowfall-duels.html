@@ -2725,7 +2725,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.21';
+const VERSION = '0.99.23';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -3474,8 +3474,15 @@ function senseArena() {
   for (let i = 0; i < N; i++) { const a = i / N * TAU; hit.push([100, 130, 160, 190, 220, 250].some(r => lethalDist(cx + Math.cos(a) * r, cy + Math.sin(a) * r) < 0)); if (hit[i]) ring++; }
   let run = 0, gap = 0; for (let i = 0; i < 2 * N; i++) { if (hit[i % N]) run = 0; else gap = Math.max(gap, ++run); }
   const hub = ring >= 16 && gap <= 9 && lethalDist(cx, cy) > 60, island = hub && ring >= 23; // (hub: a crossing worth holding, if not quite an island)
+  // hook: how much of the floor someone can be harpooned from over a drop (a hole or lava between them and a safe spot a
+  // harpoon's throw away, with a clear shot): big drops in the middle make an arena for it, small pools tucked in corners don't
+  let hk = 0, hn = 0;
+  for (let i = 0; i < pts.length; i += 3) { const [tx, ty] = pts[i]; hn++; let ok = false;
+    for (let k = 0; k < 24 && !ok; k++) for (const r of [220, 320, 420, 520]) { const a = k / 24 * TAU, x = tx + Math.cos(a) * r, y = ty + Math.sin(a) * r;
+      if (x < WALL + 30 || x > AW - WALL - 30 || y < WALL + 30 || y > AH - WALL - 30 || solid(x, y) || lethalDist(x, y) < 50) continue;
+      if (harpoonThrough({ x: tx, y: ty }, { x, y }) && clearShot(x, y, tx, ty)) { ok = true; break; } } if (ok) hk++; }
   HAZ = keepHaz; WARN = keepWarn; SAWPOS = keepSaw;
-  return (MAP.sense = { open: pairs ? clear / pairs : 1, holes: pts.length ? near / pts.length : 0, bog: pts.length ? bog / pts.length : 0, big: (AW * AH) / (BASE_W * BASE_H), island, saws: SAWS.length > 0,
+  return (MAP.sense = { hook: hn ? +(hk / hn).toFixed(3) : 0, open: pairs ? clear / pairs : 1, holes: pts.length ? near / pts.length : 0, bog: pts.length ? bog / pts.length : 0, big: (AW * AH) / (BASE_W * BASE_H), island, saws: SAWS.length > 0,
     heal: HEAL ? { x: HEAL.x, y: HEAL.y, r: HEAL.r } : null, hold: HEAL ? { x: HEAL.x, y: HEAL.y, r: Math.max(HEAL.r, 120) } : hub ? { x: cx, y: cy, r: 140 } : null, ring });
 }
 // the same, for an arena by key (the server, choosing archetypes for AI players before a match)
@@ -4203,6 +4210,20 @@ function harpoonThrough(T, p) {
   for (let s = 30; s < d - 40; s += 18) { const x = T.x + dx / d * s, y = T.y + dy / d * s; for (const h of HAZ) if ((h.type === 'pit' || h.type === 'lava') && inHaz(h, x, y, -12)) return true; }
   return false;
 }
+// a spot near the thrower (up to maxR away, safe to stand on and get to) from which a harpoon's pull drags T over a drop: the
+// harpoon play. Where to stand when it's thrown, and where to get to in the half second it holds before it reels
+function hookSpot(p, T, maxR) {
+  let best = null;
+  for (let r = 0; r <= maxR; r += 50) { for (let i = 0; i < (r ? 16 : 1); i++) { const a = i / 16 * TAU, x = p.x + Math.cos(a) * r, y = p.y + Math.sin(a) * r;
+    if (x < WALL + 30 || x > AW - WALL - 30 || y < WALL + 30 || y > AH - WALL - 30 || lethalDist(x, y) < 45 || (r && !clearLane(p.x, p.y, x, y, p.r)) || !harpoonThrough(T, { x, y })) continue;
+    best = { x, y, r }; break; } if (best) break; }
+  return best;
+}
+// role knowledge (0..1): how well a bot knows the archetype it's playing, its abilities and its tricks (the harpoon play, an
+// ambush, when to save a Bull Rush). Their general sense (iq) unless they've been given more for this one (a specialist)
+const kn = p => (p.ai && p.ai.know != null && p.ai.knowRo === p.role ? p.ai.know : botD(p).iq || 0.5);
+// the arena's harpoon sense (see senseArena): how much of it there's a drop to drag people over
+const hookSense = () => (MAP.sense || senseArena()).hook || 0;
 function inHaz(h, x, y, pad = 0) {
   if (h.shape === 'circle') return Math.hypot(x - h.x, y - h.y) < h.r + pad;
   return x > h.x - pad && x < h.x + h.w + pad && y > h.y - pad && y < h.y + h.h + pad;
@@ -4547,6 +4568,7 @@ function setBotMind(w, id, o) {
   if (o.gene) p.gene = Object.assign({}, o.gene);
   p.ai.plays = Array.isArray(o.plays) ? o.plays.filter(k => PLAYS[k]) : null;
   p.ai.builds = Array.isArray(o.builds) ? o.builds.filter(k => BUILDS[k]) : null;
+  if ('know' in o) { p.ai.know = o.know == null ? null : clamp(+o.know, 0, 1); p.ai.knowRo = p.role; } // (role knowledge: for the archetype they're on now)
   if ('tactic' in o) p.ai.tac = o.tactic && typeof o.tactic === 'object' && o.tactic.mode ? Object.assign({}, o.tactic) : null;
   p.ai.base = { aggr: p.ai.aggr, tr: p.ai.tr ? Object.assign({}, p.ai.tr) : null, gene: p.gene ? Object.assign({}, p.gene) : null }; // (what a play leans from)
   return true;
@@ -4579,7 +4601,7 @@ function botPickIndex(p, w) {
   const S = w ? senseArena() : null; // (the sharper bots pick for the arena: the pulls and shoves are for arenas with something to throw people into)
   const score = id => HONES[id] ? 0.6 * iq + Math.random() * (1.5 - iq) : alone && TEAM_ONLY.includes(id) ? -1 :
     (TREE[id].cap ? 5 - 3 * iq : 1) + (TREE[id].active ? 1 - 0.5 * iq : 0) + (st && st.cards.includes(id) ? 1.8 - 1.2 * iq : 0) + (CARD_VALUE[id] || 0) * 40 * iq + Math.random() * (1.5 - iq)
-    + (S && HAZ_CARDS[id] ? (S.holes - 0.3) * 4 * HAZ_CARDS[id] * iq : 0)
+    + (S && HAZ_CARDS[id] ? (id === 'harpoon' ? (S.hook - 0.55) * 6 : (S.holes - 0.3) * 4 * HAZ_CARDS[id]) * iq : 0) // (the harpoon: by how much of the arena there's a drop to drag people over)
     + (B && B.cards.includes(id) ? (2.2 + 1.5 * prog) * iq : 0) // (the build they're working toward: more so the further along it is)
     + (CM ? 15 * iq * (clamp((CM.map || {})[id] || 0, -0.15, 0.15) + clamp(foes.length ? foes.reduce((t, q) => t + (((CM.vs || {})[q.role] || {})[id] || 0), 0) / foes.length : 0, -0.15, 0.15)) : 0); // what the arena and these opponents make of the card (the server's measured tables, see w.cardMeta; a few points at most, next to the learned value)
   let best = 0;
@@ -7124,6 +7146,8 @@ function botPlan(w, p, T, foes, mates, D, G) {
   if (ai.tac && ai.tac.mode === 'guard' && ai.tac.body) pref = Math.min(pref, tacP(p, 'guardD') + 30); // (a body-shield's range is where it stands)
   const short = p.role === 'ninja' || p.role === 'crossbow' || p.role === 'assassin'; // (the Assassin's arrows hit hardest up close too)
   const rushReady = has(p, 'rush') && p.slots.some((id, i) => id === 'rush' && !(p.abCd[i] > 0)), pinning = has(p, 'pin');
+  // (the harpoon ready or nearly, on an arena with drops for it, and they know the play: a spot with a drop between us and them is worth having)
+  const hookReady = has(p, 'harpoon') && kn(p) > 0.4 && p.slots.some((id, i) => id === 'harpoon' && !(p.abCd[i] > 1.5)) && hookSense() > 0.6 ? 0.6 * kn(p) : 0;
   const hold = holdSpot(p), holdK = hold ? (p.hp < p.maxHp * 0.7 && senseArena().heal ? 1.6 : 1) * (T && Math.hypot(T.x - hold.x, T.y - hold.y) < hold.r + 60 ? 0.5 : 1) : 0; // (less while they're standing on it: that's a fight, not a stroll)
   const myKb = kbTravel(0.95, T ? T.mass : 1, p.kbMul) * G.kbScale;
   const cand = [[p.x, p.y]];
@@ -7179,6 +7203,7 @@ function botPlan(w, p, T, foes, mates, D, G) {
     // don't stand on a teammate
     for (const m of mates) { const dm = Math.hypot(m.x - x, m.y - y); if (dm < 110) sc -= (110 - dm) / 110 * 0.5; }
     if (ai.tac && T && w.teamPlan) sc += tacSpotScore(w, p, T, x, y, mates); // the duo's formation
+    if (hookReady && T) { const dd = Math.hypot(T.x - x, T.y - y); if (dd > 220 && dd < 620 && harpoonThrough(T, { x, y })) sc += hookReady; } // (the harpoon ready, on an arena for it: a drop between us and them)
     if (p.role === 'assassin' && T && !(T.disarm > 0.3)) { // Backstab: round to their back, and in close (an assassin's shots hurt most inside 150px and from behind)
       const ab = Math.atan2(y - T.y, x - T.x), back = angOff(ab, T.aim + Math.PI), dd = Math.hypot(x - T.x, y - T.y);
       sc += (back < 0.8 ? 0.45 : back < 1.4 ? 0.2 : 0) * (dd < 380 ? 1 : 0.4) * (0.5 + (D.iq || 0)) + (dd < 260 ? 0.15 : 0);
@@ -7990,6 +8015,17 @@ function botThink(w, p, dt) {
     if (q) { const dq = Math.hypot(q.x - p.x, q.y - p.y) || 1, ux = (p.x - q.x) / dq, uy = (p.y - q.y) / dq; let bx = ux - uy * ai.strafe * 0.6, by = uy + ux * ai.strafe * 0.6;
       if (lethalDist(p.x + bx * 80, p.y + by * 80) < p.r + 40) { bx = -uy * ai.strafe; by = ux * ai.strafe; } // (not backwards into a drop: sideways)
       gx = bx; gy = by; ai.coverP = null; } }
+  // the harpoon play, once it's in: the line holds half a second before it reels, so get to where the pull drags them over a
+  // drop (a step, or a dash). Those who know the trick (role knowledge); the duo has its own
+  if (!ai.tac && !hurtBad && kn(p) > 0.35) { const q = foes.find(f => f.hook && f.hook.by === p.id && f.hook.t > 0);
+    if (!q) ai.hookGo = null;
+    else { // (where they'll be when it reels: they're still moving; the spot is settled once and kept while it still works)
+      const lt = Math.min(0.3, q.hook.t), qa = { x: q.x + q.vx * lt, y: q.y + q.vy * lt };
+      if (!ai.hookGo || ai.hookGo.id !== q.id || !harpoonThrough(qa, ai.hookGo)) { const hs = hookSpot(p, qa, Math.min(290, 90 + (p.dashN > 0 ? 200 : 0))); ai.hookGo = hs ? { x: hs.x, y: hs.y, id: q.id } : { none: 1, id: q.id }; }
+      const G2 = ai.hookGo;
+      if (!G2.none) { const dx = G2.x - p.x, dy = G2.y - p.y, d = Math.hypot(dx, dy) || 1;
+        if (d > 110 && p.dashN > 0 && !(p.dashT > 0) && dashClear(p, Math.atan2(dy, dx), Math.min(d, 170))) { p.wantDash = true; ai.dashAim = Math.atan2(dy, dx); ai.dodgeCd = 0.5; }
+        gx = d > 12 ? dx / d * Math.min(1, d / 30) : -p.vx / 400; gy = d > 12 ? dy / d * Math.min(1, d / 30) : -p.vy / 400; ai.coverP = null; ai.hookMv = w.t; } } }
   if (ai.tac && !hurtBad && !ai.mend && !safeToRevive && !ai.bodyMove) { const tg = tacticGoal(w, p, T, foes, mates, dt); if (tg) { gx = tg[0]; gy = tg[1]; if (PILLARS.length) [gx, gy] = aroundPillar(p, gx, gy); } } // (and round any boulder on the way there)
   // --- tunnel vision: in the heat of it (a shot nearly drawn, a kill nearly there) a lesser player forgets their feet for a
   // few seconds: the edge sense and the planning brain's safety weight drop away until it passes. Rarer the better the
@@ -8001,7 +8037,8 @@ function botThink(w, p, dt) {
   // like a person, the bot dodges the *draw*: a bow drawn well back and pointed its way gets a sidestep or a dash as the
   // shot is about to go (decided once per draw, a little late or a little early, not on the instant), the better the bot
   // the more often; a dash begun inside the shooter's last glance is the one that makes them miss. The shooter's lead then lands on where it would have been.
-  const juke = botJuke(w, p, foes, D, dt);
+  const hookMv = ai.hookMv === w.t; // (on the way to the harpoon spot: the half second matters more than a juke; a shot actually coming still gets dodged, but the spot keeps most of its pull)
+  const juke = hookMv ? null : botJuke(w, p, foes, D, dt);
   const gapF = T && dT > botReach(p) * 0.85 && dT < botReach(T) ? outranged(p, T) : 0; // (outranged and out of our own reach: every sidestep also gains ground)
   const bully = ai.tac && ai.tac.mode === 'bully'; // (a bully's weave is a stagger on the way in, never instead of it: the goal keeps its full weight)
   if (juke) { const jk = bully ? 0.7 : gapF > 0.3 ? 0.9 : 2, gk = bully ? 1 : 0.2; gx = juke[0] * jk + gx * gk + (gapF > 0.3 ? (T.x - p.x) / dT * 2 * gapF : 0); gy = juke[1] * jk + gy * gk + (gapF > 0.3 ? (T.y - p.y) / dT * 2 * gapF : 0); /* (weaving less and closing more) */ if (juke[2] && ai.dodgeCd <= 0 && p.dashN > 0 && lethalDist(p.x + juke[0] * 130, p.y + juke[1] * 130) > 40) { ai.dodgeCd = 0.5; p.wantDash = true; ai.dashAim = Math.atan2(juke[1], juke[0]); } }
@@ -8023,7 +8060,7 @@ function botThink(w, p, dt) {
       const sa = lethalDist(p.x + px * 90, p.y + py * 90), sb = lethalDist(p.x - px * 90, p.y - py * 90);
       if (sb > sa + 20 || (Math.abs(sb - sa) <= 20 && px * hit.cx + py * hit.cy < 0)) { px = -px; py = -py; }
       const fw = gap ? 1.3 * og : 0;
-      gx = px * 2 + fx * fw + gx * 0.2; gy = py * 2 + fy * fw + gy * 0.2;
+      const gk2 = hookMv ? 1.2 : 0.2; gx = px * 2 + fx * fw + gx * gk2; gy = py * 2 + fy * fw + gy * gk2;
       // can we step clear in time? if not, dash (when it's safe to); closing in, the dash goes diagonally forward
       const need = p.r + 14 - hit.cd, canStep = p.baseSpeed * hit.t * 0.7;
       const dx2 = px + fx * 0.9 * og, dy2 = py + fy * 0.9 * og;
@@ -8051,7 +8088,7 @@ function botThink(w, p, dt) {
       if (px * cx + py * cy < 0) { px = -px; py = -py; }
       // outranged and with ground to make up: the dodge goes diagonally forward, so every shot avoided is also a step closer
       const og = T ? outranged(p, T) : 0, fx = og > 0.3 && T ? (T.x - p.x) / (dT || 1) * og : 0, fy = og > 0.3 && T ? (T.y - p.y) / (dT || 1) * og : 0;
-      const fk = gapF > 0.3 ? 3.4 : 1.5; gx = px * 2 + fx * fk + gx * 0.3; gy = py * 2 + fy * fk + gy * 0.3;
+      const fk = gapF > 0.3 ? 3.4 : 1.5, gk3 = hookMv ? 1.2 : 0.3; gx = px * 2 + fx * fk + gx * gk3; gy = py * 2 + fy * fk + gy * gk3;
       if (ai.dodgeCd <= 0) {
         ai.dodgeCd = 0.7;
         const dx2 = px + fx, dy2 = py + fy;
@@ -8367,7 +8404,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
         break;
       }
       case 'quake': use = foes.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 140); break;
-      case 'snare': use = chg > 0.55 && !!T && dT < 450; break;
+      case 'snare': use = chg > 0.55 && !!T && dT < 450 && !(kn(p) > 0.4 && Math.max(T.stuck || 0, T.vine || 0, T.frozen || 0, T.stunT || 0) > 0.6); break; // (one who knows the role doesn't waste a root on someone already held)
       case 'blink': {
         // escape when thrown toward danger, or (brawlers and stalkers) close in fast
         const danger = p.knock > 0 && lethalDist(p.x + p.vx * 0.3, p.y + p.vy * 0.3) < 40;
@@ -8388,11 +8425,15 @@ function botAbilities(w, p, T, dT, foes, dt) {
         if (!T || p.harpoonArmed || chg < 0.3 || dT < 150 || dT > 700) break;
         // the play: someone with a hole, water or lava between them and us gets reeled straight through it. A good
         // bot waits for that; otherwise it pulls now and then just to bring them close (more often the worse it is)
-        const through = harpoonThrough(T, p), sk = botD(p).iq || 0.5;
-        if (p.ai.tac && p.ai.tac.mode === 'trapper') { const held = T.stuck > 0.4 || T.vine > 0.4 || T.frozen > 0.4; use = (held || through) && Math.random() < dt * (held ? 8 : 3); break; } // (the duo: the harpoon is for someone rooted, or with water in the way; the feet do the rest)
-        // (what the duos learned, for every sharp enough bot: someone rooted, frozen or stunned can't step aside, so reel them while they're held)
-        if (sk > 0.3 && through && (T.stuck > 0.4 || T.vine > 0.4 || T.frozen > 0.4 || T.stunT > 0.4)) { use = Math.random() < dt * 8 * sk; break; } // (the reel frees a root: it's for dragging them over a drop, not just closer)
-        use = through ? Math.random() < dt * (2 + 6 * sk) : Math.random() < dt * 0.6 * Math.max(0, 0.6 - sk); // (no drop in the way: dragging them to you only hands a brawler the fight, so the sharp ones don't)
+        const through = harpoonThrough(T, p), sk = kn(p), held = T.stuck > 0.4 || T.vine > 0.4 || T.frozen > 0.4 || T.stunT > 0.4;
+        if (p.ai.tac && p.ai.tac.mode === 'trapper') { const h2 = T.stuck > 0.4 || T.vine > 0.4 || T.frozen > 0.4; use = (h2 || through) && Math.random() < dt * (h2 ? 8 : 3); break; } // (the duo: the harpoon is for someone rooted, or with water in the way; the feet do the rest)
+        // (someone held can't step aside: reel them while they're held, if the pull goes over a drop)
+        if (sk > 0.3 && through && held) { use = Math.random() < dt * 8 * sk; break; } // (the reel frees a root: it's for dragging them over a drop, not just closer)
+        if (through) { use = Math.random() < dt * (2 + 6 * sk); break; }
+        // the harpoon play: no drop between us yet, but one we can get behind in the half second the line holds before it reels
+        // (a step or a dash to the far side of it). Only those who know the trick look for it, and only where the drops are big enough
+        if (sk > 0.35 && dT > 200 && dT < 650 && hookSense() > 0.55 && clearShot(p.x, p.y, T.x, T.y) && Math.random() < dt * (held ? 6 : 1 + 4 * sk)) { const hs = hookSpot(p, T, p.dashN > 0 ? 200 : 100); if (hs) { use = true; break; } }
+        use = Math.random() < dt * 0.6 * Math.max(0, 0.6 - sk); // (no drop in the way: dragging them to you only hands a brawler the fight, so the sharp ones don't)
         break;
       }
       case 'recoil': use = !!T && dT < 190 && chg > 0.5; break;
@@ -8404,7 +8445,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
         // the sharper bots save it for a shove into a hole or a wall, or a finishing blow; the rest charge when they can
         if (p.ai.tac && p.ai.tac.noShove) use = false; // (a body-blocking guard never shoves)
         else if (p.ai.tac && p.ai.tac.mode === 'bully') { /* a bully rushes whenever lined up */ }
-        else if (use && (botD(p).iq || 0) >= 0.5) { const shove = Math.max(pushRisk(T.x, T.y, ax, ay, 230, T.r), 0.6 * slamRisk(T.x, T.y, ax, ay, 230, T.r)); use = shove > 0.4 || T.hp <= 12 || Math.random() < dt * 0.25; }
+        else if (use && kn(p) >= 0.5) { const shove = Math.max(pushRisk(T.x, T.y, ax, ay, 230, T.r), 0.6 * slamRisk(T.x, T.y, ax, ay, 230, T.r)); use = shove > 0.4 || T.hp <= 12 || Math.random() < dt * 0.25; }
         break;
       }
       case 'fortify': use = noticed(p, 'fortify', p.hp < p.maxHp * 0.5 && foes.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 380), dt); break;
@@ -8426,7 +8467,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
       // falls through
       case 'briar2': use = chg > 0.25 && !!T && dT > 70 && dT < Math.min(ROOTK.briarMax, BRIAR.range - 60) && !p.briarArmed && (!ROOTK.bGate || T.drawing || heldBy(T) || T.dashN === 0 || dT < 260) && (!ROOTK.briarNear || dT < ROOTK.briarNear || T.drawing || Math.hypot(T.vx, T.vy) < 90) && clearLane(p.x, p.y, T.x + T.vx * 0.4, T.y + T.vy * 0.4, BRIAR.r); break; // (it's wide and slow: the whole lane to where they're heading must be clear) // then the next shot rolls it at them
       case 'rip': { // tear the thorns out when it's worth it: a kill (or two), a pile of them spread over several enemies, or someone held near a hazard
-        const mine = foes.filter(q => q.thornBy === p.id && q.thornN > 0), iq2 = botD(p).iq || 0.5;
+        const mine = foes.filter(q => q.thornBy === p.id && q.thornN > 0), iq2 = kn(p);
         const tot = mine.reduce((a, q) => a + q.thornN, 0), kills = mine.filter(q => q.hp <= q.thornN * 5 + 1).length, held = mine.filter(q => q.thornN >= 3 && lethalDist(q.x, q.y) < 100 && chg >= 0.5 && clearShot(p.x, p.y, q.x, q.y)).length; // (rooted beside a hazard, with a shot ready to push them in)
         const expiring = mine.some(q => q.thornN >= 3 && q.thornT < 1.5), stacked = mine.filter(q => q.thornN >= 3).length;
         // a sharp bot keeps stacking across everyone it can reach and rips once that's likely to get a kill or two; a duller one rips a full set on sight
@@ -8466,9 +8507,9 @@ function botAbilities(w, p, T, dT, foes, dt) {
           break;
         }
         if (T && dT < Math.min(TRAP_RANGE + 60, ROOTK.trapMax) && dT > 60 && !(T.vine > 0) && !(T.vineSafe > 0) && (!ROOTK.gate || steady) && (!ROOTK.trapSlow || heldBy(T) || Math.hypot(T.vx, T.vy) < ROOTK.trapSlow) && Math.random() < dt * (ROOTK.trapSlow ? 2.5 : 0.8)) { // (trapSlow: only under someone standing or slowed, drawing a bow say: a trap takes most of a second to set, and a walker is long gone)
-          const ts = (p.ai.tac && p.ai.tac.mode === 'trapper') || (!p.ai.tac && Math.random() < clamp(((botD(p).posK || 0) - 0.5) * 2, 0, 1)) ? tacticTrapSpot(w, p, T) : null; // (and any trapper with a good eye for the ground: the sharper, the more often) // (the trapper tactic: where a root leaves them beside a drop)
+          const ts = (p.ai.tac && p.ai.tac.mode === 'trapper') || (!p.ai.tac && Math.random() < clamp(((p.ai.know != null && p.ai.knowRo === p.role ? p.ai.know : botD(p).posK || 0) - 0.5) * 2, 0, 1)) ? tacticTrapSpot(w, p, T) : null; // (and any trapper with a good eye for the ground: the sharper, the more often) // (the trapper tactic: where a root leaves them beside a drop)
           const vs = Math.hypot(tvx, tvy), vk = vs > ROOTK.trapVmax ? ROOTK.trapVmax / vs : 1;
-          const miss = ROOTK.errK * (1 - (botD(p).aimK != null ? botD(p).aimK : 0.7)) * vs * vk * ROOTK.trapLead, ma = rand(0, TAU); // (a weaker bot's guess wanders)
+          const miss = ROOTK.errK * (1 - Math.max(botD(p).aimK != null ? botD(p).aimK : 0.7, p.ai.know != null && p.ai.knowRo === p.role ? p.ai.know : 0)) /* (a specialist reads where they're going: their role knowledge, not their eye) */ * vs * vk * ROOTK.trapLead, ma = rand(0, TAU); // (a weaker bot's guess wanders)
           const bx = (T.x - p.x) / (dT || 1) * ROOTK.behind, by = (T.y - p.y) / (dT || 1) * ROOTK.behind; // (a little behind them, as seen from us: where they back off to, and out of the corner of their eye)
           const tx = (ts ? ts.x : T.x + tvx * vk * ROOTK.trapLead + bx) + Math.cos(ma) * miss, ty = (ts ? ts.y : T.y + tvy * vk * ROOTK.trapLead + by) + Math.sin(ma) * miss;
           // not over a hole or water: a trap can't sit there (bogs and lava are fine)
@@ -8480,7 +8521,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
         if (p.ai.tac && p.ai.tac.mode === 'syncstealth') { const tp = (w.teamPlan || {})[p.team]; use = !!(tp && tp.stealthGo > w.t - tacP(p, 'stealthGap')); if (use) p.ai.jinkT = 0.12; break; } // together, on the team's call (and then a dash off somewhere else)
         // the sharper bots stealth for a reason: a knockout to set up (something deadly near the target that a shot from the far
         // side would throw them into, close enough to reach before it wears off), or to get out of trouble; the rest just vanish
-        const sk = botD(p).iq || 0, setup = sk > 0.2 ? ambushPoint(p, T) : null;
+        const sk = kn(p), setup = sk > 0.2 ? ambushPoint(p, T) : null;
         use = sk > 0.2 ? ((setup.risk > 0.4 && dT > 200 && dT < 650 && Math.hypot(setup.x - p.x, setup.y - p.y) < 420 && p.hp > p.maxHp * 0.3) || (p.hp < p.maxHp * 0.35 && dT < 320))
           : ((dT > 260 && dT < 650 && p.hp > p.maxHp * 0.4) || (p.hp < p.maxHp * 0.35 && dT < 300));
         break;
@@ -9929,7 +9970,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.99.21';
+const PAGE_VERSION = '0.99.23';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
