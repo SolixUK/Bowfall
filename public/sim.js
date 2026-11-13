@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.15';
+const VERSION = '0.99.21';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -909,7 +909,7 @@ const ELEMENTS = {
   poison: { name: 'Poison', color: '#9be564', blurb: 'Stacking poison that wears enemies down and cuts their healing.' },
   stone:  { name: 'Stone',  color: '#c9a878', blurb: 'Crushing hits that break a draw and leave targets easier to knock around.', premium: true },
   void:   { name: 'Void',   color: '#b48cff', blurb: 'Mark enemies with your hits: your arrows bend toward them.', premium: true },
-  shadow: { name: 'Shadow', color: '#8e95c9', blurb: 'Every hit stacks a shade that bursts when you stop: keep hitting to build a big one.', premium: true },
+  shadow: { name: 'Shadow', color: '#8e95c9', blurb: 'Every hit stacks a shade that bursts when you stop: build a big one, then back off and let it finish them.', premium: true },
   blood:  { name: 'Blood',  color: '#e0344a', blurb: 'Every bit of damage you deal heals you.', premium: true },
 };
 // New elements and roles are tagged premium. Set LOCK_PREMIUM to true to lock them in the lobby
@@ -1227,7 +1227,7 @@ const ROLES = {
 ROLES.assassin = { name: 'Assassin', cat: 'Agility', blurb: 'Vanish, get close, and strike first.', premium: true,
   trait: { name: 'Backstab', desc: 'Arrows that hit an enemy from behind deal 40% more damage and knock back 30% harder, and the shorter the shot the harder it hits: up to 40% more inside 150px, nothing extra from 450px out.' } };
 ROLES.ninja = { name: 'Ninja', cat: 'Agility', blurb: 'Blink in, strike fast, blink out.', premium: true,
-  trait: { name: 'Shadowstep', desc: "12% faster, and a wind-up barely slows you. No bow: hold to wind up a shuriken and let go to throw it (a full wind-up takes under half a second). The longer you wind up, the faster, further and harder it flies. Shuriken are for close range: they slow down fast and hurt less the further they fly (about 300px at full wind-up); a fully wound shuriken, or any bullseye, counts as a fully drawn shot for your upgrades. Your dash is a near-instant blink toward your cursor instead: about 150px, straight over pits and lava, and it recharges in under a second. 10 less health." } };
+  trait: { name: 'Shadowstep', desc: "12% faster, and a wind-up barely slows you. No bow: hold to wind up a shuriken and let go to throw it (a full wind-up takes under half a second). The longer you wind up, the faster, further and harder it flies. Shuriken are for close range: they slow down fast and hurt less the further they fly (about 300px at full wind-up); a fully wound shuriken, or any bullseye, counts as a fully drawn shot for your upgrades. Your dash is a near-instant blink toward your cursor instead: about 150px, straight over pits and lava, and you hold two, each recharging in under a second. You turn on a coin, as with Fleet Foot." } };
 ROLES.crossbow = { name: 'Crossbowman', cat: 'Power', blurb: 'Point and shoot: no drawing, shorter reach.', premium: true,
   trait: { name: 'Crank and Loose', desc: '8% faster. A crossbow instead of a bow: click to fire a bolt at once, no drawing. Bolts hit as hard as 85% of a full draw, fly fast and straight, and count as fully drawn shots for your upgrades, but they drop out of the air after 560px. Reloading takes 1.15 seconds, and you can move freely while you reload. Braced behind the stock, you take 15% less damage from enemies and 15% less knockback.' } };
 const TREE_KEYS = Object.keys(ELEMENTS).concat(Object.keys(ROLES));
@@ -1280,7 +1280,7 @@ const TREE = {
   cloak:     { tree: 'assassin', trade: true, name: 'Cloak and Dagger', desc: 'Stealth lasts 9 seconds, but you have 5 less health.', req: ['stealth'] },
   quickfeet: { tree: 'assassin', name: 'Light Step', desc: '8% faster, and you take 15% less damage from behind.' },
   deathmark: { tree: 'assassin', cap: true, name: 'Death Mark', desc: 'Your first hit after stealth ends marks the target: they take 30% more damage from everyone for 5 seconds.' },
-  shadow:    { tree: 'shadow', base: true, name: 'Shadow Arrows', desc: 'Every hit adds a shade to the target (up to 5) and restarts a 3.5 second fuse. When the fuse runs out the shade bursts: lightly with one, hard with several (4, 9, 15, 22 and 31 damage). Keep hitting them to stack it up.' },
+  shadow:    { tree: 'shadow', base: true, name: 'Shadow Arrows', desc: 'Every hit adds a shade to the target (up to 5) and restarts a 3.5 second fuse. When the fuse runs out the shade bursts: lightly with one, hard with several (6, 13, 21, 30 and 40 damage). Each of your shades on an enemy also makes you 4% faster (up to 20%). Keep hitting them to stack it up.' },
   eclipse:   { tree: 'shadow', active: { cd: 14 }, name: 'Eclipse', desc: 'Drop darkness on the spot under your cursor (up to 400px) for 4 seconds. Enemies inside are shrouded: they can only see 140px around themselves, and bots lose track of anyone further away.' },
   gloom:     { tree: 'shadow', name: 'Creeping Dark', desc: 'Each shade on an enemy slows them 6%, and the burst slows them by 50% for 2 seconds.' },
   dread:     { tree: 'shadow', name: 'Night Terror', desc: 'Shade bursts throw the target away from you, harder the more shades were on them.' },
@@ -1546,19 +1546,19 @@ function applyStats(p) {
   // role traits (always on) and trade-off cards
   p.maxHp = 100 + (has(p, 'vital') ? 25 : 0) + 15 * h('hone_hp')
     + (R === 'juggernaut' ? 15 : 0) + (R === 'warden' ? 5 : 0) - (R === 'sniper' || R === 'ranger' ? 10 : 0)
-    - (has(p, 'glass') ? 10 : 0) + (has(p, 'colossus') ? 30 : 0) - (has(p, 'cloak') ? 5 : 0) - (R === 'ninja' ? 10 : 0) - (has(p, 'bloodpact') ? 10 : 0);
+    - (has(p, 'glass') ? 10 : 0) + (has(p, 'colossus') ? 30 : 0) - (has(p, 'cloak') ? 5 : 0) - (has(p, 'bloodpact') ? 10 : 0);
   p.maxHp = Math.round(p.maxHp * OPT('hp') * hc * (p.boss ? p.boss.hp : 1));
   if (p.hp > p.maxHp) p.hp = p.maxHp;
   p.mass = (1 + (p.hcap || 0) / 200) * is(has(p, 'stance'), 1 / 0.5) * is(R === 'juggernaut', 1.25) * is(R === 'warden', 1.1) * is(has(p, 'colossus'), 1 / 0.65) / is(has(p, 'feather'), 1.3) / is(has(p, 'longstep'), 1.15) / is(R === 'crossbow', 0.85);
   p.r = 16 * is(R === 'juggernaut', 1.1) * is(has(p, 'colossus'), 1.35) * is(!!p.boss, p.boss && p.boss.mode === 'repair' ? 0.9 : 1.18) * OPT('size'); // (repairing, it folds itself down small) // (the arcade's machine stands a size bigger)
   p.baseSpeed = 235 * (has(p, 'fleet') ? 1.1 : 1) * (1 + 0.05 * h('hone_speed')) * is(R === 'juggernaut', 0.93) * is(R === 'ranger', 1.05) * is(R === 'ninja', 1.12) * is(R === 'crossbow', 1.08)
     * is(has(p, 'colossus'), 0.9) * is(has(p, 'feather'), 1.15) * is(has(p, 'quickfeet'), 1.08) * is(!!(p.boss && p.boss.mode === 'repair'), 1.15) * OPT('mspeed');
-  p.rampMul = has(p, 'fleet') ? 0.4 : has(p, 'feather') ? 0.8 : 1;
+  p.rampMul = has(p, 'fleet') || R === 'ninja' ? 0.4 : has(p, 'feather') ? 0.8 : 1; // (a ninja turns on a coin, as Fleet Foot does)
   p.agile = has(p, 'fleet') ? 3 : 1; p.resp = has(p, 'fleet') ? 1.6 : 1; // Fleet Foot: sharper turns and stops
   // one dash at a time for everyone (no charges), on a short cooldown
   p.dashCdMax = R === 'ninja' ? 0.95 * is(has(p, 'swiftstep'), 0.7) * is(has(p, 'overload'), 1.2)
     : 0.85 * is(has(p, 'dash'), 0.65) * is(R === 'ranger', 0.85) * is(has(p, 'overload'), 1.2) * is(!!(p.boss && p.boss.mode === 'repair'), 0.6);
-  p.dashMaxN = 1;
+  p.dashMaxN = R === 'ninja' ? 2 : 1; // (a ninja holds two blinks: two quick hops cover the ground a bow keeps between you)
   p.dashN = Math.min(p.dashN == null ? p.dashMaxN : p.dashN, p.dashMaxN);
   p.drawMul = (has(p, 'steady') ? 1.25 : 1) * (1 + 0.08 * h('hone_draw')) * is(R === 'trickster', 1.12) * is(R === 'ranger', 1.12) * is(R === 'sniper', 1) * mutMul(CFG.mut, 'draw');
   p.kbMul = (1 + 0.08 * h('hone_kb')) * is(R === 'trickster', 0.9) * is(has(p, 'obsidian'), 1.3) * is(has(p, 'deepshade'), 0.85);
@@ -2544,6 +2544,8 @@ function stepBody(w, f, mx, my, dt) {
     else if ((H.pull -= dt) <= 0 || d < o.r + f.r + 30) { if (d < o.r + f.r + 30) { f.vx *= 0.3; f.vy *= 0.3; } f.hook = null; } // (the rope goes slack once they've arrived: they stop at your feet)
   }
   let sp = f.speed;
+  // Shadow: your shades on the enemy quicken you, a little for each (up to SHADOW_SPEED.max): the more you have riding on them, the easier to stay clear while they burn
+  if (f.element === 'shadow') { let n = 0; for (const q of ROOT_W ? ROOT_W.players : []) if (q.shade && q.shade.by === f.id && !q.dead) n += q.shade.n; if (n) sp *= 1 + Math.min(SHADOW_SPEED.max, n * SHADOW_SPEED.per); }
   if (f.drawing) sp *= f.role === 'ranger' ? 0.7 : f.role === 'ninja' ? 0.75 : 0.55; // the Ranger keeps more of its speed while drawing; a Ninja's wind-up is light
   if (f.slow > 0) sp *= f.sure ? 0.85 : (f.slowK || 0.5); // frost
   if (f.onLava) sp *= f.sure ? 0.85 : 0.6; // wading through lava
@@ -3425,12 +3427,15 @@ function shroud(f, t, r) { f.shroudT = Math.max(f.shroudT || 0, t); f.shroudR = 
 // Shadow Arrows: a shade bursts a moment after it's planted; a second hit before then deepens it
 // Shadow Arrows: every hit adds a stack (up to 5) and resets a 3 second fuse; when it runs out the shade bursts,
 // barely at one stack and hard at five
-const SHADE = { t: 3.5, max: 5 }, SHADE_DMG = [0, 4, 9, 15, 22, 31], shadeDmg = n => SHADE_DMG[Math.min(5, Math.max(1, n))]; // (0.83: a 3.5 s fuse, so a second hit lands in time more often)
+const SHADOW_SPEED = { per: 0.04, max: 0.2 }; // Shadow: move this much faster per shade of yours on an enemy, up to max
+const SHADE = { t: 3.5, max: 5 }, SHADE_DMG = [0, 6, 13, 21, 30, 40], shadeDmg = n => SHADE_DMG[Math.min(5, Math.max(1, n))]; // (0.83: a 3.5 s fuse, so a second hit lands in time more often)
 const BURN_DPS = 4, POISON_DPS = 1.2, BLOOD_HEAL = 0.35, BLOOD_PACT_HEAL = 0.65, STAGGER_KB = 1.25, STAGGER_DRAW = 0.5, VOID_DMG = 0.06; // the elements' base numbers (0.83 balance pass)
+// a shade of p's on q that bursts for enough to finish them (another hit would only restart its fuse)
+const shadeKills = (p, q) => !!(q && q.shade && q.shade.by === p.id && shadeDmg(q.shade.n) * (has(p, 'deepshade') ? 1.5 : 1) >= q.hp - 0.5 && q.shade.t > 0.05);
 function plantShade(w, f, owner) {
   const add = owner.emp && owner.element === 'shadow' ? 2 : 1;
   if (!f.shade) f.shade = { by: owner.id, t: SHADE.t, n: 0 };
-  const s = f.shade; s.by = owner.id; s.t = SHADE.t; s.n = Math.min(SHADE.max, s.n + add); s.slow = has(owner, 'gloom');
+  const s = f.shade; s.by = owner.id; s.n = Math.min(SHADE.max, s.n + add); s.t = SHADE.t; s.slow = has(owner, 'gloom');
   ev(w, { e: 'shade', id: f.id, x: r1(f.x), y: r1(f.y), n: s.n });
 }
 function shadeTick(w, f, dt) {
@@ -4366,12 +4371,18 @@ let SNIPER_REACH = 1100; // (exported for tests) // (a sniper's arrows fly 25% f
 const outranged = (p, q) => clamp((botReach(q) - botReach(p)) / 450, 0, 1);
 // can this archer shoot right now? (a crossbow mid-reload can't; everyone else always can)
 const loaded = p => p.role !== 'crossbow' || p.bolts > 0 || p.autoT > 0;
-// what a pickup is worth to this bot right now: a medkit is worth a lot when hurt and nothing at full health, amber is
-// pocket money (not health), a power-up is worth a few steps, the big capture power-up more
+// what a pickup is worth to this bot right now: what it would actually do for them. A medkit or an ember is worth the health
+// they'd use (nothing at full health), an ember a little more with an ability recharging; a power-up is worth a few steps,
+// the big capture power-up more
 function pickupWorth(u, p) {
   if (u.chan) return 0.9;
-  if (u.type === 'amber') return 0.35;
-  if (u.type === 'heal') { const f = p.hp / p.maxHp; return f < 0.5 ? 1.3 : f < 0.8 ? 0.6 : 0.05; }
+  // an ember: what it would actually do for us now: its 8 health (only what we're missing), a head start on an ability
+  // or dash that's recharging, and a little toward a reroll. At full health with everything ready it's barely worth a step
+  if (u.type === 'amber') {
+    const missing = Math.min(AMBER_BOOST.hp, p.maxHp - p.hp) / AMBER_BOOST.hp, cd = (p.abCd || []).some(c => c > 1) || p.dashN < p.dashMaxN;
+    return 0.06 + 0.3 * missing + (cd ? 0.12 : 0);
+  }
+  if (u.type === 'heal') { const miss = Math.min(40, p.maxHp - p.hp); return miss < 6 ? 0.02 : 0.05 + 1.25 * miss / 40 * (p.hp < p.maxHp * 0.5 ? 1.1 : 1); } // (its 40 health, as much as we'd use)
   return 0.8;
 }
 // Planned positioning: score spots around the bot and head for the best one. A good spot is one where
@@ -4482,7 +4493,7 @@ function botCoverHop(p, T, d, dt) {
       if (q.tower) continue;
       const dm = Math.hypot(q.x - p.x, q.y - p.y), dq = Math.hypot(q.x - T.x, q.y - T.y);
       if (dm > 420 || dq > d - 90 || dq < 150) continue; // (it has to be real progress toward them)
-      if (outranged(p, T) > 0.5 && dq > botReach(p) * 1.05) continue; // (badly outranged: only a rock we can shoot from; one short of our range is just a place to be pinned down)
+      if (outranged(p, T) > 0.5 && dq > (p.role === 'ninja' ? botReach(p) + NINJA_BLINK * 1.6 : botReach(p) * 1.05)) continue; // (a ninja: a rock it can blink in from) // (badly outranged: only a rock we can shoot from; one short of our range is just a place to be pinned down)
       const off = angOff(Math.atan2(q.y - p.y, q.x - p.x), Math.atan2(T.y - p.y, T.x - p.x)); if (off > 1.1) continue;
       const sc = dm + off * 200; if (!best || sc < best.sc) best = { q, sc };
     }
@@ -4510,15 +4521,17 @@ function botCloseIn(w, p, T, dT, reach, D, dt) {
   if (Math.random() > dt * (0.4 + D.dodge * 1.5 + (D.iq || 0) * 2) * outg * dashK(ai) * (ai.play === 'rush' ? 2.2 : 1) * (p.role === 'ninja' ? 2.5 : 1)) return; // (a ninja lives inside its reach: it spends blinks getting there)
   if (incoming(w, p, 0.4)) return;
   // the sharper bots time it: not into a bow that's drawn and waiting, but the moment after it looses, while it's being drawn again
-  // (a ninja can't wait for that: a bow is drawn at it nearly all the time. Its blink is instant, so it goes unless the shot is right there)
+  // (a ninja can't wait for that: a bow is drawn at it nearly all the time. Its blink is instant, so it goes unless the shot is right there,
+  // and best just after they've loosed, while the next is still being drawn)
   if ((D.iq || 0) > 0.3 && T.drawing && T.charge > (p.role === 'ninja' ? 0.85 : 0.4)) return;
+  if (p.role === 'ninja' && (D.iq || 0) > 0.3 && T.drawing && T.charge > 0.35 && Math.random() < 0.7) return;
   const ang = Math.atan2(T.y - p.y, T.x - p.x) + ai.strafe * 0.3;
   const ex = p.x + Math.cos(ang) * dd, ey = p.y + Math.sin(ang) * dd;
   if (p.role !== 'ninja') { // a dash slides across the ground: every point along it has to be safe, and clear of boulders
     for (const s of [0.3, 0.6, 0.85, 1, 1.25]) if (lethalDist(p.x + Math.cos(ang) * dd * s, p.y + Math.sin(ang) * dd * s) < p.r + 30) return;
     if (!clearShot(p.x, p.y, ex, ey)) return;
   } else if (lethalDist(ex, ey) < p.r + 20) return; // a blink only has to land somewhere safe
-  p.wantDash = true; ai.dashAim = ang; ai.closeCd = rand(1, 2.2);
+  p.wantDash = true; ai.dashAim = ang; ai.closeCd = p.role === 'ninja' ? rand(0.35, 0.8) : rand(1, 2.2); // (a ninja chains them)
 }
 // The juke (see botThink): a foe whose bow is drawn past half and pointed at us within a step's width. Decided once per
 // draw: whether to go at all (D.dodge), when (0.1 to 0.6 s on), which way (the safer side, with the odd wrong guess from
@@ -5255,6 +5268,12 @@ function botThink(w, p, dt) {
     }
   } else ai.bodyMove = false;
   // --- the duo's tactic (co-op): where it wants us, over the usual brain (not while healing badly hurt or reviving)
+  // Shadow: a shade on someone that will finish them. The fight is won if we're still standing when it bursts, so back off,
+  // out of their line, and let it (the lower our health, the more it matters; the sharp ones always do)
+  if (p.element === 'shadow' && iq + (1 - p.hp / p.maxHp) > 0.45) { const q = foes.find(f => shadeKills(p, f));
+    if (q) { const dq = Math.hypot(q.x - p.x, q.y - p.y) || 1, ux = (p.x - q.x) / dq, uy = (p.y - q.y) / dq; let bx = ux - uy * ai.strafe * 0.6, by = uy + ux * ai.strafe * 0.6;
+      if (lethalDist(p.x + bx * 80, p.y + by * 80) < p.r + 40) { bx = -uy * ai.strafe; by = ux * ai.strafe; } // (not backwards into a drop: sideways)
+      gx = bx; gy = by; ai.coverP = null; } }
   if (ai.tac && !hurtBad && !ai.mend && !safeToRevive && !ai.bodyMove) { const tg = tacticGoal(w, p, T, foes, mates, dt); if (tg) { gx = tg[0]; gy = tg[1]; if (PILLARS.length) [gx, gy] = aroundPillar(p, gx, gy); } } // (and round any boulder on the way there)
   // --- tunnel vision: in the heat of it (a shot nearly drawn, a kill nearly there) a lesser player forgets their feet for a
   // few seconds: the edge sense and the planning brain's safety weight drop away until it passes. Rarer the better the
@@ -5482,6 +5501,12 @@ function botThink(w, p, dt) {
     const a0 = Math.atan2(T.y - p.y, T.x - p.x); for (let k = 0; k < 6; k++) { const a = a0 + (Math.random() < 0.5 ? 1 : -1) * rand(0.9, 2.3); if (dashClear(p, a, 170)) { p.wantDash = true; ai.dashAim = a; ai.strafe = -ai.strafe; break; } } }
   // a guard up (Parry, Hair Trigger, Blade Guard): a person waits it out rather than shooting into it, holding the draw (or
   // the trigger) until it drops. Noticed as quickly as their eye for a shot; the duller ones still shoot into it now and then
+  // Shadow: a shade on them that will finish them when it bursts. Another hit only restarts its fuse, so hold the shot (a
+  // person who knows the element waits it out, the sharper the more surely); shoot someone else if there's someone to shoot
+  if (p.element === 'shadow' && T && shadeKills(p, T)) {
+    if (ai.shadeKnow == null) ai.shadeKnow = Math.random() < 0.35 + 0.6 * clamp(D.mind != null ? D.mind : D.iq || 0, 0, 1);
+    if (ai.shadeKnow) { if (p.role === 'crossbow' || p.role === 'ninja') inp.draw = false; else if (wasDraw || p.drawing) inp.draw = true; }
+  } else ai.shadeKnow = null;
   if (T && T.parryT > 0.05 && !(p.autoT > 0)) {
     if (ai.parrySeen !== T.parryT0) { ai.parrySeen = T.parryT0; ai.parryWait = Math.random() < 0.3 + 0.65 * clamp(D.dodge != null ? D.dodge / 0.85 : 0.5, 0, 1); }
     if (ai.parryWait) { if (p.role === 'crossbow') inp.draw = false; else if (wasDraw || p.drawing) inp.draw = true; }
@@ -5701,7 +5726,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
         break;
       }
       case 'execute': use = !!T && T.hp < T.maxHp * 0.45 && chg > 0.3; break;
-      case 'sstrike': if (T && dT < 340 && dT > 90 && lethalDist(T.x, T.y) < 200) { p.input.tx = T.x; p.input.ty = T.y; use = true; } break;
+      case 'sstrike': if (T && dT < 340 && dT > 90 && (lethalDist(T.x, T.y) < 200 || dT > botReach(p) * 0.9)) { p.input.tx = T.x; p.input.ty = T.y; use = true; } break; // (behind them by a drop, or just in: out of reach is where a ninja loses)
       case 'clone': use = (p.hp < p.maxHp * 0.55 && foes.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 350)) || (!!T && dT < 300 && Math.random() < dt * 0.3); break;
       case 'blossom': use = foes.filter(q => Math.hypot(q.x - p.x, q.y - p.y) < 220).length >= 2 || foes.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 110); break;
       case 'recall':
@@ -5711,7 +5736,9 @@ function botAbilities(w, p, T, dT, foes, dt) {
       case 'railshot': use = chg > 0.6 && !!T && dT > 250 && !p.railArmed; break;
       case 'totem': use = noticed(p, 'totem', p.hp < p.maxHp * 0.6 && !foes.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 200), dt); break; // (a moment to notice, by skill)
       case 'smoke': use = noticed(p, 'smoke', !!T && ((p.hp < p.maxHp * 0.45 && dT < 350) || (dT < 260 && foes.filter(q => Math.hypot(q.x - p.x, q.y - p.y) < 400).length >= 2)), dt); break;
-      case 'volley': use = !!T && !p.volleyArmed && ((chg > 0.5 && dT < 480) || (chg > 0.3 && dT < 1000 && (T.stuck > 0.5 || T.frozen > 0.5 || T.vine > 0.5 || T.stunT > 0.4 || T.pinned > 0.5) && clearShot(p.x, p.y, T.x, T.y))); break; // (held still: the best time there is for all three)
+      case 'volley': // (with Frostbite: three quick frost hits that finish a freeze being built are a great use; so is someone already frozen, who can't step out of the way of all three, which refreshes it)
+        if (T && !p.volleyArmed && p.element === 'frost' && has(p, 'frostbite') && !(T.frozen > 0) && T.frostT > 0 && (T.frostN || 0) >= FROSTBITE_N - 3 && chg > 0.3 && dT < 700 && clearShot(p.x, p.y, T.x, T.y)) { use = true; break; }
+        use = !!T && !p.volleyArmed && ((chg > 0.5 && dT < 480) || (chg > 0.3 && dT < 1000 && (T.stuck > 0.5 || T.frozen > 0.5 || T.vine > 0.5 || T.stunT > 0.4 || T.pinned > 0.5) && clearShot(p.x, p.y, T.x, T.y))); break; // (held still: the best time there is for all three)
       case 'trap':
         // throw it where the target is heading
         const tvx = T ? T.vx + ((T.svx || 0) - T.vx) * ROOTK.smooth : 0, tvy = T ? T.vy + ((T.svy || 0) - T.vy) * ROOTK.smooth : 0;

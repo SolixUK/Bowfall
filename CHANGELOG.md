@@ -2,6 +2,47 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.21
+
+- **Volley on frozen targets.** Bots with Frostbite go back to firing Volley at someone who's already frozen. Those hits don't build the next freeze, but a frozen target can't dodge, so all three arrows land and Volley's cooldown resets. They still use it to finish a freeze they're building too. In the same test as last time (about 750 games), the pair wins 54%.
+
+## 0.99.20
+
+- **Frostbite and Volley.** Bots with both now use Volley to finish a freeze they're building: once a target has two frost hits on it, Volley's three arrows make five. They no longer spend it on someone who's already frozen, since those hits build nothing toward the next freeze. In a dedicated test (Frostbite and Volley against Frostbite and any other card, about 750 games), the pair goes from 49% to 51%. That's an even pairing, not the poor one the overnight combo numbers suggested: that figure came from only 98 games.
+
+## 0.99.19
+
+- **Shadow:** a fifth shade no longer bursts straight away. The burst waits for the fuse again, so you build it up, back off and let it finish them. Shadow rangers still win 45% against the other elements, level with the pack, thanks to the bigger bursts, the speed per shade and the bots knowing to back off.
+
+## 0.99.18
+
+- **Bots weigh a pickup by what it would do for them.**
+  - **Embers:** an ember is worth the health they'd actually use (up to 8), a bit more with an ability or dash recharging, and next to nothing at full health with everything ready.
+  - **Medkits:** a medkit is worth as much of its 40 health as they're missing.
+  - **Result:** in a test, embers picked up at full health fell from 32 to 18, and the rest are mostly ones they walked over on the way. Medkits taken at full health fell from 2 to 0.
+
+## 0.99.17
+
+- **Ninja.** Against a mix of the other roles, ninja bots won under 20% of their duels. Their shuriken reach about 285px and a bow is dangerous out to 900, so they spent two thirds of the time more than 500px out, walking in, getting shot and being knocked back.
+  - **Smarter approach (the bots):**
+    - They cross from rock to rock, using any rock within two blinks of the target. Before, it had to be one they could already throw from.
+    - They blink in just after you loose, while you're drawing again, and chain blinks.
+    - They use Shadow Strike to get in close, not only to set up a push into a drop.
+  - **The role:**
+    - Ninjas hold two blinks instead of one, so two quick hops cover the ground a bow keeps between you.
+    - They turn on a coin, as with Fleet Foot.
+    - They no longer have 10 less health.
+  - Tested against the same mix: under 20% before, 31% with the smarter approach, and 37–41% (two runs) with the role changes as well. Assassin (46%) and juggernaut (43%) sit in the same range in that test.
+- **Two Blades**, the arcade's ninja pair, got stronger with all this (68–71% against bots of their own skill, aiming for about 60%), so their skill is trimmed at each level.
+
+## 0.99.16
+
+- **Shadow, brought up to the others.** In 1v1 tests between top-level bots, a Shadow ranger won only 38–39% against rangers of the other elements. The others sit between 44% and 55%.
+  - **The bots play it properly.** A Shadow bot no longer shoots someone whose shade will finish them when it bursts, because another hit would only restart the fuse. It holds the shot and backs off out of their line until the burst lands, more surely the sharper it is and the lower its own health. Knockouts by shade burst went from 55 to 135 in the same number of games, but the win rate didn't move. Shadow itself needed more.
+  - **Each of your shades on an enemy makes you 4% faster**, up to 20%, so it's easier to stay clear while they burn.
+  - **A fifth shade bursts straight away** instead of waiting out the fuse. Bursts hit harder: 6, 13, 21, 30 and 40 damage by stack (was 4, 9, 15, 22 and 31).
+  - Together: Shadow rangers now win 46–49% against the other elements (two runs), level with the pack.
+
 ## 0.99.15
 
 **Balance, from a big overnight test.** Every upgrade (124 of them) was measured against the rest of its own tree. In each mirror match both sides had the same element, role, skill and two other upgrades, and only the third card differed. That's about 750 games a card, on every ranked arena, with team-only cards tested 2v2. 50% is an average card. Situational cards and cards that are mostly skill expression were left alone. Only raw-stat outliers and cards the bots were misplaying were changed, and every change was re-tested:
