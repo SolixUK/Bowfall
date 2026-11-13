@@ -2727,7 +2727,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.99.29"></script>
+<script src="sim.js?v=0.99.31"></script>
 <script src="coop-data.js"></script>
 <script src="coop.js"></script>
 <script>
@@ -2737,7 +2737,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.99.29';
+const PAGE_VERSION = '0.99.31';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -9118,10 +9118,13 @@ const VSI = { on: false, t: null };
 function vsiRank(p, card, co) {
   if (p.bo) return { txt: 'The machine', col: '#ff6a5a', svg: '' };
   if (co && p.b && co.diffName) return { txt: `Arcade · ${co.diffName} ${co.diff}`, col: '#ffcf5a', svg: '' }; // (a duo: the run's difficulty)
+  // you, with no card from a server (a local game, the arcade, or one the room info hadn't caught up with): your own account
+  if (!(card && card.elo != null) && p.id === myId && account && account.career) { const k = account.career;
+    if (account.placed !== false && (k.matches || 0) > 0) card = { elo: k.elo, g: k.matches }; else if (!p.lv && account.level && account.level.lv) { const r = rankOf(account.level.lv); return { txt: `${r.name} · Level ${account.level.lv}`, col: r.col, svg: '' }; } }
   if (card && card.elo != null && card.g > 0) { const T = Sim.tierOf(card.elo, true); return { txt: T.label, col: T.col, svg: Sim.tierSvg(T.k, 16) }; }
   if (p.lv) { const r = rankOf(p.lv); return { txt: `${r.name} · Level ${p.lv}`, col: r.col, svg: '' }; }
   if (p.b) { const D = { easy: 'Easy', normal: 'Normal', hard: 'Hard', extreme: 'Extreme', master: 'Master' }; return { txt: p.df && D[p.df] ? D[p.df] + ' bot' : 'AI archer', col: '#d8cdb8', svg: '' }; }
-  return { txt: 'Unranked', col: '#a9a196', svg: '' };
+  return { txt: card && card.a ? 'Unranked' : 'Archer', col: '#a9a196', svg: '' }; // (Unranked only for someone with an account and no rated record: a guest or a local player is just an archer)
 }
 function vsiPortrait(cvs, p, faceLeft) {
   const g = cvs.getContext('2d'), keep = ctx;

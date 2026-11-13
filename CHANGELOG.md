@@ -2,6 +2,20 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.31
+
+- **A shade that bursts on a knockout now pays out.** When someone with your shade on them is knocked out before its fuse runs out, the burst gives you what a normal burst would:
+  - Soul Siphon heals you for 40% of the burst's full damage (16 health from 5 shades);
+  - a burst of 6 or more still triggers Nightfall's fade.
+  
+  Knocking someone out early no longer costs a Shadow archer anything.
+
+## 0.99.30
+
+- **Presence (arcade duo):** Bastion, the juggernaut, is now Frost, so it slows whoever it hits: the duo's crowd control. Swift, the ranger, is now Blood with Transfusion in place of Grapple, so its hits heal Bastion: the duo's sustain. The duo's tell says so. Its difficulty measures about the same as before (both versions sit a bit under the target at the top of the ladder).
+- **A shade bursts when its target is knocked out**, whether by an arrow, a wall or a drop, so you see it go off as they go down. It's for show only: there's no one left for the damage to hurt.
+- **The line-up card no longer calls you "Unranked" by mistake.** In a game with no server card for you (a local game, or before the room's info had caught up), it now uses your own account: your rank badge if you've played rated matches, otherwise your level. "Unranked" is now kept for someone with an account and no rated record. Guests and local players are just "Archer".
+
 ## 0.99.29
 
 - **Ninja bots don't blink into holes any more.** A blink has a set length and slides on after it lands, but bots only checked a normal dash's worth of ground ahead. Now they check where the blink actually ends and the slide after it. If that's a drop or the edge of one, they turn the blink a little either way to a safe landing, or don't blink at all. Self-knockouts went from 4% of ninja knockouts to 2% (blinks into drops from 10 to 1), and ninja's win rate in testing went from 44% to 48%.

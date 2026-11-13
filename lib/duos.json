@@ -530,11 +530,11 @@
     "vigil",
     "hide"
    ],
-   "tell": "The juggernaut stands in front of the ranger and will not be moved. Get round it, and the ranger is already back in its shadow.",
+   "tell": "The juggernaut stands in front of the ranger and will not be moved, and its frost slows you down. The ranger's blood keeps it standing: every hit the ranger lands mends the juggernaut.",
    "members": [
     {
      "name": "Bastion",
-     "el": "blood",
+     "el": "frost",
      "role": "juggernaut",
      "ups": [
       "colossus",
@@ -555,12 +555,12 @@
     },
     {
      "name": "Swift",
-     "el": "storm",
+     "el": "blood",
      "role": "ranger",
      "ups": [
       "fleet",
       "dash",
-      "grapple"
+      "transfusion"
      ],
      "tac": {
       "mode": "behind",

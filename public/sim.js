@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.29';
+const VERSION = '0.99.31';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -2261,6 +2261,7 @@ const ENV_KO = { pit: 1, water: 1, lava: 1, spikes: 1, saw: 1, crush: 1, wall: 1
 const pushedBy = (w, f) => f.lastHitBy && (w.t - f.lastHitT < PUSH_CREDIT || (f.knock > 0 && w.t - f.lastHitT < PUSH_FLY)) ? f.lastHitBy : null;
 function kill(w, f, cause) {
   if (f.dead) return;
+  deathBurst(w, f);
   if (f.npc) { // an NPC: out until its stronghold sends it back; whoever did it gets the credit
     f.dead = true; f.hp = 0; f.falling = 0; f.drawing = false; f.charge = 0; f.npc.wind = null; f.npc.charge = null; f.npc.deadT = 0;
     const k = f.lastHitBy && w.t - f.lastHitT < 5 ? w.players.find(q => q.id === f.lastHitBy && !q.npc) : null;
@@ -3468,6 +3469,20 @@ function shadeDoom(w, q) {
   const o = w.players.find(z => z.id === s.by), dmg = shadeDmg(s.n) * (o && has(o, 'deepshade') ? DEEP_SHADE : 1);
   return dmg >= q.hp - 0.5 ? { t: s.t, dmg, by: o } : null;
 }
+// knocked out with a shade on them: it bursts as they go. There's no one left for the damage to hurt, but whoever planted
+// it still gets what a burst gives them (Soul Siphon's heal, on the burst's full worth; Nightfall's fade on a big one),
+// so a knockout before the fuse runs out never costs a Shadow archer anything
+function deathBurst(w, f) {
+  const s = f.shade; f.shade = null; if (!s || !(s.n > 0)) return;
+  ev(w, { e: 'shadeBurst', id: f.id, x: r1(f.x), y: r1(f.y), n: s.n, by: s.by, ko: 1 });
+  const o = w.players.find(q => q.id === s.by); if (!o || o.dead) return;
+  shadeReward(w, o, f, shadeDmg(s.n) * (has(o, 'deepshade') ? DEEP_SHADE : 1), s.n);
+}
+// what a burst gives the one who planted it
+function shadeReward(w, o, f, dealt, n) {
+  if (has(o, 'siphon') && dealt > 0) { const h = Math.min(o.maxHp - o.hp, dealt * SIPHON); if (h > 0) { o.hp += h; ev(w, { e: 'siphon', id: o.id, from: f.id, v: Math.round(h), x: r1(f.x), y: r1(f.y) }); } }
+  if (o.emp && o.element === 'shadow' && n >= 6 && !(o.stealthT > 0)) { o.stealthT = NIGHTFALL_FADE; ev(w, { e: 'nightfall', id: o.id, x: r1(o.x), y: r1(o.y) }); }
+}
 function plantShade(w, f, owner) {
   const add = owner.emp && owner.element === 'shadow' ? 2 : 1;
   if (!f.shade) f.shade = { by: owner.id, t: SHADE.t, n: 0 };
@@ -3476,7 +3491,7 @@ function plantShade(w, f, owner) {
 }
 function shadeTick(w, f, dt) {
   const s = f.shade;
-  if (f.falling > 0) { f.shade = null; return; }
+  if (f.falling > 0) { deathBurst(w, f); return; } // (going down a drop: it goes with them, in a burst)
   s.t -= dt; if (s.t > 0) return;
   f.shade = null;
   const o = w.players.find(q => q.id === s.by), big = o && has(o, 'deepshade') ? DEEP_SHADE : 1;
@@ -3486,11 +3501,8 @@ function shadeTick(w, f, dt) {
   ev(w, { e: 'shadeBurst', id: f.id, x: r1(f.x), y: r1(f.y), n: s.n, by: s.by });
   hurt(w, f, shadeDmg(s.n) * big, kx, ky, 'shade', s.by);
   if (o && !o.dead) {
-    const dealt = Math.max(0, hp0 - Math.max(0, f.hp));
-    // Soul Siphon: the burst feeds you
-    if (has(o, 'siphon') && dealt > 0) { const h = Math.min(o.maxHp - o.hp, dealt * SIPHON); if (h > 0) { o.hp += h; ev(w, { e: 'siphon', id: o.id, from: f.id, v: Math.round(h), x: r1(f.x), y: r1(f.y) }); } }
-    // Nightfall (empowered Shadow): a big burst (6 or more) and you slip into the dark for a moment, unseen
-    if (o.emp && o.element === 'shadow' && s.n >= 6 && !(o.stealthT > 0)) { o.stealthT = NIGHTFALL_FADE; ev(w, { e: 'nightfall', id: o.id, x: r1(o.x), y: r1(o.y) }); }
+    // Soul Siphon: the burst feeds you; Nightfall (empowered Shadow): a big burst (6 or more) and you slip into the dark for a moment
+    shadeReward(w, o, f, Math.max(0, hp0 - Math.max(0, f.hp)), s.n);
   }
 }
 // how much an archetype hurts you if left alone (the targeting weight; 1 is an all-rounder)
