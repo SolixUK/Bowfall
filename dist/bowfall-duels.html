@@ -2725,7 +2725,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.23';
+const VERSION = '0.99.24';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -4003,10 +4003,10 @@ const TREE = {
   cloak:     { tree: 'assassin', trade: true, name: 'Cloak and Dagger', desc: 'Stealth lasts 9 seconds, but you have 5 less health.', req: ['stealth'] },
   quickfeet: { tree: 'assassin', name: 'Light Step', desc: '8% faster, and you take 15% less damage from behind.' },
   deathmark: { tree: 'assassin', cap: true, name: 'Death Mark', desc: 'Your first hit after stealth ends marks the target: they take 30% more damage from everyone for 5 seconds.' },
-  shadow:    { tree: 'shadow', base: true, name: 'Shadow Arrows', desc: 'Every hit adds a shade to the target (up to 5) and restarts a 3.5 second fuse. When the fuse runs out the shade bursts: lightly with one, hard with several (6, 13, 21, 30 and 40 damage). Each of your shades on an enemy also makes you 4% faster (up to 20%). Keep hitting them to stack it up.' },
+  shadow:    { tree: 'shadow', base: true, name: 'Shadow Arrows', desc: 'Every hit adds a shade to the target (up to 10) and restarts a 3.5 second fuse. When the fuse runs out the shade bursts: lightly with one, hard with several (6, 13, 21, 30 and 40 damage up to 5, then 10 more for each one after, up to 90). Each of your shades on an enemy also makes you 4% faster (up to 20%). Keep hitting them to stack it up.' },
   eclipse:   { tree: 'shadow', active: { cd: 14 }, name: 'Eclipse', desc: 'Drop darkness on the spot under your cursor (up to 400px) for 4 seconds. Enemies inside are shrouded: they can only see 140px around themselves, and bots lose track of anyone further away.' },
-  gloom:     { tree: 'shadow', name: 'Creeping Dark', desc: 'Each shade on an enemy slows them 6%, and the burst slows them by 50% for 2 seconds.' },
-  dread:     { tree: 'shadow', name: 'Night Terror', desc: 'Shade bursts throw the target away from you, harder the more shades were on them.' },
+  gloom:     { tree: 'shadow', name: 'Creeping Dark', desc: 'Each shade on an enemy slows them 6% (up to 30%), and the burst slows them by 50% for 2 seconds.' },
+  siphon:    { tree: 'shadow', name: 'Soul Siphon', desc: 'Shade bursts heal you for 40% of the damage they deal.' },
   blood:     { tree: 'blood', base: true, name: 'Blood Arrows', desc: 'Damage you deal heals you for 35% of it (half as much while you are poisoned). The more health you have lost, the harder your arrows knock back: up to 25% harder near death.' },
   hemorrhage:{ tree: 'blood', name: 'Hemorrhage', desc: 'Fully drawn hits make the target bleed for 8 damage over 4 seconds. The bleeding heals you too.' },
   frenzy:    { tree: 'blood', name: 'Blood Frenzy', desc: 'Below half health, your hits heal you twice as much. And the more health you have lost, the faster you draw: up to 60% faster near death.' },
@@ -4123,7 +4123,7 @@ const BRIEF = {
   hitrun: 'Blink in, rapid-fire 2.5s, blink back.', secondwind: 'Regain 75% of the last 2s of damage, and speed.', escape: 'Below 25% health: drop a smoke cloud.', afterimage: 'Stealth leaves a walking shadow.', vanish: 'Knockouts cut Stealth cooldown by 6s.',
   shadowdash: "Dash recharges 2× faster in stealth.", cloak: 'Stealth lasts 9s. −5 health.', quickfeet: '8% faster, less damage from behind.',
   deathmark: 'First hit after stealth: +30% damage taken.', shadow: 'Hits stack shades that burst for damage.', eclipse: 'Drop darkness: enemies inside see little.',
-  gloom: 'Shades slow them; bursts slow more.', dread: 'Shade bursts throw them away from you.', blood: 'Damage heals you. Hit harder when hurt.',
+  gloom: 'Shades slow them; bursts slow more.', siphon: 'Shade bursts heal you for 40% of their damage.', blood: 'Damage heals you. Hit harder when hurt.',
   hemorrhage: 'Full-draw hits make them bleed (heals you).', frenzy: 'Low health: heal more and draw faster.', transfusion: 'A third of your healing flies to a hurt teammate.',
   bloodpact: 'Heal 65% of damage. −10 health.', deepshade: 'Shade bursts +50%. Knockback −15%.', sstrike: 'Teleport behind an enemy. Next 3 stars +75%.',
   clone: 'Vanish and leave a decoy that throws stars.', blossom: 'Throw 12 shuriken in a ring.', recall: 'Leave a mark; use again to snap back.',
@@ -4585,13 +4585,13 @@ function restyle(p) {
 // Learned upgrade values: how much each card changed a Master bot's chance of winning a game, compared with others
 // of the same role and element. Re-measured for 0.99.15 with tools/upgrade-fit.js (each card against the rest of its tree,
 // mirror matches, about 750 games a card; win rate less a half, times 0.6). Smart bots pick by these.
-const CARD_VALUE = { afterimage: -0.026, aftershock: -0.058, ambush: -0.003, ballista: 0.062, bankshot: 0.057, barbs: -0.016, bladeguard: 0.065, blink: 0.036, bloodpact: -0.051, blossom: -0.028, bond: -0.027, boomerang: -0.004, boulder: -0.023, briar: -0.05, cloak: -0.033, clone: 0.034, collapse: 0.047, colossus: -0.016, contagion: -0.038, dance: -0.046, dash: -0.041, deadeye: 0.049, deathmark: -0.044, deeproots: -0.008, deepshade: -0.024, deflect: 0.039, dread: 0.003, echo: -0.012, echostep: -0.01, eclipse: 0.03, escape: 0.0, execute: -0.032, execution: 0.028, fanbolt: -0.048, feather: -0.024, flashpoint: 0.006, fleet: 0.041, flurry: 0.012, forked: 0.103, fortify: -0.032, frenzy: 0.026, frostbite: -0.008, glass: -0.033, gloom: -0.019, grapple: -0.014, gravity: -0.021, gust: 0.004, hairtrig: 0.081, harpoon: -0.033, heavy: -0.008, heavybolt: 0.013, hemorrhage: 0.027, hitrun: -0.008, hoarfrost: -0.019, holdline: -0.057, horizon: 0.01, kindling: -0.026, longbow: 0.052, longstep: -0.097, longstock: 0.046, mend: 0.088, momentum: -0.0, nullfield: 0.006, oath: -0.099, obsidian: -0.028, overload: -0.007, parry: 0.041, permafrost: -0.02, petrify: 0.018, phase: -0.01, pierce: -0.028, pin: -0.023, pointblank: -0.034, potent: -0.058, quake: -0.029, quickfeet: -0.047, quickshot: 0.044, railshot: 0.049, rain: 0.03, rally: -0.047, ram: -0.041, recall: -0.041, recoil: -0.05, repeater: 0.074, revive: -0.036, ricochet: 0.051, rift: 0.008, riot: 0.078, rip: 0.086, rocket: -0.074, rush: -0.027, scatter: -0.078, secondwind: 0.068, seeker: -0.007, shadowdash: -0.016, sharpstar: 0.043, shatter: 0.005, smoke: -0.0, snare: -0.001, split: -0.028, spot: 0.014, sstrike: -0.022, stance: 0.046, static: 0.069, steady: -0.016, stealth: 0.036, stoke: 0.027, stormcall: -0.027, surefoot: -0.041, swiftstep: -0.062, totem: -0.017, toxic: 0.009, transfusion: -0.06, trap: 0.022, tribolt: 0.005, trick: 0.037, twinload: 0.066, unstable: -0.033, vanish: -0.023, virulent: 0.028, vital: 0.047, volley: 0.03, wall: -0.038, wildfire: -0.025, windlass: -0.002 };
+const CARD_VALUE = { afterimage: -0.026, aftershock: -0.058, ambush: -0.003, ballista: 0.062, bankshot: 0.057, barbs: -0.016, bladeguard: 0.065, blink: 0.036, bloodpact: -0.051, blossom: -0.028, bond: -0.027, boomerang: -0.004, boulder: -0.023, briar: -0.05, cloak: -0.033, clone: 0.034, collapse: 0.047, colossus: -0.016, contagion: -0.038, dance: -0.046, dash: -0.041, deadeye: 0.049, deathmark: -0.044, deeproots: -0.008, deepshade: -0.024, deflect: 0.039, siphon: 0, echo: -0.012, echostep: -0.01, eclipse: 0.03, escape: 0.0, execute: -0.032, execution: 0.028, fanbolt: -0.048, feather: -0.024, flashpoint: 0.006, fleet: 0.041, flurry: 0.012, forked: 0.103, fortify: -0.032, frenzy: 0.026, frostbite: -0.008, glass: -0.033, gloom: -0.019, grapple: -0.014, gravity: -0.021, gust: 0.004, hairtrig: 0.081, harpoon: -0.033, heavy: -0.008, heavybolt: 0.013, hemorrhage: 0.027, hitrun: -0.008, hoarfrost: -0.019, holdline: -0.057, horizon: 0.01, kindling: -0.026, longbow: 0.052, longstep: -0.097, longstock: 0.046, mend: 0.088, momentum: -0.0, nullfield: 0.006, oath: -0.099, obsidian: -0.028, overload: -0.007, parry: 0.041, permafrost: -0.02, petrify: 0.018, phase: -0.01, pierce: -0.028, pin: -0.023, pointblank: -0.034, potent: -0.058, quake: -0.029, quickfeet: -0.047, quickshot: 0.044, railshot: 0.049, rain: 0.03, rally: -0.047, ram: -0.041, recall: -0.041, recoil: -0.05, repeater: 0.074, revive: -0.036, ricochet: 0.051, rift: 0.008, riot: 0.078, rip: 0.086, rocket: -0.074, rush: -0.027, scatter: -0.078, secondwind: 0.068, seeker: -0.007, shadowdash: -0.016, sharpstar: 0.043, shatter: 0.005, smoke: -0.0, snare: -0.001, split: -0.028, spot: 0.014, sstrike: -0.022, stance: 0.046, static: 0.069, steady: -0.016, stealth: 0.036, stoke: 0.027, stormcall: -0.027, surefoot: -0.041, swiftstep: -0.062, totem: -0.017, toxic: 0.009, transfusion: -0.06, trap: 0.022, tribolt: 0.005, trick: 0.037, twinload: 0.066, unstable: -0.033, vanish: -0.023, virulent: 0.028, vital: 0.047, volley: 0.03, wall: -0.038, wildfire: -0.025, windlass: -0.002 };
 // bots: capstones first, then abilities, cards that suit their playstyle, anything that builds toward one; boosts last.
 // Smart bots (Master, and AI players near it) mostly go by what the learning showed actually wins.
 // cards that do nothing without teammates (yours or theirs): never offered in a 1v1, and bots on their own skip them
 const TEAM_ONLY = ['oath', 'revive', 'transfusion', 'contagion', 'aftershock', 'forked', 'pierce'];
 // cards that live off the arena's drops: a pull, a shove or a harder throw is worth more where there's something to throw people into
-const HAZ_CARDS = { harpoon: 1, gust: 0.9, ram: 0.7, boulder: 0.6, obsidian: 0.6, aftershock: 0.5, recoil: 0.3, kindling: 0.4, shatter: 0.4, dread: 0.4 };
+const HAZ_CARDS = { harpoon: 1, gust: 0.9, ram: 0.7, boulder: 0.6, obsidian: 0.6, aftershock: 0.5, recoil: 0.3, kindling: 0.4, shatter: 0.4 };
 function botPickIndex(p, w) {
   if (p.gene && p.gene.randPick) return Math.floor(Math.random() * p.offer.length); // exploring, for learning what works
   const st = STYLES[p.ai && p.ai.style], D0 = botD(p), iq = p.gene && p.gene.noLearn ? 0 : (D0.mind != null ? D0.mind : D0.iq) || 0;
@@ -4955,7 +4955,7 @@ const EMPOWER = {
   flame:  { name: 'Blaze', desc: 'You leave a trail of fire, and your arrows set the ground alight wherever they land.' },
   storm:  { name: 'Overcharge', desc: 'Lightning arcs 2 extra times and reaches enemies twice as far away, your dash recharges twice as fast, and a storm bullseye stuns the target and everyone the lightning reaches for 1 second.' },
   poison: { name: 'Plague', desc: 'A poison aura around you adds a stack to every enemy inside it 4 times a second.' },
-  shadow: { name: 'Nightfall', desc: 'Every hit adds two shades instead of one.' },
+  shadow: { name: 'Nightfall', desc: 'Every hit adds two shades instead of one, and when a shade of 6 or more of yours bursts you vanish into the dark for 1.5 seconds: unseen, and 30% faster, until you shoot.' },
 };
 // a short code describing the finishing blow, turned into words by the client
 function howKilled(f, cause) {
@@ -6166,10 +6166,11 @@ function shroud(f, t, r) { f.shroudT = Math.max(f.shroudT || 0, t); f.shroudR = 
 // Shadow Arrows: every hit adds a stack (up to 5) and resets a 3 second fuse; when it runs out the shade bursts,
 // barely at one stack and hard at five
 const SHADOW_SPEED = { per: 0.04, max: 0.2 }; // Shadow: move this much faster per shade of yours on an enemy, up to max
-const SHADE = { t: 3.5, max: 5 }, SHADE_DMG = [0, 6, 13, 21, 30, 40], shadeDmg = n => SHADE_DMG[Math.min(5, Math.max(1, n))]; // (0.83: a 3.5 s fuse, so a second hit lands in time more often)
+const SHADE = { t: 3.5, max: 10 }, SHADE_DMG = [0, 6, 13, 21, 30, 40, 50, 60, 70, 80, 90], shadeDmg = n => SHADE_DMG[Math.min(SHADE.max, Math.max(1, n))]; // (up to 10: past 5 every hit still adds 10 to the burst, so there's no point where you have to stop shooting to make it pay)
+const DEEP_SHADE = 1.5, SIPHON = 0.4, NIGHTFALL_FADE = 1.5; // Deep Shade's burst multiplier; Soul Siphon's share of a burst that heals you // (0.83: a 3.5 s fuse, so a second hit lands in time more often)
 const BURN_DPS = 4, POISON_DPS = 1.2, BLOOD_HEAL = 0.35, BLOOD_PACT_HEAL = 0.65, STAGGER_KB = 1.25, STAGGER_DRAW = 0.5, VOID_DMG = 0.06; // the elements' base numbers (0.83 balance pass)
 // a shade of p's on q that bursts for enough to finish them (another hit would only restart its fuse)
-const shadeKills = (p, q) => !!(q && q.shade && q.shade.by === p.id && shadeDmg(q.shade.n) * (has(p, 'deepshade') ? 1.5 : 1) >= q.hp - 0.5 && q.shade.t > 0.05);
+const shadeKills = (p, q) => !!(q && q.shade && q.shade.by === p.id && shadeDmg(q.shade.n) * (has(p, 'deepshade') ? DEEP_SHADE : 1) >= q.hp - 0.5 && q.shade.t > 0.05);
 function plantShade(w, f, owner) {
   const add = owner.emp && owner.element === 'shadow' ? 2 : 1;
   if (!f.shade) f.shade = { by: owner.id, t: SHADE.t, n: 0 };
@@ -6181,12 +6182,19 @@ function shadeTick(w, f, dt) {
   if (f.falling > 0) { f.shade = null; return; }
   s.t -= dt; if (s.t > 0) return;
   f.shade = null;
-  const o = w.players.find(q => q.id === s.by), big = o && has(o, 'deepshade') ? 1.5 : 1;
+  const o = w.players.find(q => q.id === s.by), big = o && has(o, 'deepshade') ? DEEP_SHADE : 1;
   let kx = 0, ky = 0;
-  if (o && has(o, 'dread')) { const dx = f.x - o.x, dy = f.y - o.y, d = Math.hypot(dx, dy) || 1, k = 160 * s.n; kx = dx / d * k; ky = dy / d * k; }
   if (o && has(o, 'gloom')) { f.slow = Math.max(f.slow, 2); f.slowK = Math.min(f.slowK || 0.5, 0.5); }
-  ev(w, { e: 'shadeBurst', id: f.id, x: r1(f.x), y: r1(f.y), n: s.n });
+  const hp0 = f.hp;
+  ev(w, { e: 'shadeBurst', id: f.id, x: r1(f.x), y: r1(f.y), n: s.n, by: s.by });
   hurt(w, f, shadeDmg(s.n) * big, kx, ky, 'shade', s.by);
+  if (o && !o.dead) {
+    const dealt = Math.max(0, hp0 - Math.max(0, f.hp));
+    // Soul Siphon: the burst feeds you
+    if (has(o, 'siphon') && dealt > 0) { const h = Math.min(o.maxHp - o.hp, dealt * SIPHON); if (h > 0) { o.hp += h; ev(w, { e: 'siphon', id: o.id, from: f.id, v: Math.round(h), x: r1(f.x), y: r1(f.y) }); } }
+    // Nightfall (empowered Shadow): a big burst (6 or more) and you slip into the dark for a moment, unseen
+    if (o.emp && o.element === 'shadow' && s.n >= 6 && !(o.stealthT > 0)) { o.stealthT = NIGHTFALL_FADE; ev(w, { e: 'nightfall', id: o.id, x: r1(o.x), y: r1(o.y) }); }
+  }
 }
 // how much an archetype hurts you if left alone (the targeting weight; 1 is an all-rounder)
 const ROLE_THREAT = { sniper: 1.25, crossbow: 1.2, assassin: 1.2, ranger: 1.1, ninja: 1.1, trickster: 1.05, trapper: 1, warden: 0.85, juggernaut: 0.75 };
@@ -9412,7 +9420,7 @@ function step(w, dt) {
   for (const p of w.players) {
     if (p.dead) { p.revP = 0; continue; }
     const rallied = w.players.some(q => q.team === p.team && !q.dead && has(q, 'rally') && Math.hypot(q.x - p.x, q.y - p.y) < 170);
-    p.speed = p.baseSpeed * (p.windT > 0 ? 1.4 : 1) * (p.fortT > 0 ? 0.6 : 1) * (p.trapSet ? 0.5 : 1) * (rallied ? 1.2 : 1) * (p.stealthT > 0 ? 1.3 : 1) * (p.swT > 0 ? 1.35 : 1) * (p.shade && p.shade.slow ? 1 - 0.06 * p.shade.n : 1) * (p.thornN > 0 ? 1 - 0.05 * p.thornN : 1) * (p.bot ? botD(p).speed : 1);
+    p.speed = p.baseSpeed * (p.windT > 0 ? 1.4 : 1) * (p.fortT > 0 ? 0.6 : 1) * (p.trapSet ? 0.5 : 1) * (rallied ? 1.2 : 1) * (p.stealthT > 0 ? 1.3 : 1) * (p.swT > 0 ? 1.35 : 1) * (p.shade && p.shade.slow ? 1 - 0.06 * Math.min(5, p.shade.n) : 1) * (p.thornN > 0 ? 1 - 0.05 * p.thornN : 1) * (p.bot ? botD(p).speed : 1);
     p.rallied = rallied;
   }
   // duos share a plan (co-op tactics), worked out before anyone thinks
@@ -9970,7 +9978,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.99.23';
+const PAGE_VERSION = '0.99.24';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -16700,11 +16708,39 @@ function eventFx(e) {
       case 'shade': { burst(e.x, e.y, '#2b2747', 4 + 2 * (e.n || 1), 70, 2.5); play('shade', e.n || 1, e.id === myId ? 1 : 0.6); break; }
       case 'shadeUp': { const q = view && view.p.find(z => z.id === e.id); if (q) { burst(q.x, q.y, '#8e95c9', 8, 90, 2); floater(q.x, q.y - 34, 'Deepened', '#aab0e0', 13); } play('shadeUp'); break; }
       case 'shadeBurst': {
-        const big = 0.5 + 0.22 * (e.n || 1);
+        const n = e.n || 1, big = Math.min(2.4, 0.5 + 0.2 * n), huge = n >= 6;
+        // the burst: darkness bursting out of them, shards flung wide, the shade's wisps rising off, a pale shockwave (and a second, slower one for a big one)
         burst(e.x, e.y, '#1c1a2e', Math.round(16 * big), 170 * big, 3.2); burst(e.x, e.y, '#8e95c9', Math.round(10 * big), 130 * big, 2.2);
+        if (!lightFx()) {
+          for (let i = 0; i < Math.min(26, 4 + n * 2); i++) { const a = rand(0, TAU), v = rand(220, 420) * Math.min(1.6, big); fx.parts.push({ x: e.x, y: e.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0, max: rand(0.35, 0.6), color: i % 3 ? '#2b2747' : '#c9ccf2', r: rand(1.4, 2.6) }); }
+          for (let i = 0; i < Math.min(14, 2 + n); i++) fx.parts.push({ x: e.x + rand(-14, 14), y: e.y + rand(-10, 10), vx: rand(-20, 20), vy: rand(-90, -40), life: 0, max: rand(0.7, 1.2), color: 'rgba(28,26,46,0.85)', r: rand(3, 5.5) });
+          for (let i = 0; i < Math.min(8, 1 + Math.floor(n / 2)); i++) { const a = rand(0, TAU), L = rand(40, 70) * Math.min(1.8, big); fx.bolts.push({ x1: e.x, y1: e.y, x2: e.x + Math.cos(a) * L, y2: e.y + Math.sin(a) * L, life: 0, col: '142,149,201' }); }
+        }
         fx.rings.push({ x: e.x, y: e.y, r: 8, life: 0, col: '142,149,201', max: 48 * big });
-        play('shadeBurst', big);
+        if (huge) fx.rings.push({ x: e.x, y: e.y, r: 8, life: -0.12, col: '28,26,46', max: 80 * big, lw: 10 });
+        if (n >= 3) floater(e.x, e.y - 40, '✦' + n, '#c9ccf2', 12 + Math.min(10, n));
+        play('shadeBurst', Math.min(1.7, big));
         if (e.id === myId) shake(3 * big);
+        // and on whoever planted it: the shade's power comes back to them, wisps streaming in and a dark pulse round them
+        const by = e.by != null && view && view.p.find(z => z.id === e.by);
+        if (by && !by.dead) {
+          if (!lightFx()) for (let i = 0; i < Math.min(16, 3 + n * 1.5); i++) { const a = rand(0, TAU), v = rand(80, 200); fx.parts.push({ x: e.x + rand(-10, 10), y: e.y + rand(-10, 10), vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0, max: rand(0.55, 0.85), color: i % 2 ? '#8e95c9' : '#c9ccf2', r: rand(1.8, 3), home: by }); }
+          fx.rings.push({ x: by.x, y: by.y, r: 6, life: -0.3, col: '142,149,201', max: 34 + 3 * Math.min(10, n), lw: 4 });
+          if (by.id === myId && n >= 3) floater(by.x, by.y - 44, n >= 6 ? 'Shadow burst!' : 'Burst', '#aab0e0', n >= 6 ? 15 : 12, true);
+        }
+        break;
+      }
+      case 'siphon': { // Soul Siphon: the burst heals whoever planted it
+        const q = view && view.p.find(z => z.id === e.id);
+        if (q) { if (!lightFx()) for (let i = 0; i < 10; i++) { const a = rand(0, TAU), v = rand(60, 160); fx.parts.push({ x: e.x, y: e.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0, max: 0.8, color: '#b9f0c8', r: rand(1.8, 2.8), home: q }); }
+          floater(q.x + 14, q.y - 30, '+' + e.v, '#a8f0c0', 14, q.id === myId); fx.rings.push({ x: q.x, y: q.y, r: 6, life: -0.35, col: '125,255,170', max: 30, lw: 3 }); }
+        break;
+      }
+      case 'nightfall': { // empowered Shadow: a big burst and they melt into the dark
+        for (let i = 0; i < 22; i++) { const a = rand(0, TAU), v = rand(40, 160); fx.parts.push({ x: e.x + rand(-8, 8), y: e.y + rand(-8, 8), vx: Math.cos(a) * v, vy: Math.sin(a) * v - 30, life: 0, max: rand(0.6, 1), color: i % 4 ? 'rgba(18,16,34,0.9)' : '#8e95c9', r: rand(3, 6) }); }
+        fx.rings.push({ x: e.x, y: e.y, r: 6, life: 0, col: '28,26,46', max: 70, lw: 9 });
+        fx.nightfall = fx.nightfall || {}; fx.nightfall[e.id] = gclock;
+        if (e.id === myId) floater(e.x, e.y - 46, 'Nightfall: unseen', '#c9ccf2', 15, true);
         break;
       }
       case 'eclipse': burst(e.x, e.y, '#15132a', 26, 160, 4); play('eclipse'); break;
@@ -16814,7 +16850,7 @@ function eventFx(e) {
       case 'stealthOn': case 'stealthOff': {
         for (let i = 0; i < 14; i++) fx.parts.push({ x: e.x + rand(-12, 12), y: e.y + rand(-12, 12), vx: rand(-40, 40), vy: rand(-50, 10), life: 0, max: 0.6, color: 'rgba(120,120,140,0.9)', r: rand(2, 4.5) });
         if (e.id === myId || e.e === 'stealthOff') play('stealth', e.e === 'stealthOn');
-        if (e.e === 'stealthOff' && e.id !== myId) floater(e.x, e.y - 30, 'Ambush!', '#c7b3ff', 14);
+        if (e.e === 'stealthOff' && e.id !== myId && !(fx.nightfall && gclock - (fx.nightfall[e.id] || -9) < 2)) floater(e.x, e.y - 30, 'Ambush!', '#c7b3ff', 14); // (not out of Nightfall's dark: that isn't an ambush)
         break;
       }
       case 'echo': fx.rings.push({ x: e.x, y: e.y, r: 6, life: 0, col: '255,242,122', max: 36 }); elSfx.storm(0.8); break;
@@ -17033,7 +17069,7 @@ function updateFx(dt) {
       if (t) { while (t.length && clock - t[0].at > 0.18) t.shift(); if (!t.length) TRAIL.delete(p.id); }
     }
   } else TRAIL.clear();
-  for (let i = fx.parts.length - 1; i >= 0; i--) { const p = fx.parts[i]; p.life += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.94; p.vy *= 0.94; if (p.life > p.max) fx.parts.splice(i, 1); }
+  for (let i = fx.parts.length - 1; i >= 0; i--) { const p = fx.parts[i]; p.life += dt; if (p.home) { const hx = p.home.x - p.x, hy = p.home.y - p.y, hd = Math.hypot(hx, hy) || 1, sp = 260 + 900 * Math.min(1, p.life / p.max); p.vx += (hx / hd * sp - p.vx) * Math.min(1, dt * 7); p.vy += (hy / hd * sp - p.vy) * Math.min(1, dt * 7); if (hd < 14) p.life = p.max + 1; } /* (home: a wisp drawn in to someone, the shade's power going back to whoever planted it) */ p.x += p.vx * dt; p.y += p.vy * dt; if (!p.home) { p.vx *= 0.94; p.vy *= 0.94; } if (p.life > p.max) fx.parts.splice(i, 1); }
   for (let i = fx.floaters.length - 1; i >= 0; i--) { const f = fx.floaters[i]; f.life += dt; f.y -= 40 * dt; if (f.life > 0.9) fx.floaters.splice(i, 1); }
   for (const m of fx.mends) m.t += dt; fx.mends = fx.mends.filter(m => m.t < m.tt + 0.25);
   for (const c of fx.crosses) c.t += dt; fx.crosses = fx.crosses.filter(c => c.t < 1.1);
@@ -19253,9 +19289,10 @@ function drawPlayer(p, isMe, bare) {
   if (p.shd && !p.f) { // shades: the archer darkens with every stack, wisps circle them, and a fuse ring runs down
     const n = p.shd, k = Math.max(0, Math.min(1, p.sht || 0));
     ctx.fillStyle = `rgba(12,10,26,${Math.min(0.78, 0.15 * n)})`; ctx.beginPath(); ctx.arc(0, 0, R + 1, 0, TAU); ctx.fill();
-    ctx.strokeStyle = `rgba(142,149,201,${0.45 + 0.1 * n})`; ctx.lineWidth = 1.5 + 0.4 * n;
+    ctx.strokeStyle = `rgba(142,149,201,${0.45 + 0.1 * n})`; ctx.lineWidth = 1.5 + 0.4 * Math.min(6, n);
     for (let i = 0; i < n; i++) { const a0 = gclock * (2.5 + n * 0.6) + i * TAU / n; ctx.beginPath(); ctx.arc(0, 0, R + 5, a0, a0 + 0.55); ctx.stroke(); }
     ctx.strokeStyle = `rgba(200,205,240,${0.35 + 0.4 * (1 - k)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, R + 9, -Math.PI / 2, -Math.PI / 2 + TAU * k); ctx.stroke();
+    if (n > 5) { ctx.font = "700 11px 'Rajdhani', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center'; ctx.fillStyle = '#c9ccf2'; ctx.fillText('✦' + n, -R - 10, -R - 4); } // (past five the rings run together: the count says it)
     if (n >= 3 && !lightFx() && Math.random() < 0.15 * n) fx.parts.push({ x: p.x + rand(-R, R), y: p.y + rand(-R, R), vx: rand(-15, 15), vy: rand(-45, -15), life: 0, max: 0.5, color: '#1c1a2e', r: rand(1.6, 3) });
   }
   if (p.th && !p.f) { // thorns stuck in them (Rip): fat barbed spikes round the body, redder the more there are
@@ -20231,7 +20268,7 @@ function render(replaying) {
   for (const a of view.a) if (!a.s && onScreen(a.x, a.y, 80)) drawArrow(a);
   PR.lap('shots');
   if (me && me.sr && !me.d && !replaying) drawShroud(me);
-  for (const r of fx.rings) { ctx.strokeStyle = `rgba(${r.col || '255,138,61'},${1 - r.life / 0.4})`; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, TAU); ctx.stroke(); }
+  for (const r of fx.rings) { if (r.life < 0) continue; ctx.strokeStyle = `rgba(${r.col || '255,138,61'},${1 - r.life / 0.4})`; ctx.lineWidth = r.lw || 6; ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, TAU); ctx.stroke(); }
   drawMends(view);
   if (!(STUDIO.on && !STUDIO.cur.parts)) for (const p of fx.parts) { ctx.globalAlpha = Math.max(0, 1 - p.life / p.max); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU); ctx.fill(); }
   ctx.globalAlpha = 1; ctx.textAlign = 'center';
@@ -21456,7 +21493,7 @@ function replayRecord() {
   while (RP.evs.length && RP.evs[0].t < clock - RP_KEEP) RP.evs.shift();
 }
 // events the kill cam keeps; those in REPLAY_LIVE are played exactly as they looked live
-const REPLAY_LIVE = new Set(['ripCancel', 'hooked', 'reel', 'orbHeal', 'transfuse', 'stagger', 'shade', 'shadeUp', 'shadeBurst', 'ripCast', 'rip', 'boomTurn', 'catch', 'eclipse', 'mend', 'mended', 'flashpoint', 'smoke', 'totem', 'harpoon', 'blink', 'recoil', 'rush', 'wind', 'gust', 'deflect', 'deflectUp', 'blocked', 'snared', 'stagger', 'execute', 'backstab', 'volleyReset', 'echo', 'disarm', 'blossom', 'clone', 'grapple', 'leech', 'bleed', 'split', 'drop', 'thunk', 'shield', 'rainMark', 'rainHit', 'trapSet', 'wallUp', 'marked', 'fortify', 'shove', 'stuck', 'zone', 'thunder', 'caltrops', 'stealthOn', 'stealthOff', 'smark', 'shuriken', 'transfuse', 'revive', 'overload', 'sstrike', 'recall', 'nblink', 'flash', 'swap', 'quake', 'collapse', 'aftershock', 'trapHit', 'chain', 'burst', 'pinned', 'freeze', 'spike', 'thud']);
+const REPLAY_LIVE = new Set(['siphon', 'nightfall', 'ripCancel', 'hooked', 'reel', 'orbHeal', 'transfuse', 'stagger', 'shade', 'shadeUp', 'shadeBurst', 'ripCast', 'rip', 'boomTurn', 'catch', 'eclipse', 'mend', 'mended', 'flashpoint', 'smoke', 'totem', 'harpoon', 'blink', 'recoil', 'rush', 'wind', 'gust', 'deflect', 'deflectUp', 'blocked', 'snared', 'stagger', 'execute', 'backstab', 'volleyReset', 'echo', 'disarm', 'blossom', 'clone', 'grapple', 'leech', 'bleed', 'split', 'drop', 'thunk', 'shield', 'rainMark', 'rainHit', 'trapSet', 'wallUp', 'marked', 'fortify', 'shove', 'stuck', 'zone', 'thunder', 'caltrops', 'stealthOn', 'stealthOff', 'smark', 'shuriken', 'transfuse', 'revive', 'overload', 'sstrike', 'recall', 'nblink', 'flash', 'swap', 'quake', 'collapse', 'aftershock', 'trapHit', 'chain', 'burst', 'pinned', 'freeze', 'spike', 'thud']);
 // kept with the replay for spotting plays (combo shots, bank shots, clutches), but nothing to show for them
 const REPLAY_META = new Set(['bowl', 'slam', 'gameEnd']);
 const REPLAY_FX = { throw: 1, sstrike: 1, recall: 1, nblink: 1, flash: 1, swap: 1, fire: 1, hit: 1, dmg: 1, fall: 1, boom: 1, freeze: 1, spike: 1, thud: 1, pinned: 1, chain: 1, burst: 1, trapHit: 1, quake: 1, collapse: 1, aftershock: 1, dash: 1, saw: 1, bump: 1, portal: 1, parry: 1, parried: 1, warp: 1, stun: 1, ambushHit: 1 };

@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.23';
+const VERSION = '0.99.24';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1287,10 +1287,10 @@ const TREE = {
   cloak:     { tree: 'assassin', trade: true, name: 'Cloak and Dagger', desc: 'Stealth lasts 9 seconds, but you have 5 less health.', req: ['stealth'] },
   quickfeet: { tree: 'assassin', name: 'Light Step', desc: '8% faster, and you take 15% less damage from behind.' },
   deathmark: { tree: 'assassin', cap: true, name: 'Death Mark', desc: 'Your first hit after stealth ends marks the target: they take 30% more damage from everyone for 5 seconds.' },
-  shadow:    { tree: 'shadow', base: true, name: 'Shadow Arrows', desc: 'Every hit adds a shade to the target (up to 5) and restarts a 3.5 second fuse. When the fuse runs out the shade bursts: lightly with one, hard with several (6, 13, 21, 30 and 40 damage). Each of your shades on an enemy also makes you 4% faster (up to 20%). Keep hitting them to stack it up.' },
+  shadow:    { tree: 'shadow', base: true, name: 'Shadow Arrows', desc: 'Every hit adds a shade to the target (up to 10) and restarts a 3.5 second fuse. When the fuse runs out the shade bursts: lightly with one, hard with several (6, 13, 21, 30 and 40 damage up to 5, then 10 more for each one after, up to 90). Each of your shades on an enemy also makes you 4% faster (up to 20%). Keep hitting them to stack it up.' },
   eclipse:   { tree: 'shadow', active: { cd: 14 }, name: 'Eclipse', desc: 'Drop darkness on the spot under your cursor (up to 400px) for 4 seconds. Enemies inside are shrouded: they can only see 140px around themselves, and bots lose track of anyone further away.' },
-  gloom:     { tree: 'shadow', name: 'Creeping Dark', desc: 'Each shade on an enemy slows them 6%, and the burst slows them by 50% for 2 seconds.' },
-  dread:     { tree: 'shadow', name: 'Night Terror', desc: 'Shade bursts throw the target away from you, harder the more shades were on them.' },
+  gloom:     { tree: 'shadow', name: 'Creeping Dark', desc: 'Each shade on an enemy slows them 6% (up to 30%), and the burst slows them by 50% for 2 seconds.' },
+  siphon:    { tree: 'shadow', name: 'Soul Siphon', desc: 'Shade bursts heal you for 40% of the damage they deal.' },
   blood:     { tree: 'blood', base: true, name: 'Blood Arrows', desc: 'Damage you deal heals you for 35% of it (half as much while you are poisoned). The more health you have lost, the harder your arrows knock back: up to 25% harder near death.' },
   hemorrhage:{ tree: 'blood', name: 'Hemorrhage', desc: 'Fully drawn hits make the target bleed for 8 damage over 4 seconds. The bleeding heals you too.' },
   frenzy:    { tree: 'blood', name: 'Blood Frenzy', desc: 'Below half health, your hits heal you twice as much. And the more health you have lost, the faster you draw: up to 60% faster near death.' },
@@ -1407,7 +1407,7 @@ const BRIEF = {
   hitrun: 'Blink in, rapid-fire 2.5s, blink back.', secondwind: 'Regain 75% of the last 2s of damage, and speed.', escape: 'Below 25% health: drop a smoke cloud.', afterimage: 'Stealth leaves a walking shadow.', vanish: 'Knockouts cut Stealth cooldown by 6s.',
   shadowdash: "Dash recharges 2× faster in stealth.", cloak: 'Stealth lasts 9s. −5 health.', quickfeet: '8% faster, less damage from behind.',
   deathmark: 'First hit after stealth: +30% damage taken.', shadow: 'Hits stack shades that burst for damage.', eclipse: 'Drop darkness: enemies inside see little.',
-  gloom: 'Shades slow them; bursts slow more.', dread: 'Shade bursts throw them away from you.', blood: 'Damage heals you. Hit harder when hurt.',
+  gloom: 'Shades slow them; bursts slow more.', siphon: 'Shade bursts heal you for 40% of their damage.', blood: 'Damage heals you. Hit harder when hurt.',
   hemorrhage: 'Full-draw hits make them bleed (heals you).', frenzy: 'Low health: heal more and draw faster.', transfusion: 'A third of your healing flies to a hurt teammate.',
   bloodpact: 'Heal 65% of damage. −10 health.', deepshade: 'Shade bursts +50%. Knockback −15%.', sstrike: 'Teleport behind an enemy. Next 3 stars +75%.',
   clone: 'Vanish and leave a decoy that throws stars.', blossom: 'Throw 12 shuriken in a ring.', recall: 'Leave a mark; use again to snap back.',
@@ -1869,13 +1869,13 @@ function restyle(p) {
 // Learned upgrade values: how much each card changed a Master bot's chance of winning a game, compared with others
 // of the same role and element. Re-measured for 0.99.15 with tools/upgrade-fit.js (each card against the rest of its tree,
 // mirror matches, about 750 games a card; win rate less a half, times 0.6). Smart bots pick by these.
-const CARD_VALUE = { afterimage: -0.026, aftershock: -0.058, ambush: -0.003, ballista: 0.062, bankshot: 0.057, barbs: -0.016, bladeguard: 0.065, blink: 0.036, bloodpact: -0.051, blossom: -0.028, bond: -0.027, boomerang: -0.004, boulder: -0.023, briar: -0.05, cloak: -0.033, clone: 0.034, collapse: 0.047, colossus: -0.016, contagion: -0.038, dance: -0.046, dash: -0.041, deadeye: 0.049, deathmark: -0.044, deeproots: -0.008, deepshade: -0.024, deflect: 0.039, dread: 0.003, echo: -0.012, echostep: -0.01, eclipse: 0.03, escape: 0.0, execute: -0.032, execution: 0.028, fanbolt: -0.048, feather: -0.024, flashpoint: 0.006, fleet: 0.041, flurry: 0.012, forked: 0.103, fortify: -0.032, frenzy: 0.026, frostbite: -0.008, glass: -0.033, gloom: -0.019, grapple: -0.014, gravity: -0.021, gust: 0.004, hairtrig: 0.081, harpoon: -0.033, heavy: -0.008, heavybolt: 0.013, hemorrhage: 0.027, hitrun: -0.008, hoarfrost: -0.019, holdline: -0.057, horizon: 0.01, kindling: -0.026, longbow: 0.052, longstep: -0.097, longstock: 0.046, mend: 0.088, momentum: -0.0, nullfield: 0.006, oath: -0.099, obsidian: -0.028, overload: -0.007, parry: 0.041, permafrost: -0.02, petrify: 0.018, phase: -0.01, pierce: -0.028, pin: -0.023, pointblank: -0.034, potent: -0.058, quake: -0.029, quickfeet: -0.047, quickshot: 0.044, railshot: 0.049, rain: 0.03, rally: -0.047, ram: -0.041, recall: -0.041, recoil: -0.05, repeater: 0.074, revive: -0.036, ricochet: 0.051, rift: 0.008, riot: 0.078, rip: 0.086, rocket: -0.074, rush: -0.027, scatter: -0.078, secondwind: 0.068, seeker: -0.007, shadowdash: -0.016, sharpstar: 0.043, shatter: 0.005, smoke: -0.0, snare: -0.001, split: -0.028, spot: 0.014, sstrike: -0.022, stance: 0.046, static: 0.069, steady: -0.016, stealth: 0.036, stoke: 0.027, stormcall: -0.027, surefoot: -0.041, swiftstep: -0.062, totem: -0.017, toxic: 0.009, transfusion: -0.06, trap: 0.022, tribolt: 0.005, trick: 0.037, twinload: 0.066, unstable: -0.033, vanish: -0.023, virulent: 0.028, vital: 0.047, volley: 0.03, wall: -0.038, wildfire: -0.025, windlass: -0.002 };
+const CARD_VALUE = { afterimage: -0.026, aftershock: -0.058, ambush: -0.003, ballista: 0.062, bankshot: 0.057, barbs: -0.016, bladeguard: 0.065, blink: 0.036, bloodpact: -0.051, blossom: -0.028, bond: -0.027, boomerang: -0.004, boulder: -0.023, briar: -0.05, cloak: -0.033, clone: 0.034, collapse: 0.047, colossus: -0.016, contagion: -0.038, dance: -0.046, dash: -0.041, deadeye: 0.049, deathmark: -0.044, deeproots: -0.008, deepshade: -0.024, deflect: 0.039, siphon: 0, echo: -0.012, echostep: -0.01, eclipse: 0.03, escape: 0.0, execute: -0.032, execution: 0.028, fanbolt: -0.048, feather: -0.024, flashpoint: 0.006, fleet: 0.041, flurry: 0.012, forked: 0.103, fortify: -0.032, frenzy: 0.026, frostbite: -0.008, glass: -0.033, gloom: -0.019, grapple: -0.014, gravity: -0.021, gust: 0.004, hairtrig: 0.081, harpoon: -0.033, heavy: -0.008, heavybolt: 0.013, hemorrhage: 0.027, hitrun: -0.008, hoarfrost: -0.019, holdline: -0.057, horizon: 0.01, kindling: -0.026, longbow: 0.052, longstep: -0.097, longstock: 0.046, mend: 0.088, momentum: -0.0, nullfield: 0.006, oath: -0.099, obsidian: -0.028, overload: -0.007, parry: 0.041, permafrost: -0.02, petrify: 0.018, phase: -0.01, pierce: -0.028, pin: -0.023, pointblank: -0.034, potent: -0.058, quake: -0.029, quickfeet: -0.047, quickshot: 0.044, railshot: 0.049, rain: 0.03, rally: -0.047, ram: -0.041, recall: -0.041, recoil: -0.05, repeater: 0.074, revive: -0.036, ricochet: 0.051, rift: 0.008, riot: 0.078, rip: 0.086, rocket: -0.074, rush: -0.027, scatter: -0.078, secondwind: 0.068, seeker: -0.007, shadowdash: -0.016, sharpstar: 0.043, shatter: 0.005, smoke: -0.0, snare: -0.001, split: -0.028, spot: 0.014, sstrike: -0.022, stance: 0.046, static: 0.069, steady: -0.016, stealth: 0.036, stoke: 0.027, stormcall: -0.027, surefoot: -0.041, swiftstep: -0.062, totem: -0.017, toxic: 0.009, transfusion: -0.06, trap: 0.022, tribolt: 0.005, trick: 0.037, twinload: 0.066, unstable: -0.033, vanish: -0.023, virulent: 0.028, vital: 0.047, volley: 0.03, wall: -0.038, wildfire: -0.025, windlass: -0.002 };
 // bots: capstones first, then abilities, cards that suit their playstyle, anything that builds toward one; boosts last.
 // Smart bots (Master, and AI players near it) mostly go by what the learning showed actually wins.
 // cards that do nothing without teammates (yours or theirs): never offered in a 1v1, and bots on their own skip them
 const TEAM_ONLY = ['oath', 'revive', 'transfusion', 'contagion', 'aftershock', 'forked', 'pierce'];
 // cards that live off the arena's drops: a pull, a shove or a harder throw is worth more where there's something to throw people into
-const HAZ_CARDS = { harpoon: 1, gust: 0.9, ram: 0.7, boulder: 0.6, obsidian: 0.6, aftershock: 0.5, recoil: 0.3, kindling: 0.4, shatter: 0.4, dread: 0.4 };
+const HAZ_CARDS = { harpoon: 1, gust: 0.9, ram: 0.7, boulder: 0.6, obsidian: 0.6, aftershock: 0.5, recoil: 0.3, kindling: 0.4, shatter: 0.4 };
 function botPickIndex(p, w) {
   if (p.gene && p.gene.randPick) return Math.floor(Math.random() * p.offer.length); // exploring, for learning what works
   const st = STYLES[p.ai && p.ai.style], D0 = botD(p), iq = p.gene && p.gene.noLearn ? 0 : (D0.mind != null ? D0.mind : D0.iq) || 0;
@@ -2239,7 +2239,7 @@ const EMPOWER = {
   flame:  { name: 'Blaze', desc: 'You leave a trail of fire, and your arrows set the ground alight wherever they land.' },
   storm:  { name: 'Overcharge', desc: 'Lightning arcs 2 extra times and reaches enemies twice as far away, your dash recharges twice as fast, and a storm bullseye stuns the target and everyone the lightning reaches for 1 second.' },
   poison: { name: 'Plague', desc: 'A poison aura around you adds a stack to every enemy inside it 4 times a second.' },
-  shadow: { name: 'Nightfall', desc: 'Every hit adds two shades instead of one.' },
+  shadow: { name: 'Nightfall', desc: 'Every hit adds two shades instead of one, and when a shade of 6 or more of yours bursts you vanish into the dark for 1.5 seconds: unseen, and 30% faster, until you shoot.' },
 };
 // a short code describing the finishing blow, turned into words by the client
 function howKilled(f, cause) {
@@ -3450,10 +3450,11 @@ function shroud(f, t, r) { f.shroudT = Math.max(f.shroudT || 0, t); f.shroudR = 
 // Shadow Arrows: every hit adds a stack (up to 5) and resets a 3 second fuse; when it runs out the shade bursts,
 // barely at one stack and hard at five
 const SHADOW_SPEED = { per: 0.04, max: 0.2 }; // Shadow: move this much faster per shade of yours on an enemy, up to max
-const SHADE = { t: 3.5, max: 5 }, SHADE_DMG = [0, 6, 13, 21, 30, 40], shadeDmg = n => SHADE_DMG[Math.min(5, Math.max(1, n))]; // (0.83: a 3.5 s fuse, so a second hit lands in time more often)
+const SHADE = { t: 3.5, max: 10 }, SHADE_DMG = [0, 6, 13, 21, 30, 40, 50, 60, 70, 80, 90], shadeDmg = n => SHADE_DMG[Math.min(SHADE.max, Math.max(1, n))]; // (up to 10: past 5 every hit still adds 10 to the burst, so there's no point where you have to stop shooting to make it pay)
+const DEEP_SHADE = 1.5, SIPHON = 0.4, NIGHTFALL_FADE = 1.5; // Deep Shade's burst multiplier; Soul Siphon's share of a burst that heals you // (0.83: a 3.5 s fuse, so a second hit lands in time more often)
 const BURN_DPS = 4, POISON_DPS = 1.2, BLOOD_HEAL = 0.35, BLOOD_PACT_HEAL = 0.65, STAGGER_KB = 1.25, STAGGER_DRAW = 0.5, VOID_DMG = 0.06; // the elements' base numbers (0.83 balance pass)
 // a shade of p's on q that bursts for enough to finish them (another hit would only restart its fuse)
-const shadeKills = (p, q) => !!(q && q.shade && q.shade.by === p.id && shadeDmg(q.shade.n) * (has(p, 'deepshade') ? 1.5 : 1) >= q.hp - 0.5 && q.shade.t > 0.05);
+const shadeKills = (p, q) => !!(q && q.shade && q.shade.by === p.id && shadeDmg(q.shade.n) * (has(p, 'deepshade') ? DEEP_SHADE : 1) >= q.hp - 0.5 && q.shade.t > 0.05);
 function plantShade(w, f, owner) {
   const add = owner.emp && owner.element === 'shadow' ? 2 : 1;
   if (!f.shade) f.shade = { by: owner.id, t: SHADE.t, n: 0 };
@@ -3465,12 +3466,19 @@ function shadeTick(w, f, dt) {
   if (f.falling > 0) { f.shade = null; return; }
   s.t -= dt; if (s.t > 0) return;
   f.shade = null;
-  const o = w.players.find(q => q.id === s.by), big = o && has(o, 'deepshade') ? 1.5 : 1;
+  const o = w.players.find(q => q.id === s.by), big = o && has(o, 'deepshade') ? DEEP_SHADE : 1;
   let kx = 0, ky = 0;
-  if (o && has(o, 'dread')) { const dx = f.x - o.x, dy = f.y - o.y, d = Math.hypot(dx, dy) || 1, k = 160 * s.n; kx = dx / d * k; ky = dy / d * k; }
   if (o && has(o, 'gloom')) { f.slow = Math.max(f.slow, 2); f.slowK = Math.min(f.slowK || 0.5, 0.5); }
-  ev(w, { e: 'shadeBurst', id: f.id, x: r1(f.x), y: r1(f.y), n: s.n });
+  const hp0 = f.hp;
+  ev(w, { e: 'shadeBurst', id: f.id, x: r1(f.x), y: r1(f.y), n: s.n, by: s.by });
   hurt(w, f, shadeDmg(s.n) * big, kx, ky, 'shade', s.by);
+  if (o && !o.dead) {
+    const dealt = Math.max(0, hp0 - Math.max(0, f.hp));
+    // Soul Siphon: the burst feeds you
+    if (has(o, 'siphon') && dealt > 0) { const h = Math.min(o.maxHp - o.hp, dealt * SIPHON); if (h > 0) { o.hp += h; ev(w, { e: 'siphon', id: o.id, from: f.id, v: Math.round(h), x: r1(f.x), y: r1(f.y) }); } }
+    // Nightfall (empowered Shadow): a big burst (6 or more) and you slip into the dark for a moment, unseen
+    if (o.emp && o.element === 'shadow' && s.n >= 6 && !(o.stealthT > 0)) { o.stealthT = NIGHTFALL_FADE; ev(w, { e: 'nightfall', id: o.id, x: r1(o.x), y: r1(o.y) }); }
+  }
 }
 // how much an archetype hurts you if left alone (the targeting weight; 1 is an all-rounder)
 const ROLE_THREAT = { sniper: 1.25, crossbow: 1.2, assassin: 1.2, ranger: 1.1, ninja: 1.1, trickster: 1.05, trapper: 1, warden: 0.85, juggernaut: 0.75 };
@@ -6696,7 +6704,7 @@ function step(w, dt) {
   for (const p of w.players) {
     if (p.dead) { p.revP = 0; continue; }
     const rallied = w.players.some(q => q.team === p.team && !q.dead && has(q, 'rally') && Math.hypot(q.x - p.x, q.y - p.y) < 170);
-    p.speed = p.baseSpeed * (p.windT > 0 ? 1.4 : 1) * (p.fortT > 0 ? 0.6 : 1) * (p.trapSet ? 0.5 : 1) * (rallied ? 1.2 : 1) * (p.stealthT > 0 ? 1.3 : 1) * (p.swT > 0 ? 1.35 : 1) * (p.shade && p.shade.slow ? 1 - 0.06 * p.shade.n : 1) * (p.thornN > 0 ? 1 - 0.05 * p.thornN : 1) * (p.bot ? botD(p).speed : 1);
+    p.speed = p.baseSpeed * (p.windT > 0 ? 1.4 : 1) * (p.fortT > 0 ? 0.6 : 1) * (p.trapSet ? 0.5 : 1) * (rallied ? 1.2 : 1) * (p.stealthT > 0 ? 1.3 : 1) * (p.swT > 0 ? 1.35 : 1) * (p.shade && p.shade.slow ? 1 - 0.06 * Math.min(5, p.shade.n) : 1) * (p.thornN > 0 ? 1 - 0.05 * p.thornN : 1) * (p.bot ? botD(p).speed : 1);
     p.rallied = rallied;
   }
   // duos share a plan (co-op tactics), worked out before anyone thinks

@@ -2,6 +2,19 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.24
+
+- **Shadow stacks to 10.** Past 5, every hit still adds 10 to the burst (50, 60, 70, 80, 90), so there's no longer a point where you have to stop shooting for it to pay off.
+  - Creeping Dark's slow per shade stops at 30% (five shades).
+  - The speed you get from your shades still stops at 20%.
+  - Past five, the archer shows a ✦ count, because the rings run together.
+- **Bursts look the part.** Shards fly out, wisps rise off, and a pale shockwave goes out, with a second, darker one for a burst of 6 or more. A ✦ count of the shades pops up from 3 or more.
+  - Wisps stream back into whoever planted the shade, ending in a dark pulse round them. You see "Burst" or "Shadow burst!" over your own archer.
+- **Soul Siphon replaces Night Terror.** Shade bursts heal you for 40% of the damage they deal, with green wisps flying back to you and the heal shown. In testing, against the other Shadow cards on Shadow rangers, snipers, crossbowmen and tricksters (740 games), it came out 49%.
+- **Nightfall (empowered Shadow).** Every hit still adds two shades. Now, when a shade of 6 or more of yours bursts, you vanish into the dark for 1.5 seconds: unseen and 30% faster, until you shoot. Leaving it isn't announced as an "Ambush!".
+- **Deep Shade stays at +50%.** In tests, bursts of 6 or more were about 1.5% of all bursts. Nearly half are a single shade, because the 3.5 s fuse usually runs out between hits. So the bigger cap only adds damage in rare cases, and a cut wasn't needed. Deep Shade was 47% against the other Shadow cards.
+- Shadow rangers against the other elements: 44% (3,360 games), against 43% before. Self-knockouts were 3 in all those games, so they aren't skewing the result.
+
 ## 0.99.23
 
 - **The harpoon play, for every bot that knows it.**

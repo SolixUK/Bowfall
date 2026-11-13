@@ -2727,7 +2727,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.99.23"></script>
+<script src="sim.js?v=0.99.24"></script>
 <script src="coop-data.js"></script>
 <script src="coop.js"></script>
 <script>
@@ -2737,7 +2737,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.99.23';
+const PAGE_VERSION = '0.99.24';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -9467,11 +9467,39 @@ function eventFx(e) {
       case 'shade': { burst(e.x, e.y, '#2b2747', 4 + 2 * (e.n || 1), 70, 2.5); play('shade', e.n || 1, e.id === myId ? 1 : 0.6); break; }
       case 'shadeUp': { const q = view && view.p.find(z => z.id === e.id); if (q) { burst(q.x, q.y, '#8e95c9', 8, 90, 2); floater(q.x, q.y - 34, 'Deepened', '#aab0e0', 13); } play('shadeUp'); break; }
       case 'shadeBurst': {
-        const big = 0.5 + 0.22 * (e.n || 1);
+        const n = e.n || 1, big = Math.min(2.4, 0.5 + 0.2 * n), huge = n >= 6;
+        // the burst: darkness bursting out of them, shards flung wide, the shade's wisps rising off, a pale shockwave (and a second, slower one for a big one)
         burst(e.x, e.y, '#1c1a2e', Math.round(16 * big), 170 * big, 3.2); burst(e.x, e.y, '#8e95c9', Math.round(10 * big), 130 * big, 2.2);
+        if (!lightFx()) {
+          for (let i = 0; i < Math.min(26, 4 + n * 2); i++) { const a = rand(0, TAU), v = rand(220, 420) * Math.min(1.6, big); fx.parts.push({ x: e.x, y: e.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0, max: rand(0.35, 0.6), color: i % 3 ? '#2b2747' : '#c9ccf2', r: rand(1.4, 2.6) }); }
+          for (let i = 0; i < Math.min(14, 2 + n); i++) fx.parts.push({ x: e.x + rand(-14, 14), y: e.y + rand(-10, 10), vx: rand(-20, 20), vy: rand(-90, -40), life: 0, max: rand(0.7, 1.2), color: 'rgba(28,26,46,0.85)', r: rand(3, 5.5) });
+          for (let i = 0; i < Math.min(8, 1 + Math.floor(n / 2)); i++) { const a = rand(0, TAU), L = rand(40, 70) * Math.min(1.8, big); fx.bolts.push({ x1: e.x, y1: e.y, x2: e.x + Math.cos(a) * L, y2: e.y + Math.sin(a) * L, life: 0, col: '142,149,201' }); }
+        }
         fx.rings.push({ x: e.x, y: e.y, r: 8, life: 0, col: '142,149,201', max: 48 * big });
-        play('shadeBurst', big);
+        if (huge) fx.rings.push({ x: e.x, y: e.y, r: 8, life: -0.12, col: '28,26,46', max: 80 * big, lw: 10 });
+        if (n >= 3) floater(e.x, e.y - 40, '✦' + n, '#c9ccf2', 12 + Math.min(10, n));
+        play('shadeBurst', Math.min(1.7, big));
         if (e.id === myId) shake(3 * big);
+        // and on whoever planted it: the shade's power comes back to them, wisps streaming in and a dark pulse round them
+        const by = e.by != null && view && view.p.find(z => z.id === e.by);
+        if (by && !by.dead) {
+          if (!lightFx()) for (let i = 0; i < Math.min(16, 3 + n * 1.5); i++) { const a = rand(0, TAU), v = rand(80, 200); fx.parts.push({ x: e.x + rand(-10, 10), y: e.y + rand(-10, 10), vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0, max: rand(0.55, 0.85), color: i % 2 ? '#8e95c9' : '#c9ccf2', r: rand(1.8, 3), home: by }); }
+          fx.rings.push({ x: by.x, y: by.y, r: 6, life: -0.3, col: '142,149,201', max: 34 + 3 * Math.min(10, n), lw: 4 });
+          if (by.id === myId && n >= 3) floater(by.x, by.y - 44, n >= 6 ? 'Shadow burst!' : 'Burst', '#aab0e0', n >= 6 ? 15 : 12, true);
+        }
+        break;
+      }
+      case 'siphon': { // Soul Siphon: the burst heals whoever planted it
+        const q = view && view.p.find(z => z.id === e.id);
+        if (q) { if (!lightFx()) for (let i = 0; i < 10; i++) { const a = rand(0, TAU), v = rand(60, 160); fx.parts.push({ x: e.x, y: e.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0, max: 0.8, color: '#b9f0c8', r: rand(1.8, 2.8), home: q }); }
+          floater(q.x + 14, q.y - 30, '+' + e.v, '#a8f0c0', 14, q.id === myId); fx.rings.push({ x: q.x, y: q.y, r: 6, life: -0.35, col: '125,255,170', max: 30, lw: 3 }); }
+        break;
+      }
+      case 'nightfall': { // empowered Shadow: a big burst and they melt into the dark
+        for (let i = 0; i < 22; i++) { const a = rand(0, TAU), v = rand(40, 160); fx.parts.push({ x: e.x + rand(-8, 8), y: e.y + rand(-8, 8), vx: Math.cos(a) * v, vy: Math.sin(a) * v - 30, life: 0, max: rand(0.6, 1), color: i % 4 ? 'rgba(18,16,34,0.9)' : '#8e95c9', r: rand(3, 6) }); }
+        fx.rings.push({ x: e.x, y: e.y, r: 6, life: 0, col: '28,26,46', max: 70, lw: 9 });
+        fx.nightfall = fx.nightfall || {}; fx.nightfall[e.id] = gclock;
+        if (e.id === myId) floater(e.x, e.y - 46, 'Nightfall: unseen', '#c9ccf2', 15, true);
         break;
       }
       case 'eclipse': burst(e.x, e.y, '#15132a', 26, 160, 4); play('eclipse'); break;
@@ -9581,7 +9609,7 @@ function eventFx(e) {
       case 'stealthOn': case 'stealthOff': {
         for (let i = 0; i < 14; i++) fx.parts.push({ x: e.x + rand(-12, 12), y: e.y + rand(-12, 12), vx: rand(-40, 40), vy: rand(-50, 10), life: 0, max: 0.6, color: 'rgba(120,120,140,0.9)', r: rand(2, 4.5) });
         if (e.id === myId || e.e === 'stealthOff') play('stealth', e.e === 'stealthOn');
-        if (e.e === 'stealthOff' && e.id !== myId) floater(e.x, e.y - 30, 'Ambush!', '#c7b3ff', 14);
+        if (e.e === 'stealthOff' && e.id !== myId && !(fx.nightfall && gclock - (fx.nightfall[e.id] || -9) < 2)) floater(e.x, e.y - 30, 'Ambush!', '#c7b3ff', 14); // (not out of Nightfall's dark: that isn't an ambush)
         break;
       }
       case 'echo': fx.rings.push({ x: e.x, y: e.y, r: 6, life: 0, col: '255,242,122', max: 36 }); elSfx.storm(0.8); break;
@@ -9800,7 +9828,7 @@ function updateFx(dt) {
       if (t) { while (t.length && clock - t[0].at > 0.18) t.shift(); if (!t.length) TRAIL.delete(p.id); }
     }
   } else TRAIL.clear();
-  for (let i = fx.parts.length - 1; i >= 0; i--) { const p = fx.parts[i]; p.life += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.94; p.vy *= 0.94; if (p.life > p.max) fx.parts.splice(i, 1); }
+  for (let i = fx.parts.length - 1; i >= 0; i--) { const p = fx.parts[i]; p.life += dt; if (p.home) { const hx = p.home.x - p.x, hy = p.home.y - p.y, hd = Math.hypot(hx, hy) || 1, sp = 260 + 900 * Math.min(1, p.life / p.max); p.vx += (hx / hd * sp - p.vx) * Math.min(1, dt * 7); p.vy += (hy / hd * sp - p.vy) * Math.min(1, dt * 7); if (hd < 14) p.life = p.max + 1; } /* (home: a wisp drawn in to someone, the shade's power going back to whoever planted it) */ p.x += p.vx * dt; p.y += p.vy * dt; if (!p.home) { p.vx *= 0.94; p.vy *= 0.94; } if (p.life > p.max) fx.parts.splice(i, 1); }
   for (let i = fx.floaters.length - 1; i >= 0; i--) { const f = fx.floaters[i]; f.life += dt; f.y -= 40 * dt; if (f.life > 0.9) fx.floaters.splice(i, 1); }
   for (const m of fx.mends) m.t += dt; fx.mends = fx.mends.filter(m => m.t < m.tt + 0.25);
   for (const c of fx.crosses) c.t += dt; fx.crosses = fx.crosses.filter(c => c.t < 1.1);
@@ -12020,9 +12048,10 @@ function drawPlayer(p, isMe, bare) {
   if (p.shd && !p.f) { // shades: the archer darkens with every stack, wisps circle them, and a fuse ring runs down
     const n = p.shd, k = Math.max(0, Math.min(1, p.sht || 0));
     ctx.fillStyle = `rgba(12,10,26,${Math.min(0.78, 0.15 * n)})`; ctx.beginPath(); ctx.arc(0, 0, R + 1, 0, TAU); ctx.fill();
-    ctx.strokeStyle = `rgba(142,149,201,${0.45 + 0.1 * n})`; ctx.lineWidth = 1.5 + 0.4 * n;
+    ctx.strokeStyle = `rgba(142,149,201,${0.45 + 0.1 * n})`; ctx.lineWidth = 1.5 + 0.4 * Math.min(6, n);
     for (let i = 0; i < n; i++) { const a0 = gclock * (2.5 + n * 0.6) + i * TAU / n; ctx.beginPath(); ctx.arc(0, 0, R + 5, a0, a0 + 0.55); ctx.stroke(); }
     ctx.strokeStyle = `rgba(200,205,240,${0.35 + 0.4 * (1 - k)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, R + 9, -Math.PI / 2, -Math.PI / 2 + TAU * k); ctx.stroke();
+    if (n > 5) { ctx.font = "700 11px 'Rajdhani', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center'; ctx.fillStyle = '#c9ccf2'; ctx.fillText('✦' + n, -R - 10, -R - 4); } // (past five the rings run together: the count says it)
     if (n >= 3 && !lightFx() && Math.random() < 0.15 * n) fx.parts.push({ x: p.x + rand(-R, R), y: p.y + rand(-R, R), vx: rand(-15, 15), vy: rand(-45, -15), life: 0, max: 0.5, color: '#1c1a2e', r: rand(1.6, 3) });
   }
   if (p.th && !p.f) { // thorns stuck in them (Rip): fat barbed spikes round the body, redder the more there are
@@ -12998,7 +13027,7 @@ function render(replaying) {
   for (const a of view.a) if (!a.s && onScreen(a.x, a.y, 80)) drawArrow(a);
   PR.lap('shots');
   if (me && me.sr && !me.d && !replaying) drawShroud(me);
-  for (const r of fx.rings) { ctx.strokeStyle = `rgba(${r.col || '255,138,61'},${1 - r.life / 0.4})`; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, TAU); ctx.stroke(); }
+  for (const r of fx.rings) { if (r.life < 0) continue; ctx.strokeStyle = `rgba(${r.col || '255,138,61'},${1 - r.life / 0.4})`; ctx.lineWidth = r.lw || 6; ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, TAU); ctx.stroke(); }
   drawMends(view);
   if (!(STUDIO.on && !STUDIO.cur.parts)) for (const p of fx.parts) { ctx.globalAlpha = Math.max(0, 1 - p.life / p.max); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU); ctx.fill(); }
   ctx.globalAlpha = 1; ctx.textAlign = 'center';
@@ -14223,7 +14252,7 @@ function replayRecord() {
   while (RP.evs.length && RP.evs[0].t < clock - RP_KEEP) RP.evs.shift();
 }
 // events the kill cam keeps; those in REPLAY_LIVE are played exactly as they looked live
-const REPLAY_LIVE = new Set(['ripCancel', 'hooked', 'reel', 'orbHeal', 'transfuse', 'stagger', 'shade', 'shadeUp', 'shadeBurst', 'ripCast', 'rip', 'boomTurn', 'catch', 'eclipse', 'mend', 'mended', 'flashpoint', 'smoke', 'totem', 'harpoon', 'blink', 'recoil', 'rush', 'wind', 'gust', 'deflect', 'deflectUp', 'blocked', 'snared', 'stagger', 'execute', 'backstab', 'volleyReset', 'echo', 'disarm', 'blossom', 'clone', 'grapple', 'leech', 'bleed', 'split', 'drop', 'thunk', 'shield', 'rainMark', 'rainHit', 'trapSet', 'wallUp', 'marked', 'fortify', 'shove', 'stuck', 'zone', 'thunder', 'caltrops', 'stealthOn', 'stealthOff', 'smark', 'shuriken', 'transfuse', 'revive', 'overload', 'sstrike', 'recall', 'nblink', 'flash', 'swap', 'quake', 'collapse', 'aftershock', 'trapHit', 'chain', 'burst', 'pinned', 'freeze', 'spike', 'thud']);
+const REPLAY_LIVE = new Set(['siphon', 'nightfall', 'ripCancel', 'hooked', 'reel', 'orbHeal', 'transfuse', 'stagger', 'shade', 'shadeUp', 'shadeBurst', 'ripCast', 'rip', 'boomTurn', 'catch', 'eclipse', 'mend', 'mended', 'flashpoint', 'smoke', 'totem', 'harpoon', 'blink', 'recoil', 'rush', 'wind', 'gust', 'deflect', 'deflectUp', 'blocked', 'snared', 'stagger', 'execute', 'backstab', 'volleyReset', 'echo', 'disarm', 'blossom', 'clone', 'grapple', 'leech', 'bleed', 'split', 'drop', 'thunk', 'shield', 'rainMark', 'rainHit', 'trapSet', 'wallUp', 'marked', 'fortify', 'shove', 'stuck', 'zone', 'thunder', 'caltrops', 'stealthOn', 'stealthOff', 'smark', 'shuriken', 'transfuse', 'revive', 'overload', 'sstrike', 'recall', 'nblink', 'flash', 'swap', 'quake', 'collapse', 'aftershock', 'trapHit', 'chain', 'burst', 'pinned', 'freeze', 'spike', 'thud']);
 // kept with the replay for spotting plays (combo shots, bank shots, clutches), but nothing to show for them
 const REPLAY_META = new Set(['bowl', 'slam', 'gameEnd']);
 const REPLAY_FX = { throw: 1, sstrike: 1, recall: 1, nblink: 1, flash: 1, swap: 1, fire: 1, hit: 1, dmg: 1, fall: 1, boom: 1, freeze: 1, spike: 1, thud: 1, pinned: 1, chain: 1, burst: 1, trapHit: 1, quake: 1, collapse: 1, aftershock: 1, dash: 1, saw: 1, bump: 1, portal: 1, parry: 1, parried: 1, warp: 1, stun: 1, ambushHit: 1 };
