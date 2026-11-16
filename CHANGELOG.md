@@ -2,6 +2,38 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.33
+
+- **AI players pick for the kind of match.**
+  - **Records by mode:** what they learn about an archetype on an arena is now kept separately for 1v1, 2v2 and 3v3, so what works in a duel no longer steers their team picks, and the other way round. Older mixed records still count, at half weight.
+  - **Team tables:** about 28,000 simulated 2v2 games, each a pair of archetypes against another on every ranked arena (`node tools/arena-fit.js run teams`). They show how each archetype does in a team on each arena, and how well each pair does together.
+  - **Picking in a team game:** an archetype's duel figure is swapped for its team one. Once a teammate has picked, it's swapped for how that pair does together on the arena (steadied by the pair's figure over every arena).
+- **Results.** Teams level things out a lot:
+
+  | Archetype | 2v2 | 1v1 |
+  |---|---|---|
+  | Warden | 61% | 67% |
+  | Sniper | 57% | 70% |
+  | Juggernaut | 51% | 48% |
+  | Ranger | 51% | 61% |
+  | Trickster | 47% | 31% |
+  | Assassin | 47% | 50% |
+  | Ninja | 47% | 26% |
+  | Trapper | 45% | 45% |
+  | Crossbow | 45% | 51% |
+
+  The best pairs were Warden with Warden (67%), Sniper with Warden (65%), Assassin with Sniper (64%), two Snipers (64%) and two Juggernauts (63%). The worst were two Ninjas (30%), two Trappers (37%), Crossbow with Ranger (38%), and Assassin with Crossbow or Ninja (39%).
+- **A good teammate.** With a person on their side, AI players fit round your pick more readily at the end of the draft. The sharper they are, the likelier they reconsider (up to 95%), and they swap for anything about a quarter better rather than needing it 60% better.
+- **Bots don't waste dashes on walls.** A dash aimed into a wall or a boulder went nowhere. Bots now check how much room there is that way and turn the dash a little either way to open ground (still off the arrow's line), or keep it for later. The same goes for a ninja's blink. Wasted dashes by top bots went from 14% to 5%.
+
+## 0.99.32
+
+- **Bots see the saws properly.** Their steering, which keeps them off holes, walls and boulders, never looked at the saws. The only thing that did was where they planned to stand, and that only looked at where each blade was at that moment, not where it was going. A saw sweeps along its track faster than an archer runs, so bots walked straight into its path.
+  - Steering now watches each saw over the next 0.8 seconds, against where the bot will be by then.
+  - The bot steps off the track sideways (never toward a hole), instead of running along it ahead of the blade.
+  - Spot planning counts where the blades are heading too.
+  - Top bots (0.95) on Sawmill and Sideline Sawmill: saw hits went from 3.5 a minute to 1.1, walking into one unprompted from 87 times to 23 (the rest are mostly being knocked into one), and saw knockouts from 8 to 2 (about 40 minutes of play each).
+
 ## 0.99.31
 
 - **A shade that bursts on a knockout now pays out.** When someone with your shade on them is knocked out before its fuse runs out, the burst gives you what a normal burst would:

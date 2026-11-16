@@ -7,12 +7,14 @@
 //            against each other archetype on each arena: which plays win which matchups where
 //   cards    the same matchups with upgrades picked at random, so each card's worth can be read off the results: which
 //            cards work on which arena, and against which archetype
+//   teams    2v2s on every arena, a random pair of archetypes against another (the same pairs on every arena): how each
+//            archetype does in a team there (teams), and how well each pair does together (pairs, and pairsAll over every arena)
 //   effects  every archetype against every other under each map effect; els/effels: every element against every other
 //            (on a ranger) on the ranked arenas and under each effect
 // A fit is a game win rate against the field, less a half: +0.10 means that archetype won 60% of its games there.
 //
 //   node tools/arena-fit.js run [matches]    simulate (a few hours: thousands of matchups, two at a time) into tools/fit-out/
-//   node tools/arena-fit.js run roles,plays  just those parts (roles, plays, cards, effects, els, effels)
+//   node tools/arena-fit.js run roles,plays  just those parts (roles, plays, cards, teams, effects, els, effels)
 //   node tools/arena-fit.js build            read tools/fit-out/*.jsonl and write lib/ai-meta.json
 //   node tools/arena-fit.js prep <arena> [N] a new arena, before it goes into the rotation: checks, its tables, the rebuild (see prep below)
 'use strict';
@@ -21,12 +23,14 @@ const S = require('../public/sim.js');
 const OUT = path.join(__dirname, 'fit-out'), META = path.join(__dirname, '..', 'lib', 'ai-meta.json');
 const ROLES = ['frost,sniper', 'stone,juggernaut', 'frost,ranger', 'storm,trickster', 'flame,warden', 'poison,trapper', 'shadow,assassin', 'shadow,ninja', 'void,crossbow'];
 const ELS = ['frost', 'flame', 'storm', 'poison', 'stone', 'void', 'shadow', 'blood'];
+const TEAM_GAMES = 140; // (pair-against-pair matchups per arena: every pair turns up in a few on each, and in dozens over every arena)
 let ONLY = null; // (prep: one arena only, its rows replaced, the others' kept)
 const maps = () => (ONLY ? [ONLY] : S.rankedPool());
 const parse = s => { const [el, ro, play] = s.split(','); return { el, ro, play: play || null }; };
 
 // one matchup: two Master bots, sides alternating, N matches → game and match wins (and, with random picks, each side's cards per game won or lost)
 function duel(map, effect, A, B, N, rand) {
+  if (A.includes('+')) return teamDuel(map, effect, A, B, N);
   const a = parse(A), b = parse(B);
   const mw = [0, 0], gw = [0, 0], cards = {};
   const noteCards = (p, side, won) => { for (const id of p.up) { if (id === p.element) continue; const c = cards[side] || (cards[side] = {}), r = c[id] || (c[id] = [0, 0]); r[won ? 0 : 1]++; } };
@@ -44,6 +48,18 @@ function duel(map, effect, A, B, N, rand) {
   }
   return Object.assign({ map, effect, A, B, mw, gw }, rand ? { cards } : {});
 }
+// a 2v2: each side a pair of archetypes ("frost,sniper+stone,juggernaut"), Master bots, sides alternating
+function teamDuel(map, effect, A, B, N) {
+  const sa = A.split('+').map(parse), sb = B.split('+').map(parse), mw = [0, 0], gw = [0, 0];
+  for (let m = 0; m < N; m++) {
+    const w = S.createWorld({ map, opt: { effect: effect || 'none' } }), swap = m % 2 === 1, ta = swap ? 'blue' : 'red', tb = swap ? 'red' : 'blue';
+    for (const [team, side] of [[ta, sa], [tb, sb]]) for (const c of side) { const p = S.addBot(w, team); p.dparams = S.skillParams(0.9); S.setLoadout(w, p.id, c.el, c.ro); S.setBotMind(w, p.id, { aggr: 0.6, tr: { cover: 0.5, edge: 0.4, dash: 0.6, charge: 0.3 } }); }
+    S.startMatch(w);
+    for (let i = 0; i < 60 * 60 * 25 && w.match.ph !== 'over'; i++) { S.step(w, 1 / 60); for (const e of w.events) if (e.e === 'gameEnd' && e.rw && e.rw !== 'draw') gw[e.rw === ta ? 0 : 1]++; w.events.length = 0; }
+    if (w.match.mw) mw[w.match.mw === ta ? 0 : 1]++;
+  }
+  return { map, effect, A, B, mw, gw, team: 1 };
+}
 function pairs(list) { const out = []; for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) out.push([list[i], list[j]]); return out; }
 // the plays worth trying for an archetype against another on an arena (the ones that fit, by the plays' own rules)
 function playsFor(map, A, B) {
@@ -57,6 +73,9 @@ function jobs(parts) {
   if (want('roles')) for (const m of maps()) for (const [a, b] of pairs(ROLES)) J.push(['roles', m, 'none', a, b]);
   if (want('plays')) for (const m of maps()) for (const a of ROLES) for (const b of ROLES) if (a !== b) for (const k of playsFor(m, a, b)) J.push(['plays', m, 'none', a + ',' + k, b]);
   if (want('cards')) for (const m of maps()) for (const [a, b] of pairs(ROLES)) J.push(['cards', m, 'none', a, b]);
+  if (want('teams')) { const P = pairs(ROLES).concat(ROLES.map(r => [r, r])), M = TEAM_GAMES; let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647; const T = [];
+    for (let i = 0; i < M; i++) { const a = P[Math.floor(rnd() * P.length)]; let b = P[Math.floor(rnd() * P.length)]; if (b === a) b = P[(P.indexOf(a) + 1) % P.length]; T.push([a.join('+'), b.join('+')]); }
+    for (const m of maps()) for (const [a, b] of T) J.push(['teams', m, 'none', a, b]); }
   if (want('effects')) for (const f of Object.keys(S.MUTATORS)) for (const [a, b] of pairs(ROLES)) J.push(['effects', 'meadow', f, a, b]);
   if (want('els')) for (const m of maps().slice(0, 5)) for (const [a, b] of pairs(ELS)) J.push(['els', m, 'none', a + ',ranger', b + ',ranger']);
   if (want('effels')) for (const f of Object.keys(S.MUTATORS)) for (const [a, b] of pairs(ELS)) J.push(['effels', 'meadow', f, a + ',ranger', b + ',ranger']);
@@ -83,6 +102,7 @@ function build() {
   // fit: each side's games for and against, per key
   const tally = (rows, keyOf, nameOf) => { const T = {}; for (const r of rows) { const k = keyOf(r), t = T[k] || (T[k] = {}), [a, b] = [nameOf(r.A), nameOf(r.B)]; (t[a] = t[a] || [0, 0]); (t[b] = t[b] || [0, 0]); t[a][0] += r.gw[0]; t[a][1] += r.gw[1]; t[b][0] += r.gw[1]; t[b][1] += r.gw[0]; }
     const F = {}; for (const k in T) { F[k] = {}; for (const n in T[k]) F[k][n] = r3(rate(T[k][n]) - 0.5); } return F; };
+  const teams = read('teams');
   const roles = read('roles'), plays = read('plays'), cards = read('cards'), effects = read('effects'), els = read('els'), effels = read('effels');
   const meta = { v: 2, built: new Date().toISOString().slice(0, 10), games: [roles, plays, cards, effects, els, effels].flat().reduce((t, r) => t + r.gw[0] + r.gw[1], 0),
     roles: tally(roles, r => r.map, role), effects: tally(effects, r => r.effect, role), els: tally(els, r => r.map, el), effels: tally(effels, r => r.effect, el), vs: {}, vsMap: {}, plays: {}, cardMap: {}, cardVs: {} };
@@ -123,6 +143,16 @@ function build() {
   // the effects' fits are measured against the plain arena, so what the arena itself favours comes off
   for (const f in meta.effects) for (const ro in meta.effects[f]) meta.effects[f][ro] = r3(meta.effects[f][ro] - (rawMeadow[ro] || 0));
   for (const f in meta.effels) for (const e in meta.effels[f]) meta.effels[f][e] = r3(meta.effels[f][e] - (rawMeadowE[e] || 0));
+  // teams: each archetype in a 2v2 on each arena, and each pair (on each arena, and over every arena: a steadier number)
+  meta.teams = {}; meta.pairs = {}; meta.pairsAll = {};
+  { const TR = {}, PM = {}, PA = {}, pk = s2 => s2.split('+').map(role).sort().join('+');
+    for (const r of teams) for (const [side, won, lost] of [[r.A, r.gw[0], r.gw[1]], [r.B, r.gw[1], r.gw[0]]]) {
+      for (const ro of new Set(side.split('+').map(role))) add(TR, r.map, ro, won, lost);
+      add(PM, r.map, pk(side), won, lost); const k = pk(side), x = PA[k] || (PA[k] = [0, 0]); x[0] += won; x[1] += lost; }
+    for (const m in TR) { meta.teams[m] = {}; for (const ro in TR[m]) meta.teams[m][ro] = r3(rate(TR[m][ro]) - 0.5); }
+    for (const m in PM) { meta.pairs[m] = {}; for (const k in PM[m]) if (PM[m][k][0] + PM[m][k][1] >= 8) meta.pairs[m][k] = r3(rate(PM[m][k]) - 0.5); }
+    for (const k in PA) if (PA[k][0] + PA[k][1] >= 20) meta.pairsAll[k] = r3(rate(PA[k]) - 0.5); }
+  meta.games += teams.reduce((t, r) => t + r.gw[0] + r.gw[1], 0);
   // and each arena's own profile, so an arena that wasn't simulated (a player-made one in the rotation) can borrow the nearest one's table
   meta.sense = {}; for (const k of Object.keys(meta.roles)) { const a = S.arenaSense(k); if (a) meta.sense[k] = { open: r3(a.open), holes: r3(a.holes), big: r3(a.big), hold: a.hold ? 1 : 0, island: a.island ? 1 : 0 }; }
   fs.writeFileSync(META, JSON.stringify(meta));
@@ -164,4 +194,4 @@ if (cmd === 'one') { const [kind, map, effect, A, B, N] = rest; console.log(JSON
 else if (cmd === 'run') { const parts = (rest.find(x => /^[a-z,]+$/.test(x)) || '').split(',').filter(Boolean); run(+rest.find(x => /^\d+$/.test(x)) || 6, parts.length ? parts : null); }
 else if (cmd === 'build') build();
 else if (cmd === 'prep') prep(rest[0], +rest[1] || 8);
-else console.log('node tools/arena-fit.js run [matches] [roles,plays,cards,effects,els,effels] | build | prep <arena> [matches]');
+else console.log('node tools/arena-fit.js run [matches] [roles,plays,cards,teams,effects,els,effels] | build | prep <arena> [matches]');

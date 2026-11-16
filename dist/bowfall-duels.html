@@ -2725,7 +2725,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.31';
+const VERSION = '0.99.33';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -3433,7 +3433,7 @@ const gradeBest = (a, b) => { const i = x => { const n = TRAIN_GRADES.findIndex(
 // Every public entry point calls useMap first, so rooms on different arenas can share one server.
 let BLOCKS = [], TREES = []; // castle walls and trees (Strongholds): walls nobody walks or shoots through; trees you can hide under
 let MAP = MAPS.meadow, HAZ = MAP.haz, PILLARS = MAP.pillars, SPIKES = MAP.spikes, HEAL = null, ICE = null, WARN = [];
-let SAWS = [], SAWPOS = [], BUMPERS = [], PORTALS = [], WIND = null, BALL = null;
+let SAWS = [], SAWPOS = [], SAWAHEAD = [], BUMPERS = [], PORTALS = [], WIND = null, BALL = null;
 let SPAWNS = { red: RED_SPAWNS, blue: RED_SPAWNS.map(mirrorItem) };
 const GATES = [{ x: 70, y: 70 }, { x: AW - 70, y: 70 }, { x: 70, y: AH - 70 }, { x: AW - 70, y: AH - 70 }];
 const CENTER_X = AW / 2;
@@ -3446,7 +3446,7 @@ function useMap(w) {
   SAWS = MAP.saws || []; BUMPERS = MAP.bumpers || []; PORTALS = MAP.portals || []; WIND = MAP.wind || null; BALL = MAP.ball || null;
   if (!MAP.spawnsBoth) { const ks = SYM; SYM = MAP.sym === 'mirror' ? 'mirror' : 'flip'; MAP.spawnsBoth = MAP.spawns ? { red: MAP.spawns, blue: MAP.spawns.map(mirrorItem) } : { red: RED_SPAWNS, blue: RED_SPAWNS.map(mirrorItem) }; SYM = ks; }
   SPAWNS = MAP.spawnsBoth;
-  SAWPOS = SAWS.map(o => sawAt(o, gameTime(w)));
+  setSaws(gameTime(w));
   // thin ice that has given way joins the arena's hazards; ice about to go is something bots steer clear of
   const cr = w.cracks || [];
   HAZ = cr.some(c => c === 2) ? MAP.haz.concat(MAP.cracks.filter((c, i) => cr[i] === 2)) : MAP.haz;
@@ -3459,7 +3459,7 @@ function useMap(w) {
 // hold: a spot worth holding (the healing spring, or the middle of an island arena, where the power-up is), or nothing.
 function senseArena() {
   if (MAP.sense) return MAP.sense;
-  const keepHaz = HAZ, keepWarn = WARN, keepSaw = SAWPOS; HAZ = MAP.haz; WARN = []; SAWPOS = SAWS.map(o => sawAt(o, 0)); // (the arena as built)
+  const keepHaz = HAZ, keepWarn = WARN, keepSaw = SAWPOS, keepAhead = SAWAHEAD; HAZ = MAP.haz; WARN = []; SAWPOS = SAWS.map(o => sawAt(o, 0)); SAWAHEAD = []; // (the arena as built)
   const solid = (x, y) => PILLARS.some(q => Math.hypot(x - q.x, y - q.y) < q.r + 14) || BLOCKS.some(b => x > b.x - 14 && x < b.x + b.w + 14 && y > b.y - 14 && y < b.y + b.h + 14);
   const pts = [];
   for (let x = WALL + 30; x < AW - WALL - 30; x += 40) for (let y = WALL + 30; y < AH - WALL - 30; y += 40) if (!solid(x, y) && lethalDist(x, y) > 14) pts.push([x, y]);
@@ -3481,7 +3481,7 @@ function senseArena() {
     for (let k = 0; k < 24 && !ok; k++) for (const r of [220, 320, 420, 520]) { const a = k / 24 * TAU, x = tx + Math.cos(a) * r, y = ty + Math.sin(a) * r;
       if (x < WALL + 30 || x > AW - WALL - 30 || y < WALL + 30 || y > AH - WALL - 30 || solid(x, y) || lethalDist(x, y) < 50) continue;
       if (harpoonThrough({ x: tx, y: ty }, { x, y }) && clearShot(x, y, tx, ty)) { ok = true; break; } } if (ok) hk++; }
-  HAZ = keepHaz; WARN = keepWarn; SAWPOS = keepSaw;
+  HAZ = keepHaz; WARN = keepWarn; SAWPOS = keepSaw; SAWAHEAD = keepAhead;
   return (MAP.sense = { hook: hn ? +(hk / hn).toFixed(3) : 0, open: pairs ? clear / pairs : 1, holes: pts.length ? near / pts.length : 0, bog: pts.length ? bog / pts.length : 0, big: (AW * AH) / (BASE_W * BASE_H), island, saws: SAWS.length > 0,
     heal: HEAL ? { x: HEAL.x, y: HEAL.y, r: HEAL.r } : null, hold: HEAL ? { x: HEAL.x, y: HEAL.y, r: Math.max(HEAL.r, 120) } : hub ? { x: cx, y: cy, r: 140 } : null, ring });
 }
@@ -3542,11 +3542,14 @@ function updateBall(w, dt) {
     }
   }
 }
+// where the saws are now, and where they'll be over the next 0.8 s (they sweep along their track faster than an archer
+// runs: a bot that only looks at where a saw is now walks into where it's going)
+function setSaws(t) { SAWPOS = SAWS.map(o => sawAt(o, t)); SAWAHEAD = SAWS.length ? [0.2, 0.4, 0.6, 0.8].flatMap(k => SAWS.map(o => Object.assign(sawAt(o, t + k), { k }))) : []; }
 function updateMapMech(w, dt) {
   updateBall(w, dt);
   if (!SAWS.length && !BUMPERS.length && !PORTALS.length && !WIND) return;
   const t = gameTime(w), wind = windAt(t);
-  SAWPOS = SAWS.map(o => sawAt(o, t));
+  setSaws(t);
   for (const q of w.players) {
     if (q.dead || q.falling > 0 || q.pinned > 0) continue;
     if (wind.gust && !airborne(q)) q.vy += wind.dir * WIND.accel * dt * (q.stuck > 0 ? 0.3 : 1);
@@ -5542,12 +5545,19 @@ function dashAngle(p) {
 }
 const PARRY_REACH = 0.15; // seconds a Parry can reach back to undo a hit that just landed
 // where a ninja's blink that way would land (as ninjaBlink works it out), and whether that and the slide after are clear of drops
+// how far a dash that way can go before a wall, a boulder or a block stops it (up to a full dash's 180px)
+const DASH_ROOM = 120;
+function dashRoom(p, a) {
+  const dx = Math.cos(a), dy = Math.sin(a); let d = 0;
+  for (let s = 20; s <= 180; s += 20) { const x = p.x + dx * s, y = p.y + dy * s; if (x < WALL + p.r || x > AW - WALL - p.r || y < WALL + p.r || y > AH - WALL - p.r || !clearLane(p.x, p.y, x, y, p.r - 6)) break; d = s; }
+  return d;
+}
 function blinkEnd(p, a) {
   const dx = Math.cos(a), dy = Math.sin(a); let reach = NINJA_BLINK * (has(p, 'longstep') ? 1.4 : 1) * (p.slow > 0 && !p.sure ? 0.7 : 1), nx = p.x, ny = p.y;
   for (; reach > 10; reach -= 8) { nx = clamp(p.x + dx * reach, WALL + p.r, AW - WALL - p.r); ny = clamp(p.y + dy * reach, WALL + p.r, AH - WALL - p.r); if (!PILLARS.some(q => Math.hypot(nx - q.x, ny - q.y) < q.r + p.r)) break; }
   return { x: nx, y: ny, dx, dy };
 }
-const blinkSafe = (p, a) => { const e = blinkEnd(p, a); return lethalDist(e.x, e.y) > p.r + 18 && lethalDist(e.x + e.dx * 45, e.y + e.dy * 45) > p.r + 6; };
+const blinkSafe = (p, a) => { const e = blinkEnd(p, a); return Math.hypot(e.x - p.x, e.y - p.y) > NINJA_BLINK * 0.55 && lethalDist(e.x, e.y) > p.r + 18 && lethalDist(e.x + e.dx * 45, e.y + e.dy * 45) > p.r + 6; }; // (and not into a wall, where it would go nowhere)
 function ninjaBlink(w, p, back) { // back: Echo Step's spot to return to
   const a = back ? Math.atan2(back.y - p.y, back.x - p.x) : dashAngle(p);
   const dx = Math.cos(a), dy = Math.sin(a);
@@ -6864,11 +6874,14 @@ function updatePickups(w, dt) {
 }
 
 // ---------------- bots ----------------
+// lethalDist without the saws (where to step off a saw's track: away from it, but not into a hole)
+function lethalDistNoSaw(x, y) { const a = SAWPOS, b = SAWAHEAD; SAWPOS = []; SAWAHEAD = []; try { return lethalDist(x, y); } finally { SAWPOS = a; SAWAHEAD = b; } }
 function lethalDist(x, y) {
   let m = Infinity;
   for (const h of HAZ) if (h.type !== 'tar') m = Math.min(m, hazAway(h, x, y).dist);
   for (const h of WARN) m = Math.min(m, hazAway(h, x, y).dist);
   for (const o of SAWPOS) m = Math.min(m, Math.hypot(x - o.x, y - o.y) - o.r - 10);
+  for (const o of SAWAHEAD) m = Math.min(m, Math.hypot(x - o.x, y - o.y) - o.r - (o.k <= 0.4 ? 10 : 2)); // (and where they're heading: the nearer future counts in full)
   // spike walls count as lethal edges
   for (const s of SPIKES) {
     if (s.side === 'top' && x > s.a && x < s.b) m = Math.min(m, y - WALL);
@@ -6932,6 +6945,12 @@ function botSteer(p, gx, gy) {
     const a = a1.dist < a0.dist ? a1 : a0;
     const margin = p.r + (h.type === 'tar' ? 34 : 60);
     if (a.dist < margin) { const k = (margin - a.dist) / margin * 3; dx += a.nx * k; dy += a.ny * k; }
+  }
+  // the saws: from where each is and will be over the next 0.8 s, against where we'll be by then. They run along a track,
+  // so the way out is off the track (sideways to it), not along it ahead of a blade that's faster than us
+  if (SAWS.length && !(p.dashT > 0)) for (const o of SAWPOS.map(z => Object.assign({ k: 0 }, z)).concat(SAWAHEAD)) {
+    const mx = p.x + p.vx * o.k * 0.6, my = p.y + p.vy * o.k * 0.6, ex = mx - o.x, ey = my - o.y, d = Math.hypot(ex, ey) || 1, m = o.r + p.r + 34 + 30 * (1 - o.k);
+    if (d < m) { const k = (m - d) / m * (o.k <= 0.4 ? 4 : 2.5); let sy = Math.sign(ey) || (o.y < AH / 2 ? 1 : -1); if (lethalDistNoSaw(p.x, p.y + sy * 60) < p.r + 20) sy = -sy; dx += ex / d * k * 0.35; dy += sy * k; }
   }
   for (const q of PILLARS) {
     const ex = p.x - q.x, ey = p.y - q.y, d = Math.hypot(ex, ey) || 1, m = q.r + p.r + 24;
@@ -7460,6 +7479,12 @@ function botDashDir(p, wasDraw) {
   if (p.wantDash && p.role === 'ninja' && !p.echo) { const a0 = ai.dashAim != null ? ai.dashAim : Math.atan2(inp.my || 0, inp.mx || 0); let ok = null;
     for (const da of [0, 0.3, -0.3, 0.6, -0.6, 0.9, -0.9]) if (blinkSafe(p, a0 + da)) { ok = a0 + da; break; }
     if (ok == null) p.wantDash = false; else if (ai.dashAim != null || ok !== a0) ai.dashAim = ok; }
+  // any other dash: one aimed into a wall or a boulder goes nowhere and wastes the charge. Turn it a little either way to
+  // open ground (that still dodges: a sidestep off the line works at an angle too), or keep the dash for later
+  else if (p.wantDash && p.dashN > 0) { const a0 = ai.dashAim != null ? ai.dashAim : (inp.mx || inp.my ? Math.atan2(inp.my || 0, inp.mx || 0) : null);
+    if (a0 != null && dashRoom(p, a0) < DASH_ROOM) { let ok = null;
+      for (const da of [0.35, -0.35, 0.7, -0.7, 1.1, -1.1]) { const a = a0 + da; if (dashRoom(p, a) >= DASH_ROOM && lethalDist(p.x + Math.cos(a) * 170, p.y + Math.sin(a) * 170) > 50) { ok = a; break; } }
+      if (ok == null) p.wantDash = false; else ai.dashAim = ok; } }
   if (p.wantDash && ai.dashAim != null) { inp.mx = Math.cos(ai.dashAim); inp.my = Math.sin(ai.dashAim); if (wasDraw && !inp.draw) inp.draw = true; }
   ai.dashAim = null;
 }
@@ -10040,7 +10065,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.99.31';
+const PAGE_VERSION = '0.99.33';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
