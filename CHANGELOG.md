@@ -2,6 +2,16 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.34
+
+- **A bow you can read.**
+  - The bow is about 10% bigger and nearly straight at rest.
+  - As it's drawn, its limbs bend back toward the archer like a real bow, thicker at the grip and tapering to the tips.
+  - The arrow slides back through the grip, its head reaching the bow at full draw.
+  
+  How deep someone's draw is now shows at a glance. Their grip is where it always was.
+- **The old bow is kept.** Options › Graphics › Bow › Classic brings back the previous bow exactly as it was (`drawBowClassic` in `public/index.html`, untouched). The choice is remembered.
+
 ## 0.99.33
 
 - **AI players pick for the kind of match.**
