@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.39';
+const VERSION = '0.99.41';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -376,13 +376,19 @@ MAPS.torii = buildMap({
 // Sakura Hall: a painted arena (its floor is a picture, public/arenas/sakura.webp, see ARENA_ART in the page). A wide
 // timber hall: taiko drums and stone lanterns for cover, the middle left open round the emblem. In the lab only for now
 MAPS.sakura = buildMap({
-    name: 'Sakura Hall', theme: 'sakura', w: 1350, h: 800, hidden: true, lab: true,
-    desc: 'A timber hall in a cherry garden: a red sun with a torii and Mount Fuji inlaid in the middle, taiko drums and stone lanterns to duck behind, and a koi moat beyond the red walls.',
-    haz: [],
-    pillars: [{ x: 360, y: 240, r: 27, kind: 'taiko' }, { x: 470, y: 560, r: 18, kind: 'toro' }, { x: 245, y: 640, r: 18, kind: 'toro' }, { x: 560, y: 175, r: 18, kind: 'toro' }],
-    spikes: [],
+    name: 'Sakura Hall', theme: 'sakura', w: 1388, h: 800, hidden: true, lab: true,
+    desc: 'A timber hall in a cherry garden: a red sun with a torii and Mount Fuji inlaid in the middle, and low lacquered partition walls to duck behind.',
+    haz: [], pillars: [], spikes: [],
+    // low partition walls (both halves listed: blocks aren't mirrored for you): a screen by each spawn, one across the
+    // approach, one standing off it, and a pair either side of the emblem, which is left open
+    blocks: [
+      { x: 330, y: 150, w: 20, h: 150 }, { x: 1388 - 350, y: 800 - 300, w: 20, h: 150 },
+      { x: 470, y: 560, w: 140, h: 20 }, { x: 1388 - 610, y: 800 - 580, w: 140, h: 20 },
+      { x: 240, y: 520, w: 18, h: 120 }, { x: 1388 - 258, y: 800 - 640, w: 18, h: 120 },
+      { x: 654, y: 168, w: 80, h: 18 }, { x: 654, y: 800 - 186, w: 80, h: 18 },
+    ],
     spawns: [{ x: 100, y: 345 }, { x: 100, y: 455 }, { x: 180, y: 400 }, { x: 95, y: 240 }],
-    power: [{ x: 675, y: 400 }], amberY: [WALL + 44, 330],
+    power: [{ x: 694, y: 400 }], amberY: [WALL + 44, 330],
   });
 // new layouts for the themes that already exist
 MAPS.glade = buildMap({
@@ -4254,6 +4260,12 @@ function botSteer(p, gx, gy) {
   for (const q of PILLARS) {
     const ex = p.x - q.x, ey = p.y - q.y, d = Math.hypot(ex, ey) || 1, m = q.r + p.r + 24;
     if (d < m) { const k = (m - d) / m * 2; dx += ex / d * k; dy += ey / d * k; }
+  }
+  // walls (blocks): kept off the nearest face, and slid along it toward where we're going rather than pushed straight back
+  for (const b of BLOCKS) {
+    const cx = clamp(p.x, b.x, b.x + b.w), cy = clamp(p.y, b.y, b.y + b.h), ex = p.x - cx, ey = p.y - cy, d = Math.hypot(ex, ey) || 0.01, m = p.r + 26;
+    if (d < m) { const nx = ex / d, ny = ey / d, k = (m - d) / m * 2.4, into = dx * nx + dy * ny; if (into < 0) { dx -= into * nx; dy -= into * ny; } dx += nx * k; dy += ny * k;
+      const tx = -ny, ty = nx, along = dx * tx + dy * ty; dx += tx * Math.sign(along || 1) * 0.6; dy += ty * Math.sign(along || 1) * 0.6; }
   }
   const E = 80;
   if (p.x < WALL + E) dx += (WALL + E - p.x) / E * 1.6;

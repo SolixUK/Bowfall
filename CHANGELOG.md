@@ -2,6 +2,22 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.41
+
+- **Sakura Hall fills wide screens.** It uses your wider picture, and the whole of it is drawn underneath the arena, so the moss, rocks, maples and blossom carry on past the walls to the edges of a wide screen instead of stopping at a dark margin. The floor is lined up with the walls again (it's scaled a touch differently across and down, about 1%, so the picture isn't cropped). The corner lanterns' glow is moved to match.
+
+## 0.99.40
+
+- **Sakura Hall, with your darker picture.** The art is the new, darker version without the water, lined up again with the walls. The arena is now 1388 × 800, to fit it unstretched.
+  - **Partition walls instead of drums and lanterns:** eight low walls of dark lacquered timber with a red cap and gold studs at each end, to match the hall's border.
+    - a standing screen out from each spawn, and a longer wall across each side's approach;
+    - a short wall by each back corner;
+    - a pair either side of the emblem, which is left open.
+    
+    They stop archers and arrows (a Trick Shot bounces off them).
+  - The koi and moat effects are gone with the water. The corner lanterns still glow and the blossom still drifts.
+- **Bots steer round walls.** Bot steering kept off holes and boulders but didn't know about flat walls. Bots now keep off a wall's nearest face and slide along it toward where they're going.
+
 ## 0.99.39
 
 - **Sakura Hall, a painted arena (in the Arena lab only).** Its floor is your picture (`public/arenas/sakura.webp`, about 260 KB), lined up so the red lacquer walls are the arena's walls.
