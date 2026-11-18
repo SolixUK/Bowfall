@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.34';
+const VERSION = '0.99.39';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -372,6 +372,17 @@ MAPS.torii = buildMap({
     spikes: [],
     portals: [{ x: 230, y: 620 }],
     power: [{ x: 600, y: 400 }], amberY: [WALL + 44, 330],
+  });
+// Sakura Hall: a painted arena (its floor is a picture, public/arenas/sakura.webp, see ARENA_ART in the page). A wide
+// timber hall: taiko drums and stone lanterns for cover, the middle left open round the emblem. In the lab only for now
+MAPS.sakura = buildMap({
+    name: 'Sakura Hall', theme: 'sakura', w: 1350, h: 800, hidden: true, lab: true,
+    desc: 'A timber hall in a cherry garden: a red sun with a torii and Mount Fuji inlaid in the middle, taiko drums and stone lanterns to duck behind, and a koi moat beyond the red walls.',
+    haz: [],
+    pillars: [{ x: 360, y: 240, r: 27, kind: 'taiko' }, { x: 470, y: 560, r: 18, kind: 'toro' }, { x: 245, y: 640, r: 18, kind: 'toro' }, { x: 560, y: 175, r: 18, kind: 'toro' }],
+    spikes: [],
+    spawns: [{ x: 100, y: 345 }, { x: 100, y: 455 }, { x: 180, y: 400 }, { x: 95, y: 240 }],
+    power: [{ x: 675, y: 400 }], amberY: [WALL + 44, 330],
   });
 // new layouts for the themes that already exist
 MAPS.glade = buildMap({
@@ -1273,7 +1284,7 @@ const TREE = {
   obsidian:  { tree: 'stone', trade: true, name: 'Obsidian', desc: 'Your arrows knock back 30% harder, but fly 8% slower.' },
   void:      { tree: 'void', base: true, name: 'Void Arrows', desc: 'Hits mark the target with void (up to 5 marks, fading 2.5 seconds after your last hit). Each mark makes your arrows hit them 6% harder, and from the second mark on your arrows curve toward them, a little more with every mark. Only your own arrows, and only shots already heading their way.' },
   rift:      { tree: 'void', name: 'Rift', desc: 'A moment after a fully drawn hit (or any bullseye), a rift opens where the target lands. For 2 seconds it pulls them and every enemy nearby toward its centre and slows them by 30%.' },
-  gravity:   { tree: 'void', name: 'Gravity Arrows', desc: 'Your arrows are dark with gravity: as they fly they pull enemies within 110px slightly toward them.' },
+  gravity:   { tree: 'void', name: 'Gravity Arrows', desc: 'Your arrows are dark with gravity: enemies within 110px of one in flight are drawn toward its path, so a near miss can still land.' },
   horizon:   { tree: 'void', name: 'Event Horizon', desc: 'Rifts are 30% bigger, pull harder and last 3 seconds.', req: ['rift'] },
   collapse:  { tree: 'void', name: 'Collapse', desc: 'When a rift ends it bursts, throwing enemies inside it outward.', req: ['rift'] },
   nullfield: { tree: 'void', name: 'Null Field', desc: "Enemies inside your rifts dash less than half as far.", req: ['rift'] },
@@ -1404,7 +1415,7 @@ const BRIEF = {
   contagion: 'Poison spreads to their teammates.', virulent: 'Poison stacks to 5 and hurts more.', permafrost: 'Frost slow builds with each hit, up to 65%.',
   kindling: 'Burning enemies fly 50% further.', overload: 'Double lightning damage. Dash 20% slower.', potent: 'Poison +50%. Arrows −15% damage.',
   stone: 'Hits stagger: less draw, more knockback.', boulder: 'Full-draw arrows knock back 30% harder.', aftershock: 'Full-draw hits shove nearby enemies away.',
-  petrify: "Staggered enemies can't dash.", obsidian: 'Knockback +30%. Arrows 8% slower.', void: 'Hits mark them; your arrows curve toward marks.', rift: 'Full-draw hits open a rift that pulls enemies in.', gravity: 'Your arrows pull nearby enemies toward them.',
+  petrify: "Staggered enemies can't dash.", obsidian: 'Knockback +30%. Arrows 8% slower.', void: 'Hits mark them; your arrows curve toward marks.', rift: 'Full-draw hits open a rift that pulls enemies in.', gravity: 'Near misses get pulled onto the arrow.',
   horizon: 'Bigger, stronger, longer rifts.', collapse: 'Rifts burst outward when they end.', nullfield: 'Enemies in your rifts dash half as far.', unstable: 'Rifts 50% bigger. Arrows −8% damage.',
   blink: 'Teleport 300px and draw 3× faster briefly.', stealth: 'Vanish for 6s and move faster; first arrow out stuns.', ambush: 'Draw 60% faster right after stealth.',
   hitrun: 'Blink in, rapid-fire 2.5s, blink back.', secondwind: 'Regain 75% of the last 2s of damage, and speed.', escape: 'Below 25% health: drop a smoke cloud.', afterimage: 'Stealth leaves a walking shadow.', vanish: 'Knockouts cut Stealth cooldown by 6s.',
@@ -3680,7 +3691,7 @@ const BULLSEYE = 0.4, CRIT_MUL = 1.5;
 const NB_WIND = 0.05, NB_MOVE = 0.09; // Ninja blink: wind-up, then travel time
 // Firework: big and very slow, follows its target for its whole flight, and bursts a little smaller than Blast Tips
 const ROCKET = { speed: 210, turn: 1.5, life: 5, blast: 0.85, dmg: 6 }; // px/s (an archer runs at about 235), radians a second it can turn, fuse, burst size (Blast Tips = 1) and burst damage
-const VOID_PULL = [0, 0, 0.12, 0.3, 0.55, 0.85], GRAV_R = 110, GRAV_PULL = 320; // void marks' homing strength by number of marks; Gravity Arrows' reach and pull
+const VOID_PULL = [0, 0, 0.12, 0.3, 0.55, 0.85], GRAV_R = 110, GRAV_PULL = 450; // void marks' homing strength by number of marks; Gravity Arrows' reach and pull
 const ASSIST_LANE = 220, ASSIST_RAMP = 600, SEEK = { power: 1.4, lane: 340, base: 0.6 }; // Seeker Arrow: between the Heavy and Extreme rules, with a wider lane, and it turns firmly from the start; // arrow homing: how far either side of your line of fire it looks for a target (at any range), and the distance over which its turning ramps up
 const XBOW_RANGE = 560, XBOW_RELOAD = 1.15, XBOW_GAP = 0.16, AUTO_TIME = 2, AUTO_GAP = 0.12, NINJA_AUTO = 1.4; // (NINJA_AUTO: Blade Guard's full auto, shorter than Hair Trigger's: it was the strongest card in the game)
 // Triple Bolt (an upgrade): each shot is a quick burst of three bolts, each this share of a single bolt's damage and knockback, and reloading takes `reload` times as long
@@ -3882,7 +3893,11 @@ function updateArrows(w, dt) {
     if (a.grav && !a.back) for (const q of w.players) {
       if (q.team === a.team || q.dead || q.falling > 0 || q.pinned > 0 || a.hit.includes(q.id)) continue;
       const dx = a.x - q.x, dy = a.y - q.y, d = Math.hypot(dx, dy) || 1; if (d > GRAV_R) continue;
-      const k = GRAV_PULL * (1 - d / GRAV_R) * dt / q.mass; q.vx += dx / d * k; q.vy += dy / d * k;
+      // (pulled sideways, onto the arrow's line, moved rather than pushed: an archer's own footwork wiped out a push, and a
+      // pull toward the arrow as it came in only drew them toward the shooter, so it used to turn no misses into hits at all)
+      const sp = Math.hypot(a.vx, a.vy) || 1, ux = a.vx / sp, uy = a.vy / sp, along = dx * ux + dy * uy, lx = dx - ux * along, ly = dy - uy * along, ll = Math.hypot(lx, ly) || 1;
+      const k = Math.min(ll, GRAV_PULL * (1 - d / GRAV_R) * dt / q.mass), nx = q.x + lx / ll * k, ny = q.y + ly / ll * k;
+      if (clearLane(q.x, q.y, nx, ny, q.r)) { q.x = clamp(nx, WALL + q.r, AW - WALL - q.r); q.y = clamp(ny, WALL + q.r, AH - WALL - q.r); }
       q.lastHitBy = a.owner; q.lastHitT = w.t;
     }
     // Boomerang: out, then back to the thrower, able to hit everyone again
@@ -6775,7 +6790,7 @@ function step(w, dt) {
   if (M.ph === 'lobby') return;
   M.T -= dt;
   if (M.ph === 'pre') {
-    for (const p of w.players) { if (p.bot) p.aim = Math.atan2(AH / 2 - p.y, AW / 2 - p.x); else p.aim = p.input.aim; p.wantDash = false; }
+    for (const p of w.players) { if (p.bot) { p.aim = Math.atan2(AH / 2 - p.y, AW / 2 - p.x); p.input.aim = p.aim; if (p.ai) p.ai.aimA = p.aim; } else p.aim = p.input.aim; p.wantDash = false; } // (a bot's aim and its input agree before play starts: it used to start play facing its input's leftover angle, east, and turn round)
     if (M.T <= 0) { M.ph = 'play'; M.finalSaid = false; M.T = w.cq || w.tm ? 1e6 : TIMES.game; M.gStart = w.t; w.amberT = 0.4; w.puT = 6; w.chT = rand(18, 26); ev(w, { e: 'phase', ph: 'play', rd: M.rd, gm: M.gm }); }
     return;
   }

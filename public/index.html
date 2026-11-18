@@ -2728,7 +2728,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.99.34"></script>
+<script src="sim.js?v=0.99.39"></script>
 <script src="coop-data.js"></script>
 <script src="coop.js"></script>
 <script>
@@ -2738,7 +2738,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.99.34';
+const PAGE_VERSION = '0.99.39';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -10330,6 +10330,9 @@ THEMES.mire = Object.assign({}, THEMES.marsh, {
   boulder: '#4a5452', boulderLight: '#626e6b', moss: ['#355a4a', '#44705c'],
   wall: '#0e1c1e', wallMid: '#152a2c', wallLight: '#21403f', leaf: '#21403a', ambient: 'leaves', leafCols: ['#5e8f86', '#47736b', '#8fb7a8', '#3b5f58'],
 });
+// Sakura Hall: a painted arena. Its floor is a picture (ARENA_ART), so the theme only gives the colours for what's
+// drawn over it: the outer dark, the falling blossom
+THEMES.sakura = Object.assign({}, THEMES.dojo, { art: 'sakura', dojo: false, forest: '#14211d', ambient: 'leaves', leafCols: ['#f7c6d6', '#f1b0c8', '#fde3ec', '#ffffff'] });
 THEMES.spring = Object.assign({}, THEMES.meadow, {
   ground: '#57903f', patchA: 'rgba(130,190,95,0.24)', flowers: 40, fairy: false,
   leafCols: ['#f3d6e2', '#8fb44a', '#f4ecd2', '#b8c45a'],
@@ -10585,6 +10588,8 @@ function paintFloor(s) {
   g.scale(s, s); g.translate(MARGIN, MARGIN);
   const R = mulberry(20260923);
   g.lineCap = 'round'; g.lineJoin = 'round';
+  // a painted arena: the picture is the floor, walls and all; only the props are drawn over it
+  if (T.art && !PAINT_TILE) { paintArtFloor(g, R, T); return cvs; }
 
   // surroundings: forest canopy, or volcanic rock (a tile of a big map has none: it sits among other tiles)
   const ring = [];
@@ -11148,6 +11153,84 @@ function paintFloor(s) {
 }
 
 let floorCv = null, floorScale = 0, floorKey = null;
+// ---- painted arenas: a picture for the floor. Where it sits: the picture's pixel (px, py) is at arena ((px - x) * s + WALL,
+// (py - y) * s + WALL), so its inner floor edge lines up with the inside of the walls
+const ARENA_ART = { sakura: { x: 95, y: 93, s: 0.912 } }, ART_IMG = {};
+function artImg(k) {
+  let a = ART_IMG[k];
+  if (!a) { a = ART_IMG[k] = new Image(); a.onload = () => { floorKey = null; for (const t in thumbs) if (MAPS[t] && THEMES[MAPS[t].theme] && THEMES[MAPS[t].theme].art === k) delete thumbs[t]; }; a.src = (window.BOWFALL_ART && window.BOWFALL_ART[k]) || '/arenas/' + k + '.webp'; }
+  return a.complete && a.naturalWidth ? a : null;
+}
+function paintArtFloor(g, R, T) {
+  g.fillStyle = T.forest; g.fillRect(-MARGIN, -MARGIN, AW + MARGIN * 2, AH + MARGIN * 2);
+  const A = ARENA_ART[T.art], im = artImg(T.art);
+  if (im) g.drawImage(im, WALL - A.x * A.s, WALL - A.y * A.s, im.naturalWidth * A.s, im.naturalHeight * A.s);
+  else { g.fillStyle = '#b07a48'; g.fillRect(WALL, WALL, AW - 2 * WALL, AH - 2 * WALL); } // (until the picture has loaded)
+  for (const p of PILLARS) paintArtProp(g, p, R);
+}
+// the painted arenas' props, drawn to sit in the picture: soft shadows falling bottom right, warm highlights
+function paintArtProp(g, p, R) {
+  const sh = (rx, ry) => { const sg = g.createRadialGradient(p.x + 7, p.y + 9, 2, p.x + 7, p.y + 9, rx * 1.35); sg.addColorStop(0, 'rgba(40,18,6,0.45)'); sg.addColorStop(1, 'rgba(40,18,6,0)'); g.fillStyle = sg; g.beginPath(); g.ellipse(p.x + 7, p.y + 9, rx * 1.35, ry * 1.35, 0, 0, TAU); g.fill(); };
+  if (p.kind === 'taiko') { // a taiko drum on its stand, from above: a pale hide head with a red mitsudomoe, a ring of brass tacks, a dark lacquered body
+    sh(p.r + 4, p.r + 3);
+    g.fillStyle = '#3a1a10'; g.beginPath(); g.arc(p.x, p.y, p.r + 3, 0, TAU); g.fill();
+    g.fillStyle = '#7a2a18'; g.beginPath(); g.arc(p.x, p.y, p.r + 1, 0, TAU); g.fill();
+    const hg = g.createRadialGradient(p.x - p.r * 0.3, p.y - p.r * 0.35, 2, p.x, p.y, p.r - 3); hg.addColorStop(0, '#f6e8c8'); hg.addColorStop(1, '#d8c296'); g.fillStyle = hg; g.beginPath(); g.arc(p.x, p.y, p.r - 3, 0, TAU); g.fill();
+    for (let k = 0; k < 18; k++) { const a = k / 18 * TAU; g.fillStyle = '#e0b54a'; g.beginPath(); g.arc(p.x + Math.cos(a) * (p.r - 1), p.y + Math.sin(a) * (p.r - 1), 1.5, 0, TAU); g.fill(); }
+    g.fillStyle = '#b8281c'; for (let k = 0; k < 3; k++) { const a = k / 3 * TAU - 0.4; g.save(); g.translate(p.x, p.y); g.rotate(a); g.beginPath(); g.arc(0, -p.r * 0.28, p.r * 0.24, 0, TAU); g.fill(); g.beginPath(); g.moveTo(p.r * 0.24, -p.r * 0.28); g.quadraticCurveTo(p.r * 0.45, p.r * 0.2, -p.r * 0.05, p.r * 0.32); g.lineTo(0, -p.r * 0.05); g.fill(); g.restore(); }
+    g.strokeStyle = 'rgba(30,10,4,0.85)'; g.lineWidth = 2; g.beginPath(); g.arc(p.x, p.y, p.r + 3, 0, TAU); g.stroke();
+    return;
+  }
+  // a stone tōrō from above: a hexagonal roof stepping up to a jewel finial, a warm glow from the light box beneath
+  sh(p.r + 3, p.r + 2);
+  const lg = g.createRadialGradient(p.x, p.y, 2, p.x, p.y, p.r * 2.6); lg.addColorStop(0, 'rgba(255,200,120,0.35)'); lg.addColorStop(1, 'rgba(255,200,120,0)'); g.fillStyle = lg; g.beginPath(); g.arc(p.x, p.y, p.r * 2.6, 0, TAU); g.fill();
+  const hex = (r) => { g.beginPath(); for (let k = 0; k < 6; k++) { const a = k / 6 * TAU + Math.PI / 6; g.lineTo(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r); } g.closePath(); };
+  hex(p.r + 3); g.fillStyle = '#6e6a62'; g.fill(); g.strokeStyle = 'rgba(30,26,22,0.8)'; g.lineWidth = 2; g.stroke();
+  g.strokeStyle = 'rgba(40,36,30,0.5)'; g.lineWidth = 1.2; for (let k = 0; k < 6; k++) { const a = k / 6 * TAU + Math.PI / 6; g.beginPath(); g.moveTo(p.x, p.y); g.lineTo(p.x + Math.cos(a) * (p.r + 3), p.y + Math.sin(a) * (p.r + 3)); g.stroke(); }
+  hex(p.r * 0.55); g.fillStyle = '#8a867c'; g.fill();
+  g.fillStyle = '#a8a498'; g.beginPath(); g.arc(p.x - 1, p.y - 1, p.r * 0.26, 0, TAU); g.fill();
+  g.fillStyle = 'rgba(255,255,255,0.18)'; g.beginPath(); g.arc(p.x - p.r * 0.4, p.y - p.r * 0.4, p.r * 0.3, 0, TAU); g.fill();
+}
+// ---- the painted arenas, live: the moat's water moving and shimmering, koi swimming in it, the lanterns flickering
+// (where things are in the picture: Sakura Hall's moat runs down each side beyond the red walls)
+const ART_LIFE = {
+  sakura: { moats: [{ x0: 0, x1: 78, y0: 130, y1: 860 }, { x0: 1537, x1: 1614, y0: 130, y1: 860 }], lanterns: [[100, 108], [1512, 108], [100, 880], [1512, 880], [540, 92], [1075, 92]], koi: 6 },
+};
+let artKoi = null, artKoiKey = null, artLast = null;
+function drawArtLife(c) {
+  const dt = artLast == null ? 0.016 : Math.max(0, Math.min(0.05, c - artLast)); artLast = c;
+  const L = ART_LIFE[THEME.art], A = ARENA_ART[THEME.art]; if (!L || !A) return;
+  const P = (px, py) => [WALL + (px - A.x) * A.s, WALL + (py - A.y) * A.s], low = !fullDetail();
+  // the koi: each loops up and down its moat at its own pace, now and then slowing and turning, the body waving head to tail
+  if (artKoiKey !== MAPKEY) { artKoiKey = MAPKEY; let sd = 7; const r = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    artKoi = Array.from({ length: L.koi }, (_, i) => { const m = L.moats[i % L.moats.length]; return { m, t: r(), sp: 0.018 + r() * 0.02, ph: r() * TAU, col: ['#f07a2a', '#f4efe6', '#e8462a', '#f4efe6', '#f2a03a', '#f07a2a'][i % 6], spot: ['#fff4e6', '#e8462a', '#f4efe6', '#f07a2a', '#fff4e6', '#1a1410'][i % 6], dir: r() < 0.5 ? 1 : -1, len: 9 + r() * 4, rise: 0 }; }); }
+  for (const k of artKoi) {
+    const m = k.m, slow = 0.55 + 0.45 * Math.sin(c * 0.4 + k.ph); k.t += k.dir * k.sp * slow * (reduceMotion ? 0.3 : 1) * (dt || 0.016);
+    if (k.t > 1 || k.t < 0) { k.dir *= -1; k.t = Math.max(0, Math.min(1, k.t)); }
+    const yy = m.y0 + (m.y1 - m.y0) * k.t, xx = (m.x0 + m.x1) / 2 + Math.sin(k.t * 9 + k.ph) * (m.x1 - m.x0) * 0.28;
+    const [x, y] = P(xx, yy), heading = (k.dir > 0 ? Math.PI / 2 : -Math.PI / 2) + Math.cos(k.t * 9 + k.ph) * 0.35 * k.dir;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(heading);
+    ctx.fillStyle = 'rgba(0,20,25,0.28)'; ctx.beginPath(); ctx.ellipse(-2, 3, k.len, k.len * 0.38, 0, 0, TAU); ctx.fill(); // (its shadow on the bottom)
+    const wv = Math.sin(c * 7 + k.ph) * 0.35;
+    ctx.fillStyle = k.col; ctx.beginPath(); ctx.ellipse(0, 0, k.len, k.len * 0.36, 0, 0, TAU); ctx.fill();
+    ctx.save(); ctx.translate(-k.len * 0.85, 0); ctx.rotate(wv); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-k.len * 0.6, -k.len * 0.38); ctx.lineTo(-k.len * 0.45, 0); ctx.lineTo(-k.len * 0.6, k.len * 0.38); ctx.closePath(); ctx.fill(); ctx.restore();
+    ctx.fillStyle = k.spot; ctx.beginPath(); ctx.ellipse(k.len * 0.15, -k.len * 0.05, k.len * 0.35, k.len * 0.2, 0.3, 0, TAU); ctx.fill();
+    ctx.fillStyle = k.col; ctx.globalAlpha = 0.85; ctx.beginPath(); ctx.ellipse(k.len * 0.2, k.len * 0.32, k.len * 0.25, k.len * 0.1, 0.6, 0, TAU); ctx.ellipse(k.len * 0.2, -k.len * 0.32, k.len * 0.25, k.len * 0.1, -0.6, 0, TAU); ctx.fill(); ctx.globalAlpha = 1; // (fins)
+    ctx.restore();
+    if (!low && !reduceMotion && Math.random() < 0.003) fx.rings.push({ x, y, r: 3, life: 0, col: '210,240,240', max: 16, lw: 1.5 }); // (rising to the surface)
+  }
+  // the water: pale ripple lines drifting along the moat, and glints coming and going
+  if (!low) for (const m of L.moats) { const [x0, y0] = P(m.x0, m.y0), [x1, y1] = P(m.x1, m.y1);
+    ctx.save(); ctx.beginPath(); ctx.rect(x0, y0, x1 - x0, y1 - y0); ctx.clip();
+    ctx.strokeStyle = 'rgba(200,235,235,0.16)'; ctx.lineWidth = 1.4;
+    for (let i = 0; i < 10; i++) { const yy = y0 + ((i * 83 + c * 14) % (y1 - y0)); ctx.beginPath(); ctx.moveTo(x0, yy); ctx.quadraticCurveTo((x0 + x1) / 2, yy + Math.sin(c * 1.2 + i) * 5, x1, yy + 2); ctx.stroke(); }
+    for (let i = 0; i < 6; i++) { const t = c * 0.6 + i * 1.7, a = Math.max(0, Math.sin(t * 2.1)) ** 3; if (a < 0.05) continue; const gx = x0 + (x1 - x0) * ((i * 0.37 + Math.floor(t / 3) * 0.29) % 1), gy = y0 + (y1 - y0) * ((i * 0.53 + Math.floor(t / 3) * 0.17) % 1); ctx.fillStyle = `rgba(255,255,255,${0.55 * a})`; ctx.beginPath(); ctx.ellipse(gx, gy, 3, 1.2, 0, 0, TAU); ctx.fill(); }
+    ctx.restore(); }
+  // the lanterns: a warm glow that breathes and now and then flickers
+  if (!low) { ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    for (const [px, py] of L.lanterns) { const [x, y] = P(px, py), f = 0.8 + 0.2 * Math.sin(c * 3 + px) * Math.sin(c * 7.7 + py), g2 = ctx.createRadialGradient(x, y, 2, x, y, 48); g2.addColorStop(0, `rgba(255,170,90,${0.22 * f})`); g2.addColorStop(1, 'rgba(255,140,60,0)'); ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(x, y, 48, 0, TAU); ctx.fill(); }
+    ctx.restore(); }
+}
 function buildFloor() {
   if (bigMap()) { // one painting of the whole big map, at a fixed resolution (zooming doesn't repaint it)
     const s = clamp(Math.round(camBase() * DPR * 4) / 4, 0.75, 0.85);
@@ -11581,6 +11664,7 @@ function drawArena() {
   if (HEAL) drawSpring(c);
   drawMapMech(ctx, mechDrawT, false);
   if (THEME.night) drawNightLights(c);
+  if (THEME.art) drawArtLife(c);
   ctx.save(); ctx.beginPath(); ctx.rect(WALL, WALL, AW - WALL * 2, AH - WALL * 2); ctx.clip();
   const dress = fullDetail();
   if (!THEME.night && dress) for (const cl of clouds) ctx.drawImage(cloudSprite(), cl.x - cl.r, cl.y - cl.r * 0.7, cl.r * 2, cl.r * 1.4);

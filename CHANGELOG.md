@@ -2,6 +2,75 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.39
+
+- **Sakura Hall, a painted arena (in the Arena lab only).** Its floor is your picture (`public/arenas/sakura.webp`, about 260 KB), lined up so the red lacquer walls are the arena's walls.
+  - It's a little wider than usual (1350 × 800), to fit the picture without stretching it.
+  - Cover is two taiko drums (a red mitsudomoe on a pale hide, with a ring of brass tacks) and six stone tōrō lanterns with a warm glow, drawn to sit in the picture. The middle is left open round the emblem.
+  - Live over the picture:
+    - koi swim up and down the moat on each side, each at its own pace, slowing and turning, tails swishing, now and then rising to make a ripple;
+    - pale ripples drift along the water and glints come and go;
+    - the lanterns' glow breathes and flickers;
+    - cherry blossom drifts across the hall.
+  - Low detail keeps the koi and drops the rest; reduced motion slows them.
+- **Painted arenas in general.** Any arena can now use a picture for its floor: a theme with `art`, and its placement in `ARENA_ART`. The offline build inlines the pictures, and the server now serves `.webp` files.
+
+## 0.99.38
+
+- **Bots start a game facing the right way.** Bots now face the middle during the countdown, but their aim controls still held a leftover angle, due east. So when play began, everyone on Blue snapped to face their own wall and turned round over the first second. The two now agree before play starts, so Blue bots begin the game facing the middle and stay that way.
+- **The Japan arenas are removed** (Lantern Alley, Moss Garden, Bamboo Gorge, and their art).
+
+## 0.99.37
+
+- **The Japan arenas, redrawn to look Japanese.** They're still in the Arena lab only.
+  - **Lantern Alley** (was Neon Alley):
+    - a yokochō at night, paved in worn grey stone with an iron-grated drain down the middle;
+    - two strings of red paper chōchin lanterns along the lane, glowing warm;
+    - shop fronts on the walls: noren curtains in indigo and red with a white character (酒, 麺, 鮨, 焼…) and lit vertical signboards (居酒屋, ラーメン, 焼鳥, スナック);
+    - black kawara-tiled roofs beyond the walls.
+    
+    The lane lines, zebra crossing and neon bars are gone.
+  - **Moss Garden**, a karesansui dry garden:
+    - pale gravel raked in straight lines, with rings rippling out round every stone, lantern and pond;
+    - moss cushions at the foot of the stones and lanterns, and stepping stones (tobi-ishi) leading to the red bridge;
+    - white plaster temple walls with a black tiled cap and timber posts, and the temple's black-tiled roofs beyond.
+  - **Bamboo Gorge**, a mountain shrine path:
+    - a run of vermilion torii over a stone path across the middle, and a plank bridge where it crosses the stream;
+    - a sacred rock bound with a shimenawa rope and white paper shide;
+    - bamboo fences (takegaki) bound with black cord for walls, and tall bamboo culms leaning out beyond them;
+    - fallen bamboo leaves and shafts of light.
+
+## 0.99.36
+
+- **Three Japan arenas, in the Arena lab only.** They aren't in custom games or the ranked rotation. Try them against bots from the Arena lab, and add them to the pool there when you're happy.
+  - **Neon Alley** (urban, at night):
+    - a city back street on wet asphalt, lit only by the shop signs;
+    - a canal along the top and bottom walls, and open storm drains with steel grates and hazard tape;
+    - vending machines to duck behind, manhole covers, lane lines, and a zebra crossing down the middle with 止まれ ("stop") painted either side;
+    - rooftops with air-conditioning units and lit windows beyond the walls.
+  - **Moss Garden** (garden):
+    - a temple garden of raked gravel and moss, with maple leaves on the ground and red and green maples beyond the hedges;
+    - a koi pond in the middle, crossed only by a red lacquered arched bridge (60px wide);
+    - stone lanterns and a great mossy garden stone for cover, and a small koi pond in each corner.
+  - **Bamboo Gorge** (nature):
+    - a mountain stream that falls in from the top wall and out at the bottom, with white water at each end and the crossing in the middle;
+    - a ravine on each side, and clumps of bamboo for cover;
+    - leaf litter, mossy stones along the banks, bamboo shadows across the floor, and the bamboo forest beyond the walls.
+- **Testing.** In bot games on each (Master skill, about 290 games each):
+  - self-knockouts were 0 to 1%;
+  - Red won 49 to 55% (even sides, within noise);
+  - how games were decided looked normal.
+  
+  Before they go into the rotation, run `node tools/arena-fit.js prep neon` (and `zen`, `bamboo`), so the AI players know them.
+
+## 0.99.35
+
+- **Gravity Arrows works now.** It barely did anything before. Its pull added a little speed to the target, which their own footwork wiped out straight away, and it pulled them toward the arrow as it came in, which mostly meant toward the shooter.
+  - It now moves enemies within 110px sideways, onto the arrow's path, more strongly the closer they are.
+  - In a test of full-draw shots at a standing target, the hit window went from 28px off-centre to about 35px, so near misses land. Before, it made no difference even with the pull at 12 times its strength.
+  - Against the other Void cards (Void rangers, snipers, crossbows and tricksters, about 740 games each): 45% before, 55–56% now. That's a good card, about level with Volley.
+  - The description says what it does: near misses get pulled onto the arrow.
+
 ## 0.99.34
 
 - **A bow you can read.**
