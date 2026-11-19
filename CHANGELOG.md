@@ -2,6 +2,21 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.43
+
+- **Shadow's fuse is 3 seconds** (was 3.5). In testing (Shadow against a random other element, the same archetype on both sides, about 2,200 games each), it won about 50% against 48.5%, within the noise. Bursts came about 20% more often and were slightly smaller on average (2.2 shades against 2.4).
+- **The clip farm no longer records video.** The Record tick box and the bar's Record button are gone. A setting saved from before can't start a recording when the farm starts any more. Clips are kept as replays as before, to filter and export from the Clip studio.
+
+## 0.99.42
+
+- **Sakura Hall is drawn in code now, not a picture.** It's flat shapes with clean edges, like the archers, so it's sharp at any screen size and adds nothing to the download. The colours follow your latest picture (the darker boards, not the higher-contrast wide one).
+  - **The floor:** long dark planks in rows, each its own shade, with seams, nails and a little grain; the thin red line round the floor with a fret at each corner.
+  - **The emblem:** a worn red sun with a cream torii, Mount Fuji with its snow cap, and seigaiha waves either side and below. The board seams show through it.
+  - **The border:** a red lacquered beam on dark timber, gold studs along it, and a glowing paper lantern with a red blossom at each corner (the glow still breathes).
+  - **Blossom:** a cherry branch in the top-left and bottom-right corners, and fallen petals on the boards.
+  - **Beyond the walls:** tiled roofs above and below, and a mossy garden of rocks, maples and cherry trees. It carries on about 900 units past each side wall for wide screens, fading to dark at the far edges.
+- The picture file is gone. The painted-arena option stays in the code for any future arena, with nothing using it.
+
 ## 0.99.41
 
 - **Sakura Hall fills wide screens.** It uses your wider picture, and the whole of it is drawn underneath the arena, so the moss, rocks, maples and blossom carry on past the walls to the edges of a wide screen instead of stopping at a dark margin. The floor is lined up with the walls again (it's scaled a touch differently across and down, about 1%, so the picture isn't cropped). The corner lanterns' glow is moved to match.

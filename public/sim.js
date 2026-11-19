@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.41';
+const VERSION = '0.99.43';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -1307,7 +1307,7 @@ const TREE = {
   cloak:     { tree: 'assassin', trade: true, name: 'Cloak and Dagger', desc: 'Stealth lasts 9 seconds, but you have 5 less health.', req: ['stealth'] },
   quickfeet: { tree: 'assassin', name: 'Light Step', desc: '8% faster, and you take 15% less damage from behind.' },
   deathmark: { tree: 'assassin', cap: true, name: 'Death Mark', desc: 'Your first hit after stealth ends marks the target: they take 30% more damage from everyone for 5 seconds.' },
-  shadow:    { tree: 'shadow', base: true, name: 'Shadow Arrows', desc: 'Every hit adds a shade to the target (up to 10) and restarts a 3.5 second fuse. When the fuse runs out the shade bursts: lightly with one, hard with several (6, 13, 21, 30 and 40 damage up to 5, then 10 more for each one after, up to 90). Each of your shades on an enemy also makes you 4% faster (up to 20%). Keep hitting them to stack it up.' },
+  shadow:    { tree: 'shadow', base: true, name: 'Shadow Arrows', desc: 'Every hit adds a shade to the target (up to 10) and restarts a 3 second fuse. When the fuse runs out the shade bursts: lightly with one, hard with several (6, 13, 21, 30 and 40 damage up to 5, then 10 more for each one after, up to 90). Each of your shades on an enemy also makes you 4% faster (up to 20%). Keep hitting them to stack it up.' },
   eclipse:   { tree: 'shadow', active: { cd: 14 }, name: 'Eclipse', desc: 'Drop darkness on the spot under your cursor (up to 400px) for 4 seconds. Enemies inside are shrouded: they can only see 140px around themselves, and bots lose track of anyone further away.' },
   gloom:     { tree: 'shadow', name: 'Creeping Dark', desc: 'Each shade on an enemy slows them 6% (up to 30%), and the burst slows them by 50% for 2 seconds.' },
   siphon:    { tree: 'shadow', name: 'Soul Siphon', desc: 'Shade bursts heal you for 40% of the damage they deal.' },
@@ -3485,7 +3485,7 @@ function shroud(f, t, r) { f.shroudT = Math.max(f.shroudT || 0, t); f.shroudR = 
 // Shadow Arrows: every hit adds a stack (up to 5) and resets a 3 second fuse; when it runs out the shade bursts,
 // barely at one stack and hard at five
 const SHADOW_SPEED = { per: 0.04, max: 0.2 }; // Shadow: move this much faster per shade of yours on an enemy, up to max
-const SHADE = { t: 3.5, max: 10 }, SHADE_DMG = [0, 6, 13, 21, 30, 40, 50, 60, 70, 80, 90], shadeDmg = n => SHADE_DMG[Math.min(SHADE.max, Math.max(1, n))]; // (up to 10: past 5 every hit still adds 10 to the burst, so there's no point where you have to stop shooting to make it pay)
+const SHADE = { t: 3, max: 10 }, SHADE_DMG = [0, 6, 13, 21, 30, 40, 50, 60, 70, 80, 90], shadeDmg = n => SHADE_DMG[Math.min(SHADE.max, Math.max(1, n))]; // (up to 10: past 5 every hit still adds 10 to the burst, so there's no point where you have to stop shooting to make it pay)
 const DEEP_SHADE = 1.5, SIPHON = 0.4, NIGHTFALL_FADE = 1.5; // Deep Shade's burst multiplier; Soul Siphon's share of a burst that heals you // (0.83: a 3.5 s fuse, so a second hit lands in time more often)
 const BURN_DPS = 4, POISON_DPS = 1.2, BLOOD_HEAL = 0.35, BLOOD_PACT_HEAL = 0.65, STAGGER_KB = 1.25, STAGGER_DRAW = 0.5, VOID_DMG = 0.06; // the elements' base numbers (0.83 balance pass)
 // a shade of p's on q that bursts for enough to finish them (another hit would only restart its fuse)

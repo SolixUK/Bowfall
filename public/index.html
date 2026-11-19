@@ -2563,7 +2563,6 @@
         <div class="field"><label for="farmSpeed">Game speed</label><select id="farmSpeed"><option value="1">Normal</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option><option value="16">16× (fast-forward, no sound)</option></select></div>
         <div class="field"><label><input type="checkbox" id="farmKc"> Kill cams after games (at normal speed only, and not needed: the best moments are saved to the clip studio anyway)</label></div>
         <div class="field"><label><input type="checkbox" id="farmMaxq" checked> Maximum quality: sharp resolution, full effects and detail, never lowered to keep up</label></div>
-        <div class="field"><label><input type="checkbox" id="farmRec"> Record: a video file (60 frames a second, high bit rate, with sound) from start to stop</label></div>
       </section>
       <section class="mode">
         <h3>Variety (each game)</h3>
@@ -2590,7 +2589,7 @@
     </div>
   </div>
 </div>
-<div class="farmbar" id="farmBar" hidden><b>Clip farm</b><button type="button" class="ghost sm" id="fbPause" title="Pause or carry on (P)">❚❚ Pause</button><span class="fbspeed" id="fbSpeed"><button type="button" class="ghost sm" data-fsp="1">1×</button><button type="button" class="ghost sm" data-fsp="2">2×</button><button type="button" class="ghost sm" data-fsp="4">4×</button><button type="button" class="ghost sm" data-fsp="8">8×</button><button type="button" class="ghost sm" data-fsp="16">16×</button></span><button type="button" class="ghost sm" id="fbReel">Reel (0)</button><button type="button" class="ghost sm" id="fbTags">Names: on</button><button type="button" class="ghost sm" id="fbEmp">Empower: on</button><button type="button" class="ghost sm" id="fbRec">● Record</button><button type="button" class="ghost sm" id="fbCam">Camera: follow</button><button type="button" class="ghost sm" id="fbHud">HUD: on</button><button type="button" class="ghost sm" id="fbHunt" title="Run flat out without drawing the game, keeping only the very best clips (score 6+)">⚡ Hunt</button><button type="button" class="ghost sm" id="fbNew">New match</button><button type="button" class="ghost sm" id="fbExit">Back to setup</button><span class="status" id="fbInfo"></span></div>
+<div class="farmbar" id="farmBar" hidden><b>Clip farm</b><button type="button" class="ghost sm" id="fbPause" title="Pause or carry on (P)">❚❚ Pause</button><span class="fbspeed" id="fbSpeed"><button type="button" class="ghost sm" data-fsp="1">1×</button><button type="button" class="ghost sm" data-fsp="2">2×</button><button type="button" class="ghost sm" data-fsp="4">4×</button><button type="button" class="ghost sm" data-fsp="8">8×</button><button type="button" class="ghost sm" data-fsp="16">16×</button></span><button type="button" class="ghost sm" id="fbReel">Reel (0)</button><button type="button" class="ghost sm" id="fbTags">Names: on</button><button type="button" class="ghost sm" id="fbEmp">Empower: on</button><button type="button" class="ghost sm" id="fbCam">Camera: follow</button><button type="button" class="ghost sm" id="fbHud">HUD: on</button><button type="button" class="ghost sm" id="fbHunt" title="Run flat out without drawing the game, keeping only the very best clips (score 6+)">⚡ Hunt</button><button type="button" class="ghost sm" id="fbNew">New match</button><button type="button" class="ghost sm" id="fbExit">Back to setup</button><span class="status" id="fbInfo"></span></div>
 <div class="farmrev" id="farmRev" hidden>
   <div class="frvt"><b id="frvTitle"></b><span id="frvN"></span></div>
   <div class="frvl" id="frvLine"></div>
@@ -2728,7 +2727,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.99.41"></script>
+<script src="sim.js?v=0.99.43"></script>
 <script src="coop-data.js"></script>
 <script src="coop.js"></script>
 <script>
@@ -2738,7 +2737,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.99.41';
+const PAGE_VERSION = '0.99.43';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -10330,9 +10329,9 @@ THEMES.mire = Object.assign({}, THEMES.marsh, {
   boulder: '#4a5452', boulderLight: '#626e6b', moss: ['#355a4a', '#44705c'],
   wall: '#0e1c1e', wallMid: '#152a2c', wallLight: '#21403f', leaf: '#21403a', ambient: 'leaves', leafCols: ['#5e8f86', '#47736b', '#8fb7a8', '#3b5f58'],
 });
-// Sakura Hall: a painted arena. Its floor is a picture (ARENA_ART), so the theme only gives the colours for what's
-// drawn over it: the outer dark, the falling blossom
-THEMES.sakura = Object.assign({}, THEMES.dojo, { art: 'sakura', dojo: false, forest: '#14211d', ambient: 'leaves', leafCols: ['#f7c6d6', '#f1b0c8', '#fde3ec', '#ffffff'] });
+// Sakura Hall: drawn in code as flat shapes, like the archers (paintSakura). The theme only gives the colour beyond its
+// garden and the falling blossom
+THEMES.sakura = Object.assign({}, THEMES.dojo, { scene: 'sakura', dojo: false, forest: '#070908', ambient: 'leaves', leafCols: ['#f7c6d6', '#f1b0c8', '#fde3ec', '#ffffff'] });
 THEMES.spring = Object.assign({}, THEMES.meadow, {
   ground: '#57903f', patchA: 'rgba(130,190,95,0.24)', flowers: 40, fairy: false,
   leafCols: ['#f3d6e2', '#8fb44a', '#f4ecd2', '#b8c45a'],
@@ -10590,6 +10589,7 @@ function paintFloor(s) {
   g.lineCap = 'round'; g.lineJoin = 'round';
   // a painted arena: the picture is the floor, walls and all; only the props are drawn over it
   if (T.art && !PAINT_TILE) { paintArtFloor(g, R, T); return cvs; }
+  if (T.scene === 'sakura' && !PAINT_TILE) { paintSakura(g, true); return cvs; }
 
   // surroundings: forest canopy, or volcanic rock (a tile of a big map has none: it sits among other tiles)
   const ring = [];
@@ -11156,7 +11156,7 @@ let floorCv = null, floorScale = 0, floorKey = null;
 // ---- painted arenas: a picture for the floor. Where it sits: the picture's pixel (px, py) is at arena ((px - x) * sx + WALL,
 // (py - y) * sy + WALL), so its inner floor edge lines up with the inside of the walls. The picture can reach well past the
 // arena's own margin (its garden on a wide screen): drawArena lays the whole of it underneath
-const ARENA_ART = { sakura: { x: 566, y: 70, sx: 1.287, sy: 1.274 } }, ART_IMG = {};
+const ARENA_ART = {}, ART_IMG = {}; // (none at the moment: Sakura Hall is drawn in code now. A theme with `art: 'key'` and an entry here { x, y, sx, sy } uses public/arenas/key.webp)
 function artImg(k) {
   let a = ART_IMG[k];
   if (!a) { a = ART_IMG[k] = new Image(); a.onload = () => { floorKey = null; for (const t in thumbs) if (MAPS[t] && THEMES[MAPS[t].theme] && THEMES[MAPS[t].theme].art === k) delete thumbs[t]; }; a.src = (window.BOWFALL_ART && window.BOWFALL_ART[k]) || '/arenas/' + k + '.webp'; }
@@ -11207,10 +11207,214 @@ function paintArtProp(g, p, R) {
   g.fillStyle = '#a8a498'; g.beginPath(); g.arc(p.x - 1, p.y - 1, p.r * 0.26, 0, TAU); g.fill();
   g.fillStyle = 'rgba(255,255,255,0.18)'; g.beginPath(); g.arc(p.x - p.r * 0.4, p.y - p.r * 0.4, p.r * 0.3, 0, TAU); g.fill();
 }
+// ---- Sakura Hall, drawn in code: flat shapes and clean edges, to sit with the archers. A timber hall with a red lacquer
+// border, gold studs and corner lanterns; a worn red sun on the boards with a torii, Mount Fuji and seigaiha waves; cherry
+// branches in two corners; tiled roofs above and below; a mossy garden of rocks, maples and cherry trees all round, which
+// carries on well past the walls for wide screens (SAK.ex, SAK.ey: how far)
+const SAK = { ex: 900, ey: 170, cv: null, s: 0 };
+const SAK_PINK = ['#e88aa8', '#f4a9c4', '#f8c4d6', '#d8689a', '#f4a9c4'];
+function sakFlower(g, x, y, r, rot, col, core) {
+  g.fillStyle = col;
+  for (let k = 0; k < 5; k++) { const a = rot + k / 5 * TAU; g.beginPath(); g.ellipse(x + Math.cos(a) * r * 0.55, y + Math.sin(a) * r * 0.55, r * 0.52, r * 0.38, a, 0, TAU); g.fill(); }
+  g.fillStyle = core || '#c2456e'; g.beginPath(); g.arc(x, y, r * 0.24, 0, TAU); g.fill();
+}
+function sakBlob(g, x, y, r, R, n = 10, j = 0.3, sq = 1) {
+  const pts = []; for (let k = 0; k < n; k++) { const a = k / n * TAU, rr = r * (1 - j + R() * j * 2); pts.push([x + Math.cos(a) * rr, y + Math.sin(a) * rr * sq]); }
+  const m = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], st = m(pts[n - 1], pts[0]);
+  g.beginPath(); g.moveTo(st[0], st[1]);
+  for (let k = 0; k < n; k++) { const e = m(pts[k], pts[(k + 1) % n]); g.quadraticCurveTo(pts[k][0], pts[k][1], e[0], e[1]); }
+  g.closePath();
+}
+function sakLeaf(g, x, y, r, rot, col) {
+  g.fillStyle = col; g.beginPath(); g.moveTo(x + Math.cos(rot + Math.PI) * r * 0.2, y + Math.sin(rot + Math.PI) * r * 0.2);
+  for (let i = 0; i < 7; i++) { const a = rot + (i - 3) * 0.7, l = r * (1 - Math.abs(i - 3) * 0.15);
+    g.lineTo(x + Math.cos(a - 0.35) * r * 0.3, y + Math.sin(a - 0.35) * r * 0.3); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); }
+  g.lineTo(x + Math.cos(rot + 2.45) * r * 0.3, y + Math.sin(rot + 2.45) * r * 0.3); g.closePath(); g.fill();
+}
+function sakRock(g, x, y, r, R) {
+  const n = 7, a0 = R() * TAU, pts = [];
+  for (let k = 0; k < n; k++) { const a = a0 + k / n * TAU, rr = r * (0.8 + R() * 0.28); pts.push([x + Math.cos(a) * rr, y + Math.sin(a) * rr * 0.86]); }
+  const poly = (P, dx = 0, dy = 0) => { g.beginPath(); P.forEach((q, i) => (i ? g.lineTo(q[0] + dx, q[1] + dy) : g.moveTo(q[0] + dx, q[1] + dy))); g.closePath(); };
+  poly(pts, r * 0.16, r * 0.22); g.fillStyle = 'rgba(0,0,0,0.45)'; g.fill();
+  poly(pts); g.fillStyle = '#5d5149'; g.fill();
+  const fx = x - r * 0.14, fy = y - r * 0.18, top = pts.map(q => [fx + (q[0] - x) * 0.58, fy + (q[1] - y) * 0.58]);
+  g.save(); poly(pts); g.clip();
+  g.fillStyle = '#3f3631'; g.beginPath(); g.moveTo(x + r * 1.3, y - r * 0.5); g.lineTo(x + r * 1.3, y + r * 1.3); g.lineTo(x - r * 0.7, y + r * 1.3); g.closePath(); g.fill();
+  poly(top); g.fillStyle = '#85786c'; g.fill();
+  g.strokeStyle = 'rgba(38,30,26,0.55)'; g.lineWidth = 1.2; for (let k = 0; k < n; k += 2) { g.beginPath(); g.moveTo(top[k][0], top[k][1]); g.lineTo(pts[k][0], pts[k][1]); g.stroke(); }
+  if (R() < 0.6) { sakBlob(g, x - r * 0.35, y - r * 0.4, r * 0.38, R, 7, 0.3); g.fillStyle = '#48632a'; g.fill(); }
+  g.restore();
+  poly(pts); g.strokeStyle = '#231d19'; g.lineWidth = 2; g.stroke();
+}
+function sakBush(g, x, y, r, R) {
+  sakBlob(g, x + 4, y + 6, r * 1.05, R, 9, 0.25); g.fillStyle = 'rgba(0,0,0,0.35)'; g.fill();
+  sakBlob(g, x, y, r, R, 9, 0.25); g.fillStyle = '#1d3413'; g.fill();
+  const cols = ['#2f5a1c', '#3f6e22', '#57902c', '#6aa634', '#3f6e22'], n = Math.round(6 + r * 0.35);
+  for (let k = 0; k < n; k++) { const a = R() * TAU, d = Math.sqrt(R()) * r * 0.85; sakLeaf(g, x + Math.cos(a) * d, y + Math.sin(a) * d, 9 + R() * 8, R() * TAU, cols[Math.floor(R() * cols.length)]); }
+}
+function sakCanopy(g, x, y, r, R) {
+  sakBlob(g, x + 5, y + 8, r * 1.05, R, 11, 0.22); g.fillStyle = 'rgba(0,0,0,0.3)'; g.fill();
+  sakBlob(g, x, y, r, R, 11, 0.22); g.fillStyle = '#7a3458'; g.fill();
+  sakBlob(g, x - r * 0.08, y - r * 0.1, r * 0.8, R, 10, 0.25); g.fillStyle = '#a84c76'; g.fill();
+  const n = Math.round(r * r / 75);
+  for (let k = 0; k < n; k++) { const a = R() * TAU, d = Math.sqrt(R()) * r * 0.95; sakFlower(g, x + Math.cos(a) * d, y + Math.sin(a) * d, 5.5 + R() * 3.5, R() * TAU, SAK_PINK[Math.floor(R() * SAK_PINK.length)]); }
+}
+function sakRoof(g, x, y, w, h, eaveAtBottom) {
+  g.fillStyle = '#34333c'; g.fillRect(x, y, w, h);
+  g.fillStyle = '#25242b'; for (let yy = y + 6; yy < y + h; yy += 13) g.fillRect(x, yy, w, 2.5);
+  for (let xx = x + 5; xx < x + w - 4; xx += 15) { g.fillStyle = '#4b4a56'; g.fillRect(xx, y, 6, h); g.fillStyle = '#25242b'; g.fillRect(xx + 6, y, 1.6, h); g.fillStyle = '#5c5b68'; g.fillRect(xx, y, 1.6, h); }
+  const ey = eaveAtBottom ? y + h : y;
+  g.fillStyle = '#1b1a20'; g.fillRect(x, ey - 3, w, 6);
+  for (let xx = x + 8; xx < x + w - 4; xx += 15) { g.fillStyle = '#5c5b68'; g.beginPath(); g.arc(xx, ey, 5, 0, TAU); g.fill(); g.strokeStyle = '#1b1a20'; g.lineWidth = 1.5; g.stroke(); g.fillStyle = '#34333c'; g.beginPath(); g.arc(xx, ey, 2, 0, TAU); g.fill(); }
+  g.strokeStyle = '#15141a'; g.lineWidth = 2; g.strokeRect(x, y, w, h);
+}
+// the garden beyond the walls: the same every time (its own seed), whichever canvas it's painted to
+function sakGarden(g) {
+  const R = mulberry(8128), X0 = -SAK.ex, X1 = AW + SAK.ex, Y0 = -SAK.ey, Y1 = AH + SAK.ey;
+  g.fillStyle = '#10150e'; g.fillRect(X0, Y0, X1 - X0, Y1 - Y0);
+  const side = () => { // a spot beyond the walls: mostly out to the sides, some above and below
+    for (;;) { const x = X0 + R() * (X1 - X0), y = Y0 + R() * (Y1 - Y0); if (x < -6 || x > AW + 6 || y < -6 || y > AH + 6) return [x, y]; } };
+  const mossC = ['#18210f', '#1f2b13', '#283817', '#1f2b13'];
+  for (let i = 0; i < 260; i++) { const [x, y] = side(); sakBlob(g, x, y, 30 + R() * 70, R, 9, 0.3, 0.8); g.fillStyle = mossC[Math.floor(R() * mossC.length)]; g.fill(); }
+  for (let i = 0; i < 500; i++) { const [x, y] = side(); g.fillStyle = R() < 0.5 ? '#33451d' : '#0b0f09'; g.beginPath(); g.arc(x, y, 1.5 + R() * 2.5, 0, TAU); g.fill(); }
+  // rocks, maples and fallen petals, scattered; kept clear of the roofs
+  const roofs = [[AW * 0.31, Y0, AW * 0.38, SAK.ey], [AW * 0.19, AH, AW * 0.62, SAK.ey]], onRoof = (x, y, m) => roofs.some(q => x > q[0] - m && x < q[0] + q[2] + m && y > q[1] - m && y < q[1] + q[3] + m);
+  const items = [];
+  for (let i = 0; i < 46; i++) { const [x, y] = side(), r = 20 + R() * 34; if (!onRoof(x, y, r)) items.push([y, 'r', x, y, r]); }
+  for (let i = 0; i < 110; i++) { const [x, y] = side(), r = 24 + R() * 26; if (!onRoof(x, y, r)) items.push([y, 'b', x, y, r]); }
+  // (maples right along the outside of the side walls, as in the picture)
+  for (const x of [-34, AW + 34]) for (let y = 60; y < AH - 40; y += 70 + R() * 50) items.push([y, R() < 0.3 ? 'r' : 'b', x + (R() - 0.5) * 20, y, 22 + R() * 14]);
+  items.sort((a, b) => a[0] - b[0]);
+  for (const [, k, x, y, r] of items) { if (k === 'r') sakRock(g, x, y, r, R); else sakBush(g, x, y, r, R); }
+  for (let i = 0; i < 260; i++) { const [x, y] = side(); if (onRoof(x, y, 4)) continue; if (R() < 0.35) sakFlower(g, x, y, 4 + R() * 2, R() * TAU, SAK_PINK[Math.floor(R() * 5)]); else { g.fillStyle = SAK_PINK[Math.floor(R() * 5)]; g.beginPath(); g.ellipse(x, y, 3.2, 1.8, R() * TAU, 0, TAU); g.fill(); } }
+  for (const q of roofs) sakRoof(g, q[0], q[1], q[2], q[3], q[1] < 0);
+  return R;
+}
+// the cherry trees over the corners (painted after the hall: they overhang its lanterns a little), more of them further
+// out, and the dark closing in at the far edges
+function sakTrees(g, R) {
+  for (const [x, y, r] of [[-52, -58, 88], [AW + 52, -58, 88], [-52, AH + 58, 88], [AW + 52, AH + 58, 88], [-150, -120, 70], [AW + 150, -120, 70], [-150, AH + 120, 70], [AW + 150, AH + 120, 70],
+    [-330, -110, 80], [AW + 330, AH + 110, 80], [-560, AH + 90, 90], [AW + 560, -90, 90], [-700, 200, 70], [AW + 700, AH - 200, 70], [AW * 0.12, -130, 60], [AW * 0.88, AH + 130, 60]]) sakCanopy(g, x, y, r, R);
+  for (const [x0, x1] of [[-SAK.ex, -SAK.ex * 0.35], [AW + SAK.ex, AW + SAK.ex * 0.35]]) { const v = g.createLinearGradient(x0, 0, x1, 0); v.addColorStop(0, 'rgba(7,9,8,1)'); v.addColorStop(1, 'rgba(7,9,8,0)'); g.fillStyle = v; g.fillRect(Math.min(x0, x1), -SAK.ey, Math.abs(x1 - x0), AH + SAK.ey * 2); }
+}
+function sakSeigaiha(g, x, y, w, h, rr, stroke, fill) {
+  g.save(); g.beginPath(); g.rect(x, y - rr, w, h + rr); g.clip(); g.lineWidth = 2;
+  for (let row = 0, yy = y + rr; yy < y + h + rr * 2; yy += rr * 0.5, row++) for (let xx = x - (row % 2) * rr; xx < x + w + rr; xx += rr * 2) {
+    g.fillStyle = fill; g.beginPath(); g.arc(xx, yy, rr, 0, TAU); g.fill();
+    g.strokeStyle = stroke; for (const q of [1, 0.66, 0.33]) { g.beginPath(); g.arc(xx, yy, rr * q, Math.PI, TAU); g.stroke(); }
+  }
+  g.restore();
+}
+// the emblem inlaid in the boards: a red sun; a torii; Fuji with its snow; waves
+function sakEmblem(g, cx, cy, r) {
+  const RED = '#6d2b27', CREAM = '#cdb79c', BASE = '#493a35';
+  g.save(); g.translate(cx, cy); g.beginPath(); g.arc(0, 0, r, 0, TAU); g.clip(); g.scale(r / 120, r / 120);
+  g.fillStyle = RED; g.fillRect(-125, -125, 250, 250);
+  sakSeigaiha(g, -125, 8, 250, 50, 19, 'rgba(205,183,156,0.55)', RED);
+  g.fillStyle = CREAM;
+  for (const sx of [-1, 1]) { g.beginPath(); g.moveTo(sx * 44 - 6, -58); g.lineTo(sx * 44 + 6, -58); g.lineTo(sx * 50 + 7, 56); g.lineTo(sx * 50 - 7, 56); g.closePath(); g.fill(); }
+  g.fillRect(-70, -38, 140, 10); g.fillRect(-6, -60, 12, 24);
+  g.fillStyle = '#b8a288'; g.beginPath(); g.moveTo(-80, -64); g.quadraticCurveTo(0, -55, 80, -64); g.lineTo(76, -55); g.quadraticCurveTo(0, -47, -76, -55); g.closePath(); g.fill();
+  g.fillStyle = CREAM; g.beginPath(); g.moveTo(-96, -84); g.quadraticCurveTo(0, -64, 96, -84); g.lineTo(87, -66); g.quadraticCurveTo(0, -54, -87, -66); g.closePath(); g.fill();
+  g.fillStyle = '#7b6a5f'; g.beginPath(); g.moveTo(-84, 56); g.lineTo(-22, -4); g.quadraticCurveTo(0, -12, 22, -4); g.lineTo(84, 56); g.closePath(); g.fill();
+  g.fillStyle = '#e6dccb'; g.beginPath(); g.moveTo(-22, -4); g.quadraticCurveTo(0, -12, 22, -4);
+  for (const [x, y] of [[36, 10], [25, 6], [17, 17], [9, 8], [0, 19], [-9, 8], [-17, 17], [-25, 6], [-36, 10]]) g.lineTo(x, y);
+  g.closePath(); g.fill();
+  g.fillStyle = BASE; g.fillRect(-125, 54, 250, 80);
+  sakSeigaiha(g, -125, 58, 250, 70, 19, 'rgba(205,183,156,0.8)', BASE);
+  g.restore();
+}
+// a cherry branch: a limb that forks and forks again, blossom and bud along it
+function sakBranch(g, R, x, y, ang, len) {
+  const tips = [];
+  const seg = (x0, y0, a, l, w, d) => {
+    const x1 = x0 + Math.cos(a) * l, y1 = y0 + Math.sin(a) * l, b = (R() - 0.5) * l * 0.3, mx = (x0 + x1) / 2 - Math.sin(a) * b, my = (y0 + y1) / 2 + Math.cos(a) * b;
+    g.strokeStyle = '#33221a'; g.lineWidth = w; g.lineCap = 'round'; g.beginPath(); g.moveTo(x0, y0); g.quadraticCurveTo(mx, my, x1, y1); g.stroke();
+    tips.push([mx, my, d], [x1, y1, d]);
+    if (d > 0) { seg(x1, y1, a + 0.3 + R() * 0.45, l * 0.68, w * 0.62, d - 1); seg(x1, y1, a - 0.3 - R() * 0.45, l * 0.6, w * 0.62, d - 1); if (R() < 0.7) seg(mx, my, a + (R() < 0.5 ? 1 : -1) * (0.7 + R() * 0.4), l * 0.45, w * 0.5, d - 1); }
+  };
+  seg(x, y, ang, len, 5.5, 3);
+  for (const [tx, ty, d] of tips) { if (d > 2) continue; const n = d === 0 ? 2 + Math.floor(R() * 2) : R() < 0.6 ? 1 : 0;
+    for (let k = 0; k < n; k++) sakFlower(g, tx + (R() - 0.5) * 16, ty + (R() - 0.5) * 16, 5.5 + R() * 2.5, R() * TAU, SAK_PINK[Math.floor(R() * 5)]);
+    if (R() < 0.5) { g.fillStyle = '#d8689a'; g.beginPath(); g.arc(tx + (R() - 0.5) * 26, ty + (R() - 0.5) * 26, 2.6, 0, TAU); g.fill(); } }
+}
+function sakStud(g, x, y, r) {
+  g.fillStyle = 'rgba(0,0,0,0.35)'; g.beginPath(); g.arc(x + 1.5, y + 2.5, r + 1, 0, TAU); g.fill();
+  g.fillStyle = '#b8862e'; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); g.strokeStyle = '#3a2408'; g.lineWidth = 1.6; g.stroke();
+  for (let k = 0; k < 6; k++) { const a = k / 6 * TAU; g.fillStyle = '#e2bb5a'; g.beginPath(); g.arc(x + Math.cos(a) * r * 0.55, y + Math.sin(a) * r * 0.55, r * 0.27, 0, TAU); g.fill(); }
+  g.fillStyle = '#f4dc8c'; g.beginPath(); g.arc(x, y, r * 0.26, 0, TAU); g.fill();
+}
+function sakLantern(g, x, y, sz) {
+  const gl = g.createRadialGradient(x, y, sz * 0.3, x, y, sz * 1.9); gl.addColorStop(0, 'rgba(255,170,90,0.45)'); gl.addColorStop(1, 'rgba(255,150,70,0)'); g.fillStyle = gl; g.beginPath(); g.arc(x, y, sz * 1.9, 0, TAU); g.fill();
+  g.fillStyle = '#3a1c10'; g.fillRect(x - sz / 2, y - sz / 2, sz, sz);
+  g.fillStyle = '#f3a468'; g.fillRect(x - sz / 2 + 3.5, y - sz / 2 + 3.5, sz - 7, sz - 7);
+  g.fillStyle = '#ffe2b4'; g.fillRect(x - sz / 2 + 7, y - sz / 2 + 7, sz - 14, sz - 14);
+  sakFlower(g, x, y, sz * 0.25, -Math.PI / 2, '#d8432e', '#ffd9a0');
+  g.strokeStyle = '#1e0e08'; g.lineWidth = 2; g.strokeRect(x - sz / 2, y - sz / 2, sz, sz);
+}
+function sakHall(g) {
+  const R = mulberry(4711), x0 = WALL, y0 = WALL, x1 = AW - WALL, y1 = AH - WALL, RH = 26;
+  // the boards: long planks in rows, each its own shade of the same dark wood
+  const PL = ['#5a4435', '#604939', '#654d3c', '#6a513f', '#5d4637', '#624b3a'], rows = [];
+  g.save(); g.beginPath(); g.rect(x0, y0, x1 - x0, y1 - y0); g.clip();
+  for (let y = y0; y < y1; y += RH) { const joints = []; let x = x0 - R() * 200;
+    while (x < x1) { const w = 300 + R() * 420; g.fillStyle = PL[Math.floor(R() * PL.length)]; g.fillRect(x, y, w + 1, RH + 1); x += w; if (x < x1) joints.push(x); }
+    rows.push([y, joints]); }
+  g.globalAlpha = 0.93; sakEmblem(g, AW / 2, AH / 2, 122); g.globalAlpha = 1;
+  // the grain, the seams between boards (showing through the worn paint of the emblem) and the nails
+  for (const [y, joints] of rows) {
+    for (let k = 0; k < 7; k++) { const gx = x0 + R() * (x1 - x0), gw = 40 + R() * 160; g.fillStyle = R() < 0.5 ? 'rgba(30,18,10,0.10)' : 'rgba(255,225,190,0.045)'; g.fillRect(gx, y + 4 + R() * (RH - 8), gw, 1.4); }
+    g.fillStyle = 'rgba(38,24,16,0.62)'; g.fillRect(x0, y - 1, x1 - x0, 2);
+    for (const jx of joints) { g.fillStyle = 'rgba(38,24,16,0.62)'; g.fillRect(jx - 1, y, 2, RH); g.fillStyle = 'rgba(24,14,8,0.7)'; for (const [dx, dy] of [[-6, 6], [-6, RH - 6], [6, 6], [6, RH - 6]]) { g.beginPath(); g.arc(jx + dx, y + dy, 1.1, 0, TAU); g.fill(); } }
+  }
+  // the thin red line round the floor, with a fret at each corner
+  const d = 30, c = 16, fx0 = x0 + d, fy0 = y0 + d, fx1 = x1 - d, fy1 = y1 - d;
+  g.strokeStyle = 'rgba(122,36,30,0.8)'; g.lineWidth = 2.6; g.lineJoin = 'miter'; g.strokeRect(fx0, fy0, fx1 - fx0, fy1 - fy0);
+  for (const [cx, cy, sx, sy] of [[fx0, fy0, -1, -1], [fx1, fy0, 1, -1], [fx0, fy1, -1, 1], [fx1, fy1, 1, 1]]) { g.strokeRect(Math.min(cx, cx + sx * c), Math.min(cy, cy + sy * c), c, c); g.beginPath(); g.moveTo(cx - sx * c, cy + sy * c * 0.5); g.lineTo(cx + sx * c * 0.5, cy + sy * c * 0.5); g.lineTo(cx + sx * c * 0.5, cy - sy * c); g.stroke(); }
+  // fallen petals, and the two cherry branches (top left, and its mirror bottom right)
+  for (let i = 0; i < 26; i++) { const x = x0 + 40 + R() * (x1 - x0 - 80), y = y0 + 40 + R() * (y1 - y0 - 80); if (Math.hypot(x - AW / 2, y - AH / 2) < 140) continue; if (R() < 0.6) sakFlower(g, x, y, 4 + R() * 1.8, R() * TAU, SAK_PINK[Math.floor(R() * 5)]); else { g.fillStyle = SAK_PINK[Math.floor(R() * 5)]; g.beginPath(); g.ellipse(x, y, 3.4, 1.9, R() * TAU, 0, TAU); g.fill(); } }
+  sakBranch(g, R, x0 + 4, y0 + 150, -0.55, 64);
+  g.save(); g.translate(AW, AH); g.rotate(Math.PI); sakBranch(g, R, x0 + 4, y0 + 150, -0.55, 64); g.restore();
+  // the walls' shadow on the boards
+  for (const [w, a] of [[7, 0.3], [15, 0.14]]) { g.fillStyle = `rgba(14,8,4,${a})`; g.fillRect(x0, y0, x1 - x0, w); g.fillRect(x0, y0, w, y1 - y0); }
+  g.restore();
+  for (const b of (MAPS[MAPKEY] && MAPS[MAPKEY].blocks) || []) paintArtWall(g, b);
+  // the border: dark timber, a red lacquered beam along it, gold studs, a paper lantern at each corner
+  g.fillStyle = '#170e0a'; g.fillRect(0, 0, AW, WALL); g.fillRect(0, AH - WALL, AW, WALL); g.fillRect(0, 0, WALL, AH); g.fillRect(AW - WALL, 0, WALL, AH);
+  g.lineJoin = 'miter';
+  g.strokeStyle = '#a2382b'; g.lineWidth = 14; g.strokeRect(14, 14, AW - 28, AH - 28);
+  g.strokeStyle = '#c85440'; g.lineWidth = 2.4; g.strokeRect(9.5, 9.5, AW - 19, AH - 19);
+  g.strokeStyle = '#74221c'; g.lineWidth = 3; g.strokeRect(19.5, 19.5, AW - 39, AH - 39);
+  g.strokeStyle = '#1e0c08'; g.lineWidth = 1.6; g.strokeRect(7, 7, AW - 14, AH - 14); g.strokeRect(21, 21, AW - 42, AH - 42);
+  for (const f of [0.18, 0.32, 0.5, 0.68, 0.82]) { sakStud(g, AW * f, 14, 10.5); sakStud(g, AW * f, AH - 14, 10.5); }
+  for (const f of [0.3, 0.5, 0.7]) { sakStud(g, 14, AH * f, 10.5); sakStud(g, AW - 14, AH * f, 10.5); }
+  for (const [x, y] of [[16, 16], [AW - 16, 16], [16, AH - 16], [AW - 16, AH - 16]]) sakLantern(g, x, y, 38);
+}
+function paintSakura(g, hall) {
+  g.fillStyle = '#070908'; g.fillRect(-MARGIN, -MARGIN, AW + MARGIN * 2, AH + MARGIN * 2);
+  const R = sakGarden(g);
+  if (hall) sakHall(g);
+  sakTrees(g, R);
+}
+// the wide garden, painted once (and again if the screen's scale changes): everything out to SAK.ex and SAK.ey
+function sakuraSurround() {
+  const s = Math.min(1.5, floorScale || 1);
+  if (SAK.cv && SAK.s === s && SAK.key === MAPKEY) return SAK.cv;
+  const cv = document.createElement('canvas'); cv.width = Math.ceil((AW + SAK.ex * 2) * s); cv.height = Math.ceil((AH + SAK.ey * 2) * s);
+  const g = cv.getContext('2d'); g.scale(s, s); g.translate(SAK.ex, SAK.ey); g.lineCap = 'round'; g.lineJoin = 'round';
+  paintSakura(g, false);
+  SAK.cv = cv; SAK.s = s; SAK.key = MAPKEY; return cv;
+}
+// live: the corner lanterns' glow breathing
+function sakuraLive(c) {
+  if (!fullDetail()) return;
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (const [x, y] of [[16, 16], [AW - 16, 16], [16, AH - 16], [AW - 16, AH - 16]]) { const f = 0.75 + 0.25 * Math.sin(c * 2.6 + x) * Math.sin(c * 6.9 + y), g2 = ctx.createRadialGradient(x, y, 4, x, y, 80); g2.addColorStop(0, `rgba(255,160,80,${0.16 * f})`); g2.addColorStop(1, 'rgba(255,140,60,0)'); ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(x, y, 80, 0, TAU); ctx.fill(); }
+  ctx.restore();
+}
 // ---- the painted arenas, live: the moat's water moving and shimmering, koi swimming in it, the lanterns flickering
 // (where things are in the picture: Sakura Hall's moat runs down each side beyond the red walls)
 const ART_LIFE = {
-  sakura: { moats: [], lanterns: [[566, 83], [1600, 83], [566, 650], [1600, 650]], koi: 0 },
 };
 let artKoi = null, artKoiKey = null, artLast = null;
 function drawArtLife(c) {
@@ -11656,6 +11860,8 @@ function mechFx(e) {
 }
 function drawArena() {
   buildFloor();
+  // Sakura Hall's garden carries on past the floor's own margin, for wide screens: painted once, laid underneath
+  if (THEME.scene === 'sakura' && !bigMap()) { const sv = sakuraSurround(); ctx.drawImage(sv, -SAK.ex, -SAK.ey, AW + SAK.ex * 2, AH + SAK.ey * 2); }
   // a painted arena's picture reaches past the margin (its garden, for wide screens): the whole of it goes underneath first
   if (THEME.art && !bigMap()) { const A = ARENA_ART[THEME.art], im = artImg(THEME.art); if (A && im) ctx.drawImage(im, WALL - A.x * A.sx, WALL - A.y * A.sy, im.naturalWidth * A.sx, im.naturalHeight * A.sy); }
   ctx.drawImage(floorCv, -MARGIN, -MARGIN, AW + MARGIN * 2, AH + MARGIN * 2);
@@ -11683,6 +11889,7 @@ function drawArena() {
   drawMapMech(ctx, mechDrawT, false);
   if (THEME.night) drawNightLights(c);
   if (THEME.art) drawArtLife(c);
+  if (THEME.scene === 'sakura') sakuraLive(c);
   ctx.save(); ctx.beginPath(); ctx.rect(WALL, WALL, AW - WALL * 2, AH - WALL * 2); ctx.clip();
   const dress = fullDetail();
   if (!THEME.night && dress) for (const cl of clouds) ctx.drawImage(cloudSprite(), cl.x - cl.r, cl.y - cl.r * 0.7, cl.r * 2, cl.r * 1.4);
@@ -15246,7 +15453,7 @@ $('farmScr').addEventListener('change', e => {
 });
 $('farmGo').onclick = () => {
   if (!FARM.team.red.length || !FARM.team.blue.length) { notice('Put someone on each side.', false); return; }
-  FARM.cfg = { roles: [...$('farmRoles').querySelectorAll('[data-fpick]')].filter(c => c.checked).map(c => c.dataset.fpick), els: [...$('farmEls').querySelectorAll('[data-fpick]')].filter(c => c.checked).map(c => c.dataset.fpick), look: [...$('farmLook').querySelectorAll('[data-flook]')].filter(c => c.checked).map(c => c.dataset.flook), map: $('farmMap').value, maps: [...$('farmMaps').querySelectorAll('[data-fmap]')].filter(c => c.checked).map(c => c.dataset.fmap), pts: +$('farmPts').value, rndWho: $('farmRndWho').value, rndMains: !$('farmRndLo').checked, rndLo: $('farmRndLo').checked, rndSize: $('farmRndSize').checked, every: $('farmEvery').checked, rndUps: $('farmRndUps').checked, effect: $('farmEffect').value || 'none', keep: $('farmKeep').value, basis: $('farmBasis').value, red: FARM.team.red.map(x => Object.assign({}, x)), blue: FARM.team.blue.map(x => Object.assign({}, x)), kc: $('farmKc').checked, rec: $('farmRec').checked };
+  FARM.cfg = { roles: [...$('farmRoles').querySelectorAll('[data-fpick]')].filter(c => c.checked).map(c => c.dataset.fpick), els: [...$('farmEls').querySelectorAll('[data-fpick]')].filter(c => c.checked).map(c => c.dataset.fpick), look: [...$('farmLook').querySelectorAll('[data-flook]')].filter(c => c.checked).map(c => c.dataset.flook), map: $('farmMap').value, maps: [...$('farmMaps').querySelectorAll('[data-fmap]')].filter(c => c.checked).map(c => c.dataset.fmap), pts: +$('farmPts').value, rndWho: $('farmRndWho').value, rndMains: !$('farmRndLo').checked, rndLo: $('farmRndLo').checked, rndSize: $('farmRndSize').checked, every: $('farmEvery').checked, rndUps: $('farmRndUps').checked, effect: $('farmEffect').value || 'none', keep: $('farmKeep').value, basis: $('farmBasis').value, red: FARM.team.red.map(x => Object.assign({}, x)), blue: FARM.team.blue.map(x => Object.assign({}, x)), kc: $('farmKc').checked };
   if (FARM.camMode == null) { FARM.follow = true; FARM.camMode = 'follow'; } // (the live camera: smooth follow; the bar's Camera button changes it) FARM.hud = $('farmHud').value === '1'; FARM.maxq = $('farmMaxq').checked; FARM.loop = $('farmLoop').checked;
   FARM.tags = $('farmTags').value; FARM.emp = $('farmEmp').value; FARM.speed = +$('farmSpeed').value || 1; FARM.review = false; FARM.hunt = $('farmHunt').checked; FARM.huntN = 400; FARM.runN = 0; FARM.fullStopped = false; FARM.found = 0; FARM.battles = 0;
   $('farmScr').hidden = true; if (document.activeElement) document.activeElement.blur(); farmStart();
@@ -15314,7 +15521,6 @@ function farmStart() {
   farmBarSync();
   document.body.classList.add('farm'); document.body.classList.toggle('farmnohud', !FARM.hud); farmBarShow(true);
   setScreens(); resize();
-  if (C.rec && !FARM.rec) farmRecStart();
   $('fbCam').textContent = `Camera: ${FARM.follow ? (FARM.camMode === 'tight' ? 'tight' : 'smooth') : 'arena'}`; $('fbHud').textContent = `HUD: ${FARM.hud ? 'on' : 'off'}`;
 }
 // ---- the farm's game clock, and its frames and events for the replays (every step, so fast-forwarding loses nothing)
@@ -16488,11 +16694,10 @@ async function farmRecStart() {
       if (writer) { q.then(() => writer.close()).catch(() => {}); return; }
       const b = new Blob(chunks, { type: type.split(';')[0] }); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 10000);
     };
-    rec.start(1000); FARM.rec = rec; FARM.recAt = performance.now(); $('farmBar').classList.add('rec'); $('fbRec').textContent = '■ Stop recording';
+    rec.start(1000); FARM.rec = rec; FARM.recAt = performance.now(); $('farmBar').classList.add('rec');
   } catch (e) { FARM.rec = null; notice('Recording is not available in this browser.', false); }
 }
-function farmRecStop() { try { if (FARM.rec && FARM.rec.state !== 'inactive') FARM.rec.stop(); } catch (e) {} FARM.rec = null; $('farmBar').classList.remove('rec'); $('fbRec').textContent = '● Record'; $('fbInfo').textContent = ''; }
-$('fbRec').onclick = () => (FARM.rec ? farmRecStop() : farmRecStart());
+function farmRecStop() { try { if (FARM.rec && FARM.rec.state !== 'inactive') FARM.rec.stop(); } catch (e) {} FARM.rec = null; $('farmBar').classList.remove('rec'); $('fbInfo').textContent = ''; }
 $('fbCam').onclick = () => { const order = ['follow', 'tight', 'arena'], cur = FARM.follow ? FARM.camMode || 'follow' : 'arena', nx = order[(order.indexOf(cur) + 1) % 3]; FARM.follow = nx !== 'arena'; FARM.camMode = nx; FARM.cam = null; FARM.sb = null; $('fbCam').textContent = `Camera: ${FARM.follow ? (nx === 'tight' ? 'tight' : 'smooth') : 'arena'}`; };
 $('fbHud').onclick = () => { FARM.hud = !FARM.hud; document.body.classList.toggle('farmnohud', !FARM.hud); $('fbHud').textContent = `HUD: ${FARM.hud ? 'on' : 'off'}`; resize(); };
 $('fbNew').onclick = () => { if (RP.on) endReplay(); $('resultsScreen').hidden = true; farmStart(); };
