@@ -1,6 +1,6 @@
 {
   "name": "bowfall-pvp",
-  "version": "0.99.45",
+  "version": "0.99.46",
   "private": true,
   "description": "Bowfall: top-down knockback archery PvP with bots.",
   "main": "server.js",

@@ -991,6 +991,23 @@ async function api(req, res, url) {
     return json(res, 200, { drills: out });
   }
   // an arcade run played on the player's own device: the score goes on their account (online runs record themselves)
+  // an arcade battle played on the player's own device (signed in): checked, then kept with the others
+  if (route === '/arcade/battle' && method === 'POST') {
+    if (!me) return json(res, 401, { error: 'Sign in first.' });
+    const b = body.rec || {}, duo = coop.DUOS.find(d => d.id === String(b.duo));
+    if (!duo || !Array.isArray(b.p) || !b.p.length || b.p.length > 2) return json(res, 400, { error: 'Bad battle.' });
+    const n = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.round(+v || 0)));
+    const rec = { at: Date.now(), v: String(b.v || '').slice(0, 12), lv: n(b.lv, 1, 10), duo: duo.id, pos: n(b.pos, 0, 30), of: n(b.of, 0, 30), solo: b.p.length === 1 ? 1 : 0, hcap: n(b.hcap, 0, 300), retry: ['unl', 'lim', 'none'].includes(b.retry) ? b.retry : 'lim', test: b.test ? 1 : 0, flat: b.flat ? 1 : 0,
+      won: b.won ? 1 : 0, gw: [n((b.gw || [])[0], 0, 9), n((b.gw || [])[1], 0, 9)], secs: n(b.secs, 0, 3600),
+      p: b.p.map((p, i) => ({ n: i === 0 ? me.name : String(p.n || 'P' + (i + 1)).slice(0, 20), uid: i === 0 ? me.id : undefined, el: Sim.ELEMENTS && Sim.ELEMENTS[p.el] ? p.el : null, ro: Sim.ROLES && Sim.ROLES[p.ro] ? p.ro : null, ups: (Array.isArray(p.ups) ? p.ups : []).map(String).filter(id => Sim.TREE[id]).slice(0, 8), k: n(p.k, 0, 99), dmg: n(p.dmg, 0, 99999), tk: n(p.tk, 0, 99999), sh: n(p.sh, 0, 9999), hi: n(p.hi, 0, 9999) })) };
+    arcadeRec(rec, 'device');
+    return json(res, 200, { ok: true });
+  }
+  // the arcade's battles, for the owner's balance view
+  if (route === '/arcade/log' && method === 'GET') {
+    if (!me || !me.admin) return json(res, 403, { error: 'Only the game owner can see this.' });
+    return json(res, 200, { battles: await store.arcadeAll() });
+  }
   if (route === '/coop/score' && method === 'POST') {
     if (!me) return json(res, 401, { error: 'Sign in to keep arcade scores.' });
     const D = coop.DIFFS[Math.round(+body.diff)], n = coop.DUOS.length, sc = Math.round(+body.score), far = Math.round(+body.beaten);
@@ -1535,7 +1552,9 @@ function serveFlag(cc, res) {
   if (!have) FLAGS.set(cc, job);
   job.then(send);
 }
-const coop = require('./lib/coop')({ Sim, send, sendRoom, sysChat, broadcast, markDirty, isOwner }); // the arcade
+// an arcade battle, kept for the owner's balance view (online runs here; runs on a player's device post theirs to /api/arcade/battle)
+function arcadeRec(rec, src) { const r = Object.assign({}, rec, { src }); store.arcadeAdd(r).catch(e => console.error('arcade log:', e.message)); }
+const coop = require('./lib/coop')({ Sim, send, sendRoom, sysChat, broadcast, markDirty, isOwner, battle: (room, rec) => arcadeRec(rec, 'online') }); // the arcade
 const COOP_DATA_JS = 'window.BOWFALL_DUOS = ' + JSON.stringify({ roster: require('./lib/coop').ROSTER, fit: require('./lib/coop').FIT }).replace(/</g, '\\u003c') + ';';
 const social = require('./lib/social')({ season: () => SEASON.info(), rejoinFor: ws => { const r = awayRoomOf(ws); return r ? { code: r.code, mode: r.ranked.mode } : null; }, lookOf, seedRating: (u, h) => { if (seedRating(u, h)) markDirty(u); }, rankedMaps: () => rankedMaps(), statusOf: u => E.statusOf(u), store, track, markDirty, send, Sim, levelOf, flagOf, ELO_START, ratingOf, keyFor, rooms, createRoom, sendRoom, sysChat, broadcast, live, loadGuest });
 

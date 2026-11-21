@@ -2699,6 +2699,13 @@
       <div class="field"><label for="balRules">Rules</label><select id="balRules"><option value="std">Standard rules only</option><option value="all">Any rules</option></select></div>
       <div class="field"><label for="balSize">Team size</label><select id="balSize"><option value="all">Any</option><option value="1">1v1</option><option value="2">2v2</option><option value="3">3v3</option><option value="4">4v4</option></select></div>
     </div>
+    <div class="bal-filters" id="balArc" hidden>
+      <div class="field"><label for="arcWho">Players</label><select id="arcWho"><option value="me">Just me</option><option value="all">Everyone</option></select></div>
+      <div class="field"><label for="arcLv">Difficulty</label><select id="arcLv"><option value="all">All levels</option><option value="e">Easy (1–3)</option><option value="n">Normal (4–6)</option><option value="h">Hard (7–8)</option><option value="l">Legend (9–10)</option><option value="10">Level 10 only</option></select></div>
+      <div class="field"><label for="arcSize">Team</label><select id="arcSize"><option value="all">Solo or two</option><option value="1">Solo (1v2)</option><option value="2">Two (2v2)</option></select></div>
+      <div class="field"><label for="arcTest">Test runs</label><select id="arcTest"><option value="all">Included</option><option value="no">Left out</option></select></div>
+      <div class="field"><label for="arcVer">Version</label><select id="arcVer"><option value="all">All versions</option><option value="cur">This version</option></select></div>
+    </div>
     <nav class="help-nav bal-tabs" id="balTabs"></nav>
     <div class="tablewrap"><table class="rank bal" id="balTable"></table></div>
     <p class="status" id="balNote"></p>
@@ -2716,7 +2723,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.99.45"></script>
+<script src="sim.js?v=0.99.46"></script>
 <script src="coop-data.js"></script>
 <script src="coop.js"></script>
 <script>
@@ -2726,7 +2733,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.99.45';
+const PAGE_VERSION = '0.99.46';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -7319,7 +7326,7 @@ Balance.init();
 
 const BAL_TABS = [
   { k: 'el', label: 'Elements' }, { k: 'ro', label: 'Roles' }, { k: 'arch', label: 'Archetypes' },
-  { k: 'up', label: 'Upgrades' }, { k: 'map', label: 'Arenas' }, { k: 'how', label: 'Ways out' },
+  { k: 'up', label: 'Upgrades' }, { k: 'map', label: 'Arenas' }, { k: 'how', label: 'Ways out' }, { k: 'arcade', label: 'Arcade' },
 ];
 const bal = { data: null, tab: 'el', sort: null, rows: [], clearArm: false };
 const pct = v => (v == null || !isFinite(v) ? '–' : Math.round(v * 100) + '%');
@@ -7374,8 +7381,56 @@ function sortRows(list, key, dflt) {
   });
 }
 const th = (key, label) => { const on = (bal.sort && bal.sort.tab === bal.tab ? bal.sort.key : null) === key; return `<th class="${on ? 'sorted' : ''}"><button type="button" data-bsort="${key}">${label}</button></th>`; };
+// the Arcade tab: every arcade battle people have played (from the server for the owner, or from this device), by duo and by
+// archetype, and for each duo which archetypes beat it and which didn't
+async function arcadeLog() {
+  if (bal.arc) return bal.arc;
+  let list = null;
+  if (!OFFLINE && account && account.admin) { try { const r = await fetch('/api/arcade/log'); if (r.ok) list = (await r.json()).battles; } catch (e) { list = null; } }
+  if (!list) { try { list = JSON.parse(store.get('bowfall-arcade-log', '[]')) || []; } catch (e) { list = []; } bal.arcWhere = 'this device'; } else bal.arcWhere = 'the server (every signed-in player, and online runs)';
+  return (bal.arc = list);
+}
+function renderArcade() {
+  const F = { who: $('arcWho').value, lv: $('arcLv').value, size: $('arcSize').value, tests: $('arcTest').value }, meName = ($('nameIn').value || '').trim(), myUid = account && account.id;
+  const all = (bal.arc || []).filter(b => b && b.p && b.p.length);
+  const rows = all.filter(b => ($('arcVer').value !== 'cur' || b.v === Sim.VERSION) && (F.lv === 'all' || (F.lv === 'e' ? b.lv <= 3 : F.lv === 'n' ? b.lv >= 4 && b.lv <= 6 : F.lv === 'h' ? b.lv >= 7 && b.lv <= 8 : F.lv === 'l' ? b.lv >= 9 : b.lv === +F.lv))
+    && (F.size === 'all' || (F.size === '1' ? b.solo : !b.solo)) && (F.tests === 'all' || !b.test) && (F.who === 'all' || b.p.some(p => (myUid && p.uid === myUid) || p.n === meName)));
+  const DN = id => { const d = window.BOWFALL_DUOS && BOWFALL_DUOS.roster.duos.find(x => x.id === id); return d ? d.name : id; };
+  const archOf = p => p.el && p.ro && ELEMENTS[p.el] && ROLES[p.ro] ? ELEMENTS[p.el].name + ' ' + ROLES[p.ro].name : '?';
+  const mine = b => F.who === 'all' ? b.p : b.p.filter(p => (myUid && p.uid === myUid) || p.n === meName);
+  const sumA = list => { const n = list.length, w = list.filter(b => b.won).length, gw = list.reduce((a, b) => a + (b.gw ? b.gw[0] : 0), 0), gl = list.reduce((a, b) => a + (b.gw ? b.gw[1] : 0), 0), win = n ? w / n : null; return { n, w, win, gw, gl, ci: n ? 1.96 * Math.sqrt(Math.max(win * (1 - win), 1 / (n + 2)) / n) : null }; }; // (a few battles all won still have a wide margin)
+  const cell = a => winCell(Object.assign({}, a, { n: a.n * 4 })).replace(/class="low"/, a.n < 5 ? 'class="low"' : 'class=""'); // (a battle is several games: shaded from 5 battles)
+  const recs = (a, k) => `<small style="color:var(--muted)">${a.w}–${a.n - a.w}</small>`;
+  // by duo, with the archetypes that fought it
+  const byDuo = groupBy(rows, b => b.duo);
+  let body = `<tr><th colspan="5" style="text-align:left">By duo</th></tr>`;
+  body += '<tr>' + ['Duo', 'Battles', 'You won', 'Games won–lost', 'Archetypes against it (battles won–lost)'].map(h => `<th>${h}</th>`).join('') + '</tr>';
+  body += [...byDuo].map(([id, list]) => ({ id, list, a: sumA(list) })).sort((x, y) => (x.a.win == null ? 9 : x.a.win) - (y.a.win == null ? 9 : y.a.win)).map(({ id, list, a }) => {
+    const ar = new Map(); for (const b of list) for (const p of mine(b)) { const k = archOf(p), v = ar.get(k) || [0, 0]; v[b.won ? 0 : 1]++; ar.set(k, v); }
+    const archs = [...ar].sort((x, y) => (y[1][0] + y[1][1]) - (x[1][0] + x[1][1])).map(([k, v]) => `${esc(k)} <b>${v[0]}–${v[1]}</b>`).join(' · ');
+    return `<tr><td class="who">${esc(DN(id))}</td><td>${a.n}</td>${cell(a)}<td>${a.gw}–${a.gl}</td><td style="text-align:left;font-size:12.5px">${archs}</td></tr>`; }).join('');
+  // by archetype
+  const flat = []; for (const b of rows) for (const p of mine(b)) flat.push({ b, k: archOf(p) });
+  const byArch = groupBy(flat, x => x.k);
+  body += `<tr><th colspan="5" style="text-align:left;padding-top:16px">By archetype</th></tr>`;
+  body += '<tr>' + ['Archetype', 'Battles', 'Won', 'Games won–lost', 'Duos beaten · lost to'].map(h => `<th>${h}</th>`).join('') + '</tr>';
+  body += [...byArch].map(([k, xs]) => ({ k, xs, a: sumA(xs.map(x => x.b)) })).sort((x, y) => y.a.n - x.a.n).map(({ k, xs, a }) => {
+    const beat = [...new Set(xs.filter(x => x.b.won).map(x => DN(x.b.duo)))].join(', '), lost = [...new Set(xs.filter(x => !x.b.won).map(x => DN(x.b.duo)))].join(', ');
+    return `<tr><td class="who">${esc(k)}</td><td>${a.n}</td>${cell(a)}<td>${a.gw}–${a.gl}</td><td style="text-align:left;font-size:12.5px">${beat ? 'Beat ' + esc(beat) : ''}${beat && lost ? ' · ' : ''}${lost ? 'Lost to ' + esc(lost) : ''}</td></tr>`; }).join('');
+  // by level
+  const byLv = groupBy(rows, b => b.lv);
+  body += `<tr><th colspan="5" style="text-align:left;padding-top:16px">By difficulty</th></tr>`;
+  body += '<tr>' + ['Level', 'Battles', 'Won', 'Games won–lost', 'Handicap'].map(h => `<th>${h}</th>`).join('') + '</tr>';
+  body += [...byLv].sort((x, y) => x[0] - y[0]).map(([lv, list]) => { const a = sumA(list), hs = [...new Set(list.map(b => b.hcap))].map(h => (h ? '+' + h + '%' : 'none')).join(', '); return `<tr><td class="who">${lv} · ${coopLevelName(lv)}</td><td>${a.n}</td>${cell(a)}<td>${a.gw}–${a.gl}</td><td>${hs}</td></tr>`; }).join('');
+  $('balTable').innerHTML = rows.length ? `<tbody>${body}</tbody>` : '<tbody><tr><td style="text-align:left;padding:18px">No arcade battles match these filters yet. Play some and check back.</td></tr></tbody>';
+  $('balNote').textContent = rows.length ? 'Each row is battles (best of three games). "You won" is the share of battles the people won; the duo list is sorted hardest first. Archetypes are the people\'s, with their battles won–lost against that duo.' : '';
+  $('balSum').textContent = `${rows.length} arcade ${rows.length === 1 ? 'battle' : 'battles'} (of ${all.length}), from ${bal.arcWhere}.`;
+}
 function renderBalance() {
   if (!bal.data) return;
+  const arc = bal.tab === 'arcade';
+  $('balArc').hidden = !arc; document.querySelector('.bal-filters:not(#balArc)').hidden = arc; $('balCsv').hidden = $('balClear').hidden = arc;
+  if (arc) { $('balTabs').innerHTML = BAL_TABS.map(t => `<button type="button" data-btab="${t.k}" class="${t.k === bal.tab ? 'on' : ''}">${t.label}</button>`).join(''); if (!bal.arc) { $('balSum').textContent = 'Loading…'; arcadeLog().then(() => { if (bal.tab === 'arcade') renderArcade(); }); return; } return renderArcade(); }
   const rows = balFilter(bal.data.recs), T = bal.tab;
   const games = new Set(rows.map(r => r.g)).size;
   $('balTabs').innerHTML = BAL_TABS.map(t => `<button type="button" data-btab="${t.k}" class="${t.k === T ? 'on' : ''}">${t.label}</button>`).join('');
@@ -7445,7 +7500,7 @@ async function openBalance() {
   helpFrom = document.activeElement;
   $('balScreen').hidden = false; $('balClose').focus();
   $('balSum').textContent = 'Loading…'; bal.clearArm = false; $('balClear').textContent = 'Clear practice data';
-  bal.data = await Balance.loadAll();
+  bal.data = await Balance.loadAll(); bal.arc = null;
   renderBalance();
 }
 function closeBalance() { $('balScreen').hidden = true; if (helpFrom && helpFrom.focus) helpFrom.focus(); }
@@ -7469,7 +7524,7 @@ function balCsv() {
 function adminBits() { const on = OFFLINE || !!(account && account.admin); for (const id of ['balBtn', 'gmBalBtn', 'resBalBtn', 'cqBtn', 'tmBtn', 'sndBtn', 'farmBtn', 'labBtn']) if ($(id)) $(id).hidden = !on; for (const id of ['fnBtn', 'onBtn', 'aimBtn', 'lgBtn']) if ($(id)) $(id).hidden = OFFLINE || !(account && account.admin); }
 $('balBtn').onclick = openBalance; $('gmBalBtn').onclick = openBalance; $('resBalBtn').onclick = openBalance;
 $('balClose').onclick = closeBalance;
-['balWho', 'balMap', 'balSrc', 'balSize', 'balRules', 'balVer'].forEach(id => $(id).addEventListener('change', renderBalance));
+['balWho', 'balMap', 'balSrc', 'balSize', 'balRules', 'balVer', 'arcWho', 'arcLv', 'arcSize', 'arcTest', 'arcVer'].forEach(id => $(id).addEventListener('change', renderBalance));
 $('balTabs').addEventListener('click', e => { const b = e.target.closest('[data-btab]'); if (b) { bal.tab = b.dataset.btab; renderBalance(); } });
 $('balTable').addEventListener('click', e => {
   const b = e.target.closest('[data-bsort]'); if (!b) return;
@@ -7478,7 +7533,7 @@ $('balTable').addEventListener('click', e => {
   renderBalance();
 });
 $('balCsv').onclick = () => offerFile('bowfall-balance.csv', balCsv(), 'text/csv');
-$('balJson').onclick = () => offerFile('bowfall-balance.json', JSON.stringify({ exported: new Date().toISOString(), games: bal.data ? bal.data.recs : [] }), 'application/json');
+$('balJson').onclick = () => bal.tab === 'arcade' ? offerFile('bowfall-arcade.json', JSON.stringify({ exported: new Date().toISOString(), battles: bal.arc || [] }), 'application/json') : offerFile('bowfall-balance.json', JSON.stringify({ exported: new Date().toISOString(), games: bal.data ? bal.data.recs : [] }), 'application/json');
 $('balClear').onclick = async () => {
   if (!bal.clearArm) { bal.clearArm = true; $('balClear').textContent = 'Click again to delete all practice games'; return; }
   $('balClear').disabled = true; $('balClear').textContent = 'Deleting…';
@@ -8490,7 +8545,7 @@ const coopEndless = C => !!(C && (C.test || C.retry === 'unl'));
 const COOP_WHERE = { local: ['On this device', 'Runs right here: no lag, nothing over the internet. Solo, or with friends on controllers on this screen.'], online: ['Online', 'Runs on the Bowfall server in a private room, so friends on other computers can join: invite them below, or send the room code.'] };
 const COOP_RETRY = [['unl', 'Unlimited', 'Try each duo as often as you like. The run stays off the scoreboard.'], ['lim', '3 continues', 'Lose a battle and you spend a continue. Three, then the run is over.'], ['none', 'No retries', 'One loss ends the run. Every win is worth half again.']];
 const coopLevelName = L => L <= 3 ? 'Easy' : L <= 6 ? 'Normal' : L <= 8 ? 'Hard' : 'Legend';
-const coopLevelNote = L => `${L <= 2 ? 'The duos play loosely. A good first run.' : L <= 4 ? 'Gentle duos, fair fights.' : L <= 6 ? 'Fair fights all the way up the ladder.' : L <= 8 ? 'Sharp duos; the machine at the top is no pushover.' : 'The duos play about as well as the game can.'} Score ×${(1 + 0.25 * (L - 1)).toFixed(2).replace(/0$/, '').replace(/\.0$/, '')}.`;
+const coopLevelNote = L => `${L <= 2 ? 'The duos play loosely. A good first run.' : L <= 4 ? 'Gentle duos, fair fights.' : L <= 6 ? 'Fair fights all the way up the ladder.' : L <= 8 ? 'Sharp duos; the machine at the top is no pushover.' : L >= 10 ? 'Master bots, two at a time, all the way up the ladder.' : 'Nearly master bots, two at a time.'} Score ×${(1 + 0.25 * (L - 1)).toFixed(2).replace(/0$/, '').replace(/\.0$/, '')}.`;
 const coopSetupMsg = () => ({ diff: COOP.diff, retry: COOP.retry, test: COOP.test && coopOwner(), flat: COOP.test && COOP.flat && coopOwner() });
 // the arcade opens straight into its lobby, set up like a custom game: on this device, or in a private online room your friends can join
 function coopEnter(inv) {
@@ -8521,7 +8576,7 @@ function coopSetupHtml(C, host, meL) {
   h += `<div class="csrow"><span class="lbl">Difficulty</span><div class="cslide"><input type="range" id="coopLv" min="1" max="10" step="1" value="${L}"${dis} aria-label="Difficulty"><output id="coopLvOut">${L} · ${coopLevelName(L)}</output></div><span class="status" id="coopLvNote">${esc(coopLevelNote(L))}</span></div>`;
   h += `<div class="csrow"><span class="lbl">Retries</span><div class="chips">${chips('cretry', C.retry, COOP_RETRY)}</div><span class="status">${esc(rt[2])}</span></div>`;
   h += `<div class="csrow"><span class="lbl">Where it runs</span><div class="chips">${chips('cwhere', where, Object.entries(COOP_WHERE).map(([k, d]) => [k, d[0], d[1]]))}</div><span class="status">${esc(COOP_WHERE[where][1])}${!online && LP.list.length ? ` ${LP.list.length} on controller${LP.list.length === 1 ? '' : 's'} with you.` : ''}</span></div>`;
-  h += `<div class="csrow"><span class="lbl">Handicap</span><span class="status">${C.solo ? `On your own against two: <b>+${C.hcap || 190}%</b> health and +${Math.round((C.hcap || 190) / 2)}% damage, the same against every duo at every difficulty: about what a lone archer needs to win as often as two of you would.` : 'Two of you against two: no handicap.'}</span></div>`;
+  h += `<div class="csrow"><span class="lbl">Handicap</span><span class="status">${C.solo ? `On your own against two: <b>+${C.hcap || 160}%</b> health and +${Math.round((C.hcap || 160) / 2)}% damage, the same against every duo at every difficulty.` : 'Two of you against two: no handicap.'}</span></div>`;
   if (coopOwner() && host) h += `<div class="csrow"><span class="lbl">Owner</span><div class="chips"><button type="button" class="chip2${C.test ? ' sel' : ''}" data-ctest="1">Test mode</button><button type="button" class="chip2${C.flat ? ' sel' : ''}" data-cflat="1"${C.test ? '' : ' disabled'} title="Every duo plays at the middle of the level's skill band instead of getting sharper along the ladder">Flat ladder: no climb</button></div></div>`;
   // friends: who's online, with an Invite (the run is for up to two archers)
   const st = SOC.st, room = (view ? view.p.filter(p => p.tm === 'red' && !p.b).length : 1) < 2;
@@ -8640,7 +8695,7 @@ function localLadder() {
     sysChat: (r, text) => addChat({ sys: 1, m: text }),
     broadcast: (r, m) => { if (m.t === 'chat') addChat(m); },
     markDirty: () => {}, isOwner: u => OFFLINE || !!(u && u.admin),
-    record: (room, C, cleared) => coopLocalRecord(C, cleared) });
+    record: (room, C, cleared) => coopLocalRecord(C, cleared), battle: (room, rec) => arcadeKeep(rec) });
   return LCO.ladder;
 }
 // who's playing on this device: you, and anyone on a controller
@@ -8673,6 +8728,13 @@ function coopAutoPicks(el, ro) {
   const fav = Object.values(Sim.BUILDS).filter(b => (b.roles || []).includes(ro) || (b.els || []).includes(el)).flatMap(b => b.cards), out = [];
   for (let i = 0; i < 3; i++) { const ok = Sim.forcedChoices(el, ro, out, false); if (!ok.length) break; out.push(ok.find(id => fav.includes(id) && !out.includes(id)) || ok[Math.floor(Math.random() * ok.length)]); }
   return out;
+}
+// every arcade battle played here: kept on this device (the last 1,000), and sent to the server when you're signed in, for
+// the owner's balance view (Balance data → Arcade)
+function arcadeKeep(rec) {
+  rec = Object.assign({}, rec, { src: 'device' });
+  try { const a = JSON.parse(store.get('bowfall-arcade-log', '[]')) || []; a.push(rec); store.set('bowfall-arcade-log', JSON.stringify(a.slice(-1000))); } catch (e) { /* never in the way */ }
+  if (account && !OFFLINE) fetch('/api/arcade/battle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rec }) }).catch(() => {});
 }
 // a run played here: the best on this device, and on your account when you're signed in
 function coopLocalRecord(C, cleared) {

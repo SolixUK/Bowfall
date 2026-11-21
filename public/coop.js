@@ -9,18 +9,17 @@ function coopFactory(ctx) {
   const { Sim, send, sendRoom, sysChat, broadcast, markDirty, isOwner } = ctx;
   const ROSTER = ctx.roster, FIT = ctx.fit && ctx.fit.duos ? ctx.fit : { duos: {} };
   const DUOS = ROSTER.duos, CONTINUES = ROSTER.continues || 3;
-  // difficulty: a level from 1 to 10. The duos' skill band rises with it (level 2 is the old Easy, 5 Normal, 7 Hard, 10 Legend),
+  // difficulty: a level from 1 to 10. The duos' skill band rises with it (level 2 is the old Easy, 5 Normal, 7 Hard, 10 Legend:
+  // master bots all the way up the ladder),
   // and so does the score
   const LEVELS = 10, OLD = { easy: 2, normal: 5, hard: 7, legend: 10 };
   const levelOf = v => { const n = typeof v === 'string' && OLD[v] ? OLD[v] : Math.round(+v); return n >= 1 && n <= LEVELS ? n : 5; };
-  const DIFF = L => { const k = (L - 1) / (LEVELS - 1); return { level: L, name: L <= 3 ? 'Easy' : L <= 6 ? 'Normal' : L <= 8 ? 'Hard' : 'Legend', facets: [0.35 + 0.5 * k, 0.55 + 0.43 * k], mult: +(1 + 0.25 * (L - 1)).toFixed(2) }; };
+  const DIFF = L => { const k = (L - 1) / (LEVELS - 1); return { level: L, name: L <= 3 ? 'Easy' : L <= 6 ? 'Normal' : L <= 8 ? 'Hard' : 'Legend', facets: [0.35 + 0.63 * k, 0.55 + 0.45 * k], mult: +(1 + 0.25 * (L - 1)).toFixed(2) }; };
   // one against two: the duos play exactly as they do against two of you; you get a handicap instead (full on health, half
-  // on damage), one number for every duo and every level. Worked out with bots, duo by duo: a lone archer of the duo's own
-  // skill, the handicap nudged until it won about half its battles (the win rate barely moves with the level). Most duos
-  // needed +150% to +220%; this is about their average (all fourteen at it: from 34% to 65%, 47% on average at +180%, so a step more). Six whose plan is holding you still and pushing you in (Brambles, Presence,
-  // Shadows, Two Snares, Long Shots, The Wall) couldn't be evened out by health at any handicap, so they play a little softer
-  // all round instead (their `boost` in lib/duos.json), fitted to about half at this handicap
-  const SOLO_HCAP = 190;
+  // on damage), one number for every duo and every level. Bots against the duos put it at about +190% (a lone bot of the
+  // duo's own skill winning about half), but a person makes far more of the extra health than a bot does, so it's a step
+  // lower. The arcade's battles are recorded (ctx.battle) to see how it plays against people
+  const SOLO_HCAP = 160;
   // retries: unlimited (nothing goes on the scoreboard), three continues, or none at all (every win is worth half again)
   const RETRY = { unl: 'Unlimited retries', lim: CONTINUES + ' continues', none: 'No retries' }, retryOf = v => RETRY[v] ? v : 'lim';
   const endless = C => !!(C.test || C.retry === 'unl');
@@ -115,6 +114,10 @@ function coopFactory(ctx) {
     for (const c of humansOf(room)) { const p = w.players.find(q => q.id === c.pid); if (!p) continue; T.k += p.kills || 0; T.ring += p.stats.ring || 0; T.sh += p.stats.shots || 0; T.hi += p.stats.hits || 0; T.dmg += p.stats.dmg || 0; T.taken += p.stats.taken || 0; T.far = Math.max(T.far, p.stats.longest || 0); }
     T.games += (w.match.gw.red || 0) + (w.match.gw.blue || 0); T.gw += w.match.gw.red || 0; T.secs += Math.max(0, (Date.now() - (C.fightAt || Date.now())) / 1000);
     if (won && w.match.gw.blue === 0) C.sweeps = (C.sweeps || 0) + 1;
+    // the battle, for the record: who played what against which duo, at what level, and how the games went
+    if (ctx.battle) { const hum = humansOf(room); try { ctx.battle(room, { at: Date.now(), v: Sim.VERSION, lv: C.diff, duo: d.id, pos: C.idx, of: N(), solo: hum.length === 1 ? 1 : 0, hcap: C.solo ? SOLO_HCAP : 0, retry: C.retry, test: C.test ? 1 : 0, flat: C.flat ? 1 : 0,
+      won: won ? 1 : 0, gw: [w.match.gw.red || 0, w.match.gw.blue || 0], secs: Math.round(Math.max(0, (Date.now() - (C.fightAt || Date.now())) / 1000)),
+      p: hum.map(c => { const p = w.players.find(q => q.id === c.pid) || {}, st = p.stats || {}, u = c.user; return { n: c.name, uid: u && typeof u.id === 'number' ? u.id : undefined, el: p.element, ro: p.role, ups: (p.up || []).filter(id => id !== p.element), k: p.kills || 0, dmg: Math.round(st.dmg || 0), tk: Math.round(st.taken || 0), sh: st.shots || 0, hi: st.hits || 0 }; }) }); } catch (e) { /* the record never gets in the way of the run */ } }
     if (!won && !endless(C)) C.used = (C.used || 0) + 1;
     if (won) {
       const pts = Math.round(BASE_SCORE * D.mult * (d.boss ? 3 : 1) * (w.match.gw.blue === 0 ? 1.25 : 1) * (C.retry === 'none' ? 1.5 : 1)); // (a clean sweep is worth a quarter more; the machine three duos; no retries half again)

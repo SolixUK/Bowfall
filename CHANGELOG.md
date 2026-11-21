@@ -2,6 +2,21 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.46
+
+- **Legend means master bots.** On level 10 every duo plays at master-bot skill, from the first battle to the last. Before, Legend started well below master and only reached it at the top of the ladder. The levels below are scaled up to match, a little sharper at every level, most at the top.
+- **The arcade's solo handicap is +160% health and +80% damage** (was +190% and +95%). Bots put the even point at about +190%, but that's a bot that doesn't know it's tanky. A person can stand and trade with the extra health, so it's worth more to you than to the test bot.
+- **The six softened duos are back to full strength.** Last update played Brambles, Presence, Shadows, Two Snares, Long Shots and The Wall softer all round, which made them easy with a friend too. That's undone: they play as they did before 0.99.45.
+- **Every arcade battle is recorded.**
+  - **What's kept:** the level, the duo and where it was on the ladder, solo or two, the handicap, retries, and games won and lost. For each person: their archetype, upgrades, knockouts, damage and accuracy.
+  - **Where it's kept:** online runs are saved on the server. Runs on your device are kept there and sent to the server when you're signed in.
+  - **Where to see it:** Balance data has a new **Arcade** tab.
+    - **By duo:** hardest first, with each archetype used against it and its battles won and lost.
+    - **By archetype:** the duos it beat and lost to.
+    - **By difficulty.**
+    - **Filters:** just you or everyone, level, solo or two, test runs in or out, and version.
+- **The machine** has 30% more health against one archer (was 40%), to match the smaller handicap.
+
 ## 0.99.45
 
 - **Handicap means health and half the damage now, and no extra weight.** +X% gives X% more health and X/2% more arrow damage. It no longer makes you heavier, so it doesn't make you harder to push. This applies everywhere a handicap is set, custom games included, and it now goes up to +300%.
