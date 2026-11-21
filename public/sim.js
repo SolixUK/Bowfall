@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.43';
+const VERSION = '0.99.45';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -538,8 +538,8 @@ function rollMut(w) {
 }
 const OPT = k => optValue(CFG.opt, k) * mutMul(CFG.mut, k);
 // Handicap: the host can give any archer a percentage, e.g. +50% for a lone player in a 1v2.
-// It scales their health and arrow damage by that much, and their knockback resistance by half as much.
-const HANDICAPS = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+// It scales their health by that much and their arrow damage by half as much (nothing else: not their weight, not their push).
+const HANDICAPS = Array.from({ length: 36 }, (_, i) => -50 + i * 10); // (−50% to +300%: the arcade gives a lone archer a big one against a duo)
 function setHandicap(w, id, pct) {
   const p = w.players.find(q => q.id === id);
   if (!p || !HANDICAPS.includes(+pct)) return false;
@@ -1583,14 +1583,14 @@ const enemyOf = t => (t === 'red' ? 'blue' : 'red');
 
 function applyStats(p) {
   const h = id => (p.hones && p.hones[id]) || 0;
-  const R = p.sparring ? 'plain' : p.role, is = (cond, v) => (cond ? v : 1), hc = 1 + (p.hcap || 0) / 100; // (sparring: a plain archer for training, no archetype trait)
+  const R = p.sparring ? 'plain' : p.role, is = (cond, v) => (cond ? v : 1), hc = 1 + (p.hcap || 0) / 100, hcD = 1 + (p.hcap || 0) / 200; // (handicap: full on health, half on damage) // (sparring: a plain archer for training, no archetype trait)
   // role traits (always on) and trade-off cards
   p.maxHp = 100 + (has(p, 'vital') ? 25 : 0) + 15 * h('hone_hp')
     + (R === 'juggernaut' ? 15 : 0) + (R === 'warden' ? 5 : 0) - (R === 'sniper' || R === 'ranger' ? 10 : 0)
     - (has(p, 'glass') ? 10 : 0) + (has(p, 'colossus') ? 30 : 0) - (has(p, 'cloak') ? 5 : 0) - (has(p, 'bloodpact') ? 10 : 0);
   p.maxHp = Math.round(p.maxHp * OPT('hp') * hc * (p.boss ? p.boss.hp : 1));
   if (p.hp > p.maxHp) p.hp = p.maxHp;
-  p.mass = (1 + (p.hcap || 0) / 200) * is(has(p, 'stance'), 1 / 0.5) * is(R === 'juggernaut', 1.25) * is(R === 'warden', 1.1) * is(has(p, 'colossus'), 1 / 0.65) / is(has(p, 'feather'), 1.3) / is(has(p, 'longstep'), 1.15) / is(R === 'crossbow', 0.85);
+  p.mass = is(has(p, 'stance'), 1 / 0.5) * is(R === 'juggernaut', 1.25) * is(R === 'warden', 1.1) * is(has(p, 'colossus'), 1 / 0.65) / is(has(p, 'feather'), 1.3) / is(has(p, 'longstep'), 1.15) / is(R === 'crossbow', 0.85);
   p.r = 16 * is(R === 'juggernaut', 1.1) * is(has(p, 'colossus'), 1.35) * is(!!p.boss, p.boss && p.boss.mode === 'repair' ? 0.9 : 1.18) * OPT('size'); // (repairing, it folds itself down small) // (the arcade's machine stands a size bigger)
   p.baseSpeed = 235 * (has(p, 'fleet') ? 1.1 : 1) * (1 + 0.05 * h('hone_speed')) * is(R === 'juggernaut', 0.93) * is(R === 'ranger', 1.05) * is(R === 'ninja', 1.12) * is(R === 'crossbow', 1.08)
     * is(has(p, 'colossus'), 0.9) * is(has(p, 'feather'), 1.15) * is(has(p, 'quickfeet'), 1.08) * is(!!(p.boss && p.boss.mode === 'repair'), 1.15) * OPT('mspeed');
@@ -1603,7 +1603,7 @@ function applyStats(p) {
   p.dashN = Math.min(p.dashN == null ? p.dashMaxN : p.dashN, p.dashMaxN);
   p.drawMul = (has(p, 'steady') ? 1.25 : 1) * (1 + 0.08 * h('hone_draw')) * is(R === 'trickster', 1.12) * is(R === 'ranger', 1.12) * is(R === 'sniper', 1) * mutMul(CFG.mut, 'draw');
   p.kbMul = (1 + 0.08 * h('hone_kb')) * is(R === 'trickster', 0.9) * is(has(p, 'obsidian'), 1.3) * is(has(p, 'deepshade'), 0.85);
-  p.dmgMul = hc * is(has(p, 'glass'), 1.3) * is(has(p, 'potent'), 0.85) * is(R === 'juggernaut', 0.8) * is(R === 'warden', 0.85) * is(has(p, 'unstable'), 0.92) * is(has(p, 'rip'), 0.92);
+  p.dmgMul = hcD * is(has(p, 'glass'), 1.3) * is(has(p, 'potent'), 0.85) * is(R === 'juggernaut', 0.8) * is(R === 'warden', 0.85) * is(has(p, 'unstable'), 0.92) * is(has(p, 'rip'), 0.92);
   p.abCdMul = is(R === 'trapper', 0.6) * mutMul(CFG.mut, 'abcd');
   // Crossbowman: reload time, reach and how many bolts they hold
   p.xbowReload = XBOW_RELOAD * is(has(p, 'windlass'), 0.75) * is(has(p, 'longstock'), 1.15) * is(has(p, 'tribolt'), XB3.reload) / p.drawMul;
@@ -5049,7 +5049,15 @@ function tacticGoal(w, p, T, foes, mates, dt) {
       const near = tac.mode === 'bully' ? tacP(p, 'bullyD') : tacP(p, 'unloadD');
       // a bully doesn't hop boulder to boulder: it comes straight at you, and dashes to close the ground (keeping a dash back for the bash)
       if (tac.mode === 'bully' && dT > 330 && (p.dashN >= 2 || (p.dashN > 0 && dT > 480)) && ai.dodgeCd <= 0 && dashClear(p, Math.atan2(uy, ux), 170) && Math.random() < dt * 3) { p.wantDash = true; ai.dashAim = Math.atan2(uy, ux); ai.dodgeCd = 0.7; }
-      if (dT > near * 1.3) { const c = tac.mode === 'bully' ? null : botCoverHop(p, T, dT, dt); if (c) return c; return [ux * 0.9 - uy * ai.strafe * 0.35, uy * 0.9 + ux * ai.strafe * 0.35]; }
+      if (dT > near * 1.3 && tac.mode === 'bully') {
+        // closing in on a kiter: run at where they're going, not where they are, and the two of us a little apart (a V, so
+        // backing away from one walks them towards the other or into a wall); no weave on the way in, it only costs ground
+        const lead = Math.min(0.6, dT / 600), tx = T.x + T.vx * lead, ty = T.y + T.vy * lead, a0 = Math.atan2(ty - p.y, tx - p.x);
+        const two = partner && !partner.dead && partner.ai && partner.ai.tac && partner.ai.tac.mode === 'bully', side = two ? (p.id < partner.id ? 1 : -1) : 0;
+        const a = a0 + side * clamp((dT - 200) / 900, 0, 0.35);
+        return [Math.cos(a), Math.sin(a)];
+      }
+      if (dT > near * 1.3) { const c = botCoverHop(p, T, dT, dt); if (c) return c; return [ux * 0.9 - uy * ai.strafe * 0.35, uy * 0.9 + ux * ai.strafe * 0.35]; }
       if (tac.mode === 'bully') {
         // a bash or a dash at them whenever one's there (a dash is for getting on top of people, not for getting away)
         if (dT > 60 && dT < 420 && p.dashN > 0 && (ai.bashCd || 0) <= 0 && ai.dodgeCd <= 0 && Math.random() < dt * (dT < 230 ? tacP(p, 'bashEager') : 2)) { const lead = 0.2, a = Math.atan2(T.y + T.vy * lead - p.y, T.x + T.vx * lead - p.x); if (dashClear(p, a, Math.min(dT + 40, 200))) { p.wantDash = true; ai.dashAim = a; ai.bashCd = rand(0.8, 1.6); ai.dodgeCd = 0.4; } }
@@ -5442,10 +5450,13 @@ function botThink(w, p, dt) {
   // shot is about to go (decided once per draw, a little late or a little early, not on the instant), the better the bot
   // the more often; a dash begun inside the shooter's last glance is the one that makes them miss. The shooter's lead then lands on where it would have been.
   const hookMv = ai.hookMv === w.t || ai.doomMv === w.t; // (on the way to the harpoon spot: the half second matters more than a juke; a shot actually coming still gets dodged, but the spot keeps most of its pull)
-  const juke = hookMv ? null : botJuke(w, p, foes, D, dt);
+  let juke = hookMv ? null : botJuke(w, p, foes, D, dt);
   const gapF = T && dT > botReach(p) * 0.85 && dT < botReach(T) ? outranged(p, T) : 0; // (outranged and out of our own reach: every sidestep also gains ground)
   const bully = ai.tac && ai.tac.mode === 'bully'; // (a bully's weave is a stagger on the way in, never instead of it: the goal keeps its full weight)
-  if (juke) { const jk = bully ? 0.7 : gapF > 0.3 ? 0.9 : 2, gk = bully ? 1 : 0.2; gx = juke[0] * jk + gx * gk + (gapF > 0.3 ? (T.x - p.x) / dT * 2 * gapF : 0); gy = juke[1] * jk + gy * gk + (gapF > 0.3 ? (T.y - p.y) / dT * 2 * gapF : 0); /* (weaving less and closing more) */ if (juke[2] && ai.dodgeCd <= 0 && p.dashN > 0 && lethalDist(p.x + juke[0] * 130, p.y + juke[1] * 130) > 40) { ai.dodgeCd = 0.5; p.wantDash = true; ai.dashAim = Math.atan2(juke[1], juke[0]); } }
+  // (and its juke dash goes diagonally forward: clear of the shot's line and a good stride closer, never a dash spent just going sideways)
+  const jukeA = juke && bully && T ? (() => { const a = Math.atan2(juke[1], juke[0]), t = Math.atan2(T.y - p.y, T.x - p.x), side = Math.sign(Math.sin(t - a)) || 1; return a + side * 0.8; })() : null;
+  if (juke && jukeA != null) juke = [Math.cos(jukeA), Math.sin(jukeA), juke[2]]; // (tested: dropping these dashes altogether let a kiter keep them off far more: a forward-diagonal one is a step in, not a dodge)
+  if (juke) { const jk = bully ? 0.25 : gapF > 0.3 ? 0.9 : 2, gk = bully ? 1 : 0.2; gx = juke[0] * jk + gx * gk + (gapF > 0.3 ? (T.x - p.x) / dT * 2 * gapF : 0); gy = juke[1] * jk + gy * gk + (gapF > 0.3 ? (T.y - p.y) / dT * 2 * gapF : 0); /* (weaving less and closing more) */ if (juke[2] && ai.dodgeCd <= 0 && p.dashN > 0 && lethalDist(p.x + juke[0] * 130, p.y + juke[1] * 130) > 40) { ai.dodgeCd = 0.5; p.wantDash = true; ai.dashAim = Math.atan2(juke[1], juke[0]); } }
   // --- dodge incoming enemy arrows
   ai.dodgeCd -= dt;
   if (ai.tac && ai.tac.mode === 'bully') { /* a bully doesn't dodge: it walks through */ } else if (iq >= 0.5) {
@@ -5643,13 +5654,19 @@ function botThink(w, p, dt) {
       // Void: with marks on them, a half draw already homes in; the full draw is for the finish
       if (p.element === 'void' && T.voidBy === p.id && T.voidT > w.t && (T.voidN || 0) >= 2 && es >= 0.5 && ai.want < 1 && T.hp > 25) ai.want = Math.max(ai.want, 0.6);
     }
+  } else if (ai.tac && ai.tac.mode === 'trapper' && (T.stuck > 0 || T.vine > 0) && !p.briarArmed && mates.some(m => !m.dead && m.ai && m.ai.tac)
+      && pushRisk(T.x, T.y, (T.x - p.x) / (dT || 1), (T.y - p.y) / (dT || 1), kbOn(p, T, Math.max(0.8, p.charge)), T.r) < 0.45
+      && (1 + 11 * p.charge) * (p.dmgMul || 1) * (has(p, 'deeproots') ? 1.25 : 1) * 1.25 * OPT('dmg') < T.hp) {
+    // (the trapper's root is the partner's set-up: an arrow now only knocks them out of it. Held, unless this one finishes
+    // them or throws them into a drop from here; the partner takes the shot)
+    ai.want = 1; ai.koWait = 0;
   } else if (ai.tac && (ai.tac.mode === 'finisher' || ai.tac.mode === 'trapper' || ai.tac.mode === 'rift') && heldBy(T) && p.charge >= ai.want
       && pushRisk(T.x, T.y, (T.x - p.x) / (dT || 1), (T.y - p.y) / (dT || 1), kbOn(p, T, Math.max(0.8, p.charge)), T.r) < 0.45 && Math.max(T.stuck || 0, T.vine || 0, T.frozen || 0) > 0.35 + dT / Math.max(400, shotSpeed(p, 1))
       && (w.teamPlan && w.teamPlan[p.team] && w.teamPlan[p.team].finish) && (ai.koWait = (ai.koWait || 0) + dt) < 0.55) {
     // (rooted, and no drop behind them from here: hold the full draw and walk round to where there is, while the root lasts)
     ai.want = 1;
-  } else if (p.briarArmed && p.charge >= ai.want && !clearLane(p.x, p.y, T.x, T.y, BRIAR.r) && (ai.briarHold = (ai.briarHold || 0) + dt) < 1.5) {
-    // (a bramble armed and a boulder in its lane: hold it and step round, rather than roll it into the rock)
+  } else if (p.briarArmed && p.charge >= ai.want && (!clearLane(p.x, p.y, T.x, T.y, BRIAR.r) || !clearLane(p.x, p.y, p.x + Math.cos(ai.aimA) * Math.min(dT + 40, BRIAR.range), p.y + Math.sin(ai.aimA) * Math.min(dT + 40, BRIAR.range), BRIAR.r)) && (ai.briarHold = (ai.briarHold || 0) + dt) < 4) {
+    // (a bramble armed and a boulder or wall in its lane, to them or along the aim, which leads them: hold it and step round, rather than roll it into the rock)
   } else if ((p.charge >= ai.want || (p.momT > 0.1 && p.charge >= 0.55 && has(p, 'momentum'))) && los && onTarget && T.inv <= 0 && !(has(p, 'ballista') && ai.want >= 1 && p.over < 1 && dT > 250) && !sneaking) {
     inp.draw = false; ai.briarHold = 0; ai.koWait = 0;
     ai.reload = rand(0.05, 0.3) + D.react * rand(0.8, 1.3);
@@ -5845,6 +5862,11 @@ function botAbilities(w, p, T, dT, foes, dt) {
       case 'recoil': use = !!T && dT < 190 && chg > 0.5; break;
       case 'spot': if (T && dT < 700) { p.input.tx = T.x; p.input.ty = T.y; use = true; } break;
       case 'rush': {
+        if (T && p.ai.tac && p.ai.tac.mode === 'bully' && dT >= 110 && dT < 400) { // (a bully: the rush is the way in, from as far as it carries, at where they'll be)
+          const lt = Math.min(0.45, dT / 560), a = Math.atan2(T.y + T.vy * lt - p.y, T.x + T.vx * lt - p.x), ax = Math.cos(a), ay = Math.sin(a), far = Math.min(320, dT + 60);
+          if ([0.25, 0.5, 0.75, 1].every(k => lethalDist(p.x + ax * far * k, p.y + ay * far * k) > 45) && clearLane(p.x, p.y, p.x + ax * far, p.y + ay * far, p.r)) { p.input.aim = a; p.aim = a; use = true; }
+          break;
+        }
         if (!T || dT < 110 || dT > 330 || angOff(Math.atan2(T.y - p.y, T.x - p.x), p.input.aim) > 0.2) break;
         const ax = Math.cos(p.input.aim), ay = Math.sin(p.input.aim);
         use = [80, 160, 240, 300].every(d => lethalDist(p.x + ax * d, p.y + ay * d) > 45);

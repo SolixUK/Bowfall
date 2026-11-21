@@ -990,7 +990,7 @@ async function api(req, res, url) {
     for (const k of Object.keys(Sim.TRAIN_MAX)) { const b = Sim.trainCurrent(k, mine[k]) ? mine[k] : null; out[k] = Object.assign({ n: TRAIN.dist[k].length }, b ? { s: b.s, g: b.g, top: trainTop(k, b.s, true) } : {}); }
     return json(res, 200, { drills: out });
   }
-  // a co-op arcade run played on the player's own device: the score goes on their account (online runs record themselves)
+  // an arcade run played on the player's own device: the score goes on their account (online runs record themselves)
   if (route === '/coop/score' && method === 'POST') {
     if (!me) return json(res, 401, { error: 'Sign in to keep arcade scores.' });
     const D = coop.DIFFS[Math.round(+body.diff)], n = coop.DUOS.length, sc = Math.round(+body.score), far = Math.round(+body.beaten);
@@ -1479,7 +1479,7 @@ const server = http.createServer(async (req, res) => {
   }
   // old room links (/?room=ABCD) go straight to the game
   if (url.pathname === '/' && url.searchParams.get('room')) { res.writeHead(302, { Location: '/play?room=' + encodeURIComponent(url.searchParams.get('room')) }); return res.end(); }
-  // the co-op arcade's duos, for runs played in the page (the same roster and training the server uses)
+  // the arcade's duos, for runs played in the page (the same roster and training the server uses)
   if (url.pathname === '/coop-data.js') { res.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': 'no-cache' }); return res.end(COOP_DATA_JS); }
   const page = url.pathname === '/' ? 'site.html' : url.pathname === '/play' ? 'index.html' : url.pathname === '/link' ? 'link.html' : url.pathname;
   const file = path.normalize(path.join(PUBLIC, page));
@@ -1535,7 +1535,7 @@ function serveFlag(cc, res) {
   if (!have) FLAGS.set(cc, job);
   job.then(send);
 }
-const coop = require('./lib/coop')({ Sim, send, sendRoom, sysChat, broadcast, markDirty, isOwner }); // the co-op arcade
+const coop = require('./lib/coop')({ Sim, send, sendRoom, sysChat, broadcast, markDirty, isOwner }); // the arcade
 const COOP_DATA_JS = 'window.BOWFALL_DUOS = ' + JSON.stringify({ roster: require('./lib/coop').ROSTER, fit: require('./lib/coop').FIT }).replace(/</g, '\\u003c') + ';';
 const social = require('./lib/social')({ season: () => SEASON.info(), rejoinFor: ws => { const r = awayRoomOf(ws); return r ? { code: r.code, mode: r.ranked.mode } : null; }, lookOf, seedRating: (u, h) => { if (seedRating(u, h)) markDirty(u); }, rankedMaps: () => rankedMaps(), statusOf: u => E.statusOf(u), store, track, markDirty, send, Sim, levelOf, flagOf, ELO_START, ratingOf, keyFor, rooms, createRoom, sendRoom, sysChat, broadcast, live, loadGuest });
 
@@ -1603,7 +1603,7 @@ function roomInfo(room, ws) {
     name: room.name, pub: room.pub, locked: !!room.pwHash, max: room.max || 8, people: room.clients.size,
     ranked: room.ranked ? room.ranked.mode : undefined, arena: arenaInfo(room.world.cfg.map),
     delay: delayed(ws) ? WATCH_DELAY : undefined, // (spectating a ranked match: this many seconds behind)
-    coop: coop.info(room), cid: ws.cid, // the co-op arcade run, when one is on (and who you are in its lists)
+    coop: coop.info(room), cid: ws.cid, // the arcade run, when one is on (and who you are in its lists)
     // the ranked draft: seconds left to choose, and who's ready
     draft: room.ranked && room.ranked.draftUntil && !room.ranked.go ? Math.max(0, Math.ceil((room.ranked.draftUntil - Date.now()) / 1000)) : undefined,
     ready: room.ranked && room.ranked.ready ? [...room.clients].filter(c => room.ranked.ready.has(c.cid) && c.pid).map(c => c.pid) : undefined,
@@ -1942,7 +1942,7 @@ async function handle(ws, m) {
   if (!room) return;
   const w = room.world, isHost = room.host === ws.cid;
   if (ws.watch && !['ping', 'nz', 'perfRep'].includes(m.t)) return; // watching a matchmade game: no playing, picking or chatting
-  // a co-op run sets the arena, the effects and the rules itself (the owner may still add a bot to Red, to test with)
+  // an arcade run sets the arena, the effects and the rules itself (the owner may still add a bot to Red, to test with)
   if (room.coop && ['roomcfg', 'bot', 'cfg', 'hcap', 'start', 'lobby', 'restart'].includes(m.t) && !(m.t === 'bot' && ws.user && ws.user.admin && (m.op === 'remove' ? (w.players.find(q => q.id === String(m.id)) || {}).team === 'red' : String(m.team) === 'red'))) return;
   switch (m.t) {
     case 'in': if (ws.pid) { Sim.setInput(w, ws.pid, m); if (room.ranked) afkInput(room, ws, m); } break;
@@ -2018,7 +2018,7 @@ async function handle(ws, m) {
       social.aiReply(room, text, ws.name);
       break;
     }
-    // host-only controls (a co-op run sets the arena, the effects and the rules itself)
+    // host-only controls (an arcade run sets the arena, the effects and the rules itself)
     case 'roomcfg': if (isHost) { const before = roomState(room); applyRoomCfg(room, m, ws.name); announceRoom(room, before, roomState(room)); sendRoom(room); } break;
     case 'bot':
       if (!isHost) break;

@@ -1599,7 +1599,7 @@
   @media (max-width: 1000px) { .lbgrid { grid-template-columns: 1fr; } }
   .lbset { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; background: rgba(255,255,255,.03); border: 1px solid var(--line); }
   .lbset h3 { margin: 0; }
-  /* the co-op arcade in the lobby: the ladder, the duo, your three upgrades */
+  /* the arcade in the lobby: the ladder, the duo, your three upgrades */
   .lbset.coop { border-color: rgba(255,200,90,.35); background: linear-gradient(180deg, rgba(255,190,70,.08), rgba(255,255,255,.02)); }
   .coophead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
   .coophead b { font: 700 18px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); }
@@ -1610,6 +1610,12 @@
   .coopslots { display: flex; gap: 6px; flex-wrap: wrap; min-height: 30px; } .coopslots .slotc { padding: 4px 10px; border: 1px dashed var(--line); color: var(--muted); font-size: 13px; } .coopslots .slotc.full { border-style: solid; border-color: var(--gold); color: var(--text); cursor: pointer; }
   .coopres { padding: 10px 12px; border: 1px solid var(--line); background: rgba(0,0,0,.25); } .coopres b { font: 700 20px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .06em; text-transform: uppercase; } .coopres.won b { color: #7dff8a; } .coopres.lost b { color: #ff7a7a; }
   .coopfoot { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; } .coopfoot .status { flex: 1 1 auto; }
+  .csrow { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 4px 12px; align-items: center; } .csrow > .lbl { grid-row: span 2; align-self: start; padding-top: 6px; } .csrow > .status { grid-column: 2; font-size: 12.5px; }
+  .cslide { display: flex; align-items: center; gap: 12px; } .cslide input[type=range] { flex: 1 1 auto; min-width: 0; } .cslide output { font: 700 19px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .05em; color: var(--gold); min-width: 104px; }
+  .lobby .lbset.coopfr { padding: 12px 14px; background: rgba(255,255,255,.03); border: 1px solid var(--line); } .csrow .chips .chip2 { cursor: pointer; } .csrow .chips .chip2.sel { border-color: var(--gold); color: var(--gold); }
+  .csrow .coopdiff { display: flex; align-items: center; gap: 12px; } .csrow .coopdiff input[type=range] { flex: 1 1 auto; } .csrow .coopdiff output { font: 700 20px 'Rajdhani', 'Arial Narrow', sans-serif; letter-spacing: .05em; color: var(--gold); min-width: 110px; }
+  .cfr { display: grid; gap: 6px; max-height: 210px; overflow-y: auto; } .cjoin { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; } .cjoin .code { width: 84px; }
+  .slot.cladder { white-space: normal; line-height: 1.4; padding: 10px 12px; color: var(--muted); }
   /* Continue? after a lost battle: the fallen close up, a big countdown */
   .contscr { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, rgba(40,0,0,.82), rgba(0,0,0,.96)); animation: contIn .6s ease-out; }
   @keyframes contIn { from { opacity: 0; } to { opacity: 1; } }
@@ -1991,7 +1997,7 @@
       <nav class="mainmenu" aria-label="Main menu">
         <button class="mm" id="mFind" type="button"><span class="mmk">01</span><b><svg class="mmi" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>Find game</b><small>Ranked matchmaking by rating: 1v1, 2v2, 3v3 or any of them at once, on your own or with friends.</small><em class="mmlock" id="mFindBadge" hidden></em></button>
         <button class="mm" id="mCustom" type="button"><span class="mmk">02</span><b><svg class="mmi" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20L20 4M20 4h-5M20 4v5M4 4l16 16M4 4h5M4 4v5M7 20l-3 0 0-3M17 20h3v-3"/></svg>Custom games</b><small>Browse public games, join with a code, host your own, practise against bots, or build your own arena.</small></button>
-        <button class="mm" id="mCoop" type="button"><span class="mmk">03</span><b><svg class="mmi" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M12 13V7"/><circle cx="12" cy="5" r="2.5"/><circle cx="17" cy="16.5" r="1"/></svg>Co-op arcade</b><small>You and a friend (or just you) against fourteen AI duos in a row, each with its own arena and its own trick. Three continues.</small></button>
+        <button class="mm" id="mCoop" type="button"><span class="mmk">03</span><b><svg class="mmi" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M12 13V7"/><circle cx="12" cy="5" r="2.5"/><circle cx="17" cy="16.5" r="1"/></svg>Arcade</b><small>You and a friend (or just you) against fourteen AI duos in a row, each with its own arena and its own trick. Unlimited, three or no retries.</small></button>
         <button class="mm" id="mTrain" type="button"><span class="mmk">04</span><b><svg class="mmi" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2.5 9 2.5 12 0v-5M22 9v6"/></svg>Training</b></button>
         <button class="mm" id="mStore" type="button"><span class="mmk">05</span><b><svg class="mmi" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l2-5h14l2 5"/><path d="M3 9c0 2 3.5 2 3.5 0 0 2 3.5 2 3.5 0 0 2 4 2 4 0 0 2 3.5 2 3.5 0 0 2 3.5 2 3.5 0"/><path d="M5 11v9h14v-9M10 20v-5h4v5"/></svg>Store</b><em class="mmlock" id="mStoreBadge" hidden></em></button>
         <button class="mm" id="mScores" type="button"><span class="mmk">06</span><b><svg class="mmi" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v6a4 4 0 0 1-8 0z"/><path d="M8 6H4v1a4 4 0 0 0 4 4M16 6h4v1a4 4 0 0 1-4 4M12 14v4M8 21h8M9 18h6"/></svg>Highscores</b></button>
@@ -2125,25 +2131,7 @@
 
   <!-- highscores -->
   <!-- clans -->
-  <!-- the co-op arcade: one or two people against the ladder of AI duos -->
-  <div class="overlay sub" id="coopScr" hidden>
-    <div class="card wide">
-      <div class="shopbar"><div class="stat"><span class="eyebrow">Together</span><h2>Co-op arcade</h2></div><div class="btnrow" data-navsec><button class="ghost" type="button" data-back>Back</button></div></div>
-      <p class="status">Fourteen AI duos, one after another, each on an arena built for its own tactic: a colossus that body-blocks for a crossbow, two assassins who vanish together, two juggernauts who only want to bash. Beat a duo and the next is up; lose and you spend a continue (you have three). Before each battle you see what the duo brings, then choose your archetype and all three upgrades. On your own you get a handicap in your favour.</p>
-      <div class="archrow coopdiff"><span class="lbl">Difficulty</span><div class="field" data-navsec><input type="range" id="coopLevel" min="1" max="10" step="1" value="5"><output id="coopLevelOut"></output></div></div>
-      <p class="status" id="coopDiffNote"></p>
-      <div class="archrow"><span class="lbl">Where it runs</span><div class="chips" id="coopWhere" data-navsec></div></div>
-      <p class="status" id="coopWhereNote"></p>
-      <div class="archrow" id="coopTestRow" hidden><span class="lbl">Owner</span><div class="chips" data-navsec><button type="button" class="chip2" id="coopTest">Test mode: unlimited retries</button><button type="button" class="chip2" id="coopFlat" title="In a test run, every duo plays at the middle of the level's skill band instead of getting sharper along the ladder, so you can compare them like for like">Flat ladder: no climb</button></div></div>
-      <div class="row" data-navsec>
-        <button class="cta" type="button" id="coopStart">Start a run</button>
-        <div class="field"><label for="coopCode">Join a friend's run</label><input class="code" id="coopCode" maxlength="4" autocomplete="off" placeholder="ABCD"></div>
-        <button class="ghost" type="button" id="coopJoin">Join</button>
-      </div>
-      <p class="status">Score is kept per difficulty: on your account when you're signed in, and on this device.</p>
-      <span class="status err" id="coopErr"></span>
-    </div>
-  </div>
+  <!-- the arcade: one or two people against the ladder of AI duos -->
   <div class="contscr" id="coopCont" hidden>
     <div class="contin">
       <canvas id="contCv" width="720" height="300"></canvas>
@@ -2344,6 +2332,7 @@
         <div class="lbcol">
           <button type="button" class="lbtile lbarch" id="lbArchBtn" data-navsec><canvas id="archPrev" width="128" height="128"></canvas><span class="lbt"><small>Your archetype</small><b id="archName"></b><span class="lbsub" id="archSub"></span></span><em class="lbgo">Change</em></button>
           <div id="lbLocals" class="lptiles"></div>
+          <div class="lbset coopfr" id="lbCoopFr" data-navsec hidden></div>
           <div class="lbspec" id="lbSpecBox" data-navsec><div class="lbsh"><b>Not on a team</b><span id="lbSpecN">0</span><button class="ghost sm" id="lbSpec" type="button" hidden title="Step off your team and wait here">Move here</button></div><div class="lbsl" id="lbSpecList"></div></div>
           <div class="chatbox" id="lbChat" data-navsec hidden><div class="chatlog" id="lbChatLog"><div class="cline sys">Chat with everyone in the room here. In game, press Enter to chat.</div></div><input id="lbChatIn" maxlength="140" placeholder="Say something… (Enter to send)" autocomplete="off"></div>
         </div>
@@ -2725,7 +2714,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.43';
+const VERSION = '0.99.45';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -3254,8 +3243,8 @@ function rollMut(w) {
 }
 const OPT = k => optValue(CFG.opt, k) * mutMul(CFG.mut, k);
 // Handicap: the host can give any archer a percentage, e.g. +50% for a lone player in a 1v2.
-// It scales their health and arrow damage by that much, and their knockback resistance by half as much.
-const HANDICAPS = [-50, -40, -30, -20, -10, 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+// It scales their health by that much and their arrow damage by half as much (nothing else: not their weight, not their push).
+const HANDICAPS = Array.from({ length: 36 }, (_, i) => -50 + i * 10); // (−50% to +300%: the arcade gives a lone archer a big one against a duo)
 function setHandicap(w, id, pct) {
   const p = w.players.find(q => q.id === id);
   if (!p || !HANDICAPS.includes(+pct)) return false;
@@ -4299,14 +4288,14 @@ const enemyOf = t => (t === 'red' ? 'blue' : 'red');
 
 function applyStats(p) {
   const h = id => (p.hones && p.hones[id]) || 0;
-  const R = p.sparring ? 'plain' : p.role, is = (cond, v) => (cond ? v : 1), hc = 1 + (p.hcap || 0) / 100; // (sparring: a plain archer for training, no archetype trait)
+  const R = p.sparring ? 'plain' : p.role, is = (cond, v) => (cond ? v : 1), hc = 1 + (p.hcap || 0) / 100, hcD = 1 + (p.hcap || 0) / 200; // (handicap: full on health, half on damage) // (sparring: a plain archer for training, no archetype trait)
   // role traits (always on) and trade-off cards
   p.maxHp = 100 + (has(p, 'vital') ? 25 : 0) + 15 * h('hone_hp')
     + (R === 'juggernaut' ? 15 : 0) + (R === 'warden' ? 5 : 0) - (R === 'sniper' || R === 'ranger' ? 10 : 0)
     - (has(p, 'glass') ? 10 : 0) + (has(p, 'colossus') ? 30 : 0) - (has(p, 'cloak') ? 5 : 0) - (has(p, 'bloodpact') ? 10 : 0);
   p.maxHp = Math.round(p.maxHp * OPT('hp') * hc * (p.boss ? p.boss.hp : 1));
   if (p.hp > p.maxHp) p.hp = p.maxHp;
-  p.mass = (1 + (p.hcap || 0) / 200) * is(has(p, 'stance'), 1 / 0.5) * is(R === 'juggernaut', 1.25) * is(R === 'warden', 1.1) * is(has(p, 'colossus'), 1 / 0.65) / is(has(p, 'feather'), 1.3) / is(has(p, 'longstep'), 1.15) / is(R === 'crossbow', 0.85);
+  p.mass = is(has(p, 'stance'), 1 / 0.5) * is(R === 'juggernaut', 1.25) * is(R === 'warden', 1.1) * is(has(p, 'colossus'), 1 / 0.65) / is(has(p, 'feather'), 1.3) / is(has(p, 'longstep'), 1.15) / is(R === 'crossbow', 0.85);
   p.r = 16 * is(R === 'juggernaut', 1.1) * is(has(p, 'colossus'), 1.35) * is(!!p.boss, p.boss && p.boss.mode === 'repair' ? 0.9 : 1.18) * OPT('size'); // (repairing, it folds itself down small) // (the arcade's machine stands a size bigger)
   p.baseSpeed = 235 * (has(p, 'fleet') ? 1.1 : 1) * (1 + 0.05 * h('hone_speed')) * is(R === 'juggernaut', 0.93) * is(R === 'ranger', 1.05) * is(R === 'ninja', 1.12) * is(R === 'crossbow', 1.08)
     * is(has(p, 'colossus'), 0.9) * is(has(p, 'feather'), 1.15) * is(has(p, 'quickfeet'), 1.08) * is(!!(p.boss && p.boss.mode === 'repair'), 1.15) * OPT('mspeed');
@@ -4319,7 +4308,7 @@ function applyStats(p) {
   p.dashN = Math.min(p.dashN == null ? p.dashMaxN : p.dashN, p.dashMaxN);
   p.drawMul = (has(p, 'steady') ? 1.25 : 1) * (1 + 0.08 * h('hone_draw')) * is(R === 'trickster', 1.12) * is(R === 'ranger', 1.12) * is(R === 'sniper', 1) * mutMul(CFG.mut, 'draw');
   p.kbMul = (1 + 0.08 * h('hone_kb')) * is(R === 'trickster', 0.9) * is(has(p, 'obsidian'), 1.3) * is(has(p, 'deepshade'), 0.85);
-  p.dmgMul = hc * is(has(p, 'glass'), 1.3) * is(has(p, 'potent'), 0.85) * is(R === 'juggernaut', 0.8) * is(R === 'warden', 0.85) * is(has(p, 'unstable'), 0.92) * is(has(p, 'rip'), 0.92);
+  p.dmgMul = hcD * is(has(p, 'glass'), 1.3) * is(has(p, 'potent'), 0.85) * is(R === 'juggernaut', 0.8) * is(R === 'warden', 0.85) * is(has(p, 'unstable'), 0.92) * is(has(p, 'rip'), 0.92);
   p.abCdMul = is(R === 'trapper', 0.6) * mutMul(CFG.mut, 'abcd');
   // Crossbowman: reload time, reach and how many bolts they hold
   p.xbowReload = XBOW_RELOAD * is(has(p, 'windlass'), 0.75) * is(has(p, 'longstock'), 1.15) * is(has(p, 'tribolt'), XB3.reload) / p.drawMul;
@@ -7765,7 +7754,15 @@ function tacticGoal(w, p, T, foes, mates, dt) {
       const near = tac.mode === 'bully' ? tacP(p, 'bullyD') : tacP(p, 'unloadD');
       // a bully doesn't hop boulder to boulder: it comes straight at you, and dashes to close the ground (keeping a dash back for the bash)
       if (tac.mode === 'bully' && dT > 330 && (p.dashN >= 2 || (p.dashN > 0 && dT > 480)) && ai.dodgeCd <= 0 && dashClear(p, Math.atan2(uy, ux), 170) && Math.random() < dt * 3) { p.wantDash = true; ai.dashAim = Math.atan2(uy, ux); ai.dodgeCd = 0.7; }
-      if (dT > near * 1.3) { const c = tac.mode === 'bully' ? null : botCoverHop(p, T, dT, dt); if (c) return c; return [ux * 0.9 - uy * ai.strafe * 0.35, uy * 0.9 + ux * ai.strafe * 0.35]; }
+      if (dT > near * 1.3 && tac.mode === 'bully') {
+        // closing in on a kiter: run at where they're going, not where they are, and the two of us a little apart (a V, so
+        // backing away from one walks them towards the other or into a wall); no weave on the way in, it only costs ground
+        const lead = Math.min(0.6, dT / 600), tx = T.x + T.vx * lead, ty = T.y + T.vy * lead, a0 = Math.atan2(ty - p.y, tx - p.x);
+        const two = partner && !partner.dead && partner.ai && partner.ai.tac && partner.ai.tac.mode === 'bully', side = two ? (p.id < partner.id ? 1 : -1) : 0;
+        const a = a0 + side * clamp((dT - 200) / 900, 0, 0.35);
+        return [Math.cos(a), Math.sin(a)];
+      }
+      if (dT > near * 1.3) { const c = botCoverHop(p, T, dT, dt); if (c) return c; return [ux * 0.9 - uy * ai.strafe * 0.35, uy * 0.9 + ux * ai.strafe * 0.35]; }
       if (tac.mode === 'bully') {
         // a bash or a dash at them whenever one's there (a dash is for getting on top of people, not for getting away)
         if (dT > 60 && dT < 420 && p.dashN > 0 && (ai.bashCd || 0) <= 0 && ai.dodgeCd <= 0 && Math.random() < dt * (dT < 230 ? tacP(p, 'bashEager') : 2)) { const lead = 0.2, a = Math.atan2(T.y + T.vy * lead - p.y, T.x + T.vx * lead - p.x); if (dashClear(p, a, Math.min(dT + 40, 200))) { p.wantDash = true; ai.dashAim = a; ai.bashCd = rand(0.8, 1.6); ai.dodgeCd = 0.4; } }
@@ -8158,10 +8155,13 @@ function botThink(w, p, dt) {
   // shot is about to go (decided once per draw, a little late or a little early, not on the instant), the better the bot
   // the more often; a dash begun inside the shooter's last glance is the one that makes them miss. The shooter's lead then lands on where it would have been.
   const hookMv = ai.hookMv === w.t || ai.doomMv === w.t; // (on the way to the harpoon spot: the half second matters more than a juke; a shot actually coming still gets dodged, but the spot keeps most of its pull)
-  const juke = hookMv ? null : botJuke(w, p, foes, D, dt);
+  let juke = hookMv ? null : botJuke(w, p, foes, D, dt);
   const gapF = T && dT > botReach(p) * 0.85 && dT < botReach(T) ? outranged(p, T) : 0; // (outranged and out of our own reach: every sidestep also gains ground)
   const bully = ai.tac && ai.tac.mode === 'bully'; // (a bully's weave is a stagger on the way in, never instead of it: the goal keeps its full weight)
-  if (juke) { const jk = bully ? 0.7 : gapF > 0.3 ? 0.9 : 2, gk = bully ? 1 : 0.2; gx = juke[0] * jk + gx * gk + (gapF > 0.3 ? (T.x - p.x) / dT * 2 * gapF : 0); gy = juke[1] * jk + gy * gk + (gapF > 0.3 ? (T.y - p.y) / dT * 2 * gapF : 0); /* (weaving less and closing more) */ if (juke[2] && ai.dodgeCd <= 0 && p.dashN > 0 && lethalDist(p.x + juke[0] * 130, p.y + juke[1] * 130) > 40) { ai.dodgeCd = 0.5; p.wantDash = true; ai.dashAim = Math.atan2(juke[1], juke[0]); } }
+  // (and its juke dash goes diagonally forward: clear of the shot's line and a good stride closer, never a dash spent just going sideways)
+  const jukeA = juke && bully && T ? (() => { const a = Math.atan2(juke[1], juke[0]), t = Math.atan2(T.y - p.y, T.x - p.x), side = Math.sign(Math.sin(t - a)) || 1; return a + side * 0.8; })() : null;
+  if (juke && jukeA != null) juke = [Math.cos(jukeA), Math.sin(jukeA), juke[2]]; // (tested: dropping these dashes altogether let a kiter keep them off far more: a forward-diagonal one is a step in, not a dodge)
+  if (juke) { const jk = bully ? 0.25 : gapF > 0.3 ? 0.9 : 2, gk = bully ? 1 : 0.2; gx = juke[0] * jk + gx * gk + (gapF > 0.3 ? (T.x - p.x) / dT * 2 * gapF : 0); gy = juke[1] * jk + gy * gk + (gapF > 0.3 ? (T.y - p.y) / dT * 2 * gapF : 0); /* (weaving less and closing more) */ if (juke[2] && ai.dodgeCd <= 0 && p.dashN > 0 && lethalDist(p.x + juke[0] * 130, p.y + juke[1] * 130) > 40) { ai.dodgeCd = 0.5; p.wantDash = true; ai.dashAim = Math.atan2(juke[1], juke[0]); } }
   // --- dodge incoming enemy arrows
   ai.dodgeCd -= dt;
   if (ai.tac && ai.tac.mode === 'bully') { /* a bully doesn't dodge: it walks through */ } else if (iq >= 0.5) {
@@ -8359,13 +8359,19 @@ function botThink(w, p, dt) {
       // Void: with marks on them, a half draw already homes in; the full draw is for the finish
       if (p.element === 'void' && T.voidBy === p.id && T.voidT > w.t && (T.voidN || 0) >= 2 && es >= 0.5 && ai.want < 1 && T.hp > 25) ai.want = Math.max(ai.want, 0.6);
     }
+  } else if (ai.tac && ai.tac.mode === 'trapper' && (T.stuck > 0 || T.vine > 0) && !p.briarArmed && mates.some(m => !m.dead && m.ai && m.ai.tac)
+      && pushRisk(T.x, T.y, (T.x - p.x) / (dT || 1), (T.y - p.y) / (dT || 1), kbOn(p, T, Math.max(0.8, p.charge)), T.r) < 0.45
+      && (1 + 11 * p.charge) * (p.dmgMul || 1) * (has(p, 'deeproots') ? 1.25 : 1) * 1.25 * OPT('dmg') < T.hp) {
+    // (the trapper's root is the partner's set-up: an arrow now only knocks them out of it. Held, unless this one finishes
+    // them or throws them into a drop from here; the partner takes the shot)
+    ai.want = 1; ai.koWait = 0;
   } else if (ai.tac && (ai.tac.mode === 'finisher' || ai.tac.mode === 'trapper' || ai.tac.mode === 'rift') && heldBy(T) && p.charge >= ai.want
       && pushRisk(T.x, T.y, (T.x - p.x) / (dT || 1), (T.y - p.y) / (dT || 1), kbOn(p, T, Math.max(0.8, p.charge)), T.r) < 0.45 && Math.max(T.stuck || 0, T.vine || 0, T.frozen || 0) > 0.35 + dT / Math.max(400, shotSpeed(p, 1))
       && (w.teamPlan && w.teamPlan[p.team] && w.teamPlan[p.team].finish) && (ai.koWait = (ai.koWait || 0) + dt) < 0.55) {
     // (rooted, and no drop behind them from here: hold the full draw and walk round to where there is, while the root lasts)
     ai.want = 1;
-  } else if (p.briarArmed && p.charge >= ai.want && !clearLane(p.x, p.y, T.x, T.y, BRIAR.r) && (ai.briarHold = (ai.briarHold || 0) + dt) < 1.5) {
-    // (a bramble armed and a boulder in its lane: hold it and step round, rather than roll it into the rock)
+  } else if (p.briarArmed && p.charge >= ai.want && (!clearLane(p.x, p.y, T.x, T.y, BRIAR.r) || !clearLane(p.x, p.y, p.x + Math.cos(ai.aimA) * Math.min(dT + 40, BRIAR.range), p.y + Math.sin(ai.aimA) * Math.min(dT + 40, BRIAR.range), BRIAR.r)) && (ai.briarHold = (ai.briarHold || 0) + dt) < 4) {
+    // (a bramble armed and a boulder or wall in its lane, to them or along the aim, which leads them: hold it and step round, rather than roll it into the rock)
   } else if ((p.charge >= ai.want || (p.momT > 0.1 && p.charge >= 0.55 && has(p, 'momentum'))) && los && onTarget && T.inv <= 0 && !(has(p, 'ballista') && ai.want >= 1 && p.over < 1 && dT > 250) && !sneaking) {
     inp.draw = false; ai.briarHold = 0; ai.koWait = 0;
     ai.reload = rand(0.05, 0.3) + D.react * rand(0.8, 1.3);
@@ -8561,6 +8567,11 @@ function botAbilities(w, p, T, dT, foes, dt) {
       case 'recoil': use = !!T && dT < 190 && chg > 0.5; break;
       case 'spot': if (T && dT < 700) { p.input.tx = T.x; p.input.ty = T.y; use = true; } break;
       case 'rush': {
+        if (T && p.ai.tac && p.ai.tac.mode === 'bully' && dT >= 110 && dT < 400) { // (a bully: the rush is the way in, from as far as it carries, at where they'll be)
+          const lt = Math.min(0.45, dT / 560), a = Math.atan2(T.y + T.vy * lt - p.y, T.x + T.vx * lt - p.x), ax = Math.cos(a), ay = Math.sin(a), far = Math.min(320, dT + 60);
+          if ([0.25, 0.5, 0.75, 1].every(k => lethalDist(p.x + ax * far * k, p.y + ay * far * k) > 45) && clearLane(p.x, p.y, p.x + ax * far, p.y + ay * far, p.r)) { p.input.aim = a; p.aim = a; use = true; }
+          break;
+        }
         if (!T || dT < 110 || dT > 330 || angOff(Math.atan2(T.y - p.y, T.x - p.x), p.input.aim) > 0.2) break;
         const ax = Math.cos(p.input.aim), ay = Math.sin(p.input.aim);
         use = [80, 160, 240, 300].every(d => lethalDist(p.x + ax * d, p.y + ay * d) > 45);
@@ -9821,10 +9832,10 @@ return {
 };
 });
 </script>
-<script>window.BOWFALL_DUOS = {"roster":{"v":1,"difficulties":{"easy":{"name":"Easy","facets":[0.4,0.6],"mult":1},"normal":{"name":"Normal","facets":[0.55,0.75],"mult":1.5},"hard":{"name":"Hard","facets":[0.7,0.9],"mult":2.2},"legend":{"name":"Legend","facets":[0.85,0.97],"mult":3}},"continues":3,"duos":[{"id":"pair","name":"The Pair","map":"coop_field","effects":[],"tell":"Two rangers, nothing fancy. They pick a target and both go for it.","members":[{"name":"Wren","el":"frost","role":"ranger","ups":["quickshot","momentum","fleet"],"tac":{"mode":"focus"},"look":{"hair":2,"skin":1},"voice":"keen"},{"name":"Tally","el":"storm","role":"ranger","ups":["static","dash","quickshot"],"tac":{"mode":"focus"},"look":{"hair":5,"skin":3},"voice":"dry"}],"lv":[0.014,-0.075,-0.132]},{"id":"hearth","name":"Hearth","map":"rift","effects":["hide"],"tell":"A warden stands by the sniper, walls up the both of them and keeps them healed. The sniper does the rest from behind the wall.","members":[{"name":"Ember","el":"flame","role":"warden","ups":["wall","mend","stoke"],"tac":{"mode":"guard","shieldD":60,"wallK":1.6},"look":{"hair":1,"skin":2},"voice":"warm"},{"name":"Sable","el":"frost","role":"sniper","ups":["holdline","heavy","steady"],"tac":{"mode":"focus"},"look":{"hair":6,"skin":1},"voice":"quiet"}],"lv":[-0.077,-0.154,-0.106]},{"id":"fever","name":"Fever","map":"coop_run","effects":["gale","hide"],"tell":"Two wardens who hold the middle behind their walls. Poison and fire do the rest.","members":[{"name":"Mire","el":"poison","role":"warden","ups":["wall","mend","virulent"],"tac":{"mode":"guard","guardD":220,"wallK":1.4},"look":{"hair":3,"skin":4},"voice":"sly"},{"name":"Cinder","el":"flame","role":"warden","ups":["wall","flashpoint","stoke"],"tac":{"mode":"guard","guardD":220,"wallK":1.4},"look":{"hair":1,"skin":3},"voice":"warm"}],"lv":[-0.206,-0.168,-0.104]},{"id":"brambles","name":"Brambles","map":"coop_sinks","effects":["vigil","surge"],"tell":"The trapper roots you next to the rim; the ranger is already lining up the push.","members":[{"name":"Thistle","el":"frost","role":"trapper","ups":["trap","briar","deeproots"],"tac":{"mode":"trapper"},"look":{"hair":4,"skin":2},"voice":"dry"},{"name":"Flint","el":"stone","role":"ranger","ups":["fleet","dash","quickshot"],"tac":{"mode":"finisher"},"look":{"hair":2,"skin":5},"voice":"keen"}],"lv":[0.043,-0.083,0.022]},{"id":"wall","name":"The Wall","map":"coop_yard","effects":["vigil","bounty"],"tell":"A frost colossus stands in your face and slows you down. The crossbow behind it does the talking.","members":[{"name":"Boulder","el":"frost","role":"juggernaut","ups":["colossus","riot","stance"],"tac":{"mode":"guard","body":1,"noShove":1,"guardD":90,"tacK":1.6},"look":{"hair":0,"skin":5},"voice":"gruff"},{"name":"Nix","el":"shadow","role":"crossbow","ups":["pointblank","hairtrig","repeater"],"tac":{"mode":"behind","behindD":70},"look":{"hair":7,"skin":1},"voice":"sly"}],"boost":0.06,"solo":-0.1,"lv":[0.068,0.08,0.037]},{"id":"snares","name":"Two Snares","map":"coop_shallows","effects":["surge","hide"],"tell":"Traps everywhere and a harpoon each. Get rooted and you're dragged across the water.","members":[{"name":"Briar","el":"frost","role":"trapper","ups":["trap","harpoon","deeproots"],"tac":{"mode":"trapper"},"look":{"hair":4,"skin":3},"voice":"quiet"},{"name":"Sedge","el":"storm","role":"trapper","ups":["briar","harpoon","deeproots"],"tac":{"mode":"trapper"},"look":{"hair":3,"skin":2},"voice":"dry"}],"boost":0.06,"lv":[0.032,-0.016,0.024]},{"id":"carnival","name":"Carnival","map":"coop_gallery","effects":["quick","bounty"],"tell":"Boomerangs and fireworks off every wall, and they are always first to the power-ups.","members":[{"name":"Pip","el":"storm","role":"trickster","ups":["rocket","boomerang","static"],"tac":{"mode":"hunt"},"look":{"hair":5,"skin":1},"voice":"bright"},{"name":"Jinx","el":"flame","role":"trickster","ups":["rocket","boomerang","wildfire"],"tac":{"mode":"hunt"},"look":{"hair":1,"skin":4},"voice":"bright"}],"lv":[-0.105,0.03,-0.001]},{"id":"shadows","name":"Shadows","map":"coop_hollow","effects":["vigil"],"tell":"Two assassins vanish together and come at you from two sides. The holes are where they want you.","members":[{"name":"Vesper","el":"stone","role":"assassin","ups":["stealth","blink","ambush"],"tac":{"mode":"syncstealth"},"look":{"hair":6,"skin":4},"voice":"quiet"},{"name":"Dusk","el":"stone","role":"assassin","ups":["stealth","blink","ambush"],"tac":{"mode":"syncstealth"},"look":{"hair":6,"skin":2},"voice":"quiet"}],"solo":-0.1,"lv":[-0.265,-0.156,-0.145]},{"id":"undertow","name":"Undertow","map":"coop_drain","effects":["quick"],"tell":"The rift drags you towards the drain; the fire catches you on the way.","members":[{"name":"Null","el":"void","role":"ranger","ups":["rift","horizon","nullfield"],"tac":{"mode":"rift"},"look":{"hair":7,"skin":3},"voice":"cold"},{"name":"Spark","el":"flame","role":"trickster","ups":["wildfire","flashpoint","stoke"],"tac":{"mode":"finisher"},"look":{"hair":1,"skin":1},"voice":"bright"}],"lv":[0.045,0.048,-0.046]},{"id":"presence","name":"Presence","map":"coop_stand","effects":["vigil","hide"],"tell":"The juggernaut stands in front of the ranger and will not be moved, and its frost slows you down. The ranger's blood keeps it standing: every hit the ranger lands mends the juggernaut.","members":[{"name":"Bastion","el":"frost","role":"juggernaut","ups":["colossus","ram","riot"],"tac":{"mode":"guard","body":1,"guardD":230,"tacK":1.4},"look":{"hair":0,"skin":3},"voice":"gruff"},{"name":"Swift","el":"blood","role":"ranger","ups":["fleet","dash","transfusion"],"tac":{"mode":"behind","behindD":70,"tacK":1.4},"look":{"hair":2,"skin":1},"voice":"keen","boost":0.06}],"boost":0.06,"solo":-0.2,"lv":[0.08,0.08,0.08]},{"id":"blades","name":"Two Blades","map":"coop_maze","effects":["surge","bounty"],"tell":"Fire and ice: two ninjas who take every power-up in the dojo, then both come for one of you.","members":[{"name":"Kage","el":"flame","role":"ninja","ups":["sharpstar","swiftstep","flurry"],"tac":{"mode":"hunt"},"look":{"hair":6,"skin":2},"voice":"cold"},{"name":"Yuki","el":"frost","role":"ninja","ups":["sharpstar","swiftstep","bladeguard"],"tac":{"mode":"hunt"},"look":{"hair":4,"skin":1},"voice":"quiet"}],"solo":-0.1,"lv":[-0.2,-0.15,-0.19]},{"id":"bloodlust","name":"Bloodlust","map":"coop_quarry","effects":["gale","quick"],"tell":"Two crossbows that close in and empty everything they have. Every hit heals them.","members":[{"name":"Red","el":"blood","role":"crossbow","ups":["transfusion","frenzy","hairtrig"],"tac":{"mode":"unload"},"look":{"hair":1,"skin":2},"voice":"gruff"},{"name":"Rust","el":"blood","role":"crossbow","ups":["transfusion","frenzy","hairtrig"],"tac":{"mode":"unload"},"look":{"hair":3,"skin":5},"voice":"gruff"}],"solo":-0.12,"lv":[-0.3,-0.213,-0.3]},{"id":"battering","name":"Battering","map":"coop_pens","effects":[],"tell":"Two juggernauts who barely bother to shoot. They rush and bash you into the thorns and the holes, and heal on the spring between charges.","members":[{"name":"Ox","el":"blood","role":"juggernaut","ups":["rush","riot","colossus"],"tac":{"mode":"bully"},"look":{"hair":0,"skin":4},"voice":"gruff"},{"name":"Hail","el":"frost","role":"juggernaut","ups":["rush","riot","colossus"],"tac":{"mode":"bully"},"look":{"hair":4,"skin":1},"voice":"cold"}],"solo":-0.1,"lv":[-0.27,0,-0.07]},{"id":"longshots","name":"Long Shots","map":"coop_narrows","effects":["quick","force"],"tell":"Two snipers on the far bank, one each side. Cross the bridge and you are in both their sights.","members":[{"name":"Frost","el":"frost","role":"sniper","ups":["frostbite","volley","permafrost"],"tac":{"mode":"crossfire","bank":1},"look":{"hair":4,"skin":2},"voice":"cold"},{"name":"Ash","el":"flame","role":"sniper","ups":["pin","heavy","wildfire"],"tac":{"mode":"crossfire","bank":1},"look":{"hair":1,"skin":5},"voice":"dry"}],"lv":[0.009,-0.023,0.032]},{"id":"machine","name":"The Terminator","boss":true,"map":"coop_core","effects":[],"tell":"One machine, three builds. Get close and it grows and bashes; keep your distance and it snipes from behind a wall; in between it roots you and lines up the push. It changes every few seconds, so make it change badly.","members":[{"name":"Terminator","el":null,"role":"ranger","ups":[],"extra":[],"tac":{"mode":"focus"},"voice":"cold","boss":{"hp":[1.2,1.65]}}],"lv":[0.08,0.08,0.08]}]},"fit":{"v":1,"duos":{"pair":{"tacs":[{},{}],"pct":88,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"shadows":{"tacs":[{"stealthGap":1.2},{"stealthGap":1.2}],"pct":84,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"undertow":{"tacs":[{},{}],"pct":69,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"fever":{"tacs":[{},{}],"pct":97,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"bloodlust":{"tacs":[{"unloadD":250},{"unloadD":250}],"pct":78,"sparSk":0.93,"sk":0.85,"n":30,"at":"2026-11-10"},"carnival":{"tacs":[{},{}],"pct":53,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"battering":{"tacs":[{"bullyD":196,"bashEager":3},{"bullyD":196,"bashEager":3}],"pct":89,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"blades":{"tacs":[{"pickK":2.08},{"pickK":2.08}],"pct":75,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"brambles":{"tacs":[{"trapGap":184},{"finishD":348}],"pct":65,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"hearth":{"tacs":[{},{}],"pct":98,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"longshots":{"tacs":[{"cross":1.35},{"cross":1.35}],"pct":72,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"wall":{"tacs":[{"tacK":1.86},{}],"pct":62,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"presence":{"tacs":[{},{"tacK":1.12,"wallK":1}],"pct":44,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"snares":{"tacs":[{"waterK":1},{"waterK":1}],"pct":53,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"}}}};</script>
+<script>window.BOWFALL_DUOS = {"roster":{"v":1,"difficulties":{"easy":{"name":"Easy","facets":[0.4,0.6],"mult":1},"normal":{"name":"Normal","facets":[0.55,0.75],"mult":1.5},"hard":{"name":"Hard","facets":[0.7,0.9],"mult":2.2},"legend":{"name":"Legend","facets":[0.85,0.97],"mult":3}},"continues":3,"duos":[{"id":"pair","name":"The Pair","map":"coop_field","effects":[],"tell":"Two rangers, nothing fancy. They pick a target and both go for it.","members":[{"name":"Wren","el":"frost","role":"ranger","ups":["quickshot","momentum","fleet"],"tac":{"mode":"focus"},"look":{"hair":2,"skin":1},"voice":"keen"},{"name":"Tally","el":"storm","role":"ranger","ups":["static","dash","quickshot"],"tac":{"mode":"focus"},"look":{"hair":5,"skin":3},"voice":"dry"}],"lv":[0.014,-0.075,-0.132]},{"id":"hearth","name":"Hearth","map":"rift","effects":["hide"],"tell":"A warden stands by the sniper, walls up the both of them and keeps them healed. The sniper does the rest from behind the wall.","members":[{"name":"Ember","el":"flame","role":"warden","ups":["wall","mend","stoke"],"tac":{"mode":"guard","shieldD":60,"wallK":1.6},"look":{"hair":1,"skin":2},"voice":"warm"},{"name":"Sable","el":"frost","role":"sniper","ups":["holdline","heavy","steady"],"tac":{"mode":"focus"},"look":{"hair":6,"skin":1},"voice":"quiet"}],"lv":[-0.077,-0.154,-0.106]},{"id":"fever","name":"Fever","map":"coop_run","effects":["gale","hide"],"tell":"Two wardens who hold the middle behind their walls. Poison and fire do the rest.","members":[{"name":"Mire","el":"poison","role":"warden","ups":["wall","mend","virulent"],"tac":{"mode":"guard","guardD":220,"wallK":1.4},"look":{"hair":3,"skin":4},"voice":"sly"},{"name":"Cinder","el":"flame","role":"warden","ups":["wall","flashpoint","stoke"],"tac":{"mode":"guard","guardD":220,"wallK":1.4},"look":{"hair":1,"skin":3},"voice":"warm"}],"lv":[-0.206,-0.168,-0.104]},{"id":"brambles","name":"Brambles","map":"coop_sinks","effects":["vigil","surge"],"tell":"The trapper roots you next to the rim; the ranger is already lining up the push.","members":[{"name":"Thistle","el":"frost","role":"trapper","ups":["trap","briar","deeproots"],"tac":{"mode":"trapper"},"look":{"hair":4,"skin":2},"voice":"dry"},{"name":"Flint","el":"stone","role":"ranger","ups":["fleet","dash","quickshot"],"tac":{"mode":"finisher"},"look":{"hair":2,"skin":5},"voice":"keen"}],"lv":[0.043,-0.083,0.022],"boost":-0.33},{"id":"wall","name":"The Wall","map":"coop_yard","effects":["vigil","bounty"],"tell":"A frost colossus stands in your face and slows you down. The crossbow behind it does the talking.","members":[{"name":"Boulder","el":"frost","role":"juggernaut","ups":["colossus","riot","stance"],"tac":{"mode":"guard","body":1,"noShove":1,"guardD":90,"tacK":1.6},"look":{"hair":0,"skin":5},"voice":"gruff"},{"name":"Nix","el":"shadow","role":"crossbow","ups":["pointblank","hairtrig","repeater"],"tac":{"mode":"behind","behindD":70},"look":{"hair":7,"skin":1},"voice":"sly"}],"boost":-0.21,"lv":[0.068,0.08,0.037]},{"id":"snares","name":"Two Snares","map":"coop_shallows","effects":["surge","hide"],"tell":"Traps everywhere and a harpoon each. Get rooted and you're dragged across the water.","members":[{"name":"Briar","el":"frost","role":"trapper","ups":["trap","harpoon","deeproots"],"tac":{"mode":"trapper"},"look":{"hair":4,"skin":3},"voice":"quiet"},{"name":"Sedge","el":"storm","role":"trapper","ups":["briar","harpoon","deeproots"],"tac":{"mode":"trapper"},"look":{"hair":3,"skin":2},"voice":"dry"}],"boost":-0.2,"lv":[0.032,-0.016,0.024]},{"id":"carnival","name":"Carnival","map":"coop_gallery","effects":["quick","bounty"],"tell":"Boomerangs and fireworks off every wall, and they are always first to the power-ups.","members":[{"name":"Pip","el":"storm","role":"trickster","ups":["rocket","boomerang","static"],"tac":{"mode":"hunt"},"look":{"hair":5,"skin":1},"voice":"bright"},{"name":"Jinx","el":"flame","role":"trickster","ups":["rocket","boomerang","wildfire"],"tac":{"mode":"hunt"},"look":{"hair":1,"skin":4},"voice":"bright"}],"lv":[-0.105,0.03,-0.001]},{"id":"shadows","name":"Shadows","map":"coop_hollow","effects":["vigil"],"tell":"Two assassins vanish together and come at you from two sides. The holes are where they want you.","members":[{"name":"Vesper","el":"stone","role":"assassin","ups":["stealth","blink","ambush"],"tac":{"mode":"syncstealth"},"look":{"hair":6,"skin":4},"voice":"quiet"},{"name":"Dusk","el":"stone","role":"assassin","ups":["stealth","blink","ambush"],"tac":{"mode":"syncstealth"},"look":{"hair":6,"skin":2},"voice":"quiet"}],"lv":[-0.265,-0.156,-0.145],"boost":-0.4},{"id":"undertow","name":"Undertow","map":"coop_drain","effects":["quick"],"tell":"The rift drags you towards the drain; the fire catches you on the way.","members":[{"name":"Null","el":"void","role":"ranger","ups":["rift","horizon","nullfield"],"tac":{"mode":"rift"},"look":{"hair":7,"skin":3},"voice":"cold"},{"name":"Spark","el":"flame","role":"trickster","ups":["wildfire","flashpoint","stoke"],"tac":{"mode":"finisher"},"look":{"hair":1,"skin":1},"voice":"bright"}],"lv":[0.045,0.048,-0.046]},{"id":"presence","name":"Presence","map":"coop_stand","effects":["vigil","hide"],"tell":"The juggernaut stands in front of the ranger and will not be moved, and its frost slows you down. The ranger's blood keeps it standing: every hit the ranger lands mends the juggernaut.","members":[{"name":"Bastion","el":"frost","role":"juggernaut","ups":["colossus","ram","riot"],"tac":{"mode":"guard","body":1,"guardD":230,"tacK":1.4},"look":{"hair":0,"skin":3},"voice":"gruff"},{"name":"Swift","el":"blood","role":"ranger","ups":["fleet","dash","transfusion"],"tac":{"mode":"behind","behindD":70,"tacK":1.4},"look":{"hair":2,"skin":1},"voice":"keen","boost":0.06}],"boost":-0.21,"lv":[0.08,0.08,0.08]},{"id":"blades","name":"Two Blades","map":"coop_maze","effects":["surge","bounty"],"tell":"Fire and ice: two ninjas who take every power-up in the dojo, then both come for one of you.","members":[{"name":"Kage","el":"flame","role":"ninja","ups":["sharpstar","swiftstep","flurry"],"tac":{"mode":"hunt"},"look":{"hair":6,"skin":2},"voice":"cold"},{"name":"Yuki","el":"frost","role":"ninja","ups":["sharpstar","swiftstep","bladeguard"],"tac":{"mode":"hunt"},"look":{"hair":4,"skin":1},"voice":"quiet"}],"lv":[-0.2,-0.15,-0.19]},{"id":"bloodlust","name":"Bloodlust","map":"coop_quarry","effects":["gale","quick"],"tell":"Two crossbows that close in and empty everything they have. Every hit heals them.","members":[{"name":"Red","el":"blood","role":"crossbow","ups":["transfusion","frenzy","hairtrig"],"tac":{"mode":"unload"},"look":{"hair":1,"skin":2},"voice":"gruff"},{"name":"Rust","el":"blood","role":"crossbow","ups":["transfusion","frenzy","hairtrig"],"tac":{"mode":"unload"},"look":{"hair":3,"skin":5},"voice":"gruff"}],"lv":[-0.3,-0.213,-0.3]},{"id":"battering","name":"Battering","map":"coop_pens","effects":[],"tell":"Two juggernauts who barely bother to shoot. They rush and bash you into the thorns and the holes, and heal on the spring between charges.","members":[{"name":"Ox","el":"blood","role":"juggernaut","ups":["rush","riot","colossus"],"tac":{"mode":"bully"},"look":{"hair":0,"skin":4},"voice":"gruff"},{"name":"Hail","el":"frost","role":"juggernaut","ups":["rush","riot","colossus"],"tac":{"mode":"bully"},"look":{"hair":4,"skin":1},"voice":"cold"}],"lv":[-0.27,0,-0.07]},{"id":"longshots","name":"Long Shots","map":"coop_narrows","effects":["quick","force"],"tell":"Two snipers on the far bank, one each side. Cross the bridge and you are in both their sights.","members":[{"name":"Frost","el":"frost","role":"sniper","ups":["frostbite","volley","permafrost"],"tac":{"mode":"crossfire","bank":1},"look":{"hair":4,"skin":2},"voice":"cold"},{"name":"Ash","el":"flame","role":"sniper","ups":["pin","heavy","wildfire"],"tac":{"mode":"crossfire","bank":1},"look":{"hair":1,"skin":5},"voice":"dry"}],"lv":[0.009,-0.023,0.032],"boost":-0.13},{"id":"machine","name":"The Terminator","boss":true,"map":"coop_core","effects":[],"tell":"One machine, three builds. Get close and it grows and bashes; keep your distance and it snipes from behind a wall; in between it roots you and lines up the push. It changes every few seconds, so make it change badly.","members":[{"name":"Terminator","el":null,"role":"ranger","ups":[],"extra":[],"tac":{"mode":"focus"},"voice":"cold","boss":{"hp":[1.4,1.65]}}],"lv":[0.08,0.08,0.08]}]},"fit":{"v":1,"duos":{"pair":{"tacs":[{},{}],"pct":88,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"shadows":{"tacs":[{"stealthGap":1.2},{"stealthGap":1.2}],"pct":84,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"undertow":{"tacs":[{},{}],"pct":69,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"fever":{"tacs":[{},{}],"pct":97,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"bloodlust":{"tacs":[{"unloadD":250},{"unloadD":250}],"pct":78,"sparSk":0.93,"sk":0.85,"n":30,"at":"2026-11-10"},"carnival":{"tacs":[{},{}],"pct":53,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"battering":{"tacs":[{"bullyD":196,"bashEager":3},{"bullyD":196,"bashEager":3}],"pct":89,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"blades":{"tacs":[{"pickK":2.08},{"pickK":2.08}],"pct":75,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"brambles":{"tacs":[{"trapGap":184},{"finishD":348}],"pct":65,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"hearth":{"tacs":[{},{}],"pct":98,"sparSk":0.99,"sk":0.85,"n":30,"at":"2026-11-10"},"longshots":{"tacs":[{"cross":1.35},{"cross":1.35}],"pct":72,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"wall":{"tacs":[{"tacK":1.86},{}],"pct":62,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"presence":{"tacs":[{},{"tacK":1.12,"wallK":1}],"pct":44,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"},"snares":{"tacs":[{"waterK":1},{"waterK":1}],"pct":53,"sparSk":0.9,"sk":0.85,"n":30,"at":"2026-11-10"}}}};</script>
 <script>
-// The co-op arcade: a team of people (one or two) against a ladder of fourteen AI duos, each with its own arena, map effects
-// and a tactic that is the whole point of the fight. A run has three continues. Everyone picks their archetype and all three
+// The arcade: a team of people (one or two) against a ladder of fourteen AI duos, each with its own arena, map effects
+// and a tactic that is the whole point of the fight. A run has unlimited, three or no continues (the host's choice). Everyone picks their archetype and all three
 // upgrades before each battle; battles are best of three games.
 // Shared by the server (a run online, with a friend: lib/coop.js) and the page (a run on this device: solo, or with players on
 // controllers). A "room" is { world, clients: Set of { cid, pid, name, user, watch }, host: cid, coop }; ctx says how to tell
@@ -9835,13 +9846,20 @@ function coopFactory(ctx) {
   const ROSTER = ctx.roster, FIT = ctx.fit && ctx.fit.duos ? ctx.fit : { duos: {} };
   const DUOS = ROSTER.duos, CONTINUES = ROSTER.continues || 3;
   // difficulty: a level from 1 to 10. The duos' skill band rises with it (level 2 is the old Easy, 5 Normal, 7 Hard, 10 Legend),
-  // and so does the score; the handicap you get when you're on your own shrinks from +80% to +50% (the level's +50% to +20%, plus SOLO_HCAP)
+  // and so does the score
   const LEVELS = 10, OLD = { easy: 2, normal: 5, hard: 7, legend: 10 };
   const levelOf = v => { const n = typeof v === 'string' && OLD[v] ? OLD[v] : Math.round(+v); return n >= 1 && n <= LEVELS ? n : 5; };
-  const DIFF = L => { const k = (L - 1) / (LEVELS - 1); return { level: L, name: L <= 3 ? 'Easy' : L <= 6 ? 'Normal' : L <= 8 ? 'Hard' : 'Legend', facets: [0.35 + 0.5 * k, 0.55 + 0.43 * k], mult: +(1 + 0.25 * (L - 1)).toFixed(2), hcap: Math.round((50 - 30 * k) / 10) * 10 }; };
-  // one against two: the duo plays a step softer and the person carries more health and weight on top of the level's handicap
-  // (a duo's own `solo` adds to this: the ones whose whole idea is ganging up on one archer)
-  const SOLO_SK = -0.08, SOLO_HCAP = 30;
+  const DIFF = L => { const k = (L - 1) / (LEVELS - 1); return { level: L, name: L <= 3 ? 'Easy' : L <= 6 ? 'Normal' : L <= 8 ? 'Hard' : 'Legend', facets: [0.35 + 0.5 * k, 0.55 + 0.43 * k], mult: +(1 + 0.25 * (L - 1)).toFixed(2) }; };
+  // one against two: the duos play exactly as they do against two of you; you get a handicap instead (full on health, half
+  // on damage), one number for every duo and every level. Worked out with bots, duo by duo: a lone archer of the duo's own
+  // skill, the handicap nudged until it won about half its battles (the win rate barely moves with the level). Most duos
+  // needed +150% to +220%; this is about their average (all fourteen at it: from 34% to 65%, 47% on average at +180%, so a step more). Six whose plan is holding you still and pushing you in (Brambles, Presence,
+  // Shadows, Two Snares, Long Shots, The Wall) couldn't be evened out by health at any handicap, so they play a little softer
+  // all round instead (their `boost` in lib/duos.json), fitted to about half at this handicap
+  const SOLO_HCAP = 190;
+  // retries: unlimited (nothing goes on the scoreboard), three continues, or none at all (every win is worth half again)
+  const RETRY = { unl: 'Unlimited retries', lim: CONTINUES + ' continues', none: 'No retries' }, retryOf = v => RETRY[v] ? v : 'lim';
+  const endless = C => !!(C.test || C.retry === 'unl');
   // each duo's own adjustment by level (lv: skill added at levels 2, 5 and 8, in between by straight lines, flat beyond), fitted
   // so that every duo beats a pair of ordinary bots of its own skill about as often as the others do, at every level (tools/duo-level.js)
   const lvOff = (d, L) => { const a = d.lv; if (!Array.isArray(a) || a.length !== 3) return 0; return L <= 2 ? a[0] : L <= 5 ? a[0] + (a[1] - a[0]) * (L - 2) / 3 : L <= 8 ? a[1] + (a[2] - a[1]) * (L - 5) / 3 : a[2]; };
@@ -9860,8 +9878,8 @@ function coopFactory(ctx) {
   function info(room) {
     const C = room.coop; if (!C) return undefined;
     const d = duoAt(C.idx);
-    return { st: C.st, run: C.startedAt, flat: C.flat ? 1 : undefined, diff: C.diff, diffName: DIFF(C.diff).name, tot: C.st === 'done' ? C.tot : undefined, sweeps: C.sweeps || 0, used: C.used || 0, idx: C.idx, n: N(), lives: C.lives, score: C.score, solo: C.solo ? 1 : 0, beaten: C.beaten, fights: C.fights, paused: C.paused || undefined, test: C.test ? 1 : undefined,
-      cont: C.st === 'lost' && !C.test ? Math.max(0, CONT_WAIT - (Date.now() - C.cardAt) / 1000) : undefined,
+    return { st: C.st, retry: C.retry, retryName: RETRY[C.retry], hcap: SOLO_HCAP, run: C.startedAt, flat: C.flat ? 1 : undefined, diff: C.diff, diffName: DIFF(C.diff).name, tot: C.st === 'done' ? C.tot : undefined, sweeps: C.sweeps || 0, used: C.used || 0, idx: C.idx, n: N(), lives: C.lives, score: C.score, solo: (C.st === 'setup' ? humansOf(room).length <= 1 : C.solo) ? 1 : 0, beaten: C.beaten, fights: C.fights, paused: C.paused || undefined, test: C.test ? 1 : undefined,
+      cont: C.st === 'lost' && !endless(C) ? Math.max(0, CONT_WAIT - (Date.now() - C.cardAt) / 1000) : undefined,
       duo: { id: d.id, name: d.name, boss: d.boss ? 1 : undefined, tell: d.tell, map: d.map, mapName: Sim.MAPS[d.map] ? Sim.MAPS[d.map].name : d.map, effects: d.effects, members: d.members.map(m => ({ name: m.name, el: m.el, ro: m.role, ups: m.ups })) },
       ready: [...C.ready], picks: Object.fromEntries([...C.picks].map(([cid, v]) => [cid, v])), result: C.result || undefined, best: C.best || undefined };
   }
@@ -9888,7 +9906,7 @@ function coopFactory(ctx) {
       b.name = m.name; b.coopDuo = true; Sim.setLoadout(w, b.id, m.el, m.role); b.forceUp = m.ups.slice();
       // their skill: the difficulty's band, rising with the place on the ladder (whoever you meet first is the gentlest, whoever
       // you meet last the sharpest), the second member a touch sharper; team sense always full (the tactic depends on it)
-      const k = C.flat ? 0.5 : N() > 1 ? C.idx / (N() - 1) : 1, f = Math.min(1, D.facets[0] + (D.facets[1] - D.facets[0]) * k + 0.02 * i + (d.boost || 0) + (m.boost || 0) + lvOff(d, C.diff) + (humansOf(room).length <= 1 ? SOLO_SK + (d.solo || 0) : 0)); // (solo: a duo that's harder one against two plays a touch softer) // (boost: a duo whose tactic costs it firepower plays a touch sharper)
+      const k = C.flat ? 0.5 : N() > 1 ? C.idx / (N() - 1) : 1, f = Math.min(1, D.facets[0] + (D.facets[1] - D.facets[0]) * k + 0.02 * i + (d.boost || 0) + (m.boost || 0) + lvOff(d, C.diff) + 0); // (boost: a duo whose tactic costs it firepower plays a touch sharper)
       if (m.boss) { // the machine: the top of the band and past it, inhuman at dodging, more health against two of you
         // (a hard fight, not an impossible one: the middle of the difficulty's band and a little more, sharper feet than eye)
         // (the hardest fight of the run: the top of the difficulty's band and a step past it, sharper feet than eye)
@@ -9917,7 +9935,7 @@ function coopFactory(ctx) {
       Sim.setTeam(w, p.id, 'red');
       const picks = C.picks.get(c.cid) || [];
       p.forceUp = picks.filter(id => Sim.TREE[id]).slice(0, 3);
-      Sim.setHandicap(w, p.id, C.solo ? DIFF(C.diff).hcap + SOLO_HCAP : 0);
+      Sim.setHandicap(w, p.id, C.solo ? SOLO_HCAP : 0);
     }
     if (!Sim.startMatch(w)) { sysChat(room, 'Could not start the battle.'); return; }
     C.st = 'play'; C.fights++; C.fightAt = Date.now();
@@ -9933,9 +9951,9 @@ function coopFactory(ctx) {
     for (const c of humansOf(room)) { const p = w.players.find(q => q.id === c.pid); if (!p) continue; T.k += p.kills || 0; T.ring += p.stats.ring || 0; T.sh += p.stats.shots || 0; T.hi += p.stats.hits || 0; T.dmg += p.stats.dmg || 0; T.taken += p.stats.taken || 0; T.far = Math.max(T.far, p.stats.longest || 0); }
     T.games += (w.match.gw.red || 0) + (w.match.gw.blue || 0); T.gw += w.match.gw.red || 0; T.secs += Math.max(0, (Date.now() - (C.fightAt || Date.now())) / 1000);
     if (won && w.match.gw.blue === 0) C.sweeps = (C.sweeps || 0) + 1;
-    if (!won && !C.test) C.used = (C.used || 0) + 1;
+    if (!won && !endless(C)) C.used = (C.used || 0) + 1;
     if (won) {
-      const pts = Math.round(BASE_SCORE * D.mult * (d.boss ? 3 : 1) * (w.match.gw.blue === 0 ? 1.25 : 1)); // (a clean sweep is worth a quarter more; the machine three duos)
+      const pts = Math.round(BASE_SCORE * D.mult * (d.boss ? 3 : 1) * (w.match.gw.blue === 0 ? 1.25 : 1) * (C.retry === 'none' ? 1.5 : 1)); // (a clean sweep is worth a quarter more; the machine three duos; no retries half again)
       C.score += pts; C.beaten = Math.max(C.beaten, C.idx + 1);
       C.result = { won: 1, pts, duo: d.name, last: C.idx + 1 >= N() };
       const say = d.members[Math.floor(Math.random() * d.members.length)]; chat(room, say, LINES.lost[say.voice] || LINES.lost.dry);
@@ -9943,11 +9961,11 @@ function coopFactory(ctx) {
       if (C.idx + 1 >= N()) { C.st = 'done'; sysChat(room, `The ladder is clear on ${D.name}! Final score ${C.score}.`); record(room, true); }
       else { C.st = 'won'; C.idx++; }
     } else {
-      if (!C.test) C.lives--;
+      if (!endless(C)) C.lives--;
       const say = d.members[Math.floor(Math.random() * d.members.length)]; chat(room, say, LINES.won[say.voice] || LINES.won.dry);
       C.result = { won: 0, duo: d.name, lives: C.lives };
-      if (C.lives < 0) { C.st = 'done'; sysChat(room, `No continues left. The run ends at ${d.name}, ${C.beaten} of ${N()} beaten, score ${C.score}.`); record(room, false); }
-      else { C.st = 'lost'; sysChat(room, C.test ? `${d.name} win this one. Test mode: try again as often as you like.` : `${d.name} win${d.boss ? 's' : ''} this one. Continue? ${C.lives} left.`); }
+      if (C.lives < 0) { C.st = 'done'; sysChat(room, `${C.retry === 'none' ? 'No retries on this run.' : 'No continues left.'} The run ends at ${d.name}, ${C.beaten} of ${N()} beaten, score ${C.score}.`); record(room, false); }
+      else { C.st = 'lost'; sysChat(room, endless(C) ? `${d.name} win${d.boss ? 's' : ''} this one. Try again as often as you like.` : `${d.name} win${d.boss ? 's' : ''} this one. Continue? ${C.lives} left.`); }
     }
     C.cardAt = Date.now();
     sendRoom(room);
@@ -9955,7 +9973,7 @@ function coopFactory(ctx) {
   // the run in people's records: best score on each difficulty, and the furthest duo reached
   function record(room, cleared) {
     const C = room.coop;
-    if (C.test) return; // (test runs don't count)
+    if (endless(C)) return; // (test runs and unlimited retries don't go on the scoreboard)
     if (ctx.record) return ctx.record(room, C, cleared); // (the page keeps its own, and tells the server when signed in)
     for (const c of humansOf(room)) {
       const u = c.user || c.guest; if (!u) continue;
@@ -10022,7 +10040,7 @@ function coopFactory(ctx) {
     if (C.st === 'play' && w.match.ph === 'over') settle(room);
     else if (C.st === 'done' && w.match.ph !== 'lobby' && Date.now() - (C.doneAt != null ? C.doneAt : C.cardAt) > 6000) { Sim.toLobby(w); sendRoom(room); } // (the run's over: back to the lobby for the final card)
     else if (C.st === 'won' && Date.now() - C.cardAt > CARD_WAIT * 1000) brief(room);
-    else if (C.st === 'lost' && !C.test && Date.now() - C.cardAt > CONT_WAIT * 1000) { // nobody took the continue: that's the run
+    else if (C.st === 'lost' && (C.over || (!endless(C) && Date.now() - C.cardAt > CONT_WAIT * 1000))) { // nobody took the continue: that's the run
       const d = duoAt(C.idx); C.st = 'done'; C.doneAt = 0; C.result = { won: 0, duo: d.name, lives: C.lives, gaveUp: 1 };
       sysChat(room, `The run ends at ${d.name}: ${C.beaten} of ${N()} beaten, score ${C.score}.`); record(room, false); sendRoom(room);
     }
@@ -10033,18 +10051,32 @@ function coopFactory(ctx) {
     const w = room.world, C = room.coop, isHost = room.host === ws.cid;
     const tell = msg => send(ws, { t: 'note', msg });
     switch (String(m.op)) {
+      case 'setup': case 'cfg': { // the run's setup, before it starts: difficulty and retries, friends joining, then Start
+        if (!isHost) return;
+        if (room.ranked || w.match.ph !== 'lobby') return;
+        if (m.op === 'cfg' && (!C || C.st !== 'setup')) return;
+        const S = m.op === 'setup' || !C ? (cur = room.coop = { st: 'setup', idx: 0, lives: CONTINUES, score: 0, beaten: 0, fights: 0, ready: new Set(), picks: new Map(), order: shuffled(), startedAt: 0, diff: 5, retry: 'lim' }) : C;
+        if (m.diff != null) S.diff = levelOf(m.diff);
+        if (m.retry != null) S.retry = retryOf(String(m.retry));
+        S.test = !!m.test && isOwner(ws.user); S.flat = S.test && !!m.flat;
+        if (m.op === 'setup') { for (const p of w.players.filter(q => q.bot)) Sim.removeBot(w, p.id); for (const c of humansOf(room)) Sim.setTeam(w, c.pid, 'red'); }
+        S.solo = humansOf(room).length <= 1;
+        sendRoom(room);
+        return;
+      }
       case 'start': {
         if (!isHost) return tell('Only the host can start a run.');
         if (room.ranked) return tell('Not in a ranked match.');
         if (w.match.ph !== 'lobby') return tell('Wait for this game to end.');
-        const diff = levelOf(m.diff);
+        const was = C && C.st === 'setup' ? C : null;
+        const diff = levelOf(m.diff != null ? m.diff : was ? was.diff : 5), retry = retryOf(String(m.retry != null ? m.retry : was ? was.retry : 'lim'));
         const hum = humansOf(room);
         if (!hum.length || hum.length > 2) return tell('The arcade is for one or two archers.');
         for (const c of [...room.clients]) if (c.pid && c.watch) { Sim.leave(w, c.pid, true); c.pid = null; send(c, { t: 'you', id: null }); }
-        const test = !!m.test && isOwner(ws.user); // (the owner's test runs: no end to the retries, nothing recorded)
-        const flat = test && !!m.flat; // (and, if asked, a flat ladder: every duo at the middle of the level's band, to compare them like for like)
-        cur = room.coop = { diff, idx: 0, lives: CONTINUES, score: 0, beaten: 0, fights: 0, st: 'brief', ready: new Set(), picks: new Map(), solo: hum.length === 1, startedAt: Date.now(), order: shuffled(), test, flat };
-        sysChat(room, `Co-op arcade, ${DIFF(diff).name} (level ${diff}): ${N() - (BOSS ? 1 : 0)} duos in a new order, then the machine. ${test ? 'Test mode: unlimited retries' + (flat ? ', every duo at the same skill (no climb).' : '.') : CONTINUES + ' continues.'} Choose your archetype and three upgrades before each battle.`);
+        const test = (m.test != null ? !!m.test : !!(was && was.test)) && isOwner(ws.user); // (the owner's test runs: no end to the retries, nothing recorded)
+        const flat = test && (m.flat != null ? !!m.flat : !!(was && was.flat)); // (and, if asked, a flat ladder: every duo at the middle of the level's band, to compare them like for like)
+        cur = room.coop = { diff, retry, idx: 0, lives: retry === 'lim' ? CONTINUES : 0, score: 0, beaten: 0, fights: 0, st: 'brief', ready: new Set(), picks: new Map(), solo: hum.length === 1, startedAt: Date.now(), order: shuffled(), test, flat };
+        sysChat(room, `Arcade, ${DIFF(diff).name} (level ${diff}): ${N() - (BOSS ? 1 : 0)} duos in a new order, then the machine. ${test ? 'Test mode: unlimited retries' + (flat ? ', every duo at the same skill (no climb).' : '.') : retry === 'unl' ? 'Unlimited retries (this run stays off the scoreboard).' : retry === 'none' ? 'No retries: one loss ends it, and every win is worth half again.' : CONTINUES + ' continues.'}${hum.length === 1 ? ' On your own: +' + SOLO_HCAP + '% health and +' + SOLO_HCAP / 2 + '% damage, the same against every duo at every difficulty.' : ''} Choose your archetype and three upgrades before each battle.`);
         brief(room);
         return;
       }
@@ -10065,7 +10097,7 @@ function coopFactory(ctx) {
       case 'pause': if (C && ws.pid && C.st === 'play' && !C.paused) { C.paused = ws.name; sysChat(room, `${ws.name} paused the battle.`); sendRoom(room); } return;
       case 'resume': if (C && C.paused && (C.paused === ws.name || isHost)) { C.paused = null; sysChat(room, 'On with it.'); sendRoom(room); } return;
       case 'next': if (C && ((C.st === 'won' && isHost) || (C.st === 'lost' && ws.pid))) brief(room); return; // (anyone playing can take the continue)
-      case 'giveup': if (C && C.st === 'lost' && isHost) { C.cardAt = 0; C.test = false; tick(room); } return;
+      case 'giveup': if (C && C.st === 'lost' && isHost) { C.cardAt = 0; C.over = true; tick(room); } return;
       case 'skip': { // the owner, for testing: forward or back a duo
         if (!C || !isOwner(ws.user)) return;
         if (w.match.ph !== 'lobby' && C.st === 'play') { Sim.toLobby(w); }
@@ -10073,13 +10105,13 @@ function coopFactory(ctx) {
         brief(room);
         return;
       }
-      case 'quit': if (C && isHost) { sysChat(room, `The run ends: ${C.beaten} of ${N()} beaten, score ${C.score}.`); if (C.fights) record(room, false); endRun(room); } return;
+      case 'quit': if (C && isHost && C.st === 'setup') { endRun(room); return; } if (C && isHost) { sysChat(room, `The run ends: ${C.beaten} of ${N()} beaten, score ${C.score}.`); if (C.fights) record(room, false); const keep = { diff: C.diff, retry: C.retry, test: C.test, flat: C.flat }; endRun(room); handle(room, ws, Object.assign({ op: 'setup' }, keep)); } return; // (back to the setup, with the same settings, for another go)
       default: return;
     }
   }
   // someone leaving mid-run: a run with nobody left in it ends; in a two-person run the other carries on alone (with the solo handicap next battle)
-  function left(room) { const C = room.coop; if (!C) return; if (!humansOf(room).length) endRun(room); else if (C.paused && !humansOf(room).some(c => c.name === C.paused)) { C.paused = null; sendRoom(room); } }
-  return { handle: (room, ws, m) => { cur = room.coop; return handle(room, ws, m); }, tick: room => { cur = room.coop; return tick(room); }, info: room => { cur = room.coop; return info(room); }, events: (room, evs) => { cur = room.coop; return events(room, evs); }, left: room => { cur = room.coop; return left(room); }, endRun: room => { cur = room.coop; return endRun(room); }, DUOS, DIFFS, CONTINUES };
+  function left(room) { const C = room.coop; if (!C) return; if (C.st === 'setup') C.solo = humansOf(room).length <= 1; if (!humansOf(room).length) endRun(room); else if (C.paused && !humansOf(room).some(c => c.name === C.paused)) { C.paused = null; sendRoom(room); } }
+  return { handle: (room, ws, m) => { cur = room.coop; return handle(room, ws, m); }, tick: room => { cur = room.coop; return tick(room); }, info: room => { cur = room.coop; return info(room); }, events: (room, evs) => { cur = room.coop; return events(room, evs); }, left: room => { cur = room.coop; return left(room); }, endRun: room => { cur = room.coop; return endRun(room); }, DUOS, DIFFS, CONTINUES, SOLO_HCAP, RETRY };
 }
 if (typeof module !== 'undefined' && module.exports) module.exports = coopFactory; else root.CoopLadder = coopFactory;
 })(typeof window !== 'undefined' ? window : this);
@@ -10092,7 +10124,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.99.43';
+const PAGE_VERSION = '0.99.45';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -11054,7 +11086,7 @@ function pollPad() {
 // ---- controller in the menus: move a highlight between buttons with the D-pad or left stick, A to press, B to go back
 // (popups that ask something of you, like a party invite or a player's card, come before the screen they're over; the
 // bars along the bottom of a game, last: spectating's Join buttons)
-const NAV_LAYERS = ['osk', 'starterScr', 'msSheet', 'pcWrap', 'inviteToast', 'dmBox', 'clipView', 'lbPop', 'gate', 'lpScr', 'draftScr', 'ctlScreen', 'helpScreen', 'achScreen', 'balScreen', 'gameMenu', 'findScr', 'customScr', 'tourScr', 'coopScr', 'clanScr', 'scoresScr', 'trainScr', 'storeScr', 'arenaScr', 'optScr', 'profScr', 'pickScreen', 'resultsScreen', 'lobby', 'home', 'specBar'];
+const NAV_LAYERS = ['osk', 'starterScr', 'msSheet', 'pcWrap', 'inviteToast', 'dmBox', 'clipView', 'lbPop', 'gate', 'lpScr', 'draftScr', 'ctlScreen', 'helpScreen', 'achScreen', 'balScreen', 'gameMenu', 'findScr', 'customScr', 'tourScr', 'clanScr', 'scoresScr', 'trainScr', 'storeScr', 'arenaScr', 'optScr', 'profScr', 'pickScreen', 'resultsScreen', 'lobby', 'home', 'specBar'];
 const NAV_SEL = 'button, select, input:not([type=hidden]), textarea, [data-map], .chip2, a[href], summary, #abCv';
 const shown = el => !!(el && !el.hidden && el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden');
 function navLayer() {
@@ -13436,9 +13468,9 @@ function connect(joinMsg) {
       m.rcv = performance.now(); roomInfo = m;
       if (m.arena && m.arena.def) useRoomArena(m.arena);
       if (pendingArena && m.amHost) { act({ t: 'cfg', arena: pendingArena }); pendingArena = null; }
-      if (COOP.pending && m.amHost) { act({ t: 'coop', op: 'start', diff: COOP.pending, test: COOP.test && coopOwner(), flat: COOP.test && COOP.flat && coopOwner() }); COOP.pending = null; }
+      if (COOP.pending && m.amHost) { act(Object.assign({ t: 'coop', op: 'setup' }, coopSetupMsg())); COOP.pending = null; for (const id of COOP.inv) { socialSend({ t: 'party', op: 'room', id, code: m.code, what: 'arcade' }); (COOP.sentInv || (COOP.sentInv = {}))[id] = 1; } COOP.inv = []; }
       if (m.coop) { const k = m.coop.idx + ':' + m.coop.st + ':' + (m.coop.fights || 0); if (COOP.key !== k) { COOP.key = k; COOP.sent = null; } } // (your picks are remembered from battle to battle)
-      $('roomTag').innerHTML = 'Room <b>' + esc(m.code) + '</b>' + (m.coop ? ` · Duo <b>${m.coop.idx + 1}/${m.coop.n}</b> · ${m.coop.lives} continue${m.coop.lives === 1 ? '' : 's'} · <b>${m.coop.score}</b>` : '');
+      $('roomTag').innerHTML = 'Room <b>' + esc(m.code) + '</b>' + (m.coop && m.coop.st === 'setup' ? ' · Arcade' : m.coop ? ` · Duo <b>${m.coop.idx + 1}/${m.coop.n}</b> · ${coopEndless(m.coop) ? 'unlimited retries' : m.coop.retry === 'none' ? 'no retries' : m.coop.lives + ' continue' + (m.coop.lives === 1 ? '' : 's')} · <b>${m.coop.score}</b>` : '');
       hc.lb = hc.gm = hc.lbHead = hc.gmHead = null;
     } else if (m.t === 'snap') {
       const at = m._at || performance.now();
@@ -14546,11 +14578,12 @@ $('dmBox').addEventListener('keydown', e => { e.stopPropagation(); if (e.key ===
 $('dmBlock').onclick = () => { const b = $('dmBlock'); if (!DM.with) return; if (b.dataset.sure) { socialSend({ t: 'friend', op: 'block', id: DM.with }); dmSelect(null); } else { b.dataset.sure = 1; b.textContent = 'Block them?'; } };
 $('dmClose').onclick = dmClose; $('dmClose2').onclick = dmClose; $('dmBack').onclick = () => dmSelect(null);
 function showInvite(m) {
-  SOC.invite = m; $('inviteText').innerHTML = `<b>${esc(m.from)}</b> invited you to their party.`; $('inviteToast').hidden = false;
+  SOC.invite = m; $('inviteText').innerHTML = m.room ? `<b>${esc(m.from)}</b> invited you to ${m.what === 'arcade' ? 'their Arcade run' : 'their game'}.` : `<b>${esc(m.from)}</b> invited you to their party.`; $('inviteToast').hidden = false;
+  $('inviteYes').textContent = m.room ? 'Join' : 'Join party';
   play('invite');
   clearTimeout(SOC.invT); SOC.invT = setTimeout(() => { $('inviteToast').hidden = true; }, 60000);
 }
-$('inviteYes').onclick = () => { if (SOC.invite) socialSend({ t: 'party', op: 'accept', party: SOC.invite.party }); $('inviteToast').hidden = true; if (mode === 'menu') openSub('findScr'); };
+$('inviteYes').onclick = () => { if (SOC.invite && SOC.invite.room) { const code = SOC.invite.room; $('inviteToast').hidden = true; if (mode === 'online' && roomInfo && roomInfo.code === code) return; if (mode !== 'menu') toMenu(); closeSubs(); connect({ code }); return; } if (SOC.invite) socialSend({ t: 'party', op: 'accept', party: SOC.invite.party }); $('inviteToast').hidden = true; if (mode === 'menu') openSub('findScr'); };
 $('inviteNo').onclick = () => { $('inviteToast').hidden = true; };
 setInterval(() => { const p = SOC.st && SOC.st.party; if (p && p.queued != null) renderFind(); }, 1000);
 // an invite link to the game itself (/play?ref=name): kept for when they make an account on the website
@@ -15084,7 +15117,7 @@ const hcapLabel = v => (v > 0 ? '+' : v < 0 ? '−' : '±') + Math.abs(v) + '%';
 function hcapHtml(p, host) {
   const v = p.hc || 0;
   if (host) { const H = Sim.HANDICAPS, i = H.indexOf(v);
-    return `<span class="hcstep${v ? ' on' : ''}${v < 0 ? ' neg' : ''}" title="Handicap: scales health and arrow damage (and knockback resistance by half as much).">` +
+    return `<span class="hcstep${v ? ' on' : ''}${v < 0 ? ' neg' : ''}" title="Handicap: scales health by the percentage and arrow damage by half as much.">` +
       `<button type="button" data-hc="${p.id}" data-hv="${H[Math.max(0, i - 1)]}"${i <= 0 ? ' disabled' : ''} aria-label="Lower handicap for ${esc(p.n)}">−</button>` +
       `<span>${v ? hcapLabel(v) : 'Handicap'}</span>` +
       `<button type="button" data-hc="${p.id}" data-hv="${H[Math.min(H.length - 1, i + 1)]}"${i >= H.length - 1 ? ' disabled' : ''} aria-label="Raise handicap for ${esc(p.n)}">+</button></span>`; }
@@ -15115,6 +15148,7 @@ function teamsHtml(v, ro) {
       (p.id === myId ? '<span class="tag you">You</span>' : '') + (p.id === hostId && mode === 'online' ? '<span class="tag">Host</span>' : '') +
       (p.b && !ranked && !coop ? (p.dv && host ? botSkillHtml(p) : `<span class="tag">${p.dv ? esc(BOT_SKILL[p.dv] || 'Bot') : 'Bot'}</span>`) : '') + (p.b && (ranked || coop) ? '<span class="aitag" title="AI player">AI</span>' : '') + (ranked ? '' : coop ? hcapHtml(p, false) : hcapHtml(p, host)) +
       (p.b && host && (!coop || p.tm === 'red') ? `<button type="button" class="xbtn" data-rm="${p.id}" aria-label="Remove ${esc(p.n)}">×</button>` : '') + '</div>').join('');
+    if (coop && t === 'blue' && coopInfo().st === 'setup') return `<div class="tcol" data-navsec style="--tc:${TEAM_COL[t]}"><div class="thead"><b>The duos</b><span>${coopInfo().n - 1} + 1</span></div><div class="slot empty cladder">Fourteen AI duos, one after another, each on an arena built for its own tactic. Beat a duo and the next is up; beat them all and the machine is waiting.</div></div>`;
     const nOpen = MAX_TEAM - list.length, open = nOpen > 0 ? `<div class="slot empty" style="--n:${nOpen}">${nOpen === 1 ? 'Open slot' : nOpen + ' open slots'}</div>` : '';
     const full = list.length >= MAX_TEAM;
     const canJoin = ranked || (coop && (t !== 'red' || (me && me.tm === 'red'))) ? false : me ? !ro && me.tm !== t && !full : mode === 'online' && ['lobby', 'over', 'post'].includes(v.m.ph) && (!full || list.some(p => p.b));
@@ -15368,7 +15402,7 @@ function toggleBan(k) {
   uiSfx.click(); return true;
 }
 $('gmDiff').onchange = () => act({ t: 'cfg', diff: $('gmDiff').value });
-$('lbStart').onclick = () => act({ t: 'start' });
+$('lbStart').onclick = () => { const C = coopInfo(); if (C && C.st === 'setup') coopAct('start', coopSetupMsg()); else act({ t: 'start' }); };
 // ---- the lobby's pop-up: your archetype, the arena, the map effect, the rules and the room each open in it, one at a
 // time, over the lobby (so opening one never moves anything), whole on screen; Done, Escape or a click outside closes it
 document.body.appendChild($('lbPop'));
@@ -15406,15 +15440,15 @@ function renderLobby(v) {
     $('lbRoomCfg').hidden = !x; $('lbRoomBtn').hidden = !x;
     if (x && roomInfo && document.activeElement !== $('lbRmName')) { $('lbRmName').value = roomInfo.name || ''; $('lbRmPub').value = roomInfo.pub ? '1' : '0'; $('lbRmMax').value = String(roomInfo.max || 8); $('lbRmNoPw').hidden = !roomInfo.locked; }
   });
-  setC('lbHead', mode + (roomInfo && roomInfo.code) + (roomInfo && [roomInfo.name, roomInfo.pub, roomInfo.locked, coopInfo() && coopInfo().duo.name].join()), () => {
-    $('lbEyebrow').textContent = coopInfo() ? (online ? 'Co-op arcade · online' : 'Co-op arcade · on this device') : online ? (roomInfo && roomInfo.ranked ? 'Ranked ' + roomInfo.ranked : 'Online lobby') : 'Practice lobby';
-    $('lbEyebrow').nextElementSibling.textContent = coopInfo() ? 'Next: ' + coopInfo().duo.name : 'Set up the match';
+  setC('lbHead', mode + (roomInfo && roomInfo.code) + (roomInfo && [roomInfo.name, roomInfo.pub, roomInfo.locked, coopInfo() && coopInfo().duo.name, coopInfo() && coopInfo().st === 'setup'].join()), () => {
+    $('lbEyebrow').textContent = coopInfo() ? (online ? 'Arcade · online' : 'Arcade · on this device') : online ? (roomInfo && roomInfo.ranked ? 'Ranked ' + roomInfo.ranked : 'Online lobby') : 'Practice lobby';
+    $('lbEyebrow').nextElementSibling.textContent = coopInfo() ? (coopInfo().st === 'setup' ? 'Set up the run' : 'Next: ' + coopInfo().duo.name) : 'Set up the match';
     $('lbRoom').hidden = !online; $('lbShare').hidden = !online;
     if (online && roomInfo) { $('lbCode').textContent = roomInfo.code; $('lbShare').textContent = `${roomInfo.name ? roomInfo.name + ' · ' : ''}${roomInfo.pub ? 'Public' : 'Private'}${roomInfo.locked ? ', password protected' : ''}. Friends can join with the code, or send them the invite link.`; }
   });
   syncTitle(v.p.find(p => p.id === myId));
   setC('lb', JSON.stringify(v.p.map(p => [p.id, p.n, p.ow, p.sp, p.fd, p.pt, p.fin, p.sc, p.tm, p.b, p.dv, p.c, p.el, p.ro, p.hc, p.ti, p.cc, p.lv, p.bd, p.na])) + host + myId + JSON.stringify(roomInfo && [roomInfo.host, roomInfo.spec]), () => { $('lbTeams').innerHTML = teamsHtml(v); });
-  setC('lbChat', online || !!coopInfo(), x => { $('lbChat').hidden = !x; $('lbChatIn').hidden = !online; });
+  setC('lbChat', online || !!(coopInfo() && coopInfo().st !== 'setup'), x => { $('lbChat').hidden = !x; $('lbChatIn').hidden = !online; });
   setC('lbLp', JSON.stringify(LP.list.map(l => [l.n, l.name, l.el, l.ro, l.pid, l.pad, (v.p.find(p => p.id === l.pid) || {}).tm])), () => { lpTiles(v); });
   setC('lpDock', JSON.stringify(LP.list.filter(l => l.picker).map(l => [l.n, l.el, l.ro, l.picker.row])) + JSON.stringify(v.m.ban || []), () => lpDock(v));
   const meL = v.p.find(p => p.id === myId);
@@ -15466,10 +15500,10 @@ function renderLobby(v) {
     $('banHint').textContent = usingPad() ? `Host: press ${padBtn('y')} on an element or role to take it out of this game, again to put it back.` : 'Host: Alt+click an element or role to take it out of this game, again to put it back.';
   });
   renderCoop(v, meL, host);
-  setC('lbStart', String(v.m.cs) + host + !!meL + online + !!coopInfo(), () => {
-    const C = coopInfo();
-    $('lbStart').hidden = !host || !!C;
-    $('lbStart').disabled = !v.m.cs;
+  setC('lbStart', String(v.m.cs) + host + !!meL + online + !!coopInfo() + (coopInfo() && coopInfo().st), () => {
+    const C = coopInfo(), setup = !!C && C.st === 'setup';
+    $('lbStart').hidden = !host || (!!C && !setup);
+    $('lbStart').disabled = setup ? !meL : !v.m.cs; $('lbStart').textContent = setup ? 'Start run' : 'Start match';
     $('lbStatus').textContent = C ? (meL ? '' : 'Join Red to play.') : !meL && online ? 'Pick a team to play.' : !host ? (roomInfo && roomInfo.ranked ? 'Waiting for everyone to arrive. The match starts on its own.' : 'Waiting for the host to start the match.') : v.m.cs ? '' : 'Both teams need at least one archer. Add bots, or wait for players to join.';
   });
   setC('lbSpecs', JSON.stringify((roomInfo && roomInfo.spec || []).map(c => [c.cid, c.n, c.you])) + online + !!meL + !!(roomInfo && roomInfo.ranked), () => {
@@ -15810,7 +15844,7 @@ function olTab(k) {
   else refreshRooms();
 }
 // the main menu's screens
-const SUBS = ['findScr', 'customScr', 'scoresScr', 'trainScr', 'storeScr', 'arenaScr', 'optScr', 'profScr', 'clanScr', 'tourScr', 'coopScr'];
+const SUBS = ['findScr', 'customScr', 'scoresScr', 'trainScr', 'storeScr', 'arenaScr', 'optScr', 'profScr', 'clanScr', 'tourScr'];
 function openSub(id) {
   for (const k of SUBS) $(k).hidden = k !== id;
   if (id === 'customScr') { $('olHost').hidden = true; refreshRooms(); }
@@ -15823,14 +15857,13 @@ function openSub(id) {
   if (id === 'profScr') renderProfile();
   if (id === 'clanScr') { CLAN.tab = null; CLAN.viewing = null; clanLoad(); }
   if (id === 'tourScr') tourOpen();
-  if (id === 'coopScr') coopOpen();
   const f = $(id).querySelector('[data-back]'); if (f) setTimeout(() => f.focus(), 0);
 }
 function closeSubs() { for (const k of SUBS) $(k).hidden = true; drawProfChip(); if (optFromGame) { optFromGame = false; if (menuOpen) { $('gameMenu').hidden = false; $('gmOptBtn').focus(); } } }
 const subOpen = () => SUBS.some(k => !$(k).hidden);
 document.querySelectorAll('[data-back]').forEach(b => b.onclick = closeSubs);
 $('mCustom').onclick = () => openSub('customScr');
-$('mCoop').onclick = () => openSub('coopScr');
+$('mCoop').onclick = () => coopEnter();
 $('mFind').onclick = () => { if (OFFLINE) { notice('Find game needs the Bowfall server. Open your Bowfall site to play ranked.', false); return; } openSub('findScr'); };
 $('mScores').onclick = () => openSub('scoresScr');
 $('mOpts').onclick = () => openSub('optScr');
@@ -15844,37 +15877,62 @@ $('tmBtn').onclick = () => { if (OFFLINE || (account && account.admin)) startTer
 // the builder lives inside Custom games, so its Back button goes back there
 { const b = $('arenaScr').querySelector('[data-back]'); if (b) b.onclick = () => openSub('customScr'); }
 $('pracBtn').onclick = () => { closeSubs(); startPractice(); };
-// ================= co-op arcade =================
+// ================= arcade =================
 // One or two people against the ladder of AI duos (lib/duos.json on the server). The lobby shows the duo coming up, its
 // tell, its archetypes and upgrades; everyone picks an archetype as usual and all three upgrades here, then readies up.
 const COOP_FLAT0 = store.get('bowfall-coop-flat', '0') === '1';
-const COOP = { diff: (v => ({ easy: 2, normal: 5, hard: 7, legend: 10 })[v] || Math.max(1, Math.min(10, Math.round(+v) || 5)))(store.get('bowfall-coop-diff', '5')), where: store.get('bowfall-coop-where', 'local'), test: store.get('bowfall-coop-test', '0') === '1', flat: COOP_FLAT0, pending: null, picks: (() => { try { const a = JSON.parse(store.get('bowfall-coop-picks', '[]')); return Array.isArray(a) ? a.filter(id => TREE[id]).slice(0, 3) : []; } catch (e) { return []; } })(), key: null }; // (what you last played is remembered: difficulty, where, and your three upgrades)
+const COOP = { diff: (v => ({ easy: 2, normal: 5, hard: 7, legend: 10 })[v] || Math.max(1, Math.min(10, Math.round(+v) || 5)))(store.get('bowfall-coop-diff', '5')), where: store.get('bowfall-coop-where', 'local'), retry: (v => ['unl', 'lim', 'none'].includes(v) ? v : 'lim')(store.get('bowfall-coop-retry', 'lim')), test: store.get('bowfall-coop-test', '0') === '1', flat: COOP_FLAT0, pending: null, inv: [], picks: (() => { try { const a = JSON.parse(store.get('bowfall-coop-picks', '[]')); return Array.isArray(a) ? a.filter(id => TREE[id]).slice(0, 3) : []; } catch (e) { return []; } })(), key: null }; // (what you last played is remembered: difficulty, retries, where, and your three upgrades)
 const coopKeep = () => store.set('bowfall-coop-picks', JSON.stringify(COOP.picks));
 const coopOwner = () => OFFLINE || !!(account && account.admin);
-const COOP_WHERE = { local: ['On this device', 'Runs right here: no lag, nothing over the internet. Solo, or with friends on controllers on this screen.'], online: ['Online', 'Runs on the Bowfall server in a private room, so a friend on another computer can join with its code or your invite link.'] };
+const coopEndless = C => !!(C && (C.test || C.retry === 'unl'));
+const COOP_WHERE = { local: ['On this device', 'Runs right here: no lag, nothing over the internet. Solo, or with friends on controllers on this screen.'], online: ['Online', 'Runs on the Bowfall server in a private room, so friends on other computers can join: invite them below, or send the room code.'] };
+const COOP_RETRY = [['unl', 'Unlimited', 'Try each duo as often as you like. The run stays off the scoreboard.'], ['lim', '3 continues', 'Lose a battle and you spend a continue. Three, then the run is over.'], ['none', 'No retries', 'One loss ends the run. Every win is worth half again.']];
 const coopLevelName = L => L <= 3 ? 'Easy' : L <= 6 ? 'Normal' : L <= 8 ? 'Hard' : 'Legend';
-const coopLevelNote = L => `${L <= 2 ? 'The duos play loosely. A good first run.' : L <= 4 ? 'Gentle duos, fair fights.' : L <= 6 ? 'Fair fights all the way up the ladder.' : L <= 8 ? 'Sharp duos; the machine at the top is no pushover.' : 'The duos play about as well as the game can.'} Score ×${(1 + 0.25 * (L - 1)).toFixed(2).replace(/0$/, '').replace(/\.0$/, '')}. On your own: +${Math.round((50 - 30 * (L - 1) / 9) / 10) * 10}% health and damage.`;
-function coopOpen() {
-  $('coopLevel').value = String(COOP.diff); $('coopLevelOut').textContent = `${COOP.diff} · ${coopLevelName(COOP.diff)}`;
-  $('coopDiffNote').textContent = coopLevelNote(COOP.diff);
-  $('coopStart').textContent = COOP.test && coopOwner() ? 'Start a test run (unlimited continues)' : 'Start a run';
+const coopLevelNote = L => `${L <= 2 ? 'The duos play loosely. A good first run.' : L <= 4 ? 'Gentle duos, fair fights.' : L <= 6 ? 'Fair fights all the way up the ladder.' : L <= 8 ? 'Sharp duos; the machine at the top is no pushover.' : 'The duos play about as well as the game can.'} Score ×${(1 + 0.25 * (L - 1)).toFixed(2).replace(/0$/, '').replace(/\.0$/, '')}.`;
+const coopSetupMsg = () => ({ diff: COOP.diff, retry: COOP.retry, test: COOP.test && coopOwner(), flat: COOP.test && COOP.flat && coopOwner() });
+// the arcade opens straight into its lobby, set up like a custom game: on this device, or in a private online room your friends can join
+function coopEnter(inv) {
   if (OFFLINE || !COOP_WHERE[COOP.where]) COOP.where = 'local';
-  $('coopWhere').innerHTML = Object.entries(COOP_WHERE).map(([k, d]) => `<button type="button" class="chip2${k === COOP.where ? ' sel' : ''}" data-cwhere="${k}"${k === 'online' && OFFLINE ? ' disabled title="Needs the Bowfall server"' : ''}>${d[0]}</button>`).join('');
-  $('coopWhereNote').textContent = COOP_WHERE[COOP.where][1] + (COOP.where === 'local' && LP.list.length ? ` ${LP.list.length} on controller${LP.list.length === 1 ? '' : 's'} will join you.` : '');
-  $('coopTestRow').hidden = !coopOwner(); $('coopTest').classList.toggle('sel', COOP.test && coopOwner()); $('coopFlat').classList.toggle('sel', !!COOP.flat && COOP.test && coopOwner()); $('coopFlat').disabled = !COOP.test;
-  $('coopErr').textContent = '';
+  if (mode !== 'menu') toMenu();
+  closeSubs();
+  if (COOP.where === 'local') return startLocalCoop();
+  COOP.pending = true; COOP.inv = inv || [];
+  connect({ create: true, map: 'meadow', diff: 'normal', room: { name: 'Arcade', pub: false, max: 4, pw: '' } });
 }
-$('coopFlat').onclick = () => { COOP.flat = !COOP.flat; store.set('bowfall-coop-flat', COOP.flat ? '1' : '0'); coopOpen(); };
-$('coopTest').onclick = () => { COOP.test = !COOP.test; store.set('bowfall-coop-test', COOP.test ? '1' : '0'); coopOpen(); };
-$('coopWhere').addEventListener('click', e => { const b = e.target.closest('[data-cwhere]'); if (!b || b.disabled) return; COOP.where = b.dataset.cwhere; store.set('bowfall-coop-where', COOP.where); coopOpen(); });
-$('coopLevel').addEventListener('input', () => { COOP.diff = +$('coopLevel').value; store.set('bowfall-coop-diff', String(COOP.diff)); coopOpen(); });
-$('coopStart').onclick = () => {
-  if (COOP.where === 'local' || OFFLINE) return startLocalCoop(COOP.diff);
-  COOP.pending = COOP.diff;
-  connect({ create: true, map: 'meadow', diff: 'normal', room: { name: 'Co-op arcade', pub: false, max: 4, pw: '' } });
-};
-$('coopJoin').onclick = () => { const code = $('coopCode').value.trim().toUpperCase(); if (code.length !== 4) { $('coopErr').textContent = 'Room codes are 4 letters.'; return; } connect({ code }); };
-$('coopCode').addEventListener('keydown', e => { if (e.key === 'Enter') $('coopJoin').click(); });
+// a setting changed in the setup: remembered here, and sent to the run (the host's)
+function coopCfg(patch) {
+  Object.assign(COOP, patch);
+  store.set('bowfall-coop-diff', String(COOP.diff)); store.set('bowfall-coop-retry', COOP.retry); store.set('bowfall-coop-test', COOP.test ? '1' : '0'); store.set('bowfall-coop-flat', COOP.flat ? '1' : '0');
+  const C = coopInfo(); if (C && C.st === 'setup' && isHost()) coopAct('cfg', coopSetupMsg());
+}
+// inviting a friend: online straight away; from a run on this device, the setup moves online first (so they have a room to join)
+function coopInvite(id) {
+  if (mode === 'online' && roomInfo && roomInfo.code) { socialSend({ t: 'party', op: 'room', id, code: roomInfo.code, what: 'arcade' }); return; }
+  COOP.where = 'online'; store.set('bowfall-coop-where', 'online'); coopEnter([id]);
+}
+// the setup panel in the lobby: difficulty, retries, where it runs, your friends, and Start
+function coopSetupHtml(C, host, meL) {
+  const L = C.diff, online = mode === 'online', dis = host ? '' : ' disabled';
+  const chips = (attr, cur, list) => list.map(([k, name, tip]) => `<button type="button" class="chip2${k === cur ? ' sel' : ''}" data-${attr}="${k}" title="${esc(tip || '')}"${dis}${k === 'online' && OFFLINE ? ' disabled' : ''}>${esc(name)}</button>`).join('');
+  const rt = COOP_RETRY.find(x => x[0] === C.retry) || COOP_RETRY[1], where = online ? 'online' : 'local';
+  let h = `<div class="coophead"><b>The run</b><span class="status">${C.n - 1} duos in a new order, then the machine</span></div>`;
+  h += `<div class="csrow"><span class="lbl">Difficulty</span><div class="cslide"><input type="range" id="coopLv" min="1" max="10" step="1" value="${L}"${dis} aria-label="Difficulty"><output id="coopLvOut">${L} · ${coopLevelName(L)}</output></div><span class="status" id="coopLvNote">${esc(coopLevelNote(L))}</span></div>`;
+  h += `<div class="csrow"><span class="lbl">Retries</span><div class="chips">${chips('cretry', C.retry, COOP_RETRY)}</div><span class="status">${esc(rt[2])}</span></div>`;
+  h += `<div class="csrow"><span class="lbl">Where it runs</span><div class="chips">${chips('cwhere', where, Object.entries(COOP_WHERE).map(([k, d]) => [k, d[0], d[1]]))}</div><span class="status">${esc(COOP_WHERE[where][1])}${!online && LP.list.length ? ` ${LP.list.length} on controller${LP.list.length === 1 ? '' : 's'} with you.` : ''}</span></div>`;
+  h += `<div class="csrow"><span class="lbl">Handicap</span><span class="status">${C.solo ? `On your own against two: <b>+${C.hcap || 190}%</b> health and +${Math.round((C.hcap || 190) / 2)}% damage, the same against every duo at every difficulty: about what a lone archer needs to win as often as two of you would.` : 'Two of you against two: no handicap.'}</span></div>`;
+  if (coopOwner() && host) h += `<div class="csrow"><span class="lbl">Owner</span><div class="chips"><button type="button" class="chip2${C.test ? ' sel' : ''}" data-ctest="1">Test mode</button><button type="button" class="chip2${C.flat ? ' sel' : ''}" data-cflat="1"${C.test ? '' : ' disabled'} title="Every duo plays at the middle of the level's skill band instead of getting sharper along the ladder">Flat ladder: no climb</button></div></div>`;
+  // friends: who's online, with an Invite (the run is for up to two archers)
+  const st = SOC.st, room = (view ? view.p.filter(p => p.tm === 'red' && !p.b).length : 1) < 2;
+  let fr;
+  if (OFFLINE) fr = '<span class="status">Friends need the Bowfall site.</span>';
+  else if (!st || !st.account) fr = '<span class="status">Sign in to invite your friends.</span>';
+  else { const list = (st.friends || []).slice().sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name));
+    fr = list.length ? `<div class="cfr">${list.map(f => `<div class="fr"><i class="dot${f.inGame ? ' play' : f.act === 'away' ? ' away' : f.online ? ' on' : ''}"></i><b>${esc(f.name)}</b><small>${f.online ? esc(ACT_TEXT(f)) : 'Offline'}</small><div class="btnrow">${f.online ? `<button type="button" class="ghost sm" data-cinv="${f.id}"${room ? '' : ' disabled title="The arcade is for one or two archers"'}>${COOP.sentInv && COOP.sentInv[f.id] ? 'Invited' : 'Invite'}</button>` : ''}</div></div>`).join('')}</div>` : '<span class="status">No friends yet. Add someone by their player name in Find game.</span>'; }
+  if (!host) h += '<span class="status">The host sets up and starts the run.</span>';
+  const fh = `<div class="coophead"><b>Friends</b><span class="status">Invite one to play the run with you</span></div>${fr}` +
+    (OFFLINE ? '' : `<div class="cjoin"><span class="status">Or join a friend's run:</span><input class="code" id="coopCode" maxlength="4" autocomplete="off" placeholder="ABCD" aria-label="A friend's room code"><button type="button" class="ghost sm" data-coop="join">Join</button></div>`);
+  return [h, fh];
+}
 const coopAct = (op, more) => act(Object.assign({ t: 'coop', op }, more || {}));
 // Continue? After a lost battle: your archers close up, knocked out, and a countdown. Anyone playing can take the continue;
 // let it run out (or give up) and the run is over. In test mode there's no countdown.
@@ -15883,9 +15941,9 @@ function coopContTick() {
   const C = coopInfo(), show = !!C && C.st === 'lost' && mode !== 'menu';
   if (show !== CONT.on) { CONT.on = show; $('coopCont').hidden = !show; CONT.n = -1; if (show) { contDraw(); play('alarm'); setTimeout(() => $('contYes').focus(), 50); } }
   if (!show) return;
-  const left = C.test ? null : Math.max(0, (C.cont || 0) - (mode === 'online' && roomInfo ? (performance.now() - roomInfo.rcv) / 1000 : 0)), n = left == null ? -2 : Math.min(9, Math.ceil(left) - 1);
+  const left = coopEndless(C) ? null : Math.max(0, (C.cont || 0) - (mode === 'online' && roomInfo ? (performance.now() - roomInfo.rcv) / 1000 : 0)), n = left == null ? -2 : Math.min(9, Math.ceil(left) - 1);
   if (n !== CONT.n) { CONT.n = n; const el = $('contNum'); el.textContent = left == null ? '∞' : Math.max(0, n); el.classList.remove('tick'); void el.offsetWidth; el.classList.add('tick'); if (left != null && n >= 0) play('tick'); }
-  $('contSub').textContent = C.test ? `Test mode: ${C.result ? C.result.duo : 'they'} won that one. Try again as often as you like.` : `${C.result ? C.result.duo : 'They'} won that one. ${C.lives} continue${C.lives === 1 ? '' : 's'} left after this.`;
+  $('contSub').textContent = coopEndless(C) ? `${C.test ? 'Test mode: ' : ''}${C.result ? C.result.duo : 'They'} won that one. Try again as often as you like.` : `${C.result ? C.result.duo : 'They'} won that one. ${C.lives} continue${C.lives === 1 ? '' : 's'} left after this.`;
   $('contNo').hidden = !isHost();
 }
 function contDraw() {
@@ -15908,10 +15966,10 @@ function coopWinTick() {
   if (show === WIN.on) return; WIN.on = show; $('coopWin').hidden = !show; if (!show) return;
   WIN.key = key; play('streak');
   const T = C.tot || {}, acc = T.sh ? Math.round(T.hi / T.sh * 100) : 0, mins = Math.round((T.secs || 0) / 60);
-  $('winSub').textContent = `The machine is down. All ${C.n - 1} duos and the Terminator beaten on ${C.diffName} ${C.diff}${C.test ? ' (test run)' : ''}.`;
+  $('winSub').textContent = `The machine is down. All ${C.n - 1} duos and the Terminator beaten on ${C.diffName} ${C.diff}${C.test ? ' (test run)' : C.retry === 'unl' ? ' (unlimited retries)' : C.retry === 'none' ? ' with no retries' : ''}.`;
   $('winScore').textContent = `${C.score} points`;
-  $('winStats').innerHTML = [[T.k || 0, 'knockouts'], [T.ring || 0, 'thrown into the arena'], [acc + '%', 'accuracy'], [Math.round(T.dmg || 0), 'damage dealt'], [`${C.sweeps || 0} of ${C.n}`, 'won without dropping a game'], [C.test ? '∞' : `${C.used || 0}`, 'continues used']].map(([v, l]) => `<div><b>${v}</b><small>${l}</small></div>`).join('');
-  const best = []; if (!C.used && !C.test) best.push('Not a single continue: a clean run.'); if ((C.sweeps || 0) >= Math.ceil(C.n / 2)) best.push(`${C.sweeps} battles won without dropping a game.`); if (acc >= 45) best.push(`${acc}% of your shots landed.`); if ((T.ring || 0) >= 10) best.push(`${T.ring} archers sent into the holes, the water and the thorns.`); if (T.far > 500) best.push(`Your longest hit flew ${Math.round(T.far / 50)} metres.`); if (mins) best.push(`${mins} minute${mins === 1 ? '' : 's'} of fighting.`);
+  $('winStats').innerHTML = [[T.k || 0, 'knockouts'], [T.ring || 0, 'thrown into the arena'], [acc + '%', 'accuracy'], [Math.round(T.dmg || 0), 'damage dealt'], [`${C.sweeps || 0} of ${C.n}`, 'won without dropping a game'], [coopEndless(C) ? `${C.used || 0}` : `${C.used || 0}`, coopEndless(C) ? 'battles lost' : 'continues used']].map(([v, l]) => `<div><b>${v}</b><small>${l}</small></div>`).join('');
+  const best = []; if (!C.used && !C.test && C.retry !== 'none') best.push('Not a single continue: a clean run.'); if ((C.sweeps || 0) >= Math.ceil(C.n / 2)) best.push(`${C.sweeps} battles won without dropping a game.`); if (acc >= 45) best.push(`${acc}% of your shots landed.`); if ((T.ring || 0) >= 10) best.push(`${T.ring} archers sent into the holes, the water and the thorns.`); if (T.far > 500) best.push(`Your longest hit flew ${Math.round(T.far / 50)} metres.`); if (mins) best.push(`${mins} minute${mins === 1 ? '' : 's'} of fighting.`);
   $('winBest').textContent = best.join(' ');
   $('winAgain').hidden = !isHost();
   const cv = $('winCv'), g = cv.getContext('2d'), keep = ctx, mine = view ? view.p.filter(p => p.tm === 'red' && !p.nk) : [];
@@ -15921,18 +15979,20 @@ function coopWinTick() {
   for (let k = 0; k < 6; k++) setTimeout(() => { if (WIN.on) burst(view ? view.p[0].x : 600, 200, ['#ffcf5a', '#ff8a3d', '#8ff3ff', '#7dff8a'][k % 4], 40, 420, 3); }, k * 350);
 }
 $('winClose').onclick = () => { WIN.shut = WIN.key; $('coopWin').hidden = true; WIN.on = false; };
-$('winAgain').onclick = () => { WIN.shut = WIN.key; $('coopWin').hidden = true; WIN.on = false; coopAct('start', { diff: coopInfo().diff, test: !!coopInfo().test, flat: !!coopInfo().flat }); };
+$('winAgain').onclick = () => { WIN.shut = WIN.key; $('coopWin').hidden = true; WIN.on = false; coopAct('start', { diff: coopInfo().diff, retry: coopInfo().retry, test: !!coopInfo().test, flat: !!coopInfo().flat }); };
 $('contNo').onclick = () => coopAct('giveup');
 function renderCoop(v, meL, host) {
   const C = coopInfo(), box = $('lbCoop');
-  const key = C ? JSON.stringify([C.st, C.idx, C.lives, C.score, C.ready, C.picks, C.result, meL && meL.el, meL && meL.ro, host, COOP.picks, myId, account && account.admin, C.solo, C.test, C.duo.id]) : '';
+  const key = C ? JSON.stringify([C.st, C.idx, C.lives, C.score, C.ready, C.picks, C.result, meL && meL.el, meL && meL.ro, host, COOP.picks, myId, account && account.admin, C.solo, C.test, C.duo.id, C.diff, C.retry, C.flat, C.st === 'setup' ? [mode, LP.list.length, view && view.p.filter(p => p.tm === 'red' && !p.b).length, SOC.st && SOC.st.account && (SOC.st.friends || []).map(f => [f.id, f.online, f.inGame, f.act]), COOP.sentInv] : 0]) : '';
   setC('coop', key, () => {
-    box.hidden = !C;
+    box.hidden = !C; if (!C) $('lbCoopFr').hidden = true;
     // the usual match settings step aside: the run sets the arena, the effects and the rules
     $('lbMut').hidden = !!C; $('lbRulesBtn').hidden = !!C; $('lbRoomBtn').hidden = !!C || !host; $('lbMapBtn').hidden = !!C;
     const mt = document.querySelector('.lobby .lbmatch'); if (mt) mt.hidden = !!C;
     if (!C) return;
-    const d = C.duo, D = [`${C.diffName || coopLevelName(C.diff)} ${C.diff}`], hearts = C.test ? '∞ test' : '♥'.repeat(Math.max(0, C.lives)) + '♡'.repeat(Math.max(0, 3 - C.lives));
+    $('lbCoopFr').hidden = !C || C.st !== 'setup';
+    if (C.st === 'setup') { const [a, f] = coopSetupHtml(C, host, meL); box.innerHTML = a; $('lbCoopFr').innerHTML = f; return; }
+    const d = C.duo, D = [`${C.diffName || coopLevelName(C.diff)} ${C.diff}`], hearts = C.test ? '∞ test' : C.retry === 'unl' ? '∞' : C.retry === 'none' ? 'no retries' : '♥'.repeat(Math.max(0, C.lives)) + '♡'.repeat(Math.max(0, 3 - C.lives));
     const ladder = Array.from({ length: C.n }, (_, i) => `<i class="${i < C.beaten ? 'done' : i === C.idx ? 'now' : ''}"></i>`).join('');
     const members = d.boss ? Object.values(Sim.BOSS_MODES).map((M, i) => `<div class="coopmem" style="--mc:${['#ff8a3d', '#c7b3ff', '#8ff3ff'][i]}"><b>${esc(M.name)}</b><span>${['up close', 'at mid range', 'far off'][i]}: ${esc(ROLES[M.role].name)}</span><small>${M.ups.map(id => TREE[id] ? esc(TREE[id].name) : id).join(' · ')}</small></div>`).join('')
       : d.members.map(m => `<div class="coopmem" style="--mc:${ELEMENTS[m.el].color}"><b>${esc(m.name)}</b><span>${esc(ELEMENTS[m.el].name)} ${esc(ROLES[m.ro].name)}</span><small>${m.ups.map(id => TREE[id] ? esc(TREE[id].name) : id).join(' · ')}</small></div>`).join('');
@@ -16005,7 +16065,7 @@ function coopLocalAct(m) {
     if (m.op === 'ready') L.handle(R, c, { op: 'ready' });
   }
   coopInfoAt = -1; L.handle(R, me, m); coopInfoAt = -1;
-  if (m.op === 'quit') { toMenu(); openSub('coopScr'); } // (a run on this device ends back at the arcade, not in a practice lobby)
+  if (m.op === 'quit' && !R.coop) toMenu(); // (a run on this device ends back at the menu, not in a practice lobby)
 }
 function coopAutoPicks(el, ro) {
   const fav = Object.values(Sim.BUILDS).filter(b => (b.roles || []).includes(ro) || (b.els || []).includes(el)).flatMap(b => b.cards), out = [];
@@ -16020,8 +16080,8 @@ function coopLocalRecord(C, cleared) {
   if (account && !OFFLINE) fetch('/api/coop/score', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ diff: C.diff, score: C.score, beaten: C.beaten, cleared: !!cleared }) })
     .then(r => r.json()).then(d => { if (d && d.best != null) { C.best.me = Math.max(C.best.me, d.best); hc.coop = null; } }).catch(() => {});
 }
-function startLocalCoop(diff) {
-  if (!localLadder()) { $('coopErr').textContent = 'The arcade could not load. Try reloading the page.'; return; }
+function startLocalCoop() {
+  if (!localLadder()) { notice('The arcade could not load. Try reloading the page.', true); return; }
   initAudio(); closeSubs();
   world = Sim.createWorld({ map: 'coop_field', diff: 'normal', opt: {} }); // (the standard rules: a run sets its own arena and effects)
   const me = Sim.join(world, { name: playerName(), team: 'red', element: myLoadout().el, role: myLoadout().ro });
@@ -16030,25 +16090,40 @@ function startLocalCoop(diff) {
   myId = me.id; mode = 'local'; paused = false; acc = 0; prevPos = null; feed = []; resultsFor = null; hc = {}; clearChat();
   LCO.room = { host: 'me', coop: null, ranked: null, world };
   setScreens();
-  coopLocalAct({ op: 'start', diff, test: COOP.test && coopOwner(), flat: COOP.test && COOP.flat && coopOwner() });
-  if (!LCO.room.coop) { toMenu(); openSub('coopScr'); }
+  coopLocalAct(Object.assign({ op: 'setup' }, coopSetupMsg()));
+  if (!LCO.room.coop) toMenu();
 }
 
-$('lbCoop').addEventListener('click', e => {
+const coopClick = e => {
   const up = e.target.closest('[data-coopup]'), drop = e.target.closest('[data-coopdrop]'), b = e.target.closest('[data-coop]');
   if (up) { if (COOP.picks.length < 3 && !COOP.picks.includes(up.dataset.coopup)) { COOP.picks.push(up.dataset.coopup); coopAct('pick', { ups: COOP.picks }); coopKeep(); hc.coop = null; } return; }
   if (drop) { const i = COOP.picks.indexOf(drop.dataset.coopdrop); if (i >= 0) { COOP.picks.splice(i); } // (dropping one drops the ones after it: they may have needed it)
     const meL = view && view.p.find(p => p.id === myId); if (meL) COOP.picks = COOP.picks.filter((id, j) => Sim.forcedChoices(meL.el, meL.ro, COOP.picks.slice(0, j), false).includes(id));
     coopAct('pick', { ups: COOP.picks }); coopKeep(); hc.coop = null; return; }
+  const sb = e.target.closest('[data-cretry],[data-cwhere],[data-cinv],[data-ctest],[data-cflat]');
+  if (sb && !sb.disabled) {
+    if (sb.dataset.cretry) coopCfg({ retry: sb.dataset.cretry });
+    else if (sb.dataset.ctest) coopCfg({ test: !COOP.test });
+    else if (sb.dataset.cflat) coopCfg({ flat: !COOP.flat });
+    else if (sb.dataset.cwhere) { const wh = sb.dataset.cwhere; if (wh !== (mode === 'online' ? 'online' : 'local')) { COOP.where = wh; store.set('bowfall-coop-where', wh); coopEnter(); } }
+    else if (sb.dataset.cinv) { const id = +sb.dataset.cinv; coopInvite(id); (COOP.sentInv || (COOP.sentInv = {}))[id] = 1; hc.coop = null; }
+    return;
+  }
   if (!b) return;
   const op = b.dataset.coop;
   if (op === 'ready') coopAct(coopInfo().ready.includes(myCid()) ? 'pick' : 'ready', { ups: COOP.picks });
   else if (op === 'go' || op === 'next' || op === 'quit') coopAct(op);
   else if (op === 'skip') coopAct('skip', { dir: 1 });
   else if (op === 'back') coopAct('skip', { dir: -1 });
-  else if (op === 'again') coopAct('start', { diff: coopInfo().diff, test: !!coopInfo().test, flat: !!coopInfo().flat });
+  else if (op === 'again') coopAct('start', { diff: coopInfo().diff, retry: coopInfo().retry, test: !!coopInfo().test, flat: !!coopInfo().flat });
+  else if (op === 'begin') coopAct('start', coopSetupMsg());
+  else if (op === 'join') { const code = ($('coopCode').value || '').trim().toUpperCase(); if (!/^[A-Z]{4}$/.test(code)) { notice('Room codes are 4 letters.', false); return; } toMenu(); connect({ code }); }
   else if (op === 'leave') $('lbLeave').click();
-});
+};
+$('lbCoop').addEventListener('click', coopClick); $('lbCoopFr').addEventListener('click', coopClick);
+$('lbCoop').addEventListener('input', e => { if (e.target.id !== 'coopLv') return; const L = +e.target.value; $('coopLvOut').textContent = `${L} · ${coopLevelName(L)}`; $('coopLvNote').textContent = coopLevelNote(L); });
+$('lbCoop').addEventListener('change', e => { if (e.target.id === 'coopLv') coopCfg({ diff: +e.target.value }); });
+$('lbCoopFr').addEventListener('keydown', e => { if (e.target.id === 'coopCode') { e.stopPropagation(); if (e.key === 'Enter') { const j = $('lbCoopFr').querySelector('[data-coop="join"]'); if (j) j.click(); } } });
 setInterval(() => { try { coopContTick(); coopWinTick(); } catch (e) { /* never in the way */ } }, 100);
 // ================= local tournament =================
 // Friends on one screen, 1v1, everyone plays everyone (once or twice). Each match is a local game: the first player on the
@@ -17639,7 +17714,7 @@ THEMES.garden = {
   stem: ['#5b3b27', '#6d4a31'], thorn: '#f6eee6', leaf: '#4a6c46', berry: '#e86a8a', burrow: null,
   ambient: 'leaves', leafCols: ['#d8a8b8', '#e2bcc8', '#c890a4', '#e8d8de'],
 };
-// the co-op arcade's dojo: honey-coloured boards, dark timber walls, paper lanterns and blossom drifting in
+// the arcade's dojo: honey-coloured boards, dark timber walls, paper lanterns and blossom drifting in
 THEMES.dojo = Object.assign({}, THEMES.mill, {
   forest: '#1b1410', canopy: ['#2d1f17', '#3a281d', '#24180f', '#463024'], canopyHi: 'rgba(255,190,150,0.07)',
   ground: '#7f6a52', patchA: 'rgba(170,150,120,0.16)', patchB: 'rgba(60,45,30,0.22)', patchBase: 'rgba(127,106,82,0)', sun: 'rgba(255,225,170,0.03)', dull: 0.28, stumps: true,
@@ -21764,7 +21839,7 @@ function renderResCoop(v) {
   const r = C.result || {}, won = v.m.mw === 'red';
   if (r.duo) $('resSub').textContent = `${won ? 'You beat' : 'Beaten by'} ${r.duo}`; // (by now the ladder has moved on to the next duo: name the one you just fought)
   $('resCoop').innerHTML = `<div class="cnums"><div><b>${ko}</b><small>knockouts</small></div><div><b>${ring}</b><small>into the arena</small></div><div><b>${sh ? Math.round(hi / sh * 100) + '%' : '–'}</b><small>accuracy</small></div><div><b>${dmg}</b><small>damage</small></div></div>` +
-    (won && r.pts ? `<div class="cpts">+${r.pts} points · score ${C.score}</div>` : `<div class="status">${C.test ? 'Test mode: go again as often as you like.' : `${C.lives} continue${C.lives === 1 ? '' : 's'} left.`}</div>`);
+    (won && r.pts ? `<div class="cpts">+${r.pts} points · score ${C.score}</div>` : `<div class="status">${coopEndless(C) ? 'Go again as often as you like.' : `${C.lives} continue${C.lives === 1 ? '' : 's'} left.`}</div>`);
   const next = won && C.st === 'won' && isHost();
   $('resCoopNext').hidden = !next; $('resCoopNext').textContent = 'Next battle';
   $('resNext').textContent = won && C.st === 'won' ? (isHost() ? 'The next duo is up in a moment.' : 'The host moves on to the next duo.') : '';

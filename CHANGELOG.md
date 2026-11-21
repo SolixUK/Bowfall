@@ -2,6 +2,46 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.45
+
+- **Handicap means health and half the damage now, and no extra weight.** +X% gives X% more health and X/2% more arrow damage. It no longer makes you heavier, so it doesn't make you harder to push. This applies everywhere a handicap is set, custom games included, and it now goes up to +300%.
+- **The arcade's solo handicap is +190% health and +95% damage**, the same against every duo at every difficulty, and the duos play exactly as they would against two of you.
+  - **How it was set:** for each duo, a lone bot of the duo's own skill played it about 400 times, with the handicap nudged until it won about half.
+  - **What most duos needed:** +150% to +220%, and +190% is about their average.
+  - **The six that needed more:** Brambles, Presence, Shadows, Two Snares, Long Shots and The Wall win by holding you still and pushing you into something. Extra health can't stop that: Brambles still won 88% against a lone archer on +300%. Rather than change the handicap for them, they play softer all round. Their skill is down by 0.13 (Long Shots) to 0.4 (Shadows), fitted so they lose about half their battles to a lone archer at +190%. **This makes them easier with a friend too.**
+  - **The check:** all fourteen against a lone bot at +180%, about 150 games each, won between 34% (The Pair) and 65% (Undertow). The average was 47%, which is why the number went up to +190%.
+  - **The machine:** 40% more health against one archer (was 75% more). Your arrows hit it for less than before, so it needs less.
+- **Juggernauts (Battering) use Bull Rush to close in.** They now rush from as far as it carries (about 400 units), aimed at where you're heading, when the path is clear. Against a lone bot at +180%, the duo's win rate went from 41% to 52%.
+  - **Their dodge dashes stay**, still diagonally forward. In testing, taking them away let a kiter hold them off far more: 70% of battles against 59%. A forward-diagonal dash is a step in as much as a dodge.
+- **Why the juggernauts looked weak:** before 0.99.44 every duo played softer against one archer, and Battering softer still, because they used to be too strong. On Legend they ended up far below their real skill. 0.99.44 took that away. The extra weight from the handicap was blunting their pushes, and that's gone now too.
+
+## 0.99.44
+
+- **The arcade is just "Arcade" now, and it's set up like a custom game.** The Arcade button opens straight into a lobby: your side on Red, the ladder of duos on the other, your archetype, and a setup panel. Then Start run.
+  - **Difficulty:** the same 1 to 10 slider.
+  - **Retries, for everyone:**
+    - **Unlimited:** no Continue? countdown. The run stays off the scoreboard.
+    - **3 continues:** as before.
+    - **No retries:** one loss ends the run, and every win is worth half again.
+  - **Where it runs:** on this device, or online in a private room.
+  - **Friends:** your friends list, with an Invite button by everyone who's online. They get a pop-up with Join and land in your setup. Inviting from a run on this device moves the setup online first, so they have a room to join. There's also a box for a friend's room code.
+  - It remembers your last difficulty, retries, where it ran, and your upgrades. The owner's test mode and flat ladder are in the same panel.
+- **The solo handicap is +140%, the same against every duo at every difficulty.** It used to be +80% on Easy down to +50% on Legend, and the duos played softer against one archer. Now the duos play exactly as they would against two of you.
+  - **How it was set:** for each duo, a lone bot of the duo's own skill played it about 570 times. Its handicap was nudged until it won about half. The win rate barely moved between levels, so one number holds at every difficulty.
+  - **What each duo needed:**
+    - +80%: Battering. Two juggernauts win by knockback, and the extra weight blunts it most.
+    - +100% to +130%: Undertow, Hearth, Carnival, Two Blades, Fever, Bloodlust and The Pair.
+    - +160% to +190%: The Wall, Two Snares, Presence, Long Shots, Brambles and Shadows.
+  - **The handicap is the average of those:** +140%. Handicaps now go up to +200%.
+  - **The machine:** it has 75% more health against one archer (was 20% more), to match.
+- **Brambles (Thistle and Flint):**
+  - **Rooted means hold:** while you're rooted, the trapper keeps its arrow drawn. It only shoots if that arrow would knock you out or you're in line with a hole. Otherwise it leaves the knockout to the ranger. In testing, the shots it still takes at a rooted target were nearly all lined up with a drop, or came after its partner was down.
+  - **Bramble Toss:** it waits for a clear lane along its aim (which leads you), not just straight at you. Only about 1 toss in 20 went into rock short of the target before, and now half that. Most tosses that end in the boulders are misses rolling on past you.
+- **Juggernaut duos close in better.**
+  - **Dodging:** dodge dashes go diagonally forward instead of straight sideways (forward dashes from 74% to 94%), and they weave less on the way in.
+  - **Chasing:** they run at where you're heading rather than where you are, and the two split into a V, so backing away from one walks you towards the other or a wall.
+  - **The result:** time spent within reach of you went from 37% to 43% in testing. Against one archer the weight from the handicap still blunts them, so they're still one of the easier duos to face alone.
+
 ## 0.99.43
 
 - **Shadow's fuse is 3 seconds** (was 3.5). In testing (Shadow against a random other element, the same archetype on both sides, about 2,200 games each), it won about 50% against 48.5%, within the noise. Bursts came about 20% more often and were slightly smaller on average (2.2 shades against 2.4).

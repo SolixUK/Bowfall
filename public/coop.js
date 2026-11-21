@@ -1,5 +1,5 @@
-// The co-op arcade: a team of people (one or two) against a ladder of fourteen AI duos, each with its own arena, map effects
-// and a tactic that is the whole point of the fight. A run has three continues. Everyone picks their archetype and all three
+// The arcade: a team of people (one or two) against a ladder of fourteen AI duos, each with its own arena, map effects
+// and a tactic that is the whole point of the fight. A run has unlimited, three or no continues (the host's choice). Everyone picks their archetype and all three
 // upgrades before each battle; battles are best of three games.
 // Shared by the server (a run online, with a friend: lib/coop.js) and the page (a run on this device: solo, or with players on
 // controllers). A "room" is { world, clients: Set of { cid, pid, name, user, watch }, host: cid, coop }; ctx says how to tell
@@ -10,13 +10,20 @@ function coopFactory(ctx) {
   const ROSTER = ctx.roster, FIT = ctx.fit && ctx.fit.duos ? ctx.fit : { duos: {} };
   const DUOS = ROSTER.duos, CONTINUES = ROSTER.continues || 3;
   // difficulty: a level from 1 to 10. The duos' skill band rises with it (level 2 is the old Easy, 5 Normal, 7 Hard, 10 Legend),
-  // and so does the score; the handicap you get when you're on your own shrinks from +80% to +50% (the level's +50% to +20%, plus SOLO_HCAP)
+  // and so does the score
   const LEVELS = 10, OLD = { easy: 2, normal: 5, hard: 7, legend: 10 };
   const levelOf = v => { const n = typeof v === 'string' && OLD[v] ? OLD[v] : Math.round(+v); return n >= 1 && n <= LEVELS ? n : 5; };
-  const DIFF = L => { const k = (L - 1) / (LEVELS - 1); return { level: L, name: L <= 3 ? 'Easy' : L <= 6 ? 'Normal' : L <= 8 ? 'Hard' : 'Legend', facets: [0.35 + 0.5 * k, 0.55 + 0.43 * k], mult: +(1 + 0.25 * (L - 1)).toFixed(2), hcap: Math.round((50 - 30 * k) / 10) * 10 }; };
-  // one against two: the duo plays a step softer and the person carries more health and weight on top of the level's handicap
-  // (a duo's own `solo` adds to this: the ones whose whole idea is ganging up on one archer)
-  const SOLO_SK = -0.08, SOLO_HCAP = 30;
+  const DIFF = L => { const k = (L - 1) / (LEVELS - 1); return { level: L, name: L <= 3 ? 'Easy' : L <= 6 ? 'Normal' : L <= 8 ? 'Hard' : 'Legend', facets: [0.35 + 0.5 * k, 0.55 + 0.43 * k], mult: +(1 + 0.25 * (L - 1)).toFixed(2) }; };
+  // one against two: the duos play exactly as they do against two of you; you get a handicap instead (full on health, half
+  // on damage), one number for every duo and every level. Worked out with bots, duo by duo: a lone archer of the duo's own
+  // skill, the handicap nudged until it won about half its battles (the win rate barely moves with the level). Most duos
+  // needed +150% to +220%; this is about their average (all fourteen at it: from 34% to 65%, 47% on average at +180%, so a step more). Six whose plan is holding you still and pushing you in (Brambles, Presence,
+  // Shadows, Two Snares, Long Shots, The Wall) couldn't be evened out by health at any handicap, so they play a little softer
+  // all round instead (their `boost` in lib/duos.json), fitted to about half at this handicap
+  const SOLO_HCAP = 190;
+  // retries: unlimited (nothing goes on the scoreboard), three continues, or none at all (every win is worth half again)
+  const RETRY = { unl: 'Unlimited retries', lim: CONTINUES + ' continues', none: 'No retries' }, retryOf = v => RETRY[v] ? v : 'lim';
+  const endless = C => !!(C.test || C.retry === 'unl');
   // each duo's own adjustment by level (lv: skill added at levels 2, 5 and 8, in between by straight lines, flat beyond), fitted
   // so that every duo beats a pair of ordinary bots of its own skill about as often as the others do, at every level (tools/duo-level.js)
   const lvOff = (d, L) => { const a = d.lv; if (!Array.isArray(a) || a.length !== 3) return 0; return L <= 2 ? a[0] : L <= 5 ? a[0] + (a[1] - a[0]) * (L - 2) / 3 : L <= 8 ? a[1] + (a[2] - a[1]) * (L - 5) / 3 : a[2]; };
@@ -35,8 +42,8 @@ function coopFactory(ctx) {
   function info(room) {
     const C = room.coop; if (!C) return undefined;
     const d = duoAt(C.idx);
-    return { st: C.st, run: C.startedAt, flat: C.flat ? 1 : undefined, diff: C.diff, diffName: DIFF(C.diff).name, tot: C.st === 'done' ? C.tot : undefined, sweeps: C.sweeps || 0, used: C.used || 0, idx: C.idx, n: N(), lives: C.lives, score: C.score, solo: C.solo ? 1 : 0, beaten: C.beaten, fights: C.fights, paused: C.paused || undefined, test: C.test ? 1 : undefined,
-      cont: C.st === 'lost' && !C.test ? Math.max(0, CONT_WAIT - (Date.now() - C.cardAt) / 1000) : undefined,
+    return { st: C.st, retry: C.retry, retryName: RETRY[C.retry], hcap: SOLO_HCAP, run: C.startedAt, flat: C.flat ? 1 : undefined, diff: C.diff, diffName: DIFF(C.diff).name, tot: C.st === 'done' ? C.tot : undefined, sweeps: C.sweeps || 0, used: C.used || 0, idx: C.idx, n: N(), lives: C.lives, score: C.score, solo: (C.st === 'setup' ? humansOf(room).length <= 1 : C.solo) ? 1 : 0, beaten: C.beaten, fights: C.fights, paused: C.paused || undefined, test: C.test ? 1 : undefined,
+      cont: C.st === 'lost' && !endless(C) ? Math.max(0, CONT_WAIT - (Date.now() - C.cardAt) / 1000) : undefined,
       duo: { id: d.id, name: d.name, boss: d.boss ? 1 : undefined, tell: d.tell, map: d.map, mapName: Sim.MAPS[d.map] ? Sim.MAPS[d.map].name : d.map, effects: d.effects, members: d.members.map(m => ({ name: m.name, el: m.el, ro: m.role, ups: m.ups })) },
       ready: [...C.ready], picks: Object.fromEntries([...C.picks].map(([cid, v]) => [cid, v])), result: C.result || undefined, best: C.best || undefined };
   }
@@ -63,7 +70,7 @@ function coopFactory(ctx) {
       b.name = m.name; b.coopDuo = true; Sim.setLoadout(w, b.id, m.el, m.role); b.forceUp = m.ups.slice();
       // their skill: the difficulty's band, rising with the place on the ladder (whoever you meet first is the gentlest, whoever
       // you meet last the sharpest), the second member a touch sharper; team sense always full (the tactic depends on it)
-      const k = C.flat ? 0.5 : N() > 1 ? C.idx / (N() - 1) : 1, f = Math.min(1, D.facets[0] + (D.facets[1] - D.facets[0]) * k + 0.02 * i + (d.boost || 0) + (m.boost || 0) + lvOff(d, C.diff) + (humansOf(room).length <= 1 ? SOLO_SK + (d.solo || 0) : 0)); // (solo: a duo that's harder one against two plays a touch softer) // (boost: a duo whose tactic costs it firepower plays a touch sharper)
+      const k = C.flat ? 0.5 : N() > 1 ? C.idx / (N() - 1) : 1, f = Math.min(1, D.facets[0] + (D.facets[1] - D.facets[0]) * k + 0.02 * i + (d.boost || 0) + (m.boost || 0) + lvOff(d, C.diff) + 0); // (boost: a duo whose tactic costs it firepower plays a touch sharper)
       if (m.boss) { // the machine: the top of the band and past it, inhuman at dodging, more health against two of you
         // (a hard fight, not an impossible one: the middle of the difficulty's band and a little more, sharper feet than eye)
         // (the hardest fight of the run: the top of the difficulty's band and a step past it, sharper feet than eye)
@@ -92,7 +99,7 @@ function coopFactory(ctx) {
       Sim.setTeam(w, p.id, 'red');
       const picks = C.picks.get(c.cid) || [];
       p.forceUp = picks.filter(id => Sim.TREE[id]).slice(0, 3);
-      Sim.setHandicap(w, p.id, C.solo ? DIFF(C.diff).hcap + SOLO_HCAP : 0);
+      Sim.setHandicap(w, p.id, C.solo ? SOLO_HCAP : 0);
     }
     if (!Sim.startMatch(w)) { sysChat(room, 'Could not start the battle.'); return; }
     C.st = 'play'; C.fights++; C.fightAt = Date.now();
@@ -108,9 +115,9 @@ function coopFactory(ctx) {
     for (const c of humansOf(room)) { const p = w.players.find(q => q.id === c.pid); if (!p) continue; T.k += p.kills || 0; T.ring += p.stats.ring || 0; T.sh += p.stats.shots || 0; T.hi += p.stats.hits || 0; T.dmg += p.stats.dmg || 0; T.taken += p.stats.taken || 0; T.far = Math.max(T.far, p.stats.longest || 0); }
     T.games += (w.match.gw.red || 0) + (w.match.gw.blue || 0); T.gw += w.match.gw.red || 0; T.secs += Math.max(0, (Date.now() - (C.fightAt || Date.now())) / 1000);
     if (won && w.match.gw.blue === 0) C.sweeps = (C.sweeps || 0) + 1;
-    if (!won && !C.test) C.used = (C.used || 0) + 1;
+    if (!won && !endless(C)) C.used = (C.used || 0) + 1;
     if (won) {
-      const pts = Math.round(BASE_SCORE * D.mult * (d.boss ? 3 : 1) * (w.match.gw.blue === 0 ? 1.25 : 1)); // (a clean sweep is worth a quarter more; the machine three duos)
+      const pts = Math.round(BASE_SCORE * D.mult * (d.boss ? 3 : 1) * (w.match.gw.blue === 0 ? 1.25 : 1) * (C.retry === 'none' ? 1.5 : 1)); // (a clean sweep is worth a quarter more; the machine three duos; no retries half again)
       C.score += pts; C.beaten = Math.max(C.beaten, C.idx + 1);
       C.result = { won: 1, pts, duo: d.name, last: C.idx + 1 >= N() };
       const say = d.members[Math.floor(Math.random() * d.members.length)]; chat(room, say, LINES.lost[say.voice] || LINES.lost.dry);
@@ -118,11 +125,11 @@ function coopFactory(ctx) {
       if (C.idx + 1 >= N()) { C.st = 'done'; sysChat(room, `The ladder is clear on ${D.name}! Final score ${C.score}.`); record(room, true); }
       else { C.st = 'won'; C.idx++; }
     } else {
-      if (!C.test) C.lives--;
+      if (!endless(C)) C.lives--;
       const say = d.members[Math.floor(Math.random() * d.members.length)]; chat(room, say, LINES.won[say.voice] || LINES.won.dry);
       C.result = { won: 0, duo: d.name, lives: C.lives };
-      if (C.lives < 0) { C.st = 'done'; sysChat(room, `No continues left. The run ends at ${d.name}, ${C.beaten} of ${N()} beaten, score ${C.score}.`); record(room, false); }
-      else { C.st = 'lost'; sysChat(room, C.test ? `${d.name} win this one. Test mode: try again as often as you like.` : `${d.name} win${d.boss ? 's' : ''} this one. Continue? ${C.lives} left.`); }
+      if (C.lives < 0) { C.st = 'done'; sysChat(room, `${C.retry === 'none' ? 'No retries on this run.' : 'No continues left.'} The run ends at ${d.name}, ${C.beaten} of ${N()} beaten, score ${C.score}.`); record(room, false); }
+      else { C.st = 'lost'; sysChat(room, endless(C) ? `${d.name} win${d.boss ? 's' : ''} this one. Try again as often as you like.` : `${d.name} win${d.boss ? 's' : ''} this one. Continue? ${C.lives} left.`); }
     }
     C.cardAt = Date.now();
     sendRoom(room);
@@ -130,7 +137,7 @@ function coopFactory(ctx) {
   // the run in people's records: best score on each difficulty, and the furthest duo reached
   function record(room, cleared) {
     const C = room.coop;
-    if (C.test) return; // (test runs don't count)
+    if (endless(C)) return; // (test runs and unlimited retries don't go on the scoreboard)
     if (ctx.record) return ctx.record(room, C, cleared); // (the page keeps its own, and tells the server when signed in)
     for (const c of humansOf(room)) {
       const u = c.user || c.guest; if (!u) continue;
@@ -197,7 +204,7 @@ function coopFactory(ctx) {
     if (C.st === 'play' && w.match.ph === 'over') settle(room);
     else if (C.st === 'done' && w.match.ph !== 'lobby' && Date.now() - (C.doneAt != null ? C.doneAt : C.cardAt) > 6000) { Sim.toLobby(w); sendRoom(room); } // (the run's over: back to the lobby for the final card)
     else if (C.st === 'won' && Date.now() - C.cardAt > CARD_WAIT * 1000) brief(room);
-    else if (C.st === 'lost' && !C.test && Date.now() - C.cardAt > CONT_WAIT * 1000) { // nobody took the continue: that's the run
+    else if (C.st === 'lost' && (C.over || (!endless(C) && Date.now() - C.cardAt > CONT_WAIT * 1000))) { // nobody took the continue: that's the run
       const d = duoAt(C.idx); C.st = 'done'; C.doneAt = 0; C.result = { won: 0, duo: d.name, lives: C.lives, gaveUp: 1 };
       sysChat(room, `The run ends at ${d.name}: ${C.beaten} of ${N()} beaten, score ${C.score}.`); record(room, false); sendRoom(room);
     }
@@ -208,18 +215,32 @@ function coopFactory(ctx) {
     const w = room.world, C = room.coop, isHost = room.host === ws.cid;
     const tell = msg => send(ws, { t: 'note', msg });
     switch (String(m.op)) {
+      case 'setup': case 'cfg': { // the run's setup, before it starts: difficulty and retries, friends joining, then Start
+        if (!isHost) return;
+        if (room.ranked || w.match.ph !== 'lobby') return;
+        if (m.op === 'cfg' && (!C || C.st !== 'setup')) return;
+        const S = m.op === 'setup' || !C ? (cur = room.coop = { st: 'setup', idx: 0, lives: CONTINUES, score: 0, beaten: 0, fights: 0, ready: new Set(), picks: new Map(), order: shuffled(), startedAt: 0, diff: 5, retry: 'lim' }) : C;
+        if (m.diff != null) S.diff = levelOf(m.diff);
+        if (m.retry != null) S.retry = retryOf(String(m.retry));
+        S.test = !!m.test && isOwner(ws.user); S.flat = S.test && !!m.flat;
+        if (m.op === 'setup') { for (const p of w.players.filter(q => q.bot)) Sim.removeBot(w, p.id); for (const c of humansOf(room)) Sim.setTeam(w, c.pid, 'red'); }
+        S.solo = humansOf(room).length <= 1;
+        sendRoom(room);
+        return;
+      }
       case 'start': {
         if (!isHost) return tell('Only the host can start a run.');
         if (room.ranked) return tell('Not in a ranked match.');
         if (w.match.ph !== 'lobby') return tell('Wait for this game to end.');
-        const diff = levelOf(m.diff);
+        const was = C && C.st === 'setup' ? C : null;
+        const diff = levelOf(m.diff != null ? m.diff : was ? was.diff : 5), retry = retryOf(String(m.retry != null ? m.retry : was ? was.retry : 'lim'));
         const hum = humansOf(room);
         if (!hum.length || hum.length > 2) return tell('The arcade is for one or two archers.');
         for (const c of [...room.clients]) if (c.pid && c.watch) { Sim.leave(w, c.pid, true); c.pid = null; send(c, { t: 'you', id: null }); }
-        const test = !!m.test && isOwner(ws.user); // (the owner's test runs: no end to the retries, nothing recorded)
-        const flat = test && !!m.flat; // (and, if asked, a flat ladder: every duo at the middle of the level's band, to compare them like for like)
-        cur = room.coop = { diff, idx: 0, lives: CONTINUES, score: 0, beaten: 0, fights: 0, st: 'brief', ready: new Set(), picks: new Map(), solo: hum.length === 1, startedAt: Date.now(), order: shuffled(), test, flat };
-        sysChat(room, `Co-op arcade, ${DIFF(diff).name} (level ${diff}): ${N() - (BOSS ? 1 : 0)} duos in a new order, then the machine. ${test ? 'Test mode: unlimited retries' + (flat ? ', every duo at the same skill (no climb).' : '.') : CONTINUES + ' continues.'} Choose your archetype and three upgrades before each battle.`);
+        const test = (m.test != null ? !!m.test : !!(was && was.test)) && isOwner(ws.user); // (the owner's test runs: no end to the retries, nothing recorded)
+        const flat = test && (m.flat != null ? !!m.flat : !!(was && was.flat)); // (and, if asked, a flat ladder: every duo at the middle of the level's band, to compare them like for like)
+        cur = room.coop = { diff, retry, idx: 0, lives: retry === 'lim' ? CONTINUES : 0, score: 0, beaten: 0, fights: 0, st: 'brief', ready: new Set(), picks: new Map(), solo: hum.length === 1, startedAt: Date.now(), order: shuffled(), test, flat };
+        sysChat(room, `Arcade, ${DIFF(diff).name} (level ${diff}): ${N() - (BOSS ? 1 : 0)} duos in a new order, then the machine. ${test ? 'Test mode: unlimited retries' + (flat ? ', every duo at the same skill (no climb).' : '.') : retry === 'unl' ? 'Unlimited retries (this run stays off the scoreboard).' : retry === 'none' ? 'No retries: one loss ends it, and every win is worth half again.' : CONTINUES + ' continues.'}${hum.length === 1 ? ' On your own: +' + SOLO_HCAP + '% health and +' + SOLO_HCAP / 2 + '% damage, the same against every duo at every difficulty.' : ''} Choose your archetype and three upgrades before each battle.`);
         brief(room);
         return;
       }
@@ -240,7 +261,7 @@ function coopFactory(ctx) {
       case 'pause': if (C && ws.pid && C.st === 'play' && !C.paused) { C.paused = ws.name; sysChat(room, `${ws.name} paused the battle.`); sendRoom(room); } return;
       case 'resume': if (C && C.paused && (C.paused === ws.name || isHost)) { C.paused = null; sysChat(room, 'On with it.'); sendRoom(room); } return;
       case 'next': if (C && ((C.st === 'won' && isHost) || (C.st === 'lost' && ws.pid))) brief(room); return; // (anyone playing can take the continue)
-      case 'giveup': if (C && C.st === 'lost' && isHost) { C.cardAt = 0; C.test = false; tick(room); } return;
+      case 'giveup': if (C && C.st === 'lost' && isHost) { C.cardAt = 0; C.over = true; tick(room); } return;
       case 'skip': { // the owner, for testing: forward or back a duo
         if (!C || !isOwner(ws.user)) return;
         if (w.match.ph !== 'lobby' && C.st === 'play') { Sim.toLobby(w); }
@@ -248,13 +269,13 @@ function coopFactory(ctx) {
         brief(room);
         return;
       }
-      case 'quit': if (C && isHost) { sysChat(room, `The run ends: ${C.beaten} of ${N()} beaten, score ${C.score}.`); if (C.fights) record(room, false); endRun(room); } return;
+      case 'quit': if (C && isHost && C.st === 'setup') { endRun(room); return; } if (C && isHost) { sysChat(room, `The run ends: ${C.beaten} of ${N()} beaten, score ${C.score}.`); if (C.fights) record(room, false); const keep = { diff: C.diff, retry: C.retry, test: C.test, flat: C.flat }; endRun(room); handle(room, ws, Object.assign({ op: 'setup' }, keep)); } return; // (back to the setup, with the same settings, for another go)
       default: return;
     }
   }
   // someone leaving mid-run: a run with nobody left in it ends; in a two-person run the other carries on alone (with the solo handicap next battle)
-  function left(room) { const C = room.coop; if (!C) return; if (!humansOf(room).length) endRun(room); else if (C.paused && !humansOf(room).some(c => c.name === C.paused)) { C.paused = null; sendRoom(room); } }
-  return { handle: (room, ws, m) => { cur = room.coop; return handle(room, ws, m); }, tick: room => { cur = room.coop; return tick(room); }, info: room => { cur = room.coop; return info(room); }, events: (room, evs) => { cur = room.coop; return events(room, evs); }, left: room => { cur = room.coop; return left(room); }, endRun: room => { cur = room.coop; return endRun(room); }, DUOS, DIFFS, CONTINUES };
+  function left(room) { const C = room.coop; if (!C) return; if (C.st === 'setup') C.solo = humansOf(room).length <= 1; if (!humansOf(room).length) endRun(room); else if (C.paused && !humansOf(room).some(c => c.name === C.paused)) { C.paused = null; sendRoom(room); } }
+  return { handle: (room, ws, m) => { cur = room.coop; return handle(room, ws, m); }, tick: room => { cur = room.coop; return tick(room); }, info: room => { cur = room.coop; return info(room); }, events: (room, evs) => { cur = room.coop; return events(room, evs); }, left: room => { cur = room.coop; return left(room); }, endRun: room => { cur = room.coop; return endRun(room); }, DUOS, DIFFS, CONTINUES, SOLO_HCAP, RETRY };
 }
 if (typeof module !== 'undefined' && module.exports) module.exports = coopFactory; else root.CoopLadder = coopFactory;
 })(typeof window !== 'undefined' ? window : this);
