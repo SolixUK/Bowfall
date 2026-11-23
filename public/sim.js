@@ -9,7 +9,7 @@
 'use strict';
 
 // bump this with every release; it's shown in the game and on the site, and recorded with every game
-const VERSION = '0.99.46';
+const VERSION = '0.99.48';
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -619,8 +619,11 @@ coopMap('coop_maze', { name: 'The Dojo', theme: 'dojo', desc: 'A ninja dojo: pol
 coopMap('coop_quarry', { name: 'The Quarry', theme: 'dust', desc: 'A stone floor and standing rock, the embers scattered among it. Nothing to fall into: it comes down to who hits harder.',
   haz: [], pillars: [{ x: 250, y: 400, r: 26 }, { x: 380, y: 230, r: 28 }, { x: 380, y: 570, r: 28 }, { x: 500, y: 400, r: 30 }, { x: 600, y: 250, r: 26 }],
   amberSpots: [{ x: 315, y: 315 }, { x: 315, y: 485 }, { x: 440, y: 315 }, { x: 440, y: 485 }, { x: 600, y: 330 }, { x: 180, y: 400 }], power: [{ x: 600, y: 400 }] });
-coopMap('coop_pens', { name: 'The Pens', theme: 'farm', desc: 'Pens of boulders with a hole behind each, thorns along the walls, and a healing spring in the middle for whoever holds it.',
-  heal: { x: 600, y: 400, r: 55, rate: 12 }, haz: [{ type: 'pit', shape: 'rect', x: 300, y: WALL, w: 110, h: 70 }], spikes: [{ side: 'top', a: 470, b: 780 }, { side: 'left', a: 150, b: 330 }, { side: 'left', a: 470, b: 650 }], pillars: [{ x: 400, y: 260, r: 28 }, { x: 400, y: 540, r: 28 }, { x: 330, y: 400, r: 28 }], power: [{ x: 600, y: 240 }, { x: 600, y: 560 }] });
+coopMap('coop_pens', { name: 'The Pens', theme: 'farm', desc: 'A big healing spring in the middle for whoever holds it, four holes round it, and thorns along every wall: nowhere safe to back off to.',
+  heal: { x: 600, y: 400, r: 85, rate: 14 },
+  haz: [{ type: 'pit', shape: 'circle', x: 430, y: 215, r: 44 }, { type: 'pit', shape: 'circle', x: 300, y: 565, r: 40 }],
+  spikes: [{ side: 'top', a: 130, b: 420 }, { side: 'top', a: 480, b: 800 }, { side: 'left', a: 130, b: 340 }, { side: 'left', a: 460, b: 670 }],
+  pillars: [{ x: 330, y: 400, r: 28 }, { x: 250, y: 215, r: 26 }, { x: 480, y: 565, r: 26 }], power: [{ x: 600, y: 240 }, { x: 600, y: 560 }] });
 coopMap('coop_narrows', { name: 'The Narrows', theme: 'dusk', w: 1500, h: 960, desc: 'Highland Reach with a tighter crossing: a canyon down the middle, cover out by the walls, and the open ground between for long shots.',
   haz: [{ type: 'pit', centre: true, shape: 'rect', x: 700, y: WALL - 20, w: 100, h: 330 }, { type: 'pit', centre: true, shape: 'rect', x: 700, y: 624, w: 100, h: 360 }, { type: 'pit', shape: 'rect', x: 330, y: WALL - 20, w: 230, h: 96 }, { type: 'pit', shape: 'rect', x: 330, y: 960 - WALL - 76, w: 230, h: 96 }, { type: 'pit', water: true, shape: 'circle', x: 580, y: 480, r: 56 }],
   pillars: [{ x: 240, y: 112, r: 26 }, { x: 240, y: 848, r: 26 }, { x: 632, y: 128, r: 22 }, { x: 632, y: 832, r: 22 }, { x: 132, y: 186, r: 20 }, { x: 132, y: 774, r: 20 }],
@@ -2718,7 +2721,7 @@ function updatePlayer(w, p, dt) {
     }
     p.dashT = MOVE.dashTime / k * (p.dashWeak > 0 ? 0.45 : 1); p.knock = 0;
     if (p.dashN === p.dashMaxN) p.dashCd = p.dashCdMax;
-    p.dashN--;
+    p.dashN--; p.dashAt = w.t; // (when: a trapper waits for a dash to be spent)
     p.dashDir = [dx, dy]; p.shoved = [];
     if (has(p, 'quickshot')) p.quickT = 0.9;
     p.momT = 0.6;
@@ -2874,7 +2877,7 @@ function ninjaBlink(w, p, back) { // back: Echo Step's spot to return to
   if (back) p.echo = null;
   else {
     if (p.dashN === p.dashMaxN) p.dashCd = p.dashCdMax;
-    p.dashN--; p.echo = has(p, 'echostep') ? { x: x0, y: y0, t: 1.2 } : null;
+    p.dashN--; p.dashAt = w.t; p.echo = has(p, 'echostep') ? { x: x0, y: y0, t: 1.2 } : null;
   }
   p.blinkGap = NB_WIND + NB_MOVE + 0.03;
   if (has(p, 'phase')) p.phaseT = 0.25;
@@ -3366,9 +3369,11 @@ function updateZones(w, dt) {
 
 const TRAP_RANGE = 450, TRAP_SET = 0.5, TRAP_PIT_GAP = 26;
 // how bots lay brambles (tools/root-fit.js tunes these): a Bramble Trap goes trapLead seconds ahead of where they're walking
+// dashGate: a root (a trap or a toss) waits for a moment they can't dash out of it: no dash left, one just spent (within
+// dashWin seconds), drawing a bow, or already held; a ready root waits up to dashWait seconds for one, then goes anyway
 // (their speed counted up to trapVmax, so a dash doesn't fling the guess), a toss is thrown inside briarMax. A weaker bot's
 // guess wanders by up to errK × (1 − aim) of the distance it leads by.
-const ROOTK = { trapLead: 0.45, trapVmax: 400, briarMax: 860, errK: 1.2, smooth: 0, gate: 1, trapMax: 450, bGate: 0, behind: 0, leadK: 0.3, trapSlow: 0, briarNear: 420 }; // (tuned over about 5,000 matches with tools/root-fit.js: see the 0.99.1 changelog)
+const ROOTK = { trapLead: 0.45, trapVmax: 400, briarMax: 860, errK: 1.2, smooth: 0, gate: 1, trapMax: 450, bGate: 0, behind: 0, leadK: 0.3, trapSlow: 0, briarNear: 420 , dashGate: 1, dashWin: 0.6, dashWait: 3 }; // (tuned over about 5,000 matches with tools/root-fit.js: see the 0.99.1 changelog)
 // the nearest spot to (x, y) that isn't over a hole or water (lava and bogs are solid ground: things can sit on them)
 function outOfPits(haz, x, y, gap) {
   for (let k = 0; k < 4; k++) {
@@ -4818,6 +4823,8 @@ function botDashDir(p, wasDraw) {
 // Any mode also shares the team target (the one nearest a hazard, then the hurt one, then the held one).
 const TAC_DEF = { guardD: 150, behindD: 95, side: 45, bullyD: 240, bashEager: 3, unloadD: 190, flankAng: 1.2, flankWhen: 'cover', cross: 1.0, farD: 620, pickK: 2.2, pickRange: 520, stealthGap: 1.0, ambushAng: 1.1, trapGap: 220, finishD: 320, holdBias: 0.6, tacK: 1.0, wallK: 1.2, waterK: 0.9, shieldD: 0, anchor: 0 };
 const tacOf = p => (p.ai && p.ai.tac) || null, tacP = (p, k) => { const t = tacOf(p); return t && t[k] != null ? t[k] : TAC_DEF[k]; };
+const dashSpent = (w, q) => !q || q.dashN <= 0 || (q.dashAt != null && w.t - q.dashAt < ROOTK.dashWin) || q.drawing || q.stuck > 0 || q.frozen > 0 || q.stunT > 0;
+const rootWindow = (w, p, T) => { if (!ROOTK.dashGate || !T) return true; if (dashSpent(w, T)) { p.ai.rootWait = 0; return true; } p.ai.rootWait = (p.ai.rootWait || 0) + 1 / 60; return p.ai.rootWait > ROOTK.dashWait; }; // (one call a frame: counts how long a ready root has waited)
 const heldBy = q => q.stuck > 0 || q.frozen > 0 || q.staggerT > 0 || q.pinned > 0 || q.vine > 0 || q.riftSlow > 0;
 // ---- the arcade's last battle: one machine against the two of you. Close to a normal archer, with three builds it changes
 // between by how far away you are (the middle point of whoever's alive): up close a juggernaut that grows and bashes, at
@@ -5893,7 +5900,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
       case 'briar': { const hold = T && !(T.vine > 0) && !(T.vineSafe > 0) ? Math.max(T.frozen || 0, T.stunT || 0, T.pinned || 0, T.stuck || 0) : 0;
         if (hold > 0.15 && !p.briarArmed && dT < 600 && clearLane(p.x, p.y, T.x, T.y, BRIAR.r)) { use = hold < dT / (BRIAR.speed * OPT('aspeed')) + 0.45; break; } } // (the chain: thrown so it rolls in as the hold ends)
       // falls through
-      case 'briar2': use = chg > 0.25 && !!T && dT > 70 && dT < Math.min(ROOTK.briarMax, BRIAR.range - 60) && !p.briarArmed && (!ROOTK.bGate || T.drawing || heldBy(T) || T.dashN === 0 || dT < 260) && (!ROOTK.briarNear || dT < ROOTK.briarNear || T.drawing || Math.hypot(T.vx, T.vy) < 90) && clearLane(p.x, p.y, T.x + T.vx * 0.4, T.y + T.vy * 0.4, BRIAR.r); break; // (it's wide and slow: the whole lane to where they're heading must be clear) // then the next shot rolls it at them
+      case 'briar2': use = chg > 0.25 && !!T && dT > 70 && rootWindow(w, p, T) && dT < Math.min(ROOTK.briarMax, BRIAR.range - 60) && !p.briarArmed && (!ROOTK.bGate || T.drawing || heldBy(T) || T.dashN === 0 || dT < 260) && (!ROOTK.briarNear || dT < ROOTK.briarNear || T.drawing || Math.hypot(T.vx, T.vy) < 90) && clearLane(p.x, p.y, T.x + T.vx * 0.4, T.y + T.vy * 0.4, BRIAR.r); break; // (it's wide and slow: the whole lane to where they're heading must be clear) // then the next shot rolls it at them
       case 'rip': { // tear the thorns out when it's worth it: a kill (or two), a pile of them spread over several enemies, or someone held near a hazard
         const mine = foes.filter(q => q.thornBy === p.id && q.thornN > 0), iq2 = kn(p);
         const tot = mine.reduce((a, q) => a + q.thornN, 0), kills = mine.filter(q => q.hp <= q.thornN * 5 + 1).length, held = mine.filter(q => q.thornN >= 3 && lethalDist(q.x, q.y) < 100 && chg >= 0.5 && clearShot(p.x, p.y, q.x, q.y)).length; // (rooted beside a hazard, with a shot ready to push them in)
@@ -5934,7 +5941,7 @@ function botAbilities(w, p, T, dT, foes, dt) {
           if (hold < 1.0) { p.input.tx = T.x; p.input.ty = T.y; use = true; }
           break;
         }
-        if (T && dT < Math.min(TRAP_RANGE + 60, ROOTK.trapMax) && dT > 60 && !(T.vine > 0) && !(T.vineSafe > 0) && (!ROOTK.gate || steady) && (!ROOTK.trapSlow || heldBy(T) || Math.hypot(T.vx, T.vy) < ROOTK.trapSlow) && Math.random() < dt * (ROOTK.trapSlow ? 2.5 : 0.8)) { // (trapSlow: only under someone standing or slowed, drawing a bow say: a trap takes most of a second to set, and a walker is long gone)
+        if (T && dT < Math.min(TRAP_RANGE + 60, ROOTK.trapMax) && dT > 60 && !(T.vine > 0) && !(T.vineSafe > 0) && (!ROOTK.gate || steady) && (!ROOTK.trapSlow || heldBy(T) || Math.hypot(T.vx, T.vy) < ROOTK.trapSlow) && rootWindow(w, p, T) && Math.random() < dt * (ROOTK.trapSlow ? 2.5 : 0.8) * (ROOTK.dashGate && dashSpent(w, T) ? 3 : 1)) { // (trapSlow: only under someone standing or slowed, drawing a bow say: a trap takes most of a second to set, and a walker is long gone)
           const ts = (p.ai.tac && p.ai.tac.mode === 'trapper') || (!p.ai.tac && Math.random() < clamp(((p.ai.know != null && p.ai.knowRo === p.role ? p.ai.know : botD(p).posK || 0) - 0.5) * 2, 0, 1)) ? tacticTrapSpot(w, p, T) : null; // (and any trapper with a good eye for the ground: the sharper, the more often) // (the trapper tactic: where a root leaves them beside a drop)
           const vs = Math.hypot(tvx, tvy), vk = vs > ROOTK.trapVmax ? ROOTK.trapVmax / vs : 1;
           const miss = ROOTK.errK * (1 - Math.max(botD(p).aimK != null ? botD(p).aimK : 0.7, p.ai.know != null && p.ai.knowRo === p.role ? p.ai.know : 0)) /* (a specialist reads where they're going: their role knowledge, not their eye) */ * vs * vk * ROOTK.trapLead, ma = rand(0, TAU); // (a weaker bot's guess wanders)

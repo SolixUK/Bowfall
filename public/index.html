@@ -2723,7 +2723,7 @@
     <div id="helpBody" style="display:flex;flex-direction:column;gap:26px"></div>
   </div>
 </div>
-<script src="sim.js?v=0.99.46"></script>
+<script src="sim.js?v=0.99.48"></script>
 <script src="coop-data.js"></script>
 <script src="coop.js"></script>
 <script>
@@ -2733,7 +2733,7 @@ const Sim = window.BowSim;
 // This page and the game rules (sim.js) must be the same version: a browser holding on to an old copy of one of them
 // draws the wrong arena or disagrees with the server. If they differ, reload once, fetching both fresh; if that
 // doesn't fix it, say so.
-const PAGE_VERSION = '0.99.46';
+const PAGE_VERSION = '0.99.48';
 if (!window.BOWFALL_OFFLINE && Sim.VERSION !== PAGE_VERSION) {
   let tried = false; try { tried = sessionStorage.getItem('bowfall-vfix') === PAGE_VERSION + '/' + Sim.VERSION; sessionStorage.setItem('bowfall-vfix', PAGE_VERSION + '/' + Sim.VERSION); } catch (e) {}
   if (!tried) { location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'fresh=' + Date.now() + location.hash); return; }
@@ -8157,11 +8157,11 @@ function renderLobby(v) {
     $('banHint').textContent = usingPad() ? `Host: press ${padBtn('y')} on an element or role to take it out of this game, again to put it back.` : 'Host: Alt+click an element or role to take it out of this game, again to put it back.';
   });
   renderCoop(v, meL, host);
-  setC('lbStart', String(v.m.cs) + host + !!meL + online + !!coopInfo() + (coopInfo() && coopInfo().st), () => {
+  setC('lbStart', String(v.m.cs) + host + !!meL + online + !!coopInfo() + (coopInfo() && coopInfo().st) + v.p.filter(p => p.b && p.tm === 'red').length, () => {
     const C = coopInfo(), setup = !!C && C.st === 'setup';
     $('lbStart').hidden = !host || (!!C && !setup);
-    $('lbStart').disabled = setup ? !meL : !v.m.cs; $('lbStart').textContent = setup ? 'Start run' : 'Start match';
-    $('lbStatus').textContent = C ? (meL ? '' : 'Join Red to play.') : !meL && online ? 'Pick a team to play.' : !host ? (roomInfo && roomInfo.ranked ? 'Waiting for everyone to arrive. The match starts on its own.' : 'Waiting for the host to start the match.') : v.m.cs ? '' : 'Both teams need at least one archer. Add bots, or wait for players to join.';
+    $('lbStart').disabled = setup ? !(meL || (coopOwner() && v.p.some(p => p.b && p.tm === 'red'))) : !v.m.cs; $('lbStart').textContent = setup ? 'Start run' : 'Start match';
+    $('lbStatus').textContent = C ? (meL ? '' : v.p.some(p => p.b && p.tm === 'red') ? 'Watching the bots on Red.' : 'Join Red to play.') : !meL && online ? 'Pick a team to play.' : !host ? (roomInfo && roomInfo.ranked ? 'Waiting for everyone to arrive. The match starts on its own.' : 'Waiting for the host to start the match.') : v.m.cs ? '' : 'Both teams need at least one archer. Add bots, or wait for players to join.';
   });
   setC('lbSpecs', JSON.stringify((roomInfo && roomInfo.spec || []).map(c => [c.cid, c.n, c.you])) + online + !!meL + !!(roomInfo && roomInfo.ranked), () => {
     const spec = (roomInfo && roomInfo.spec) || [];
@@ -8577,7 +8577,7 @@ function coopSetupHtml(C, host, meL) {
   h += `<div class="csrow"><span class="lbl">Retries</span><div class="chips">${chips('cretry', C.retry, COOP_RETRY)}</div><span class="status">${esc(rt[2])}</span></div>`;
   h += `<div class="csrow"><span class="lbl">Where it runs</span><div class="chips">${chips('cwhere', where, Object.entries(COOP_WHERE).map(([k, d]) => [k, d[0], d[1]]))}</div><span class="status">${esc(COOP_WHERE[where][1])}${!online && LP.list.length ? ` ${LP.list.length} on controller${LP.list.length === 1 ? '' : 's'} with you.` : ''}</span></div>`;
   h += `<div class="csrow"><span class="lbl">Handicap</span><span class="status">${C.solo ? `On your own against two: <b>+${C.hcap || 160}%</b> health and +${Math.round((C.hcap || 160) / 2)}% damage, the same against every duo at every difficulty.` : 'Two of you against two: no handicap.'}</span></div>`;
-  if (coopOwner() && host) h += `<div class="csrow"><span class="lbl">Owner</span><div class="chips"><button type="button" class="chip2${C.test ? ' sel' : ''}" data-ctest="1">Test mode</button><button type="button" class="chip2${C.flat ? ' sel' : ''}" data-cflat="1"${C.test ? '' : ' disabled'} title="Every duo plays at the middle of the level's skill band instead of getting sharper along the ladder">Flat ladder: no climb</button></div></div>`;
+  if (coopOwner() && host) h += `<div class="csrow"><span class="lbl">Owner</span><div class="chips"><button type="button" class="chip2${C.test ? ' sel' : ''}" data-ctest="1">Test mode</button><button type="button" class="chip2${C.flat ? ' sel' : ''}" data-cflat="1"${C.test ? '' : ' disabled'} title="Every duo plays at the middle of the level's skill band instead of getting sharper along the ladder">Flat ladder: no climb</button></div><span class="status">To watch bots play it: run it Online, add one or two bots to Red, then Move here (Not on a team) and Start run. They play at the duo's own skill, with the same handicap.</span></div>`;
   // friends: who's online, with an Invite (the run is for up to two archers)
   const st = SOC.st, room = (view ? view.p.filter(p => p.tm === 'red' && !p.b).length : 1) < 2;
   let fr;

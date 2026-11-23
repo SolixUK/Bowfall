@@ -2,6 +2,29 @@
 
 Each version's number is shown on the main screen, in the in-game menu and in the website footer, and is saved with every recorded game (as `gv`), so balance data can be split by version. Bump `VERSION` in `public/sim.js` when you release: the last number for fixes and small tweaks, the middle one for new content. Bump `PAGE_VERSION` and the `sim.js?v=` in `public/index.html` to the same number: the page checks they match and reloads if a browser mixed an old copy of one with a new copy of the other.
 
+## 0.99.48
+
+- **The Pens (the juggernauts' arena) is harder to kite on.**
+  - **Thorns along every wall:** most of each wall now has thorns, so backing off to the edge hurts.
+  - **Four holes round the middle** instead of two against the walls, so wherever you kite there's a drop nearby to be bashed into.
+  - **A bigger, stronger spring:** the healing spring in the middle is half as wide again (85 across, was 55) and heals 14 a second (was 12), for the juggernauts to hold.
+  - **Hay bales** moved to fit round the new holes.
+  - **Against a lone bot at +160%:** the duo won 51%, against 52% on the old Pens, within the noise. Bots don't kite the way people do, so this is one for you to try.
+- **Watch bots play the arcade (owner).**
+  - **How:** run the arcade Online, add one or two bots to Red, Move here (Not on a team), then Start run. Use Start now on each brief, and Continue after a loss.
+  - **How Red's bots play:** at the duo's own skill for that place on the ladder (as in the tests), with three upgrades that suit their archetype and the same handicap a person would get.
+  - **Records:** their battles are recorded too, marked as bots, and left out of "Just me" in Balance data → Arcade.
+
+## 0.99.47
+
+- **Trappers time their roots around your dash.** A Bramble Trap or Bramble Toss now waits for a moment you can't dash out of it. That's when you've no dash left, have just used one (within 0.6 seconds), are drawing your bow, or are already held. In that window, a trap goes down three times as eagerly. A ready root waits up to about 3 seconds for its moment, then goes anyway. This is for every trapper bot, not just the arcade's.
+  - **Tested:** a Frost Trapper with Bramble Trap and Bramble Toss played a dashing Frost Ranger, 1v1, about 200 games each way.
+    - **Master skill:** traps that rooted went from 11% to 23%, tosses from 49% to 59%, and roots a minute from 1.33 to 1.96. The trapper's win rate went from 47% to 55%.
+    - **Lower skill (0.7):** traps from 21% to 27%, tosses from 39% to 42%, and the trapper's win rate from 19% to 26%.
+    - **Other window lengths:** 0.4 and 1 second were both worse than 0.6.
+  - **Overall balance:** a trapper picking its own upgrades against any other archetype (about 600 games each way) won 47% before and 46% after, within the noise. So the role isn't pushed over the top.
+  - **Brambles in the arcade:** no change against a lone bot at +160%, still 93% for the duo.
+
 ## 0.99.46
 
 - **Legend means master bots.** On level 10 every duo plays at master-bot skill, from the first battle to the last. Before, Legend started well below master and only reached it at the top of the ladder. The levels below are scaled up to match, a little sharper at every level, most at the top.

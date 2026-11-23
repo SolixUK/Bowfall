@@ -30,6 +30,11 @@ function coopFactory(ctx) {
   const BASE_SCORE = 100, CARD_WAIT = 12, CONT_WAIT = 12; // (CONT_WAIT: seconds the Continue? countdown gives you after a loss)
   const BOSS = DUOS.find(d => d.boss) || null, LADDER = DUOS.filter(d => !d.boss); // points a duo is worth before the difficulty multiplier; seconds the result card shows before moving on
   const humansOf = room => [...room.clients].filter(c => c.pid && !c.watch);
+  // Red's own bots: the owner can put AI players on Red and watch from off the team, to see how bots handle a duo
+  const redBots = room => room.world.players.filter(p => p.bot && !p.coopDuo && p.team === 'red');
+  const sideN = room => humansOf(room).length + redBots(room).length; // (everyone fighting the duo)
+  const autoPicks = (p, solo) => { const fav = Object.values(Sim.BUILDS || {}).filter(b => (b.roles || []).includes(p.role) || (b.els || []).includes(p.element)).flatMap(b => b.cards || []), out = [];
+    for (let i = 0; i < 3; i++) { const ok = Sim.forcedChoices(p.element, p.role, out, solo); if (!ok.length) break; out.push(ok.find(id => fav.includes(id) && !out.includes(id)) || ok[Math.floor(Math.random() * ok.length)]); } return out; };
   // a run's order: the duos shuffled (a different ladder every time), the machine always last
   const shuffled = () => { const a = LADDER.map(d => d.id); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } if (BOSS) a.push(BOSS.id); return a; };
   let cur = null; // (the run being worked on: set at the top of every entry point)
@@ -41,7 +46,7 @@ function coopFactory(ctx) {
   function info(room) {
     const C = room.coop; if (!C) return undefined;
     const d = duoAt(C.idx);
-    return { st: C.st, retry: C.retry, retryName: RETRY[C.retry], hcap: SOLO_HCAP, run: C.startedAt, flat: C.flat ? 1 : undefined, diff: C.diff, diffName: DIFF(C.diff).name, tot: C.st === 'done' ? C.tot : undefined, sweeps: C.sweeps || 0, used: C.used || 0, idx: C.idx, n: N(), lives: C.lives, score: C.score, solo: (C.st === 'setup' ? humansOf(room).length <= 1 : C.solo) ? 1 : 0, beaten: C.beaten, fights: C.fights, paused: C.paused || undefined, test: C.test ? 1 : undefined,
+    return { st: C.st, retry: C.retry, retryName: RETRY[C.retry], hcap: SOLO_HCAP, run: C.startedAt, flat: C.flat ? 1 : undefined, diff: C.diff, diffName: DIFF(C.diff).name, tot: C.st === 'done' ? C.tot : undefined, sweeps: C.sweeps || 0, used: C.used || 0, idx: C.idx, n: N(), lives: C.lives, score: C.score, solo: (C.st === 'setup' ? sideN(room) <= 1 : C.solo) ? 1 : 0, watch: redBots(room).length && !humansOf(room).length ? 1 : undefined, beaten: C.beaten, fights: C.fights, paused: C.paused || undefined, test: C.test ? 1 : undefined,
       cont: C.st === 'lost' && !endless(C) ? Math.max(0, CONT_WAIT - (Date.now() - C.cardAt) / 1000) : undefined,
       duo: { id: d.id, name: d.name, boss: d.boss ? 1 : undefined, tell: d.tell, map: d.map, mapName: Sim.MAPS[d.map] ? Sim.MAPS[d.map].name : d.map, effects: d.effects, members: d.members.map(m => ({ name: m.name, el: m.el, ro: m.role, ups: m.ups })) },
       ready: [...C.ready], picks: Object.fromEntries([...C.picks].map(([cid, v]) => [cid, v])), result: C.result || undefined, best: C.best || undefined };
@@ -73,7 +78,7 @@ function coopFactory(ctx) {
       if (m.boss) { // the machine: the top of the band and past it, inhuman at dodging, more health against two of you
         // (a hard fight, not an impossible one: the middle of the difficulty's band and a little more, sharper feet than eye)
         // (the hardest fight of the run: the top of the difficulty's band and a step past it, sharper feet than eye)
-        const solo = humansOf(room).length <= 1, top = Math.max(0.05, Math.min(1, D.facets[1] + 0.03 + lvOff(d, C.diff)));
+        const solo = sideN(room) <= 1, top = Math.max(0.05, Math.min(1, D.facets[1] + 0.03 + lvOff(d, C.diff)));
         b.element = null; // (no element: it's a machine)
         b.dparams = Sim.facetParams({ aim: top, pos: top, dodge: Math.min(1, top + 0.1), mind: 1 });
         b.boss = { hp: m.boss.hp[solo ? 0 : 1], sense: Math.min(1, 0.15 + 0.6 * top * top), el: m.extra || [], mode: null, at: 0 };
@@ -90,8 +95,8 @@ function coopFactory(ctx) {
   function fight(room) {
     const C = room.coop, w = room.world;
     if (w.match.ph !== 'lobby') return;
-    const hum = humansOf(room); if (!hum.length) return;
-    C.solo = hum.length === 1;
+    const hum = humansOf(room), bots = redBots(room); if (!hum.length && !bots.length) return;
+    C.solo = hum.length + bots.length === 1;
     seat(room); // (fresh for the battle: the machine's health depends on how many of you there are)
     for (const c of hum) {
       const p = w.players.find(q => q.id === c.pid); if (!p) continue;
@@ -100,6 +105,9 @@ function coopFactory(ctx) {
       p.forceUp = picks.filter(id => Sim.TREE[id]).slice(0, 3);
       Sim.setHandicap(w, p.id, C.solo ? SOLO_HCAP : 0);
     }
+    // Red's bots: the skill the duo has at this place on the ladder (as in the tests), three upgrades that suit them, the same handicap
+    { const D = DIFF(C.diff), k = C.flat ? 0.5 : N() > 1 ? C.idx / (N() - 1) : 1, sk = Math.min(1, D.facets[0] + (D.facets[1] - D.facets[0]) * k);
+      for (const b of bots) { b.dparams = Sim.facetParams({ aim: sk, pos: sk, dodge: sk, mind: sk }); b.forceUp = autoPicks(b, C.solo); Sim.setHandicap(w, b.id, C.solo ? SOLO_HCAP : 0); } }
     if (!Sim.startMatch(w)) { sysChat(room, 'Could not start the battle.'); return; }
     C.st = 'play'; C.fights++; C.fightAt = Date.now();
     const d = duoAt(C.idx), say = d.members[Math.floor(Math.random() * d.members.length)];
@@ -115,9 +123,9 @@ function coopFactory(ctx) {
     T.games += (w.match.gw.red || 0) + (w.match.gw.blue || 0); T.gw += w.match.gw.red || 0; T.secs += Math.max(0, (Date.now() - (C.fightAt || Date.now())) / 1000);
     if (won && w.match.gw.blue === 0) C.sweeps = (C.sweeps || 0) + 1;
     // the battle, for the record: who played what against which duo, at what level, and how the games went
-    if (ctx.battle) { const hum = humansOf(room); try { ctx.battle(room, { at: Date.now(), v: Sim.VERSION, lv: C.diff, duo: d.id, pos: C.idx, of: N(), solo: hum.length === 1 ? 1 : 0, hcap: C.solo ? SOLO_HCAP : 0, retry: C.retry, test: C.test ? 1 : 0, flat: C.flat ? 1 : 0,
+    if (ctx.battle) { const hum = humansOf(room); try { ctx.battle(room, { at: Date.now(), v: Sim.VERSION, lv: C.diff, duo: d.id, pos: C.idx, of: N(), solo: C.solo ? 1 : 0, hcap: C.solo ? SOLO_HCAP : 0, watch: !hum.length ? 1 : undefined, retry: C.retry, test: C.test ? 1 : 0, flat: C.flat ? 1 : 0,
       won: won ? 1 : 0, gw: [w.match.gw.red || 0, w.match.gw.blue || 0], secs: Math.round(Math.max(0, (Date.now() - (C.fightAt || Date.now())) / 1000)),
-      p: hum.map(c => { const p = w.players.find(q => q.id === c.pid) || {}, st = p.stats || {}, u = c.user; return { n: c.name, uid: u && typeof u.id === 'number' ? u.id : undefined, el: p.element, ro: p.role, ups: (p.up || []).filter(id => id !== p.element), k: p.kills || 0, dmg: Math.round(st.dmg || 0), tk: Math.round(st.taken || 0), sh: st.shots || 0, hi: st.hits || 0 }; }) }); } catch (e) { /* the record never gets in the way of the run */ } }
+      p: hum.map(c => ({ c, p: w.players.find(q => q.id === c.pid) || {} })).concat(redBots(room).map(p => ({ c: null, p }))).map(({ c, p }) => { const st = p.stats || {}, u = c && c.user; return { n: c ? c.name : p.name, bot: c ? undefined : 1, uid: u && typeof u.id === 'number' ? u.id : undefined, el: p.element, ro: p.role, ups: (p.up || []).filter(id => id !== p.element), k: p.kills || 0, dmg: Math.round(st.dmg || 0), tk: Math.round(st.taken || 0), sh: st.shots || 0, hi: st.hits || 0 }; }) }); } catch (e) { /* the record never gets in the way of the run */ } }
     if (!won && !endless(C)) C.used = (C.used || 0) + 1;
     if (won) {
       const pts = Math.round(BASE_SCORE * D.mult * (d.boss ? 3 : 1) * (w.match.gw.blue === 0 ? 1.25 : 1) * (C.retry === 'none' ? 1.5 : 1)); // (a clean sweep is worth a quarter more; the machine three duos; no retries half again)
@@ -211,7 +219,7 @@ function coopFactory(ctx) {
       const d = duoAt(C.idx); C.st = 'done'; C.doneAt = 0; C.result = { won: 0, duo: d.name, lives: C.lives, gaveUp: 1 };
       sysChat(room, `The run ends at ${d.name}: ${C.beaten} of ${N()} beaten, score ${C.score}.`); record(room, false); sendRoom(room);
     }
-    else if (C.st === 'play' && !humansOf(room).length) endRun(room);
+    else if (C.st === 'play' && !sideN(room)) endRun(room);
   }
   // messages from the page: { t: 'coop', op }
   function handle(room, ws, m) {
@@ -226,8 +234,8 @@ function coopFactory(ctx) {
         if (m.diff != null) S.diff = levelOf(m.diff);
         if (m.retry != null) S.retry = retryOf(String(m.retry));
         S.test = !!m.test && isOwner(ws.user); S.flat = S.test && !!m.flat;
-        if (m.op === 'setup') { for (const p of w.players.filter(q => q.bot)) Sim.removeBot(w, p.id); for (const c of humansOf(room)) Sim.setTeam(w, c.pid, 'red'); }
-        S.solo = humansOf(room).length <= 1;
+        if (m.op === 'setup') { for (const p of w.players.filter(q => q.bot && (q.coopDuo || q.team !== 'red' || !isOwner(ws.user)))) Sim.removeBot(w, p.id); /* (the owner's bots on Red stay, to watch another run) */ for (const c of humansOf(room)) Sim.setTeam(w, c.pid, 'red'); }
+        S.solo = sideN(room) <= 1;
         sendRoom(room);
         return;
       }
@@ -238,12 +246,15 @@ function coopFactory(ctx) {
         const was = C && C.st === 'setup' ? C : null;
         const diff = levelOf(m.diff != null ? m.diff : was ? was.diff : 5), retry = retryOf(String(m.retry != null ? m.retry : was ? was.retry : 'lim'));
         const hum = humansOf(room);
-        if (!hum.length || hum.length > 2) return tell('The arcade is for one or two archers.');
+        const rb = redBots(room);
+        if (rb.length && !isOwner(ws.user)) return tell('Only the owner can put bots on Red.');
+        if (!hum.length && !rb.length) return tell('Someone has to be on Red: join it, or (the owner) add a bot to watch.');
+        if (hum.length + rb.length > 2) return tell('The arcade is for one or two archers.');
         for (const c of [...room.clients]) if (c.pid && c.watch) { Sim.leave(w, c.pid, true); c.pid = null; send(c, { t: 'you', id: null }); }
         const test = (m.test != null ? !!m.test : !!(was && was.test)) && isOwner(ws.user); // (the owner's test runs: no end to the retries, nothing recorded)
         const flat = test && (m.flat != null ? !!m.flat : !!(was && was.flat)); // (and, if asked, a flat ladder: every duo at the middle of the level's band, to compare them like for like)
-        cur = room.coop = { diff, retry, idx: 0, lives: retry === 'lim' ? CONTINUES : 0, score: 0, beaten: 0, fights: 0, st: 'brief', ready: new Set(), picks: new Map(), solo: hum.length === 1, startedAt: Date.now(), order: shuffled(), test, flat };
-        sysChat(room, `Arcade, ${DIFF(diff).name} (level ${diff}): ${N() - (BOSS ? 1 : 0)} duos in a new order, then the machine. ${test ? 'Test mode: unlimited retries' + (flat ? ', every duo at the same skill (no climb).' : '.') : retry === 'unl' ? 'Unlimited retries (this run stays off the scoreboard).' : retry === 'none' ? 'No retries: one loss ends it, and every win is worth half again.' : CONTINUES + ' continues.'}${hum.length === 1 ? ' On your own: +' + SOLO_HCAP + '% health and +' + SOLO_HCAP / 2 + '% damage, the same against every duo at every difficulty.' : ''} Choose your archetype and three upgrades before each battle.`);
+        cur = room.coop = { diff, retry, idx: 0, lives: retry === 'lim' ? CONTINUES : 0, score: 0, beaten: 0, fights: 0, st: 'brief', ready: new Set(), picks: new Map(), solo: hum.length + rb.length === 1, startedAt: Date.now(), order: shuffled(), test, flat };
+        sysChat(room, `Arcade, ${DIFF(diff).name} (level ${diff}): ${N() - (BOSS ? 1 : 0)} duos in a new order, then the machine. ${test ? 'Test mode: unlimited retries' + (flat ? ', every duo at the same skill (no climb).' : '.') : retry === 'unl' ? 'Unlimited retries (this run stays off the scoreboard).' : retry === 'none' ? 'No retries: one loss ends it, and every win is worth half again.' : CONTINUES + ' continues.'}${!hum.length ? ' Watching: ' + rb.map(b => b.name).join(' and ') + ' on Red.' : ''}${hum.length + rb.length === 1 ? ' On your own: +' + SOLO_HCAP + '% health and +' + SOLO_HCAP / 2 + '% damage, the same against every duo at every difficulty.' : ''} Choose your archetype and three upgrades before each battle.`);
         brief(room);
         return;
       }
@@ -263,7 +274,7 @@ function coopFactory(ctx) {
       case 'go': if (C && isHost && C.st === 'brief') fight(room); return; // the host starts without waiting
       case 'pause': if (C && ws.pid && C.st === 'play' && !C.paused) { C.paused = ws.name; sysChat(room, `${ws.name} paused the battle.`); sendRoom(room); } return;
       case 'resume': if (C && C.paused && (C.paused === ws.name || isHost)) { C.paused = null; sysChat(room, 'On with it.'); sendRoom(room); } return;
-      case 'next': if (C && ((C.st === 'won' && isHost) || (C.st === 'lost' && ws.pid))) brief(room); return; // (anyone playing can take the continue)
+      case 'next': if (C && ((C.st === 'won' && isHost) || (C.st === 'lost' && (ws.pid || isHost)))) brief(room); return; // (anyone playing can take the continue)
       case 'giveup': if (C && C.st === 'lost' && isHost) { C.cardAt = 0; C.over = true; tick(room); } return;
       case 'skip': { // the owner, for testing: forward or back a duo
         if (!C || !isOwner(ws.user)) return;
@@ -277,7 +288,7 @@ function coopFactory(ctx) {
     }
   }
   // someone leaving mid-run: a run with nobody left in it ends; in a two-person run the other carries on alone (with the solo handicap next battle)
-  function left(room) { const C = room.coop; if (!C) return; if (C.st === 'setup') C.solo = humansOf(room).length <= 1; if (!humansOf(room).length) endRun(room); else if (C.paused && !humansOf(room).some(c => c.name === C.paused)) { C.paused = null; sendRoom(room); } }
+  function left(room) { const C = room.coop; if (!C) return; if (C.st === 'setup') C.solo = sideN(room) <= 1; if (!humansOf(room).length && !(redBots(room).length && room.clients.size)) endRun(room); else if (C.paused && !humansOf(room).some(c => c.name === C.paused)) { C.paused = null; sendRoom(room); } }
   return { handle: (room, ws, m) => { cur = room.coop; return handle(room, ws, m); }, tick: room => { cur = room.coop; return tick(room); }, info: room => { cur = room.coop; return info(room); }, events: (room, evs) => { cur = room.coop; return events(room, evs); }, left: room => { cur = room.coop; return left(room); }, endRun: room => { cur = room.coop; return endRun(room); }, DUOS, DIFFS, CONTINUES, SOLO_HCAP, RETRY };
 }
 if (typeof module !== 'undefined' && module.exports) module.exports = coopFactory; else root.CoopLadder = coopFactory;
